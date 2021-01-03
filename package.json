@@ -1,0 +1,61 @@
+{
+  "name": "paperlib",
+  "version": "0.0.1",
+  "description": "",
+  "productName": "PaperLib",
+  "author": "GeoffreyChen <geoffreychen777@gmail.com>",
+  "private": true,
+  "scripts": {
+    "lint": "eslint --ext .js,.vue ./",
+    "test": "echo \"No test specified\" && exit 0"
+  },
+  "dependencies": {
+    "@hendt/xml2json": "^1.0.3",
+    "@quasar/extras": "^1.0.0",
+    "aws-sdk": "^2.817.0",
+    "bibtex-parse": "^2.1.0",
+    "core-js": "^3.6.5",
+    "drag-drop": "^6.1.0",
+    "electron-store": "^6.0.1",
+    "pdfjs-dist": "^2.6.347",
+    "quasar": "^1.0.0",
+    "sqlite3": "^5.0.0",
+    "vxe-table": "^3.0.18",
+    "worker-loader": "^3.0.7",
+    "xe-utils": "^3.0.4"
+  },
+  "devDependencies": {
+    "@quasar/app": "^2.0.0",
+    "babel-eslint": "^10.0.1",
+    "devtron": "^1.4.0",
+    "electron": "^9.0.0",
+    "electron-builder": "^22.4.0",
+    "electron-debug": "^3.0.1",
+    "electron-devtools-installer": "^3.0.0",
+    "electron-packager": "^14.1.1",
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-loader": "^3.0.3",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "eslint-plugin-vue": "^6.2.2"
+  },
+  "browserslist": [
+    "last 10 Chrome versions",
+    "last 10 Firefox versions",
+    "last 4 Edge versions",
+    "last 7 Safari versions",
+    "last 8 Android versions",
+    "last 8 ChromeAndroid versions",
+    "last 8 FirefoxAndroid versions",
+    "last 10 iOS versions",
+    "last 5 Opera versions"
+  ],
+  "engines": {
+    "node": ">= 10.18.1",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}
