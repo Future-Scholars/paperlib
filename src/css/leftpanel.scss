@@ -1,0 +1,28 @@
+.radius-list-item {
+  height: 28px !important;
+  min-height: 28px !important;
+  line-height: 28px !important;
+  border: solid 0px #00000000;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.radius-list-item-active {
+  background-color: #C1C1C1;
+  font-weight: 500;
+}
+
+.radius-list-item-icon {
+  font-size: 12px !important;
+}
+
+.radius-list-item-text {
+  font-size: 12px !important;
+}
+
+.radius-list-item-label {
+  font-size: 12px;
+  font-weight: 600;
+}

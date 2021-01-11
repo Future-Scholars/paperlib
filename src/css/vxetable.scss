@@ -1,0 +1,80 @@
+@import 'vxe-table/styles/variable.scss';
+$vxe-font-size: 12px;
+$vxe-table-row-height-default: 22px;
+$vxe-table-row-line-height: 18px;
+$vxe-table-row-striped-background-color: #f1f3f2;
+@import 'vxe-table/styles/modules.scss';
+
+.table-box {
+  width: calc(100%-250px);
+  height: 100%;
+}
+
+.vxe-table {
+  color: #454545 !important
+}
+
+table {
+  border-collapse: separate;
+}
+
+td {
+  border: solid 0px #00000000;
+}
+
+td:first-child {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+td:last-child {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.vxe-sort--asc-btn {
+  font-size: 8px;
+  padding-top: 2px;
+}
+
+.vxe-sort--desc-btn {
+  font-size: 8px;
+  padding-bottom: 2px;
+}
+
+.vxe-table--context-menu-wrapper,
+.vxe-table--context-menu-clild-wrapper {
+  background-color: #EFEFEF;
+  box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, .1);
+  border: solid 1px #00000011;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px
+}
+
+.vxe-context-menu--link-content {
+  color: #000000
+}
+
+.vxe-context-menu--link {
+  padding-left: 10px !important
+}
+
+.link--active {
+  background-color: #DADADA !important
+}
+
+.vxe-context-menu--option-wrapper,
+.vxe-table--context-menu-clild-wrapper {
+  padding: 2px
+}
+
+.vxe-context-menu--option-wrapper li,
+.vxe-table--context-menu-clild-wrapper li {
+  border: solid 0px #00000000;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px
+}

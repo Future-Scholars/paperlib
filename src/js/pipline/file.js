@@ -55,6 +55,7 @@ export async function copyPaperAndAttachments (paperMeta) {
       paperMeta.paperFile = newFilePath
     }
   }
+
   if (paperMeta.hasAttachments()) {
     for (const i in paperMeta.attachments) {
       const attachmentFile = paperMeta.attachments[i].split('.')

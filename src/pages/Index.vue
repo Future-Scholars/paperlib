@@ -9,39 +9,40 @@
             <q-btn dense flat round icon="lens" size="8.5px" color="green-6" @click="maximize" />
           </q-bar>
 
-    <q-list dense class="q-pl-sm q-pr-sm">
-      <q-item class="radius">
-        <q-item-section avatar top>
-          <span class="lib-label">Library</span>
-        </q-item-section>
-      </q-item>
+          <q-list dense class="q-pl-sm q-pr-sm">
+            <q-item class="radius-list-item">
+              <q-item-section avatar top>
+                <span class="radius-list-item-label text-primary">Library</span>
+              </q-item-section>
+            </q-item>
 
-      <q-item class="radius" clickable v-ripple :active="selectedAll" active-class="lib-active" @click="selectAll">
-        <q-item-section avatar>
-          <q-icon class="q-mr-md lib-icon" name="fa fa-book-open"/>
-          <span class="lib-text">All</span>
-        </q-item-section>
-        <q-item-section>
-        </q-item-section>
-        <q-item-section avatar v-if="showLoadingLibIcon">
-          <q-spinner-oval color="primary" size="1em"/>
-        </q-item-section>
-      </q-item>
-      <q-separator class="q-mt-md q-mb-md" inset />
+            <q-item class="radius-list-item" clickable v-ripple :active="selectedTag === 'All'" active-class="radius-list-item-active"
+              @click="selectTag('All')">
+              <q-item-section avatar>
+                <q-icon class="radius-list-item-icon text-primary q-mr-md" name="fa fa-book-open" />
+                <span class="radius-list-item-text text-primary">All</span>
+              </q-item-section>
+              <q-item-section>
+              </q-item-section>
+              <q-item-section avatar v-if="showLoadingLibIcon">
+                <q-spinner-oval color="primary" size="1em" />
+              </q-item-section>
+            </q-item>
+            <q-separator class="q-mt-md q-mb-md" inset />
 
-      <q-item class="radius">
-        <q-item-section avatar top>
-          <span class="lib-label">Tags</span>
-        </q-item-section>
-      </q-item>
-
-      <q-item class="radius" clickable v-ripple :active="selectedTags[tag]" active-class="lib-active" v-for="tag in allTags" :key="tag" @click="selectTag(tag)">
-        <q-item-section avatar>
-          <q-icon class="q-mr-md lib-icon" name="fa fa-tag"/>
-          <span class="lib-text">{{tag}}</span>
-        </q-item-section>
-      </q-item>
-    </q-list>
+            <q-item class="radius-list-item">
+              <q-item-section avatar top>
+                <span class="radius-list-item-label text-primary">Tags</span>
+              </q-item-section>
+            </q-item>
+            <q-item class="radius-list-item" clickable v-ripple active-class="radius-list-item-active"
+              v-for="tag in allTags" :key="tag" :active="selectedTag === tag" @click=selectTag(tag)>
+              <q-item-section avatar>
+                  <q-icon class="radius-list-item-icon text-primary q-mr-md" name="fa fa-tag" />
+                  <span class="radius-list-item-text text-primary"> {{tag}} </span>
+              </q-item-section>
+            </q-item>
+          </q-list>
         </q-page>
       </q-page-container>
     </template>
@@ -52,7 +53,7 @@
           <q-dialog class="q-pa-none" v-model="showSettingWindow">
             <q-card class="q-pl-sm q-pr-sm" style="min-width: 600px">
               <q-card-section style="text-align: center">
-                <div class="text-h6 ">Settings</div>
+                <div class="text-h6">Settings</div>
               </q-card-section>
               <q-card-section class="q-pl-xl">
                 <div class="row">
@@ -61,8 +62,9 @@
                   </div>
                   <div class="col" style="margin-left:-20px">
                     <div >Library Folder</div>
+                    <div style="color:#777777; font-size: 10px">NOTE: Cannot select a empty folder, please copy at least one useless file to initialize db.</div>
                     <div style="color:#BBBBBB; font-size: 12px" @click="selectLibFolder" class="setting-lib-path-text"> {{ getLibPath() }} </div>
-                    <q-file dense ref="settingLibfolderPicker" webkitdirectory v-model="settingBuffer.libPathPickerFile" style="display: none" />
+                    <q-file dense ref="settingLibfolderPicker" webkitdirectory v-model="settingBuffer.libPathPickerFile" style="display: none"/>
                   </div>
                 </div>
             </q-card-section>
@@ -90,262 +92,192 @@
               <q-btn no-caps outline rounded color="grey-9" label="Apply" v-close-popup @click="applySetting" />
             </q-card-actions>
           </q-card>
-        </q-dialog>
-
-        <q-dialog v-model="showManuallyWindow" persistent>
-          <q-card class="q-pl-md q-pr-md" style="min-width: 450px">
-            <q-card-section>
-              <div class="text-bold">Please input paper metadata manually</div>
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <q-input dense v-model="manuallyMeta.title" autofocus label="Title" />
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <q-input dense v-model="manuallyMeta.authors"  label="Authors (e.g., Lebron James and Stephen Curry)" />
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <q-input dense v-model="manuallyMeta.pub"  label="Publication" />
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <q-select dense v-model="manuallyMeta.pubType" :options="manuallyTypeOptions" label="Type" />
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <q-input dense v-model="manuallyMeta.pubTime"  label="Year" />
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <q-input dense v-model="manuallyMeta.doi"  label="DOI" />
-            </q-card-section>
-
-            <q-card-section class="q-pt-none">
-              <q-file dense v-model="manuallyMeta.file" :label="manuallyMeta.paperFile" />
-            </q-card-section>
-
-            <q-card-actions align="right" class="text-primary">
-              <q-btn no-caps flat label="Match" :disable="manuallyMatchFlag()" :loading="manuallyMatchLoading" @click="matchManualMeta"/>
-              <q-btn no-caps flat label="Cancel" v-close-popup />
-              <q-btn no-caps flat label="Add" v-close-popup @click="addManualMeta" />
-            </q-card-actions>
-          </q-card>
-        </q-dialog>
-        <div class="column col absolute-full">
-          <div style="height: 50px; width:100%">
-            <q-bar class="q-electron-drag no-shadow" style="background-color:#F1F1F1; height: 50px; width: 100%">
+          </q-dialog>
+          <q-dialog class="q-pa-none" v-model="showExportWindow">
+            <q-card style="min-width: 50%; min-height: 500px">
+              <q-card-section class="full-height">
+                <q-input
+                  v-model="exportBibtexsString"
+                  standout="bg-primary text-white"
+                  rows="25"
+                  type="textarea"
+                />
+              </q-card-section>
+            </q-card>
+          </q-dialog>
+          <div class="column col absolute-full">
+            <q-bar class="q-electron-drag no-shadow titlebar" style="background-color:#F1F1F1">
               <div class="row justify-between" style="width: 100%">
                 <div class="col-4">
-                  <q-input round v-model="filterName" placeholder="Search"
-                    style="margin-left:20px; font-size: 14px; width: 300px">
+                  <q-input round v-model="filterName" placeholder="Search" style="margin-left:20px; font-size: 14px; width: 300px">
                     <template v-slot:prepend>
                       <q-icon size="xs" name="search" />
                     </template>
                   </q-input>
                 </div>
-                <div class="col-3" style="text-align: right;">
-                  <q-btn outline round size="xs" color="grey-7" icon="add" class="q-mt-md q-mr-md" @click="manuallyAddEvent" />
-                  <q-btn outline round size="xs" color="grey-7" icon="settings" class="q-mt-md q-mr-md" @click="openSetting" />
+                <div class="col-3">
+                  <q-btn flat size="sm" padding="xs sm" color="grey-7" icon="settings" class="q-mt-md float-right" @click="openSetting" />
+                  <q-btn flat size="sm" padding="xs sm" color="grey-7" icon="add" class="q-mt-md float-right" >
+                    <q-menu>
+                      <q-list style="min-width: 180px">
+                        <q-item class="radius-list-item" clickable @click="triggerImportfromBibFile">
+                          <q-item-section avatar>
+                            <q-icon class="radius-list-item-icon text-primary q-mr-md" name="fa fa-file" />
+                            <span class="radius-list-item-text text-primary">Import from Bibtex file</span>
+                          <q-file
+                            ref="fileImportFromBibFile"
+                            dense rounded outlined bottom-slots accept=".bib"
+                            v-model="importedBibFile" style="display:none" @input="importBibFileEvent"/>
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
+                    </q-menu>
+                  </q-btn>
+                  <q-btn flat size="sm" padding="xs sm" color="grey-7" icon="open_in_new" class="q-mt-md float-right" @click="exportBibtexsEvent" />
                 </div>
               </div>
             </q-bar>
-          </div>
-          <div class="col" style="padding-left: 10px; padding-right: 10px; width:100%">
-            <div class="row items-start no-wrap" style="height: 100%;width:100%">
-              <div class="col" style="height: 100%">
-                <vxe-table ref="xTable" resizable highlight-current-row highlight-hover-row auto-resize stripe border="none"
-                  empty-text="Library empty"
-                  height="99%" style="padding-right: 10px; width: 100%"
-                  @cell-dblclick="tableRowDBLClickEvent"
-                  @cell-click="tableRowClickEvent"
-                  :menu-config="tableMenu"
-                  @menu-click="menuClickEvent"
-                  :sort-config="{iconAsc: 'fa fa-chevron-up', iconDesc: 'fa fa-chevron-down', trigger: 'cell', defaultSort: {field: 'add', order: 'desc'}, orders: ['desc', 'asc', null]}"
-                  :align="allAlign" :data="listMetas">
-                  <vxe-table-column show-overflow="ellipsis" field="title" title="Title" width="40%"></vxe-table-column>
-                  <vxe-table-column show-overflow="ellipsis" field="authorsStr" title="Authors" width="10%"></vxe-table-column>
-                  <vxe-table-column show-overflow="ellipsis" field="pub" title="Publication" width="25%"></vxe-table-column>
-                  <vxe-table-column show-overflow="ellipsis" sortable field="pubTime" title="Year" width="10%"></vxe-table-column>
-                  <vxe-table-column show-overflow="ellipsis" sortable field="addTime" title="AddTime" width="15%"></vxe-table-column>
-                </vxe-table>
-              </div>
-              <div class="col-1" style="color: #343434; height: 100%; width: 250px; border-left: 1px solid #DBDBDB; padding-top: 5px; ">
-                <q-card flat>
-                  <q-card-section class="q-pb-sm">
-                    <div class="text-weight-bold">{{ selectedMeta.title }}</div>
-                    <div style="color: gray; font-size:12px">{{ selectedMeta.authorsStr }}</div>
-                  </q-card-section>
+            <div class="col" style="padding-left: 10px; padding-right: 10px; width:100%">
+              <div class="row items-start no-wrap" style="height: 100%;width:100%">
+                <div class="col" style="height: 100%">
+                  <vxe-table ref="xTable" resizable highlight-current-row highlight-hover-row auto-resize stripe border="none" empty-text="Library empty"
+                    height="99%" class="no-select" style="padding-right: 10px; width: 100%"
+                    @cell-dblclick="tableRowDBLClickEvent"
+                    @cell-click="tableRowClickEvent"
+                    :menu-config="tableMenu"
+                    @menu-click="menuClickEvent"
+                    :sort-config="{iconAsc: 'fa fa-chevron-up', iconDesc: 'fa fa-chevron-down', trigger: 'cell', defaultSort: {field: 'addTime', order: 'desc'}, orders: ['desc', 'asc', null]}"
+                    :align="allAlign" :data="listMetas">
+                    <vxe-table-column show-overflow="ellipsis" field="title" title="Title" width="40%"></vxe-table-column>
+                    <vxe-table-column show-overflow="ellipsis" field="authorsStr" title="Authors" width="10%"></vxe-table-column>
+                    <vxe-table-column show-overflow="ellipsis" field="pub" title="Publication" width="25%"></vxe-table-column>
+                    <vxe-table-column show-overflow="ellipsis" sortable field="pubTime" title="Year" width="10%"></vxe-table-column>
+                    <vxe-table-column show-overflow="ellipsis" sortable field="addTime" title="AddTime" width="15%"></vxe-table-column>
+                  </vxe-table>
+                </div>
+                <div v-if="!editWindowVisiable" class="col-1" style="height: 100%; width: 250px; padding: 10px 0px 10px 0px; z-index: 99">
+                  <div class="radius-border" style="height: 100%; background-color: rgb(245, 245, 245); box-shadow: 0px 5px 8px 2px rgb(0, 0, 0, 0.1);">
+                  <q-scroll-area style="height: 100%;" :visible="false" >
+                  <q-card flat style="background: none">
+                    <q-card-section class="q-pb-sm q-mt-none">
+                      <div class="text-weight-bold q-mb-sm">{{ selectedMeta.title }}</div>
+                      <div class="detail-label">Authors</div>
+                      <div style="font-size:12px">{{ selectedMeta.authorsStr }}</div>
+                    </q-card-section>
 
-                  <q-card-section class="q-pt-none q-pb-sm">
-                    <div class="detail-label">Publication</div>
-                    <div style="font-style: italic; font-size:12px">{{ selectedMeta.pub }}</div>
-                  </q-card-section>
+                    <q-card-section class="q-pt-none q-pb-sm">
+                      <div class="detail-label">Publication</div>
+                      <div style="font-style: italic; font-size:12px">{{ selectedMeta.pub }}</div>
+                    </q-card-section>
 
-                  <q-card-section class="q-pt-none q-pb-sm">
-                    <div class="detail-label">Publication Time</div>
-                    <div style="font-size:12px">{{ selectedMeta.pubTime }}</div>
-                  </q-card-section>
-                  <q-separator inset />
+                    <q-card-section class="q-pt-none q-pb-sm">
+                      <div class="detail-label">Publication Time</div>
+                      <div style="font-size:12px">{{ selectedMeta.pubTime }}</div>
+                    </q-card-section>
+                    <q-separator inset />
 
-                  <q-card-section class="q-pt-none q-mt-md q-pb-sm">
-                    <div class="detail-label">Add Time</div>
-                    <div style="font-size:12px">{{ selectedMeta.addTime }}</div>
-                  </q-card-section>
+                    <q-card-section class="q-pt-none q-mt-md q-pb-sm">
+                      <div class="detail-label">Add Time</div>
+                      <div style="font-size:12px">{{ selectedMeta.addTime }}</div>
+                    </q-card-section>
 
-                  <q-card-section class="q-pt-none q-pb-xs">
-                    <div class="detail-label">Attachments
-                      <q-btn size="xs" round flat color="grey-5" icon="add" @click="trigerAddAttachment"
-                        style="margin-top:-2px" />
-                    </div>
-                    <div class="row q-mt-none">
-                      <q-chip rounded outline dense size="md" color="cyan-9" clickable :disable="selectedMeta.paperFile === null" @click="openFile(selectedMeta.paperFile)" class="q-mt-none q-ml-none">
-                        <div style="font-size: 10px">PAPER</div>
-                        <q-menu touch-position context-menu>
-                          <q-list dense style="min-width: 80px">
-                            <q-item clickable v-close-popup @click="deletePaperFile">
-                              <q-item-section>Delete</q-item-section>
-                            </q-item>
-                          </q-list>
-                        </q-menu>
-                      </q-chip>
-                      <q-chip rounded outline size="md" dense color="cyan-5" clickable v-for="attachment in selectedMeta.attachments" :key="attachment" @click="openFile(attachment)"  class="q-mt-none q-ml-none">
-                        <div style="font-size: 10px">{{ getAttachmentLable(attachment) }}</div>
-                        <q-menu touch-position context-menu>
-                          <q-list dense style="min-width: 80px">
-                            <q-item clickable v-close-popup @click="deleteAttachment(attachment)">
-                              <q-item-section>Delete</q-item-section>
-                            </q-item>
-                          </q-list>
-                        </q-menu>
-                      </q-chip>
-                      <q-file ref="detailsAddAttachment" dense rounded outlined bottom-slots v-model="newAttachment" label="Add Attachment" style="display:none" @input="addAttachmentEvent"/>
-                    </div>
-                  </q-card-section>
-                  <q-card-section class="q-pt-none q-pb-xs">
-                    <div class="detail-label">Tags
-                      <q-popup-edit ref="newTagDialog" v-model="newTag" @save="addTagEvent">
-                        <q-input v-model="newTag" dense autofocus />
-                      </q-popup-edit>
-                      <q-btn size="xs" round flat color="grey-5" icon="add" style="margin-top:-2px"/>
-                    </div>
-                    <div class="row q-mt-none">
-                      <q-chip rounded outline dense size="md" color="grey-7" v-for="tag in selectedMeta.tagsList" :key="tag" class="q-mt-none q-ml-none">
-                        <div style="font-size: 10px; user-select: none">{{ tag }}
+                    <q-card-section class="q-pt-none q-pb-xs">
+                      <div class="detail-label">Attachments
+                        <q-btn size="xs" round flat color="grey-5" icon="add" @click="trigerAddAttachment"
+                          style="margin-top:-2px" />
+                      </div>
+                      <div class="row q-mt-none">
+                        <q-chip rounded outline dense size="md" color="cyan-9" clickable @click="openPaperFile(selectedMeta.paperFile)" class="q-mt-none q-ml-none">
+                          <div style="font-size: 10px">PAPER</div>
                           <q-menu touch-position context-menu>
                             <q-list dense style="min-width: 80px">
-                              <q-item clickable v-close-popup @click="deleteTag(tag)">
+                              <q-item clickable v-close-popup @click="deletePaperFile">
                                 <q-item-section>Delete</q-item-section>
                               </q-item>
                             </q-list>
                           </q-menu>
-                        </div>
-                      </q-chip>
-                    </div>
-                  </q-card-section>
-                  <q-card-section class="q-pt-none q-pb-sm">
-                    <div class="detail-label">Rating</div>
-                    <q-rating v-model="selectedMeta.rating" size="1em" :max="5" color="grey-6" @input="ratingChangedEvent"/>
-                  </q-card-section>
-                  <q-card-section class="q-pt-none q-pb-sm">
-                    <div class="detail-label">Note</div>
-                    <q-input v-model="selectedMeta.note" outlined autogrow color="grey-6" class="q-mt-sm" @blur="noteChangedEvent" style="font-size:12px"/>
-                  </q-card-section>
-                </q-card>
+                        </q-chip>
+                        <q-chip rounded outline size="md" dense color="cyan-5" clickable v-for="attachment in selectedMeta.attachments" :key="attachment" @click="openFile(attachment)"  class="q-mt-none q-ml-none">
+                          <div style="font-size: 10px">{{ getAttachmentLabel(attachment) }}</div>
+                          <q-menu touch-position context-menu>
+                            <q-list dense style="min-width: 80px">
+                              <q-item clickable v-close-popup @click="deleteAttachment(attachment)">
+                                <q-item-section>Delete</q-item-section>
+                              </q-item>
+                            </q-list>
+                          </q-menu>
+                        </q-chip>
+                        <q-file ref="detailsAddPaper" dense rounded outlined bottom-slots v-model="newPaper" style="display:none" @input="addPaperEvent"/>
+                        <q-file ref="detailsAddAttachment" dense rounded outlined bottom-slots v-model="newAttachment" style="display:none" @input="addAttachmentEvent"/>
+                      </div>
+                    </q-card-section>
+                    <q-card-section class="q-pt-none q-pb-xs">
+                      <div class="detail-label">Tags
+                        <q-popup-edit ref="newTagDialog" v-model="newTag" @save="addTagEvent">
+                          <q-input v-model="newTag" dense autofocus />
+                        </q-popup-edit>
+                        <q-btn size="xs" round flat color="grey-5" icon="add" style="margin-top:-2px"/>
+                      </div>
+                      <div class="row q-mt-none">
+                        <q-chip rounded outline dense size="md" color="grey-7" v-for="tag in selectedMeta.tagsList" :key="tag" class="q-mt-none q-ml-none">
+                          <div style="font-size: 10px; user-select: none">{{ tag }}
+                            <q-menu touch-position context-menu>
+                              <q-list dense style="min-width: 80px">
+                                <q-item clickable v-close-popup @click="deleteTag(tag)">
+                                  <q-item-section>Delete</q-item-section>
+                                </q-item>
+                              </q-list>
+                            </q-menu>
+                          </div>
+                        </q-chip>
+                      </div>
+                    </q-card-section>
+                    <q-card-section class="q-pt-none q-pb-sm">
+                      <div class="detail-label">Rating</div>
+                      <q-rating v-model="selectedMeta.rating" size="1em" :max="5" color="grey-8" @input="ratingChangedEvent"/>
+                    </q-card-section>
+                    <q-card-section class="q-pt-none q-pb-sm">
+                      <div class="detail-label">Note</div>
+                      <q-input v-model="selectedMeta.note" outlined autogrow color="grey-6" class="q-mt-sm" @blur="noteChangedEvent" style="font-size:12px"/>
+                    </q-card-section>
+                  </q-card>
+                  </q-scroll-area>
+                  </div>
+                </div>
+                <div v-if="editWindowVisiable" class="col-1" style="height: 100%; width: 250px; padding: 10px 0px 10px 0px; z-index: 99">
+                  <div class="radius-border" style="height: 90%; padding: 10px 5px 5px 5px; background-color: rgb(245, 245, 245); box-shadow: 0px 5px 8px 2px rgb(0, 0, 0, 0.1);">
+                        <q-input class="q-mb-sm" standout="bg-primary text-white" v-model="editWindowMeta.title"
+                          label="Title" stack-label dense autogrow style="font-size:12px; color: #676767" />
+                        <q-input class="q-mb-sm" standout="bg-primary text-white" v-model="editWindowMeta.authorsStr" label="Authors"
+                          stack-label dense autogrow style="font-size:12px" />
+                        <q-input class="q-mb-sm" standout="bg-primary text-white" v-model="editWindowMeta.pub" label="Publication"
+                          stack-label dense autogrow style="font-size:12px" />
+                        <q-input class="q-mb-sm" standout="bg-primary text-white" v-model="editWindowMeta.pubTime"
+                          label="Publication Time" stack-label dense autogrow style="font-size:12px" />
+                        <q-input class="q-mb-sm" standout="bg-primary text-white" v-model="editWindowMeta.doi" label="DOI" stack-label
+                          dense autogrow style="font-size:12px" />
+                        <q-input class="q-mb-sm" standout="bg-primary text-white" v-model="editWindowMeta.arxiv" label="Arxiv"
+                          stack-label dense autogrow style="font-size:12px" />
+                  </div>
+                  <div style="height: 10%; text-align: center">
+                    <q-btn  round size="sm" color="grey-5" icon="close" class="q-mr-md q-mt-md" @click="editWindowVisiable=false"/>
+                    <q-btn  round size="sm" color="grey-7" icon="done" class="q-ml-md q-mt-md" @click="applyEditMetaEvent"/>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         </q-page>
       </q-page-container>
     </template>
   </q-splitter>
 </template>
 <style lang="sass">
-@import 'vxe-table/styles/variable.scss'
-$vxe-font-size: 12px
-$vxe-font-color: #666
-$vxe-table-row-height-default: 22px
-$vxe-table-row-line-height: 18px
-$vxe-table-row-striped-background-color: #f1f3f2
-@import 'vxe-table/styles/modules.scss'
-table-box
-  width: calc(100%-250px)
-  height: 100%
-table
-  border-collapse: separate
-td
-  border: solid 0px #00000000
-  user-select: none
-td:first-child
-  border-top-left-radius: 5px
-  border-bottom-left-radius: 5px
-td:last-child
-  border-top-right-radius: 5px
-  border-bottom-right-radius: 5px
-.keyword-lighten
-  color: #000
-  background-color: #FFFF00
-.vxe-sort--asc-btn
-  font-size: 8px
-  padding-top: 2px
-.vxe-sort--desc-btn
-  font-size: 8px
-  padding-bottom: 2px
-.detail-label
-  user-select: none
-  font-size:10px
-  color: #898989
-  font-weight: 500
-.lib-active
-  background-color: #C1C1C1
-  color: #212121
-  font-weight: 500
-.radius
-  height: 28px !important
-  min-height: 28px !important
-  line-height: 28px !important
-  border: solid 0px #00000000
-  border-top-left-radius: 5px
-  border-bottom-left-radius: 5px
-  border-top-right-radius: 5px
-  border-bottom-right-radius: 5px
-.lib-icon
-  font-size: 12px !important
-  color: #454545
-  margin-left: -5px
-  margin-right: 8px
-.lib-text
-  color: #565656
-  font-size: 12px !important
-.lib-label
-  color: #454545
-  font-size: 12px
-  font-weight: 600
-  margin-left: 5px
-.vxe-table--context-menu-wrapper,.vxe-table--context-menu-clild-wrapper
-  background-color: #EFEFEF
-  box-shadow: 0px 0px 10px 5px rgba(0,0,0,.1)
-  border: solid 1px #00000011
-  border-top-left-radius: 8px
-  border-bottom-left-radius: 8px
-  border-top-right-radius: 8px
-  border-bottom-right-radius: 8px
-.vxe-context-menu--link-content
-  color: #000000
-.vxe-context-menu--link
-  padding-left: 10px !important
-.link--active
-  background-color: #DADADA !important
-.vxe-context-menu--option-wrapper, .vxe-table--context-menu-clild-wrapper
-  padding: 2px
-.vxe-context-menu--option-wrapper li,.vxe-table--context-menu-clild-wrapper li
-  border: solid 0px #00000000
-  border-top-left-radius: 8px
-  border-bottom-left-radius: 8px
-  border-top-right-radius: 8px
-  border-bottom-right-radius: 8px
+@import './src/css/default.scss'
+@import './src/css/leftpanel.scss'
+@import './src/css/vxetable.scss'
+@import './src/css/detailpanel.scss'
+
 .setting-lib-path-text:hover
   color: #121212 !important
   cursor: pointer
@@ -353,8 +285,8 @@ td:last-child
 
 <script>
 
-import { fromFilePipeline, manuallyMatchPipeline } from 'src/js/pipline/pipeline'
-import { newPaperMetafromObj, PaperMeta } from 'src/js/pipline/structure'
+import { fromFilePipeline, manuallyMatchPipeline, fromBibtexFilePipeline } from 'src/js/pipline/pipeline'
+import { newPaperMetafromObj } from 'src/js/pipline/structure'
 import { initDB, insertToDB, queryAllMetaFromDB, queryFilesFromDB, deleteFromDB, updateRating, updateNote, deleteFileFromDB, addTags, queryTagsFromDB } from '../js/db/db'
 import dragDrop from 'drag-drop'
 import { shell } from 'electron'
@@ -368,25 +300,30 @@ export default {
       allAlign: null,
       filterName: '',
       allMetas: [],
+      displayMetas: null,
       newAttachment: null,
+      newPaper: null,
+      importedBibFile: null,
+      exportBibtexsString: null,
       splitterModel: 20,
-      showDetailWindow: false,
       showSettingWindow: false,
+      showExportWindow: false,
+      editWindowVisiable: false,
       settingBuffer: { libPathPickerFile: null, proxyURL: null, proxyPort: null },
-      showManuallyWindow: false,
-      manuallyMatchLoading: false,
-      manuallyTypeOptions: ['journal', 'conference'],
-      manuallyMeta: {
-        title: null,
-        authorsStr: null,
-        pub: null,
+      selectedMeta: newPaperMetafromObj({
+        title: 'PaperLib',
+        authorsStr: 'Geo',
+        pub: 'Open source paper management software.',
         pubType: null,
-        pubTime: null,
+        pubTime: 2020,
         doi: null,
         paperFile: null,
-        file: null
-      },
-      selectedMeta: newPaperMetafromObj({
+        attachments: [],
+        rating: 0,
+        note: '',
+        tags: null
+      }),
+      editWindowMeta: newPaperMetafromObj({
         title: 'PaperLib',
         authorsStr: 'Geo',
         pub: 'Open source paper management software.',
@@ -401,8 +338,7 @@ export default {
       }),
       newTag: null,
       allTags: [],
-      selectedAll: true,
-      selectedTags: [],
+      selectedTag: 'All',
       tableMenu: {
         className: 'library-menus',
         body: {
@@ -413,6 +349,7 @@ export default {
             ],
             [
               { code: 'match', name: 'Match metadata' },
+              { code: 'edit', name: 'Edit metadata' },
               {
                 code: 'exportbib',
                 name: 'Export bibtext'
@@ -430,24 +367,20 @@ export default {
   computed: {
     listMetas () {
       const filterName = this.$XEUtils.toString(this.filterName).trim().toLowerCase()
-      if (filterName) {
-        const filterRE = new RegExp(filterName, 'gi')
-        const searchProps = ['title', 'authorsStr']
-        const rest = this.allMetas.filter(item => searchProps.some(key => this.$XEUtils.toString(item[key]).toLowerCase().indexOf(filterName) > -1))
-        return rest.map(row => {
-          const item = Object.assign({}, row)
-          searchProps.forEach(key => {
-            item[key] = this.$XEUtils.toString(item[key]).replace(filterRE, match => `${match}`)
-          })
-          return item
-        })
+      let rest = this.allMetas
+      if (this.selectedTag !== 'All') {
+        rest = this.allMetas.filter(item => item.tagsList.includes(this.selectedTag))
       }
-      return this.allMetas
+      if (filterName) {
+        const searchProps = ['title', 'authorsStr']
+        rest = rest.filter(item => searchProps.some(key => this.$XEUtils.toString(item[key]).toLowerCase().indexOf(filterName) > -1))
+        return rest
+      }
+      return rest
     }
-
   },
   methods: {
-
+    // Window Control ===========================================================
     minimize () {
       if (process.env.MODE === 'electron') {
         this.$q.electron.remote.BrowserWindow.getFocusedWindow().minimize()
@@ -472,30 +405,36 @@ export default {
       }
     },
 
-    // Navigation Panel ===============================================================
-    selectAll () {
-      this.selectedAll = true
-      this.allTags.forEach(tag => {
-        this.selectedTags[tag] = false
-      })
-      this.quaryAllMetas()
+    // Left Panel ===============================================================
+    selectTag (tag) {
+      this.selectedTag = tag
+      if (tag === 'All') {
+        this.quaryAllMetas()
+      }
     },
 
-    async selectTag (tag) {
-      this.selectedAll = false
-      this.allTags.forEach(t => {
-        this.selectedTags[t] = false
-      })
-      this.selectedTags[tag] = true
-      const filteredMeta = []
-      const allData = await queryAllMetaFromDB()
-      allData.forEach(currentMeta => {
-        if (currentMeta.tagsList.includes(tag)) {
-          filteredMeta.push(currentMeta)
+    // Menu =======================
+    triggerImportfromBibFile () {
+      this.$refs.fileImportFromBibFile.pickFiles()
+    },
+
+    importBibFileEvent (file) {
+      console.log(123)
+      this.showLoadingLibIcon = true
+      fromBibtexFilePipeline(file.path).then(
+        async (paperMetas) => {
+          while (true) {
+            const paperMeta = paperMetas.pop()
+            if (paperMeta) {
+              await this.insertMeta(paperMeta)
+            } else {
+              this.showLoadingLibIcon = false
+              this.quaryAllMetas()
+              break
+            }
+          }
         }
-      })
-      this.allMetas.length = 0
-      this.allMetas = filteredMeta
+      )
     },
 
     // DB operation ===================================================================
@@ -507,7 +446,6 @@ export default {
           const tag = allData[i].tagsList[tagIdx]
           if (!this.allTags.includes(tag)) {
             this.allTags.push(tag)
-            this.selectedTags[tag] = false
           }
         }
         this.allMetas.push(allData[i])
@@ -532,9 +470,21 @@ export default {
         console.log('Cannot delete')
       }
     },
+    editMeta (paperMeta) {
+      this.editWindowMeta = newPaperMetafromObj(paperMeta)
+      this.editWindowVisiable = true
+    },
+    async applyEditMetaEvent () {
+      const success = await insertToDB(this.editWindowMeta)
+      if (success) {
+        this.selectedMeta.update(this.editWindowMeta)
+      }
+      this.editWindowVisiable = false
+    },
 
     // Detail panel ==============================================================
-    getAttachmentLable (filePath) {
+    getAttachmentLabel (filePath) {
+      console.log(this.selectedMeta.attachments)
       if (filePath.endsWith('.pdf')) {
         return 'PDF'
       } else if (filePath.startsWith('http')) {
@@ -554,6 +504,14 @@ export default {
       }
     },
 
+    async addPaperEvent (file) {
+      if (file) {
+        this.selectedMeta.addFile(file.path, 'paper')
+        this.selectedMeta = await copyPaperAndAttachments(this.selectedMeta)
+        await insertToDB(this.selectedMeta)
+      }
+    },
+
     ratingChangedEvent (rating) {
       updateRating(this.selectedMeta.id, rating)
     },
@@ -563,6 +521,7 @@ export default {
     },
 
     async addTagEvent (value, initialValue) {
+      console.log(value)
       if (!this.selectedMeta.tagsList.includes(value)) {
         this.selectedMeta.tagsList.push(value)
         this.selectedMeta.tagsStr = this.selectedMeta.tagsList.join(';')
@@ -584,6 +543,14 @@ export default {
     },
 
     // Files
+    openPaperFile (filePath) {
+      if (filePath) {
+        this.openFile(filePath)
+      } else {
+        this.$refs.detailsAddPaper.pickFiles()
+      }
+    },
+
     openFile (filePath) {
       if (typeof filePath !== 'undefined' && filePath && filePath !== null) {
         if (filePath.startsWith('http')) {
@@ -664,6 +631,15 @@ export default {
         })
     },
 
+    async exportBibtexsEvent () {
+      this.exportBibtexsString = ''
+      const tableData = this.$refs.xTable.getTableData().visibleData
+      for (const paperMeta of tableData) {
+        this.exportBibtexsString += paperMeta.bib + '\r'
+      }
+      this.showExportWindow = true
+    },
+
     menuClickEvent ({ menu, row, column }) {
       switch (menu.code) {
         case 'remove':
@@ -672,11 +648,14 @@ export default {
         case 'refresh':
           this.quaryAllMetas()
           break
+        case 'edit':
+          this.editMeta(row)
+          break
         case 'match':
           this.showLoadingLibIcon = true
           manuallyMatchPipeline(row).then((paperMeta) => {
             insertToDB(paperMeta).then((id) => {
-              row = paperMeta
+              row.update(paperMeta)
               if (this.selectedMeta.id === paperMeta.id) {
                 this.selectedMeta = paperMeta
               }
@@ -694,53 +673,6 @@ export default {
           console.log(menu.code)
       }
     },
-
-    initManualMeta () {
-      this.manuallyMeta.title = null
-      this.manuallyMeta.authorsStr = null
-      this.manuallyMeta.pub = null
-      this.manuallyMeta.pubType = null
-      this.manuallyMeta.pubTime = null
-      this.manuallyMeta.doi = null
-    },
-
-    addManualMeta () {
-      const paperMeta = new PaperMeta()
-      paperMeta.title = this.manuallyMeta.title
-      paperMeta.authorsStr = this.manuallyMeta.authorsStr
-      paperMeta.pub = this.manuallyMeta.pub
-      paperMeta.pubType = this.manuallyMeta.pubType
-      paperMeta.pubTime = this.manuallyMeta.pubTime
-      paperMeta.doi = this.manuallyMeta.doi
-      if (typeof this.manuallyMeta.paperFile === 'string' && this.manuallyMeta.paperFile !== '') {
-        paperMeta.paperFile = this.manuallyMeta.paperFile
-      } else if (this.manuallyMeta.file) {
-        paperMeta.paperFile = this.manuallyMeta.file.path
-      }
-
-      insertToDB(paperMeta).then((id) => {
-        this.quaryAllMetas()
-      })
-    },
-
-    matchManualMeta () {
-      this.manuallyMatchLoading = true
-      manuallyMatchPipeline(newPaperMetafromObj(this.manuallyMeta)).then((paperMeta) => {
-        this.manuallyMeta = paperMeta
-        this.manuallyMatchLoading = false
-      }
-      )
-    },
-
-    manuallyMatchFlag () {
-      return !((this.manuallyMeta.title && this.manuallyMeta.title !== '') || (this.manuallyMeta.doi && this.manuallyMeta.doi !== ''))
-    },
-
-    manuallyAddEvent () {
-      this.initManualMeta()
-      this.showManuallyWindow = true
-    },
-
     // Setting Window ===============
     openSetting () {
       this.initialSettingBuffer()
@@ -807,14 +739,8 @@ export default {
           })
           fromFilePipeline(filePath).then(
             async (paperMeta) => {
-              if (paperMeta.hasTitle()) {
-                await this.insertMeta(paperMeta)
-                if (importQueue.length === 0) {
-                  this.$q.loading.hide()
-                }
-              } else {
-                this.manuallyAddEvent()
-                this.manuallyMeta.paperFile = paperMeta.paperFile
+              await this.insertMeta(paperMeta)
+              if (importQueue.length === 0) {
                 this.$q.loading.hide()
               }
             }

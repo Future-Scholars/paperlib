@@ -28,6 +28,7 @@ async function fromArxiv (paperMeta) {
   }
   const arxivBody = xml2json(res)
   paperMeta.title = arxivBody.feed.entry.title
+  paperMeta.authorsList.length = 0
   for (const i in arxivBody.feed.entry.author) {
     paperMeta.authorsList.push(arxivBody.feed.entry.author[i].name)
   }

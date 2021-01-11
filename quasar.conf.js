@@ -29,7 +29,7 @@ module.exports = function (/* ctx */) {
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
-      // 'ionicons-v4',
+      'ionicons-v4',
       // 'mdi-v5',
       'fontawesome-v5',
       // 'eva-icons',
@@ -88,7 +88,7 @@ module.exports = function (/* ctx */) {
       lang: 'en-us', // Quasar language pack
       config: {
         brand: {
-          primary: '#787878',
+          primary: '#565656',
           secondary: '#DADADA'
         }
       },
