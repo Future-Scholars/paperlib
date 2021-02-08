@@ -1,26 +1,10 @@
-# PaperLib (paperlib)
+# PaperLib
 
+A simple academic paper management tool for CSer. **(in development, unstable)**
+![](./assets/ui.png)
 
-
-## Install the dependencies
-```bash
-yarn
-```
-
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
-```bash
-quasar dev
-```
-
-### Lint the files
-```bash
-yarn run lint
-```
-
-### Build the app for production
-```bash
-quasar build
-```
-
-### Customize the configuration
-See [Configuring quasar.conf.js](https://quasar.dev/quasar-cli/quasar-conf-js).
+# Feature
+1. Drag PDF file and automaticly match metadata form Arxiv, DBLP and DOI.
+3. Rate a paper and Write your notes.
+4. Organize by tags.
+5. Export bibtex.
