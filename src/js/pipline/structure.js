@@ -39,14 +39,15 @@ export class PaperMeta {
     this.tagsStr = tagsStr
     this.constructTags()
     this.arxiv = arxiv
+    this.completed = false
   }
 
   update (metaObj) {
     this.id = metaObj.id
     this.doi = metaObj.doi
     this.title = metaObj.title
-    this.authorsList = metaObj.authorsList
     this.authorsStr = metaObj.authorsStr
+    this.authorsList = metaObj.authorsList
     this.constructAuthors()
     this.pub = metaObj.pub
     this.pubType = metaObj.pubType
@@ -65,11 +66,11 @@ export class PaperMeta {
   }
 
   constructAuthors () {
-    if (this.authorsList && this.authorsList.length !== 0) {
-      this.authorsStr = this.authorsList.join(' and ')
-    }
     if (this.authorsStr) {
       this.authorsList = this.authorsStr.split(' and ')
+    }
+    if (this.authorsList && this.authorsList.length !== 0) {
+      this.authorsStr = this.authorsList.join(' and ')
     }
   }
 
@@ -160,19 +161,19 @@ export function generateBibfromMeta (metaObj) {
   } else {
     citeKey = 'undefined'
   }
-  if (metaObj.pubType === 'journal') {
+  if (metaObj.pubType === 'inproceedings' || metaObj.pubType === 'incollection') {
+    metaObj.bib = `@inproceedings{${citeKey}_${metaObj.pubTime},
+      year = {${metaObj.pubTime}},
+      title = {{${metaObj.title}}},
+      author = {${metaObj.authorsStr}},
+      booktitle = {${metaObj.pub}},
+    }`
+  } else {
     metaObj.bib = `@article{${citeKey}_${metaObj.pubTime},
       year = {${metaObj.pubTime}},
       title = {{${metaObj.title}}},
       author = {${metaObj.authorsStr}},
       journal = {${metaObj.pub}},
-    }`
-  } else if (metaObj.pubType === 'inproceedings' || metaObj.pubType === 'incollection') {
-    metaObj.bib = `@article{${citeKey}_${metaObj.pubTime},
-      year = {${metaObj.pubTime}},
-      title = {{${metaObj.title}}},
-      author = {${metaObj.authorsStr}},
-      booktitle = {${metaObj.pub}},
     }`
   }
   return metaObj

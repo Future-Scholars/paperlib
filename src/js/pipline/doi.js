@@ -2,6 +2,9 @@ const got = require('got')
 import { getProxy } from 'src/js/pipline/localproxy'
 
 async function fromDOI (paperMeta) {
+  if (paperMeta.completed) {
+    return paperMeta
+  }
   if (paperMeta.doi === null) {
     return paperMeta
   }

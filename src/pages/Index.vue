@@ -419,7 +419,6 @@ export default {
     },
 
     importBibFileEvent (file) {
-      console.log(123)
       this.showLoadingLibIcon = true
       fromBibtexFilePipeline(file.path).then(
         async (paperMetas) => {
@@ -484,11 +483,12 @@ export default {
 
     // Detail panel ==============================================================
     getAttachmentLabel (filePath) {
-      console.log(this.selectedMeta.attachments)
-      if (filePath.endsWith('.pdf')) {
-        return 'PDF'
-      } else if (filePath.startsWith('http')) {
-        return 'HTML'
+      if (filePath) {
+        if (filePath.endsWith('.pdf')) {
+          return 'PDF'
+        } else if (filePath.startsWith('http')) {
+          return 'HTML'
+        }
       }
     },
 
@@ -521,7 +521,6 @@ export default {
     },
 
     async addTagEvent (value, initialValue) {
-      console.log(value)
       if (!this.selectedMeta.tagsList.includes(value)) {
         this.selectedMeta.tagsList.push(value)
         this.selectedMeta.tagsStr = this.selectedMeta.tagsList.join(';')
@@ -530,6 +529,7 @@ export default {
           this.allTags.push(value)
         }
       }
+      this.newTag = null
     },
 
     async deleteTag (tag) {
@@ -621,7 +621,6 @@ export default {
     },
 
     async exportBibtexEvent (paperMeta) {
-      console.log(paperMeta.bib)
       copyToClipboard(paperMeta.bib)
         .then(() => {
           // alert

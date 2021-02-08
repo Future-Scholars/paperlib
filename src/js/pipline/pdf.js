@@ -64,17 +64,17 @@ function RenderPage (pageData) {
 }
 
 async function getPDFText (pdfData) {
-  let text = ''
+  // let text = ''
   let firstPageText = ''
-  for (var i = 1; i <= pdfData.numPages; i++) {
-    const pageData = await pdfData.getPage(i)
-    const pageText = await RenderPage(pageData)
-    text = `${text}\n\n${pageText}`
-    if (i === 1) {
-      firstPageText = `${firstPageText}\n\n${pageText}`
-    }
-  }
-  return [text, firstPageText]
+  // for (var i = 1; i <= pdfData.numPages; i++) {
+  const pageData = await pdfData.getPage(1)
+  const pageText = await RenderPage(pageData)
+  // text = `${text}\n\n${pageText}`
+  // if (i === 1) {
+  firstPageText = `${firstPageText}\n\n${pageText}`
+  // }
+  // }
+  return firstPageText
 }
 
 async function fromPDFMeta (paperMeta) {
@@ -93,8 +93,8 @@ async function fromPDFMeta (paperMeta) {
   }
   let doi = getDOIfromSubject(metaData.info.Subject)
   if (doi == null) {
-    const [pdfText, firstPageText] = await getPDFText(pdf)
-    doi = getDOIfromText(pdfText)
+    const firstPageText = await getPDFText(pdf)
+    doi = getDOIfromText(firstPageText)
     paperMeta.arxiv = getArxivIDfromText(firstPageText)
     paperMeta.doi = doi
   } else {

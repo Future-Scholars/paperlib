@@ -16,6 +16,9 @@ const pubType = {
 }
 
 export async function fromExactBib (paperMeta) {
+  if (paperMeta.completed) {
+    return paperMeta
+  }
   if (paperMeta.bib === null) {
     return paperMeta
   }
