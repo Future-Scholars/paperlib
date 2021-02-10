@@ -285,7 +285,7 @@
 
 <script>
 
-import { fromFilePipeline, manuallyMatchPipeline, fromBibtexFilePipeline } from 'src/js/pipline/pipeline'
+import { fromFilesPipeline, manuallyMatchPipeline } from 'src/js/pipline/pipeline'
 import { newPaperMetafromObj } from 'src/js/pipline/structure'
 import { initDB, insertToDB, queryAllMetaFromDB, queryFilesFromDB, deleteFromDB, updateRating, updateNote, deleteFileFromDB, addTags, queryTagsFromDB } from '../js/db/db'
 import dragDrop from 'drag-drop'
@@ -300,7 +300,6 @@ export default {
       allAlign: null,
       filterName: '',
       allMetas: [],
-      displayMetas: null,
       newAttachment: null,
       newPaper: null,
       importedBibFile: null,
@@ -349,6 +348,9 @@ export default {
             ],
             [
               { code: 'match', name: 'Match metadata' },
+              { code: 'matchall', name: 'Match all metadata' }
+            ],
+            [
               { code: 'edit', name: 'Edit metadata' },
               {
                 code: 'exportbib',
@@ -420,7 +422,7 @@ export default {
 
     importBibFileEvent (file) {
       this.showLoadingLibIcon = true
-      fromBibtexFilePipeline(file.path).then(
+      fromFilesPipeline(file.path).then(
         async (paperMetas) => {
           while (true) {
             const paperMeta = paperMetas.pop()
@@ -621,6 +623,7 @@ export default {
     },
 
     async exportBibtexEvent (paperMeta) {
+      paperMeta.constructBib()
       copyToClipboard(paperMeta.bib)
         .then(() => {
           // alert
@@ -634,9 +637,29 @@ export default {
       this.exportBibtexsString = ''
       const tableData = this.$refs.xTable.getTableData().visibleData
       for (const paperMeta of tableData) {
+        paperMeta.constructBib()
         this.exportBibtexsString += paperMeta.bib + '\r'
       }
       this.showExportWindow = true
+    },
+
+    async manuallyMatch (paperMetas) {
+      this.showLoadingLibIcon = true
+      paperMetas = await manuallyMatchPipeline(paperMetas)
+      await Promise.all(paperMetas.map(async (paperMeta) => {
+        const success = await insertToDB(paperMeta)
+        if (success) {
+          if (this.selectedMeta.id === paperMeta.id) {
+            this.selectedMeta = paperMeta
+          }
+        }
+      }))
+      this.showLoadingLibIcon = false
+    },
+
+    manuallyMatchAll () {
+      const tableData = this.$refs.xTable.getTableData().visibleData
+      this.manuallyMatch(tableData)
     },
 
     menuClickEvent ({ menu, row, column }) {
@@ -651,16 +674,10 @@ export default {
           this.editMeta(row)
           break
         case 'match':
-          this.showLoadingLibIcon = true
-          manuallyMatchPipeline(row).then((paperMeta) => {
-            insertToDB(paperMeta).then((id) => {
-              row.update(paperMeta)
-              if (this.selectedMeta.id === paperMeta.id) {
-                this.selectedMeta = paperMeta
-              }
-              this.showLoadingLibIcon = false
-            })
-          })
+          this.manuallyMatch([row])
+          break
+        case 'matchall':
+          this.manuallyMatchAll()
           break
         case 'exportbib':
           this.exportBibtexEvent(row)
@@ -679,7 +696,6 @@ export default {
     },
 
     initialSettingBuffer () {
-      console.log('Init')
       this.settingBuffer.libPathPickerFile = null
       this.settingBuffer.libPath = getSetting('libPath')
       this.settingBuffer.proxyURL = getSetting('proxyURL')
@@ -715,39 +731,24 @@ export default {
   },
   mounted: async function () {
     // Initialize
-    this.$q.loading.hide()
     const initDBsuccess = await initDB()
     if (!initDBsuccess) {
       console.log('Init DB failed.')
-      return
+    } else {
+      this.quaryAllMetas()
     }
-    this.quaryAllMetas()
     // Drag to import file.
-    const importQueue = []
-    dragDrop('.vxe-table', (files, pos, fileList, directories) => {
-      for (const i in files) {
-        if (!importQueue.includes(files[i].path)) {
-          importQueue.push(files[i].path)
-        }
-      }
-      while (true) {
-        const filePath = importQueue.pop()
-        if (typeof filePath !== 'undefined' && filePath) {
-          this.$q.loading.show({
-            message: (importQueue.length + 1) + ' remaining in the queue...'
-          })
-          fromFilePipeline(filePath).then(
-            async (paperMeta) => {
-              await this.insertMeta(paperMeta)
-              if (importQueue.length === 0) {
-                this.$q.loading.hide()
-              }
-            }
-          )
-        } else {
-          break
-        }
-      }
+    dragDrop('.vxe-table', async (files, pos, fileList, directories) => {
+      this.showLoadingLibIcon = true
+      const filePaths = []
+      files.forEach(file => {
+        filePaths.push(file.path)
+      })
+      const paperMetas = await fromFilesPipeline(filePaths)
+      await Promise.all(paperMetas.map(async (paperMeta) => {
+        await this.insertMeta(paperMeta)
+      }))
+      this.showLoadingLibIcon = false
     })
   }
 }

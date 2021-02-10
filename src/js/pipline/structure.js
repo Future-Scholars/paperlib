@@ -43,7 +43,6 @@ export class PaperMeta {
   }
 
   update (metaObj) {
-    this.id = metaObj.id
     this.doi = metaObj.doi
     this.title = metaObj.title
     this.authorsStr = metaObj.authorsStr
@@ -53,7 +52,6 @@ export class PaperMeta {
     this.pubType = metaObj.pubType
     this.pubTime = metaObj.pubTime
     this.citeKey = metaObj.citeKey
-    this.addTime = metaObj.addTime
     this.note = metaObj.note
     this.rating = metaObj.rating
     this.bib = metaObj.bib
@@ -80,6 +78,27 @@ export class PaperMeta {
     }
     if (this.tagsStr) {
       this.tagsList = this.tagsStr.split(';')
+    }
+  }
+
+  constructBib () {
+    if (!this.hasCitekey()) {
+      this.citeKey = this.authorsList[0].replace(' ', '_') + '_' + this.pubTime
+    }
+    if (this.pubType === 'inproceedings' || this.pubType === 'incollection' || this.pubType === 'conference') {
+      this.bib = `@inproceedings{${this.citeKey},
+  year = {${this.pubTime}},
+  title = {{${this.title}}},
+  author = {${this.authorsStr}},
+  booktitle = {${this.pub}},
+}`
+    } else {
+      this.bib = `@article{${this.citeKey},
+  year = {${this.pubTime}},
+  title = {{${this.title}}},
+  author = {${this.authorsStr}},
+  journal = {${this.pub}},
+ }`
     }
   }
 
@@ -129,6 +148,10 @@ export class PaperMeta {
   hasAttachments () {
     return !(this.attachments === null)
   }
+
+  hasCitekey () {
+    return !(this.citeKey === null || this.citeKey === '')
+  }
 }
 
 export function newPaperMetafromObj (metaObj) {
@@ -152,29 +175,4 @@ export function newPaperMetafromObj (metaObj) {
     metaObj.tagsStr,
     metaObj.arxiv
   )
-}
-
-export function generateBibfromMeta (metaObj) {
-  let citeKey
-  if (metaObj.hasAuthors()) {
-    citeKey = metaObj.authorsList[0].replace(' ', '')
-  } else {
-    citeKey = 'undefined'
-  }
-  if (metaObj.pubType === 'inproceedings' || metaObj.pubType === 'incollection') {
-    metaObj.bib = `@inproceedings{${citeKey}_${metaObj.pubTime},
-      year = {${metaObj.pubTime}},
-      title = {{${metaObj.title}}},
-      author = {${metaObj.authorsStr}},
-      booktitle = {${metaObj.pub}},
-    }`
-  } else {
-    metaObj.bib = `@article{${citeKey}_${metaObj.pubTime},
-      year = {${metaObj.pubTime}},
-      title = {{${metaObj.title}}},
-      author = {${metaObj.authorsStr}},
-      journal = {${metaObj.pub}},
-    }`
-  }
-  return metaObj
 }

@@ -11,11 +11,8 @@ const venueID = {
   'ICCV Workshop': 0
 }
 
-async function fromDBLP (paperMeta) {
-  if (paperMeta.completed) {
-    return paperMeta
-  }
-  if (!paperMeta.hasTitle()) {
+async function _fromDBLP (paperMeta) {
+  if (paperMeta.completed || !paperMeta.hasTitle()) {
     return paperMeta
   }
   let res
@@ -24,7 +21,7 @@ async function fromDBLP (paperMeta) {
       agent: getProxy()
     })
   } catch (error) {
-    console.error('Crossref request error.')
+    console.error('DBLP request error.')
     return paperMeta
   }
   const queryResults = JSON.parse(res.body).result
@@ -54,7 +51,7 @@ async function fromDBLP (paperMeta) {
         return paperMeta
       }
       const venueResults = JSON.parse(res.body).result
-      if (venueResults.hits.hit.length > 0) {
+      if (venueResults.hits['@total'] > 0) {
         let id
         if (venue in venueID) {
           id = venueID[venue]
@@ -70,4 +67,9 @@ async function fromDBLP (paperMeta) {
   return paperMeta
 }
 
-export default fromDBLP
+export async function fromDBLP (paperMetas) {
+  await Promise.all(paperMetas.map(async (paperMeta) => {
+    paperMeta = await _fromDBLP(paperMeta)
+  }))
+  return paperMetas
+}

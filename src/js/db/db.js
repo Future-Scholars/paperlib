@@ -61,6 +61,7 @@ export function insertToDB (paperMeta) {
     } else {
       id = paperMeta.id
     }
+    paperMeta.constructBib()
     const prepareMeta = db.prepare('replace into PaperMetas (id, doi, title, authors, pub, pubType, pubTime, citeKey, addTime, bib, note, rating, tags, arxiv) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
     prepareMeta.run(id, paperMeta.doi, paperMeta.title, paperMeta.authorsStr, paperMeta.pub, paperMeta.pubType, paperMeta.pubTime, paperMeta.citeKey, paperMeta.addTime, paperMeta.bib, paperMeta.note, paperMeta.rating, paperMeta.tagsStr, paperMeta.arxiv)
     prepareMeta.finalize(err => {

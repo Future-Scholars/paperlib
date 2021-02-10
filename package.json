@@ -27,6 +27,7 @@
   "devDependencies": {
     "@quasar/app": "^2.0.0",
     "babel-eslint": "^10.0.1",
+    "chardet": "^0.7.0",
     "devtron": "^1.4.0",
     "electron": "^9.0.0",
     "electron-builder": "^22.4.0",

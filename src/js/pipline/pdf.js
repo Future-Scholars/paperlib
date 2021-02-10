@@ -1,5 +1,6 @@
 import fs from 'fs'
 import * as pdfJSLib from 'pdfjs-dist/webpack'
+import { PaperMeta } from './structure'
 
 function getDOIfromSubject (subjectData) {
   if (typeof subjectData !== 'undefined' && subjectData) {
@@ -77,13 +78,12 @@ async function getPDFText (pdfData) {
   return firstPageText
 }
 
-async function fromPDFMeta (paperMeta) {
-  if (paperMeta.paperFile === null) {
+async function _fromPDFFile (filePath) {
+  const paperMeta = new PaperMeta()
+  if (!filePath.endsWith('.pdf')) {
     return paperMeta
   }
-  if (!paperMeta.paperFile.endsWith('.pdf')) {
-    return paperMeta
-  }
+  paperMeta.addFile(filePath, 'paper')
   const dataBuffer = fs.readFileSync(paperMeta.paperFile)
   const pdf = await pdfJSLib.getDocument(dataBuffer).promise
   const metaData = await pdf.getMetadata()
@@ -91,16 +91,27 @@ async function fromPDFMeta (paperMeta) {
   if (title !== 'untitled') {
     paperMeta.title = title
   }
-  let doi = getDOIfromSubject(metaData.info.Subject)
-  if (doi == null) {
+  let doi
+  let arxiv
+  doi = getDOIfromSubject(metaData.info.Subject)
+  if (doi === null || typeof doi === 'undefined') {
     const firstPageText = await getPDFText(pdf)
     doi = getDOIfromText(firstPageText)
-    paperMeta.arxiv = getArxivIDfromText(firstPageText)
-    paperMeta.doi = doi
-  } else {
-    paperMeta.doi = doi
+    if (doi !== null && typeof doi !== 'undefined') {
+      paperMeta.doi = doi
+    }
+    arxiv = getArxivIDfromText(firstPageText)
+    if (arxiv !== null && typeof doi !== 'undefined') {
+      paperMeta.arxiv = arxiv
+    }
   }
   return paperMeta
 }
 
-export default fromPDFMeta
+export async function fromPDFFile (filePaths) {
+  const paperMetas = []
+  await Promise.all(filePaths.map(async (filePath) => {
+    paperMetas.push(await _fromPDFFile(filePath))
+  }))
+  return paperMetas
+}

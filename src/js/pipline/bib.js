@@ -1,5 +1,6 @@
 const bibtexParse = require('bibtex-parse')
-import { generateBibfromMeta, newPaperMetafromObj } from './structure'
+import { PaperMeta } from './structure'
+const fs = require('fs').promises
 
 function latexToStr (latex) {
   if (latex) {
@@ -15,97 +16,52 @@ const pubType = {
   article: 'journal'
 }
 
-export async function fromExactBib (paperMeta) {
-  if (paperMeta.completed) {
-    return paperMeta
-  }
-  if (paperMeta.bib === null) {
-    return paperMeta
-  }
-  let bibs
+export function bibToMeta (bib) {
+  const paperMeta = new PaperMeta()
+  paperMeta.title = latexToStr(bib.TITLE)
+  paperMeta.citeKey = bib.key
   try {
-    bibs = bibtexParse.entries(paperMeta.bib)
+    paperMeta.pubType = pubType[bib.type]
   } catch {
-    console.log(paperMeta.bib)
-    return paperMeta
+    console.log('Missing type:' + bib.type)
   }
-  const newPaperMetas = []
-  bibs.forEach(bib => {
-    // Parse bib
-    const newPaperMeta = newPaperMetafromObj(paperMeta)
-    newPaperMeta.title = latexToStr(bib.TITLE)
-    newPaperMeta.citeKey = bib.key
-    try {
-      newPaperMeta.pubType = pubType[bib.type]
-    } catch {
-      console.log('Missing type:' + bib.type)
+  paperMeta.pubTime = bib.YEAR
+  if (bib.type === 'incollection' || bib.type === 'inproceedings') {
+    if (bib.BOOKTITLE) {
+      paperMeta.pub = latexToStr(bib.BOOKTITLE)
+    } else if (bib.SERIES) {
+      paperMeta.pub = latexToStr(bib.SERIES)
     }
-    newPaperMeta.pubTime = bib.YEAR
-    if (bib.type === 'incollection' || bib.type === 'inproceedings') {
-      newPaperMeta.pub = latexToStr(bib.BOOKTITLE)
-    } else if (bib.type === 'article') {
-      newPaperMeta.pub = latexToStr(bib.JOURNAL)
-    }
-    newPaperMeta.authorsStr = bib.AUTHOR
-    if (bib.AUTHOR) {
-      newPaperMeta.authorsList = bib.AUTHOR.split(' and ')
-    }
-    if (bib.URL) {
-      newPaperMeta.addFile(bib.URL, 'attachment')
-    }
-    newPaperMetas.push(newPaperMeta)
-  })
-  if (newPaperMetas.length === 1) {
-    return newPaperMetas[0]
-  } else {
-    return newPaperMetas
+  } else if (bib.type === 'article') {
+    paperMeta.pub = latexToStr(bib.JOURNAL)
   }
+  paperMeta.doi = bib.DOI
+  paperMeta.authorsStr = bib.AUTHOR
+  if (bib.AUTHOR) {
+    paperMeta.authorsList = bib.AUTHOR.split(' and ')
+  }
+  if (bib.URL) {
+    paperMeta.addFile(bib.URL, 'attachment')
+  }
+  if (bib.JOURNAL === 'arXiv' && bib.EPRINT) {
+    paperMeta.arxiv = bib.EPRINT
+  }
+  return paperMeta
 }
 
-export async function fromBibFile (paperMeta) {
-  if (paperMeta.bib === null) {
-    return paperMeta
-  }
+export async function fromBibFile (filePath) {
+  const data = await fs.readFile(filePath, 'utf8')
   let bibs
   try {
-    bibs = bibtexParse.entries(paperMeta.bib)
+    bibs = bibtexParse.entries(data)
   } catch {
+    console.error('0 bib entry parsed.')
     return []
   }
-  const newPaperMetas = []
+  const paperMetas = []
   bibs.forEach(bib => {
-    // Parse bib
-    const newPaperMeta = newPaperMetafromObj(paperMeta)
-    newPaperMeta.title = latexToStr(bib.TITLE)
-    newPaperMeta.citeKey = bib.key
-    try {
-      newPaperMeta.pubType = pubType[bib.type]
-    } catch {
-      console.log('Missing type:' + bib.type)
-    }
-    newPaperMeta.pubTime = bib.YEAR
-    if (bib.type === 'incollection' || bib.type === 'inproceedings') {
-      if (bib.BOOKTITLE) {
-        newPaperMeta.pub = latexToStr(bib.BOOKTITLE)
-      } else if (bib.SERIES) {
-        newPaperMeta.pub = latexToStr(bib.SERIES)
-      }
-    } else if (bib.type === 'article') {
-      newPaperMeta.pub = latexToStr(bib.JOURNAL)
-    }
-    newPaperMeta.doi = bib.DOI
-    newPaperMeta.authorsStr = bib.AUTHOR
-    if (bib.AUTHOR) {
-      newPaperMeta.authorsList = bib.AUTHOR.split(' and ')
-    }
-    if (bib.URL) {
-      newPaperMeta.addFile(bib.URL, 'attachment')
-    }
-    if (bib.JOURNAL === 'arXiv' && bib.EPRINT) {
-      newPaperMeta.arxiv = bib.EPRINT
-    }
-    generateBibfromMeta(newPaperMeta)
-    newPaperMetas.push(newPaperMeta)
+    const paperMeta = bibToMeta(bib)
+    paperMetas.push(paperMeta)
   })
-  return newPaperMetas
+  return paperMetas
 }

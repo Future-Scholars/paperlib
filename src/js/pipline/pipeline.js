@@ -1,10 +1,8 @@
-import { PaperMeta } from './structure'
-import { fromExactBib, fromBibFile } from './bib'
-import fromDOI from './doi'
-import fromPDFMeta from './pdf'
-import fromDBLP from './dblp'
-import fromArxiv from './arxiv'
-const fs = require('fs').promises
+import { fromBibFile } from './bib'
+import { fromDOI } from './doi'
+import { fromPDFFile } from './pdf'
+import { fromDBLP } from './dblp'
+import { fromArxiv } from './arxiv'
 
 export async function runPipline (oprators, paperMeta) {
   for (const op of oprators) {
@@ -13,44 +11,33 @@ export async function runPipline (oprators, paperMeta) {
   return paperMeta
 }
 
-export async function fromFilePipeline (filePath) {
-  let paperMeta = new PaperMeta()
-  paperMeta.addFile(filePath, 'paper')
-  const pipeline = []
+function resetCompleteStatus (paperMetas) {
+  paperMetas.forEach(paperMeta => {
+    paperMeta.completed = false
+  })
+}
 
-  if (filePath.endsWith('.pdf')) {
-    // PDF
-    pipeline.push(fromPDFMeta)
-    pipeline.push(fromArxiv)
+export async function fromFilesPipeline (filePaths) {
+  const pipeline = []
+  if (filePaths[0].endsWith('.pdf')) {
+    pipeline.push(fromPDFFile)
+  } else if (filePaths[0].endsWith('.bib')) {
+    pipeline.push(fromBibFile)
   }
+  pipeline.push(fromArxiv)
   pipeline.push(fromDBLP)
   pipeline.push(fromDOI)
-  pipeline.push(fromExactBib)
-  paperMeta = await runPipline(pipeline, paperMeta)
-  return paperMeta
+  return await runPipline(pipeline, filePaths)
 }
 
-export async function manuallyMatchPipeline (paperMeta) {
+export async function manuallyMatchPipeline (paperMetas) {
   const pipeline = []
 
   pipeline.push(fromArxiv)
   pipeline.push(fromDBLP)
   pipeline.push(fromDOI)
-  pipeline.push(fromExactBib)
-  paperMeta = await runPipline(pipeline, paperMeta)
-  return paperMeta
-}
 
-export async function fromBibtexFilePipeline (filePath) {
-  const paperMeta = new PaperMeta()
-  const pipeline = []
-  pipeline.push(fromBibFile)
-  pipeline.push(fromArxiv)
-  pipeline.push(fromDBLP)
-  pipeline.push(fromDOI)
-  pipeline.push(fromExactBib)
-  const data = await fs.readFile(filePath, 'utf8')
-  paperMeta.bib = data
-  const paperMetas = await runPipline(pipeline, paperMeta)
+  resetCompleteStatus(paperMetas)
+  paperMetas = await runPipline(pipeline, paperMetas)
   return paperMetas
 }

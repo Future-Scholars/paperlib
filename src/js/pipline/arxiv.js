@@ -1,50 +1,43 @@
-const request = require('request')
-const { promisify } = require('util')
-const get = promisify(request.get.bind(request))
+const got = require('got')
+import { getProxy } from 'src/js/pipline/localproxy'
 import xml2json from '@hendt/xml2json'
 
-const uri = 'http://export.arxiv.org/api'
-
-const query = (
-  id
-) => get({
-  uri: uri + '/query?id_list=' + id
-})
-  .then(({ body }) => body)
-
-async function fromArxiv (paperMeta) {
-  if (!paperMeta.hasArxiv()) {
-    return paperMeta
-  }
-  if (paperMeta.hasDOI()) {
+async function _fromArxiv (paperMeta) {
+  if (paperMeta.completed || !paperMeta.hasArxiv()) {
     return paperMeta
   }
   let res
   try {
-    res = await query(paperMeta.arxiv)
+    res = await got('http://export.arxiv.org/api/query?id_list=' + paperMeta.arxiv, {
+      agent: getProxy(),
+      headers: {
+        'accept-encoding': 'UTF-32BE'
+      }
+    })
   } catch (error) {
     console.error('Arxiv request error.')
     return paperMeta
   }
-  const arxivBody = xml2json(res)
-  paperMeta.title = arxivBody.feed.entry.title
+  const arxivBody = xml2json(res.body).feed.entry
+  if (arxivBody.title === 'Error') {
+    return paperMeta
+  }
+  paperMeta.title = arxivBody.title
   paperMeta.authorsList.length = 0
-  for (const i in arxivBody.feed.entry.author) {
-    paperMeta.authorsList.push(arxivBody.feed.entry.author[i].name)
+  for (const i in arxivBody.author) {
+    paperMeta.authorsList.push(arxivBody.author[i].name)
   }
   paperMeta.authorsStr = paperMeta.authorsList.join(' and ')
   paperMeta.pub = 'arXiv'
-  paperMeta.pubTime = arxivBody.feed.entry.published.split('-')[0]
+  paperMeta.pubTime = arxivBody.published.split('-')[0]
   paperMeta.pubType = 'journal'
-  paperMeta.addAttachment(arxivBody.feed.entry.id)
-  paperMeta.bib = `@article{${paperMeta.authorsList[0]}_${paperMeta.pubTime},
-      year = ${paperMeta.pubTime},
-      title = ${paperMeta.title},
-      author = ${paperMeta.authorsStr},
-      journal = arXiv,
-  }
-  `
+  paperMeta.addAttachment(arxivBody.id.replace(' ', ''))
   return paperMeta
 }
 
-export default fromArxiv
+export async function fromArxiv (paperMetas) {
+  await Promise.all(paperMetas.map(async (paperMeta) => {
+    paperMeta = await _fromArxiv(paperMeta)
+  }))
+  return paperMetas
+}
