@@ -106,7 +106,7 @@
             </q-card>
           </q-dialog>
           <div class="column col absolute-full">
-            <q-bar class="q-electron-drag no-shadow titlebar" style="background-color:#F1F1F1">
+            <q-bar class="no-shadow titlebar" style="background-color:#F1F1F1">
               <div class="row justify-between" style="width: 100%">
                 <div class="col-4">
                   <q-input round v-model="filterName" placeholder="Search" style="margin-left:20px; font-size: 14px; width: 300px">
@@ -115,7 +115,9 @@
                     </template>
                   </q-input>
                 </div>
-                <div class="col-3">
+                <div class="q-electron-drag col">
+                </div>
+                <div class="col-2">
                   <q-btn flat size="sm" padding="xs sm" color="grey-7" icon="settings" class="q-mt-md float-right" @click="openSetting" />
                   <q-btn flat size="sm" padding="xs sm" color="grey-7" icon="add" class="q-mt-md float-right" >
                     <q-menu>
