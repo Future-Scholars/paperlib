@@ -197,6 +197,10 @@ module.exports = function (/* ctx */) {
         },
         win: {
           target: 'nsis'
+        },
+        nsis:{
+          oneClick: false,
+          allowToChangeInstallationDirectory: true
         }
       },
 
