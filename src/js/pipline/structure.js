@@ -83,7 +83,11 @@ export class PaperMeta {
 
   constructBib () {
     if (!this.hasCitekey()) {
-      this.citeKey = this.authorsList[0].replace(' ', '_') + '_' + this.pubTime
+      if (this.hasAuthors()) {
+        this.citeKey = this.authorsList[0].replace(' ', '_') + '_' + this.pubTime
+      } else if (this.hasTitle()) {
+        this.citeKey = this.title.split(' ')[0] + '_' + this.pubTime
+      }
     }
     if (this.pubType === 'inproceedings' || this.pubType === 'incollection' || this.pubType === 'conference') {
       this.bib = `@inproceedings{${this.citeKey},
