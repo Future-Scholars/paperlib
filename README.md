@@ -12,16 +12,11 @@ A simple academic paper management tool for CSer. **(in development, unstable)**
 ![](./assets/ui.png)
 
 ## Feature
-1. Automaticly match metadata form Arxiv, DBLP and DOI.
-3. Rate a paper and write your notes.
-4. Organize by tag.
-5. Import from pdf, bibtex file.
-6. Export to bibtex.
+1. Automaticly match paper's metadata form Arxiv, DBLP and DOI.
+3. Rating a paper and taking some notes.
+4. Organize papers by tag.
+5. Import paper from pdf, bibtex file.
+6. Export bibtex.
 
 ## Usage
-
-### Add a paper entry from pdf
-Simply drag pdf file to the data chart.
-
-### Manually match, edit metadata
-Right-click paper line to open context menu.
+<iframe width="560" height="315" src="https://www.youtube.com/embed/3XmiA1EmuOc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

@@ -505,7 +505,9 @@ export default {
         paperMeta = await copyFiles(paperMeta)
         const fileSuccess = await dbInsertFiles(paperMeta)
         if (fileSuccess) {
-          this.allData.push(paperMeta)
+          this.allData.unshift(paperMeta)
+          const sortConfig = this.$refs.dataTable.hotInstance.getPlugin('multiColumnSorting').getSortConfig()
+          this.$refs.dataTable.hotInstance.getPlugin('multiColumnSorting').sort(sortConfig)
         } else {
           await deleteFiles(paperMeta)
           // TODO: alert
