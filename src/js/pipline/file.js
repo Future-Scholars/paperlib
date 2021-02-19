@@ -6,7 +6,7 @@ function replaceInvalidChar (string) {
   return string.replace(/:/g, '-').replace(/ /g, '_').replace(/\./g, '_').replace(/\?/g, '_')
 }
 
-function constructFilePath (title, author, doi, suffix) {
+function constructFilePath (title, author, year, suffix) {
   let newFilePath = getSetting('libPath')
   let newFileName = ''
   if (title) {
@@ -15,8 +15,8 @@ function constructFilePath (title, author, doi, suffix) {
   if (author) {
     newFileName = newFileName + replaceInvalidChar(author) + '_'
   }
-  if (doi) {
-    newFileName = newFileName + replaceInvalidChar(doi.split('/')[1]) + '_'
+  if (year) {
+    newFileName = newFileName + replaceInvalidChar(year) + '_'
   }
   newFileName = newFileName + suffix
   newFilePath = path.join(newFilePath, newFileName)
@@ -39,30 +39,31 @@ async function copyFile (oriPath, newPath) {
   }
 }
 
-export async function copyPaperAndAttachments (paperMeta) {
+export async function copyFiles (paperMeta) {
   let title = null
   let author = null
-  let doi = null
-  if (paperMeta.hasPaperFile()) {
+  let year = null
+  if (paperMeta.hasAttr('paperFile')) {
     const paperFile = paperMeta.paperFile.split('.')
     const suffix = 'main.' + paperFile[paperFile.length - 1]
-    if (paperMeta.hasTitle()) title = paperMeta.title
-    if (paperMeta.hasAuthors()) author = paperMeta.authorsList[0]
-    if (paperMeta.hasDOI()) doi = paperMeta.doi
-    const newFilePath = constructFilePath(title, author, doi, suffix)
+    if (paperMeta.hasAttr('title')) title = paperMeta.title
+    if (paperMeta.hasAttr('authors')) author = paperMeta.authors.split(' and ')[0]
+    if (paperMeta.hasAttr('pubTime')) year = paperMeta.year
+    const newFilePath = constructFilePath(title, author, year, suffix)
     const success = await copyFile(paperMeta.paperFile, newFilePath)
     if (success) {
       paperMeta.paperFile = newFilePath
     }
+  } else {
   }
 
-  if (paperMeta.hasAttachments()) {
+  if (paperMeta.hasAttr('attachments')) {
     for (const i in paperMeta.attachments) {
       const attachmentFile = paperMeta.attachments[i].split('.')
       let attSuffix = attachmentFile[attachmentFile.length - 1]
       if (attSuffix === 'pdf' || attSuffix === 'doc') {
         attSuffix = 'sup' + String(i) + '.' + attSuffix
-        const newAttachmentPath = constructFilePath(title, author, doi, attSuffix)
+        const newAttachmentPath = constructFilePath(title, author, year, attSuffix)
         const success = await copyFile(paperMeta.attachments[i], newAttachmentPath)
         if (success) {
           paperMeta.attachments[i] = newAttachmentPath
@@ -73,7 +74,7 @@ export async function copyPaperAndAttachments (paperMeta) {
   return paperMeta
 }
 
-async function deleteFile (filePath) {
+export async function deleteFile (filePath) {
   try {
     await fsP.unlink(filePath)
     return true
@@ -82,7 +83,7 @@ async function deleteFile (filePath) {
   }
 }
 
-export async function deletePaperAndAttachments (paperMeta) {
+export async function deleteFiles (paperMeta) {
   // don't care success or not
   await deleteFile(paperMeta.paperFile)
   for (const i in paperMeta.attachments) {

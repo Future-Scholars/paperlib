@@ -12,7 +12,7 @@ const venueID = {
 }
 
 async function _fromDBLP (paperMeta) {
-  if (paperMeta.completed || !paperMeta.hasTitle()) {
+  if (paperMeta.completed || !paperMeta.hasAttr('title')) {
     return paperMeta
   }
   let res
@@ -37,8 +37,7 @@ async function _fromDBLP (paperMeta) {
     for (let i = 0; i < paperResult.authors.author.length; i++) {
       authorsList.push(paperResult.authors.author[i].text.replace(/ [0-9]{4}$/, ''))
     }
-    paperMeta.authorsStr = authorsList.join(' and ')
-    paperMeta.authorsList = authorsList
+    paperMeta.authors = authorsList.join(' and ')
     paperMeta.addFile(paperResult.ee, 'attachment')
     const venue = paperResult.venue
     if (venue !== 'CoRR') {

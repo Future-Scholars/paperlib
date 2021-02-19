@@ -36,10 +36,7 @@ export function bibToMeta (bib) {
     paperMeta.pub = latexToStr(bib.JOURNAL)
   }
   paperMeta.doi = bib.DOI
-  paperMeta.authorsStr = bib.AUTHOR
-  if (bib.AUTHOR) {
-    paperMeta.authorsList = bib.AUTHOR.split(' and ')
-  }
+  paperMeta.authors = bib.AUTHOR
   if (bib.URL) {
     paperMeta.addFile(bib.URL, 'attachment')
   }
