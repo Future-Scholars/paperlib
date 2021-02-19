@@ -27,6 +27,7 @@ export async function fromFilesPipeline (filePaths) {
   pipeline.push(fromArxiv)
   pipeline.push(fromDBLP)
   pipeline.push(fromDOI)
+  pipeline.push(fromDBLP)
   return await runPipline(pipeline, filePaths)
 }
 

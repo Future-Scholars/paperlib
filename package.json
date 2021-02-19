@@ -10,6 +10,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
+    "@handsontable/vue": "^5.1.0",
     "@hendt/xml2json": "^1.0.3",
     "@quasar/extras": "^1.0.0",
     "aws-sdk": "^2.817.0",
@@ -17,12 +18,11 @@
     "core-js": "^3.6.5",
     "drag-drop": "^6.1.0",
     "electron-store": "^6.0.1",
+    "handsontable": "^8.3.1",
     "pdfjs-dist": "^2.6.347",
     "quasar": "^1.0.0",
     "sqlite3": "^5.0.0",
-    "vxe-table": "^3.0.18",
-    "worker-loader": "^3.0.7",
-    "xe-utils": "^3.0.4"
+    "worker-loader": "^3.0.7"
   },
   "devDependencies": {
     "@quasar/app": "^2.0.0",

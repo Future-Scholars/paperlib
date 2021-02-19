@@ -3,7 +3,7 @@ import { getProxy } from 'src/js/pipline/localproxy'
 import xml2json from '@hendt/xml2json'
 
 async function _fromArxiv (paperMeta) {
-  if (paperMeta.completed || !paperMeta.hasArxiv()) {
+  if (paperMeta.completed || !paperMeta.hasAttr('arxiv')) {
     return paperMeta
   }
   let res
@@ -23,11 +23,11 @@ async function _fromArxiv (paperMeta) {
     return paperMeta
   }
   paperMeta.title = arxivBody.title
-  paperMeta.authorsList.length = 0
+  const authorsList = []
   for (const i in arxivBody.author) {
-    paperMeta.authorsList.push(arxivBody.author[i].name)
+    authorsList.push(arxivBody.author[i].name)
   }
-  paperMeta.authorsStr = paperMeta.authorsList.join(' and ')
+  paperMeta.authors = authorsList.join(' and ')
   paperMeta.pub = 'arXiv'
   paperMeta.pubTime = arxivBody.published.split('-')[0]
   paperMeta.pubType = 'journal'

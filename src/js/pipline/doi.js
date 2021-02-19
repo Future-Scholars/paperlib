@@ -4,7 +4,7 @@ const bibtexParse = require('bibtex-parse')
 import { bibToMeta } from 'src/js/pipline/bib'
 
 async function _fromDOI (paperMeta) {
-  if (paperMeta.completed || !paperMeta.hasDOI()) {
+  if (paperMeta.completed || !paperMeta.hasAttr('doi')) {
     return paperMeta
   }
   let res
@@ -23,8 +23,7 @@ async function _fromDOI (paperMeta) {
   try {
     const bib = bibtexParse.entries(res.body)[0]
     const parsedMeta = bibToMeta(bib)
-    paperMeta.update(parsedMeta)
-    paperMeta.completed = true
+    paperMeta.merge(parsedMeta)
     return paperMeta
   } catch (error) {
     console.error('Cannot parse bib:' + error)

@@ -19,7 +19,6 @@ module.exports = function (/* ctx */) {
     // --> boot files are part of "main.js"
     // https://quasar.dev/quasar-cli/boot-files
     boot: [
-      'vxetable'
     ],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css
@@ -191,8 +190,8 @@ module.exports = function (/* ctx */) {
         // https://www.electron.build/configuration/configuration
 
         appId: 'com.paperlib.app',
-        productName: "paperlib",
-        appId: "com.paperlib.app",
+        productName: 'paperlib',
+        appId: 'com.paperlib.app',
         mac: {
           target: 'dmg'
         },

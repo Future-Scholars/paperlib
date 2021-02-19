@@ -1,17 +1,33 @@
 const sqlite3 = require('sqlite3').verbose()
-import { uid } from 'quasar'
-import { newPaperMetafromObj } from '../pipline/structure'
+import { PaperMeta } from '../pipline/structure'
 import { getSetting } from 'src/js/settings'
 let db
 
 function conn () {
   if (!db || !db.open) {
     db = new sqlite3.Database(getSetting('libPath') + 'library.db')
+    db.query = function (sql, params) {
+      var that = this
+      return new Promise(function (resolve, reject) {
+        that.all(sql, params, function (error, rows) {
+          if (error) { console.error(error); reject(error) } else { resolve(rows) }
+        })
+      })
+    }
+    db.launch = function (sql, params) {
+      var that = this
+      return new Promise(function (resolve, reject) {
+        that.run(sql, params, function (error) {
+          if (error) { console.error(error); resolve(false) } else { resolve(true) }
+        })
+      })
+    }
   }
+
   return db
 }
 
-export const initDB = () => {
+export function dbInit () {
   return new Promise((resolve, reject) => {
     const db = conn()
     db.serialize(() => {
@@ -26,119 +42,97 @@ export const initDB = () => {
   })
 }
 
-export function queryAllMetaFromDB () {
-  return new Promise((resolve, reject) => {
-    const db = conn()
-    db.all('SELECT * FROM PaperMetas', (err, rows) => {
-      if (err) reject(err)
-      const allMeta = []
-      for (const i in rows) {
-        rows[i].authorsStr = rows[i].authors
-        rows[i].tagsStr = rows[i].tags
-        allMeta.push(newPaperMetafromObj(rows[i]))
-      }
-      resolve(allMeta)
+export async function dbSelectAll () {
+  const db = conn()
+  const allData = []
+
+  const rows = await db.query('SELECT * FROM PaperMetas', [])
+  await Promise.all(rows.map(async (row) => {
+    const meta = new PaperMeta()
+    meta.update(row)
+    const files = await db.query('SELECT * FROM Files WHERE paperID=?', [meta.id])
+    files.forEach(file => {
+      meta.addFile(file.path, file.type)
     })
-  })
+    meta.selfComplete()
+    allData.push(meta)
+  }))
+  return allData
 }
 
-export function queryFilesFromDB (id) {
-  return new Promise((resolve, reject) => {
-    const db = conn()
-    db.all('SELECT * FROM Files WHERE paperID=' + "'" + id + "'", (err, rows) => {
-      if (err) reject(err)
-      resolve(rows || [])
-    })
-  })
+export async function dbSelectFiles (id) {
+  const fileResult = await db.query('SELECT * FROM Files WHERE paperID=?', [id])
+  const files = fileResult.rows
+  return files
 }
 
-export function insertToDB (paperMeta) {
-  return new Promise((resolve, reject) => {
-    const db = conn()
-    let id
-    if (!paperMeta.id) {
-      id = uid()
-    } else {
-      id = paperMeta.id
-    }
-    paperMeta.constructBib()
-    const prepareMeta = db.prepare('replace into PaperMetas (id, doi, title, authors, pub, pubType, pubTime, citeKey, addTime, bib, note, rating, tags, arxiv) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    prepareMeta.run(id, paperMeta.doi, paperMeta.title, paperMeta.authorsStr, paperMeta.pub, paperMeta.pubType, paperMeta.pubTime, paperMeta.citeKey, paperMeta.addTime, paperMeta.bib, paperMeta.note, paperMeta.rating, paperMeta.tagsStr, paperMeta.arxiv)
-    prepareMeta.finalize(err => {
-      if (err) { return resolve(null) }
-    })
-    const prepareFiles = db.prepare('replace into Files (path, type, paperID) values (?, ?, ?)')
-    if (paperMeta.hasPaperFile()) {
-      prepareFiles.run(paperMeta.paperFile, 'paper', id)
-    } else {
-      return resolve(id)
-    }
-    if (paperMeta.hasAttachments()) {
-      for (const i in paperMeta.attachments) {
-        prepareFiles.run(paperMeta.attachments[i], 'attachment', id)
-      }
-    } else {
-      return resolve(id)
-    }
-    prepareFiles.finalize(err => {
-      if (err) { return resolve(null) } else { return resolve(id) }
-    })
-  })
-}
+export async function dbInsert (paperMeta) {
+  const db = conn()
+  const id = paperMeta.id
 
-export const updatePaperMeta = (key, value, id) => {
-  return new Promise((resolve, reject) => {
-    const db = conn()
-    try {
-      db.run('UPDATE PaperMetas SET ' + key + ' = ? WHERE id = ?', value, id)
-      return resolve(true)
-    } catch (err) {
-      return resolve(false)
-    }
-  })
-}
-
-export const updateRating = async (id, rating) => {
-  const success = await updatePaperMeta('rating', rating, id)
+  const success = await db.launch(
+    'replace into PaperMetas (id, doi, title, authors, pub, pubType, pubTime, citeKey, addTime, bib, note, rating, tags, arxiv) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id,
+      paperMeta.doi,
+      paperMeta.title,
+      paperMeta.authors,
+      paperMeta.pub,
+      paperMeta.pubType,
+      paperMeta.pubTime,
+      paperMeta.citeKey,
+      paperMeta.addTime,
+      paperMeta.bib,
+      paperMeta.note,
+      paperMeta.rating,
+      paperMeta.tags.join(';'),
+      paperMeta.arxiv]
+  )
   return success
 }
 
-export const updateNote = async (id, note) => {
-  const success = await updatePaperMeta('note', note, id)
+export async function dbInsertFiles (paperMeta) {
+  const db = conn()
+  const id = paperMeta.id
+  const successList = []
+  if (paperMeta.hasAttr('paperFile')) {
+    const paperFileSuccess = await db.launch(
+      'replace into Files (path, type, paperID) values (?, ?, ?)',
+      [paperMeta.paperFile, 'paper', id]
+    )
+    successList.push(paperFileSuccess)
+  }
+  if (paperMeta.hasAttr('attachments')) {
+    await Promise.all(paperMeta.attachments.map(async (attachment) => {
+      const success = await db.launch(
+        'replace into Files (path, type, paperID) values (?, ?, ?)',
+        [attachment, 'attachment', id]
+      )
+      successList.push(success)
+    }))
+  }
+  return successList.every(function (i) { return i }) || successList.length === 0
+}
+
+export async function dbRemove (paperMeta) {
+  const db = conn()
+  const id = paperMeta.id
+  const metaSuccess = await db.launch('DELETE FROM PaperMetas WHERE id=?', id)
+  if (metaSuccess) {
+    await db.launch('DELETE FROM Files WHERE paperID=?', id)
+    return true
+  } else {
+    return false
+  }
+}
+
+export async function dbRemoveFile (id, filePath) {
+  const db = conn()
+  const success = await db.launch('DELETE FROM Files WHERE paperID=? and path=?', [id, filePath])
   return success
 }
 
-export const addTags = async (id, tags) => {
-  const success = await updatePaperMeta('tags', tags, id)
+export async function dbUpdate (key, value, id) {
+  const db = conn()
+  const success = await db.launch('UPDATE PaperMetas SET ' + key + ' = ? WHERE id = ?', [value, id])
   return success
-}
-
-export function queryTagsFromDB (id) {
-  return new Promise((resolve, reject) => {
-    const db = conn()
-    db.all('SELECT tags FROM PaperMetas WHERE id=' + "'" + id + "'", (err, rows) => {
-      if (err) reject(err)
-      resolve(rows[0].tags)
-    })
-  })
-}
-
-export const deleteFromDB = (paperMeta) => {
-  return new Promise((resolve, reject) => {
-    const db = conn()
-    const id = paperMeta.id
-    db.run('DELETE FROM PaperMetas WHERE id=?', id)
-    db.run('DELETE FROM Files WHERE paperID=?', id)
-    console.log('Delete ' + id)
-    return resolve(true)
-  })
-}
-
-export const deleteFileFromDB = (id, filePath) => {
-  return new Promise((resolve, reject) => {
-    console.log(id, filePath)
-    const db = conn()
-    db.run('DELETE FROM Files WHERE paperID=? and path=?', id, filePath)
-    return resolve(true)
-  })
 }
