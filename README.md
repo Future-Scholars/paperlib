@@ -19,4 +19,4 @@ A simple academic paper management tool for CSer. **(in development, unstable)**
 6. Export bibtex.
 
 ## Usage
-<iframe width="560" height="315" src="https://www.youtube.com/embed/3XmiA1EmuOc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[video](https://www.youtube.com/watch?v=3XmiA1EmuOc)
