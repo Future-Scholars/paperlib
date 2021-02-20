@@ -267,10 +267,8 @@
 @import './src/css/rightpanel.scss'
 @import './src/css/detailpanel.scss'
 
-.setting-lib-path-text:hover
-  color: #121212 !important
-  cursor: pointer
 </style>
+<style src="../../node_modules/handsontable/dist/handsontable.full.css"></style>
 
 <script>
 import { HotTable } from '@handsontable/vue'
@@ -414,6 +412,12 @@ export default {
       })
       return rows
     },
+    getSelectedRowIdx () {
+      const selectedIdx = this.$refs.dataTable.hotInstance.getSelected()[0]
+      const fromRow = Math.min(selectedIdx[0], selectedIdx[2])
+      const toRow = Math.max(selectedIdx[0], selectedIdx[2])
+      return [fromRow, toRow]
+    },
     selectRowEvent (event, coords) {
       switch (event.which) {
         case 1:
@@ -438,15 +442,11 @@ export default {
       return this.$refs.dataTable.hotInstance.getSelected().length === 0
     },
     isMultiSelected () {
-      const selectedIdx = this.$refs.dataTable.hotInstance.getSelected()[0]
-      const fromRow = selectedIdx[0]
-      const toRow = selectedIdx[2]
+      const [fromRow, toRow] = this.getSelectedRowIdx()
       return fromRow !== toRow
     },
     debug () {
-      const selectedIdx = this.$refs.dataTable.hotInstance.getSelected()[0]
-      const fromRow = selectedIdx[0]
-      const toRow = selectedIdx[2]
+      const [fromRow, toRow] = this.getSelectedRowIdx()
       console.log(this.allData)
       for (let i = fromRow; i <= toRow; i++) {
         console.log(this.$refs.dataTable.hotInstance.getDataAtRow(i))
@@ -519,9 +519,7 @@ export default {
 
     // Remove -----------------
     async removeData () {
-      const selectedIdx = this.$refs.dataTable.hotInstance.getSelected()[0]
-      const fromRow = Math.min(selectedIdx[0], selectedIdx[2])
-      const toRow = Math.max(selectedIdx[0], selectedIdx[2])
+      const [fromRow, toRow] = this.getSelectedRowIdx()
 
       const selectedId = []
       const selectedIdToIdx = {}
@@ -682,9 +680,7 @@ export default {
     // Menu =======================
     // Export Function
     async exportBibtexEvent () {
-      const selectedIdx = this.$refs.dataTable.hotInstance.getSelected()[0]
-      const fromRow = selectedIdx[0]
-      const toRow = selectedIdx[2]
+      const [fromRow, toRow] = this.getSelectedRowIdx()
       let exportBibtexStr = ''
       for (let i = fromRow; i <= toRow; i++) {
         const id = this.getRowId(i)
@@ -713,9 +709,7 @@ export default {
 
     async manuallyMatch () {
       this.showLoadingLibIcon = true
-      const selectedIdx = this.$refs.dataTable.hotInstance.getSelected()[0]
-      const fromRow = selectedIdx[0]
-      const toRow = selectedIdx[2]
+      const [fromRow, toRow] = this.getSelectedRowIdx()
       let matchQueue = []
       for (let i = fromRow; i <= toRow; i++) {
         const id = this.getRowId(i)
@@ -865,4 +859,3 @@ export default {
 }
 
 </script>
-<style src="../../node_modules/handsontable/dist/handsontable.full.css"></style>

@@ -71,7 +71,7 @@ export class PaperMeta {
   }
 
   mergeAttr (name, value) {
-    if (!this.hasAttr(name)) {
+    if (!(value === null || value === '' || typeof value === 'undefined')) {
       this.setAttr(name, value)
     }
   }
@@ -140,7 +140,7 @@ export class PaperMeta {
   constructBib () {
     if (!this.hasAttr('citeKey')) {
       if (this.hasAttr('authors')) {
-        this.citeKey = this.authors.split(' and ').replace(' ', '_') + '_' + this.pubTime
+        this.citeKey = this.authors.split(' and ')[0].replace(' ', '_') + '_' + this.pubTime
       } else if (this.hasAttr('title')) {
         this.citeKey = this.title.split(' ')[0] + '_' + this.pubTime
       }

@@ -37,6 +37,7 @@ export async function manuallyMatchPipeline (paperMetas) {
   pipeline.push(fromArxiv)
   pipeline.push(fromDBLP)
   pipeline.push(fromDOI)
+  pipeline.push(fromDBLP)
 
   resetCompleteStatus(paperMetas)
   paperMetas = await runPipline(pipeline, paperMetas)
