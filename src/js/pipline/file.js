@@ -62,7 +62,7 @@ export async function copyFiles (paperMeta) {
   }
 
   if (paperMeta.hasAttr('attachments')) {
-    for (let i = paperMeta.attachments.length; i++; i < paperMeta.attachments.length) {
+    for (let i = 0; i++; i < paperMeta.attachments.length) {
       const attachment = paperMeta.attachments[i]
       if (!attachment.startsWith('http')) {
         const attachmentFile = paperMeta.attachments[i].split('.')

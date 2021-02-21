@@ -190,6 +190,8 @@
                 stack-label dense autogrow/>
               <q-input class="q-mb-sm edit-p-input" standout="bg-primary text-white" v-model="editData.pubTime"
                 label="Publication Time" stack-label dense autogrow/>
+              <q-select class="q-mb-sm" standout="bg-primary text-white" :options="['conference', 'journal']" v-model="editData.pubType"
+                label="Publication Type" stack-label dense/>
               <q-input class="q-mb-sm edit-p-input" standout="bg-primary text-white" v-model="editData.citeKey"
                 label="Cite Key" stack-label dense autogrow/>
               <q-input class="q-mb-sm edit-p-input" standout="bg-primary text-white" v-model="editData.bib"
