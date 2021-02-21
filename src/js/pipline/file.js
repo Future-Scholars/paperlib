@@ -1,7 +1,7 @@
 import { promises as fsP, constants } from 'fs'
 import { getSetting } from 'src/js/settings'
 import path from 'path'
-
+import { uid } from 'quasar'
 function replaceInvalidChar (string) {
   return string.replace(/:/g, '-').replace(/ /g, '_').replace(/\./g, '_').replace(/\?/g, '_')
 }
@@ -45,10 +45,14 @@ export async function copyFiles (paperMeta) {
   let year = null
   if (paperMeta.hasAttr('paperFile')) {
     const paperFile = paperMeta.paperFile.split('.')
+    if (!paperMeta.hasAttr('title')) {
+      title = uid()
+    } else {
+      if (paperMeta.hasAttr('title')) title = paperMeta.title
+      if (paperMeta.hasAttr('authors')) author = paperMeta.authors.split(' and ')[0]
+      if (paperMeta.hasAttr('pubTime')) year = paperMeta.year
+    }
     const suffix = 'main.' + paperFile[paperFile.length - 1]
-    if (paperMeta.hasAttr('title')) title = paperMeta.title
-    if (paperMeta.hasAttr('authors')) author = paperMeta.authors.split(' and ')[0]
-    if (paperMeta.hasAttr('pubTime')) year = paperMeta.year
     const newFilePath = constructFilePath(title, author, year, suffix)
     const success = await copyFile(paperMeta.paperFile, newFilePath)
     if (success) {
@@ -58,10 +62,11 @@ export async function copyFiles (paperMeta) {
   }
 
   if (paperMeta.hasAttr('attachments')) {
-    for (const i in paperMeta.attachments) {
-      const attachmentFile = paperMeta.attachments[i].split('.')
-      let attSuffix = attachmentFile[attachmentFile.length - 1]
-      if (attSuffix === 'pdf' || attSuffix === 'doc') {
+    for (let i = paperMeta.attachments.length; i++; i < paperMeta.attachments.length) {
+      const attachment = paperMeta.attachments[i]
+      if (!attachment.startsWith('http')) {
+        const attachmentFile = paperMeta.attachments[i].split('.')
+        let attSuffix = attachmentFile[attachmentFile.length - 1]
         attSuffix = 'sup' + String(i) + '.' + attSuffix
         const newAttachmentPath = constructFilePath(title, author, year, attSuffix)
         const success = await copyFile(paperMeta.attachments[i], newAttachmentPath)
