@@ -1,0 +1,29 @@
+name: Quasar Electron Build and Release
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-capacitor:
+    runs-on: ${{ matrix.os-versions }}
+    
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      matrix:
+        os-versions: [windows-latest, macos-latest, ubuntu-latest]
+        node-versions: [10.x, 12.x, 14.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+            node-version: ${{ matrix.node-version }}
+      - run: yarn install && yarn global add @quasar/cli
+      - run: npm --version
