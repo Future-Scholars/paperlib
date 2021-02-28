@@ -25,6 +25,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
             node-version: ${{ matrix.node-version }}
-      - run: yarn install && yarn global add @quasar/cli
+      - run: yarn install && npm install -g @quasar/cli
       - run: quasar build -m electron -P always
       - run: ls dist/electron/Packaged/
