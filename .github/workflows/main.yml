@@ -27,4 +27,27 @@ jobs:
             node-version: ${{ matrix.node-version }}
       - run: yarn install && yarn add @quasar/cli
       - run: ./node_modules/@quasar/app/bin/quasar build -m electron
-      - run: ls dist/electron/Packaged/
+      - run: zip -r  ./build-${{ github.run_number }}.zip ./dist/electron/* 
+    
+      - name: Create a Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          body: Automated Electron Deployment
+          draft: false
+          prerelease: true
+          
+      - name: Upload a Release Asset
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./electron-${{ github.run_number }}.zip
+          asset_name: electron-${{ github.run_number }}.zip
+          asset_content_type: appliction/zip
