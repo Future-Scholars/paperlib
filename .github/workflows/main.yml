@@ -35,8 +35,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
+          tag_name: ${{ matrix.os-versions }}-${{ github.run_number }}
+          release_name: Release ${{ matrix.os-versions }}-${{ github.run_number }}
           body: Automated Electron Deployment
           draft: false
           prerelease: true
