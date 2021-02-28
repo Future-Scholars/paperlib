@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os-versions: [windows-latest, macos-latest, ubuntu-latest]
-        node-versions: [15.4.0]
+        node-versions: [14]
 
     steps:
       - uses: actions/checkout@v2
@@ -25,6 +25,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
             node-version: ${{ matrix.node-version }}
-      - run: yarn install && npm install -g @quasar/cli
+      - run: yarn install && yarn global add @quasar/cli && export PATH="$(yarn global bin):$PATH"
       - run: quasar build -m electron -P always
       - run: ls dist/electron/Packaged/
