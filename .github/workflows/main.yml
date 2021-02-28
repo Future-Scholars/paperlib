@@ -27,7 +27,7 @@ jobs:
             node-version: ${{ matrix.node-version }}
       - run: yarn install && yarn add @quasar/cli
       - run: ./node_modules/@quasar/app/bin/quasar build -m electron
-      - run: zip -r  ./build-${{ github.run_number }}.zip ./dist/electron/* 
+      - run: zip -r  ./build-${{ matrix.os-versions }}-${{ github.run_number }}.zip ./dist/electron/* 
     
       - name: Create a Release
         id: create_release
@@ -48,6 +48,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build-${{ github.run_number }}.zip
-          asset_name: build-${{ github.run_number }}.zip
+          asset_path: ./build-${{ matrix.os-versions }}-${{ github.run_number }}.zip
+          asset_name: build-${{ matrix.os-versions }}-${{ github.run_number }}.zip
           asset_content_type: appliction/zip
