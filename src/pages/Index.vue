@@ -703,7 +703,6 @@ export default {
 
     // Left Panel ===============================================================
     selectNavEvent (key, type) {
-      console.log(key, type)
       this.selectedNav = key
       const filtersPlugin = this.$refs.dataTable.hotInstance.getPlugin('filters')
       filtersPlugin.clearConditions(7)
