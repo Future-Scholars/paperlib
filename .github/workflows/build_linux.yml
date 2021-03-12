@@ -1,0 +1,42 @@
+name: Build and Release (macOS)
+
+on:
+  push:
+
+jobs:
+  build-capacitor:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      matrix:
+        node-versions: [14]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Read version
+        id: version
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ./VERSION
+
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: yarn install && yarn add @quasar/cli
+      - run: ./node_modules/@quasar/app/bin/quasar build -m electron
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ./dist/electron/Packaged/paperlib-${{ steps.version.outputs.content }}.AppImage
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
