@@ -21,6 +21,7 @@ export class PaperMeta {
     this.attachments = []
     this.tags = []
     this.arxiv = ''
+    this.flag = 0
     this.completed = false
   }
 
@@ -48,6 +49,7 @@ export class PaperMeta {
       this.addTags(metaObj.tags)
     }
     this.arxiv = metaObj.arxiv
+    this.flag = metaObj.flag
     this.constructBib()
   }
 
@@ -97,6 +99,7 @@ export class PaperMeta {
     }
     this.addTags(metaObj.tags)
     this.mergeAttr('arxiv', metaObj.arxiv)
+    this.mergeAttr('flag', metaObj.flag)
     this.constructBib()
   }
 

@@ -34,12 +34,23 @@ export function dbInit () {
       try {
         db.run('CREATE TABLE IF NOT EXISTS PaperMetas (id char(36) primary key, doi text, title text, authors text, pub text, pubType varchar(64), pubTime year, citeKey varchar(128), addTime datetime, bib text, note text, rating int, tags text, arxiv varchar(128))')
         db.run('CREATE TABLE IF NOT EXISTS Files (path text primary key, type varchar(16), paperID char(36))')
+        dbAddColumn('PaperMetas', 'flag', 'int')
         resolve(true)
       } catch (error) {
         reject(error)
       }
     })
   })
+}
+
+async function dbAddColumn (tableName, columnName, dataType) {
+  const db = conn()
+  const success = await db.launch('ALTER TABLE ' + tableName + ' ADD COLUMN ' + columnName + ' ' + dataType)
+  if (success) {
+    return true
+  } else {
+    return false
+  }
 }
 
 export async function dbSelectAll () {
@@ -71,7 +82,7 @@ export async function dbInsert (paperMeta) {
   const id = paperMeta.id
 
   const success = await db.launch(
-    'replace into PaperMetas (id, doi, title, authors, pub, pubType, pubTime, citeKey, addTime, bib, note, rating, tags, arxiv) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'replace into PaperMetas (id, doi, title, authors, pub, pubType, pubTime, citeKey, addTime, bib, note, rating, tags, arxiv, flag) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [id,
       paperMeta.doi,
       paperMeta.title,
@@ -85,7 +96,9 @@ export async function dbInsert (paperMeta) {
       paperMeta.note,
       paperMeta.rating,
       paperMeta.tags.join(';'),
-      paperMeta.arxiv]
+      paperMeta.arxiv,
+      paperMeta.flag
+    ]
   )
   return success
 }

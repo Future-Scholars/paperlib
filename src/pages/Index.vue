@@ -14,8 +14,8 @@
               </q-item-section>
             </q-item>
 
-            <q-item class="radius-list-item" clickable v-ripple :active="selectedTag === 'All'" active-class="radius-list-item-active"
-              @click="selectTagEvent('All')">
+            <q-item class="radius-list-item" clickable v-ripple :active="selectedNav === 'All'" active-class="radius-list-item-active"
+              @click="selectNavEvent('All', 'all')">
               <q-item-section avatar>
                 <q-icon class="radius-list-item-icon text-primary q-mr-md" name="fa fa-book-open" />
                 <span class="radius-list-item-text text-primary">All</span>
@@ -26,6 +26,19 @@
                 <q-spinner-oval color="primary" size="1em" />
               </q-item-section>
             </q-item>
+            <q-item class="radius-list-item" clickable v-ripple :active="selectedNav === 'Flaged'" active-class="radius-list-item-active"
+              @click="selectNavEvent('Flaged', 'flaged')">
+              <q-item-section avatar>
+                <q-icon class="radius-list-item-icon text-primary q-mr-md" name="fa fa-flag" />
+                <span class="radius-list-item-text text-primary">Flaged</span>
+              </q-item-section>
+              <q-item-section>
+              </q-item-section>
+              <q-item-section avatar v-if="showLoadingLibIcon">
+                <q-spinner-oval color="primary" size="1em" />
+              </q-item-section>
+            </q-item>
+
             <q-separator class="q-mt-md q-mb-md" inset />
 
             <q-item class="radius-list-item">
@@ -34,7 +47,7 @@
               </q-item-section>
             </q-item>
             <q-item class="radius-list-item" clickable v-ripple active-class="radius-list-item-active"
-              v-for="tag in allTagsList" :key="tag" :active="selectedTag === tag" @click=selectTagEvent(tag)>
+              v-for="tag in allTagsList" :key="tag" :active="selectedNav === tag" @click="selectNavEvent(tag, 'tag')">
               <q-item-section avatar>
                   <q-icon class="radius-list-item-icon text-primary q-mr-md" name="fa fa-tag" />
                   <span class="radius-list-item-text text-primary"> {{tag}} </span>
@@ -287,13 +300,14 @@ export default {
     return {
       tableSettings: {
         rowHeaders: false,
-        colHeaders: ['ID', 'Title', 'Authors', 'Publication', 'Time', 'Add Time', 'Tags'],
+        colHeaders: ['ID', '', 'Title', 'Authors', 'Publication', 'Time', 'Add Time', 'Tags'],
         stretchH: 'all',
         manualColumnResize: true,
         rowHeights: 16,
         colWidths: this.calColWidth,
         columns: [
           { data: 'id', wordWrap: false, readOnly: true },
+          { data: 'flag', wordWrap: false, readOnly: true, renderer: this.flagRender },
           { data: 'title', wordWrap: false, readOnly: true },
           { data: 'authors', wordWrap: false, readOnly: true },
           { data: 'pub', wordWrap: false, readOnly: true },
@@ -304,7 +318,7 @@ export default {
         hiddenColumns: {
           copyPasteEnabled: false,
           indicators: false,
-          columns: [0, 6]
+          columns: [0, 7]
         },
         selectionMode: 'range',
         outsideClickDeselects: false,
@@ -312,7 +326,7 @@ export default {
         multiColumnSorting: {
           sortEmptyCells: true,
           initialConfig: [{
-            column: 4,
+            column: 6,
             sortOrder: 'desc'
           }]
         },
@@ -326,6 +340,11 @@ export default {
               name: 'Refresh',
               hidden: this.noSelected,
               callback: this.queryData
+            },
+            addFlag: {
+              name: 'Flag',
+              hidden: this.isMultiSelected,
+              callback: this.toggleFlag
             },
             remove: {
               name: 'Remove',
@@ -371,7 +390,7 @@ export default {
       settingBuffer: { libPathPickerFile: null, proxyURL: null, proxyPort: null },
       filterString: '',
       importedBibFile: null,
-      selectedTag: 'All'
+      selectedNav: 'All'
     }
   },
   components: {
@@ -391,8 +410,19 @@ export default {
   methods: {
     // Table Function ===========================================================
     calColWidth (index) {
-      const per = [0, 0.35, 0.15, 0.3, 0.05, 0.15, 0]
-      return (this.$refs.rPanel.clientWidth - 20) * per[index]
+      if (index === 1) {
+        // width for flag column
+        return 15
+      }
+      const per = [0, 0, 0.35, 0.15, 0.3, 0.05, 0.15, 0]
+      return (this.$refs.rPanel.clientWidth - 35) * per[index]
+    },
+    flagRender (instance, td, row, col, prop, value, cellProperties) {
+      if (value === 1) {
+        td.innerHTML = "<i aria-hidden='true' role='presentation' class='radius-list-item-icon text-primary eva eva-flag q-icon notranslate' style='left:-5px'> </i>"
+      } else {
+        td.innerHTML = ''
+      }
     },
     getRowId (rowIdx) {
       const id = this.$refs.dataTable.hotInstance.getDataAtRow(rowIdx)[0]
@@ -423,6 +453,9 @@ export default {
     selectRowEvent (event, coords) {
       switch (event.which) {
         case 1:
+          if (coords.col === 1) {
+            this.toggleFlag()
+          }
           if (coords.row >= 0) {
             this.$refs.dataTable.hotInstance.selectRows(coords.row)
             var id = this.getRowId(coords.row)
@@ -669,12 +702,18 @@ export default {
     },
 
     // Left Panel ===============================================================
-    selectTagEvent (tag) {
-      this.selectedTag = tag
+    selectNavEvent (key, type) {
+      console.log(key, type)
+      this.selectedNav = key
       const filtersPlugin = this.$refs.dataTable.hotInstance.getPlugin('filters')
-      filtersPlugin.clearConditions(6)
-      if (tag !== 'All') {
-        filtersPlugin.addCondition(6, 'contains', [tag])
+      filtersPlugin.clearConditions(7)
+      filtersPlugin.clearConditions(1)
+      if (type === 'flaged') {
+        filtersPlugin.addCondition(1, 'contains', [1])
+      } else if (type === 'all') {
+        // Do nothing
+      } else if (type === 'tag') {
+        filtersPlugin.addCondition(7, 'contains', [key])
       }
       filtersPlugin.filter()
     },
@@ -762,6 +801,25 @@ export default {
       )
     },
 
+    async toggleFlag () {
+      const [fromRow, toRow] = this.getSelectedRowIdx()
+      if (fromRow !== toRow) {
+        return
+      }
+      const id = this.getRowId(fromRow)
+      const data = this.getRowData(id)
+      if (data.flag === 0 || data.flag === null) {
+        data.flag = 1
+      } else {
+        data.flag = 0
+      }
+      const success = await dbUpdate('flag', data.flag, data.id)
+      if (!success) {
+        // TODO: Alert
+      }
+      this.$refs.dataTable.hotInstance.render()
+    },
+
     // Setting Window ===============
     openSetting () {
       this.initialSettingBuffer()
@@ -834,7 +892,7 @@ export default {
       console.log('Init DB failed.')
     } else {
       await this.queryData()
-      this.$refs.dataTable.hotInstance.getPlugin('multiColumnSorting').sort({ column: 5, sortOrder: 'desc' })
+      this.$refs.dataTable.hotInstance.getPlugin('multiColumnSorting').sort({ column: 6, sortOrder: 'desc' })
       if (this.allData.length > 0) {
         this.selectedData = this.allData[this.allData.length - 1]
       }
