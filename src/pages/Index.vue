@@ -34,9 +34,6 @@
               </q-item-section>
               <q-item-section>
               </q-item-section>
-              <q-item-section avatar v-if="showLoadingLibIcon">
-                <q-spinner-oval color="primary" size="1em" />
-              </q-item-section>
             </q-item>
 
             <q-separator class="q-mt-md q-mb-md" inset />
@@ -493,6 +490,9 @@ export default {
 
     // Search Function =====================
     containsMatch (queryStr, value) {
+      if (value === null) {
+        return false
+      }
       return value.toString().trim().toLowerCase().includes(queryStr.toString().trim().toLowerCase())
     },
     searchInputEvent (value) {
