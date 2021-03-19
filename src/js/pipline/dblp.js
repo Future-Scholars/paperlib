@@ -11,6 +11,10 @@ const venueID = {
   'ICCV Workshop': 0
 }
 
+const predefinedVenue = {
+  'Pattern Recognit.': 'Pattern Recognition'
+}
+
 async function _fromDBLP (paperMeta) {
   if (paperMeta.completed || !paperMeta.hasAttr('title')) {
     return paperMeta
@@ -40,7 +44,10 @@ async function _fromDBLP (paperMeta) {
     paperMeta.authors = authorsList.join(' and ')
     paperMeta.addFile(paperResult.ee, 'attachment')
     const venue = paperResult.venue
-    if (venue !== 'CoRR') {
+    if (venue in predefinedVenue) {
+      const venueName = predefinedVenue[venue]
+      paperMeta.pub = venueName
+    } else if (venue !== 'CoRR') {
       paperMeta.pub = venue
       try {
         res = await got('https://dblp.org/search/venue/api?q=' + venue + '&format=json', {
