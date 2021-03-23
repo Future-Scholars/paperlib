@@ -4,7 +4,7 @@
 <img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
 <img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />
 <h2>PaperLib</h2>
-A simple academic paper management tool for CSer. **(in development, unstable)**
+A simple academic paper management tool for CSer.**
 <br />
 </div>
 
