@@ -7,7 +7,7 @@
             <q-btn dense flat round icon="lens" size="8.5px" color="yellow-9" @click="minimize" />
             <q-btn dense flat round icon="lens" size="8.5px" color="green-6" @click="maximize" />
           </q-bar>
-          <q-list dense class="q-pl-sm q-pr-sm">
+          <q-list dense class="q-pl-sm q-pr-sm left-p-scroll">
             <q-item class="radius-list-item">
               <q-item-section avatar top>
                 <span class="radius-list-item-label text-primary">Library</span>
@@ -292,6 +292,7 @@ import { shell } from 'electron'
 import { getSetting, setSetting } from 'src/js/settings'
 import { copyFiles, deleteFile, deleteFiles } from 'src/js/pipline/file'
 import { copyToClipboard } from 'quasar'
+import { checkUpdate } from 'src/js/update'
 export default {
   data () {
     return {
@@ -545,10 +546,10 @@ export default {
           this.$refs.dataTable.hotInstance.getPlugin('multiColumnSorting').sort(sortConfig)
         } else {
           await deleteFiles(paperMeta)
-          // TODO: alert
+          this.notify('Can not copy file to library path.')
         }
       } else {
-        // TODO: alert
+        this.notify('Can import this file.')
       }
     },
 
@@ -638,7 +639,7 @@ export default {
     async noteChangedEvent (event) {
       const success = await dbUpdate('note', this.selectedData.note, this.selectedData.id)
       if (!success) {
-        // TODO: Alert
+        this.notify('Cannot save note.')
       }
     },
 
@@ -731,10 +732,10 @@ export default {
 
       copyToClipboard(exportBibtexStr)
         .then(() => {
-          // alert
+          this.notify('Copied bibtex to clipboard.')
         })
         .catch(() => {
-          // alert
+          this.notify('Cannot copy bibtex to clipboard.')
         })
     },
 
@@ -812,10 +813,7 @@ export default {
       } else {
         data.flag = 0
       }
-      const success = await dbUpdate('flag', data.flag, data.id)
-      if (!success) {
-        // TODO: Alert
-      }
+      await dbUpdate('flag', data.flag, data.id)
       this.$refs.dataTable.hotInstance.render()
     },
 
@@ -881,6 +879,16 @@ export default {
       if (process.env.MODE === 'electron') {
         this.$q.electron.remote.BrowserWindow.getFocusedWindow().close()
       }
+    },
+
+    notify (message) {
+      this.$q.notify({
+        color: 'grey-3',
+        textColor: 'black',
+        message: message,
+        position: 'bottom-right',
+        timeout: 1500
+      })
     }
 
   },
@@ -914,6 +922,10 @@ export default {
     this.$el.querySelector('#data-table').querySelector('tbody').addEventListener('dblclick', () => {
       this.openPaperFileEvent(this.selectedData.paperFile)
     })
+    const updated = checkUpdate()
+    if (updated) {
+      this.notify('New version is released!')
+    }
   }
 }
 

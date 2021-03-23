@@ -105,7 +105,7 @@ module.exports = function (/* ctx */) {
       // directives: [],
 
       // Quasar plugins
-      plugins: ['Loading']
+      plugins: ['Notify']
     },
 
     // animations: 'all', // --- includes all animations

@@ -3,6 +3,11 @@
   height: 100%
 }
 
+.left-p-scroll {
+  height: calc(100% - 50px);
+  overflow: scroll;
+}
+
 .radius-list-item {
   height: 28px !important;
   min-height: 28px !important;
