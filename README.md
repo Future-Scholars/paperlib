@@ -9,14 +9,20 @@ A simple academic paper management tool for CSer.
 </div>
 
 
-![](./assets/ui.png)
+![](./assets/macOS_ui.png)
 
 ## Feature
-1. Automaticly match paper's metadata form Arxiv, DBLP and DOI.
+1. Native macOS app.
+2. Automaticly match paper's metadata form Arxiv, DBLP and DOI.
 3. Rating a paper and taking some notes.
-4. Organize papers by tag.
-5. Import paper from pdf, bibtex file.
-6. Export bibtex.
+4. Organize papers by tag and folder.
+5. Export bibtex.
 
 ## Usage
-[video](https://www.youtube.com/watch?v=3XmiA1EmuOc)
+1. 1\) Open Preference; 2\) Select Library Folder; 3\)Restart APP
+2. Migration Guide (for previous version's user): Drag and drop 'library.db' to the main window.
+3. Drag and drop PDFs to the main window.
+4. Drag and drop Files to the details window to attach supplementaries.
+
+
+
