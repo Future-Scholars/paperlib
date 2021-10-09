@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./assets/icon.png" height="95" />
+<img src="https://raw.githubusercontent.com/GeoffreyChen777/paperlib/master/src-electron/icons/linux-512x512.png" height="95" />
 <br />
 <img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
 <img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />

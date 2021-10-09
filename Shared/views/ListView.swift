@@ -380,7 +380,7 @@ struct ListView: View {
         else {
             var filterFormat = ""
             if (!self.searchText.isEmpty) {
-                filterFormat += "(title contains[cd] '\(self.searchText)' OR authors contains[cd] '\(self.searchText)' OR publication contains[cd] '\(self.searchText)') AND "
+                filterFormat += "(title contains[cd] '\(self.searchText.trimmingCharacters(in: CharacterSet.newlines))' OR authors contains[cd] '\(self.searchText.trimmingCharacters(in: CharacterSet.newlines))' OR publication contains[cd] '\(self.searchText.trimmingCharacters(in: CharacterSet.newlines))') AND "
             }
             
             self.selectedSidebars.forEach { ss in
