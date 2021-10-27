@@ -18,7 +18,7 @@ func readPDF(url: URL) -> PaperEntity? {
     let title = document?.documentAttributes?[PDFDocumentAttribute.titleAttribute]
     let authors = document?.documentAttributes?[PDFDocumentAttribute.authorAttribute]
         
-    entity.title = title as? String ?? ""
+    entity.title = makeValideString(str: title as? String ?? "")
     entity.authors = authors as? String ?? ""
 
     entity.doi = extractDOI(document: document ?? nil)

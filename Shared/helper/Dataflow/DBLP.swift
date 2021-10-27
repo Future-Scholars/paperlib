@@ -112,7 +112,7 @@ func requestDBLP(entity: PaperEntity?) -> PaperEntity? {
     
     sem.wait()
     
-    entity?.title = title ?? (entity?.title ?? "")
+    entity?.title = makeValideString(str: title ?? (entity?.title ?? ""))
     entity?.authors = authors ?? (entity?.authors ?? "")
     if (publication != nil) {
         if (!publication!.isEmpty) {

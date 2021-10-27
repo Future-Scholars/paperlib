@@ -75,7 +75,10 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
     override static func primaryKey() -> String? {
         return "id"
     }
-    
+}
+
+func makeValideString(str: String) -> String {
+    return str.replacingOccurrences(of: "\n", with: "")
 }
 
 func deepcopyEntity(entity: PaperEntity) -> PaperEntity {
@@ -152,8 +155,7 @@ struct PLDatabase {
     }
     
     func insertEntity(entity: PaperEntity) -> PaperEntity? {
-        
-        let existEntities = realm.objects(PaperEntity.self).filter("title == '\(entity.title)' and authors == '\(entity.authors)'")
+        let existEntities = realm.objects(PaperEntity.self).filter("title == '\(makeValideString(str: entity.title))' and authors == '\(makeValideString(str: entity.authors))'")
         if (existEntities.count > 0) {
             print("Paper exists.")
             return existEntities.first
@@ -388,7 +390,7 @@ struct PLDatabase {
             return nil
         }
         let id = String(entity.id)
-        let fileName = "\(entity.title.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ":", with: "_"))_\(id)_\(suffix)".replacingOccurrences(of: " ", with: "_")
+        let fileName = "\(entity.title.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ":", with: "_"))_\(id)_\(suffix)".replacingOccurrences(of: " ", with: "_").replacingOccurrences(of: "\n", with: "_")
         let sourceURL = URL(string: sourcePath!)
         if (sourceURL == nil) {
             print("Cannot move " + sourcePath!)

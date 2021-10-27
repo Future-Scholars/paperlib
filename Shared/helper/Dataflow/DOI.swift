@@ -59,7 +59,7 @@ func requestDOI(entity: PaperEntity?) -> PaperEntity? {
     }
     sem.wait()
     
-    entity?.title = title ?? (entity?.title ?? "")
+    entity?.title = makeValideString(str: title ?? (entity?.title ?? ""))
     entity?.authors = authors ?? (entity?.authors ?? "")
     entity?.publication = publication ?? (entity?.publication ?? "")
     entity?.pubType = pubType

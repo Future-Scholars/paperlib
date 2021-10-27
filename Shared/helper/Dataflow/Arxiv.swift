@@ -47,7 +47,7 @@ func requestArxiv(entity: PaperEntity?) -> PaperEntity? {
     
     sem.wait()
     
-    entity?.title = title ?? (entity?.title ?? "")
+    entity?.title = makeValideString(str: title ?? (entity?.title ?? ""))
     entity?.authors = authors ?? (entity?.authors ?? "")
     entity?.publication = "arXiv"
     entity?.pubType = 0
