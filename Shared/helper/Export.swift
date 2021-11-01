@@ -21,18 +21,18 @@ func exportTexbyEntities(entities: Results<PaperEntity>) {
             texbib = """
             @inproceedings{\(citeKey),
                 year = \(entity.pubTime),
-                title = \(entity.title),
-                author = \(entity.authors),
-                booktitle = \(entity.publication),
+                title = {\(entity.title)},
+                author = {\(entity.authors)},
+                booktitle = {\(entity.publication)},
             }
             """
         } else {
             texbib = """
             @article{\(citeKey),
                 year = \(entity.pubTime),
-                title = \(entity.title),
-                author = \(entity.authors),
-                journal = \(entity.publication),
+                title = {\(entity.title)},
+                author = {\(entity.authors)},
+                journal = {\(entity.publication)},
             }
             """
         }
@@ -61,18 +61,18 @@ func exportTexbyIDs(ids: Set<ObjectId>) {
             texbib = """
             @inproceedings{\(citeKey),
                 year = \(entity.pubTime),
-                title = \(entity.title),
-                author = \(entity.authors),
-                booktitle = \(entity.publication),
+                title = {\(entity.title)},
+                author = {\(entity.authors)},
+                booktitle = {\(entity.publication)},
             }
             """
         } else {
             texbib = """
             @article{\(citeKey),
                 year = \(entity.pubTime),
-                title = \(entity.title),
-                author = \(entity.authors),
-                journal = \(entity.publication),
+                title = {\(entity.title)},
+                author = {\(entity.authors)},
+                journal = {\(entity.publication)},
             }
             """
         }
