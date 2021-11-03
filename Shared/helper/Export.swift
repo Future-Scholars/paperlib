@@ -22,7 +22,7 @@ func exportTexbyEntities(entities: Results<PaperEntity>) {
             @inproceedings{\(citeKey),
                 year = \(entity.pubTime),
                 title = {\(entity.title)},
-                author = {\(entity.authors)},
+                author = {\(entity.authors.replacingOccurrences(of: ", ", with: " and "))},
                 booktitle = {\(entity.publication)},
             }
             """
@@ -31,7 +31,7 @@ func exportTexbyEntities(entities: Results<PaperEntity>) {
             @article{\(citeKey),
                 year = \(entity.pubTime),
                 title = {\(entity.title)},
-                author = {\(entity.authors)},
+                author = {\(entity.authors.replacingOccurrences(of: ", ", with: " and "))},
                 journal = {\(entity.publication)},
             }
             """
@@ -62,7 +62,7 @@ func exportTexbyIDs(ids: Set<ObjectId>) {
             @inproceedings{\(citeKey),
                 year = \(entity.pubTime),
                 title = {\(entity.title)},
-                author = {\(entity.authors)},
+                author = {\(entity.authors.replacingOccurrences(of: ", ", with: " and "))},
                 booktitle = {\(entity.publication)},
             }
             """
@@ -71,7 +71,7 @@ func exportTexbyIDs(ids: Set<ObjectId>) {
             @article{\(citeKey),
                 year = \(entity.pubTime),
                 title = {\(entity.title)},
-                author = {\(entity.authors)},
+                author = {\(entity.authors.replacingOccurrences(of: ", ", with: " and "))},
                 journal = {\(entity.publication)},
             }
             """
