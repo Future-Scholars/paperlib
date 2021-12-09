@@ -34,8 +34,13 @@ struct MainView: View {
     // Folder Edit View
     @State private var showFolderEditView: Bool = false
     
+    // Main View Switcher
+    @State private var mainViewSwitcher: Int = 0
+    @State private var mainViewSortSwitcher: String = "addTime"
+    
     
     @State private var showConfirmationDelete: Bool = false
+
     
     init() {
         self._entities = .init(initialValue: Loadable<Results<PaperEntity>>.notRequested)
@@ -88,6 +93,12 @@ struct MainView: View {
             .onChange(of: selectedIds, perform: {selectedIds in
                 reloadSelectedEntities()
             })
+            .onReceive(appLibFolderUpdate, perform: { _ in
+                if (injected.appState[\.setting.settingOpened] && injected.appState[\.setting.libMoveRequest]) {
+                    injected.interactors.entitiesInteractor.match(entities: Array(entities.value!), fetchWeb: false)
+                    injected.appState[\.setting.libMoveRequest] = false
+                }
+            })
         }
     }
     
@@ -132,14 +143,51 @@ private extension MainView {
     }
     
     func loadedView(_ entities: Results<PaperEntity>) -> some View {
-        return AnyView(List (selection: $selectedIds) {
-            ForEach(entities) { entity in
-                ListRow(entity: entity).frame(height: 55)
-                    .contextMenu {
-                        rowContextMenu()
+        
+        if (mainViewSwitcher == 0){
+            return AnyView(
+                List (selection: $selectedIds) {
+                    ForEach(entities) { entity in
+                        ListRow(entity: entity).frame(height: 55)
+                            .contextMenu {
+                                rowContextMenu()
+                            }
                     }
-            }
-        })
+                }
+            )
+        }
+        else {
+            return AnyView(
+                Table(entities, selection: $selectedIds) {
+                    TableColumn("Title"){ entity in
+                       Text(entity.title).font(.subheadline)
+                    }
+                    TableColumn("Authors"){ entity in
+                       Text(entity.authors).font(.subheadline)
+                    }
+                    .width(min: 30, ideal: 100)
+                    TableColumn("Publication"){ entity in
+                       Text(entity.publication).font(.subheadline)
+                    }
+                    TableColumn("Year"){ entity in
+                       Text(entity.pubTime).font(.subheadline)
+                    }
+                    .width(min: 50, ideal: 50, max:50)
+                    TableColumn("Flag") { entity in
+                        if (entity.flag) {
+                            Image(systemName: "flag.fill").opacity(0.8)
+                        }
+                        else {
+                            Image(systemName: "flag.fill").opacity(0)
+                        }
+                    }
+                    .width(min: 50, ideal: 50, max:50)
+                }
+                .contextMenu {
+                    rowContextMenu()
+                }
+            )
+        }
     }
     
     func rowContextMenu() -> some View {
@@ -326,7 +374,9 @@ private extension MainView {
                 Image(systemName: "doc.text.magnifyingglass")
                     .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
             }
+            .help("Match Metadata")
             .disabled(selectedIds.count == 0)
+            
             
             // Delete
             Button(action: {
@@ -344,6 +394,7 @@ private extension MainView {
                 }
             }
             .disabled(selectedIds.count < 1).keyboardShortcut(.delete)
+            .help("Delete")
             
             // Edit
             Button(action: {
@@ -354,6 +405,7 @@ private extension MainView {
             }
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showEditView, content: { editView() })
+            .help("Edit")
             
             // Flag
             Button(action: {
@@ -362,6 +414,7 @@ private extension MainView {
                 Image(systemName: "flag")
                     .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
             }.keyboardShortcut("t")
+            .help("Toggle Flag")
 
             // Tag
             Button(action: {
@@ -370,6 +423,7 @@ private extension MainView {
                 Image(systemName: "tag")
                     .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
             }
+            .help("Edit Tags")
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showTagEditView, content: { tagEditView() })
             
@@ -380,8 +434,41 @@ private extension MainView {
                 Image(systemName: "folder.badge.plus")
                     .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
             }
+            .help("Edit Folders")
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
+            
+            Picker("", selection: $mainViewSwitcher) {
+                ForEach([0, 1], id: \.self) {
+                    if ($0 == 0) {
+                        Image(systemName: "list.dash")
+                    }
+                    else {
+                        Image(systemName: "tablecells")
+                    }
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .help("Switch View Mode")
+            .padding(.leading, 15)
+            
+            Menu {
+                Button("Title", action: {
+                    mainViewSortSwitcher = "title"
+                    reloadEntities()
+                })
+                Button("Year", action: {
+                    mainViewSortSwitcher = "pubTime"
+                    reloadEntities()
+                })
+                Button("Add Time", action: {
+                    mainViewSortSwitcher = "addTime"
+                    reloadEntities()
+                })
+            } label: {
+                Label("sort", systemImage: "list.bullet.indent")
+            }
+            .help("Sort by")
             
         }
     }
@@ -429,7 +516,7 @@ private extension MainView {
     
     func reloadEntities () {
         let (flag, tags, folders) = makeFilter()
-        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText, flag: flag, tags: tags, folders: folders)
+        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
     }
     
     func reloadSelectedEntities () {
@@ -467,7 +554,7 @@ private extension MainView {
     
     func matchEntities () {
         if let selectedEntities = selectedEntities.value {
-            injected.interactors.entitiesInteractor.match(entities: Array(selectedEntities))
+            injected.interactors.entitiesInteractor.match(entities: Array(selectedEntities), fetchWeb: true)
         }
     }
     
@@ -507,6 +594,11 @@ private extension MainView {
         if let selectedEntities = selectedEntities.value{
             injected.interactors.entitiesInteractor.export(entities: Array(selectedEntities), format: format)
         }
+    }
+    
+    
+    var appLibFolderUpdate: AnyPublisher<String, Never> {
+        injected.appState.updates(for: \.setting.appLibFolder)
     }
 }
 

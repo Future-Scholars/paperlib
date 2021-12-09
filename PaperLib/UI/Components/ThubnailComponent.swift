@@ -7,23 +7,37 @@
 import SwiftUI
 import AppKit
 import QuickLookThumbnailing
+import Combine
 
 
 struct ThumbnailComponent: View {
+    @Environment(\.injected) private var injected: DIContainer
+    
     var url: URL?
     @State private var thumbnail: NSImage? = nil
     @State private var curUrl: URL? = nil
+    
+    @State private var invertColor: Bool = true
     
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         if (url == curUrl && self.thumbnail != nil) {
             if (colorScheme == .dark) {
-                Image(nsImage: self.thumbnail!)
-                    .mask( RoundedRectangle(cornerRadius: 5).foregroundColor(Color.black.opacity(0.55)) ).colorInvert()
-                    .onTapGesture(count: 2) {
-                        NSWorkspace.shared.open(url!)
-                    }
+                if (invertColor){
+                    Image(nsImage: self.thumbnail!)
+                        .mask( RoundedRectangle(cornerRadius: 5).foregroundColor(Color.black.opacity(0.55)) ).colorInvert()
+                        .onTapGesture(count: 2) {
+                            NSWorkspace.shared.open(url!)
+                        }
+                }
+                else {
+                    Image(nsImage: self.thumbnail!)
+                        .mask( RoundedRectangle(cornerRadius: 5).foregroundColor(Color.black.opacity(1)) )
+                        .onTapGesture(count: 2) {
+                            NSWorkspace.shared.open(url!)
+                        }
+                }
             }
             else {
                 Image(nsImage: self.thumbnail!)
@@ -40,6 +54,10 @@ struct ThumbnailComponent: View {
                 generateThumbnail()
             })
         }
+        EmptyView()
+            .onReceive(invertColorUpdate, perform: {
+                self.invertColor = $0
+            })
     }
 
     func generateThumbnail() {
@@ -65,5 +83,9 @@ struct ThumbnailComponent: View {
                 }
             }
         }
+    }
+    
+    var invertColorUpdate: AnyPublisher<Bool, Never> {
+        injected.appState.updates(for: \.setting.invertColor)
     }
 }

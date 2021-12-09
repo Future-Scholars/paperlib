@@ -15,6 +15,7 @@ protocol FileRepository {
     func read (url: URL) -> PaperEntity?
     func read (from url: URL) -> AnyPublisher<PaperEntity?, Error>
     func move (for entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
+    func move (for entities: [PaperEntity?]) -> AnyPublisher<[PaperEntity?], Error>
     func remove (for entity: PaperEntity?) -> AnyPublisher<Bool, Error>
     func remove (for entities: Results<PaperEntity>) -> AnyPublisher<[Bool], Error>
 }
@@ -216,6 +217,18 @@ struct RealFileDBRepository: FileRepository {
         }
         .eraseToAnyPublisher()
     }
+    
+    func move (for entities: [PaperEntity?]) -> AnyPublisher<[PaperEntity?], Error> {
+        var publisherList: Array<AnyPublisher<PaperEntity?, Error>> = .init()
+        
+        entities.forEach { entity in
+            let publisher = move(for: entity)
+            publisherList.append(publisher)
+        }
+        
+        return Publishers.MergeMany(publisherList).collect().eraseToAnyPublisher()
+    }
+    
     
     func remove (for entity: PaperEntity?) -> AnyPublisher<Bool, Error> {
         guard (entity != nil) else { return CurrentValueSubject.init(true).eraseToAnyPublisher() }

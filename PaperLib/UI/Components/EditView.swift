@@ -13,6 +13,7 @@ struct TextfieldView: View {
     let title: String
     @Binding var text: String
     let showTitle: Bool
+    var placeHolder: String? = nil
 
     var body: some View {
             HStack {
@@ -20,7 +21,7 @@ struct TextfieldView: View {
                 if (showTitle) {
                     Text(title).foregroundColor(Color.primary).bold()
                 }
-                TextField(title, text: $text)
+                TextField(placeHolder ?? title, text: $text)
                     .textFieldStyle(PlainTextFieldStyle())
                     .foregroundColor(.primary)
                     .padding(8)
@@ -86,7 +87,7 @@ struct TagEditView: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            TextfieldView(title: "Tags", text: $editString, showTitle: true).padding(.bottom, 10)
+            TextfieldView(title: "Tags", text: $editString, showTitle: true, placeHolder: "seperate by ;").padding(.bottom, 10)
                 .onChange(of: editString, perform: { _ in
                     editEntity.tags = editString
                 })
@@ -170,7 +171,7 @@ struct FolderEditView: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            TextfieldView(title: "Folders", text: $editString, showTitle: true).padding(.bottom, 10)
+            TextfieldView(title: "Folders", text: $editString, showTitle: true, placeHolder: "seperate by ;").padding(.bottom, 10)
                 .onChange(of: editString, perform: { _ in
                     editEntity.folders = editString
                 })

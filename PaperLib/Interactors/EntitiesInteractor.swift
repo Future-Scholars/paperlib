@@ -13,7 +13,7 @@ import Alamofire
 
 
 protocol EntitiesInteractor {
-    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: Array<String>, folders: Array<String>)
+    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, sort: String)
     func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>)
     func load(entity: Binding<EditPaperEntity>, id: ObjectId)
     func load(entity: LoadableSubject<PaperEntity>, id: ObjectId)
@@ -23,11 +23,14 @@ protocol EntitiesInteractor {
     func fetch(from fileURLs: Array<URL>)
     
     func delete(ids: Set<ObjectId>)
+    func delete(tagId: String)
+    func delete(folderId: String)
     
     func update(entities: Array<PaperEntity>, method: String, editedEntities: Array<EditPaperEntity>?)
-    func match(entities: Array<PaperEntity>)
+    func match(entities: Array<PaperEntity>, fetchWeb: Bool)
     
     func export(entities: Array<PaperEntity>, format: String)
+
 }
 
 struct RealEntitiesInteractor: EntitiesInteractor {
@@ -37,7 +40,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     let webRepository: WebRepository
     let appState: Store<AppState>
     
-    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "fetch", "delete", "tags-edit", "folders-edit"])
+    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "fetch", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "moveLib"])
     
     init(appState: Store<AppState>, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
         self.appState = appState
@@ -47,12 +50,12 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     }
 
     // MARK: - Select
-    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: Array<String>, folders: Array<String>) {
+    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, sort: String) {
         cancelBags.cancel(for: "entities")
         
         entities.wrappedValue.setIsLoading(cancelBag: cancelBags["entities"])
         
-        dbRepository.entities(search: search, flag: flag, tags: tags, folders: folders, freeze: true)
+        dbRepository.entities(search: search, flag: flag, tags: tags, folders: folders, sort: sort, freeze: true)
             .sinkToLoadable({
                 print("reloaded")
                 entities.wrappedValue = $0
@@ -145,7 +148,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
                     fileRepository.read(from: url)
                 })
                 .flatMap({
-                    webRepository.fetch(for: $0)
+                    webRepository.fetch(for: $0, enable: true)
                 })
                 .flatMap({ entity in
                     fileRepository.move(for: entity)
@@ -189,6 +192,30 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             .store(in: cancelBags["delete"])
     }
     
+    func delete(tagId: String) {
+        cancelBags.cancel(for: "delete-tag")
+        
+        Just<Void>
+            .withErrorType(Error.self)
+            .flatMap({ _ in
+                dbRepository.delete(tagId: tagId)
+            })
+            .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+            .store(in: cancelBags["delete-tag"])
+    }
+    
+    func delete(folderId: String) {
+        cancelBags.cancel(for: "delete-folder")
+        
+        Just<Void>
+            .withErrorType(Error.self)
+            .flatMap({ _ in
+                dbRepository.delete(folderId: folderId)
+            })
+            .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+            .store(in: cancelBags["delete-folder"])
+    }
+    
     // MARK: - Update
     
     func update(entities: Array<PaperEntity>, method: String, editedEntities: Array<EditPaperEntity>?) {
@@ -205,7 +232,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             .store(in: cancelBags["update"])
     }
     
-    func match(entities: Array<PaperEntity>) {
+    func match(entities: Array<PaperEntity>, fetchWeb: Bool) {
         cancelBags.cancel(for: "fetch")
         
         var publisherList: Array<AnyPublisher<Bool, Error>> = .init()
@@ -217,7 +244,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
                     dbRepository.copy(entity: entity)
                 })
                 .flatMap({ entity in
-                    webRepository.fetch(for: entity)
+                    webRepository.fetch(for: entity, enable: fetchWeb)
                 })
                 .flatMap({ entity in
                     fileRepository.move(for: entity)
@@ -291,10 +318,18 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         print(allPlain)
         pasteBoard.writeObjects([allPlain as NSString])
     }
-    
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
+
+    func delete(tagId: String) {
+
+    }
+    
+    func delete(folderId: String) {
+
+    }
+    
     func export(entities: Array<PaperEntity>, format: String) {
     }
     
@@ -313,14 +348,14 @@ struct StubEntitiesInteractor: EntitiesInteractor {
     func update(entities: Array<PaperEntity>, method: String, editedEntities: Array<EditPaperEntity>?) {
     }
     
-    func match(entities: Array<PaperEntity>) {
+    func match(entities: Array<PaperEntity>, fetchWeb: Bool) {
     }
     
     func load(entity: LoadableSubject<PaperEntity>, id: ObjectId) {
         
     }
     
-    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: Array<String>, folders: Array<String>) {
+    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, sort: String) {
         
     }
     

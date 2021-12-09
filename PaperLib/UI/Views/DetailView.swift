@@ -56,7 +56,7 @@ private extension DetailView {
                     .onChange(of: rating, perform: {_ in
                         rate()
                     })
-                DetailThumbnailSection(url: URL(string: entity.mainURL ?? ""))
+                DetailThumbnailSection(url: URL(string: entity.mainURL ?? "")).inject(injected)
                 if (entity.supURLs.count >= 1){
                     DetailsSupSection(sups: Array(entity.supURLs))
                 }

@@ -13,7 +13,7 @@ import SwiftyJSON
 
 
 protocol WebRepository {
-    func fetch (for: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
+    func fetch (for: PaperEntity?, enable: Bool) -> AnyPublisher<PaperEntity?, Error>
     func fetch (arxiv entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
     func fetch (doi entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
     func fetch (dblp entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
@@ -22,20 +22,26 @@ protocol WebRepository {
 
 struct RealWebRepository: WebRepository {
     
-    func fetch (for entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
+    func fetch (for entity: PaperEntity?, enable: Bool) -> AnyPublisher<PaperEntity?, Error> {
         guard (entity != nil) else { return CurrentValueSubject.init(entity).eraseToAnyPublisher() }
         
-        return CurrentValueSubject(entity)
-            .flatMap ({
-                fetch(arxiv: $0)
-            })
-            .flatMap ({
-                fetch(doi: $0)
-            })
-            .flatMap ({
-                fetch(dblp: $0)
-            })
-            .eraseToAnyPublisher()
+        if (enable) {
+            return CurrentValueSubject(entity)
+                .flatMap ({
+                    fetch(arxiv: $0)
+                })
+                .flatMap ({
+                    fetch(doi: $0)
+                })
+                .flatMap ({
+                    fetch(dblp: $0)
+                })
+                .eraseToAnyPublisher()
+        }
+        else {
+            return CurrentValueSubject(entity)
+                .eraseToAnyPublisher()
+        }
     }
     
     func fetch (arxiv entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {

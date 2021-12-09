@@ -11,7 +11,8 @@ import RealmSwift
 
 
 protocol DBRepository {
-    func entities(search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
+    func entities(freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
+    func entities(search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, sort: String, freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
     func entity(id: ObjectId, freeze: Bool) -> AnyPublisher<PaperEntity, Never>
     func entities(ids: Set<ObjectId>, freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
     
@@ -24,6 +25,8 @@ protocol DBRepository {
     
     func delete(tags: List<PaperTag>)
     func delete(folders: List<PaperFolder>)
+    func delete(tagId: String) -> AnyPublisher<Bool, Error>
+    func delete(folderId: String) -> AnyPublisher<Bool, Error>
     
     func update(entity: EditPaperEntity, method: String) -> AnyPublisher<Bool, Error>
     func update(entities: [EditPaperEntity], method: String, editedEntities: Array<EditPaperEntity>?) -> AnyPublisher<[Bool], Error>
@@ -50,7 +53,22 @@ extension Realm {
 struct RealDBRepository: DBRepository {
    
     // MARK: - Select
-    func entities(search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, freeze: Bool=true) -> AnyPublisher<Results<PaperEntity>, Error> {
+    func entities(freeze: Bool=true) -> AnyPublisher<Results<PaperEntity>, Error> {
+        let realm = try! Realm()
+        
+        var publisher: RealmPublishers.Value<Results<PaperEntity>>
+
+        publisher = realm.objects(PaperEntity.self).collectionPublisher
+        
+        if (freeze) {
+            return publisher.freeze().eraseToAnyPublisher()
+        }
+        else{
+            return publisher.eraseToAnyPublisher()
+        }
+    }
+    
+    func entities(search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, sort: String, freeze: Bool=true) -> AnyPublisher<Results<PaperEntity>, Error> {
         let realm = try! Realm()
         
         var filterFormat = ""
@@ -72,10 +90,10 @@ struct RealDBRepository: DBRepository {
         var publisher: RealmPublishers.Value<Results<PaperEntity>>
         if (!filterFormat.isEmpty) {
             filterFormat = String(filterFormat[..<String.Index(utf16Offset: (filterFormat.count - 4), in: filterFormat)])
-            publisher = realm.objects(PaperEntity.self).filter(filterFormat).sorted(byKeyPath: "addTime", ascending: false).collectionPublisher
+            publisher = realm.objects(PaperEntity.self).filter(filterFormat).sorted(byKeyPath: sort, ascending: false).collectionPublisher
         }
         else {
-            publisher = realm.objects(PaperEntity.self).sorted(byKeyPath: "addTime", ascending: false).collectionPublisher
+            publisher = realm.objects(PaperEntity.self).sorted(byKeyPath: sort, ascending: false).collectionPublisher
         }
         
         if (freeze) {
@@ -188,6 +206,30 @@ struct RealDBRepository: DBRepository {
         }
     }
     
+    func delete(tagId: String) -> AnyPublisher<Bool, Error> {
+        return Future<Bool, Error> { promise in
+            let realm = try! Realm()
+            let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: tagId)!
+            try! realm.safeWrite {
+                realm.delete(tagObj)
+            }
+            promise(.success(true))
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    func delete(folderId: String) -> AnyPublisher<Bool, Error> {
+        return Future<Bool, Error> { promise in
+            let realm = try! Realm()
+            let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: folderId)!
+            try! realm.safeWrite {
+                realm.delete(folderObj)
+            }
+            promise(.success(true))
+        }
+        .eraseToAnyPublisher()
+    }
+    
     // MARK: - Update
     func copy(entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
         return Future<PaperEntity, Error> { promise in
@@ -239,7 +281,8 @@ struct RealDBRepository: DBRepository {
                 }
                 updateObj.tags.removeAll()
                 // add new tags
-                entity.tags.components(separatedBy: "; ").forEach { tag in
+                entity.tags = formatString(entity.tags, removeWhite: true)!
+                entity.tags.components(separatedBy: ";").forEach { tag in
                     let tagStr = formatString(tag, returnEmpty: true, trimWhite: true)!
                     if (!tagStr.isEmpty) {
                         let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: "tag-"+tagStr)
@@ -266,7 +309,8 @@ struct RealDBRepository: DBRepository {
                 }
                 updateObj.folders.removeAll()
                 // add new folders
-                entity.folders.components(separatedBy: "; ").forEach { folder in
+                entity.folders = formatString(entity.folders, removeWhite: true)!
+                entity.folders.components(separatedBy: ";").forEach { folder in
                     let folderStr = formatString(folder, returnEmpty: true, trimWhite: true)!
                     if (!folderStr.isEmpty) {
                         var folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: "folder-"+folderStr)

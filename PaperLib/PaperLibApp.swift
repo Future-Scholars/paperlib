@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct PaperLibApp: App {
     private let environment: AppEnvironment
+    @StateObject var updaterViewModel = UpdaterViewModel()
     
     init() {
         self.environment = AppEnvironment.bootstrap()
@@ -18,9 +19,15 @@ struct PaperLibApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(container: self.environment.container)
-        }.windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
+        }
+        .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
+        .commands {
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesView(updaterViewModel: updaterViewModel)
+            }
+        }
         Settings {
-            SettingsView()
+            SettingsView().inject(self.environment.container)
         }
     }
 }

@@ -29,6 +29,15 @@
         }
       },
       {
+        "package": "Sparkle",
+        "repositoryURL": "https://github.com/sparkle-project/Sparkle",
+        "state": {
+          "branch": null,
+          "revision": "831e9b4eb7e871a9c072469fb14049614fc92810",
+          "version": "2.0.0-beta.6"
+        }
+      },
+      {
         "package": "SwiftyJSON",
         "repositoryURL": "https://github.com/SwiftyJSON/SwiftyJSON.git",
         "state": {

@@ -38,6 +38,7 @@ struct DetailRatingSection: View {
 }
 
 struct DetailThumbnailSection: View {
+    @Environment(\.injected) private var injected: DIContainer
     let url: URL?
         
     var body: some View {
@@ -47,7 +48,7 @@ struct DetailThumbnailSection: View {
                 .foregroundColor(Color.secondary.opacity(0.8))
             
             if (url != nil) {
-                ThumbnailComponent(url: url).padding(.vertical, 5)
+                ThumbnailComponent(url: url).inject(injected).padding(.vertical, 5)
             }
         }.padding(.vertical, 2)
     }
