@@ -1,0 +1,512 @@
+//
+//  MainView.swift
+//  PaperLib
+//
+//  Created by GeoffreyChen on 26/11/2021.
+//
+
+import SwiftUI
+import Combine
+import RealmSwift
+
+
+struct MainView: View {
+    @Environment(\.injected) private var injected: DIContainer
+    private var cancelBag = CancelBag()
+    // Common
+    @State private var selectedIds: Set<ObjectId> = .init()
+    @State private var selectedEntities: Loadable<Results<PaperEntity>>
+    @State private var editedSelectedEntity: EditPaperEntity = EditPaperEntity.init()
+    
+    // Sidebar
+    @State private var selectedFilters: Set<String> = .init()
+    
+    // Main List
+    @State private var searchText = ""
+    @State private var entities: Loadable<Results<PaperEntity>>
+  
+    // Edit View
+    @State private var showEditView: Bool = false
+    
+    // Tag Edit View
+    @State private var showTagEditView: Bool = false
+    
+    // Folder Edit View
+    @State private var showFolderEditView: Bool = false
+    
+    
+    @State private var showConfirmationDelete: Bool = false
+    
+    init() {
+        self._entities = .init(initialValue: Loadable<Results<PaperEntity>>.notRequested)
+        self._selectedEntities = .init(initialValue: Loadable<Results<PaperEntity>>.notRequested)
+    }
+    
+    var body: some View {
+        
+        NavigationView {
+            // MARK: - Sidebar
+            SidebarView(selectedFilters: $selectedFilters)
+                .inject(injected)
+                .frame(minWidth: 300)
+                .toolbar {
+                    ToolbarItem(placement: ToolbarItemPlacement.status) {
+                        Button(action: {
+                            NSApp.keyWindow?.firstResponder?.tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
+                        }) {
+                            Label("Toggle Sidebar", systemImage: "sidebar.left")
+                        }
+                    }
+                }
+                .onChange(of: selectedFilters, perform: { _ in
+                    clearSelected()
+                    reloadEntities()
+                })
+            
+            // MARK: - Main list
+            HStack(spacing: 0){
+                MainContent()
+                DetailContent()
+                    .onDrop(of: ["public.file-url"], isTargeted: nil) {providers -> Bool in
+                        onDropFiletoDetail(providers: providers)
+                        return true
+                    }
+            }
+            .toolbar {
+                SearchBar(text: $searchText.onSet({_ in
+                    clearSelected()
+                    reloadEntities()
+                }))
+                Spacer()
+                menuButtons()
+            }
+            .onDrop(of: ["public.file-url"], isTargeted: nil) {providers -> Bool in
+                onDropFiletoMain(providers: providers)
+                return true
+            }
+            .onAppear(perform: reloadEntities)
+            .onChange(of: selectedIds, perform: {selectedIds in
+                reloadSelectedEntities()
+            })
+        }
+    }
+    
+    private func MainContent() -> AnyView {
+        switch entities {
+        case .notRequested: return AnyView(notRequestedView().onAppear(perform: reloadEntities))
+        case let .isLoading(last, _): return AnyView(loadingView(last))
+        case let .loaded(entities): return AnyView(loadedView(entities))
+        case let .failed(error): return AnyView(failedView(error))
+        }
+    }
+    
+    private func DetailContent() -> AnyView {
+        switch selectedEntities {
+        case .notRequested: return AnyView(notRequestedView())
+        case let .isLoading(last, _): return AnyView(detailLoadingView(last))
+        case let .loaded(detailEntities): return AnyView(detailLoadedView(detailEntities))
+        case let .failed(error): return AnyView(failedView(error))
+        }
+    }
+    
+}
+
+// MARK: - View
+
+private extension MainView {
+    // Main List
+    func notRequestedView() -> some View {
+        return EmptyView()
+    }
+    
+    func failedView(_ error: Error) -> some View {
+        EmptyView()
+    }
+
+    func loadingView(_ previouslyLoaded: Results<PaperEntity>?) -> some View {
+        if let entities = previouslyLoaded {
+            return AnyView(loadedView(entities))
+        } else {
+            return AnyView(EmptyView())
+        }
+    }
+    
+    func loadedView(_ entities: Results<PaperEntity>) -> some View {
+        return AnyView(List (selection: $selectedIds) {
+            ForEach(entities) { entity in
+                ListRow(entity: entity).frame(height: 55)
+                    .contextMenu {
+                        rowContextMenu()
+                    }
+            }
+        })
+    }
+    
+    func rowContextMenu() -> some View {
+        VStack {
+            Button(action: {
+                openEntities()
+            }) {
+                Text("Open")
+            }.keyboardShortcut(.defaultAction)
+                
+            Button(action: {
+                matchEntities()
+            }) {
+                Text("Match")
+            }.keyboardShortcut("m")
+                
+            Button(action: {
+                deleteEntities()
+            }) {
+                Text("Delete")
+            }.keyboardShortcut(.delete)
+                
+            Divider()
+            
+            Button(action: {
+                editSelected(method: "flag")
+            }) {
+                Text("Toggle Flag")
+            }.keyboardShortcut("t")
+                
+            Button(action: {
+                self.showTagEditView.toggle()
+            }) {
+                Text("Add Tag")
+            }
+            .disabled(selectedIds.count != 1)
+            .sheet(isPresented: $showTagEditView, content: { tagEditView() })
+              
+            Button(action: {
+                self.showFolderEditView.toggle()
+            }) {
+                Text("Add Folder")
+            }
+            .disabled(selectedIds.count != 1)
+            .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
+            
+            Divider()
+            
+            Menu("Export") {
+                Button(action: {
+                    exportEntities(format: "bibtex")
+                }) {
+                    Text("Bibtex")
+                }
+                Button(action: {
+                    exportEntities(format: "plain")
+                }) {
+                    Text("Plain Text")
+                }
+            }
+        }
+    }
+
+    
+    // Detail View
+    func detailLoadingView(_ previouslyLoaded: Results<PaperEntity>?) -> some View {
+        if let entities = previouslyLoaded {
+            return AnyView(detailLoadedView(entities))
+        } else {
+            return AnyView(EmptyView())
+        }
+    }
+    
+    func detailLoadedView(_ entities: Results<PaperEntity>) -> some View {
+        if (entities.count == 1) {
+            return AnyView(DetailView(entity: entities.first!).inject(injected))
+        }
+        else {
+            return AnyView(EmptyView())
+        }
+    }
+    
+    // Edit View
+
+    func editView () -> some View {
+        return VStack {
+                EditView($editedSelectedEntity)
+                Spacer()
+                HStack {
+                    Button(action: {
+                        showEditView.toggle()
+                        NSApp.mainWindow?.endSheet(NSApp.keyWindow!)
+                    }) {
+                        Text("Close")
+                    }
+                    Spacer()
+                    Button(action: {
+                        editSelected()
+                        showEditView.toggle()
+                        NSApp.mainWindow?.endSheet(NSApp.keyWindow!)
+                    }) {
+                        Text("Save & Close")
+                    }
+                }.padding()
+            }
+    }
+    
+    // Tag Edit View
+    func tagEditView() -> some View {
+        return VStack {
+            TagEditView($editedSelectedEntity)
+            Spacer()
+            HStack {
+                Button(action: {
+                    showTagEditView.toggle()
+                    NSApp.mainWindow?.endSheet(NSApp.keyWindow!)
+                }) {
+                    Text("Close")
+                }
+                Spacer()
+                Button(action: {
+                    editSelected()
+                    showTagEditView.toggle()
+                    NSApp.mainWindow?.endSheet(NSApp.keyWindow!)
+                }) {
+                    Text("Save & Close")
+                }
+            }.padding()
+        }
+    }
+
+    // Folder Edit View
+    func folderEditView() -> some View {
+        return VStack {
+            FolderEditView($editedSelectedEntity)
+            Spacer()
+            HStack {
+                Button(action: {
+                    showFolderEditView.toggle()
+                    NSApp.mainWindow?.endSheet(NSApp.keyWindow!)
+                }) {
+                    Text("Close")
+                }
+                Spacer()
+                Button(action: {
+                    editSelected()
+                    showFolderEditView.toggle()
+                    NSApp.mainWindow?.endSheet(NSApp.keyWindow!)
+                }) {
+                    Text("Save & Close")
+                }
+            }.padding()
+        }
+    }
+    
+    // Menu Buttons
+    func menuButtons () -> some View {
+        HStack {
+            // Open
+            Button(action: {
+                openEntities()
+            }) {
+                Image(systemName: "doc.text.magnifyingglass")
+                    .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+            }
+            .keyboardShortcut(.defaultAction)
+            .disabled(selectedIds.count == 0)
+            .hidden()
+            
+            // Export
+            Button(action: {
+                exportEntities(format: "bibtex")
+            }) {
+                Image(systemName: "square.and.arrow.up")
+                    .foregroundColor(Color.primary.opacity(0.5))
+            }.keyboardShortcut("c")
+            .disabled(selectedIds.count == 0)
+            .hidden()
+            
+            // Match
+            Button(action: {
+                matchEntities()
+            }) {
+                Image(systemName: "doc.text.magnifyingglass")
+                    .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+            }
+            .disabled(selectedIds.count == 0)
+            
+            // Delete
+            Button(action: {
+                showConfirmationDelete.toggle()
+            }) {
+                Image(systemName: "trash")
+                    .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+            }
+            .confirmationDialog("Are you sure to delete?", isPresented: $showConfirmationDelete) {
+                Button(action: {
+                    showConfirmationDelete.toggle()
+                    deleteEntities()
+                }) {
+                    Text("Yes")
+                }
+            }
+            .disabled(selectedIds.count < 1).keyboardShortcut(.delete)
+            
+            // Edit
+            Button(action: {
+                self.showEditView.toggle()
+            }) {
+                Image(systemName: "pencil.circle")
+                    .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+            }
+            .disabled(selectedIds.count != 1)
+            .sheet(isPresented: $showEditView, content: { editView() })
+            
+            // Flag
+            Button(action: {
+                editSelected(method: "flag")
+            }) {
+                Image(systemName: "flag")
+                    .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+            }.keyboardShortcut("t")
+
+            // Tag
+            Button(action: {
+                self.showTagEditView.toggle()
+            }) {
+                Image(systemName: "tag")
+                    .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+            }
+            .disabled(selectedIds.count != 1)
+            .sheet(isPresented: $showTagEditView, content: { tagEditView() })
+            
+            // Folder
+            Button(action: {
+                self.showFolderEditView.toggle()
+            }) {
+                Image(systemName: "folder.badge.plus")
+                    .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+            }
+            .disabled(selectedIds.count != 1)
+            .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
+            
+        }
+    }
+}
+
+
+// MARK: - Side Effects
+
+private extension MainView {
+
+    func onDropFiletoMain (providers: [NSItemProvider]) {
+        let urlGroup = DispatchGroup()
+        
+        var urlList: Array<URL> = .init()
+        providers.forEach { provider in
+            urlGroup.enter()
+            provider.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
+                if let data = data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
+                    urlList.append(url)
+                    urlGroup.leave()
+                }
+            })
+        }
+        
+        urlGroup.notify(queue: .main) {
+            if (urlList.count > 0) {
+                injected.interactors.entitiesInteractor.fetch(from: urlList)
+            }
+        }
+
+    }
+    
+    func onDropFiletoDetail (providers: [NSItemProvider]) {
+//        editPaperEntity = EditPaperEntity(from: selected.value!)
+//        providers.forEach { provider in
+//            provider.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
+//                if let data = data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
+//
+//                    editPaperEntity.supURLs.append(url.absoluteString)
+//                    editSelected()
+//                }
+//            })
+//        }
+    }
+    
+    func reloadEntities () {
+        let (flag, tags, folders) = makeFilter()
+        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText, flag: flag, tags: tags, folders: folders)
+    }
+    
+    func reloadSelectedEntities () {
+        if (selectedIds.count > 0) {
+            print(selectedIds)
+            injected.interactors.entitiesInteractor.load(entities: $selectedEntities, ids: selectedIds)
+            injected.interactors.entitiesInteractor.load(entity: $editedSelectedEntity, id: selectedIds.first!)
+        }
+        else {
+            selectedEntities = .notRequested
+        }
+    }
+    
+    func deleteEntities () {
+        injected.interactors.entitiesInteractor.delete(ids: selectedIds)
+        clearSelected()
+    }
+    
+    func clearSelected () {
+        selectedIds.removeAll()
+    }
+    
+    func editSelected (method: String = "update") {
+        
+        if let selectedEntities = selectedEntities.value {
+            if (method == "update") {
+                injected.interactors.entitiesInteractor.update(entities: [selectedEntities.first!], method: method, editedEntities: [editedSelectedEntity])
+            }
+            else {
+                injected.interactors.entitiesInteractor.update(entities: Array(selectedEntities), method: method, editedEntities: nil)
+            }
+        }
+        
+    }
+    
+    func matchEntities () {
+        if let selectedEntities = selectedEntities.value {
+            injected.interactors.entitiesInteractor.match(entities: Array(selectedEntities))
+        }
+    }
+    
+    func makeFilter () -> (Bool, Array<String>, Array<String>) {
+        if (selectedFilters.contains("lib-all") && selectedFilters.count > 1) {
+            selectedFilters = Set(["lib-all"])
+        }
+        
+        let flag: Bool = selectedFilters.contains("lib-flag")
+        var tags: Array<String> = .init()
+        var folders: Array<String> = .init()
+        
+        selectedFilters.forEach { filter in
+            if (filter.starts(with: "tag-")) {
+                tags.append(filter)
+            }
+            if (filter.starts(with: "folder-")) {
+                folders.append(filter)
+            }
+        }
+        
+        return (flag, tags, folders)
+        
+    }
+    
+    func openEntities () {
+        if let selectedEntities = selectedEntities.value{
+            selectedEntities.forEach({ entity in
+                if let mainURL = entity.mainURL{
+                    NSWorkspace.shared.open(URL(string: mainURL)!)
+                }
+            })
+        }
+    }
+    
+    func exportEntities (format: String = "bibtex") {
+        if let selectedEntities = selectedEntities.value{
+            injected.interactors.entitiesInteractor.export(entities: Array(selectedEntities), format: format)
+        }
+    }
+}
+

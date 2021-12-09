@@ -3,38 +3,20 @@
     "pins": [
       {
         "package": "Alamofire",
-        "repositoryURL": "https://github.com/Alamofire/Alamofire/",
+        "repositoryURL": "https://github.com/Alamofire/Alamofire.git",
         "state": {
           "branch": null,
-          "revision": "f96b619bcb2383b43d898402283924b80e2c4bae",
-          "version": "5.4.3"
-        }
-      },
-      {
-        "package": "Antlr4",
-        "repositoryURL": "https://github.com/MaxHaertwig/ANTLR4-Swift.git",
-        "state": {
-          "branch": null,
-          "revision": "0b4eed93b803c931db67cc30434b5531f72d50b1",
-          "version": "4.9.1"
-        }
-      },
-      {
-        "package": "SwiftUILib-DocumentPicker",
-        "repositoryURL": "https://github.com/swiftuilib/document-picker",
-        "state": {
-          "branch": null,
-          "revision": "dca7adf7c1ff5355b696ba2da7aebf6ffa9bb15d",
-          "version": "1.0.0"
+          "revision": "d120af1e8638c7da36c8481fd61a66c0c08dc4fc",
+          "version": "5.4.4"
         }
       },
       {
         "package": "Realm",
-        "repositoryURL": "https://github.com/realm/realm-cocoa",
+        "repositoryURL": "https://github.com/realm/realm-cocoa.git",
         "state": {
           "branch": null,
-          "revision": "77658519b13388c098a7624a94491738f8bb2983",
-          "version": "10.10.0"
+          "revision": "bdbbd57f411a0f4e72b359113dbc6d23fdf96680",
+          "version": "10.20.0"
         }
       },
       {
@@ -42,31 +24,13 @@
         "repositoryURL": "https://github.com/realm/realm-core",
         "state": {
           "branch": null,
-          "revision": "95da0df7815d7cbaff14ed5e8b73fe4c2a992816",
-          "version": "11.0.4"
-        }
-      },
-      {
-        "package": "SQLite.swift",
-        "repositoryURL": "https://github.com/stephencelis/SQLite.swift.git",
-        "state": {
-          "branch": null,
-          "revision": "9af51e2edf491c0ea632e369a6566e09b65aa333",
-          "version": "0.13.0"
-        }
-      },
-      {
-        "package": "SwiftyBibtex",
-        "repositoryURL": "https://github.com/MaxHaertwig/SwiftyBibtex",
-        "state": {
-          "branch": null,
-          "revision": "b653c01e6315cf06c2c55a8396a397cdadaddccf",
-          "version": "1.0.0"
+          "revision": "c3c11a841642ac93c27bd1edd61f989fc0bfb809",
+          "version": "11.6.1"
         }
       },
       {
         "package": "SwiftyJSON",
-        "repositoryURL": "https://github.com/SwiftyJSON/SwiftyJSON",
+        "repositoryURL": "https://github.com/SwiftyJSON/SwiftyJSON.git",
         "state": {
           "branch": null,
           "revision": "b3dcd7dbd0d488e1a7077cb33b00f2083e382f07",
@@ -75,11 +39,11 @@
       },
       {
         "package": "SwiftyXMLParser",
-        "repositoryURL": "https://github.com/yahoojapan/SwiftyXMLParser",
+        "repositoryURL": "https://github.com/yahoojapan/SwiftyXMLParser.git",
         "state": {
           "branch": null,
-          "revision": "ec7f183642adf429babd867d1a38c5c6912408ba",
-          "version": "5.3.0"
+          "revision": "d7a1d23f04c86c1cd2e8f19247dd15d74e0ea8be",
+          "version": "5.6.0"
         }
       }
     ]
