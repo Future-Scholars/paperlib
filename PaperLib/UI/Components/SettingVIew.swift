@@ -39,7 +39,7 @@ struct GeneralSettingsView: View {
         
         VStack (alignment: .leading) {
             HStack (alignment: .top) {
-                Text("Choose a folder to store paper files (e.g., PDF etc.). Changing this setting requires a restarting of PaperLib to take effect.").frame(width: 250).multilineTextAlignment(.trailing).font(.caption)
+                Text("Choose a folder to store paper files (e.g., PDF etc.) and the database files.").frame(width: 250).multilineTextAlignment(.trailing).font(.caption)
                 Text(
                     (appLibFolder.count > 7) ? String(appLibFolder[String.Index(utf16Offset: 7, in: appLibFolder)...]) : "Choose a folder"
                 )

@@ -11,6 +11,9 @@ import RealmSwift
 
 
 protocol DBRepository {
+    func setDBPath (path: String?) -> AnyPublisher<Bool, Error>
+    func moveDB (to path: String) -> AnyPublisher<Bool, Error>
+    
     func entities(freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
     func entities(search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, sort: String, freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
     func entity(id: ObjectId, freeze: Bool) -> AnyPublisher<PaperEntity, Never>
@@ -51,6 +54,73 @@ extension Realm {
 }
 
 struct RealDBRepository: DBRepository {
+    
+    init() {
+        setDBPath(path: UserDefaults.standard.string(forKey: "appLibFolder"))
+            .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+    }
+    
+    func setDBPath (path: String?) -> AnyPublisher<Bool, Error>{
+        
+        return Future<Bool, Error> { promise in
+            var config = Realm.Configuration()
+            
+            var url: URL?
+            if (path != nil) {
+                if (!path!.isEmpty) {
+                    url = URL(string: path! )
+                }
+            }
+            else {
+                let docPaths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+                let documentsDirectory = docPaths[0]
+                url = documentsDirectory.appendingPathComponent("paperlib")
+            }
+
+            if let applicationSupportURL = url {
+                do {
+                    try FileManager.default.createDirectory(at: applicationSupportURL, withIntermediateDirectories: true, attributes: nil)
+                    config.fileURL = applicationSupportURL.appendingPathComponent("default.realm")
+                } catch let err {
+                    print(err)
+
+                }
+            }
+
+            // Set this as the configuration used for the default Realm
+            Realm.Configuration.defaultConfiguration = config
+            
+            print(Realm.Configuration.defaultConfiguration.fileURL)
+            
+            promise(.success(true))
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    func moveDB (to path: String) -> AnyPublisher<Bool, Error> {
+        
+        return Future<Bool, Error> { promise in
+            var fromURL = Realm.Configuration.defaultConfiguration.fileURL!
+            let toURL = URL(string: path)
+            
+            if let toURL = toURL {
+                fromURL = fromURL.deletingLastPathComponent()
+                
+                let dbNames = ["default.realm", "default.realm.lock", "default.realm.management"]
+                
+                dbNames.forEach { dbName in
+                    do {
+                        try  FileManager.default.moveItem(at: fromURL.appendingPathComponent(dbName), to: toURL.appendingPathComponent(dbName))
+                    } catch let err {
+                        print(err)
+                    }
+                }
+            }
+            
+            promise(.success(true))
+        }
+        .eraseToAnyPublisher()
+    }
    
     // MARK: - Select
     func entities(freeze: Bool=true) -> AnyPublisher<Results<PaperEntity>, Error> {
@@ -249,6 +319,7 @@ struct RealDBRepository: DBRepository {
         if (method == "flag") {
             entity.flag.toggle()
         }
+        print(entity)
         
         return Future<Bool, Error> { promise in
             let realm = try! Realm()

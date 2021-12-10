@@ -95,8 +95,13 @@ struct MainView: View {
             })
             .onReceive(appLibFolderUpdate, perform: { _ in
                 if (injected.appState[\.setting.settingOpened] && injected.appState[\.setting.libMoveRequest]) {
-                    injected.interactors.entitiesInteractor.match(entities: Array(entities.value!), fetchWeb: false)
-                    injected.appState[\.setting.libMoveRequest] = false
+                    injected.interactors.entitiesInteractor.moveLib(entities: Array(entities.value!))
+                        .sink(receiveCompletion: {_ in}, receiveValue: { _ in
+                            injected.appState[\.setting.libMoveRequest] = false
+                            reloadEntities()
+                            reloadSelectedEntities()
+                            clearSelected()
+                        })
                 }
             })
         }

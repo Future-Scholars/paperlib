@@ -28,7 +28,7 @@ protocol EntitiesInteractor {
     
     func update(entities: Array<PaperEntity>, method: String, editedEntities: Array<EditPaperEntity>?)
     func match(entities: Array<PaperEntity>, fetchWeb: Bool)
-    
+    func moveLib(entities: Array<PaperEntity>) -> AnyPublisher<Bool, Error>
     func export(entities: Array<PaperEntity>, format: String)
 
 }
@@ -40,7 +40,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     let webRepository: WebRepository
     let appState: Store<AppState>
     
-    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "fetch", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "moveLib"])
+    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "fetch", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "move-lib"])
     
     init(appState: Store<AppState>, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
         self.appState = appState
@@ -236,6 +236,14 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             .map {
                 return $0.filter({ $0 != nil}).map({ $0!})
             }
+            .flatMap({editedEntities -> AnyPublisher<[EditPaperEntity]?, Error> in
+                if (editedEntities.count == 0){
+                    return CurrentValueSubject<[EditPaperEntity]?, Error>.init(nil).eraseToAnyPublisher()
+                }
+                else {
+                    return CurrentValueSubject<[EditPaperEntity]?, Error>.init(editedEntities).eraseToAnyPublisher()
+                }
+            })
             .flatMap({editedEntities in
                 dbRepository.update(entities: editEntities, method: method, editedEntities: editedEntities)
             })
@@ -329,10 +337,45 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         print(allPlain)
         pasteBoard.writeObjects([allPlain as NSString])
     }
+    
+    func moveLib(entities: Array<PaperEntity>) -> AnyPublisher<Bool, Error> {
+        cancelBags.cancel(for: "move-lib")
+        
+        var publisherList: Array<AnyPublisher<Bool, Error>> = .init()
+        
+        entities.forEach { entity in
+            let publisher = Just<Void>
+                .withErrorType(Error.self)
+                .flatMap({ _ in
+                    dbRepository.copy(entity: entity)
+                })
+                .flatMap({ entity in
+                    fileRepository.move(for: entity)
+                })
+                .flatMap({ entity in
+                    dbRepository.update(entity: EditPaperEntity(from: entity!), method: "update")
+                })
+                .eraseToAnyPublisher()
+            publisherList.append(publisher)
+        }
+        
+        return Publishers.MergeMany(publisherList)
+            .collect()
+            .flatMap {_ in
+                dbRepository.moveDB(to: appState[\.setting.appLibFolder])
+            }
+            .flatMap {_ in
+                dbRepository.setDBPath(path: appState[\.setting.appLibFolder])
+            }
+            .eraseToAnyPublisher()
+            
+    }
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
-
+    func moveLib(entities: Array<PaperEntity>) -> AnyPublisher<Bool, Error> {
+        return CurrentValueSubject(true).eraseToAnyPublisher()
+    }
     func delete(tagId: String) {
 
     }
