@@ -10,35 +10,32 @@ import Combine
 
 final class CancelBag {
     fileprivate(set) var subscriptions = Set<AnyCancellable>()
-    
+
     func cancel() {
         subscriptions.removeAll()
     }
 }
 
 extension AnyCancellable {
-    
     func store(in cancelBag: CancelBag) {
         cancelBag.subscriptions.insert(self)
     }
 }
 
-
 final class CancelBags {
-    var bags: Dictionary<String, CancelBag> = .init()
-    
+    var bags: [String: CancelBag] = .init()
+
     init(_ keys: [String]) {
-        keys.forEach({ key in
+        keys.forEach { key in
             bags[key] = CancelBag()
-        })
+        }
     }
-    
+
     func cancel(for key: String) {
         bags[key]?.cancel()
     }
-    
+
     subscript(key: String) -> CancelBag {
         return bags[key]!
     }
-    
 }
