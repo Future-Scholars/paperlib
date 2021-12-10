@@ -372,57 +372,35 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
-    func moveLib() {
-    }
-    func delete(tagId: String) {
-
-    }
+    func moveLib() {}
+    func delete(tagId: String) {}
     
-    func delete(folderId: String) {
-
-    }
+    func delete(folderId: String) {}
     
-    func export(entities: Array<PaperEntity>, format: String) {
-    }
+    func export(entities: Array<PaperEntity>, format: String) {}
     
     
-    func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String? = nil) {
-        
-    }
+    func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String? = nil) {}
     
     func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>) {}
     
-    func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String?) {
-    }
+    func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String?) {}
     
     func load(entity: Binding<EditPaperEntity>, id: ObjectId) {}
     
-    func update(entities: Array<PaperEntity>, method: String, editedEntities: Array<EditPaperEntity>?) {
-    }
+    func update(entities: Array<PaperEntity>, method: String, editedEntities: Array<EditPaperEntity>?) {}
     
-    func match(entities: Array<PaperEntity>, fetchWeb: Bool) {
-    }
+    func match(entities: Array<PaperEntity>, fetchWeb: Bool) {}
     
-    func load(entity: LoadableSubject<PaperEntity>, id: ObjectId) {
-        
-    }
+    func load(entity: LoadableSubject<PaperEntity>, id: ObjectId) {}
     
-    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, sort: String) {
-        
-    }
+    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: Array<String>, folders: Array<String>, sort: String) {}
     
-    func fetch(from fileURLs: Array<URL>) {
-        
-    }
+    func fetch(from fileURLs: Array<URL>) {}
     
     
-    func delete(ids: Set<ObjectId>) {
-
-    }
+    func delete(ids: Set<ObjectId>) {}
     
-    func rateDetail(value: Int) {
-    }
-    
-    
+    func rateDetail(value: Int) {}
     
 }

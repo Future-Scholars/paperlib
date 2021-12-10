@@ -40,7 +40,6 @@ protocol DBRepository {
     func copy(entities: [PaperEntity]) -> AnyPublisher<[PaperEntity], Error>
     
     func rate(id: ObjectId, value: Int)
-    func demoEntities() -> Array<PaperEntity>
 }
 
 extension Realm {
@@ -425,7 +424,6 @@ struct RealDBRepository: DBRepository {
         return update(entities: Array(entities), method: method, editedEntities: editedEntities)
     }
     
-
     func rate(id: ObjectId, value: Int) {
         let realm = try! Realm()
         let entity = realm.object(ofType: PaperEntity.self, forPrimaryKey: id)!
@@ -434,28 +432,4 @@ struct RealDBRepository: DBRepository {
         }
     }
     
-    
-    func demoEntities() -> Array<PaperEntity> {
-        var entities: Array<PaperEntity> = .init()
-        
-        for i in 1...2 {
-            entities.append(
-                PaperEntity(
-                    title: "Title \(i)",
-                    authors: "Author \(i)",
-                    publication: "Publication \(i)",
-                    pubTime: "2021",
-                    pubType: 0,
-                    doi: nil,
-                    arxiv: nil,
-                    mainURL: nil,
-                    supURLs: nil,
-                    rating: nil,
-                    addTime: nil,
-                    flag: false
-                ))
-        }
-        
-        return entities
-    }
 }

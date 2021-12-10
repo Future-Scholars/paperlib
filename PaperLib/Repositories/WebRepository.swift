@@ -219,7 +219,7 @@ struct RealWebRepository: WebRepository {
                             entity.setValue(for: "pubType", value: pubType, allowEmpty: false)
                             
                             // Do not allow replace with "CoRR"
-                            if (!entity.publication.isEmpty && pubKey != "journals/corr") {
+                            if (pubKey != "journals/corr") {
                                 entity.setValue(for: "publication", value: pubKey, allowEmpty: false)
                             }
                             
