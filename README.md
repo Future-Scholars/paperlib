@@ -27,3 +27,7 @@ A simple academic paper management tool for CSer.
 1. Open the preference window to select the library folder.
 1. Drag and drop a paper PDF to the main window, ding ding ding!~
 2. Drag and drop Files to the details window to attach supplementaries.
+
+## Donate
+
+<a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
