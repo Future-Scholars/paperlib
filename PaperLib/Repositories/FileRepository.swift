@@ -15,7 +15,9 @@ protocol FileRepository {
     func read (url: URL) -> PaperEntity?
     func read (from url: URL) -> AnyPublisher<PaperEntity?, Error>
     func move (for entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
+    func move (for entity: EditPaperEntity?) -> AnyPublisher<EditPaperEntity?, Error>
     func move (for entities: [PaperEntity?]) -> AnyPublisher<[PaperEntity?], Error>
+    func move (for entities: [EditPaperEntity?]) -> AnyPublisher<[EditPaperEntity?], Error>
     func remove (for entity: PaperEntity?) -> AnyPublisher<Bool, Error>
     func remove (for entities: Results<PaperEntity>) -> AnyPublisher<[Bool], Error>
 }
@@ -123,7 +125,7 @@ struct RealFileDBRepository: FileRepository {
         return Future<Bool, Error> { promise in
                 if !FileManager.default.fileExists(atPath: targetPath.path) {
                     do {
-                        try FileManager.default.copyItem(atPath: sourcePath.path, toPath: targetPath.path)
+                        try FileManager.default.moveItem(atPath: sourcePath.path, toPath: targetPath.path)
                         promise(.success(true))
                     }
                     catch {
@@ -163,8 +165,9 @@ struct RealFileDBRepository: FileRepository {
         guard (entity != nil) else { return CurrentValueSubject.init(entity).eraseToAnyPublisher() }
         
         let dbRoot = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
+        
         let targetFileName = entity!.title.replaceCharactersFromSet(in: engLetterandWhiteCharacterSet.inverted, replacementString: "")
-            .replacingOccurrences(of: " ", with: "_") + "_\(entity!.id)"
+                .replacingOccurrences(of: " ", with: "_") + "_\(entity!.id)"
                             
         return Future<PaperEntity?, Error> { promise in
             if (entity!.mainURL == nil) {
@@ -177,8 +180,9 @@ struct RealFileDBRepository: FileRepository {
             for (i, _) in sourcePaths.enumerated() {
                 targetPaths.append(targetFileName + "_sup\(i)")
             }
-            sourcePaths.insert(entity!.mainURL!, at: 0)
             targetPaths.insert(targetFileName + "_main", at: 0)
+            
+            sourcePaths.insert(entity!.mainURL!, at: 0)
             
             var targetURLs = Array<URL>.init()
             
@@ -186,7 +190,9 @@ struct RealFileDBRepository: FileRepository {
             
             for (sourcePath, targetPath) in zip(sourcePaths, targetPaths) {
                 let sourceURL = URL(string: sourcePath)
-                let targetURL = URL(string: dbRoot)?.appendingPathComponent("\(targetPath)").appendingPathExtension(sourceURL?.pathExtension ?? "")
+                let targetURL  = URL(string: dbRoot)?.appendingPathComponent("\(targetPath)").appendingPathExtension(sourceURL?.pathExtension ?? "")
+                
+                
                 targetURLs.append(targetURL!)
                 
                 publisher = publisher.flatMap({ (flag) -> AnyPublisher<Bool, Error> in
@@ -220,6 +226,81 @@ struct RealFileDBRepository: FileRepository {
     
     func move (for entities: [PaperEntity?]) -> AnyPublisher<[PaperEntity?], Error> {
         var publisherList: Array<AnyPublisher<PaperEntity?, Error>> = .init()
+        
+        entities.forEach { entity in
+            let publisher = move(for: entity)
+            publisherList.append(publisher)
+        }
+        
+        return Publishers.MergeMany(publisherList).collect().eraseToAnyPublisher()
+    }
+    
+    
+    func move (for entity: EditPaperEntity?) -> AnyPublisher<EditPaperEntity?, Error> {
+        guard (entity != nil) else { return CurrentValueSubject.init(entity).eraseToAnyPublisher() }
+        
+        let dbRoot = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
+        
+        let targetFileName = entity!.title.replaceCharactersFromSet(in: engLetterandWhiteCharacterSet.inverted, replacementString: "")
+                .replacingOccurrences(of: " ", with: "_") + "_\(entity!.id)"
+                            
+        return Future<EditPaperEntity?, Error> { promise in
+            if (entity!.mainURL == nil) {
+                promise(.success(nil))
+            }
+            
+            var sourcePaths = Array(entity!.supURLs)
+            var targetPaths = Array<String>.init()
+
+            for (i, _) in sourcePaths.enumerated() {
+                targetPaths.append(targetFileName + "_sup\(i)")
+            }
+            targetPaths.insert(targetFileName + "_main", at: 0)
+            
+            sourcePaths.insert(entity!.mainURL!, at: 0)
+            
+            var targetURLs = Array<URL>.init()
+            
+            var publisher = CurrentValueSubject<Bool, Error>(true).eraseToAnyPublisher()
+            
+            for (sourcePath, targetPath) in zip(sourcePaths, targetPaths) {
+                let sourceURL = URL(string: sourcePath)
+                let targetURL  = URL(string: dbRoot)?.appendingPathComponent("\(targetPath)").appendingPathExtension(sourceURL?.pathExtension ?? "")
+                
+                
+                targetURLs.append(targetURL!)
+                
+                publisher = publisher.flatMap({ (flag) -> AnyPublisher<Bool, Error> in
+                    if (sourceURL == nil || targetURL == nil || !flag){
+                        return CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
+                    }
+                    else {
+                        return _move(from: sourceURL!, to: targetURL!)
+                    }
+                }).eraseToAnyPublisher()
+            
+            }
+            
+            publisher.sink(receiveCompletion: {_ in}, receiveValue: {
+                if ($0) {
+                    entity!.mainURL = targetURLs.first?.absoluteString
+                    entity!.supURLs.removeAll()
+                    targetURLs[1...].forEach { supPath in
+                        entity!.supURLs.append(supPath.absoluteString)
+                    }
+                    promise(.success(entity))
+                }
+                else {
+                    promise(.success(nil))
+                }
+                
+            }).store(in: cancelBag)
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    func move (for entities: [EditPaperEntity?]) -> AnyPublisher<[EditPaperEntity?], Error> {
+        var publisherList: Array<AnyPublisher<EditPaperEntity?, Error>> = .init()
         
         entities.forEach { entity in
             let publisher = move(for: entity)

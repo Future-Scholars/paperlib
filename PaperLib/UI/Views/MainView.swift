@@ -502,16 +502,27 @@ private extension MainView {
     }
     
     func onDropFiletoDetail (providers: [NSItemProvider]) {
-//        editPaperEntity = EditPaperEntity(from: selected.value!)
-//        providers.forEach { provider in
-//            provider.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
-//                if let data = data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
-//
-//                    editPaperEntity.supURLs.append(url.absoluteString)
-//                    editSelected()
-//                }
-//            })
-//        }
+        let urlGroup = DispatchGroup()
+        
+        var urlList: Array<URL> = .init()
+        providers.forEach { provider in
+            urlGroup.enter()
+            provider.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
+                if let data = data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
+                    urlList.append(url)
+                    urlGroup.leave()
+                }
+            })
+        }
+        
+        urlGroup.notify(queue: .main) {
+            if (urlList.count > 0) {
+                urlList.forEach { supUrl in
+                    editedSelectedEntity.supURLs.append(supUrl.path)
+                }
+                editSelected(method: "update")
+            }
+        }
     }
     
     func reloadEntities () {

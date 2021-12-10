@@ -225,7 +225,18 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         
         Just<Void>
             .withErrorType(Error.self)
-            .flatMap({_ in
+            .flatMap({_ -> AnyPublisher<[EditPaperEntity?], Error> in
+                if (editedEntities != nil) { 
+                    return fileRepository.move(for: editedEntities!)
+                }
+                else {
+                    return CurrentValueSubject<[EditPaperEntity?], Error>.init([nil]).eraseToAnyPublisher()
+                }
+            })
+            .map {
+                return $0.filter({ $0 != nil}).map({ $0!})
+            }
+            .flatMap({editedEntities in
                 dbRepository.update(entities: editEntities, method: method, editedEntities: editedEntities)
             })
             .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
