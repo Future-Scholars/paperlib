@@ -73,7 +73,7 @@ struct ThumbnailComponent: View {
             DispatchQueue.main.async {
                 if error != nil {
                     if ((error! as NSError).code != 2) {
-                        print("Thumbnail failed to generate")
+                        print("[Error] Thumbnail failed to generate")
                     }
                 } else {
                     DispatchQueue.main.async {

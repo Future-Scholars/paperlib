@@ -90,8 +90,6 @@ struct RealDBRepository: DBRepository {
             // Set this as the configuration used for the default Realm
             Realm.Configuration.defaultConfiguration = config
             
-            print(Realm.Configuration.defaultConfiguration.fileURL)
-            
             promise(.success(true))
         }
         .eraseToAnyPublisher()
@@ -319,8 +317,7 @@ struct RealDBRepository: DBRepository {
         if (method == "flag") {
             entity.flag.toggle()
         }
-        print(entity)
-        
+
         return Future<Bool, Error> { promise in
             let realm = try! Realm()
             let updateObj = realm.object(ofType: PaperEntity.self, forPrimaryKey: entity.id)!

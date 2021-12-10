@@ -59,22 +59,27 @@ struct RealWebRepository: WebRepository {
 
             guard (xmlString != nil) else { return CurrentValueSubject.init(entity).eraseToAnyPublisher() }
 
-            let xml = try! XML.parse(xmlString!)
+            do {
+                let xml = try XML.parse(xmlString!)
 
-            // Title
-            let title = xml["feed"]["entry"]["title"].text ?? ""
-            // Authors
-            let authorList = xml["feed"]["entry"]["author"].all ?? []
-            let authors = authorList.map{author in author.childElements[0].text ?? ""}.joined(separator: ", ")
-            // PubTime
-            let pubDate = xml["feed"]["entry"]["published"].text
-            let pubTime = pubDate == nil ? "" : String(pubDate![...pubDate!.index(pubDate!.startIndex, offsetBy: 3)])
+                // Title
+                let title = xml["feed"]["entry"]["title"].text ?? ""
+                // Authors
+                let authorList = xml["feed"]["entry"]["author"].all ?? []
+                let authors = authorList.map{author in author.childElements[0].text ?? ""}.joined(separator: ", ")
+                // PubTime
+                let pubDate = xml["feed"]["entry"]["published"].text
+                let pubTime = pubDate == nil ? "" : String(pubDate![...pubDate!.index(pubDate!.startIndex, offsetBy: 3)])
 
-            entity.setValue(for: "title", value: title, allowEmpty: false)
-            entity.setValue(for: "authors", value: authors, allowEmpty: false)
-            entity.setValue(for: "pubTime", value: pubTime, allowEmpty: false)
-            entity.setValue(for: "pubType", value: 0, allowEmpty: false)
-
+                entity.setValue(for: "title", value: title, allowEmpty: false)
+                entity.setValue(for: "authors", value: authors, allowEmpty: false)
+                entity.setValue(for: "pubTime", value: pubTime, allowEmpty: false)
+                entity.setValue(for: "pubType", value: 0, allowEmpty: false)
+                entity.setValue(for: "publication", value: "arXiv", allowEmpty: false)
+            }
+            catch {
+                print("[Error] invalid arxiv response.")
+            }
             return CurrentValueSubject(entity)
                 .eraseToAnyPublisher()
         }
@@ -89,13 +94,13 @@ struct RealWebRepository: WebRepository {
     
     
     func fetch (doi entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
+
         var doiID = entity!.doi ?? ""
         
         guard (!doiID.isEmpty) else { return CurrentValueSubject.init(entity).eraseToAnyPublisher() }
         
         doiID = formatString(doiID, removeNewline: true, removeWhite: true)!
-        print(doiID)
-        
+
         let fetchURL = "https://dx.doi.org/\(doiID)"
         let headers: HTTPHeaders = ["Accept": "application/json",]
         
@@ -117,7 +122,6 @@ struct RealWebRepository: WebRepository {
             let jsonData = doiResponse!.replacingOccurrences(of: "container-title", with: "container_title").data(using: .utf8)!
             let doiData: DoiResponse? = try? JSONDecoder().decode(DoiResponse.self, from: jsonData)
             
-            print(doiResponse)
             if let doi = doiData {
                 // Title
                 let title = doi.title
@@ -170,67 +174,75 @@ struct RealWebRepository: WebRepository {
             guard (dblpResponse != nil) else { return CurrentValueSubject.init(entity).eraseToAnyPublisher() }
             
             let jsonData = dblpResponse!.data(using: .utf8)!
-            let dblpData = try! JSON(data: jsonData)
-
-            var title: String
-            var authors: String
-            var pubTime: String
-            var pubType: Int
-            var pubKey: String?
             
-            if (dblpData["result"]["hits"]["@sent"].intValue > 0) {
-                let hits = dblpData["result"]["hits"]["hit"]
+            do {
+                let dblpData = try JSON(data: jsonData)
 
-                for hit in hits {
-                    let paperInfo = hit.1["info"]
-                    let hitTitle = paperInfo["title"].stringValue
-                    // TODO: Keep only Eng characters
-                    
-                    if (formatString(hitTitle, removeSymbol: true, lowercased: true) != formatString(entity.title, removeSymbol: true, lowercased: true)) {
-                        continue
-                    }
-                    else {
+                var title: String
+                var authors: String
+                var pubTime: String
+                var pubType: Int
+                var pubKey: String?
+                
+                if (dblpData["result"]["hits"]["@sent"].intValue > 0) {
+                    let hits = dblpData["result"]["hits"]["hit"]
 
-                        // Title
-                        title = hitTitle
-                        // Authors
-                        var authorsList = Array<String>()
-                        paperInfo["authors"]["author"].forEach {author in
-                            authorsList.append(author.1["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
+                    for hit in hits {
+                        let paperInfo = hit.1["info"]
+                        let hitTitle = paperInfo["title"].stringValue
+                        // TODO: Keep only Eng characters
+                        
+                        if (formatString(hitTitle, removeSymbol: true, lowercased: true) != formatString(entity.title, removeSymbol: true, lowercased: true)) {
+                            continue
                         }
-                        authors = String(authorsList.joined(separator: ", "))
-                    
-                        pubTime = paperInfo["year"].stringValue
-                        pubType = [
-                            "Conference and Workshop Papers": 1,
-                            "Journal Articles": 0
-                        ][paperInfo["type"].stringValue] ?? 2
-                        pubKey = paperInfo["key"].stringValue.components(separatedBy: "/")[...1].joined(separator: "/")
+                        else {
+
+                            // Title
+                            title = hitTitle
+                            // Authors
+                            var authorsList = Array<String>()
+                            paperInfo["authors"]["author"].forEach {author in
+                                authorsList.append(author.1["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
+                            }
+                            authors = String(authorsList.joined(separator: ", "))
                         
-                        entity.setValue(for: "title", value: title, allowEmpty: false)
-                        entity.setValue(for: "authors", value: authors, allowEmpty: false)
-                        entity.setValue(for: "pubTime", value: pubTime, allowEmpty: false)
-                        entity.setValue(for: "pubType", value: pubType, allowEmpty: false)
-                        
-                        // Do not allow replace with "CoRR"
-                        if (!(!entity.publication.isEmpty && pubKey == "journals/corr")) {
-                            entity.setValue(for: "publication", value: pubKey, allowEmpty: false)
+                            pubTime = paperInfo["year"].stringValue
+                            pubType = [
+                                "Conference and Workshop Papers": 1,
+                                "Journal Articles": 0
+                            ][paperInfo["type"].stringValue] ?? 2
+                            pubKey = paperInfo["key"].stringValue.components(separatedBy: "/")[...1].joined(separator: "/")
+                            
+                            entity.setValue(for: "title", value: title, allowEmpty: false)
+                            entity.setValue(for: "authors", value: authors, allowEmpty: false)
+                            entity.setValue(for: "pubTime", value: pubTime, allowEmpty: false)
+                            entity.setValue(for: "pubType", value: pubType, allowEmpty: false)
+                            
+                            // Do not allow replace with "CoRR"
+                            if (!entity.publication.isEmpty && pubKey != "journals/corr") {
+                                entity.setValue(for: "publication", value: pubKey, allowEmpty: false)
+                            }
+                            
+                            break
                         }
-                        
-                        break
                     }
+
                 }
-
+                
+                if (pubKey != nil && pubKey != "journals/corr") {
+                    return CurrentValueSubject(entity)
+                        .flatMap({
+                            fetch(dblpVenue: $0)
+                        })
+                        .eraseToAnyPublisher()
+                }
+                else{
+                    return CurrentValueSubject(entity)
+                        .eraseToAnyPublisher()
+                }
             }
-            
-            if (pubKey != nil) {
-                return CurrentValueSubject(entity)
-                    .flatMap({
-                        fetch(dblpVenue: $0)
-                    })
-                    .eraseToAnyPublisher()
-            }
-            else{
+            catch {
+                print("[Error] invalid dblp response.")
                 return CurrentValueSubject(entity)
                     .eraseToAnyPublisher()
             }
@@ -253,19 +265,26 @@ struct RealWebRepository: WebRepository {
             
             guard (dblpResponse != nil) else { return CurrentValueSubject.init(entity).eraseToAnyPublisher() }
             
-            let jsonData = dblpResponse!.data(using: .utf8)!
-            let dblpData = try! JSON(data: jsonData)
+            do {
+                let jsonData = dblpResponse!.data(using: .utf8)!
+                let dblpData = try JSON(data: jsonData)
 
-            if (dblpData["result"]["hits"]["@sent"].intValue > 0) {
-                let hit = dblpData["result"]["hits"]["hit"].first!
-                let venueInfo = hit.1["info"]
-                let venue = venueInfo["venue"].stringValue
-                entity!.setValue(for: "publication", value: venue, allowEmpty: false)
+                if (dblpData["result"]["hits"]["@sent"].intValue > 0) {
+                    let hit = dblpData["result"]["hits"]["hit"].first!
+                    let venueInfo = hit.1["info"]
+                    let venue = venueInfo["venue"].stringValue
+                    entity!.setValue(for: "publication", value: venue, allowEmpty: false)
 
+                }
+                
+                return CurrentValueSubject(entity)
+                    .eraseToAnyPublisher()
             }
-            
-            return CurrentValueSubject(entity)
-                .eraseToAnyPublisher()
+            catch {
+                print("[Error] invalid dblp venue response.")
+                return CurrentValueSubject(entity)
+                    .eraseToAnyPublisher()
+            }
         }
         
         return AF.request(fetchURL)

@@ -28,7 +28,7 @@ protocol EntitiesInteractor {
     
     func update(entities: Array<PaperEntity>, method: String, editedEntities: Array<EditPaperEntity>?)
     func match(entities: Array<PaperEntity>, fetchWeb: Bool)
-    func moveLib(entities: Array<PaperEntity>) -> AnyPublisher<Bool, Error>
+    func moveLib()
     func export(entities: Array<PaperEntity>, format: String)
 
 }
@@ -57,7 +57,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         
         dbRepository.entities(search: search, flag: flag, tags: tags, folders: folders, sort: sort, freeze: true)
             .sinkToLoadable({
-                print("reloaded")
+                print("[Reloaded] entities")
                 entities.wrappedValue = $0
             })
             .store(in: cancelBags["entities"])
@@ -110,7 +110,6 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         
         dbRepository.tags()
             .sinkToLoadable({
-                print("reloaded tags")
                 tags.wrappedValue = $0
             })
             .store(in: cancelBags[key])
@@ -321,7 +320,6 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         }
         let pasteBoard = NSPasteboard.general
         pasteBoard.clearContents()
-        print(allTexBib)
         pasteBoard.writeObjects([allTexBib as NSString])
     }
     
@@ -334,47 +332,47 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         }
         let pasteBoard = NSPasteboard.general
         pasteBoard.clearContents()
-        print(allPlain)
         pasteBoard.writeObjects([allPlain as NSString])
     }
     
-    func moveLib(entities: Array<PaperEntity>) -> AnyPublisher<Bool, Error> {
+    func moveLib() {
         cancelBags.cancel(for: "move-lib")
-        
-        var publisherList: Array<AnyPublisher<Bool, Error>> = .init()
-        
-        entities.forEach { entity in
-            let publisher = Just<Void>
-                .withErrorType(Error.self)
-                .flatMap({ _ in
-                    dbRepository.copy(entity: entity)
-                })
-                .flatMap({ entity in
-                    fileRepository.move(for: entity)
-                })
-                .flatMap({ entity in
-                    dbRepository.update(entity: EditPaperEntity(from: entity!), method: "update")
-                })
-                .eraseToAnyPublisher()
-            publisherList.append(publisher)
-        }
-        
-        return Publishers.MergeMany(publisherList)
-            .collect()
+            
+        Just<Void>
+            .withErrorType(Error.self)
+            .flatMap{ _ in
+                dbRepository.entities(freeze: true)
+            }
+            .flatMap{ entities in
+                dbRepository.copy(entities: Array(entities))
+            }
+            .flatMap{ entities in
+                dbRepository.copy(entities: entities)
+            }
+            .flatMap{ entities in
+                fileRepository.move(for: entities)
+            }
+            .map {
+                return $0.filter({ $0 != nil}).map({ $0!})
+            }
+            .flatMap({ entities in
+                dbRepository.update(entities: entities, method: "update", editedEntities: nil)
+            })
             .flatMap {_ in
                 dbRepository.moveDB(to: appState[\.setting.appLibFolder])
             }
             .flatMap {_ in
                 dbRepository.setDBPath(path: appState[\.setting.appLibFolder])
             }
-            .eraseToAnyPublisher()
-            
+            .sink(receiveCompletion: {_ in}, receiveValue: { _ in
+                appState[\.setting.appLibMoved] = Date()
+            })
+            .store(in: cancelBags["move-lib"])
     }
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
-    func moveLib(entities: Array<PaperEntity>) -> AnyPublisher<Bool, Error> {
-        return CurrentValueSubject(true).eraseToAnyPublisher()
+    func moveLib() {
     }
     func delete(tagId: String) {
 

@@ -104,8 +104,15 @@ struct GeneralSettingsView: View {
                 if response == .OK {
                     let pickedFolders = folderPicker.urls
                     appLibFolder = pickedFolders[0].absoluteString
-                    injected.appState[\.setting.libMoveRequest] = true
+                    
+                    injected.appState[\.receiveSignals.sideBarTag] += 1
+                    injected.appState[\.receiveSignals.sideBarFolder] += 1
+                    injected.appState[\.receiveSignals.mainViewEntities] += 1
+                    injected.appState[\.receiveSignals.mainViewSelectedEntities] += 1
                     injected.appState[\.setting.appLibFolder] = pickedFolders[0].absoluteString
+                    
+                    injected.interactors.entitiesInteractor.moveLib()
+                    
                 }
             }
         }

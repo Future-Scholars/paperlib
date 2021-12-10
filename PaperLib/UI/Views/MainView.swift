@@ -93,15 +93,12 @@ struct MainView: View {
             .onChange(of: selectedIds, perform: {selectedIds in
                 reloadSelectedEntities()
             })
-            .onReceive(appLibFolderUpdate, perform: { _ in
-                if (injected.appState[\.setting.settingOpened] && injected.appState[\.setting.libMoveRequest]) {
-                    injected.interactors.entitiesInteractor.moveLib(entities: Array(entities.value!))
-                        .sink(receiveCompletion: {_ in}, receiveValue: { _ in
-                            injected.appState[\.setting.libMoveRequest] = false
-                            reloadEntities()
-                            reloadSelectedEntities()
-                            clearSelected()
-                        })
+            .onReceive(appLibMovedUpdate, perform: { _ in
+                if (injected.appState[\.setting.settingOpened] && injected.appState[\.receiveSignals.mainViewEntities] > 0 && injected.appState[\.receiveSignals.mainViewSelectedEntities] > 0) {
+                    injected.appState[\.receiveSignals.mainViewEntities] -= 1
+                    injected.appState[\.receiveSignals.mainViewSelectedEntities] -= 1
+                    reloadEntities()
+                    clearSelected()
                 }
             })
         }
@@ -537,7 +534,6 @@ private extension MainView {
     
     func reloadSelectedEntities () {
         if (selectedIds.count > 0) {
-            print(selectedIds)
             injected.interactors.entitiesInteractor.load(entities: $selectedEntities, ids: selectedIds)
             injected.interactors.entitiesInteractor.load(entity: $editedSelectedEntity, id: selectedIds.first!)
         }
@@ -613,8 +609,8 @@ private extension MainView {
     }
     
     
-    var appLibFolderUpdate: AnyPublisher<String, Never> {
-        injected.appState.updates(for: \.setting.appLibFolder)
+    var appLibMovedUpdate: AnyPublisher<Date, Never> {
+        injected.appState.updates(for: \.setting.appLibMoved)
     }
 }
 

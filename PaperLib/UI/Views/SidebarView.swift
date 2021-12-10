@@ -42,6 +42,14 @@ struct SidebarView: View {
             reloadTags()
             reloadFolders()
         })
+        .onReceive(appLibMovedUpdate, perform: {_ in
+            if (injected.appState[\.setting.settingOpened] && injected.appState[\.receiveSignals.sideBarTag] > 0 && injected.appState[\.receiveSignals.sideBarFolder] > 0) {
+                reloadTags()
+                reloadFolders()
+                injected.appState[\.receiveSignals.sideBarTag] -= 1
+                injected.appState[\.receiveSignals.sideBarFolder] -= 1
+            }
+        })
     }
 
     private func TagContent() -> AnyView {
@@ -160,4 +168,8 @@ private extension SidebarView {
         injected.interactors.entitiesInteractor.delete(folderId: folderId)
     }
 
+    var appLibMovedUpdate: AnyPublisher<Date, Never> {
+        injected.appState.updates(for: \.setting.appLibMoved)
+    }
+    
 }

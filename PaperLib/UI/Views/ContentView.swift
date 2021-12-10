@@ -22,7 +22,6 @@ struct ContentView: View {
         .frame(minWidth: 1300, minHeight: 800)
         .preferredColorScheme(colorScheme())
         .onReceive(colorSchemeUpdate, perform: {
-            print($0)
             self.colorTheme = $0
         })
         
