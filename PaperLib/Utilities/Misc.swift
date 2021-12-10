@@ -5,20 +5,17 @@
 //  Created by GeoffreyChen on 29/11/2021.
 //
 
-import Foundation
 import Combine
-
-
+import Foundation
 
 extension String {
-  func replaceCharactersFromSet(in cSet: CharacterSet, replacementString: String = "") -> String {
-    return self.components(separatedBy: cSet).joined(separator: replacementString)
-  }
+    func replaceCharactersFromSet(in cSet: CharacterSet, replacementString: String = "") -> String {
+        return components(separatedBy: cSet).joined(separator: replacementString)
+    }
 }
 
-let engLetterCharacterSet: CharacterSet = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ0123456789")
-let engLetterandWhiteCharacterSet: CharacterSet = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ0123456789 ")
-
+let engLetterCharacterSet: CharacterSet = .init(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ0123456789")
+let engLetterandWhiteCharacterSet: CharacterSet = .init(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ0123456789 ")
 
 func formatString(
     _ str: String?,
@@ -30,58 +27,53 @@ func formatString(
     lowercased: Bool = false,
     trimWhite: Bool = false
 ) -> String? {
-    if (str == nil) {
-        if (returnEmpty) {
+    if str == nil {
+        if returnEmpty {
             return ""
-        }
-        else {
+        } else {
             return nil
         }
     }
-    
+
     var formated: String
-    if (removeNewline) {
+    if removeNewline {
         formated = str!.replaceCharactersFromSet(in: CharacterSet.newlines)
-    }
-    else {
+    } else {
         formated = str!
     }
-    if (trimWhite) {
+    if trimWhite {
         formated = formated.trimmingCharacters(in: CharacterSet.whitespaces)
     }
-    if (removeWhite) {
+    if removeWhite {
         formated = formated.replaceCharactersFromSet(in: CharacterSet.whitespaces)
     }
-    if (removeSymbol) {
+    if removeSymbol {
         formated = formated.replaceCharactersFromSet(in: engLetterCharacterSet.inverted)
     }
-    if (removeStr != nil) {
+    if removeStr != nil {
         formated = formated.replacingOccurrences(of: removeStr!, with: "")
     }
-    
-    if (lowercased) {
+
+    if lowercased {
         formated = formated.lowercased()
     }
-    
-    return formated
 
+    return formated
 }
 
 extension Just where Output == Void {
-    static func withErrorType<E>(_ errorType: E.Type) -> AnyPublisher<Void, E> {
+    static func withErrorType<E>(_: E.Type) -> AnyPublisher<Void, E> {
         return withErrorType((), E.self)
     }
 }
 
 extension Just {
-    static func withErrorType<E>(_ value: Output, _ errorType: E.Type
-    ) -> AnyPublisher<Output, E> {
+    static func withErrorType<E>(_ value: Output, _: E.Type) -> AnyPublisher<Output, E> {
         return Just(value)
             .setFailureType(to: E.self)
             .eraseToAnyPublisher()
     }
 }
-
 
 extension Publisher {
     func sinkToLoadable(_ completion: @escaping (Loadable<Output>) -> Void) -> AnyCancellable {
@@ -98,7 +90,7 @@ extension Publisher {
 private extension Error {
     var underlyingError: Error? {
         let nsError = self as NSError
-        if nsError.domain == NSURLErrorDomain && nsError.code == -1009 {
+        if nsError.domain == NSURLErrorDomain, nsError.code == -1009 {
             // "The Internet connection appears to be offline."
             return self
         }

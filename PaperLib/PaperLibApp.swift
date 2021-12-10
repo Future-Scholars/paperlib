@@ -11,11 +11,11 @@ import SwiftUI
 struct PaperLibApp: App {
     private let environment: AppEnvironment
     @StateObject var updaterViewModel = UpdaterViewModel()
-    
+
     init() {
-        self.environment = AppEnvironment.bootstrap()
+        environment = AppEnvironment.bootstrap()
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView(container: self.environment.container)

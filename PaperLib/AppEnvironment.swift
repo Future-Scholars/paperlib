@@ -12,7 +12,6 @@ struct AppEnvironment {
 }
 
 extension AppEnvironment {
-    
     static func bootstrap() -> AppEnvironment {
         let appState = Store<AppState>(AppState())
 
@@ -23,26 +22,25 @@ extension AppEnvironment {
 
         return AppEnvironment(container: diContainer)
     }
-    
-    private static func configuredRepositories(appState: Store<AppState>) -> DIContainer.Repositories {
+
+    private static func configuredRepositories(appState _: Store<AppState>) -> DIContainer.Repositories {
         let dbRepository = RealDBRepository()
         let fileRepository = RealFileDBRepository()
         let webRepository = RealWebRepository()
-        
+
         return .init(dbRepository: dbRepository, fileRepository: fileRepository, webRepository: webRepository)
     }
-    
+
     private static func configuredInteractors(appState: Store<AppState>,
-                                              repositories: DIContainer.Repositories
-    ) -> DIContainer.Interactors {
-        
+                                              repositories: DIContainer.Repositories) -> DIContainer.Interactors
+    {
         let entitiesInteractor = RealEntitiesInteractor(
             appState: appState,
             dbRepository: repositories.dbRepository,
             fileRepository: repositories.fileRepository,
             webRepository: repositories.webRepository
         )
-        
+
         return .init(entitiesInteractor: entitiesInteractor)
     }
 }

@@ -5,12 +5,11 @@
 //  Created by GeoffreyChen on 29/11/2021.
 //
 
-
 import SwiftUI
- 
+
 struct SearchBar: View {
     @Binding var text: String
-    
+
     var body: some View {
         HStack {
             Image(systemName: "magnifyingglass")
@@ -23,8 +22,8 @@ struct SearchBar: View {
 }
 
 extension NSTextField {
-    open override var focusRingType: NSFocusRingType {
+    override open var focusRingType: NSFocusRingType {
         get { .none }
-        set { }
+        set {}
     }
 }

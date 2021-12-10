@@ -10,9 +10,9 @@ import SwiftUI
 struct DetailTextSection: View {
     let title: String
     let value: String
-    
+
     var body: some View {
-        VStack (alignment: .leading, spacing: 2){
+        VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption)
                 .foregroundColor(Color.secondary.opacity(0.8))
@@ -21,14 +21,12 @@ struct DetailTextSection: View {
     }
 }
 
-
 struct DetailRatingSection: View {
     let shownRating: Int
     @Binding var rating: Int
-    
-    
+
     var body: some View {
-        VStack (alignment: .leading, spacing: 2){
+        VStack(alignment: .leading, spacing: 2) {
             Text("Rating")
                 .font(.caption)
                 .foregroundColor(Color.secondary.opacity(0.8))
@@ -40,14 +38,14 @@ struct DetailRatingSection: View {
 struct DetailThumbnailSection: View {
     @Environment(\.injected) private var injected: DIContainer
     let url: URL?
-        
+
     var body: some View {
-        VStack (alignment: .leading, spacing: 2){
+        VStack(alignment: .leading, spacing: 2) {
             Text("Preview")
                 .font(.caption)
                 .foregroundColor(Color.secondary.opacity(0.8))
-            
-            if (url != nil) {
+
+            if url != nil {
                 ThumbnailComponent(url: url).inject(injected).padding(.vertical, 5)
             }
         }.padding(.vertical, 2)
@@ -55,27 +53,26 @@ struct DetailThumbnailSection: View {
 }
 
 struct DetailsSupSection: View {
-    var sups: Array<String>
-    
+    var sups: [String]
+
     private let columns = [
         GridItem(.flexible()),
         GridItem(.flexible()),
         GridItem(.flexible()),
         GridItem(.flexible()),
-        GridItem(.flexible())
+        GridItem(.flexible()),
     ]
-    
-    
+
     var body: some View {
         Text("Supplementary")
             .font(.caption)
             .foregroundColor(Color.secondary.opacity(0.8))
-        
+
         LazyVGrid(columns: columns, spacing: 1) {
             ForEach(sups, id: \.self) { sup in
                 Button(action: {
                     let url = URL(string: sup)
-                    if (url != nil) {
+                    if url != nil {
                         NSWorkspace.shared.open(url!)
                     }
                 }) {

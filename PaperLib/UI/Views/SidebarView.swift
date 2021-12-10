@@ -5,15 +5,14 @@
 //  Created by GeoffreyChen on 26/11/2021.
 //
 
-import SwiftUI
 import Combine
 import RealmSwift
-
+import SwiftUI
 
 struct SidebarView: View {
     @Environment(\.injected) private var injected: DIContainer
     @Binding var selectedFilters: Set<String>
-    
+
     // Tags
     @State private var tags: Loadable<Results<PaperTag>>
     @State private var tagExpanded: Bool = true
@@ -22,28 +21,27 @@ struct SidebarView: View {
     @State private var folderExpanded: Bool = true
 
     init(selectedFilters: Binding<Set<String>>) {
-        self._tags = .init(initialValue: Loadable<Results<PaperTag>>.notRequested)
-        self._folders = .init(initialValue: Loadable<Results<PaperFolder>>.notRequested)
-        self._selectedFilters = selectedFilters
+        _tags = .init(initialValue: Loadable<Results<PaperTag>>.notRequested)
+        _folders = .init(initialValue: Loadable<Results<PaperFolder>>.notRequested)
+        _selectedFilters = selectedFilters
     }
-    
+
     var body: some View {
         EmptyView()
-        List (selection: $selectedFilters) {
+        List(selection: $selectedFilters) {
             sectionTitle("Library")
             Label("All Papers", systemImage: "book").tag("lib-all")
             Label("Flags", systemImage: "flag").tag("lib-flag")
-            
+
             TagContent()
             FolderContent()
-
         }
         .onAppear(perform: {
             reloadTags()
             reloadFolders()
         })
-        .onReceive(appLibMovedUpdate, perform: {_ in
-            if (injected.appState[\.setting.settingOpened] && injected.appState[\.receiveSignals.sideBarTag] > 0 && injected.appState[\.receiveSignals.sideBarFolder] > 0) {
+        .onReceive(appLibMovedUpdate, perform: { _ in
+            if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.sideBarTag] > 0, injected.appState[\.receiveSignals.sideBarFolder] > 0 {
                 reloadTags()
                 reloadFolders()
                 injected.appState[\.receiveSignals.sideBarTag] -= 1
@@ -60,7 +58,7 @@ struct SidebarView: View {
         case let .failed(error): return AnyView(failedView(error))
         }
     }
-    
+
     private func FolderContent() -> AnyView {
         switch folders {
         case .notRequested: return AnyView(notRequestedView())
@@ -69,15 +67,14 @@ struct SidebarView: View {
         case let .failed(error): return AnyView(failedView(error))
         }
     }
-    
 }
 
 private extension SidebarView {
     func notRequestedView() -> some View {
         EmptyView()
     }
-    
-    func failedView(_ error: Error) -> some View {
+
+    func failedView(_: Error) -> some View {
         EmptyView()
     }
 
@@ -89,13 +86,13 @@ private extension SidebarView {
             return AnyView(EmptyView())
         }
     }
-    
+
     func tagLoadedView(_ tags: Results<PaperTag>) -> some View {
         return AnyView(
             DisclosureGroup(
                 isExpanded: $tagExpanded,
                 content: {
-                    ForEach(tags) {tag in
+                    ForEach(tags) { tag in
                         Label(tag.name, systemImage: "tag")
                             .contextMenu {
                                 Button("Remove", action: {
@@ -108,7 +105,7 @@ private extension SidebarView {
             )
         )
     }
-    
+
     // Folder
     func folderLoadingView(_ previouslyLoaded: Results<PaperFolder>?) -> some View {
         if let folders = previouslyLoaded {
@@ -117,13 +114,13 @@ private extension SidebarView {
             return AnyView(EmptyView())
         }
     }
-    
+
     func folderLoadedView(_ folders: Results<PaperFolder>) -> some View {
         return AnyView(
             DisclosureGroup(
                 isExpanded: $folderExpanded,
                 content: {
-                    ForEach(folders) {folder in
+                    ForEach(folders) { folder in
                         Label(folder.name, systemImage: "folder")
                             .contextMenu {
                                 Button("Remove", action: {
@@ -136,40 +133,35 @@ private extension SidebarView {
             )
         )
     }
-    
+
     func sectionTitle(_ text: String) -> some View {
         return Text(text)
             .bold()
             .font(.subheadline)
             .foregroundColor(Color.secondary.opacity(0.8))
     }
-    
-
 }
-
 
 // MARK: - Side Effects
 
 private extension SidebarView {
-    
-    func reloadTags () {
+    func reloadTags() {
         injected.interactors.entitiesInteractor.load(tags: $tags, cancelBagKey: nil)
     }
-    
-    func reloadFolders () {
+
+    func reloadFolders() {
         injected.interactors.entitiesInteractor.load(folders: $folders, cancelBagKey: nil)
     }
-    
-    func removeTag (tagId: String) {
+
+    func removeTag(tagId: String) {
         injected.interactors.entitiesInteractor.delete(tagId: tagId)
     }
-    
-    func removeFolder (folderId: String) {
+
+    func removeFolder(folderId: String) {
         injected.interactors.entitiesInteractor.delete(folderId: folderId)
     }
 
     var appLibMovedUpdate: AnyPublisher<Date, Never> {
         injected.appState.updates(for: \.setting.appLibMoved)
     }
-    
 }

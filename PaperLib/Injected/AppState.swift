@@ -5,14 +5,13 @@
 //  Created by GeoffreyChen on 26/11/2021.
 //
 
-import SwiftUI
 import Combine
 import RealmSwift
+import SwiftUI
 
 struct AppState: Equatable {
     var setting = Setting()
     var receiveSignals = ReceiveSignals()
-
 }
 
 extension AppState {
@@ -23,7 +22,7 @@ extension AppState {
         var colorScheme = UserDefaults.standard.string(forKey: "preferColorTheme") ?? "System Default"
         var invertColor = UserDefaults.standard.bool(forKey: "invertColor")
     }
-    
+
     struct ReceiveSignals: Equatable {
         var sideBarTag = 0
         var sideBarFolder = 0

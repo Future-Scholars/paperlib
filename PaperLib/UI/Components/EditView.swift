@@ -5,9 +5,8 @@
 //  Created by GeoffreyChen on 04/12/2021.
 //
 
-import SwiftUI
 import RealmSwift
-
+import SwiftUI
 
 struct TextfieldView: View {
     let title: String
@@ -16,32 +15,30 @@ struct TextfieldView: View {
     var placeHolder: String? = nil
 
     var body: some View {
-            HStack {
-                Spacer()
-                if (showTitle) {
-                    Text(title).foregroundColor(Color.primary).bold()
-                }
-                TextField(placeHolder ?? title, text: $text)
-                    .textFieldStyle(PlainTextFieldStyle())
-                    .foregroundColor(.primary)
-                    .padding(8)
-                Spacer()
+        HStack {
+            Spacer()
+            if showTitle {
+                Text(title).foregroundColor(Color.primary).bold()
             }
-            .foregroundColor(.secondary)
-            .background(Color(NSColor.windowBackgroundColor))
-            .cornerRadius(10)
+            TextField(placeHolder ?? title, text: $text)
+                .textFieldStyle(PlainTextFieldStyle())
+                .foregroundColor(.primary)
+                .padding(8)
+            Spacer()
+        }
+        .foregroundColor(.secondary)
+        .background(Color(NSColor.windowBackgroundColor))
+        .cornerRadius(10)
     }
 }
 
-
 struct EditView: View {
     @Binding var editEntity: EditPaperEntity
-    
+
     init(_ editEntity: Binding<EditPaperEntity>) {
-        self._editEntity = editEntity
+        _editEntity = editEntity
     }
-    
-    
+
     var body: some View {
         VStack(alignment: .leading) {
             TextfieldView(title: "Title", text: $editEntity.title, showTitle: true).padding(.bottom, 10)
@@ -63,28 +60,25 @@ struct EditView: View {
             TextfieldView(title: "Folders", text: $editEntity.folders, showTitle: true).padding(.bottom, 10)
         }
         .frame(width: 450, alignment: .leading).padding()
-        
     }
 }
 
-
 struct TagEditView: View {
     @Environment(\.injected) private var injected: DIContainer
-    
+
     @Binding var editEntity: EditPaperEntity
     @State private var editString: String
     @State private var selectTag: String?
-    
+
     @State private var tags: Loadable<Results<PaperTag>>
-    
+
     init(_ editEntity: Binding<EditPaperEntity>) {
         _editString = State(initialValue: editEntity.tags.wrappedValue)
-        self._editEntity = editEntity
-        
-        self._tags = .init(initialValue: Loadable<Results<PaperTag>>.notRequested)
+        _editEntity = editEntity
+
+        _tags = .init(initialValue: Loadable<Results<PaperTag>>.notRequested)
     }
-    
-    
+
     var body: some View {
         VStack(alignment: .leading) {
             TextfieldView(title: "Tags", text: $editString, showTitle: true, placeHolder: "seperate by ;").padding(.bottom, 10)
@@ -92,22 +86,20 @@ struct TagEditView: View {
                     editEntity.tags = editString
                 })
             TagContent()
-            
         }
         .frame(width: 450, alignment: .leading).padding()
         .onAppear(perform: reloadTags)
-        
     }
-    
+
     private func TagContent() -> AnyView {
         switch tags {
         case .notRequested: return AnyView(EmptyView())
         case let .isLoading(last, _): return AnyView(tagLoadingView(last))
         case let .loaded(tags): return AnyView(tagLoadedView(tags))
-        case let .failed(_): return AnyView(EmptyView())
+        case let .failed: return AnyView(EmptyView())
         }
     }
-    
+
     // Tag
     func tagLoadingView(_ previouslyLoaded: Results<PaperTag>?) -> some View {
         if let tags = previouslyLoaded {
@@ -116,10 +108,10 @@ struct TagEditView: View {
             return AnyView(EmptyView())
         }
     }
-    
+
     func tagLoadedView(_ tags: Results<PaperTag>) -> some View {
         return AnyView(
-            List(tags, selection: $selectTag){ tag in
+            List(tags, selection: $selectTag) { tag in
                 Text(tag.name)
             }
             .frame(height: 300)
@@ -127,71 +119,67 @@ struct TagEditView: View {
                 of: selectTag,
                 perform: { selectTag in
                     var tagList = editEntity.tags.components(separatedBy: ";")
-                    if (tagList.count == 1 && tagList.first!.isEmpty){
+                    if tagList.count == 1, tagList.first!.isEmpty {
                         tagList.removeAll()
                     }
-                    tagList = tagList.map{ formatString($0, trimWhite: true)! }
-                    
+                    tagList = tagList.map { formatString($0, trimWhite: true)! }
+
                     let formatedSelectTag = formatString(selectTag, removeStr: "tag-", trimWhite: true)!
-                    if (!tagList.contains(formatedSelectTag)) {
+                    if !tagList.contains(formatedSelectTag) {
                         tagList.append(formatedSelectTag)
                     }
                     editEntity.tags = tagList.joined(separator: "; ")
                     editString = editEntity.tags
-                })
+                }
+            )
         )
     }
 }
 
 private extension TagEditView {
-    
-    func reloadTags () {
+    func reloadTags() {
         injected.interactors.entitiesInteractor.load(tags: $tags, cancelBagKey: "tags-edit")
     }
-    
 }
-
 
 struct FolderEditView: View {
     @Environment(\.injected) private var injected: DIContainer
-    
+
     @Binding var editEntity: EditPaperEntity
     @State private var editString: String
     @State private var selectFolder: String?
-    
+
     @State private var folders: Loadable<Results<PaperFolder>>
-    
+
     init(_ editEntity: Binding<EditPaperEntity>) {
         _editString = State(initialValue: editEntity.folders.wrappedValue)
-        self._editEntity = editEntity
-        
-        self._folders = .init(initialValue: Loadable<Results<PaperFolder>>.notRequested)
+        _editEntity = editEntity
+
+        _folders = .init(initialValue: Loadable<Results<PaperFolder>>.notRequested)
     }
-    
-    
+
     var body: some View {
         VStack(alignment: .leading) {
             TextfieldView(title: "Folders", text: $editString, showTitle: true, placeHolder: "seperate by ;").padding(.bottom, 10)
                 .onChange(of: editString, perform: { _ in
                     editEntity.folders = editString
                 })
-            
+
             FolderContent()
         }
         .frame(width: 450, alignment: .leading).padding()
         .onAppear(perform: reloadFolders)
-        
     }
-    
+
     private func FolderContent() -> AnyView {
         switch folders {
         case .notRequested: return AnyView(EmptyView())
         case let .isLoading(last, _): return AnyView(folderLoadingView(last))
         case let .loaded(folders): return AnyView(folderLoadedView(folders))
-        case let .failed(_): return AnyView(EmptyView())
+        case let .failed: return AnyView(EmptyView())
         }
     }
-    
+
     // Tag
     func folderLoadingView(_ previouslyLoaded: Results<PaperFolder>?) -> some View {
         if let folders = previouslyLoaded {
@@ -200,10 +188,10 @@ struct FolderEditView: View {
             return AnyView(EmptyView())
         }
     }
-    
+
     func folderLoadedView(_ folders: Results<PaperFolder>) -> some View {
         return AnyView(
-            List(folders, selection: $selectFolder){ folder in
+            List(folders, selection: $selectFolder) { folder in
                 Text(folder.name)
             }
             .frame(height: 300)
@@ -211,26 +199,25 @@ struct FolderEditView: View {
                 of: selectFolder,
                 perform: { selectFolder in
                     var folderList = editEntity.folders.components(separatedBy: ";")
-                    if (folderList.count == 1 && folderList.first!.isEmpty){
+                    if folderList.count == 1, folderList.first!.isEmpty {
                         folderList.removeAll()
                     }
-                    folderList = folderList.map{ formatString($0, trimWhite: true)! }
-                    
+                    folderList = folderList.map { formatString($0, trimWhite: true)! }
+
                     let formatedSelectFolder = formatString(selectFolder, removeStr: "folder-", trimWhite: true)!
-                    if (!folderList.contains(formatedSelectFolder)) {
+                    if !folderList.contains(formatedSelectFolder) {
                         folderList.append(formatedSelectFolder)
                     }
                     editEntity.folders = folderList.joined(separator: "; ")
                     editString = editEntity.folders
-                })
+                }
+            )
         )
     }
 }
 
 private extension FolderEditView {
-    
-    func reloadFolders () {
+    func reloadFolders() {
         injected.interactors.entitiesInteractor.load(folders: $folders, cancelBagKey: "folders-edit")
     }
-    
 }
