@@ -6,5 +6,7 @@
 	<string>https://paperlib.geoch.top/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>fdDkWGo44bJjgu+9qAEn2hcp1J0wnU04YdTkxIveMwc=</string>
+	<key>CFBundleVersion</key>
+	<string>1.2.1</string>
 </dict>
 </plist>
