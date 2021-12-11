@@ -154,7 +154,7 @@ struct RealWebRepository: WebRepository {
     }
 
     func fetch(dblp entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
-        let dblpQuery = entity!.title
+        let dblpQuery = entity!.title + " " + "year:\(entity!.pubTime)"
 
         guard !dblpQuery.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
@@ -190,9 +190,17 @@ struct RealWebRepository: WebRepository {
                             title = hitTitle
                             // Authors
                             var authorsList = [String]()
-                            paperInfo["authors"]["author"].forEach { author in
-                                authorsList.append(author.1["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
+                            let authorResults = paperInfo["authors"]["author"]
+                            
+                            if authorResults["@pid"].exists() {
+                                authorsList.append(authorResults["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
                             }
+                            else {
+                                paperInfo["authors"]["author"].forEach { author in
+                                    authorsList.append(author.1["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
+                                }
+                            }
+                            
                             authors = String(authorsList.joined(separator: ", "))
 
                             pubTime = paperInfo["year"].stringValue

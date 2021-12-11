@@ -71,6 +71,8 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
     func setValue(for key: String, value: Any?, allowEmpty: Bool = false) {
         var formatedValue = value
         if formatedValue is String {
+//            formatedValue = formatedValue.replacingOccurrences(of: "'", with: "").replacingOccurrences(of: "\"", with: "")
+            
             if key == "title" || key == "authors" {
                 formatedValue = formatString(formatedValue as? String, removeNewline: true, removeStr: ".")
             }

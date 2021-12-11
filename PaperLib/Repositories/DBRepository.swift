@@ -135,17 +135,17 @@ struct RealDBRepository: DBRepository {
         var filterFormat = ""
         if search != nil {
             if !search!.isEmpty {
-                filterFormat += "(title contains[cd] '\(formatString(search)!)' OR authors contains[cd] '\(formatString(search)!)' OR publication contains[cd] '\(formatString(search)!)') AND "
+                filterFormat += "(title contains[cd] \"\(formatString(search)!)\" OR authors contains[cd] \"\(formatString(search)!)\" OR publication contains[cd] \"\(formatString(search)!)\") AND "
             }
         }
         if flag {
             filterFormat += "(flag == true) AND "
         }
         tags.forEach { tag in
-            filterFormat += "(ANY tags.id == '\(tag)') AND "
+            filterFormat += "(ANY tags.id == \"\(tag)\") AND "
         }
         folders.forEach { folder in
-            filterFormat += "(ANY folders.id == '\(folder)') AND "
+            filterFormat += "(ANY folders.id == \"\(folder)\") AND "
         }
 
         var publisher: RealmPublishers.Value<Results<PaperEntity>>
@@ -203,7 +203,7 @@ struct RealDBRepository: DBRepository {
             if entity == nil { promise(.success(false)) }
             else {
                 let realm = try! Realm()
-                let existEntities = realm.objects(PaperEntity.self).filter("title == '\(entity!.title)' and authors == '\(entity!.authors)'")
+                let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity!.title)\" and authors == \"\(entity!.authors)\"")
 
                 if existEntities.count > 0 {
                     print("Paper exists.")
