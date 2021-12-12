@@ -19,9 +19,11 @@ struct MainView: View {
 
     // Sidebar
     @State private var selectedFilters: Set<String> = .init()
-
+    @State private var statusText: String = ""
+    
     // Main List
-    @State private var searchText = ""
+    @StateObject private var searchText = SearchBarViewModel()
+
     @State private var entities: Loadable<Results<PaperEntity>>
 
     // Edit View
@@ -48,7 +50,7 @@ struct MainView: View {
         NavigationView {
             // MARK: - Sidebar
 
-            SidebarView(selectedFilters: $selectedFilters)
+            SidebarView(selectedFilters: $selectedFilters, statusText: $statusText)
                 .inject(injected)
                 .frame(minWidth: 300)
                 .toolbar {
@@ -76,10 +78,15 @@ struct MainView: View {
                     }
             }
             .toolbar {
-                SearchBar(text: $searchText.onSet { _ in
-                    clearSelected()
-                    reloadEntities()
-                })
+                SearchBar(text: $searchText.text)
+                    .onReceive(
+                        searchText.$text
+                            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
+                    ) {
+                        clearSelected()
+                        reloadEntities()
+                        guard !$0.isEmpty else { return }
+                    }
                 Spacer()
                 menuButtons()
             }
@@ -90,6 +97,12 @@ struct MainView: View {
             .onAppear(perform: reloadEntities)
             .onChange(of: selectedIds, perform: { _ in
                 reloadSelectedEntities()
+                if selectedIds.count > 0 {
+                    self.statusText = "\(selectedIds.count) / \(entities.value!.count)"
+                }
+                else {
+                    statusText = ""
+                }
             })
             .onReceive(appLibMovedUpdate, perform: { _ in
                 if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.mainViewEntities] > 0, injected.appState[\.receiveSignals.mainViewSelectedEntities] > 0 {
@@ -515,7 +528,7 @@ private extension MainView {
 
     func reloadEntities() {
         let (flag, tags, folders) = makeFilter()
-        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
+        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText.text, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
     }
 
     func reloadSelectedEntities() {

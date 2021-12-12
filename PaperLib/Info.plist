@@ -8,5 +8,18 @@
 	<string>fdDkWGo44bJjgu+9qAEn2hcp1J0wnU04YdTkxIveMwc=</string>
 	<key>CFBundleVersion</key>
 	<string>1.2.1</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>ieee.org</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>

@@ -19,11 +19,14 @@ struct SidebarView: View {
     // Folders
     @State private var folders: Loadable<Results<PaperFolder>>
     @State private var folderExpanded: Bool = true
+    
+    @Binding private var statusText: String
 
-    init(selectedFilters: Binding<Set<String>>) {
+    init(selectedFilters: Binding<Set<String>>, statusText: Binding<String>) {
         _tags = .init(initialValue: Loadable<Results<PaperTag>>.notRequested)
         _folders = .init(initialValue: Loadable<Results<PaperFolder>>.notRequested)
         _selectedFilters = selectedFilters
+        _statusText = statusText
     }
 
     var body: some View {
@@ -35,6 +38,7 @@ struct SidebarView: View {
 
             TagContent()
             FolderContent()
+            
         }
         .onAppear(perform: {
             reloadTags()
@@ -48,6 +52,9 @@ struct SidebarView: View {
                 injected.appState[\.receiveSignals.sideBarFolder] -= 1
             }
         })
+        
+        Spacer()
+        Text(statusText).font(.footnote).foregroundColor(Color.primary.opacity(0.4)).frame(alignment: .center).padding(.bottom, 10)
     }
 
     private func TagContent() -> AnyView {

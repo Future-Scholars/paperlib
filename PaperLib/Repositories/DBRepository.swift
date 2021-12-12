@@ -205,10 +205,18 @@ struct RealDBRepository: DBRepository {
                 let realm = try! Realm()
                 let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity!.title)\" and authors == \"\(entity!.authors)\"")
 
-                if existEntities.count > 0 {
+                if (existEntities.count > 0 && !entity!.title.isEmpty && !entity!.authors.isEmpty) {
                     print("Paper exists.")
                     promise(.success(false))
                 } else {
+                    
+                    if entity!.title.isEmpty {
+                        entity!.title = "untitled"
+                    }
+                    if entity!.authors.isEmpty {
+                        entity!.authors = "none"
+                    }
+                    
                     try! realm.safeWrite {
                         realm.add(entity!)
                     }
