@@ -91,7 +91,11 @@ struct MainView: View {
                 menuButtons()
             }
             .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
-                onDropFiletoMain(providers: providers)
+                
+                DispatchQueue.global(qos: .background).async {
+                    onDropFiletoMain(providers: providers)
+                }
+                
                 return true
             }
             .onAppear(perform: reloadEntities)
@@ -208,10 +212,17 @@ private extension MainView {
             }.keyboardShortcut(.defaultAction)
 
             Button(action: {
+                self.showEditView.toggle()
+            }) {
+                Text("Edit")
+            }.keyboardShortcut("e")
+            .disabled(selectedIds.count != 1)
+            
+            Button(action: {
                 matchEntities()
             }) {
                 Text("Match")
-            }.keyboardShortcut("m")
+            }.keyboardShortcut("r")
 
             Button(action: {
                 deleteEntities()
@@ -225,13 +236,14 @@ private extension MainView {
                 editSelected(method: "flag")
             }) {
                 Text("Toggle Flag")
-            }.keyboardShortcut("t")
+            }.keyboardShortcut("g")
 
             Button(action: {
                 self.showTagEditView.toggle()
             }) {
                 Text("Add Tag")
             }
+            .keyboardShortcut("t")
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showTagEditView, content: { tagEditView() })
 
@@ -240,6 +252,7 @@ private extension MainView {
             }) {
                 Text("Add Folder")
             }
+            .keyboardShortcut("g")
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
 
@@ -380,7 +393,7 @@ private extension MainView {
             }) {
                 Image(systemName: "doc.text.magnifyingglass")
                     .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
+            }.keyboardShortcut("r")
             .help("Match Metadata")
             .disabled(selectedIds.count == 0)
 
@@ -408,7 +421,7 @@ private extension MainView {
             }) {
                 Image(systemName: "pencil.circle")
                     .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
+            }.keyboardShortcut("e")
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showEditView, content: { editView() })
             .help("Edit")
@@ -419,7 +432,7 @@ private extension MainView {
             }) {
                 Image(systemName: "flag")
                     .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }.keyboardShortcut("t")
+            }.keyboardShortcut("g")
                 .help("Toggle Flag")
 
             // Tag
@@ -428,7 +441,7 @@ private extension MainView {
             }) {
                 Image(systemName: "tag")
                     .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
+            }.keyboardShortcut("t")
             .help("Edit Tags")
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showTagEditView, content: { tagEditView() })
@@ -439,7 +452,7 @@ private extension MainView {
             }) {
                 Image(systemName: "folder.badge.plus")
                     .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
+            }.keyboardShortcut("f")
             .help("Edit Folders")
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
