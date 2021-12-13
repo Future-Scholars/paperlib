@@ -47,15 +47,15 @@ struct RealFileDBRepository: FileRepository {
         }
         let entity = PaperEntity()
 
-        let title = document?.documentAttributes?[PDFDocumentAttribute.titleAttribute]
-        let authors = document?.documentAttributes?[PDFDocumentAttribute.authorAttribute]
-
-        entity.title = formatString(title as? String ?? "", returnEmpty: true, removeNewline: true)!
-        entity.authors = formatString(authors as? String ?? "", returnEmpty: true, removeNewline: true)!
-
-        entity.doi = extractDOI(document: document ?? nil)
-        entity.arxiv = extractArxiv(document: document ?? nil)
-
+        if (UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")) {
+            let title = document?.documentAttributes?[PDFDocumentAttribute.titleAttribute]
+            let authors = document?.documentAttributes?[PDFDocumentAttribute.authorAttribute]
+            entity.setValue(for: "title", value: title as? String ?? "", allowEmpty: false)
+            entity.setValue(for: "authors", value: authors as? String ?? "", allowEmpty: false)
+        }
+        
+        entity.setValue(for: "doi", value: extractDOI(document: document ?? nil), allowEmpty: false)
+        entity.setValue(for: "arxiv", value: extractArxiv(document: document ?? nil), allowEmpty: false)
         entity.mainURL = url.absoluteString
 
         return entity
@@ -120,7 +120,7 @@ struct RealFileDBRepository: FileRepository {
         return Future<Bool, Error> { promise in
             if !FileManager.default.fileExists(atPath: targetPath.path) {
                 do {
-                    try FileManager.default.moveItem(atPath: sourcePath.path, toPath: targetPath.path)
+                    try FileManager.default.copyItem(atPath: sourcePath.path, toPath: targetPath.path)
                     promise(.success(true))
                 } catch {
                     print("Cannot move \(sourcePath.path)")

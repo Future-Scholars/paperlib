@@ -15,7 +15,9 @@ protocol WebRepository {
     func fetch(for: PaperEntity?, enable: Bool) -> AnyPublisher<PaperEntity?, Error>
     func fetch(arxiv entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
     func fetch(doi entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
+    func fetch(ieee entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
     func fetch(dblp entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
+    func fetch(dblpWithTime entity: PaperEntity?, offset: Int) -> AnyPublisher<PaperEntity?, Error>
     func fetch(dblpVenue entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
 }
 
@@ -33,6 +35,18 @@ struct RealWebRepository: WebRepository {
                 }
                 .flatMap {
                     fetch(dblp: $0)
+                }
+                .flatMap {
+                    fetch(dblpWithTime: $0, offset: 2)
+                }
+                .flatMap {
+                    fetch(dblpWithTime: $0, offset: 1)
+                }
+                .flatMap {
+                    fetch(dblpWithTime: $0, offset: 0)
+                }
+                .flatMap {
+                    fetch(ieee: $0)
                 }
                 .eraseToAnyPublisher()
         } else {
@@ -153,91 +167,234 @@ struct RealWebRepository: WebRepository {
             .eraseToAnyPublisher()
     }
 
+    func fetch(ieee entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
+        var title = entity!.title
+
+        guard (!title.isEmpty && (entity!.publication == "arXiv" || entity!.publication.isEmpty)) else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+
+        title = formatString(title, removeNewline: true)!
+        title = title.replacingOccurrences(of: " ", with: "+")
+
+        let fetchURL = "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=\(UserDefaults.standard.string(forKey: "ieeeAPIKey"))&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=\(title)"
+        let headers: HTTPHeaders = ["Accept": "application/json"]
+        print(fetchURL)
+        struct DoiResponseAuthor: Decodable {
+            let given: String
+            let family: String
+        }
+        struct DoiResponse: Decodable {
+            let type: String
+            let title: String
+            let author: [DoiResponseAuthor]
+            let container_title: String
+            let published: [String: [[Int]]]
+        }
+
+        func parseResponse(ieeeResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity?, Error> {
+            guard ieeeResponse != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+
+            let jsonData = ieeeResponse!.data(using: .utf8)!
+
+            do {
+                let ieeeData = try JSON(data: jsonData)
+                var title: String
+                var authors: String
+                var pubTime: String
+                var pubType: Int
+                var publication: String
+                
+                if (ieeeData["total_records"] > 0) {
+
+                    let hits = ieeeData["articles"]
+                    
+                    for hit in hits {
+                        let hitTitle = hit.1["title"].stringValue
+                        var plainHitTitle = hit.1["title"].stringValue
+                        plainHitTitle = formatString(plainHitTitle, removeStr: "&amp")!
+                        plainHitTitle = formatString(plainHitTitle, removeSymbol: true, lowercased: true)!
+                        
+                        var existTitle = formatString(entity.title, removeStr: "&amp")!
+                        existTitle = formatString(existTitle, removeSymbol: true, lowercased: true)!
+                        
+                        if plainHitTitle != existTitle {
+                            continue
+                        } else {
+                            // Title
+                            title = hitTitle.replacingOccurrences(of: "&amp;", with: "&")
+                            // Authors
+                            var authorsList = [String]()
+                            let authorResults = hit.1["authors"]["authors"]
+                        
+                            authorResults.forEach { author in
+                                authorsList.append(author.1["full_name"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
+                            }
+                            
+                            authors = String(authorsList.joined(separator: ", "))
+
+                            pubTime = hit.1["publication_year"].stringValue
+                            
+                            if (hit.1["content_type"].stringValue.contains("Articles")) {
+                                pubType = 0
+                            }
+                            else if (hit.1["content_type"].stringValue.contains("Conferences")) {
+                                pubType = 1
+                            }
+                            else {
+                                pubType = 2
+                            }
+                            
+                            publication = hit.1["publication_title"].stringValue
+
+                            entity.setValue(for: "title", value: title, allowEmpty: false)
+                            entity.setValue(for: "authors", value: authors, allowEmpty: false)
+                            entity.setValue(for: "pubTime", value: pubTime, allowEmpty: false)
+                            entity.setValue(for: "pubType", value: pubType, allowEmpty: false)
+                            entity.setValue(for: "publication", value: publication, allowEmpty: false)
+                                
+                            break
+                        }
+                    }
+                }
+
+                return CurrentValueSubject(entity)
+                    .eraseToAnyPublisher()
+            }
+            catch {
+                print("[Error] invalid ieee response.")
+                return CurrentValueSubject(entity)
+                    .eraseToAnyPublisher()
+            }
+        }
+
+        return AF.request(fetchURL, headers: headers)
+            .publishString()
+            .flatMap {
+                parseResponse(ieeeResponse: $0.value, entity: entity!)
+            }
+            .eraseToAnyPublisher()
+    }
+    
+    func _parseDBLPResponse(dblpResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity?, Error> {
+        guard dblpResponse != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+
+        let jsonData = dblpResponse!.data(using: .utf8)!
+
+        do {
+            let dblpData = try JSON(data: jsonData)
+            var title: String
+            var authors: String
+            var pubTime: String
+            var pubType: Int
+            var pubKey: String?
+
+            
+            if dblpData["result"]["hits"]["@sent"].intValue > 0 {
+                let hits = dblpData["result"]["hits"]["hit"]
+                
+                for hit in hits {
+                    let paperInfo = hit.1["info"]
+                    let hitTitle = paperInfo["title"].stringValue
+                    var plainHitTitle = paperInfo["title"].stringValue
+                    plainHitTitle = formatString(plainHitTitle, removeStr: "&amp")!
+                    plainHitTitle = formatString(plainHitTitle, removeSymbol: true, lowercased: true)!
+                    
+                    var existTitle = formatString(entity.title, removeStr: "&amp")!
+                    existTitle = formatString(existTitle, removeSymbol: true, lowercased: true)!
+                    
+                    if plainHitTitle != existTitle {
+                        continue
+                    } else {
+                        // Title
+                        title = hitTitle.replacingOccurrences(of: "&amp;", with: "&")
+                        // Authors
+                        var authorsList = [String]()
+                        let authorResults = paperInfo["authors"]["author"]
+                        
+                        if authorResults["@pid"].exists() {
+                            authorsList.append(authorResults["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
+                        }
+                        else {
+                            paperInfo["authors"]["author"].forEach { author in
+                                authorsList.append(author.1["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
+                            }
+                        }
+                        
+                        authors = String(authorsList.joined(separator: ", "))
+
+                        pubTime = paperInfo["year"].stringValue
+                        pubType = [
+                            "Conference and Workshop Papers": 1,
+                            "Journal Articles": 0,
+                        ][paperInfo["type"].stringValue] ?? 2
+                        pubKey = paperInfo["key"].stringValue.components(separatedBy: "/")[...1].joined(separator: "/")
+
+                        // Do not allow response of "CoRR"
+                        if pubKey != "journals/corr" {
+                            entity.setValue(for: "title", value: title, allowEmpty: false)
+                            entity.setValue(for: "authors", value: authors, allowEmpty: false)
+                            entity.setValue(for: "pubTime", value: pubTime, allowEmpty: false)
+                            entity.setValue(for: "pubType", value: pubType, allowEmpty: false)
+
+                            entity.setValue(for: "publication", value: pubKey, allowEmpty: false)
+                            
+                            break
+                        }
+
+                    }
+                }
+            }
+
+            if pubKey != nil, pubKey != "journals/corr" {
+                return CurrentValueSubject(entity)
+                    .flatMap {
+                        fetch(dblpVenue: $0)
+                    }
+                    .eraseToAnyPublisher()
+            } else {
+                return CurrentValueSubject(entity)
+                    .eraseToAnyPublisher()
+            }
+        } catch {
+            print("[Error] invalid dblp response.")
+            return CurrentValueSubject(entity)
+                .eraseToAnyPublisher()
+        }
+    }
+    
     func fetch(dblp entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
-        let dblpQuery = entity!.title
+        var dblpQuery = formatString(entity!.title, removeStr: "&amp")!
+        dblpQuery = formatString(dblpQuery, removeStr: "&")!
+        
+        guard !dblpQuery.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+
+        var fetchURL = "https://dblp.org/search/publ/api?q=\(dblpQuery)&format=json"
+        fetchURL = fetchURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+
+        return AF.request(fetchURL)
+            .publishString()
+            .flatMap {
+                _parseDBLPResponse(dblpResponse: $0.value, entity: entity!)
+            }
+            .eraseToAnyPublisher()
+    }
+
+    func fetch(dblpWithTime entity: PaperEntity?, offset: Int) -> AnyPublisher<PaperEntity?, Error> {
+        let year = Int(entity!.pubTime)
+        guard ((entity!.publication.isEmpty || entity!.publication == "arXiv") && year != nil) else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+        
+        var dblpQuery = formatString(entity!.title, removeStr: "&amp")!
+        dblpQuery = formatString(dblpQuery, removeStr: "&")!
+        dblpQuery = dblpQuery + " " + "year:\(year! + offset)"
 
         guard !dblpQuery.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
         var fetchURL = "https://dblp.org/search/publ/api?q=\(dblpQuery)&format=json"
         fetchURL = fetchURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
 
-        func parseResponse(dblpResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity?, Error> {
-            guard dblpResponse != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
-
-            let jsonData = dblpResponse!.data(using: .utf8)!
-
-            do {
-                let dblpData = try JSON(data: jsonData)
-
-                var title: String
-                var authors: String
-                var pubTime: String
-                var pubType: Int
-                var pubKey: String?
-
-                if dblpData["result"]["hits"]["@sent"].intValue > 0 {
-                    let hits = dblpData["result"]["hits"]["hit"]
-
-                    for hit in hits {
-                        let paperInfo = hit.1["info"]
-                        let hitTitle = paperInfo["title"].stringValue
-                        // TODO: Keep only Eng characters
-
-                        if formatString(hitTitle, removeSymbol: true, lowercased: true) != formatString(entity.title, removeSymbol: true, lowercased: true) {
-                            continue
-                        } else {
-                            // Title
-                            title = hitTitle
-                            // Authors
-                            var authorsList = [String]()
-                            paperInfo["authors"]["author"].forEach { author in
-                                authorsList.append(author.1["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
-                            }
-                            authors = String(authorsList.joined(separator: ", "))
-
-                            pubTime = paperInfo["year"].stringValue
-                            pubType = [
-                                "Conference and Workshop Papers": 1,
-                                "Journal Articles": 0,
-                            ][paperInfo["type"].stringValue] ?? 2
-                            pubKey = paperInfo["key"].stringValue.components(separatedBy: "/")[...1].joined(separator: "/")
-
-                            entity.setValue(for: "title", value: title, allowEmpty: false)
-                            entity.setValue(for: "authors", value: authors, allowEmpty: false)
-                            entity.setValue(for: "pubTime", value: pubTime, allowEmpty: false)
-                            entity.setValue(for: "pubType", value: pubType, allowEmpty: false)
-
-                            // Do not allow replace with "CoRR"
-                            if pubKey != "journals/corr" {
-                                entity.setValue(for: "publication", value: pubKey, allowEmpty: false)
-                            }
-
-                            break
-                        }
-                    }
-                }
-
-                if pubKey != nil, pubKey != "journals/corr" {
-                    return CurrentValueSubject(entity)
-                        .flatMap {
-                            fetch(dblpVenue: $0)
-                        }
-                        .eraseToAnyPublisher()
-                } else {
-                    return CurrentValueSubject(entity)
-                        .eraseToAnyPublisher()
-                }
-            } catch {
-                print("[Error] invalid dblp response.")
-                return CurrentValueSubject(entity)
-                    .eraseToAnyPublisher()
-            }
-        }
-
         return AF.request(fetchURL)
             .publishString()
             .flatMap {
-                parseResponse(dblpResponse: $0.value, entity: entity!)
+                _parseDBLPResponse(dblpResponse: $0.value, entity: entity!)
             }
             .eraseToAnyPublisher()
     }

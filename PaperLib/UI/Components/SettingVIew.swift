@@ -8,8 +8,11 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.injected) private var injected: DIContainer
+
     private enum Tabs: Hashable {
         case general
+        case metadata
     }
 
     var body: some View {
@@ -19,9 +22,20 @@ struct SettingsView: View {
                     Label("General", systemImage: "gear")
                 }
                 .tag(Tabs.general)
+            MatchSettingsView()
+                .tabItem {
+                    Label("Metadata", systemImage: "network")
+                }
+                .tag(Tabs.metadata)
         }
         .padding()
         .frame(width: 550, height: 150)
+        .onAppear(perform: {
+            injected.appState[\.setting.settingOpened] = true
+        })
+        .onDisappear(perform: {
+            injected.appState[\.setting.settingOpened] = false
+        })
     }
 }
 
@@ -77,12 +91,6 @@ struct GeneralSettingsView: View {
                 injected.appState[\.setting.invertColor] = invert
             })
         }
-        .onAppear(perform: {
-            injected.appState[\.setting.settingOpened] = true
-        })
-        .onDisappear(perform: {
-            injected.appState[\.setting.settingOpened] = false
-        })
     }
 
     func onSelectFolder() {
@@ -109,6 +117,38 @@ struct GeneralSettingsView: View {
 
                 injected.interactors.entitiesInteractor.moveLib()
             }
+        }
+    }
+}
+
+
+struct MatchSettingsView: View {
+    @Environment(\.injected) private var injected: DIContainer
+
+    @AppStorage("ieeeAPIKey") private var ieeeAPIKey = ""
+    @AppStorage("allowFetchPDFMeta") private var allowFetchPDFMeta = true
+
+    @State var showPicker = false
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            HStack(alignment: .top) {
+                Text("IEEE Xplorer API Key, the request limitation with the IEEE API is up to 200 per day. The API Key can applied from IEEE Developer website. See more on Paperlib's Github.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                TextField("", text: $ieeeAPIKey)
+                    .toggleStyle(.checkbox)
+            }
+            .onChange(of: ieeeAPIKey, perform: { ieeeAPIKey in
+                injected.appState[\.setting.ieeeAPIKey] = ieeeAPIKey
+            })
+            
+            HStack(alignment: .top) {
+                Text("Allow fetch PDF's built-in metadata.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Toggle("", isOn: $allowFetchPDFMeta)
+                    .toggleStyle(.checkbox)
+            }
+            .onChange(of: allowFetchPDFMeta, perform: { allowFetchPDFMeta in
+                injected.appState[\.setting.allowFetchPDFMeta] = allowFetchPDFMeta
+            })
         }
     }
 }

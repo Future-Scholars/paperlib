@@ -19,9 +19,11 @@ struct MainView: View {
 
     // Sidebar
     @State private var selectedFilters: Set<String> = .init()
-
+    @State private var statusText: String = ""
+    
     // Main List
-    @State private var searchText = ""
+    @StateObject private var searchText = SearchBarViewModel()
+
     @State private var entities: Loadable<Results<PaperEntity>>
 
     // Edit View
@@ -32,6 +34,9 @@ struct MainView: View {
 
     // Folder Edit View
     @State private var showFolderEditView: Bool = false
+    
+    // Note Edit View
+    @State private var showNoteEditView: Bool = false
 
     // Main View Switcher
     @State private var mainViewSwitcher: Int = 0
@@ -48,7 +53,7 @@ struct MainView: View {
         NavigationView {
             // MARK: - Sidebar
 
-            SidebarView(selectedFilters: $selectedFilters)
+            SidebarView(selectedFilters: $selectedFilters, statusText: $statusText)
                 .inject(injected)
                 .frame(minWidth: 300)
                 .toolbar {
@@ -76,20 +81,35 @@ struct MainView: View {
                     }
             }
             .toolbar {
-                SearchBar(text: $searchText.onSet { _ in
-                    clearSelected()
-                    reloadEntities()
-                })
+                SearchBar(text: $searchText.text)
+                    .onReceive(
+                        searchText.$text
+                            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
+                    ) {
+                        clearSelected()
+                        reloadEntities()
+                        guard !$0.isEmpty else { return }
+                    }
                 Spacer()
                 menuButtons()
             }
             .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
-                onDropFiletoMain(providers: providers)
+                
+                DispatchQueue.global(qos: .background).async {
+                    onDropFiletoMain(providers: providers)
+                }
+                
                 return true
             }
             .onAppear(perform: reloadEntities)
             .onChange(of: selectedIds, perform: { _ in
                 reloadSelectedEntities()
+                if selectedIds.count > 0 {
+                    self.statusText = "\(selectedIds.count) / \(entities.value!.count)"
+                }
+                else {
+                    statusText = ""
+                }
             })
             .onReceive(appLibMovedUpdate, perform: { _ in
                 if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.mainViewEntities] > 0, injected.appState[\.receiveSignals.mainViewSelectedEntities] > 0 {
@@ -195,10 +215,17 @@ private extension MainView {
             }.keyboardShortcut(.defaultAction)
 
             Button(action: {
+                self.showEditView.toggle()
+            }) {
+                Text("Edit")
+            }.keyboardShortcut("e")
+            .disabled(selectedIds.count != 1)
+            
+            Button(action: {
                 matchEntities()
             }) {
                 Text("Match")
-            }.keyboardShortcut("m")
+            }.keyboardShortcut("r")
 
             Button(action: {
                 deleteEntities()
@@ -212,13 +239,14 @@ private extension MainView {
                 editSelected(method: "flag")
             }) {
                 Text("Toggle Flag")
-            }.keyboardShortcut("t")
+            }.keyboardShortcut("g")
 
             Button(action: {
                 self.showTagEditView.toggle()
             }) {
                 Text("Add Tag")
             }
+            .keyboardShortcut("t")
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showTagEditView, content: { tagEditView() })
 
@@ -227,6 +255,7 @@ private extension MainView {
             }) {
                 Text("Add Folder")
             }
+            .keyboardShortcut("g")
             .disabled(selectedIds.count != 1)
             .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
 
@@ -337,100 +366,137 @@ private extension MainView {
         }
     }
 
+    func noteEditView() -> some View {
+        return VStack {
+            NoteEditView($editedSelectedEntity)
+            Spacer()
+            HStack {
+                Button(action: {
+                    showNoteEditView.toggle()
+                    NSApp.mainWindow?.endSheet(NSApp.keyWindow!)
+                }) {
+                    Text("Close")
+                }
+                Spacer()
+                Button(action: {
+                    editSelected()
+                    showNoteEditView.toggle()
+                    NSApp.mainWindow?.endSheet(NSApp.keyWindow!)
+                }) {
+                    Text("Save & Close")
+                }
+            }.padding()
+        }
+    }
+    
     // Menu Buttons
     func menuButtons() -> some View {
         HStack {
-            // Open
-            Button(action: {
-                openEntities()
-            }) {
-                Image(systemName: "doc.text.magnifyingglass")
-                    .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
-            .keyboardShortcut(.defaultAction)
-            .disabled(selectedIds.count == 0)
-            .hidden()
-
-            // Export
-            Button(action: {
-                exportEntities(format: "bibtex")
-            }) {
-                Image(systemName: "square.and.arrow.up")
-                    .foregroundColor(Color.primary.opacity(0.5))
-            }.keyboardShortcut("c")
+            HStack {
+                // Open
+                Button(action: {
+                    openEntities()
+                }) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                }
+                .keyboardShortcut(.defaultAction)
                 .disabled(selectedIds.count == 0)
                 .hidden()
 
-            // Match
-            Button(action: {
-                matchEntities()
-            }) {
-                Image(systemName: "doc.text.magnifyingglass")
-                    .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
-            .help("Match Metadata")
-            .disabled(selectedIds.count == 0)
+                // Export
+                Button(action: {
+                    exportEntities(format: "bibtex")
+                }) {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundColor(Color.primary.opacity(0.5))
+                }.keyboardShortcut("c")
+                    .disabled(selectedIds.count == 0)
+                    .hidden()
 
-            // Delete
-            Button(action: {
-                showConfirmationDelete.toggle()
-            }) {
-                Image(systemName: "trash")
-                    .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
-            .confirmationDialog("Are you sure to delete?", isPresented: $showConfirmationDelete) {
+                // Match
+                Button(action: {
+                    matchEntities()
+                }) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                }.keyboardShortcut("r")
+                .help("Match Metadata")
+                .disabled(selectedIds.count == 0)
+
+                // Delete
                 Button(action: {
                     showConfirmationDelete.toggle()
-                    deleteEntities()
                 }) {
-                    Text("Yes")
+                    Image(systemName: "trash")
+                        .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
                 }
+                .confirmationDialog("Are you sure to delete?", isPresented: $showConfirmationDelete) {
+                    Button(action: {
+                        showConfirmationDelete.toggle()
+                        deleteEntities()
+                    }) {
+                        Text("Yes")
+                    }
+                }
+                .disabled(selectedIds.count < 1).keyboardShortcut(.delete)
+                .help("Delete")
+
+                // Edit
+                Button(action: {
+                    self.showEditView.toggle()
+                }) {
+                    Image(systemName: "pencil.circle")
+                        .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                }.keyboardShortcut("e")
+                .disabled(selectedIds.count != 1)
+                .sheet(isPresented: $showEditView, content: { editView() })
+                .help("Edit")
+
+                // Flag
+                Button(action: {
+                    editSelected(method: "flag")
+                }) {
+                    Image(systemName: "flag")
+                        .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                }.keyboardShortcut("g")
+                    .help("Toggle Flag")
+
+                // Tag
+                Button(action: {
+                    self.showTagEditView.toggle()
+                }) {
+                    Image(systemName: "tag")
+                        .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                }.keyboardShortcut("t")
+                .help("Edit Tags")
+                .disabled(selectedIds.count != 1)
+                .sheet(isPresented: $showTagEditView, content: { tagEditView() })
+
+                // Folder
+                Button(action: {
+                    self.showFolderEditView.toggle()
+                }) {
+                    Image(systemName: "folder.badge.plus")
+                        .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                }.keyboardShortcut("f")
+                .help("Edit Folders")
+                .disabled(selectedIds.count != 1)
+                .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
+
+                // Note
+                Button(action: {
+                    self.showNoteEditView.toggle()
+                }) {
+                    Image(systemName: "note.text.badge.plus")
+                        .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                }.keyboardShortcut("n")
+                .help("Edit Note")
+                .disabled(selectedIds.count != 1)
+                .sheet(isPresented: $showNoteEditView, content: { noteEditView() })
             }
-            .disabled(selectedIds.count < 1).keyboardShortcut(.delete)
-            .help("Delete")
-
-            // Edit
-            Button(action: {
-                self.showEditView.toggle()
-            }) {
-                Image(systemName: "pencil.circle")
-                    .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
-            .disabled(selectedIds.count != 1)
-            .sheet(isPresented: $showEditView, content: { editView() })
-            .help("Edit")
-
-            // Flag
-            Button(action: {
-                editSelected(method: "flag")
-            }) {
-                Image(systemName: "flag")
-                    .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }.keyboardShortcut("t")
-                .help("Toggle Flag")
-
-            // Tag
-            Button(action: {
-                self.showTagEditView.toggle()
-            }) {
-                Image(systemName: "tag")
-                    .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
-            .help("Edit Tags")
-            .disabled(selectedIds.count != 1)
-            .sheet(isPresented: $showTagEditView, content: { tagEditView() })
-
-            // Folder
-            Button(action: {
-                self.showFolderEditView.toggle()
-            }) {
-                Image(systemName: "folder.badge.plus")
-                    .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
-            }
-            .help("Edit Folders")
-            .disabled(selectedIds.count != 1)
-            .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
-
+            
+            
             Picker("", selection: $mainViewSwitcher) {
                 ForEach([0, 1], id: \.self) {
                     if $0 == 0 {
@@ -443,7 +509,7 @@ private extension MainView {
             .pickerStyle(SegmentedPickerStyle())
             .help("Switch View Mode")
             .padding(.leading, 15)
-
+            
             Menu {
                 Button("Title", action: {
                     mainViewSortSwitcher = "title"
@@ -515,7 +581,7 @@ private extension MainView {
 
     func reloadEntities() {
         let (flag, tags, folders) = makeFilter()
-        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
+        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText.text, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
     }
 
     func reloadSelectedEntities() {

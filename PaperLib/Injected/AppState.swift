@@ -21,6 +21,8 @@ extension AppState {
         var appLibFolder = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
         var colorScheme = UserDefaults.standard.string(forKey: "preferColorTheme") ?? "System Default"
         var invertColor = UserDefaults.standard.bool(forKey: "invertColor")
+        var ieeeAPIKey = UserDefaults.standard.string(forKey: "ieeeAPIKey")
+        var allowFetchPDFMeta = UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")
     }
 
     struct ReceiveSignals: Equatable {

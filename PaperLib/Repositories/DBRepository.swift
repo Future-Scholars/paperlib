@@ -59,7 +59,22 @@ struct RealDBRepository: DBRepository {
 
     func setDBPath(path: String?) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
-            var config = Realm.Configuration()
+            
+            var config = Realm.Configuration(
+                // Set the new schema version. This must be greater than the previously used
+                // version (if you've never set a schema version before, the version is 0).
+                schemaVersion: 1,
+
+                // Set the block which will be called automatically when opening a Realm with
+                // a schema version lower than the one set above
+                migrationBlock: { migration, oldSchemaVersion in
+                    // We haven’t migrated anything yet, so oldSchemaVersion == 0
+                    if (oldSchemaVersion < 1) {
+                        // Nothing to do!
+                        // Realm will automatically detect new properties and removed properties
+                        // And will update the schema on disk automatically
+                    }
+                })
 
             var url: URL?
             if path != nil {
@@ -81,6 +96,9 @@ struct RealDBRepository: DBRepository {
                 }
             }
 
+            
+            
+            
             // Set this as the configuration used for the default Realm
             Realm.Configuration.defaultConfiguration = config
 
@@ -135,17 +153,17 @@ struct RealDBRepository: DBRepository {
         var filterFormat = ""
         if search != nil {
             if !search!.isEmpty {
-                filterFormat += "(title contains[cd] '\(formatString(search)!)' OR authors contains[cd] '\(formatString(search)!)' OR publication contains[cd] '\(formatString(search)!)') AND "
+                filterFormat += "(title contains[cd] \"\(formatString(search)!)\" OR authors contains[cd] \"\(formatString(search)!)\" OR publication contains[cd] \"\(formatString(search)!)\" OR note contains[cd] \"\(formatString(search)!)\") AND "
             }
         }
         if flag {
             filterFormat += "(flag == true) AND "
         }
         tags.forEach { tag in
-            filterFormat += "(ANY tags.id == '\(tag)') AND "
+            filterFormat += "(ANY tags.id == \"\(tag)\") AND "
         }
         folders.forEach { folder in
-            filterFormat += "(ANY folders.id == '\(folder)') AND "
+            filterFormat += "(ANY folders.id == \"\(folder)\") AND "
         }
 
         var publisher: RealmPublishers.Value<Results<PaperEntity>>
@@ -203,12 +221,20 @@ struct RealDBRepository: DBRepository {
             if entity == nil { promise(.success(false)) }
             else {
                 let realm = try! Realm()
-                let existEntities = realm.objects(PaperEntity.self).filter("title == '\(entity!.title)' and authors == '\(entity!.authors)'")
+                let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity!.title)\" and authors == \"\(entity!.authors)\"")
 
-                if existEntities.count > 0 {
+                if (existEntities.count > 0 && !entity!.title.isEmpty && !entity!.authors.isEmpty) {
                     print("Paper exists.")
                     promise(.success(false))
                 } else {
+                    
+                    if entity!.title.isEmpty {
+                        entity!.title = "untitled"
+                    }
+                    if entity!.authors.isEmpty {
+                        entity!.authors = "none"
+                    }
+                    
                     try! realm.safeWrite {
                         realm.add(entity!)
                     }
@@ -379,6 +405,8 @@ struct RealDBRepository: DBRepository {
                         updateObj.folders.append(folderObj!)
                     }
                 }
+                
+                updateObj.note = entity.note
             }
             promise(.success(true))
         }
