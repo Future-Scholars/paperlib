@@ -175,9 +175,9 @@ struct RealWebRepository: WebRepository {
         title = formatString(title, removeNewline: true)!
         title = title.replacingOccurrences(of: " ", with: "+")
 
-        let fetchURL = "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=q6kwjxnfpxb5ewt7gb32gnd4&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=\(title)"
+        let fetchURL = "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=\(UserDefaults.standard.string(forKey: "ieeeAPIKey"))&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=\(title)"
         let headers: HTTPHeaders = ["Accept": "application/json"]
-
+        print(fetchURL)
         struct DoiResponseAuthor: Decodable {
             let given: String
             let family: String

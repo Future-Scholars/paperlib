@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>SUFeedURL</key>
-	<string>https://paperlib.geoch.top/appcast.xml</string>
-	<key>SUPublicEDKey</key>
-	<string>fdDkWGo44bJjgu+9qAEn2hcp1J0wnU04YdTkxIveMwc=</string>
-	<key>CFBundleVersion</key>
-	<string>1.2.1</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
@@ -21,5 +15,11 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>SUFeedURL</key>
+	<string>https://paperlib.geoch.top/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>fdDkWGo44bJjgu+9qAEn2hcp1J0wnU04YdTkxIveMwc=</string>
+	<key>CFBundleVersion</key>
+	<string>1.2.2</string>
 </dict>
 </plist>

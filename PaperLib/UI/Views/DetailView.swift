@@ -17,7 +17,7 @@ struct DetailView: View {
     private var editEntity: EditPaperEntity
 
     @State private var rating: Int
-
+    
     init(entity: PaperEntity) {
         _rating = State(initialValue: entity.rating ?? 0)
         self.entity = entity
@@ -57,6 +57,10 @@ private extension DetailView {
                 if entity.supURLs.count >= 1 {
                     DetailsSupSection(sups: Array(entity.supURLs))
                 }
+                
+                if (!entity.note.isEmpty) {
+                    DetailTextSection(title: "Note", value: entity.note)
+                }
                 Spacer()
             }
             .frame(width: 300, alignment: .topLeading)
@@ -80,4 +84,6 @@ private extension DetailView {
         editEntity.rating = rating
         injected.interactors.entitiesInteractor.update(entities: [entity], method: "update", editedEntities: [editEntity])
     }
+
+    
 }

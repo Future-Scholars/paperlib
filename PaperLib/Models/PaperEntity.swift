@@ -25,6 +25,8 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
     @Persisted var tags: List<PaperTag>
     @Persisted var folders: List<PaperFolder>
     @Persisted var flag: Bool
+    @Persisted var note: String = ""
+    
 
     convenience init(
         title: String?,
@@ -111,6 +113,7 @@ class EditPaperEntity {
     var tags: String
     var folders: String
     var flag: Bool
+    var note: String
 
     init() {
         id = ObjectId.generate()
@@ -129,6 +132,7 @@ class EditPaperEntity {
         tags = ""
         folders = ""
         flag = false
+        note = ""
     }
 
     init(from entity: PaperEntity) {
@@ -150,6 +154,8 @@ class EditPaperEntity {
         tags = Array(entity.tags.map { formatString($0.name, returnEmpty: true, removeStr: "tag-")! }).joined(separator: "; ")
         folders = Array(entity.folders.map { formatString($0.name, returnEmpty: true, removeStr: "folder-")! }).joined(separator: "; ")
         flag = entity.flag
+        note = entity.note
+        
     }
 
     func setFrom(from entity: PaperEntity) {
@@ -171,6 +177,7 @@ class EditPaperEntity {
         tags = Array(entity.tags.map { formatString($0.name, returnEmpty: true, removeStr: "tag-")! }).joined(separator: "; ")
         folders = Array(entity.folders.map { formatString($0.name, returnEmpty: true, removeStr: "folder-")! }).joined(separator: "; ")
         flag = entity.flag
+        note = entity.note
     }
 
     func buildit() -> PaperEntity {
@@ -206,6 +213,7 @@ class EditPaperEntity {
             }
         }
         entity.flag = flag
+        entity.note = note
 
         return entity
     }

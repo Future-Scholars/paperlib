@@ -31,6 +31,7 @@ struct DetailRatingSection: View {
                 .font(.caption)
                 .foregroundColor(Color.secondary.opacity(0.8))
             RatingComponent(shownRating: shownRating, rating: $rating)
+                .padding(.top, 2)
         }.padding(.vertical, 2)
     }
 }

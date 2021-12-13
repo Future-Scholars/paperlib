@@ -25,8 +25,11 @@ A simple academic paper management tool for CSer.
 
 ## Usage
 1. Open the preference window to select the library folder.
-1. Drag and drop a paper PDF to the main window, ding ding ding!~
-2. Drag and drop Files to the details window to attach supplementaries.
+2. Drag and drop a paper PDF to the main window, ding ding ding!~
+3. Drag and drop Files to the details window to attach supplementaries.
+
+## Metadata Matching
+1. IEEE Xplorer: The API Key can be obtained from here: [IEEE Developer](https://developer.ieee.org/apps/mykeys)
 
 ## Donate
 

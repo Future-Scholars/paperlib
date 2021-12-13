@@ -28,13 +28,45 @@ struct TextfieldView: View {
         }
         .foregroundColor(.secondary)
         .background(Color(NSColor.windowBackgroundColor))
-        .cornerRadius(10)
+        .cornerRadius(5)
+    }
+}
+
+extension NSTextView {
+  open override var frame: CGRect {
+    didSet {
+      backgroundColor = .clear
+      drawsBackground = true
+    }
+  }
+}
+
+struct TextEditorView: View {
+    let title: String
+    @Binding var text: String
+    let showTitle: Bool
+
+    var body: some View {
+        VStack (alignment: .leading) {
+            if showTitle {
+                Text(title).foregroundColor(Color.primary).bold().padding(.leading, 8).padding(.top, 8)
+            }
+            TextEditor(text: $text)
+                .foregroundColor(.primary)
+                .background(Color(NSColor.windowBackgroundColor))
+                .padding(.leading, 4).padding(.trailing, 4).padding(.bottom, 8)
+                .frame(height: 50)
+            Spacer()
+        }
+        .foregroundColor(.secondary)
+        .background(Color(NSColor.windowBackgroundColor))
+        .cornerRadius(5)
     }
 }
 
 struct EditView: View {
     @Binding var editEntity: EditPaperEntity
-
+    
     init(_ editEntity: Binding<EditPaperEntity>) {
         _editEntity = editEntity
     }
@@ -58,6 +90,8 @@ struct EditView: View {
             }
             TextfieldView(title: "Tags", text: $editEntity.tags, showTitle: true).padding(.bottom, 10)
             TextfieldView(title: "Folders", text: $editEntity.folders, showTitle: true).padding(.bottom, 10)
+            
+            TextEditorView(title: "Note", text: $editEntity.note, showTitle: true)
         }
         .frame(width: 450, alignment: .leading).padding()
     }
@@ -219,5 +253,20 @@ struct FolderEditView: View {
 private extension FolderEditView {
     func reloadFolders() {
         injected.interactors.entitiesInteractor.load(folders: $folders, cancelBagKey: "folders-edit")
+    }
+}
+
+
+struct NoteEditView: View {
+    @Binding var editEntity: EditPaperEntity
+    
+    init(_ editEntity: Binding<EditPaperEntity>) {
+        _editEntity = editEntity
+    }
+
+    var body: some View {
+        TextEditorView(title: "Note", text: $editEntity.note, showTitle: true)
+            .frame(width: 400, height: 250, alignment: .topLeading)
+            .padding()
     }
 }

@@ -47,11 +47,13 @@ struct RealFileDBRepository: FileRepository {
         }
         let entity = PaperEntity()
 
-        let title = document?.documentAttributes?[PDFDocumentAttribute.titleAttribute]
-        let authors = document?.documentAttributes?[PDFDocumentAttribute.authorAttribute]
-
-        entity.setValue(for: "title", value: title as? String ?? "", allowEmpty: false)
-        entity.setValue(for: "authors", value: authors as? String ?? "", allowEmpty: false)
+        if (UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")) {
+            let title = document?.documentAttributes?[PDFDocumentAttribute.titleAttribute]
+            let authors = document?.documentAttributes?[PDFDocumentAttribute.authorAttribute]
+            entity.setValue(for: "title", value: title as? String ?? "", allowEmpty: false)
+            entity.setValue(for: "authors", value: authors as? String ?? "", allowEmpty: false)
+        }
+        
         entity.setValue(for: "doi", value: extractDOI(document: document ?? nil), allowEmpty: false)
         entity.setValue(for: "arxiv", value: extractArxiv(document: document ?? nil), allowEmpty: false)
         entity.mainURL = url.absoluteString
