@@ -18,15 +18,15 @@ A simple academic paper management tool for CSer.
 
 ## Features
 1. Native macOS app.
-2. Automaticly match paper's metadata form Arxiv, DBLP and DOI.
-3. Organize papers by tags and folders.
+2. Automaticly match paper's metadata from arXiv, DBLP, DOI and IEEE Xplorer.
+3. Organise papers by tags and folders.
 4. Support Table/List view and dark mode.
 5. Export paper reference in bibtex or plain text.
 
 ## Usage
 1. Open the preference window to select the library folder.
 2. Drag and drop a paper PDF to the main window, ding ding ding!~
-3. Drag and drop Files to the details window to attach supplementaries.
+3. Drag and drop files to the details window to attach supplementaries.
 
 ## Metadata Matching
 1. IEEE Xplorer: The API Key can be obtained from here: [IEEE Developer](https://developer.ieee.org/apps/mykeys)
