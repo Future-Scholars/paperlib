@@ -138,25 +138,32 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         var publisherList: [AnyPublisher<Bool, Error>] = .init()
 
         fileURLs.forEach { url in
+            appState[\.receiveSignals.fetchingEntities] += 1
             let publisher = Just<Void>
                 .withErrorType(Error.self)
                 .flatMap { _ in
                     fileRepository.read(from: url)
                 }
-                .flatMap {
-                    webRepository.fetch(for: $0, enable: true)
-                }
-                .flatMap { entity in
-                    fileRepository.move(for: entity)
-                }
-                .flatMap { entity in
-                    dbRepository.add(for: entity).zip(Just<PaperEntity?>.withErrorType(entity, Error.self))
-                }
-                .flatMap { successWithEntity -> AnyPublisher<Bool, Error> in
-                    if !successWithEntity.0 {
-                        return fileRepository.remove(for: successWithEntity.1)
-                    } else {
-                        return Just<Bool>.withErrorType(false, Error.self)
+                .flatMap { entity -> AnyPublisher<Bool, Error> in
+                    if (entity != nil) {
+                        return webRepository.fetch(for: entity!, enable: true)
+                            .flatMap { entity in
+                                fileRepository.move(for: entity)
+                            }
+                            .flatMap { entity in
+                                dbRepository.add(for: entity).zip(Just<PaperEntity?>.withErrorType(entity, Error.self))
+                            }
+                            .flatMap { successWithEntity -> AnyPublisher<Bool, Error> in
+                                if !successWithEntity.0 {
+                                    return fileRepository.remove(for: successWithEntity.1)
+                                } else {
+                                    return Just<Bool>.withErrorType(false, Error.self)
+                                }
+                            }
+                            .eraseToAnyPublisher()
+                    }
+                    else {
+                        return Just<Bool>.withErrorType(false, Error.self).eraseToAnyPublisher()
                     }
                 }
                 .eraseToAnyPublisher()
@@ -165,8 +172,10 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         }
 
         Publishers.MergeMany(publisherList)
-            .collect()
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+            .sink(receiveCompletion: { _ in
+            }, receiveValue: { _ in
+                appState[\.receiveSignals.fetchingEntities] -= 1
+            })
             .store(in: cancelBags["fetch"])
     }
 
@@ -363,6 +372,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             })
             .store(in: cancelBags["move-lib"])
     }
+    
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {

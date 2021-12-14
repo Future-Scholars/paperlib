@@ -9,96 +9,93 @@ import Combine
 import CoreData
 import PDFKit
 import RealmSwift
+import Alamofire
+
 
 protocol FileRepository {
-    func read(url: URL) -> PaperEntity?
     func read(from url: URL) -> AnyPublisher<PaperEntity?, Error>
+    func read(pdfUrl: URL) -> AnyPublisher<PaperEntity?, Error>
+    
     func move(for entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
     func move(for entity: EditPaperEntity?) -> AnyPublisher<EditPaperEntity?, Error>
     func move(for entities: [PaperEntity?]) -> AnyPublisher<[PaperEntity?], Error>
     func move(for entities: [EditPaperEntity?]) -> AnyPublisher<[EditPaperEntity?], Error>
+    
     func remove(for entity: PaperEntity?) -> AnyPublisher<Bool, Error>
     func remove(for entities: Results<PaperEntity>) -> AnyPublisher<[Bool], Error>
 }
 
 struct RealFileDBRepository: FileRepository {
+    
     let queue: DispatchQueue = .init(label: "fileQueue")
     let cancelBag: CancelBag = .init()
 
     func read(from url: URL) -> AnyPublisher<PaperEntity?, Error> {
-        CurrentValueSubject(read(url: url))
-            .eraseToAnyPublisher()
-    }
-
-    func read(url: URL) -> PaperEntity? {
         if url.pathExtension == "pdf" {
-            return readPDF(url: url)
+            return read(pdfUrl: url)
         } else {
-            return nil
+            return CurrentValueSubject(nil).eraseToAnyPublisher()
         }
     }
 
     // MARK: - PDF
 
-    func readPDF(url: URL) -> PaperEntity? {
-        let document = PDFDocument(url: url) ?? nil
-        guard document != nil else {
-            return nil
+    func read(pdfUrl: URL) -> AnyPublisher<PaperEntity?, Error> {
+        return Future<PaperEntity?, Error> { promise in
+            queue.async {
+                let document = PDFDocument(url: pdfUrl)
+                
+                if let pdf = document {
+                    let entity = PaperEntity()
+                    
+                    if (UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")) {
+                        let title = pdf.documentAttributes?[PDFDocumentAttribute.titleAttribute]
+                        let authors = pdf.documentAttributes?[PDFDocumentAttribute.authorAttribute]
+                        entity.setValue(for: "title", value: title as? String ?? "", allowEmpty: false)
+                        entity.setValue(for: "authors", value: authors as? String ?? "", allowEmpty: false)
+                    }
+                    
+                    entity.setValue(for: "doi", value: extractDOI(pdf), allowEmpty: false)
+                    entity.setValue(for: "arxiv", value: extractArxiv(pdf), allowEmpty: false)
+                    entity.mainURL = pdfUrl.absoluteString
+                    
+                    promise(.success(entity))
+                }
+                else {
+                    promise(.success(nil))
+                }
+            }
         }
-        let entity = PaperEntity()
+        .eraseToAnyPublisher()
+    }
 
-        if (UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")) {
-            let title = document?.documentAttributes?[PDFDocumentAttribute.titleAttribute]
-            let authors = document?.documentAttributes?[PDFDocumentAttribute.authorAttribute]
-            entity.setValue(for: "title", value: title as? String ?? "", allowEmpty: false)
-            entity.setValue(for: "authors", value: authors as? String ?? "", allowEmpty: false)
+    func extractIdentifier(_ document: PDFDocument, pattern: String) -> String? {
+        // From subject metadata
+        let subject = document.documentAttributes?[PDFDocumentAttribute.subjectAttribute] ?? ""
+        let subjectMatch = matches(for: pattern, in: subject as! String)
+        let matchedIdentifier = subjectMatch.first
+
+        if let identifier = matchedIdentifier {
+            return identifier
         }
         
-        entity.setValue(for: "doi", value: extractDOI(document: document ?? nil), allowEmpty: false)
-        entity.setValue(for: "arxiv", value: extractArxiv(document: document ?? nil), allowEmpty: false)
-        entity.mainURL = url.absoluteString
+        // From fulltext
+        let page = document.page(at: 0)
+        let pageContent = page?.attributedString
 
-        return entity
+        let fulltextMatch = matches(for: pattern, in: pageContent?.string ?? "")
+        return fulltextMatch.first
+        
     }
-
-    func extractDOI(document: PDFDocument?) -> String? {
-        var doi: String?
+    
+    func extractDOI(_ document: PDFDocument) -> String? {
         let pattern = "(?:(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%\"#? ])\\S)+))"
-
-        // From subject metadata
-        let subject = document?.documentAttributes?[PDFDocumentAttribute.subjectAttribute] ?? ""
-        let subjectMatch = matches(for: pattern, in: subject as! String)
-        doi = subjectMatch.first ?? nil
-
-        if doi == nil {
-            // From fulltext
-            let page = document?.page(at: 0)
-            let pageContent = page?.attributedString
-
-            let fulltextMatch = matches(for: pattern, in: pageContent?.string ?? "")
-            doi = fulltextMatch.first ?? nil
-        }
-        return doi
+        return extractIdentifier(document, pattern: pattern)
     }
 
-    func extractArxiv(document: PDFDocument?) -> String? {
-        var arxiv: String?
+    func extractArxiv(_ document: PDFDocument) -> String? {
         let pattern = "arXiv:(\\d{4}.\\d{4,5}|[a-z\\-] (\\.[A-Z]{2})?\\/\\d{7})(v\\d )?"
-
-        // From subject metadata
-        let subject = document?.documentAttributes?[PDFDocumentAttribute.subjectAttribute] ?? ""
-        let subjectMatch = matches(for: pattern, in: subject as! String)
-        arxiv = subjectMatch.first ?? nil
-
-        if arxiv == nil {
-            // From fulltext
-            let page = document?.page(at: 0)
-            let pageContent = page?.attributedString
-
-            let fulltextMatch = matches(for: pattern, in: pageContent?.string ?? "")
-            arxiv = fulltextMatch.first ?? nil
-        }
-        return arxiv
+        return extractIdentifier(document, pattern: pattern)
     }
 
     func matches(for regex: String, in text: String) -> [String] {
@@ -120,7 +117,12 @@ struct RealFileDBRepository: FileRepository {
         return Future<Bool, Error> { promise in
             if !FileManager.default.fileExists(atPath: targetPath.path) {
                 do {
-                    try FileManager.default.copyItem(atPath: sourcePath.path, toPath: targetPath.path)
+                    if (UserDefaults.standard.bool(forKey: "deleteSourceFile")) {
+                        try FileManager.default.moveItem(atPath: sourcePath.path, toPath: targetPath.path)
+                    }
+                    else {
+                        try FileManager.default.copyItem(atPath: sourcePath.path, toPath: targetPath.path)
+                    }
                     promise(.success(true))
                 } catch {
                     print("Cannot move \(sourcePath.path)")
@@ -328,4 +330,5 @@ struct RealFileDBRepository: FileRepository {
             .collect()
             .eraseToAnyPublisher()
     }
+
 }
