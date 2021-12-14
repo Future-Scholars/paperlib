@@ -13,6 +13,8 @@ struct SidebarView: View {
     @Environment(\.injected) private var injected: DIContainer
     @Binding var selectedFilters: Set<String>
 
+    @State private var showProgressView: Bool = false
+    
     // Tags
     @State private var tags: Loadable<Results<PaperTag>>
     @State private var tagExpanded: Bool = true
@@ -30,10 +32,21 @@ struct SidebarView: View {
     }
 
     var body: some View {
-        EmptyView()
         List(selection: $selectedFilters) {
             sectionTitle("Library")
-            Label("All Papers", systemImage: "book").tag("lib-all")
+            HStack{
+                Label("All Papers", systemImage: "book")
+                if (showProgressView) {
+                    Spacer()
+                    Text("     ")
+                        .overlay{
+                            ProgressView()
+                                .scaleEffect(x: 0.5, y: 0.5, anchor: .center)
+                        }
+                }
+            }
+            .tag("lib-all")
+                
             Label("Flags", systemImage: "flag").tag("lib-flag")
 
             TagContent()
@@ -44,12 +57,12 @@ struct SidebarView: View {
             reloadTags()
             reloadFolders()
         })
-        .onReceive(appLibMovedUpdate, perform: { _ in
-            if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.sideBarTag] > 0, injected.appState[\.receiveSignals.sideBarFolder] > 0 {
-                reloadTags()
-                reloadFolders()
-                injected.appState[\.receiveSignals.sideBarTag] -= 1
-                injected.appState[\.receiveSignals.sideBarFolder] -= 1
+        .onReceive(fetchingStateUpdate, perform: { _ in
+            if (injected.appState[\.receiveSignals.fetchingEntities] > 0) {
+                showProgressView = true
+            }
+            else {
+                showProgressView = false
             }
         })
         
@@ -170,5 +183,9 @@ private extension SidebarView {
 
     var appLibMovedUpdate: AnyPublisher<Date, Never> {
         injected.appState.updates(for: \.setting.appLibMoved)
+    }
+    
+    var fetchingStateUpdate: AnyPublisher<Int, Never> {
+        injected.appState.updates(for: \.receiveSignals.fetchingEntities)
     }
 }

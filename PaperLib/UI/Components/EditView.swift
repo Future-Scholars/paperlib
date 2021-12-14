@@ -130,7 +130,7 @@ struct TagEditView: View {
         case .notRequested: return AnyView(EmptyView())
         case let .isLoading(last, _): return AnyView(tagLoadingView(last))
         case let .loaded(tags): return AnyView(tagLoadedView(tags))
-        case let .failed: return AnyView(EmptyView())
+        case .failed: return AnyView(EmptyView())
         }
     }
 
@@ -210,7 +210,7 @@ struct FolderEditView: View {
         case .notRequested: return AnyView(EmptyView())
         case let .isLoading(last, _): return AnyView(folderLoadingView(last))
         case let .loaded(folders): return AnyView(folderLoadedView(folders))
-        case let .failed: return AnyView(EmptyView())
+        case .failed: return AnyView(EmptyView())
         }
     }
 

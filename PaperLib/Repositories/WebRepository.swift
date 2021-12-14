@@ -12,19 +12,18 @@ import SwiftyJSON
 import SwiftyXMLParser
 
 protocol WebRepository {
-    func fetch(for: PaperEntity?, enable: Bool) -> AnyPublisher<PaperEntity?, Error>
-    func fetch(arxiv entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
-    func fetch(doi entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
-    func fetch(ieee entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
-    func fetch(dblp entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
-    func fetch(dblpWithTime entity: PaperEntity?, offset: Int) -> AnyPublisher<PaperEntity?, Error>
-    func fetch(dblpVenue entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error>
+    func fetch(for: PaperEntity, enable: Bool) -> AnyPublisher<PaperEntity, Error>
+    func fetch(arxiv entity: PaperEntity) -> AnyPublisher<PaperEntity, Error>
+    func fetch(doi entity: PaperEntity) -> AnyPublisher<PaperEntity, Error>
+    func fetch(ieee entity: PaperEntity) -> AnyPublisher<PaperEntity, Error>
+    func fetch(dblp entity: PaperEntity) -> AnyPublisher<PaperEntity, Error>
+    func fetch(dblpWithTime entity: PaperEntity, offset: Int) -> AnyPublisher<PaperEntity, Error>
+    func fetch(dblpVenue entity: PaperEntity) -> AnyPublisher<PaperEntity, Error>
+    func fetch(titleExtractor entity: PaperEntity) -> AnyPublisher<PaperEntity, Error>
 }
 
 struct RealWebRepository: WebRepository {
-    func fetch(for entity: PaperEntity?, enable: Bool) -> AnyPublisher<PaperEntity?, Error> {
-        guard entity != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
-
+    func fetch(for entity: PaperEntity, enable: Bool) -> AnyPublisher<PaperEntity, Error> {
         if enable {
             return CurrentValueSubject(entity)
                 .flatMap {
@@ -34,10 +33,10 @@ struct RealWebRepository: WebRepository {
                     fetch(doi: $0)
                 }
                 .flatMap {
-                    fetch(dblp: $0)
+                    fetch(titleExtractor: $0)
                 }
                 .flatMap {
-                    fetch(dblpWithTime: $0, offset: 2)
+                    fetch(dblp: $0)
                 }
                 .flatMap {
                     fetch(dblpWithTime: $0, offset: 1)
@@ -55,8 +54,8 @@ struct RealWebRepository: WebRepository {
         }
     }
 
-    func fetch(arxiv entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
-        var arxivID = entity!.arxiv ?? ""
+    func fetch(arxiv entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
+        var arxivID = entity.arxiv ?? ""
 
         guard !arxivID.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
@@ -66,7 +65,7 @@ struct RealWebRepository: WebRepository {
         let fetchURL = "https://export.arxiv.org/api/query?id_list=\(arxivID)"
         let headers: HTTPHeaders = ["accept-encoding": "UTF-32BE"]
 
-        func parseResponse(xmlString: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity?, Error> {
+        func parseResponse(xmlString: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
             guard xmlString != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
             do {
@@ -96,13 +95,13 @@ struct RealWebRepository: WebRepository {
         return AF.request(fetchURL, headers: headers)
             .publishString()
             .flatMap {
-                parseResponse(xmlString: $0.value, entity: entity!)
+                parseResponse(xmlString: $0.value, entity: entity)
             }
             .eraseToAnyPublisher()
     }
 
-    func fetch(doi entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
-        var doiID = entity!.doi ?? ""
+    func fetch(doi entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
+        var doiID = entity.doi ?? ""
 
         guard !doiID.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
@@ -123,7 +122,7 @@ struct RealWebRepository: WebRepository {
             let published: [String: [[Int]]]
         }
 
-        func parseResponse(doiResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity?, Error> {
+        func parseResponse(doiResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
             guard doiResponse != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
             let jsonData = doiResponse!.replacingOccurrences(of: "container-title", with: "container_title").data(using: .utf8)!
@@ -162,35 +161,23 @@ struct RealWebRepository: WebRepository {
         return AF.request(fetchURL, headers: headers)
             .publishString()
             .flatMap {
-                parseResponse(doiResponse: $0.value, entity: entity!)
+                parseResponse(doiResponse: $0.value, entity: entity)
             }
             .eraseToAnyPublisher()
     }
 
-    func fetch(ieee entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
-        var title = entity!.title
+    func fetch(ieee entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
+        var title = entity.title
 
-        guard (!title.isEmpty && (entity!.publication == "arXiv" || entity!.publication.isEmpty)) else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+        guard (!title.isEmpty && (entity.publication == "arXiv" || entity.publication.isEmpty)) else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
         title = formatString(title, removeNewline: true)!
         title = title.replacingOccurrences(of: " ", with: "+")
 
-        let fetchURL = "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=\(UserDefaults.standard.string(forKey: "ieeeAPIKey"))&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=\(title)"
+        let fetchURL = "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=\(String(describing: UserDefaults.standard.string(forKey: "ieeeAPIKey")))&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=\(title)"
         let headers: HTTPHeaders = ["Accept": "application/json"]
-        print(fetchURL)
-        struct DoiResponseAuthor: Decodable {
-            let given: String
-            let family: String
-        }
-        struct DoiResponse: Decodable {
-            let type: String
-            let title: String
-            let author: [DoiResponseAuthor]
-            let container_title: String
-            let published: [String: [[Int]]]
-        }
 
-        func parseResponse(ieeeResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity?, Error> {
+        func parseResponse(ieeeResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
             guard ieeeResponse != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
             let jsonData = ieeeResponse!.data(using: .utf8)!
@@ -255,26 +242,24 @@ struct RealWebRepository: WebRepository {
                         }
                     }
                 }
-
-                return CurrentValueSubject(entity)
-                    .eraseToAnyPublisher()
             }
             catch {
                 print("[Error] invalid ieee response.")
-                return CurrentValueSubject(entity)
-                    .eraseToAnyPublisher()
             }
+            
+            return CurrentValueSubject(entity)
+                .eraseToAnyPublisher()
         }
 
         return AF.request(fetchURL, headers: headers)
             .publishString()
             .flatMap {
-                parseResponse(ieeeResponse: $0.value, entity: entity!)
+                parseResponse(ieeeResponse: $0.value, entity: entity)
             }
             .eraseToAnyPublisher()
     }
     
-    func _parseDBLPResponse(dblpResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity?, Error> {
+    func _parseDBLPResponse(dblpResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
         guard dblpResponse != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
         let jsonData = dblpResponse!.data(using: .utf8)!
@@ -361,8 +346,8 @@ struct RealWebRepository: WebRepository {
         }
     }
     
-    func fetch(dblp entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
-        var dblpQuery = formatString(entity!.title, removeStr: "&amp")!
+    func fetch(dblp entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
+        var dblpQuery = formatString(entity.title, removeStr: "&amp")!
         dblpQuery = formatString(dblpQuery, removeStr: "&")!
         
         guard !dblpQuery.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
@@ -373,16 +358,16 @@ struct RealWebRepository: WebRepository {
         return AF.request(fetchURL)
             .publishString()
             .flatMap {
-                _parseDBLPResponse(dblpResponse: $0.value, entity: entity!)
+                _parseDBLPResponse(dblpResponse: $0.value, entity: entity)
             }
             .eraseToAnyPublisher()
     }
 
-    func fetch(dblpWithTime entity: PaperEntity?, offset: Int) -> AnyPublisher<PaperEntity?, Error> {
-        let year = Int(entity!.pubTime)
-        guard ((entity!.publication.isEmpty || entity!.publication == "arXiv") && year != nil) else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+    func fetch(dblpWithTime entity: PaperEntity, offset: Int) -> AnyPublisher<PaperEntity, Error> {
+        let year = Int(entity.pubTime)
+        guard ((entity.publication.isEmpty || entity.publication == "arXiv") && year != nil) else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
         
-        var dblpQuery = formatString(entity!.title, removeStr: "&amp")!
+        var dblpQuery = formatString(entity.title, removeStr: "&amp")!
         dblpQuery = formatString(dblpQuery, removeStr: "&")!
         dblpQuery = dblpQuery + " " + "year:\(year! + offset)"
 
@@ -394,16 +379,16 @@ struct RealWebRepository: WebRepository {
         return AF.request(fetchURL)
             .publishString()
             .flatMap {
-                _parseDBLPResponse(dblpResponse: $0.value, entity: entity!)
+                _parseDBLPResponse(dblpResponse: $0.value, entity: entity)
             }
             .eraseToAnyPublisher()
     }
 
-    func fetch(dblpVenue entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
-        var fetchURL = "https://dblp.org/search/venue/api?q=\(entity!.publication)&format=json"
+    func fetch(dblpVenue entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
+        var fetchURL = "https://dblp.org/search/venue/api?q=\(entity.publication)&format=json"
         fetchURL = fetchURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
 
-        func parseResponse(dblpResponse: String?, entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
+        func parseResponse(dblpResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
             guard dblpResponse != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
             do {
@@ -414,23 +399,60 @@ struct RealWebRepository: WebRepository {
                     let hit = dblpData["result"]["hits"]["hit"].first!
                     let venueInfo = hit.1["info"]
                     let venue = venueInfo["venue"].stringValue
-                    entity!.setValue(for: "publication", value: venue, allowEmpty: false)
+                    entity.setValue(for: "publication", value: venue, allowEmpty: false)
                 }
-
-                return CurrentValueSubject(entity)
-                    .eraseToAnyPublisher()
             } catch {
                 print("[Error] invalid dblp venue response.")
-                return CurrentValueSubject(entity)
-                    .eraseToAnyPublisher()
             }
+            
+            return CurrentValueSubject(entity)
+                .eraseToAnyPublisher()
         }
 
         return AF.request(fetchURL)
             .publishString()
             .flatMap {
-                parseResponse(dblpResponse: $0.value, entity: entity!)
+                parseResponse(dblpResponse: $0.value, entity: entity)
             }
             .eraseToAnyPublisher()
     }
+    
+    func fetch(titleExtractor entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
+        guard entity.title.isEmpty && formatString(entity.arxiv)!.isEmpty && formatString(entity.doi)!.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+
+        let fileURL = URL(string: entity.mainURL!)!
+        let data = try! Data(contentsOf: fileURL)
+
+        func parseResponse(titleExtractorResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
+            guard titleExtractorResponse != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+
+            let jsonData = titleExtractorResponse!.data(using: .utf8)!
+
+            do {
+                let titleData = try JSON(data: jsonData)
+                entity.setValue(for: "title", value: titleData["title"].stringValue, allowEmpty: false)
+            }
+            catch {
+                print("[Error] invalid dblp response.")
+            }
+            return CurrentValueSubject(entity)
+                .eraseToAnyPublisher()
+        }
+        
+
+        return AF.upload(
+            multipartFormData: { multipartFormData in
+                multipartFormData.append(data, withName: "file", fileName: "file", mimeType:"application/pdf")
+            },
+            to: "https://paperlib.geoch.top/api/files/upload/"
+        )
+            .publishString()
+            .flatMap {
+                parseResponse(titleExtractorResponse: $0.value, entity: entity)
+            }
+            .eraseToAnyPublisher()
+    }
+    
+    
+    
 }

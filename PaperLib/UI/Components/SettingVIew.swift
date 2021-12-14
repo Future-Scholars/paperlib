@@ -29,7 +29,7 @@ struct SettingsView: View {
                 .tag(Tabs.metadata)
         }
         .padding()
-        .frame(width: 550, height: 150)
+        .frame(width: 550, height: 200)
         .onAppear(perform: {
             injected.appState[\.setting.settingOpened] = true
         })
@@ -45,6 +45,7 @@ struct GeneralSettingsView: View {
     @AppStorage("appLibFolder") private var appLibFolder = ""
     @AppStorage("invertColor") private var invertColor = true
     @AppStorage("preferColorTheme") private var preferColorTheme = "System Default"
+    @AppStorage("deleteSourceFile") private var deleteSourceFile = false
 
     @State var showPicker = false
 
@@ -89,6 +90,15 @@ struct GeneralSettingsView: View {
             }
             .onChange(of: invertColor, perform: { invert in
                 injected.appState[\.setting.invertColor] = invert
+            })
+            
+            HStack(alignment: .top) {
+                Text("Automaticly delete the imported source file.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Toggle("", isOn: $deleteSourceFile)
+                    .toggleStyle(.checkbox)
+            }
+            .onChange(of: deleteSourceFile, perform: { deleteSourceFile in
+                injected.appState[\.setting.deleteSourceFile] = deleteSourceFile
             })
         }
     }

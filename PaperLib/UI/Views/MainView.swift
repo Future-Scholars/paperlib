@@ -154,8 +154,14 @@ private extension MainView {
     }
 
     func loadingView(_ previouslyLoaded: Results<PaperEntity>?) -> some View {
+        print("loading")
         if let entities = previouslyLoaded {
-            return AnyView(loadedView(entities))
+            return AnyView(
+                ZStack{
+                    loadedView(entities)
+                    ProgressView()
+                }
+            )
         } else {
             return AnyView(EmptyView())
         }
@@ -392,6 +398,7 @@ private extension MainView {
     // Menu Buttons
     func menuButtons() -> some View {
         HStack {
+                       
             HStack {
                 // Open
                 Button(action: {

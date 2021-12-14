@@ -23,6 +23,7 @@ extension AppState {
         var invertColor = UserDefaults.standard.bool(forKey: "invertColor")
         var ieeeAPIKey = UserDefaults.standard.string(forKey: "ieeeAPIKey")
         var allowFetchPDFMeta = UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")
+        var deleteSourceFile = UserDefaults.standard.bool(forKey: "deleteSourceFile")
     }
 
     struct ReceiveSignals: Equatable {
@@ -30,6 +31,7 @@ extension AppState {
         var sideBarFolder = 0
         var mainViewEntities = 0
         var mainViewSelectedEntities = 0
+        var fetchingEntities = 0
     }
 }
 
