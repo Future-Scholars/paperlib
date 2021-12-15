@@ -19,7 +19,7 @@ struct DetailView: View {
     @State private var rating: Int
     
     init(entity: PaperEntity) {
-        _rating = State(initialValue: entity.rating ?? 0)
+        _rating = State(initialValue: entity.rating)
         self.entity = entity
         editEntity = EditPaperEntity(from: self.entity)
     }
@@ -49,11 +49,11 @@ private extension DetailView {
                     DetailTextSection(title: "AddTime", value: date2String(entity.addTime))
                 }
 
-                DetailRatingSection(shownRating: entity.rating ?? 0, rating: $rating)
+                DetailRatingSection(shownRating: entity.rating, rating: $rating)
                     .onChange(of: rating, perform: { _ in
                         rate()
                     })
-                DetailThumbnailSection(url: URL(string: entity.mainURL ?? "")).inject(injected)
+                DetailThumbnailSection(url: URL(string: entity.mainURL)).inject(injected)
                 if entity.supURLs.count >= 1 {
                     DetailsSupSection(sups: Array(entity.supURLs))
                 }

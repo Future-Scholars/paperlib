@@ -16,15 +16,15 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
     @Persisted var authors: String = ""
     @Persisted var publication: String = ""
     @Persisted var pubTime: String = ""
-    @Persisted var pubType: Int? // 0: Article; 1: Conference; 2: Others
-    @Persisted var doi: String?
-    @Persisted var arxiv: String?
-    @Persisted var mainURL: String?
+    @Persisted var pubType: Int = 2 // 0: Article; 1: Conference; 2: Others
+    @Persisted var doi: String = ""
+    @Persisted var arxiv: String = ""
+    @Persisted var mainURL: String = ""
     @Persisted var supURLs: List<String>
-    @Persisted var rating: Int?
+    @Persisted var rating: Int = 0
     @Persisted var tags: List<PaperTag>
     @Persisted var folders: List<PaperFolder>
-    @Persisted var flag: Bool
+    @Persisted var flag: Bool = false
     @Persisted var note: String = ""
     
 
@@ -39,31 +39,28 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
         mainURL: String?,
         supURLs: [String]?,
         rating: Int?,
-        addTime: Date?,
         flag: Bool?
     ) {
         self.init()
 
         id = ObjectId.generate()
-        if addTime != nil {
-            self.addTime = addTime!
-        } else {
-            self.addTime = Date()
-        }
+        self.addTime = Date()
 
         self.title = title ?? ""
         self.authors = authors ?? ""
         self.publication = publication ?? ""
         self.pubTime = pubTime ?? ""
-        self.pubType = pubType
-        self.doi = doi
-        self.arxiv = arxiv
-        self.mainURL = mainURL
+        self.pubType = pubType ?? 2
+        self.doi = doi ?? ""
+        self.arxiv = arxiv ?? ""
+        self.mainURL = mainURL ?? ""
         supURLs?.forEach { supURL in
             self.supURLs.append(supURL)
         }
-        self.rating = rating
-        self.flag = flag != nil ? flag! : false
+        self.rating = rating ?? 0
+        self.flag = flag ?? false
+        
+        print("create entity")
     }
 
     override static func primaryKey() -> String? {
@@ -71,10 +68,10 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
     }
 
     func setValue(for key: String, value: Any?, allowEmpty: Bool = false) {
+        guard value != nil || allowEmpty else  { return }
+        
         var formatedValue = value
         if formatedValue is String {
-//            formatedValue = formatedValue.replacingOccurrences(of: "'", with: "").replacingOccurrences(of: "\"", with: "")
-            
             if key == "title" || key == "authors" {
                 formatedValue = formatString(formatedValue as? String, removeNewline: true, removeStr: ".")
             }
@@ -86,9 +83,6 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
             } else {
                 setValue(formatedValue, forKey: key)
             }
-        } else if formatedValue == nil, allowEmpty {
-            setValue(formatedValue, forKey: key)
-            return
         } else {
             setValue(formatedValue, forKey: key)
             return
@@ -107,7 +101,7 @@ class EditPaperEntity {
     var pubType: String
     var doi: String
     var arxiv: String
-    var mainURL: String?
+    var mainURL: String
     var supURLs: [String]
     var rating: Int
     var tags: String
@@ -143,78 +137,16 @@ class EditPaperEntity {
         authors = entity.authors
         publication = entity.publication
         pubTime = entity.pubTime
-        pubType = ["Journal", "Conference", "Others"][entity.pubType ?? 0]
-        doi = entity.doi ?? ""
-        arxiv = entity.arxiv ?? ""
+        pubType = ["Journal", "Conference", "Others"][entity.pubType]
+        doi = entity.doi
+        arxiv = entity.arxiv
         mainURL = entity.mainURL
         supURLs = .init()
         supURLs = Array(entity.supURLs)
-
-        rating = entity.rating ?? 0
+        rating = entity.rating
         tags = Array(entity.tags.map { formatString($0.name, returnEmpty: true, removeStr: "tag-")! }).joined(separator: "; ")
         folders = Array(entity.folders.map { formatString($0.name, returnEmpty: true, removeStr: "folder-")! }).joined(separator: "; ")
         flag = entity.flag
         note = entity.note
-        
-    }
-
-    func setFrom(from entity: PaperEntity) {
-        id = entity.id
-        addTime = entity.addTime
-
-        title = entity.title
-        authors = entity.authors
-        publication = entity.publication
-        pubTime = entity.pubTime
-        pubType = ["Journal", "Conference", "Others"][entity.pubType ?? 0]
-        doi = entity.doi ?? ""
-        arxiv = entity.arxiv ?? ""
-        mainURL = entity.mainURL
-        entity.supURLs.forEach { url in
-            supURLs.append(url)
-        }
-        rating = entity.rating ?? 0
-        tags = Array(entity.tags.map { formatString($0.name, returnEmpty: true, removeStr: "tag-")! }).joined(separator: "; ")
-        folders = Array(entity.folders.map { formatString($0.name, returnEmpty: true, removeStr: "folder-")! }).joined(separator: "; ")
-        flag = entity.flag
-        note = entity.note
-    }
-
-    func buildit() -> PaperEntity {
-        let entity = PaperEntity()
-
-        entity.id = id
-        entity.addTime = addTime
-        entity.title = title
-        entity.authors = authors
-        entity.publication = publication
-        entity.pubTime = pubTime
-        entity.pubType = ["Journal", "Conference", "Others"].firstIndex(of: pubType)
-        entity.doi = doi
-        entity.arxiv = arxiv
-        entity.mainURL = mainURL
-        entity.supURLs = List()
-        supURLs.forEach { url in
-            entity.supURLs.append(url)
-        }
-        entity.rating = rating
-        entity.tags = List()
-        tags.components(separatedBy: "; ").forEach { tag in
-            let tagStr = formatString(tag, returnEmpty: true, trimWhite: true)!
-            if !tagStr.isEmpty {
-                entity.tags.append(PaperTag(value: PaperTag(id: tagStr)))
-            }
-        }
-        entity.folders = List()
-        folders.components(separatedBy: "; ").forEach { folder in
-            let folderStr = formatString(folder, returnEmpty: true, trimWhite: true)!
-            if !folderStr.isEmpty {
-                entity.folders.append(PaperFolder(id: folderStr))
-            }
-        }
-        entity.flag = flag
-        entity.note = note
-
-        return entity
     }
 }

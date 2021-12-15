@@ -24,6 +24,8 @@ extension AppState {
         var ieeeAPIKey = UserDefaults.standard.string(forKey: "ieeeAPIKey")
         var allowFetchPDFMeta = UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")
         var deleteSourceFile = UserDefaults.standard.bool(forKey: "deleteSourceFile")
+        var exportReplacement = UserDefaults.standard.data(forKey: "exportReplacement")
+        var enableExportReplacement = UserDefaults.standard.bool(forKey: "enableExportReplacement")
     }
 
     struct ReceiveSignals: Equatable {

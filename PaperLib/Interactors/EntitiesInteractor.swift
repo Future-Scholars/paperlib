@@ -19,7 +19,7 @@ protocol EntitiesInteractor {
     func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String?)
     func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String?)
 
-    func fetch(from fileURLs: [URL])
+    func add(from fileURLs: [URL])
 
     func delete(ids: Set<ObjectId>)
     func delete(tagId: String)
@@ -37,7 +37,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     let webRepository: WebRepository
     let appState: Store<AppState>
 
-    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "fetch", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "move-lib"])
+    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "move-lib"])
 
     init(appState: Store<AppState>, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
         self.appState = appState
@@ -132,11 +132,11 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 
     // MARK: - Add
 
-    func fetch(from fileURLs: [URL]) {
-        cancelBags.cancel(for: "fetch")
+    func add(from fileURLs: [URL]) {
+        cancelBags.cancel(for: "add")
 
         var publisherList: [AnyPublisher<Bool, Error>] = .init()
-
+        
         fileURLs.forEach { url in
             appState[\.receiveSignals.fetchingEntities] += 1
             let publisher = Just<Void>
@@ -176,7 +176,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             }, receiveValue: { _ in
                 appState[\.receiveSignals.fetchingEntities] -= 1
             })
-            .store(in: cancelBags["fetch"])
+            .store(in: cancelBags["add"])
     }
 
     // MARK: - Delete
@@ -255,7 +255,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     }
 
     func match(entities: [PaperEntity], fetchWeb: Bool) {
-        cancelBags.cancel(for: "fetch")
+        cancelBags.cancel(for: "match")
 
         var publisherList: [AnyPublisher<Bool, Error>] = .init()
 
@@ -281,7 +281,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         Publishers.MergeMany(publisherList)
             .collect()
             .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-            .store(in: cancelBags["fetch"])
+            .store(in: cancelBags["match"])
     }
 
     func export(entities: [PaperEntity], format: String) {
@@ -292,8 +292,25 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         }
     }
 
+    func _replacePublication(_ publication: String) -> String {
+        if (appState[\.setting.exportReplacement] == nil || !appState[\.setting.enableExportReplacement]) {
+            return publication
+        }
+        let exportReplacement = try? JSONDecoder().decode([String: String].self, from: appState[\.setting.exportReplacement]!)
+        if (exportReplacement == nil) {
+            return publication
+        }
+        if let replace = exportReplacement![publication] {
+            return replace
+        }
+        else {
+            return publication
+        }
+    }
+    
     func _exportBibtex(entities: [PaperEntity]) {
         var allTexBib = ""
+        
         entities.forEach { entity in
             var citeKey = ""
             citeKey += entity.authors.split(separator: " ")[0] + "_"
@@ -306,7 +323,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
                     year = \(entity.pubTime),
                     title = {\(entity.title)},
                     author = {\(entity.authors.replacingOccurrences(of: ", ", with: " and "))},
-                    booktitle = {\(entity.publication)},
+                    booktitle = {\(_replacePublication(entity.publication))},
                 }
                 """
             } else {
@@ -315,7 +332,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
                     year = \(entity.pubTime),
                     title = {\(entity.title)},
                     author = {\(entity.authors.replacingOccurrences(of: ", ", with: " and "))},
-                    journal = {\(entity.publication)},
+                    journal = {\(_replacePublication(entity.publication))},
                 }
                 """
             }
@@ -377,6 +394,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 
 struct StubEntitiesInteractor: EntitiesInteractor {
     func moveLib() {}
+    
     func delete(tagId _: String) {}
 
     func delete(folderId _: String) {}
@@ -399,9 +417,8 @@ struct StubEntitiesInteractor: EntitiesInteractor {
 
     func load(entities _: LoadableSubject<Results<PaperEntity>>, search _: String?, flag _: Bool, tags _: [String], folders _: [String], sort _: String) {}
 
-    func fetch(from _: [URL]) {}
+    func add(from _: [URL]) {}
 
     func delete(ids _: Set<ObjectId>) {}
 
-    func rateDetail(value _: Int) {}
 }
