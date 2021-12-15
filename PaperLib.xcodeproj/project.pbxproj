@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BE07A2C12769487500BF5050 /* KeyValueRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE07A2C02769487500BF5050 /* KeyValueRow.swift */; };
 		BE1C196D275C3171000B3059 /* EditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1C196C275C3171000B3059 /* EditView.swift */; };
 		BE5BE49F2756FC2900E6F832 /* Loadable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5BE49E2756FC2900E6F832 /* Loadable.swift */; };
 		BE5BE4A12757CEE700E6F832 /* CancelBag.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5BE4A02757CEE700E6F832 /* CancelBag.swift */; };
@@ -46,6 +47,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BE07A2C02769487500BF5050 /* KeyValueRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueRow.swift; sourceTree = "<group>"; };
 		BE1C196C275C3171000B3059 /* EditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditView.swift; sourceTree = "<group>"; };
 		BE5BE49E2756FC2900E6F832 /* Loadable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loadable.swift; sourceTree = "<group>"; };
 		BE5BE4A02757CEE700E6F832 /* CancelBag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelBag.swift; sourceTree = "<group>"; };
@@ -211,6 +213,7 @@
 				BEB7583127559A700086E360 /* SearchBar.swift */,
 				BE5BE4A22758278F00E6F832 /* SettingVIew.swift */,
 				BE1C196C275C3171000B3059 /* EditView.swift */,
+				BE07A2C02769487500BF5050 /* KeyValueRow.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -321,6 +324,7 @@
 				BE79C9C0275134FB008F3E97 /* AppEnvironment.swift in Sources */,
 				BE5BE4A727582C6A00E6F832 /* FileRepository.swift in Sources */,
 				BE79C9C8275142D1008F3E97 /* PaperEntity.swift in Sources */,
+				BE07A2C12769487500BF5050 /* KeyValueRow.swift in Sources */,
 				BE79C9D72752F9F4008F3E97 /* DetailSection.swift in Sources */,
 				BE79C99E27512D02008F3E97 /* ContentView.swift in Sources */,
 				BE79C9D32752DCFF008F3E97 /* DetailView.swift in Sources */,
@@ -473,7 +477,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperLib/PaperLib.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.2.3;
+				CURRENT_PROJECT_VERSION = 1.2.4;
 				DEVELOPMENT_ASSET_PATHS = "\"PaperLib/Preview Content\"";
 				DEVELOPMENT_TEAM = 5G866JUZ55;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -487,7 +491,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.3;
+				MARKETING_VERSION = 1.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.geo.PaperLib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -503,7 +507,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperLib/PaperLib.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.2.3;
+				CURRENT_PROJECT_VERSION = 1.2.4;
 				DEVELOPMENT_ASSET_PATHS = "\"PaperLib/Preview Content\"";
 				DEVELOPMENT_TEAM = 5G866JUZ55;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -517,7 +521,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.3;
+				MARKETING_VERSION = 1.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.geo.PaperLib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

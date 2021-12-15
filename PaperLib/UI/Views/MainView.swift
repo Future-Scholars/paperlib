@@ -557,7 +557,7 @@ private extension MainView {
 
         urlGroup.notify(queue: .main) {
             if urlList.count > 0 {
-                injected.interactors.entitiesInteractor.fetch(from: urlList)
+                injected.interactors.entitiesInteractor.add(from: urlList)
             }
         }
     }
@@ -649,8 +649,8 @@ private extension MainView {
     func openEntities() {
         if let selectedEntities = selectedEntities.value {
             selectedEntities.forEach { entity in
-                if let mainURL = entity.mainURL {
-                    NSWorkspace.shared.open(URL(string: mainURL)!)
+                if let url = URL(string: entity.mainURL) {
+                    NSWorkspace.shared.open(url)
                 }
             }
         }

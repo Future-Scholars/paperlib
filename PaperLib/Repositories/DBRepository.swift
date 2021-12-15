@@ -63,16 +63,28 @@ struct RealDBRepository: DBRepository {
             var config = Realm.Configuration(
                 // Set the new schema version. This must be greater than the previously used
                 // version (if you've never set a schema version before, the version is 0).
-                schemaVersion: 1,
+                schemaVersion: 2,
 
                 // Set the block which will be called automatically when opening a Realm with
                 // a schema version lower than the one set above
                 migrationBlock: { migration, oldSchemaVersion in
                     // We haven’t migrated anything yet, so oldSchemaVersion == 0
-                    if (oldSchemaVersion < 1) {
-                        // Nothing to do!
-                        // Realm will automatically detect new properties and removed properties
-                        // And will update the schema on disk automatically
+                    print("Dataset Version: \(oldSchemaVersion)")
+                    if (oldSchemaVersion < 2) {
+                        migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
+                            newObject!["id"] = oldObject!["id"]
+                            newObject!["addTime"] = oldObject!["addTime"]
+                            newObject!["title"] = oldObject!["title"] ?? ""
+                            newObject!["authors"] = oldObject!["authors"] ?? ""
+                            newObject!["publication"] = oldObject!["publication"] ?? ""
+                            newObject!["pubTime"] = oldObject!["pubTime"] ?? ""
+                            newObject!["pubType"] = oldObject!["pubType"] ?? 2
+                            newObject!["doi"] = oldObject!["doi"] ?? ""
+                            newObject!["arxiv"] = oldObject!["arxiv"] ?? ""
+                            newObject!["mainURL"] = oldObject!["mainURL"] ?? ""
+                            newObject!["rating"] = oldObject!["rating"] ?? 0
+                            newObject!["flag"] = oldObject!["flag"] ?? false
+                        }
                     }
                 })
 
@@ -342,7 +354,7 @@ struct RealDBRepository: DBRepository {
                 updateObj.authors = entity.authors
                 updateObj.publication = entity.publication
                 updateObj.pubTime = entity.pubTime
-                updateObj.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entity.pubType)
+                updateObj.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entity.pubType) ?? 2
                 updateObj.doi = entity.doi
                 updateObj.arxiv = entity.arxiv
                 updateObj.mainURL = entity.mainURL

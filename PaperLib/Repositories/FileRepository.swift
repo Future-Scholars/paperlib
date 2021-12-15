@@ -47,6 +47,7 @@ struct RealFileDBRepository: FileRepository {
                 
                 if let pdf = document {
                     let entity = PaperEntity()
+                    entity.mainURL = pdfUrl.absoluteString
                     
                     if (UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")) {
                         let title = pdf.documentAttributes?[PDFDocumentAttribute.titleAttribute]
@@ -54,11 +55,11 @@ struct RealFileDBRepository: FileRepository {
                         entity.setValue(for: "title", value: title as? String ?? "", allowEmpty: false)
                         entity.setValue(for: "authors", value: authors as? String ?? "", allowEmpty: false)
                     }
-                    
-                    entity.setValue(for: "doi", value: extractDOI(pdf), allowEmpty: false)
-                    entity.setValue(for: "arxiv", value: extractArxiv(pdf), allowEmpty: false)
-                    entity.mainURL = pdfUrl.absoluteString
-                    
+                    let doi = extractDOI(pdf)
+                    entity.setValue(for: "doi", value: doi, allowEmpty: false)
+                    let arxivID = extractArxiv(pdf)
+                    entity.setValue(for: "arxiv", value: arxivID, allowEmpty: false)
+                    print(entity)
                     promise(.success(entity))
                 }
                 else {
@@ -161,19 +162,15 @@ struct RealFileDBRepository: FileRepository {
             .replacingOccurrences(of: " ", with: "_") + "_\(entity!.id)"
 
         return Future<PaperEntity?, Error> { promise in
-            if entity!.mainURL == nil {
-                promise(.success(nil))
-            }
-
             var sourcePaths = Array(entity!.supURLs)
             var targetPaths = Array<String>.init()
 
             for (i, _) in sourcePaths.enumerated() {
                 targetPaths.append(targetFileName + "_sup\(i)")
             }
+            
+            sourcePaths.insert(entity!.mainURL, at: 0)
             targetPaths.insert(targetFileName + "_main", at: 0)
-
-            sourcePaths.insert(entity!.mainURL!, at: 0)
 
             var targetURLs = Array<URL>.init()
 
@@ -196,7 +193,7 @@ struct RealFileDBRepository: FileRepository {
 
             publisher.sink(receiveCompletion: { _ in }, receiveValue: {
                 if $0 {
-                    entity!.mainURL = targetURLs.first?.absoluteString
+                    entity!.mainURL = targetURLs.first!.absoluteString
                     entity!.supURLs.removeAll()
                     targetURLs[1...].forEach { supPath in
                         entity!.supURLs.append(supPath.absoluteString)
@@ -231,10 +228,6 @@ struct RealFileDBRepository: FileRepository {
             .replacingOccurrences(of: " ", with: "_") + "_\(entity!.id)"
 
         return Future<EditPaperEntity?, Error> { promise in
-            if entity!.mainURL == nil {
-                promise(.success(nil))
-            }
-
             var sourcePaths = Array(entity!.supURLs)
             var targetPaths = Array<String>.init()
 
@@ -242,8 +235,7 @@ struct RealFileDBRepository: FileRepository {
                 targetPaths.append(targetFileName + "_sup\(i)")
             }
             targetPaths.insert(targetFileName + "_main", at: 0)
-
-            sourcePaths.insert(entity!.mainURL!, at: 0)
+            sourcePaths.insert(entity!.mainURL, at: 0)
 
             var targetURLs = Array<URL>.init()
 
@@ -266,7 +258,7 @@ struct RealFileDBRepository: FileRepository {
 
             publisher.sink(receiveCompletion: { _ in }, receiveValue: {
                 if $0 {
-                    entity!.mainURL = targetURLs.first?.absoluteString
+                    entity!.mainURL = targetURLs.first!.absoluteString
                     entity!.supURLs.removeAll()
                     targetURLs[1...].forEach { supPath in
                         entity!.supURLs.append(supPath.absoluteString)
@@ -298,16 +290,18 @@ struct RealFileDBRepository: FileRepository {
         return Future<Bool, Error> { promise in
 
             var filePaths = Array(entity!.supURLs)
-            filePaths.insert(entity!.mainURL!, at: 0)
+            filePaths.insert(entity!.mainURL, at: 0)
 
             var publisher = CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
 
             filePaths.forEach { filePath in
                 let fileURL = URL(string: filePath)
-
-                publisher = publisher.flatMap { _ -> AnyPublisher<Bool, Error> in
-                    _remove(for: fileURL!)
-                }.eraseToAnyPublisher()
+                
+                if let url = fileURL {
+                    publisher = publisher.flatMap { _ -> AnyPublisher<Bool, Error> in
+                        _remove(for: url)
+                    }.eraseToAnyPublisher()
+                }
             }
 
             publisher.sink(

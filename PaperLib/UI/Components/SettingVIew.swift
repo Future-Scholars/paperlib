@@ -13,6 +13,7 @@ struct SettingsView: View {
     private enum Tabs: Hashable {
         case general
         case metadata
+        case export
     }
 
     var body: some View {
@@ -27,9 +28,14 @@ struct SettingsView: View {
                     Label("Metadata", systemImage: "network")
                 }
                 .tag(Tabs.metadata)
+            ExportSettingsView()
+                .tabItem {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                }
+                .tag(Tabs.export)
         }
         .padding()
-        .frame(width: 550, height: 200)
+        .frame(width: 550, height: 300)
         .onAppear(perform: {
             injected.appState[\.setting.settingOpened] = true
         })
@@ -160,5 +166,66 @@ struct MatchSettingsView: View {
                 injected.appState[\.setting.allowFetchPDFMeta] = allowFetchPDFMeta
             })
         }
+    }
+}
+
+
+struct ExportSettingsView: View {
+    @Environment(\.injected) private var injected: DIContainer
+
+    @AppStorage("exportReplacement") private var exportReplacement: Data = .init()
+    @AppStorage("enableExportReplacement") private var enableExportReplacement: Bool = false
+    @State private var exportReplacementContainer: [String: String] = .init()
+    @State private var newReplacementKey: String = ""
+    @State private var newReplacementValue: String = ""
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            HStack{
+                Text("Enable replacing publication title with customed string when exporting to bibtex. For example, replace 'Conference on Computer Vision and Pattern Recognition' by 'CVPR'.").font(.caption)
+                Toggle("", isOn: $enableExportReplacement)
+                    .toggleStyle(.checkbox)
+                    .onChange(of: enableExportReplacement, perform: { enableExportReplacement in
+                        injected.appState[\.setting.enableExportReplacement] = enableExportReplacement
+                    })
+            }
+            HStack{
+                TextField("original", text: $newReplacementKey).frame(width: 217, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Image(systemName: "arrow.right")
+                TextField("replacement", text: $newReplacementValue).frame(width: 217, alignment: .leading).multilineTextAlignment(.leading).font(.caption)
+                Button(action: {
+                    if (!newReplacementKey.isEmpty && !newReplacementValue.isEmpty) {
+                        exportReplacementContainer[formatString(newReplacementKey, removeNewline: true)!] = formatString(newReplacementValue, removeNewline: true)!
+                    }
+                }){
+                    Image(systemName: "plus.circle")
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            List {
+                ForEach(Array(exportReplacementContainer.keys), id: \.self) { key in
+                    HStack{
+                        Text(key).frame(width: 200, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                        Image(systemName: "arrow.right")
+                        Text(exportReplacementContainer[key]!).frame(width: 200, alignment: .leading).multilineTextAlignment(.leading).font(.caption)
+                        Button(action: {
+                            exportReplacementContainer.removeValue(forKey: key)
+                        }){
+                            Image(systemName: "delete.left")
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+            }
+        }
+        .onAppear(perform: {
+            guard let decodedExportReplacement = try? JSONDecoder().decode([String: String].self, from: exportReplacement) else { return }
+            exportReplacementContainer = decodedExportReplacement
+        })
+        .onChange(of: exportReplacementContainer, perform: { _ in
+            guard let encodedExportReplacement = try? JSONEncoder().encode(exportReplacementContainer) else { return }
+            self.exportReplacement = encodedExportReplacement
+            injected.appState[\.setting.exportReplacement] = self.exportReplacement
+        })
     }
 }

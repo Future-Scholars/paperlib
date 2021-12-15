@@ -55,7 +55,7 @@ struct RealWebRepository: WebRepository {
     }
 
     func fetch(arxiv entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
-        var arxivID = entity.arxiv ?? ""
+        var arxivID = entity.arxiv
 
         guard !arxivID.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
@@ -101,7 +101,7 @@ struct RealWebRepository: WebRepository {
     }
 
     func fetch(doi entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
-        var doiID = entity.doi ?? ""
+        var doiID = entity.doi
 
         guard !doiID.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
@@ -420,8 +420,10 @@ struct RealWebRepository: WebRepository {
     func fetch(titleExtractor entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
         guard entity.title.isEmpty && formatString(entity.arxiv)!.isEmpty && formatString(entity.doi)!.isEmpty else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
-        let fileURL = URL(string: entity.mainURL!)!
-        let data = try! Data(contentsOf: fileURL)
+        let fileURL = URL(string: entity.mainURL)
+        guard fileURL != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
+        
+        let data = try! Data(contentsOf: fileURL!)
 
         func parseResponse(titleExtractorResponse: String?, entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
             guard titleExtractorResponse != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
