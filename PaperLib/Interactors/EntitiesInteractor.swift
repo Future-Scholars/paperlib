@@ -29,6 +29,8 @@ protocol EntitiesInteractor {
     func match(entities: [PaperEntity], fetchWeb: Bool)
     func moveLib()
     func export(entities: [PaperEntity], format: String)
+    
+    func handleChromePluginUrl(_ url: URL)
 }
 
 struct RealEntitiesInteractor: EntitiesInteractor {
@@ -37,7 +39,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     let webRepository: WebRepository
     let appState: Store<AppState>
 
-    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "move-lib"])
+    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "move-lib", "plugin"])
 
     init(appState: Store<AppState>, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
         self.appState = appState
@@ -390,6 +392,34 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             .store(in: cancelBags["move-lib"])
     }
     
+    func handleChromePluginUrl(_ url: URL) {
+        
+        cancelBags.cancel(for: "plugin")
+        appState[\.receiveSignals.fetchingEntities] += 1
+        
+        var urlStr = url.absoluteString
+        urlStr = formatString(urlStr, removeStr: "paperlib://")!
+        let urlComponents = urlStr.components(separatedBy: "?")
+        let operation = urlComponents.first
+        
+        if (operation == "download") {
+            var downloadLink = urlComponents[1].components(separatedBy: "=")[1]
+            downloadLink = downloadLink.replacingOccurrences(of: ".pdf.pdf", with: ".pdf")
+            
+            if let downloadUrl = URL(string: downloadLink) {
+                fileRepository.download(url: downloadUrl)
+                .sink(receiveCompletion: {_ in}, receiveValue: {
+                    appState[\.receiveSignals.fetchingEntities] -= 1
+                    if let downloadedUrl = $0 {
+                        add(from: [downloadedUrl])
+                    }
+                })
+                .store(in: cancelBags["plugin"])
+            }
+        }
+    }
+        
+    
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
@@ -420,5 +450,7 @@ struct StubEntitiesInteractor: EntitiesInteractor {
     func add(from _: [URL]) {}
 
     func delete(ids _: Set<ObjectId>) {}
+    
+    func handleChromePluginUrl(_ url: URL) {}
 
 }

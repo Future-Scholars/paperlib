@@ -14,6 +14,12 @@
 		BE5BE4A32758278F00E6F832 /* SettingVIew.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5BE4A22758278F00E6F832 /* SettingVIew.swift */; };
 		BE5BE4A527582B2300E6F832 /* WebRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5BE4A427582B2300E6F832 /* WebRepository.swift */; };
 		BE5BE4A727582C6A00E6F832 /* FileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5BE4A627582C6A00E6F832 /* FileRepository.swift */; };
+		BE5D321F276A5CBE001BF392 /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = BE5D321E276A5CBE001BF392 /* Realm */; };
+		BE5D3221276A5CBE001BF392 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = BE5D3220276A5CBE001BF392 /* RealmSwift */; };
+		BE5D3224276A5CDA001BF392 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = BE5D3223276A5CDA001BF392 /* Alamofire */; };
+		BE5D3227276A5CE9001BF392 /* SwiftyXMLParser in Frameworks */ = {isa = PBXBuildFile; productRef = BE5D3226276A5CE9001BF392 /* SwiftyXMLParser */; };
+		BE5D322A276A5D06001BF392 /* SwiftyJSON in Frameworks */ = {isa = PBXBuildFile; productRef = BE5D3229276A5D06001BF392 /* SwiftyJSON */; };
+		BE5D322D276A5D31001BF392 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BE5D322C276A5D31001BF392 /* Sparkle */; };
 		BE79C99C27512D02008F3E97 /* PaperLibApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C99B27512D02008F3E97 /* PaperLibApp.swift */; };
 		BE79C99E27512D02008F3E97 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C99D27512D02008F3E97 /* ContentView.swift */; };
 		BE79C9A027512D05008F3E97 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE79C99F27512D05008F3E97 /* Assets.xcassets */; };
@@ -37,12 +43,6 @@
 		BE79C9D92752FB10008F3E97 /* ThubnailComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9D82752FB10008F3E97 /* ThubnailComponent.swift */; };
 		BEB7583227559A700086E360 /* SearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB7583127559A700086E360 /* SearchBar.swift */; };
 		BEB7583427559CF00086E360 /* Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB7583327559CF00086E360 /* Misc.swift */; };
-		BEEB7A922762C56500383CCA /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BEEB7A912762C56500383CCA /* Sparkle */; };
-		BEEB7A952762C59100383CCA /* SwiftyJSON in Frameworks */ = {isa = PBXBuildFile; productRef = BEEB7A942762C59100383CCA /* SwiftyJSON */; };
-		BEEB7A982762C5A500383CCA /* SwiftyXMLParser in Frameworks */ = {isa = PBXBuildFile; productRef = BEEB7A972762C5A500383CCA /* SwiftyXMLParser */; };
-		BEEB7A9B2762C5BB00383CCA /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = BEEB7A9A2762C5BB00383CCA /* Alamofire */; };
-		BEEB7A9E2762C5EA00383CCA /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = BEEB7A9D2762C5EA00383CCA /* Realm */; };
-		BEEB7AA02762C5EA00383CCA /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = BEEB7A9F2762C5EA00383CCA /* RealmSwift */; };
 		BEEB7AA22762C93B00383CCA /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEB7AA12762C93B00383CCA /* Updater.swift */; };
 /* End PBXBuildFile section */
 
@@ -88,12 +88,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BEEB7AA02762C5EA00383CCA /* RealmSwift in Frameworks */,
-				BEEB7A952762C59100383CCA /* SwiftyJSON in Frameworks */,
-				BEEB7A9B2762C5BB00383CCA /* Alamofire in Frameworks */,
-				BEEB7A982762C5A500383CCA /* SwiftyXMLParser in Frameworks */,
-				BEEB7A922762C56500383CCA /* Sparkle in Frameworks */,
-				BEEB7A9E2762C5EA00383CCA /* Realm in Frameworks */,
+				BE5D3224276A5CDA001BF392 /* Alamofire in Frameworks */,
+				BE5D3221276A5CBE001BF392 /* RealmSwift in Frameworks */,
+				BE5D321F276A5CBE001BF392 /* Realm in Frameworks */,
+				BE5D322D276A5D31001BF392 /* Sparkle in Frameworks */,
+				BE5D322A276A5D06001BF392 /* SwiftyJSON in Frameworks */,
+				BE5D3227276A5CE9001BF392 /* SwiftyXMLParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,12 +245,12 @@
 			);
 			name = PaperLib;
 			packageProductDependencies = (
-				BEEB7A912762C56500383CCA /* Sparkle */,
-				BEEB7A942762C59100383CCA /* SwiftyJSON */,
-				BEEB7A972762C5A500383CCA /* SwiftyXMLParser */,
-				BEEB7A9A2762C5BB00383CCA /* Alamofire */,
-				BEEB7A9D2762C5EA00383CCA /* Realm */,
-				BEEB7A9F2762C5EA00383CCA /* RealmSwift */,
+				BE5D321E276A5CBE001BF392 /* Realm */,
+				BE5D3220276A5CBE001BF392 /* RealmSwift */,
+				BE5D3223276A5CDA001BF392 /* Alamofire */,
+				BE5D3226276A5CE9001BF392 /* SwiftyXMLParser */,
+				BE5D3229276A5D06001BF392 /* SwiftyJSON */,
+				BE5D322C276A5D31001BF392 /* Sparkle */,
 			);
 			productName = PaperLib;
 			productReference = BE79C99827512D02008F3E97 /* PaperLib.app */;
@@ -281,11 +281,11 @@
 			);
 			mainGroup = BE79C98F27512D02008F3E97;
 			packageReferences = (
-				BEEB7A902762C56500383CCA /* XCRemoteSwiftPackageReference "Sparkle" */,
-				BEEB7A932762C59100383CCA /* XCRemoteSwiftPackageReference "SwiftyJSON" */,
-				BEEB7A962762C5A500383CCA /* XCRemoteSwiftPackageReference "SwiftyXMLParser" */,
-				BEEB7A992762C5BB00383CCA /* XCRemoteSwiftPackageReference "Alamofire" */,
-				BEEB7A9C2762C5EA00383CCA /* XCRemoteSwiftPackageReference "realm-cocoa" */,
+				BE5D321D276A5CBE001BF392 /* XCRemoteSwiftPackageReference "realm-cocoa" */,
+				BE5D3222276A5CDA001BF392 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				BE5D3225276A5CE9001BF392 /* XCRemoteSwiftPackageReference "SwiftyXMLParser" */,
+				BE5D3228276A5D06001BF392 /* XCRemoteSwiftPackageReference "SwiftyJSON" */,
+				BE5D322B276A5D31001BF392 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = BE79C99927512D02008F3E97 /* Products */;
 			projectDirPath = "";
@@ -477,7 +477,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperLib/PaperLib.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.2.4;
+				CURRENT_PROJECT_VERSION = 1.2.5;
 				DEVELOPMENT_ASSET_PATHS = "\"PaperLib/Preview Content\"";
 				DEVELOPMENT_TEAM = 5G866JUZ55;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -491,7 +491,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.4;
+				MARKETING_VERSION = 1.2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.geo.PaperLib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -507,7 +507,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperLib/PaperLib.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.2.4;
+				CURRENT_PROJECT_VERSION = 1.2.5;
 				DEVELOPMENT_ASSET_PATHS = "\"PaperLib/Preview Content\"";
 				DEVELOPMENT_TEAM = 5G866JUZ55;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -521,7 +521,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.4;
+				MARKETING_VERSION = 1.2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.geo.PaperLib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -553,40 +553,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		BEEB7A902762C56500383CCA /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle";
-			requirement = {
-				kind = exactVersion;
-				version = "2.0.0-beta.6";
-			};
-		};
-		BEEB7A932762C59100383CCA /* XCRemoteSwiftPackageReference "SwiftyJSON" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftyJSON/SwiftyJSON.git";
-			requirement = {
-				kind = versionRange;
-				maximumVersion = 6.0.0;
-				minimumVersion = 5.0.0;
-			};
-		};
-		BEEB7A962762C5A500383CCA /* XCRemoteSwiftPackageReference "SwiftyXMLParser" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/yahoojapan/SwiftyXMLParser.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
-			};
-		};
-		BEEB7A992762C5BB00383CCA /* XCRemoteSwiftPackageReference "Alamofire" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
-			};
-		};
-		BEEB7A9C2762C5EA00383CCA /* XCRemoteSwiftPackageReference "realm-cocoa" */ = {
+		BE5D321D276A5CBE001BF392 /* XCRemoteSwiftPackageReference "realm-cocoa" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/realm/realm-cocoa.git";
 			requirement = {
@@ -594,38 +561,70 @@
 				minimumVersion = 10.0.0;
 			};
 		};
+		BE5D3222276A5CDA001BF392 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		BE5D3225276A5CE9001BF392 /* XCRemoteSwiftPackageReference "SwiftyXMLParser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/yahoojapan/SwiftyXMLParser.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		BE5D3228276A5D06001BF392 /* XCRemoteSwiftPackageReference "SwiftyJSON" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftyJSON/SwiftyJSON.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		BE5D322B276A5D31001BF392 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				branch = 2.x;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		BEEB7A912762C56500383CCA /* Sparkle */ = {
+		BE5D321E276A5CBE001BF392 /* Realm */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = BEEB7A902762C56500383CCA /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
-		};
-		BEEB7A942762C59100383CCA /* SwiftyJSON */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BEEB7A932762C59100383CCA /* XCRemoteSwiftPackageReference "SwiftyJSON" */;
-			productName = SwiftyJSON;
-		};
-		BEEB7A972762C5A500383CCA /* SwiftyXMLParser */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BEEB7A962762C5A500383CCA /* XCRemoteSwiftPackageReference "SwiftyXMLParser" */;
-			productName = SwiftyXMLParser;
-		};
-		BEEB7A9A2762C5BB00383CCA /* Alamofire */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BEEB7A992762C5BB00383CCA /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = Alamofire;
-		};
-		BEEB7A9D2762C5EA00383CCA /* Realm */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BEEB7A9C2762C5EA00383CCA /* XCRemoteSwiftPackageReference "realm-cocoa" */;
+			package = BE5D321D276A5CBE001BF392 /* XCRemoteSwiftPackageReference "realm-cocoa" */;
 			productName = Realm;
 		};
-		BEEB7A9F2762C5EA00383CCA /* RealmSwift */ = {
+		BE5D3220276A5CBE001BF392 /* RealmSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = BEEB7A9C2762C5EA00383CCA /* XCRemoteSwiftPackageReference "realm-cocoa" */;
+			package = BE5D321D276A5CBE001BF392 /* XCRemoteSwiftPackageReference "realm-cocoa" */;
 			productName = RealmSwift;
+		};
+		BE5D3223276A5CDA001BF392 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BE5D3222276A5CDA001BF392 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		BE5D3226276A5CE9001BF392 /* SwiftyXMLParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BE5D3225276A5CE9001BF392 /* XCRemoteSwiftPackageReference "SwiftyXMLParser" */;
+			productName = SwiftyXMLParser;
+		};
+		BE5D3229276A5D06001BF392 /* SwiftyJSON */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BE5D3228276A5D06001BF392 /* XCRemoteSwiftPackageReference "SwiftyJSON" */;
+			productName = SwiftyJSON;
+		};
+		BE5D322C276A5D31001BF392 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BE5D322B276A5D31001BF392 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
