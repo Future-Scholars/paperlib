@@ -2,6 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>dev.geo.paperlib</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>paperlib</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
@@ -20,6 +33,6 @@
 	<key>SUPublicEDKey</key>
 	<string>fdDkWGo44bJjgu+9qAEn2hcp1J0wnU04YdTkxIveMwc=</string>
 	<key>CFBundleVersion</key>
-	<string>1.2.4</string>
+	<string>1.2.5</string>
 </dict>
 </plist>

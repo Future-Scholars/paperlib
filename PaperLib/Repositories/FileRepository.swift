@@ -23,6 +23,7 @@ protocol FileRepository {
     
     func remove(for entity: PaperEntity?) -> AnyPublisher<Bool, Error>
     func remove(for entities: Results<PaperEntity>) -> AnyPublisher<[Bool], Error>
+    func download(url: URL) -> AnyPublisher<URL?, Error>
 }
 
 struct RealFileDBRepository: FileRepository {
@@ -324,5 +325,33 @@ struct RealFileDBRepository: FileRepository {
             .collect()
             .eraseToAnyPublisher()
     }
+    
+    // MARK: - Download
+    func download(url: URL) -> AnyPublisher<URL?, Error> {
+        let destination = DownloadRequest.suggestedDownloadDestination(for: .downloadsDirectory)
+        
+        func parseResponse(downloadResponse: String?, url: URL) -> AnyPublisher<URL?, Error> {
+            guard downloadResponse != nil else { return CurrentValueSubject(nil).eraseToAnyPublisher() }
 
+            var downloadedUrl: URL
+            if let filename = url.pathComponents.last {
+                var downloadedUrl = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
+                downloadedUrl = downloadedUrl.appendingPathComponent(filename)
+                return CurrentValueSubject(downloadedUrl)
+                    .eraseToAnyPublisher()
+            }
+            else {
+                return CurrentValueSubject(nil)
+                    .eraseToAnyPublisher()
+            }
+        }
+        
+        
+        return AF.download(url, to: destination)
+            .publishString()
+            .flatMap {
+                parseResponse(downloadResponse: $0.value, url: url)
+            }
+            .eraseToAnyPublisher()
+    }
 }
