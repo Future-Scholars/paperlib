@@ -31,6 +31,7 @@ protocol EntitiesInteractor {
     func export(entities: [PaperEntity], format: String)
     
     func handleChromePluginUrl(_ url: URL)
+    func getJoinedUrl(_ url: String) -> URL?
 }
 
 struct RealEntitiesInteractor: EntitiesInteractor {
@@ -362,28 +363,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 
         Just<Void>
             .withErrorType(Error.self)
-            .flatMap { _ in
-                dbRepository.entities(freeze: true)
-            }
-            .flatMap { entities in
-                dbRepository.copy(entities: Array(entities))
-            }
-            .flatMap { entities in
-                dbRepository.copy(entities: entities)
-            }
-            .flatMap { entities in
-                fileRepository.move(for: entities)
-            }
-            .map {
-                $0.filter { $0 != nil }.map { $0! }
-            }
-            .flatMap { entities in
-                dbRepository.update(entities: entities, method: "update", editedEntities: nil)
-            }
-            .flatMap { _ in
-                dbRepository.moveDB(to: appState[\.setting.appLibFolder])
-            }
-            .flatMap { _ in
+            .flatMap {
                 dbRepository.setDBPath(path: appState[\.setting.appLibFolder])
             }
             .sink(receiveCompletion: { _ in }, receiveValue: { _ in
@@ -418,11 +398,25 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             }
         }
     }
+    
+    func getJoinedUrl(_ url: String) -> URL? {
+        if var joinedURL = URL(string: appState[\.setting.appLibFolder]) {
+            joinedURL.appendPathComponent(url)
+            return joinedURL
+        }
+        else {
+            return nil
+        }
+    }
         
     
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
+    func getJoinedUrl(_ url: String) -> URL? {
+        return URL(string: "")
+    }
+    
     func moveLib() {}
     
     func delete(tagId _: String) {}

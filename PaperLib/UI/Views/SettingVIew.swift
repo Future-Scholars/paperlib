@@ -58,7 +58,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         VStack(alignment: .leading) {
             HStack(alignment: .top) {
-                Text("Choose a folder to store paper files (e.g., PDF etc.) and the database files.").frame(width: 250).multilineTextAlignment(.trailing).font(.caption)
+                Text("Choose a folder to store paper files (e.g., PDF etc.) and the database files. Note that this operation will create a new database in the selected folder instead of migrating the current one (or read the available database in the selected folder.). It is commenly used when you setup paperlib on a new device to access your previous data stored on a network shared folder.").frame(width: 250).multilineTextAlignment(.trailing).font(.caption)
                 Text(
                     (appLibFolder.count > 7) ? String(appLibFolder[String.Index(utf16Offset: 7, in: appLibFolder)...]) : "Choose a folder"
                 )

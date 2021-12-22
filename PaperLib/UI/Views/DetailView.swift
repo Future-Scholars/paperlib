@@ -53,9 +53,11 @@ private extension DetailView {
                     .onChange(of: rating, perform: { _ in
                         rate()
                     })
-                DetailThumbnailSection(url: URL(string: entity.mainURL)).inject(injected)
+                if (FileManager.default.fileExists(atPath: getJoinedUrl(entity.mainURL)?.path ?? "")){
+                    DetailThumbnailSection(url: getJoinedUrl(entity.mainURL)).inject(injected)
+                }
                 if entity.supURLs.count >= 1 {
-                    DetailsSupSection(sups: Array(entity.supURLs))
+                    DetailsSupSection(sups: Array(entity.supURLs).map({return getJoinedUrl($0)}).filter({ $0 != nil}).map({$0!}))
                 }
                 
                 if (!entity.note.isEmpty) {
@@ -83,6 +85,10 @@ private extension DetailView {
     func rate() {
         editEntity.rating = rating
         injected.interactors.entitiesInteractor.update(entities: [entity], method: "update", editedEntities: [editEntity])
+    }
+    
+    func getJoinedUrl(_ url: String) -> URL? {
+        return injected.interactors.entitiesInteractor.getJoinedUrl(url)
     }
 
     

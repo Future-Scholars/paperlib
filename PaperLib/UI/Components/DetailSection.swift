@@ -54,7 +54,7 @@ struct DetailThumbnailSection: View {
 }
 
 struct DetailsSupSection: View {
-    var sups: [String]
+    var sups: [URL]
 
     private let columns = [
         GridItem(.flexible()),
@@ -72,14 +72,10 @@ struct DetailsSupSection: View {
         LazyVGrid(columns: columns, spacing: 1) {
             ForEach(sups, id: \.self) { sup in
                 Button(action: {
-                    let url = URL(string: sup)
-                    if url != nil {
-                        NSWorkspace.shared.open(url!)
-                    }
+                    print(sup)
+                    NSWorkspace.shared.open(sup)
                 }) {
-                    Text(sup.starts(with: "http") ? "WEB" : "FILE")
-                        .font(.subheadline)
-                        .underline()
+                    Text("FILE").font(.subheadline).underline()
                 }
                 .buttonStyle(PlainButtonStyle())
                 // TODO: Delete

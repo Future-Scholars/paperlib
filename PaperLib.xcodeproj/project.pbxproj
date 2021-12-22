@@ -165,6 +165,7 @@
 		BE79C9B027512EDD008F3E97 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				BE5BE4A22758278F00E6F832 /* SettingVIew.swift */,
 				BE79C99D27512D02008F3E97 /* ContentView.swift */,
 				BE79C9B127512EEA008F3E97 /* SidebarView.swift */,
 				BE79C9C1275140AC008F3E97 /* MainView.swift */,
@@ -211,7 +212,6 @@
 				BE79C9D62752F9F4008F3E97 /* DetailSection.swift */,
 				BE79C9D82752FB10008F3E97 /* ThubnailComponent.swift */,
 				BEB7583127559A700086E360 /* SearchBar.swift */,
-				BE5BE4A22758278F00E6F832 /* SettingVIew.swift */,
 				BE1C196C275C3171000B3059 /* EditView.swift */,
 				BE07A2C02769487500BF5050 /* KeyValueRow.swift */,
 			);
@@ -477,7 +477,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperLib/PaperLib.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.2.5;
+				CURRENT_PROJECT_VERSION = 1.2.6;
 				DEVELOPMENT_ASSET_PATHS = "\"PaperLib/Preview Content\"";
 				DEVELOPMENT_TEAM = 5G866JUZ55;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -491,7 +491,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.5;
+				MARKETING_VERSION = 1.2.6;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.geo.PaperLib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -507,7 +507,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperLib/PaperLib.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.2.5;
+				CURRENT_PROJECT_VERSION = 1.2.6;
 				DEVELOPMENT_ASSET_PATHS = "\"PaperLib/Preview Content\"";
 				DEVELOPMENT_TEAM = 5G866JUZ55;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -521,7 +521,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.5;
+				MARKETING_VERSION = 1.2.6;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.geo.PaperLib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

@@ -649,7 +649,7 @@ private extension MainView {
     func openEntities() {
         if let selectedEntities = selectedEntities.value {
             selectedEntities.forEach { entity in
-                if let url = URL(string: entity.mainURL) {
+                if let url = injected.interactors.entitiesInteractor.getJoinedUrl(entity.mainURL) {
                     NSWorkspace.shared.open(url)
                 }
             }
