@@ -1,0 +1,40 @@
+.sidebar {
+  width: 300px;
+  height: 100%;
+}
+
+.sidebar-list {
+  height: calc(100% - 50px);
+  overflow: scroll;
+}
+
+.sidebar-list-title {
+  user-select: none;
+  font-size: 0.8em !important;
+  padding-left: 2px !important;
+  display: flex;
+  align-items: center;
+  min-height: 30px !important;
+  border-radius: 5px;
+}
+
+.sidebar-list-item {
+  user-select: none;
+  font-size: 0.9em !important;
+  min-height: 30px !important;
+  padding-left: 4px !important;
+  display: flex;
+  align-items: center;
+  border-radius: 5px;
+}
+
+.sidebar-list-icon {
+  font-size: 1.2em !important;
+  margin-right: 10px;
+  margin-left: 5px;
+}
+
+.sidebar-list-item-active {
+  background-color: #c1c1c1;
+  font-weight: 500;
+}

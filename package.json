@@ -1,8 +1,8 @@
 {
-  "name": "paperlib",
-  "version": "0.1.0",
-  "description": "",
-  "productName": "PaperLib",
+  "name": "paperlib_win",
+  "version": "1.2.5",
+  "description": "A simple academic paper management tool for CSer.",
+  "productName": "Paperlib",
   "author": "GeoffreyChen <geoffreychen777@gmail.com>",
   "private": true,
   "scripts": {
@@ -10,38 +10,30 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@handsontable/vue": "^5.1.0",
-    "@hendt/xml2json": "^1.0.3",
+    "@electron/remote": "^2.0.1",
     "@quasar/extras": "^1.0.0",
-    "aws-sdk": "^2.817.0",
-    "bibtex-parse": "^2.1.0",
     "core-js": "^3.6.5",
-    "drag-drop": "^6.1.0",
-    "electron-store": "^6.0.1",
-    "handsontable": "^8.3.1",
-    "pdfjs-dist": "^2.6.347",
-    "quasar": "^1.0.0",
-    "sqlite3": "^5.0.0",
-    "worker-loader": "^3.0.7"
+    "drag-drop": "^7.2.0",
+    "electron-store": "^8.0.1",
+    "fast-xml-parser": "^4.0.0-beta.8",
+    "fs": "^0.0.1-security",
+    "got": "11.8.3",
+    "mousetrap": "^1.6.5",
+    "pdf-to-img": "^1.1.1",
+    "pdfjs-dist": "^2.10.377",
+    "quasar": "^2.0.0",
+    "realm": "^10.10.1",
+    "vue-pdf-embed": "^1.0.5",
+    "worker-loader": "^3.0.8"
   },
   "devDependencies": {
-    "@quasar/app": "^2.0.0",
-    "babel-eslint": "^10.0.1",
-    "chardet": "^0.7.0",
-    "devtron": "^1.4.0",
-    "electron": "^9.0.0",
-    "electron-builder": "^22.4.0",
-    "electron-debug": "^3.0.1",
-    "electron-devtools-installer": "^3.0.0",
-    "electron-packager": "^14.1.1",
-    "eslint": "^6.8.0",
-    "eslint-config-standard": "^14.1.0",
-    "eslint-loader": "^3.0.3",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "eslint-plugin-vue": "^6.2.2"
+    "@babel/eslint-parser": "^7.13.14",
+    "@quasar/app": "^3.0.0",
+    "electron": "^16.0.4",
+    "eslint": "^7.14.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-vue": "^7.0.0",
+    "eslint-webpack-plugin": "^2.4.0"
   },
   "browserslist": [
     "last 10 Chrome versions",
@@ -55,7 +47,7 @@
     "last 5 Opera versions"
   ],
   "engines": {
-    "node": ">= 10.18.1",
+    "node": ">= 12.22.1",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
   }

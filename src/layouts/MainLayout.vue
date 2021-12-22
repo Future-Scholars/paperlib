@@ -1,13 +1,22 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <router-view />
+    <q-page-container>
+      <router-view />
+    </q-page-container>
   </q-layout>
 </template>
 
 <script>
-export default {
-  data () {
-    return {}
+import { defineComponent, ref } from 'vue'
+
+export default defineComponent({
+  name: 'MainLayout',
+
+  components: {},
+
+  setup () {
+    return {
+    }
   }
-}
+})
 </script>
