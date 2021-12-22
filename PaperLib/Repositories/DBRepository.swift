@@ -11,7 +11,6 @@ import RealmSwift
 
 protocol DBRepository {
     func setDBPath(path: String?) -> AnyPublisher<Bool, Error>
-    func moveDB(to path: String) -> AnyPublisher<Bool, Error>
 
     func entities(freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
     func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
@@ -63,7 +62,7 @@ struct RealDBRepository: DBRepository {
             var config = Realm.Configuration(
                 // Set the new schema version. This must be greater than the previously used
                 // version (if you've never set a schema version before, the version is 0).
-                schemaVersion: 2,
+                schemaVersion: 3,
 
                 // Set the block which will be called automatically when opening a Realm with
                 // a schema version lower than the one set above
@@ -85,6 +84,21 @@ struct RealDBRepository: DBRepository {
                             newObject!["rating"] = oldObject!["rating"] ?? 0
                             newObject!["flag"] = oldObject!["flag"] ?? false
                         }
+                    }
+                    
+                    if (oldSchemaVersion < 3) {
+                        migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
+
+                            newObject!["mainURL"] = URL(string: (newObject!["mainURL"] as! String))?.lastPathComponent ?? "";
+                            var newObjectSupURLs: Array<String> = .init();
+
+                            unsafeBitCast(newObject!["supURLs"] as! List<DynamicObject>, to: List<String>.self).forEach { supURL in
+                                if let fileName = URL(string: supURL)?.lastPathComponent {
+                                    newObjectSupURLs.append(fileName);
+                                }
+                            }
+                            newObject!["supURLs"] = newObjectSupURLs;
+                      }
                     }
                 })
 
@@ -113,30 +127,6 @@ struct RealDBRepository: DBRepository {
             
             // Set this as the configuration used for the default Realm
             Realm.Configuration.defaultConfiguration = config
-
-            promise(.success(true))
-        }
-        .eraseToAnyPublisher()
-    }
-
-    func moveDB(to path: String) -> AnyPublisher<Bool, Error> {
-        return Future<Bool, Error> { promise in
-            var fromURL = Realm.Configuration.defaultConfiguration.fileURL!
-            let toURL = URL(string: path)
-
-            if let toURL = toURL {
-                fromURL = fromURL.deletingLastPathComponent()
-
-                let dbNames = ["default.realm", "default.realm.lock", "default.realm.management"]
-
-                dbNames.forEach { dbName in
-                    do {
-                        try FileManager.default.moveItem(at: fromURL.appendingPathComponent(dbName), to: toURL.appendingPathComponent(dbName))
-                    } catch let err {
-                        print(err)
-                    }
-                }
-            }
 
             promise(.success(true))
         }

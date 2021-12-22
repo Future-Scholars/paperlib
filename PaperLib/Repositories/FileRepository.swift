@@ -115,6 +115,18 @@ struct RealFileDBRepository: FileRepository {
 
     // MARK: - Move
 
+    func constructUrl(_ path: String) -> URL? {
+        if (path.starts(with: "file://")){
+            return URL(string: path)
+        }
+        else {
+            let dbRoot = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
+            var url = URL(string: dbRoot)
+            url?.appendPathComponent(path)
+            return url
+        }
+    }
+    
     func _move(from sourcePath: URL, to targetPath: URL) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
             if !FileManager.default.fileExists(atPath: targetPath.path) {
@@ -157,32 +169,28 @@ struct RealFileDBRepository: FileRepository {
     func move(for entity: PaperEntity?) -> AnyPublisher<PaperEntity?, Error> {
         guard entity != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
-        let dbRoot = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
-
         let targetFileName = entity!.title.replaceCharactersFromSet(in: engLetterandWhiteCharacterSet.inverted, replacementString: "")
             .replacingOccurrences(of: " ", with: "_") + "_\(entity!.id)"
 
         return Future<PaperEntity?, Error> { promise in
-            var sourcePaths = Array(entity!.supURLs)
-            var targetPaths = Array<String>.init()
+            var sourceURLs = Array(entity!.supURLs).map({ return self.constructUrl($0) })
+            var targetURLs = Array<URL?>.init()
 
-            for (i, _) in sourcePaths.enumerated() {
-                targetPaths.append(targetFileName + "_sup\(i)")
+            for (i, sourceURL) in sourceURLs.enumerated() {
+                var targetURL = self.constructUrl(targetFileName + "_sup\(i)")
+                targetURL?.appendPathExtension(sourceURL?.pathExtension ?? "")
+                targetURLs.append(targetURL)
             }
             
-            sourcePaths.insert(entity!.mainURL, at: 0)
-            targetPaths.insert(targetFileName + "_main", at: 0)
-
-            var targetURLs = Array<URL>.init()
+            let sourceMainURL = self.constructUrl(entity!.mainURL)
+            sourceURLs.insert(sourceMainURL, at: 0)
+            var targetMainURL = self.constructUrl(targetFileName + "_main")
+            targetMainURL?.appendPathExtension(sourceMainURL?.pathExtension ?? "")
+            targetURLs.insert(targetMainURL, at: 0)
 
             var publisher = CurrentValueSubject<Bool, Error>(true).eraseToAnyPublisher()
 
-            for (sourcePath, targetPath) in zip(sourcePaths, targetPaths) {
-                let sourceURL = URL(string: sourcePath)
-                let targetURL = URL(string: dbRoot)?.appendingPathComponent("\(targetPath)").appendingPathExtension(sourceURL?.pathExtension ?? "")
-
-                targetURLs.append(targetURL!)
-
+            for (sourceURL, targetURL) in zip(sourceURLs, targetURLs) {
                 publisher = publisher.flatMap { flag -> AnyPublisher<Bool, Error> in
                     if sourceURL == nil || targetURL == nil || !flag {
                         return CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
@@ -194,10 +202,10 @@ struct RealFileDBRepository: FileRepository {
 
             publisher.sink(receiveCompletion: { _ in }, receiveValue: {
                 if $0 {
-                    entity!.mainURL = targetURLs.first!.absoluteString
+                    entity!.mainURL = targetMainURL!.lastPathComponent
                     entity!.supURLs.removeAll()
-                    targetURLs[1...].forEach { supPath in
-                        entity!.supURLs.append(supPath.absoluteString)
+                    targetURLs[1...].forEach { supUrl in
+                        entity!.supURLs.append(supUrl!.lastPathComponent)
                     }
                     promise(.success(entity))
                 } else {
@@ -223,31 +231,28 @@ struct RealFileDBRepository: FileRepository {
     func move(for entity: EditPaperEntity?) -> AnyPublisher<EditPaperEntity?, Error> {
         guard entity != nil else { return CurrentValueSubject(entity).eraseToAnyPublisher() }
 
-        let dbRoot = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
-
         let targetFileName = entity!.title.replaceCharactersFromSet(in: engLetterandWhiteCharacterSet.inverted, replacementString: "")
             .replacingOccurrences(of: " ", with: "_") + "_\(entity!.id)"
 
         return Future<EditPaperEntity?, Error> { promise in
-            var sourcePaths = Array(entity!.supURLs)
-            var targetPaths = Array<String>.init()
+            var sourceURLs = Array(entity!.supURLs).map({ return self.constructUrl($0) })
+            var targetURLs = Array<URL?>.init()
 
-            for (i, _) in sourcePaths.enumerated() {
-                targetPaths.append(targetFileName + "_sup\(i)")
+            for (i, sourceURL) in sourceURLs.enumerated() {
+                var targetURL = self.constructUrl(targetFileName + "_sup\(i)")
+                targetURL?.appendPathExtension(sourceURL?.pathExtension ?? "")
+                targetURLs.append(targetURL)
             }
-            targetPaths.insert(targetFileName + "_main", at: 0)
-            sourcePaths.insert(entity!.mainURL, at: 0)
-
-            var targetURLs = Array<URL>.init()
+            
+            let sourceMainURL = self.constructUrl(entity!.mainURL)
+            sourceURLs.insert(sourceMainURL, at: 0)
+            var targetMainURL = self.constructUrl(targetFileName + "_main")
+            targetMainURL?.appendPathExtension(sourceMainURL?.pathExtension ?? "")
+            targetURLs.insert(targetMainURL, at: 0)
 
             var publisher = CurrentValueSubject<Bool, Error>(true).eraseToAnyPublisher()
 
-            for (sourcePath, targetPath) in zip(sourcePaths, targetPaths) {
-                let sourceURL = URL(string: sourcePath)
-                let targetURL = URL(string: dbRoot)?.appendingPathComponent("\(targetPath)").appendingPathExtension(sourceURL?.pathExtension ?? "")
-
-                targetURLs.append(targetURL!)
-
+            for (sourceURL, targetURL) in zip(sourceURLs, targetURLs) {
                 publisher = publisher.flatMap { flag -> AnyPublisher<Bool, Error> in
                     if sourceURL == nil || targetURL == nil || !flag {
                         return CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
@@ -259,10 +264,10 @@ struct RealFileDBRepository: FileRepository {
 
             publisher.sink(receiveCompletion: { _ in }, receiveValue: {
                 if $0 {
-                    entity!.mainURL = targetURLs.first!.absoluteString
+                    entity!.mainURL = targetMainURL!.lastPathComponent
                     entity!.supURLs.removeAll()
-                    targetURLs[1...].forEach { supPath in
-                        entity!.supURLs.append(supPath.absoluteString)
+                    targetURLs[1...].forEach { supUrl in
+                        entity!.supURLs.append(supUrl!.lastPathComponent)
                     }
                     promise(.success(entity))
                 } else {
@@ -290,14 +295,12 @@ struct RealFileDBRepository: FileRepository {
 
         return Future<Bool, Error> { promise in
 
-            var filePaths = Array(entity!.supURLs)
-            filePaths.insert(entity!.mainURL, at: 0)
+            var fileURLs = Array(entity!.supURLs).map({ return self.constructUrl($0) })
+            fileURLs.insert(self.constructUrl(entity!.mainURL), at: 0)
 
             var publisher = CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
 
-            filePaths.forEach { filePath in
-                let fileURL = URL(string: filePath)
-                
+            fileURLs.forEach { fileURL in
                 if let url = fileURL {
                     publisher = publisher.flatMap { _ -> AnyPublisher<Bool, Error> in
                         _remove(for: url)
@@ -333,7 +336,6 @@ struct RealFileDBRepository: FileRepository {
         func parseResponse(downloadResponse: String?, url: URL) -> AnyPublisher<URL?, Error> {
             guard downloadResponse != nil else { return CurrentValueSubject(nil).eraseToAnyPublisher() }
 
-            var downloadedUrl: URL
             if let filename = url.pathComponents.last {
                 var downloadedUrl = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
                 downloadedUrl = downloadedUrl.appendingPathComponent(filename)
