@@ -5,7 +5,11 @@
 
 .sidebar-list {
   height: calc(100% - 50px);
-  overflow: scroll;
+  overflow: auto;
+}
+
+.sidebar-list::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-list-title {

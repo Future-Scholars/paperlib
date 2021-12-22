@@ -1,5 +1,7 @@
 import Store from "electron-store";
 import path from "path";
+import os from "os";
+import fs from "fs";
 
 export class AppStore {
   constructor() {
@@ -8,8 +10,12 @@ export class AppStore {
     if (!this.store.has("appLibFolder")) {
       this.set(
         "appLibFolder",
-        path.join(process.env.HOME, "Documents", "paperlib")
+        path.join(os.homedir(), "Documents", "paperlib")
       );
+      let dir = path.join(os.homedir(), "Documents", "paperlib");
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+      }
       this.set("ieeeAPIKey", "q6kwjxnfpxb5ewt7gb32gnd4");
       this.set("deleteSourceFile", false);
       this.set("allowFetchPDFMeta", true);

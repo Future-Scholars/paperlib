@@ -3,6 +3,7 @@ import { formatString } from "../utils/misc";
 import { PaperEntityDraft } from "../models/PaperEntity";
 import { promises as fsPromise, createWriteStream } from "fs";
 import path from "path";
+import os from "os";
 import got from "got";
 const stream = require("stream");
 const { promisify } = require("util");
@@ -18,13 +19,21 @@ export class FileRepository {
   // ============================================================
   // Read file from local storage
   constructUrl(url, joined) {
-    if (url.startsWith("file://")) {
-      return url.replace;
+    if (path.isAbsolute(url)) {
+      return url.replace("file://", "");
     } else {
-      if (joined && url.split("/").length <= 1) {
-        return "file://" + path.join(this.appStore.get("appLibFolder"), url);
+      if (joined) {
+        if (os.platform().startsWith("win")) {
+          return path.join(this.appStore.get("appLibFolder"), url);
+        } else {
+          return "file://" + path.join(this.appStore.get("appLibFolder"), url);
+        }
       } else {
-        return "file://" + url;
+        if (os.platform().startsWith("win")) {
+          return url;
+        } else {
+          return "file://" + url;
+        }
       }
     }
   }
@@ -175,6 +184,7 @@ export class FileRepository {
     try {
       let targetFileName =
         entity.title.replace(/[^a-zA-Z ]/g, "").replace(/\s/g, "_") +
+        "_" +
         entity.id.toString();
 
       var sourceUrls = [];
