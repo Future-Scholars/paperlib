@@ -16,11 +16,13 @@ export class AppStore {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
       }
-      this.set("ieeeAPIKey", "q6kwjxnfpxb5ewt7gb32gnd4");
+      this.set("ieeeAPIKey", "");
       this.set("deleteSourceFile", false);
       this.set("allowFetchPDFMeta", true);
       this.set("enableExportReplacement", false);
       this.set("exportReplacement", []);
+      this.set("useSync", false);
+      this.set("syncAPIKey", "");
     }
   }
 
@@ -40,6 +42,8 @@ export class AppStore {
       allowFetchPDFMeta: this.get("allowFetchPDFMeta"),
       enableExportReplacement: this.get("enableExportReplacement"),
       exportReplacement: this.get("exportReplacement"),
+      useSync: this.get("useSync"),
+      syncAPIKey: this.get("syncAPIKey"),
     };
   }
 
@@ -50,5 +54,7 @@ export class AppStore {
     this.set("allowFetchPDFMeta", obj.allowFetchPDFMeta);
     this.set("enableExportReplacement", obj.enableExportReplacement);
     this.set("exportReplacement", obj.exportReplacement);
+    this.set("useSync", obj.useSync);
+    this.set("syncAPIKey", obj.syncAPIKey);
   }
 }

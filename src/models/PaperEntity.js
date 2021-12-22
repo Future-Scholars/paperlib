@@ -3,9 +3,10 @@ import { formatString } from "../utils/misc";
 
 export const PaperEntitySchema = {
   name: "PaperEntity",
-  primaryKey: "id",
+  primaryKey: "_id",
   properties: {
-    id: "objectId",
+    _id: "objectId",
+    _partition: "string?",
     addTime: "date",
 
     title: "string",
@@ -37,7 +38,8 @@ export const PaperEntitySchema = {
 export class PaperEntityDraft {
   constructor(entity) {
     if (!entity) {
-      this.id = new ObjectId();
+      this._id = new ObjectId();
+      this._partition = "";
       this.addTime = new Date();
       this.title = "";
       this.authors = "";
@@ -54,7 +56,8 @@ export class PaperEntityDraft {
       this.flag = false;
       this.note = "";
     } else {
-      this.id = entity.id;
+      this._id = entity._id;
+      this._partition = entity._partition;
       this.addTime = entity.addTime;
       this.title = entity.title;
       this.authors = entity.authors;

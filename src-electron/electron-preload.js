@@ -122,7 +122,10 @@ contextBridge.exposeInMainWorld("api", {
   },
 
   async saveSettings(settings) {
-    interactor.saveSettings(settings);
+    let realmChanged = await interactor.saveSettings(settings);
+    if (realmChanged) {
+      BrowserWindow.getFocusedWindow().webContents.send("realmChanged");
+    }
     return true;
   },
 

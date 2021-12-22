@@ -103,9 +103,9 @@
           active-class="sidebar-list-item-active"
           v-show="showSidebarTag"
           v-for="tag in tags"
-          :key="tag.id"
-          :active="sidebarFilter === tag.id"
-          @click="sidebarFilter = tag.id"
+          :key="tag._id"
+          :active="sidebarFilter === tag._id"
+          @click="sidebarFilter = tag._id"
         >
           <q-icon
             class="q-mr-md sidebar-list-icon"
@@ -149,9 +149,9 @@
           active-class="sidebar-list-item-active"
           v-show="showSidebarFolder"
           v-for="folder in folders"
-          :key="folder.id"
-          :active="sidebarFilter === folder.id"
-          @click="sidebarFilter = folder.id"
+          :key="folder._id"
+          :active="sidebarFilter === folder._id"
+          @click="sidebarFilter = folder._id"
         >
           <q-icon
             class="q-mr-md sidebar-list-icon"
@@ -452,7 +452,7 @@
               <q-td
                 :props="props"
                 :class="
-                  selectedIds.indexOf(props.row.id) >= 0 ? 'bg-secondary' : ''
+                  selectedIds.indexOf(props.row._id) >= 0 ? 'bg-secondary' : ''
                 "
               >
                 {{ props.value }}
@@ -740,7 +740,7 @@
               clickable
               class="sidebar-list-item"
               v-for="tag in tags"
-              :key="tag.id"
+              :key="tag._id"
               @click="addExistTagEvent(tag)"
             >
               <q-icon
@@ -791,7 +791,7 @@
               clickable
               class="sidebar-list-item"
               v-for="folder in folders"
-              :key="folder.id"
+              :key="folder._id"
               @click="addExistFolderEvent(folder)"
             >
               <q-icon
@@ -881,6 +881,12 @@
             name="metadata"
             icon="bi-globe"
             label="Metadata"
+            :ripple="false"
+          />
+          <q-tab
+            name="sync"
+            icon="bi-cloud-arrow-up"
+            label="Sync"
             :ripple="false"
           />
           <q-tab
@@ -1170,6 +1176,46 @@
               </div>
             </div>
           </q-tab-panel>
+
+          <q-tab-panel name="sync">
+            <div class="row justify-center">
+              <div class="col-5 setting-title">
+                Cloud Sync API Key, see more on Paperlib's Github.
+              </div>
+              <div class="col-5">
+                <div
+                  style="
+                    padding-left: 5px;
+                    border: 1px solid #ddd;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    cursor: pointer;
+                  "
+                  class="radius-border setting-content"
+                >
+                  <q-input
+                    borderless
+                    v-model="settings.syncAPIKey"
+                    dense
+                    style="max-height: 22px"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="row justify-center q-mt-lg">
+              <div class="col-5 setting-title">Use cloud sync.</div>
+              <div class="col-5">
+                <q-checkbox
+                  dense
+                  keep-color
+                  size="xs"
+                  v-model="settings.useSync"
+                  color="grey-5"
+                />
+              </div>
+            </div>
+          </q-tab-panel>
         </q-tab-panels>
 
         <div
@@ -1309,6 +1355,8 @@ export default {
       newReplacementFrom: "",
       newReplacementTo: "",
       exportReplacement: [],
+      useSync: false,
+      syncAPIKey: "",
     });
     const settingTab = ref("general");
     const settingNewFolderPicker = ref(null);
@@ -1642,7 +1690,7 @@ export default {
       selectedIds.value = [];
       selectedIndex.value.forEach((index) => {
         selectedEntities.value.push(entities.value[index]);
-        selectedIds.value.push(entities.value[index].id);
+        selectedIds.value.push(entities.value[index]._id);
       });
     };
 
@@ -1695,11 +1743,11 @@ export default {
     };
 
     const deleteTag = (tag) => {
-      window.api.deleteTag(tag.id);
+      window.api.deleteTag(tag._id);
     };
 
     const deleteFolder = (folder) => {
-      window.api.deleteFolder(folder.id);
+      window.api.deleteFolder(folder._id);
     };
 
     // Settings
@@ -1725,6 +1773,17 @@ export default {
     });
     window.api.registerSignal("hideLoading", (event, message) => {
       showLoadingIcon.value = false;
+    });
+
+    window.api.registerSignal("realmChanged", (event, message) => {
+      clearSelected();
+      realmChangedEvent();
+      reloadSettings();
+      reloadAppLibPath();
+      reloadEntities();
+      reloadTags();
+      reloadFolders();
+      reloadSelectedEntities();
     });
 
     onMounted(() => {

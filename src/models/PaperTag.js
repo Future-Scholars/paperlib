@@ -1,9 +1,10 @@
 export const PaperTagSchema = {
-    name: "PaperTag",
-    primaryKey: "id",
-    properties: {
-        id: "string",
-        name: "string",
-        count: "int"
-    }
-}
+  name: "PaperTag",
+  primaryKey: "_id",
+  properties: {
+    _id: "string",
+    _partition: "string?",
+    name: "string",
+    count: "int",
+  },
+};

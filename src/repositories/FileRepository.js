@@ -18,22 +18,28 @@ export class FileRepository {
 
   // ============================================================
   // Read file from local storage
-  constructUrl(url, joined) {
+  constructUrl(url, joined, withProtocol = true) {
+    var outURL;
     if (path.isAbsolute(url)) {
-      return url.replace("file://", "");
+      outURL = url;
     } else {
       if (joined) {
-        if (os.platform().startsWith("win")) {
-          return path.join(this.appStore.get("appLibFolder"), url);
+        outURL = path.join(this.appStore.get("appLibFolder"), url);
+      } else {
+        outURL = url;
+      }
+    }
+    if (os.platform().startsWith("win")) {
+      return outURL;
+    } else {
+      if (withProtocol) {
+        if (outURL.startsWith("file://")) {
+          return outURL;
         } else {
-          return "file://" + path.join(this.appStore.get("appLibFolder"), url);
+          return "file://" + outURL;
         }
       } else {
-        if (os.platform().startsWith("win")) {
-          return url;
-        } else {
-          return "file://" + url;
-        }
+        return outURL.replace("file://", "");
       }
     }
   }
@@ -52,7 +58,8 @@ export class FileRepository {
 
   async readPDF(url) {
     try {
-      const pdf = await pdfjs.getDocument(this.constructUrl(url)).promise;
+      const pdf = await pdfjs.getDocument(this.constructUrl(url, false, true))
+        .promise;
 
       const entity = new PaperEntityDraft();
 
@@ -90,9 +97,7 @@ export class FileRepository {
 
       await pipeline(
         got.stream(downloadUrl),
-        createWriteStream(
-          this.constructUrl(targetUrl, false).replace("file://", "")
-        )
+        createWriteStream(this.constructUrl(targetUrl, false, false))
       );
       return this.readPDF(targetUrl);
     } catch (error) {
@@ -185,11 +190,11 @@ export class FileRepository {
       let targetFileName =
         entity.title.replace(/[^a-zA-Z ]/g, "").replace(/\s/g, "_") +
         "_" +
-        entity.id.toString();
+        entity._id.toString();
 
       var sourceUrls = [];
       for (let url of entity.supURLs) {
-        sourceUrls.push(this.constructUrl(url, true));
+        sourceUrls.push(this.constructUrl(url, true, false));
       }
       entity.supURLs = [];
 
@@ -200,16 +205,16 @@ export class FileRepository {
           "_sup" +
           i +
           sourceUrls[i].substr(sourceUrls[i].lastIndexOf("."));
-        targetUrls.push(this.constructUrl(targetSupName, true));
+        targetUrls.push(this.constructUrl(targetSupName, true, false));
         entity.supURLs.push(targetSupName);
       }
 
-      sourceUrls.push(this.constructUrl(entity.mainURL, true));
+      sourceUrls.push(this.constructUrl(entity.mainURL, true, false));
       let targetMainName =
         targetFileName +
         "_main" +
         entity.mainURL.substr(entity.mainURL.lastIndexOf("."));
-      targetUrls.push(this.constructUrl(targetMainName, true));
+      targetUrls.push(this.constructUrl(targetMainName, true, false));
       entity.mainURL = targetMainName;
 
       var promiseList = [];
@@ -248,9 +253,9 @@ export class FileRepository {
     try {
       var sourceUrls = [];
       for (let url of entity.supURLs) {
-        sourceUrls.push(this.constructUrl(url, true));
+        sourceUrls.push(this.constructUrl(url, true, false));
       }
-      sourceUrls.push(this.constructUrl(entity.mainURL, true));
+      sourceUrls.push(this.constructUrl(entity.mainURL, true, false));
 
       var promiseList = [];
       for (let url of sourceUrls) {
@@ -269,7 +274,7 @@ export class FileRepository {
 
   async removeFile(url) {
     try {
-      await this._remove(this.constructUrl(url, true));
+      await this._remove(this.constructUrl(url, true, false));
       return true;
     } catch (error) {
       console.log(error);

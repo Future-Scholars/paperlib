@@ -116,7 +116,7 @@ export class Interactor {
     Promise.all(ids.map((id) => flagPromise(id)));
   }
 
-  match(ids) {
+  async match(ids) {
     let matchPromise = async (id) => {
       try {
         var entity = await this.dbRepository.entity(id);
@@ -129,7 +129,7 @@ export class Interactor {
       }
     };
 
-    Promise.all(ids.map((id) => matchPromise(id)));
+    return await Promise.all(ids.map((id) => matchPromise(id)));
   }
 
   async update(entity) {
@@ -232,15 +232,24 @@ export class Interactor {
     return this.appStore.getAll();
   }
 
-  saveSettings(settings) {
+  async saveSettings(settings) {
     var setNewDBFolder = false;
-    if (settings.appLibFolder != this.appStore.get("appLibFolder")) {
+    if (
+      settings.appLibFolder != this.appStore.get("appLibFolder") ||
+      ((settings.useSync != this.appStore.get("useSync") ||
+        settings.syncAPIKey != this.appStore.get("syncAPIKey")) &&
+        settings.syncAPIKey != "")
+    ) {
+      console.log("setNewDBFolder");
       setNewDBFolder = true;
     }
     this.appStore.setAll(settings);
 
     if (setNewDBFolder) {
-      this.dbRepository.setRealmFolder(settings.appLibFolder);
+      await this.dbRepository.initRealm();
+      return true;
+    } else {
+      return false;
     }
   }
 

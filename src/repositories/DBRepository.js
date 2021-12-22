@@ -8,29 +8,99 @@ import { formatString } from "../utils/misc";
 
 export class DBRepository {
   constructor(appStore) {
-    this._realm = null;
-    this._schemaVersion = 3;
     this.appStore = appStore;
+
+    this._realmApp = null;
+    this._realm = null;
+    this._schemaVersion = 4;
+
+    this.initRealm();
   }
 
   realm() {
-    if (this._realm) {
-      return this._realm;
+    if (!this._realm) {
+      this.initRealm();
     }
-
-    this.setRealmFolder(this.appStore.get("appLibFolder"));
     return this._realm;
   }
 
-  setRealmFolder(folder) {
+  async initRealm() {
     if (this._realm) {
       this._realm.close();
+      this._realm = null;
     }
+    if (this.appStore.get("useSync") && this.appStore.get("syncAPIKey")) {
+      await this.initSync();
+    } else {
+      this.initLocal();
+    }
+  }
+
+  async loginSync() {
+    if (!this.syncUser) {
+      this._realmApp = new Realm.App({ id: "paperlib-iadbj" });
+      let apiKey = this.appStore.get("syncAPIKey");
+      const credentials = Realm.Credentials.serverApiKey(apiKey);
+      try {
+        this.syncUser = await this._realmApp.logIn(credentials);
+        console.log("Successfully logged in!");
+      } catch (err) {
+        console.error("Failed to log in", err.message);
+      }
+    }
+  }
+
+  async initSync() {
+    console.log("Init Sync.");
+    await this.loginSync();
     this._realm = new Realm({
       schema: [PaperEntitySchema, PaperTagSchema, PaperFolderSchema],
       schemaVersion: this._schemaVersion,
-      path: path.join(folder, "default.realm"),
+      sync: {
+        user: this.syncUser,
+        partitionValue: this.syncUser.id,
+      },
+    });
+  }
+
+  initLocal() {
+    console.log("Init Local.");
+    this._realm = new Realm({
+      schema: [PaperEntitySchema, PaperTagSchema, PaperFolderSchema],
+      schemaVersion: this._schemaVersion,
+      path: path.join(this.appStore.get("appLibFolder"), "default.realm"),
       migration: this.migrate,
+    });
+  }
+
+  async migrateLocaltoSync() {
+    if (this._realm) {
+      this._realm.close();
+    }
+
+    // Read local data
+    this.initLocal();
+    var entities = this._realm.objects("PaperEntity");
+
+    // Write to sync server
+    await this.loginSync();
+    this._realm.write(() => {
+      for (let entity of entities) {
+        entity._partition = this.app.currentUser.id;
+        for (let tag of entity.tags) {
+          tag._partition = this.app.currentUser.id;
+        }
+        for (let folder of entity.folders) {
+          folder._partition = this.app.currentUser.id;
+        }
+      }
+    });
+
+    this.initSync();
+    this.realm(true).write(() => {
+      for (let entity of entities) {
+        this.realm(true).create("PaperEntity", entity);
+      }
     });
   }
 
@@ -74,13 +144,42 @@ export class DBRepository {
         newObject["supURLs"] = newObjectSupURLs;
       }
     }
+
+    if (oldRealm.schemaVersion < 4) {
+      const oldObjects = oldRealm.objects("PaperEntity");
+      const newObjects = newRealm.objects("PaperEntity");
+      // loop through all objects and set the fullName property in the new schema
+      for (const objectIndex in oldObjects) {
+        const oldObject = oldObjects[objectIndex];
+        const newObject = newObjects[objectIndex];
+        newObject["_id"] = oldObject["id"];
+      }
+
+      const oldTags = oldRealm.objects("PaperTag");
+      const newTags = newRealm.objects("PaperTag");
+      // loop through all objects and set the fullName property in the new schema
+      for (const objectIndex in oldTags) {
+        const oldTag = oldTags[objectIndex];
+        const newTag = newTags[objectIndex];
+        newTag["_id"] = oldTag["id"];
+      }
+
+      const oldFolders = oldRealm.objects("PaperFolder");
+      const newFolders = newRealm.objects("PaperFolder");
+      // loop through all objects and set the fullName property in the new schema
+      for (const objectIndex in oldFolders) {
+        const oldFolder = oldFolders[objectIndex];
+        const newFolder = newFolders[objectIndex];
+        newFolder["_id"] = oldFolder["id"];
+      }
+    }
   }
 
   jsonfyEntity(entities) {
     var entitiesJson = [];
     entities.forEach((entity) => {
       let entityJson = entity.toJSON();
-      entityJson.id = entityJson.id.toString();
+      entityJson._id = entityJson._id.toString();
       entitiesJson.push(entityJson);
     });
     return entitiesJson;
@@ -107,10 +206,10 @@ export class DBRepository {
       filterFormat += `flag == true AND `;
     }
     if (tag) {
-      filterFormat += `(ANY tags.id == \"${tag}\") AND `;
+      filterFormat += `(ANY tags._id == \"${tag}\") AND `;
     }
     if (folder) {
-      filterFormat += `(ANY folders.id == \"${folder}\") AND `;
+      filterFormat += `(ANY folders._id == \"${folder}\") AND `;
     }
 
     if (filterFormat) {
@@ -150,6 +249,9 @@ export class DBRepository {
   // ============================================================
   // Add
   add(entity) {
+    if (this.syncUser) {
+      entity._partition = this.syncUser.id;
+    }
     entity.tags = [];
     entity.folders = [];
 
@@ -171,7 +273,7 @@ export class DBRepository {
   delete(entity) {
     this.realm().write(() => {
       for (let tag of entity.tags) {
-        let tagObj = this.realm().objectForPrimaryKey("PaperTag", tag.id);
+        let tagObj = this.realm().objectForPrimaryKey("PaperTag", tag._id);
         tagObj.count -= 1;
         if (tagObj.count <= 0) {
           this.realm().delete(tagObj);
@@ -181,7 +283,7 @@ export class DBRepository {
       for (let folder of entity.folders) {
         let folderObj = this.realm().objectForPrimaryKey(
           "PaperFolder",
-          folder.id
+          folder._id
         );
         folderObj.count -= 1;
         if (folderObj.count <= 0) {
@@ -190,7 +292,10 @@ export class DBRepository {
       }
 
       this.realm().delete(
-        this.realm().objectForPrimaryKey("PaperEntity", new ObjectId(entity.id))
+        this.realm().objectForPrimaryKey(
+          "PaperEntity",
+          new ObjectId(entity._id)
+        )
       );
     });
   }
@@ -211,11 +316,11 @@ export class DBRepository {
 
   // Update
   update(entity) {
+    let editEntity = this.realm().objectForPrimaryKey(
+      "PaperEntity",
+      new ObjectId(entity._id)
+    );
     this.realm().write(() => {
-      let editEntity = this.realm().objectForPrimaryKey(
-        "PaperEntity",
-        new ObjectId(entity.id)
-      );
       editEntity.title = entity.title;
       editEntity.authors = entity.authors;
       editEntity.publication = entity.publication;
@@ -231,7 +336,7 @@ export class DBRepository {
 
       // remove old tags
       for (const tag of editEntity.tags) {
-        let tagObj = this.realm().objectForPrimaryKey("PaperTag", tag.id);
+        let tagObj = this.realm().objectForPrimaryKey("PaperTag", tag._id);
         tagObj.count -= 1;
         if (tagObj.count <= 0) {
           this.realm().delete(tagObj);
@@ -264,7 +369,7 @@ export class DBRepository {
             editEntity.tags.push(tagObj);
           } else {
             let tagObj = {
-              id: "tag-" + tagStr,
+              _id: "tag-" + tagStr,
               name: tagStr,
               count: 1,
             };
@@ -277,12 +382,11 @@ export class DBRepository {
           }
         }
       }
-
       // remove old folders
       for (const folder of editEntity.folders) {
         let folderObj = this.realm().objectForPrimaryKey(
           "PaperFolder",
-          folder.id
+          folder._id
         );
         folderObj.count -= 1;
         if (folderObj.count <= 0) {
@@ -320,7 +424,7 @@ export class DBRepository {
             editEntity.folders.push(folderObj);
           } else {
             let folderObj = {
-              id: "folder-" + folderStr,
+              _id: "folder-" + folderStr,
               name: folderStr,
               count: 1,
             };
