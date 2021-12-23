@@ -33,7 +33,7 @@ extension AppState {
         var sideBarFolder = 0
         var mainViewEntities = 0
         var mainViewSelectedEntities = 0
-        var fetchingEntities = 0
+        var updatingCount = 0
     }
 }
 

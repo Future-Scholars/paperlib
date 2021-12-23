@@ -58,7 +58,7 @@ struct SidebarView: View {
             reloadFolders()
         })
         .onReceive(fetchingStateUpdate, perform: { _ in
-            if (injected.appState[\.receiveSignals.fetchingEntities] > 0) {
+            if (injected.appState[\.receiveSignals.updatingCount] > 0) {
                 showProgressView = true
             }
             else {
@@ -186,6 +186,6 @@ private extension SidebarView {
     }
     
     var fetchingStateUpdate: AnyPublisher<Int, Never> {
-        injected.appState.updates(for: \.receiveSignals.fetchingEntities)
+        injected.appState.updates(for: \.receiveSignals.updatingCount)
     }
 }

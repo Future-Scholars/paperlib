@@ -20,7 +20,7 @@ protocol DBRepository {
     func tags() -> AnyPublisher<Results<PaperTag>, Error>
     func folders() -> AnyPublisher<Results<PaperFolder>, Error>
 
-    func add(for entity: PaperEntity?) -> AnyPublisher<Bool, Error>
+    func add(for entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], Error>
 
     func delete(entities: Results<PaperEntity>) -> AnyPublisher<Bool, Error>
 
@@ -216,33 +216,98 @@ struct RealDBRepository: DBRepository {
         return realm.objects(PaperFolder.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.freeze().eraseToAnyPublisher()
     }
 
+    // MARK: - Construct from Draft
+    func build(entitiesDraft: [PaperEntityDraft?]) -> [PaperEntity?] {
+        
+        let realm = try! Realm()
+        
+        var readyEntities:[PaperEntity?] = .init()
+        
+        entitiesDraft.forEach({
+            if let entityDraft = $0 {
+                let entity = PaperEntity()
+                
+                entity.id = entityDraft.get("id", type: ObjectId.self)
+                entity.addTime = entityDraft.get("addTime", type: Date.self)
+                
+                entity.title = entityDraft.get("title", type: String.self)
+                entity.title = entity.title.isEmpty ? "untitled" : entity.title
+                entity.authors = entityDraft.get("authors", type: String.self)
+                entity.authors = entity.authors.isEmpty ? "none" : entity.authors
+                entity.publication = entityDraft.get("publication", type: String.self)
+                entity.pubTime = entityDraft.get("pubTime", type: String.self)
+                entity.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entityDraft.get("pubType", type: String.self)) ?? 2
+                entity.doi = entityDraft.get("doi", type: String.self)
+                entity.arxiv = entityDraft.get("arxiv", type: String.self)
+                entity.supURLs = List()
+                entityDraft.get("supURLs", type: Array<String>.self).forEach({supURL in entity.supURLs.append(supURL)})
+                entity.rating = entityDraft.get("rating", type: Int.self)
+                entity.flag = entityDraft.get("flag", type: Bool.self)
+                entity.note = entityDraft.get("note", type: String.self)
+                
+                entity.tags = List<PaperTag>()
+                formatString(entityDraft.get("tags", type: String.self), removeWhite: true)!
+                    .components(separatedBy: ";")
+                    .forEach({tagStr in
+                        guard !tagStr.isEmpty else { return }
+                        let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: "tag-" + tagStr) ?? PaperTag(id: tagStr)
+                        tagObj.count += 1
+                        entity.tags.append(tagObj)
+                    })
+                entity.folders = List<PaperFolder>()
+                formatString(entityDraft.get("folders", type: String.self), removeWhite: true)!
+                    .components(separatedBy: ";")
+                    .forEach({folderStr in
+                        guard !folderStr.isEmpty else { return }
+                        let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: "folder-" + folderStr) ?? PaperFolder(id: folderStr)
+                        folderObj.count += 1
+                        entity.folders.append(folderObj)
+                    })
+                readyEntities.append(entity)
+            }
+            else {
+                readyEntities.append(nil)
+            }
+            
+        })
+        
+        return readyEntities
+    }
+    
     // MARK: - Add
 
-    func add(for entity: PaperEntity?) -> AnyPublisher<Bool, Error> {
-        return Future<Bool, Error> { promise in
-            if entity == nil { promise(.success(false)) }
-            else {
-                let realm = try! Realm()
-                let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity!.title)\" and authors == \"\(entity!.authors)\"")
-
-                if (existEntities.count > 0 && !entity!.title.isEmpty && !entity!.authors.isEmpty) {
-                    print("Paper exists.")
-                    promise(.success(false))
-                } else {
-                    
-                    if entity!.title.isEmpty {
-                        entity!.title = "untitled"
-                    }
-                    if entity!.authors.isEmpty {
-                        entity!.authors = "none"
-                    }
-                    
-                    try! realm.safeWrite {
-                        realm.add(entity!)
-                    }
-                    promise(.success(true))
+    func add(for entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], Error> {
+        return Future<[Bool], Error> { promise in
+            let realm = try! Realm()
+            
+            let prepareEntities: [PaperEntityDraft?] = entities.map({ entity in
+                let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity.get("title", type: String.self))\" and authors == \"\(entity.get("authors", type: String.self))\"")
+                
+                if (existEntities.count > 0 && !entity.get("title", type: String.self).isEmpty && !entity.get("title", type: String.self).isEmpty) {
+                    print("Paper exists: \(entity.get("title", type: String.self))")
+                    return nil
                 }
+                else {
+                    return entity
+                }
+            })
+            
+            let readyEntities = self.build(entitiesDraft: prepareEntities)
+
+            var successes: [Bool] = .init()
+            
+            try! realm.safeWrite {
+                readyEntities.forEach({
+                    if let readyEntity = $0 {
+                        realm.add(readyEntity)
+                        successes.append(true)
+                    }
+                    else {
+                        successes.append(false)
+                    }
+                })
             }
+            promise(.success(successes))
         }
         .eraseToAnyPublisher()
     }

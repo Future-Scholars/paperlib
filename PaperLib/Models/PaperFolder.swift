@@ -10,7 +10,7 @@ import RealmSwift
 
 class PaperFolder: Object, ObjectKeyIdentifiable {
     @Persisted var id: String = ""
-    @Persisted var count: Int = 1
+    @Persisted var count: Int = 0
     @Persisted var name: String = ""
 
     convenience init(id: String) {
