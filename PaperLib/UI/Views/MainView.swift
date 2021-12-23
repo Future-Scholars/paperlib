@@ -586,27 +586,27 @@ private extension MainView {
         }
     }
 
-    func reloadEntities() {
-        let (flag, tags, folders) = makeFilter()
-        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText.text, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
-    }
-
-    func reloadSelectedEntities() {
-        if selectedIds.count > 0 {
-            injected.interactors.entitiesInteractor.load(entities: $selectedEntities, ids: selectedIds)
-            injected.interactors.entitiesInteractor.load(entity: $editedSelectedEntity, id: selectedIds.first!)
-        } else {
-            selectedEntities = .notRequested
-        }
-    }
-
     func deleteEntities() {
         injected.interactors.entitiesInteractor.delete(ids: selectedIds)
         clearSelected()
     }
 
+    func reloadEntities() {
+        let (flag, tags, folders) = makeFilter()
+        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText.text, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
+    }
+
     func clearSelected() {
         selectedIds.removeAll()
+    }
+
+    func reloadSelectedEntities() {
+        if selectedIds.count > 0 {
+            injected.interactors.entitiesInteractor.load(entities: $selectedEntities, ids: selectedIds)
+            injected.interactors.entitiesInteractor.load(entity: $editedSelectedEntity, id: selectedIds```.first!)
+        } else {
+            selectedEntities = .notRequested
+        }
     }
 
     func editSelected(method: String = "update") {

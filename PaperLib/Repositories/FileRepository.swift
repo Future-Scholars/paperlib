@@ -19,8 +19,8 @@ protocol FileRepository {
     func move(for entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft?, Error>
     func move(for entities: [PaperEntityDraft]) -> AnyPublisher<[PaperEntityDraft?], Error>
     
-    func remove(for entity: PaperEntity) -> AnyPublisher<Bool, Error>
-    func remove(for entities: [PaperEntity]) -> AnyPublisher<[Bool], Error>
+    func remove(for filePath: String) -> AnyPublisher<Bool, Error>
+    func remove(for filePaths: [String]) -> AnyPublisher<[Bool], Error>
     func remove(for entity: PaperEntityDraft) -> AnyPublisher<Bool, Error>
     func remove(for entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], Error>
     func download(url: URL) -> AnyPublisher<URL?, Error>
@@ -149,14 +149,14 @@ struct RealFileDBRepository: FileRepository {
         .eraseToAnyPublisher()
     }
 
-    func _remove(for filePath: URL) -> AnyPublisher<Bool, Error> {
+    func _remove(for fileURL: URL) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
-            if FileManager.default.fileExists(atPath: filePath.path) {
+            if FileManager.default.fileExists(atPath: fileURL.path) {
                 do {
-                    try FileManager.default.removeItem(atPath: filePath.path)
+                    try FileManager.default.removeItem(atPath: fileURL.path)
                     promise(.success(true))
                 } catch {
-                    print("Cannot remove \(filePath.path)")
+                    print("Cannot remove \(fileURL.path)")
                     promise(.success(false))
                 }
             } else {
@@ -250,37 +250,19 @@ struct RealFileDBRepository: FileRepository {
             .eraseToAnyPublisher()
     }
     
-    func remove(for entity: PaperEntity) -> AnyPublisher<Bool, Error> {
-        return Future<Bool, Error> { promise in
-
-            var fileURLs = Array(entity.supURLs).map({ return self.constructUrl($0) })
-            fileURLs.insert(self.constructUrl(entity.mainURL), at: 0)
-
-            var publisher = CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
-
-            fileURLs.forEach { fileURL in
-                if let url = fileURL {
-                    publisher = publisher.flatMap { _ -> AnyPublisher<Bool, Error> in
-                        _remove(for: url)
-                    }.eraseToAnyPublisher()
-                }
-            }
-
-            publisher.sink(
-                receiveCompletion: { _ in },
-                receiveValue: {
-                    promise(.success($0))
-                }
-            )
-            .store(in: cancelBag)
+    func remove(for filePath: String) -> AnyPublisher<Bool, Error> {
+        if let fileURL = self.constructUrl(filePath) {
+            return _remove(for: fileURL)
         }
-        .eraseToAnyPublisher()
+        else {
+            return Just<Bool>.withErrorType(false, Error.self)
+        }
     }
 
-    func remove(for entities: [PaperEntity]) -> AnyPublisher<[Bool], Error> {
+    func remove(for filePaths: [String]) -> AnyPublisher<[Bool], Error> {
         var publisherList: [AnyPublisher<Bool, Error>] = Array()
-        entities.forEach { entity in
-            publisherList.append(remove(for: entity))
+        filePaths.forEach { filePath in
+            publisherList.append(remove(for: filePath))
         }
         return Publishers.MergeMany(publisherList)
             .collect()

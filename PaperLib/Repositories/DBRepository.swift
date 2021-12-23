@@ -20,12 +20,12 @@ protocol DBRepository {
     func tags() -> AnyPublisher<Results<PaperTag>, Error>
     func folders() -> AnyPublisher<Results<PaperFolder>, Error>
 
-    func add(for entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], Error>
+    func add(for entities: [PaperEntityDraft]) -> AnyPublisher<[String], Error>
 
-    func delete(entities: Results<PaperEntity>) -> AnyPublisher<Bool, Error>
+    func delete(ids: [ObjectId]) -> AnyPublisher<[String], Error>
 
-    func delete(tags: List<PaperTag>)
-    func delete(folders: List<PaperFolder>)
+    func unlink(tags: List<PaperTag>, realm: Realm?)
+    func unlink(folders: List<PaperFolder>, realm: Realm?)
     func delete(tagId: String) -> AnyPublisher<Bool, Error>
     func delete(folderId: String) -> AnyPublisher<Bool, Error>
 
@@ -239,6 +239,7 @@ struct RealDBRepository: DBRepository {
                 entity.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entityDraft.get("pubType", type: String.self)) ?? 2
                 entity.doi = entityDraft.get("doi", type: String.self)
                 entity.arxiv = entityDraft.get("arxiv", type: String.self)
+                entity.mainURL = entityDraft.get("mainURL", type: String.self)
                 entity.supURLs = List()
                 entityDraft.get("supURLs", type: Array<String>.self).forEach({supURL in entity.supURLs.append(supURL)})
                 entity.rating = entityDraft.get("rating", type: Int.self)
@@ -276,15 +277,20 @@ struct RealDBRepository: DBRepository {
     
     // MARK: - Add
 
-    func add(for entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], Error> {
-        return Future<[Bool], Error> { promise in
+    func add(for entities: [PaperEntityDraft]) -> AnyPublisher<[String], Error> {
+        return Future<[String], Error> { promise in
             let realm = try! Realm()
+            var failedPaths: [String] = .init()
             
             let prepareEntities: [PaperEntityDraft?] = entities.map({ entity in
                 let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity.get("title", type: String.self))\" and authors == \"\(entity.get("authors", type: String.self))\"")
                 
                 if (existEntities.count > 0 && !entity.get("title", type: String.self).isEmpty && !entity.get("title", type: String.self).isEmpty) {
                     print("Paper exists: \(entity.get("title", type: String.self))")
+                    
+                    failedPaths.append(entity.get("mainURL", type: String.self))
+                    failedPaths.append(contentsOf: entity.get("supURLs", type: Array<String>.self))
+                    
                     return nil
                 }
                 else {
@@ -294,62 +300,62 @@ struct RealDBRepository: DBRepository {
             
             let readyEntities = self.build(entitiesDraft: prepareEntities)
 
-            var successes: [Bool] = .init()
-            
             try! realm.safeWrite {
                 readyEntities.forEach({
                     if let readyEntity = $0 {
                         realm.add(readyEntity)
-                        successes.append(true)
-                    }
-                    else {
-                        successes.append(false)
                     }
                 })
             }
-            promise(.success(successes))
+            promise(.success(failedPaths))
         }
         .eraseToAnyPublisher()
     }
 
     // MARK: - Delete
 
-    func delete(entities: Results<PaperEntity>) -> AnyPublisher<Bool, Error> {
-        return Future<Bool, Error> { promise in
+    func delete(ids: [ObjectId]) -> AnyPublisher<[String], Error> {
+        return Future<[String], Error> { promise in
             let realm = try! Realm()
+            
+            var removeFileURLs: [String] = .init()
+            let entities = realm.objects(PaperEntity.self).filter("id IN %@", ids)
+            
             try! realm.safeWrite {
                 entities.forEach { entity in
-                    let _entity = realm.object(ofType: PaperEntity.self, forPrimaryKey: entity.id)!
-                    delete(tags: _entity.tags)
-                    delete(folders: _entity.folders)
-                    realm.delete(_entity)
+                    removeFileURLs.append(entity.mainURL)
+                    removeFileURLs.append(contentsOf: entity.supURLs)
+                    
+                    unlink(tags: entity.tags, realm: realm)
+                    unlink(folders: entity.folders, realm: realm)
+                    realm.delete(entity)
                 }
             }
-            promise(.success(true))
+            promise(.success(removeFileURLs))
         }.eraseToAnyPublisher()
     }
 
-    func delete(tags: List<PaperTag>) {
-        let realm = try! Realm()
+    func unlink(tags: List<PaperTag>, realm: Realm? = nil) {
+        let realm = realm != nil ? realm : try! Realm()
         tags.forEach { tag in
-            let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: tag.id)!
-            try! realm.safeWrite {
+            let tagObj = realm!.object(ofType: PaperTag.self, forPrimaryKey: tag.id)!
+            try! realm!.safeWrite {
                 tagObj.count -= 1
                 if tagObj.count <= 0 {
-                    realm.delete(tagObj)
+                    realm!.delete(tagObj)
                 }
             }
         }
     }
 
-    func delete(folders: List<PaperFolder>) {
-        let realm = try! Realm()
+    func unlink(folders: List<PaperFolder>, realm: Realm? = nil) {
+        let realm = realm != nil ? realm : try! Realm()
         folders.forEach { folder in
-            let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: folder.id)!
-            try! realm.safeWrite {
+            let folderObj = realm!.object(ofType: PaperFolder.self, forPrimaryKey: folder.id)!
+            try! realm!.safeWrite {
                 folderObj.count -= 1
                 if folderObj.count <= 0 {
-                    realm.delete(folderObj)
+                    realm!.delete(folderObj)
                 }
             }
         }
@@ -358,9 +364,10 @@ struct RealDBRepository: DBRepository {
     func delete(tagId: String) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
             let realm = try! Realm()
-            let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: tagId)!
-            try! realm.safeWrite {
-                realm.delete(tagObj)
+            if let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: tagId){
+                try! realm.safeWrite {
+                    realm.delete(tagObj)
+                }
             }
             promise(.success(true))
         }
@@ -370,9 +377,10 @@ struct RealDBRepository: DBRepository {
     func delete(folderId: String) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
             let realm = try! Realm()
-            let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: folderId)!
-            try! realm.safeWrite {
-                realm.delete(folderObj)
+            if let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: folderId){
+                try! realm.safeWrite {
+                    realm.delete(folderObj)
+                }
             }
             promise(.success(true))
         }

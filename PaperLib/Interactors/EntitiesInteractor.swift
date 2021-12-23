@@ -15,7 +15,6 @@ protocol EntitiesInteractor {
     func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: [String], folders: [String], sort: String)
     func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>)
     func load(entity: Binding<EditPaperEntity>, id: ObjectId)
-    func load(entity: LoadableSubject<PaperEntity>, id: ObjectId)
     func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String?)
     func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String?)
 
@@ -86,18 +85,6 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             .store(in: cancelBags["editEntityById"])
     }
 
-    func load(entity: LoadableSubject<PaperEntity>, id: ObjectId) {
-        cancelBags.cancel(for: "entityById")
-
-        entity.wrappedValue.setIsLoading(cancelBag: cancelBags["entityById"])
-
-        dbRepository.entity(id: id, freeze: true)
-            .sinkToLoadable {
-                entity.wrappedValue = $0
-            }
-            .store(in: cancelBags["entityById"])
-    }
-
     func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String? = nil) {
         var key: String
         if cancelBagKey == nil {
@@ -160,18 +147,12 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             .flatMap({ entities in
                 fileRepository.move(for: entities)
             })
-            .flatMap {entities  -> Publishers.Zip<AnyPublisher<[Bool], Error>, AnyPublisher<[PaperEntityDraft], Error>> in
+            .flatMap {entities -> AnyPublisher<[String], Error> in
                 let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
-                return dbRepository.add(for: filteredEntities).zip(Just<[PaperEntityDraft]>.withErrorType(filteredEntities, Error.self))
+                return dbRepository.add(for: filteredEntities)
             }
-            .flatMap { successesWithEntities -> AnyPublisher<[Bool], Error> in
-                var failedEntities: [PaperEntityDraft] = .init()
-                for (success, entity) in zip(successesWithEntities.0, successesWithEntities.1) {
-                    if (!success) {
-                        failedEntities.append(entity)
-                    }
-                }
-                return fileRepository.remove(for: failedEntities)
+            .flatMap { failedPaths -> AnyPublisher<[Bool], Error> in
+                return fileRepository.remove(for: failedPaths)
             }
             .sink(receiveCompletion: { _ in
             }, receiveValue: {_ in
@@ -183,19 +164,16 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     // MARK: - Delete
 
     func delete(ids: Set<ObjectId>) {
-//        cancelBags.cancel(for: "delete")
-//
-//        Just<Void>
-//            .withErrorType(Error.self)
-//            .flatMap { _ in
-//                dbRepository.entities(ids: ids, freeze: true)
-//            }
-//            .removeDuplicates()
-//            .flatMap { entities in
-//                fileRepository.remove(for: entities).zip(dbRepository.delete(entities: entities))
-//            }
-//            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-//            .store(in: cancelBags["delete"])
+        cancelBags.cancel(for: "delete")
+
+        Just<Void>
+            .withErrorType(Error.self)
+            .flatMap { dbRepository.delete(ids: Array(ids)) }
+            .flatMap { filePaths in
+                fileRepository.remove(for: filePaths)
+            }
+            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+            .store(in: cancelBags["delete"])
     }
 
     func delete(tagId: String) {
@@ -285,6 +263,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 //            .store(in: cancelBags["match"])
     }
 
+    // MARK: -
     func export(entities: [PaperEntity], format: String) {
         if format == "bibtex" {
             _exportBibtex(entities: entities)
