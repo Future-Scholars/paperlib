@@ -168,51 +168,56 @@ struct RealFileDBRepository: FileRepository {
 
     func move(for entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft?, Error> {
         
-        let targetFileName = entity.get("title", type: String.self).replaceCharactersFromSet(in: engLetterandWhiteCharacterSet.inverted, replacementString: "")
-            .replacingOccurrences(of: " ", with: "_") + "_\(entity.get("id", type: ObjectId.self))"
+        let targetFileName = entity.title.replaceCharactersFromSet(in: engLetterandWhiteCharacterSet.inverted, replacementString: "")
+            .replacingOccurrences(of: " ", with: "_") + "_\(entity.id)"
 
-        return Future<PaperEntityDraft?, Error> { promise in
-            var sourceURLs = Array(entity.get("supURLs", type: Array<String>.self)).map({ return self.constructUrl($0) })
-            var targetURLs = Array<URL?>.init()
+        if targetFileName == entity.mainURL.replacingOccurrences(of: "_main.pdf", with: "") {
+            return Just<PaperEntityDraft?>.withErrorType(entity, Error.self).eraseToAnyPublisher()
+        }
+        else{
+            return Future<PaperEntityDraft?, Error> { promise in
+                var sourceURLs = Array(entity.supURLs).map({ return self.constructUrl($0) })
+                var targetURLs = Array<URL?>.init()
 
-            for (i, sourceURL) in sourceURLs.enumerated() {
-                var targetURL = self.constructUrl(targetFileName + "_sup\(i)")
-                targetURL?.appendPathExtension(sourceURL?.pathExtension ?? "")
-                targetURLs.append(targetURL)
-            }
-            
-            let sourceMainURL = self.constructUrl(entity.get("mainURL", type: String.self))
-            sourceURLs.insert(sourceMainURL, at: 0)
-            var targetMainURL = self.constructUrl(targetFileName + "_main")
-            targetMainURL?.appendPathExtension(sourceMainURL?.pathExtension ?? "")
-            targetURLs.insert(targetMainURL, at: 0)
+                for (i, sourceURL) in sourceURLs.enumerated() {
+                    var targetURL = self.constructUrl(targetFileName + "_sup\(i)")
+                    targetURL?.appendPathExtension(sourceURL?.pathExtension ?? "")
+                    targetURLs.append(targetURL)
+                }
+                
+                let sourceMainURL = self.constructUrl(entity.mainURL)
+                sourceURLs.insert(sourceMainURL, at: 0)
+                var targetMainURL = self.constructUrl(targetFileName + "_main")
+                targetMainURL?.appendPathExtension(sourceMainURL?.pathExtension ?? "")
+                targetURLs.insert(targetMainURL, at: 0)
 
-            var publisher = CurrentValueSubject<Bool, Error>(true).eraseToAnyPublisher()
+                var publisher = CurrentValueSubject<Bool, Error>(true).eraseToAnyPublisher()
 
-            for (sourceURL, targetURL) in zip(sourceURLs, targetURLs) {
-                publisher = publisher.flatMap { flag -> AnyPublisher<Bool, Error> in
-                    if sourceURL == nil || targetURL == nil || !flag {
-                        return CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
-                    } else {
-                        return _move(from: sourceURL!, to: targetURL!)
-                    }
-                }.eraseToAnyPublisher()
-            }
-
-            publisher.sink(receiveCompletion: { _ in }, receiveValue: {
-                if $0 {
-                    entity.set(for: "mainURL", value: targetMainURL!.lastPathComponent)
-                    entity.set(for: "supURLs", value: [], allowEmpty: true)
-                    entity.set(for: "supURLs", value: targetURLs[1...].map({ $0!.lastPathComponent }), allowEmpty: true)
-
-                    promise(.success(entity))
-                } else {
-                    promise(.success(nil))
+                for (sourceURL, targetURL) in zip(sourceURLs, targetURLs) {
+                    publisher = publisher.flatMap { flag -> AnyPublisher<Bool, Error> in
+                        if sourceURL == nil || targetURL == nil || !flag {
+                            return CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
+                        } else {
+                            return _move(from: sourceURL!, to: targetURL!)
+                        }
+                    }.eraseToAnyPublisher()
                 }
 
-            }).store(in: cancelBag)
+                publisher.sink(receiveCompletion: { _ in }, receiveValue: {
+                    if $0 {
+                        entity.set(for: "mainURL", value: targetMainURL!.lastPathComponent)
+                        entity.set(for: "supURLs", value: [], allowEmpty: true)
+                        entity.set(for: "supURLs", value: targetURLs[1...].map({ $0!.lastPathComponent }), allowEmpty: true)
+
+                        promise(.success(entity))
+                    } else {
+                        promise(.success(nil))
+                    }
+
+                }).store(in: cancelBag)
+            }
+            .eraseToAnyPublisher()
         }
-        .eraseToAnyPublisher()
     }
 
     func move(for entities: [PaperEntityDraft]) -> AnyPublisher<[PaperEntityDraft?], Error> {
@@ -227,8 +232,8 @@ struct RealFileDBRepository: FileRepository {
     }
 
     func remove(for entity: PaperEntityDraft) -> AnyPublisher<Bool, Error> {
-        var fileURLs = entity.get("supURLs", type: Array<String>.self).map({ return self.constructUrl($0) })
-        fileURLs.insert(self.constructUrl(entity.get("mainURL", type: String.self)), at: 0)
+        var fileURLs = entity.supURLs.map({ return self.constructUrl($0) })
+        fileURLs.insert(self.constructUrl(entity.mainURL), at: 0)
 
         var publisherList: [AnyPublisher<Bool, Error>] = .init()
         fileURLs.forEach { fileURL in

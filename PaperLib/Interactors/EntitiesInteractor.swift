@@ -13,8 +13,7 @@ import SwiftUI
 
 protocol EntitiesInteractor {
     func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: [String], folders: [String], sort: String)
-    func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>)
-    func load(entity: Binding<EditPaperEntity>, id: ObjectId)
+    func load(entities: LoadableSubject<Results<PaperEntity>>, drafts: Binding<[PaperEntityDraft]>, ids: Set<ObjectId>)
     func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String?)
     func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String?)
 
@@ -24,8 +23,9 @@ protocol EntitiesInteractor {
     func delete(tagId: String)
     func delete(folderId: String)
 
-    func update(entities: [PaperEntity], method: String, editedEntities: [EditPaperEntity]?)
-    func match(entities: [PaperEntity], fetchWeb: Bool)
+    func update(entities: [PaperEntityDraft])
+    func match(entities: [PaperEntityDraft])
+    
     func moveLib()
     func export(entities: [PaperEntity], format: String)
     
@@ -39,7 +39,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     let webRepository: WebRepository
     let appState: Store<AppState>
 
-    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "move-lib", "plugin"])
+    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "move-lib", "plugin"])
 
     init(appState: Store<AppState>, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
         self.appState = appState
@@ -63,28 +63,19 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             .store(in: cancelBags["entities"])
     }
 
-    func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>) {
+    func load(entities: LoadableSubject<Results<PaperEntity>>, drafts: Binding<[PaperEntityDraft]>, ids: Set<ObjectId>) {
         cancelBags.cancel(for: "entitiesByIds")
 
         entities.wrappedValue.setIsLoading(cancelBag: cancelBags["entitiesByIds"])
 
         dbRepository.entities(ids: ids, freeze: true)
-            .sinkToLoadable {
-                entities.wrappedValue = $0
-            }
+            .sink(receiveCompletion: {_ in}, receiveValue: {
+                entities.wrappedValue = .loaded($0)
+                drafts.wrappedValue = $0.map({ PaperEntityDraft(from: $0) })
+            })
             .store(in: cancelBags["entitiesByIds"])
     }
-
-    func load(entity: Binding<EditPaperEntity>, id: ObjectId) {
-        cancelBags.cancel(for: "editEntityById")
-
-        dbRepository.entity(id: id, freeze: true)
-            .sink(receiveCompletion: { _ in }, receiveValue: {
-                entity.wrappedValue = EditPaperEntity(from: $0)
-            })
-            .store(in: cancelBags["editEntityById"])
-    }
-
+    
     func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String? = nil) {
         var key: String
         if cancelBagKey == nil {
@@ -202,65 +193,52 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 
     // MARK: - Update
 
-    func update(entities: [PaperEntity], method: String, editedEntities: [EditPaperEntity]?) {
-//        cancelBags.cancel(for: "update")
-//
-//        let editEntities = Array(entities.map { EditPaperEntity(from: $0) })
-//
-//        Just<Void>
-//            .withErrorType(Error.self)
-//            .flatMap { _ -> AnyPublisher<[EditPaperEntity?], Error> in
-//                if editedEntities != nil {
-//                    return fileRepository.move(for: editedEntities!)
-//                } else {
-//                    return CurrentValueSubject<[EditPaperEntity?], Error>.init([nil]).eraseToAnyPublisher()
-//                }
-//            }
-//            .map {
-//                $0.filter { $0 != nil }.map { $0! }
-//            }
-//            .flatMap { editedEntities -> AnyPublisher<[EditPaperEntity]?, Error> in
-//                if editedEntities.count == 0 {
-//                    return CurrentValueSubject<[EditPaperEntity]?, Error>.init(nil).eraseToAnyPublisher()
-//                } else {
-//                    return CurrentValueSubject<[EditPaperEntity]?, Error>.init(editedEntities).eraseToAnyPublisher()
-//                }
-//            }
-//            .flatMap { editedEntities in
-//                dbRepository.update(entities: editEntities, method: method, editedEntities: editedEntities)
-//            }
-//            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-//            .store(in: cancelBags["update"])
+    func update(entities: [PaperEntityDraft]) {
+        cancelBags.cancel(for: "update")
+
+        Just<[PaperEntityDraft]>
+            .withErrorType(entities, Error.self)
+            .flatMap { entities in
+                fileRepository.move(for: entities)
+            }
+            .flatMap {entities -> AnyPublisher<Bool, Error> in
+                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
+                return dbRepository.update(from: filteredEntities)
+            }
+            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+            .store(in: cancelBags["update"])
     }
 
-    func match(entities: [PaperEntity], fetchWeb: Bool) {
-//        cancelBags.cancel(for: "match")
-//
-//        var publisherList: [AnyPublisher<Bool, Error>] = .init()
-//
-//        entities.forEach { entity in
-//            let publisher = Just<Void>
-//                .withErrorType(Error.self)
-//                .flatMap { _ in
-//                    dbRepository.copy(entity: entity)
-//                }
-//                .flatMap { entity in
-//                    webRepository.fetch(for: entity, enable: fetchWeb)
-//                }
-//                .flatMap { entity in
-//                    fileRepository.move(for: entity)
-//                }
-//                .flatMap { entity in
-//                    dbRepository.update(entity: EditPaperEntity(from: entity!), method: "update")
-//                }
-//                .eraseToAnyPublisher()
-//            publisherList.append(publisher)
-//        }
-//
-//        Publishers.MergeMany(publisherList)
-//            .collect()
-//            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-//            .store(in: cancelBags["match"])
+    func match(entities: [PaperEntityDraft]) {
+        cancelBags.cancel(for: "match")
+        
+        var publisherList: [AnyPublisher<PaperEntityDraft, Error>] = .init()
+        
+        entities.forEach { entity in
+            appState[\.receiveSignals.updatingCount] += 1
+            let publisher = Just<Void>
+                .withErrorType(Error.self)
+                .flatMap { _ -> AnyPublisher<PaperEntityDraft, Error> in
+                    return webRepository.fetch(for: entity, enable: true).eraseToAnyPublisher()
+                }
+                .eraseToAnyPublisher()
+
+            publisherList.append(publisher)
+        }
+        
+        Publishers.MergeMany(publisherList)
+            .collect()
+            .flatMap { entities in
+                fileRepository.move(for: entities)
+            }
+            .flatMap {entities -> AnyPublisher<Bool, Error> in
+                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
+                return dbRepository.update(from: filteredEntities)
+            }
+            .sink(receiveCompletion: { _ in }, receiveValue: { _ in
+                appState[\.receiveSignals.updatingCount] -= publisherList.count
+            })
+            .store(in: cancelBags["match"])
     }
 
     // MARK: -
@@ -390,6 +368,14 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
+    func load(entities: LoadableSubject<Results<PaperEntity>>, drafts: Binding<[PaperEntityDraft]>, ids: Set<ObjectId>) {
+        
+    }
+    
+    func update(entities: [PaperEntityDraft]) {
+        
+    }
+    
     func getJoinedUrl(_ url: String) -> URL? {
         return URL(string: "")
     }
@@ -404,17 +390,9 @@ struct StubEntitiesInteractor: EntitiesInteractor {
 
     func load(folders _: LoadableSubject<Results<PaperFolder>>, cancelBagKey _: String? = nil) {}
 
-    func load(entities _: LoadableSubject<Results<PaperEntity>>, ids _: Set<ObjectId>) {}
-
     func load(tags _: LoadableSubject<Results<PaperTag>>, cancelBagKey _: String?) {}
 
-    func load(entity _: Binding<EditPaperEntity>, id _: ObjectId) {}
-
-    func update(entities _: [PaperEntity], method _: String, editedEntities _: [EditPaperEntity]?) {}
-
-    func match(entities _: [PaperEntity], fetchWeb _: Bool) {}
-
-    func load(entity _: LoadableSubject<PaperEntity>, id _: ObjectId) {}
+    func match(entities _: [PaperEntityDraft]) {}
 
     func load(entities _: LoadableSubject<Results<PaperEntity>>, search _: String?, flag _: Bool, tags _: [String], folders _: [String], sort _: String) {}
 

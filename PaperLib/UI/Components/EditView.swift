@@ -65,33 +65,33 @@ struct TextEditorView: View {
 }
 
 struct EditView: View {
-    @Binding var editEntity: EditPaperEntity
+    @Binding var entityDraft: PaperEntityDraft
     
-    init(_ editEntity: Binding<EditPaperEntity>) {
-        _editEntity = editEntity
+    init(_ entityDraft: Binding<[PaperEntityDraft]>) {
+        _entityDraft = entityDraft.first!
     }
 
     var body: some View {
         VStack(alignment: .leading) {
-            TextfieldView(title: "Title", text: $editEntity.title, showTitle: true).padding(.bottom, 10)
-            TextfieldView(title: "Author", text: $editEntity.authors, showTitle: true).padding(.bottom, 10)
-            TextfieldView(title: "Publication", text: $editEntity.publication, showTitle: true).padding(.bottom, 10)
+            TextfieldView(title: "Title", text: $entityDraft.title, showTitle: true).padding(.bottom, 10)
+            TextfieldView(title: "Author", text: $entityDraft.authors, showTitle: true).padding(.bottom, 10)
+            TextfieldView(title: "Publication", text: $entityDraft.publication, showTitle: true).padding(.bottom, 10)
             HStack {
-                TextfieldView(title: "PubTime", text: $editEntity.pubTime, showTitle: true).padding(.bottom, 10)
-                Picker("", selection: $editEntity.pubType) {
+                TextfieldView(title: "PubTime", text: $entityDraft.pubTime, showTitle: true).padding(.bottom, 10)
+                Picker("", selection: $entityDraft.pubType) {
                     ForEach(["Journal", "Conference", "Others"], id: \.self) {
                         Text($0)
                     }
                 }.pickerStyle(SegmentedPickerStyle()).padding(.bottom, 10)
             }
             HStack {
-                TextfieldView(title: "DOI", text: $editEntity.doi, showTitle: true).padding(.bottom, 10)
-                TextfieldView(title: "ArxivID", text: $editEntity.arxiv, showTitle: true).padding(.bottom, 10).padding(.leading, 8)
+                TextfieldView(title: "DOI", text: $entityDraft.doi, showTitle: true).padding(.bottom, 10)
+                TextfieldView(title: "ArxivID", text: $entityDraft.arxiv, showTitle: true).padding(.bottom, 10).padding(.leading, 8)
             }
-            TextfieldView(title: "Tags", text: $editEntity.tags, showTitle: true).padding(.bottom, 10)
-            TextfieldView(title: "Folders", text: $editEntity.folders, showTitle: true).padding(.bottom, 10)
+            TextfieldView(title: "Tags", text: $entityDraft.tags, showTitle: true).padding(.bottom, 10)
+            TextfieldView(title: "Folders", text: $entityDraft.folders, showTitle: true).padding(.bottom, 10)
             
-            TextEditorView(title: "Note", text: $editEntity.note, showTitle: true)
+            TextEditorView(title: "Note", text: $entityDraft.note, showTitle: true)
         }
         .frame(width: 450, alignment: .leading).padding()
     }
@@ -100,15 +100,15 @@ struct EditView: View {
 struct TagEditView: View {
     @Environment(\.injected) private var injected: DIContainer
 
-    @Binding var editEntity: EditPaperEntity
+    @Binding var entityDraft: PaperEntityDraft
     @State private var editString: String
     @State private var selectTag: String?
 
     @State private var tags: Loadable<Results<PaperTag>>
 
-    init(_ editEntity: Binding<EditPaperEntity>) {
-        _editString = State(initialValue: editEntity.tags.wrappedValue)
-        _editEntity = editEntity
+    init(_ entityDraft: Binding<[PaperEntityDraft]>) {
+        _editString = State(initialValue: entityDraft.first!.tags.wrappedValue)
+        _entityDraft = entityDraft.first!
 
         _tags = .init(initialValue: Loadable<Results<PaperTag>>.notRequested)
     }
@@ -117,7 +117,7 @@ struct TagEditView: View {
         VStack(alignment: .leading) {
             TextfieldView(title: "Tags", text: $editString, showTitle: true, placeHolder: "seperate by ;").padding(.bottom, 10)
                 .onChange(of: editString, perform: { _ in
-                    editEntity.tags = editString
+                    entityDraft.tags = editString
                 })
             TagContent()
         }
@@ -152,7 +152,7 @@ struct TagEditView: View {
             .onChange(
                 of: selectTag,
                 perform: { selectTag in
-                    var tagList = editEntity.tags.components(separatedBy: ";")
+                    var tagList = entityDraft.tags.components(separatedBy: ";")
                     if tagList.count == 1, tagList.first!.isEmpty {
                         tagList.removeAll()
                     }
@@ -162,8 +162,8 @@ struct TagEditView: View {
                     if !tagList.contains(formatedSelectTag) {
                         tagList.append(formatedSelectTag)
                     }
-                    editEntity.tags = tagList.joined(separator: "; ")
-                    editString = editEntity.tags
+                    entityDraft.tags = tagList.joined(separator: "; ")
+                    editString = entityDraft.tags
                 }
             )
         )
@@ -179,15 +179,15 @@ private extension TagEditView {
 struct FolderEditView: View {
     @Environment(\.injected) private var injected: DIContainer
 
-    @Binding var editEntity: EditPaperEntity
+    @Binding var entityDraft: PaperEntityDraft
     @State private var editString: String
     @State private var selectFolder: String?
 
     @State private var folders: Loadable<Results<PaperFolder>>
 
-    init(_ editEntity: Binding<EditPaperEntity>) {
-        _editString = State(initialValue: editEntity.folders.wrappedValue)
-        _editEntity = editEntity
+    init(_ entityDraft: Binding<[PaperEntityDraft]>) {
+        _editString = State(initialValue: entityDraft.first!.folders.wrappedValue)
+        _entityDraft = entityDraft.first!
 
         _folders = .init(initialValue: Loadable<Results<PaperFolder>>.notRequested)
     }
@@ -196,7 +196,7 @@ struct FolderEditView: View {
         VStack(alignment: .leading) {
             TextfieldView(title: "Folders", text: $editString, showTitle: true, placeHolder: "seperate by ;").padding(.bottom, 10)
                 .onChange(of: editString, perform: { _ in
-                    editEntity.folders = editString
+                    entityDraft.folders = editString
                 })
 
             FolderContent()
@@ -232,7 +232,7 @@ struct FolderEditView: View {
             .onChange(
                 of: selectFolder,
                 perform: { selectFolder in
-                    var folderList = editEntity.folders.components(separatedBy: ";")
+                    var folderList = entityDraft.folders.components(separatedBy: ";")
                     if folderList.count == 1, folderList.first!.isEmpty {
                         folderList.removeAll()
                     }
@@ -242,8 +242,8 @@ struct FolderEditView: View {
                     if !folderList.contains(formatedSelectFolder) {
                         folderList.append(formatedSelectFolder)
                     }
-                    editEntity.folders = folderList.joined(separator: "; ")
-                    editString = editEntity.folders
+                    entityDraft.folders = folderList.joined(separator: "; ")
+                    editString = entityDraft.folders
                 }
             )
         )
@@ -258,14 +258,14 @@ private extension FolderEditView {
 
 
 struct NoteEditView: View {
-    @Binding var editEntity: EditPaperEntity
+    @Binding var entityDraft: PaperEntityDraft
     
-    init(_ editEntity: Binding<EditPaperEntity>) {
-        _editEntity = editEntity
+    init(_ entityDraft: Binding<[PaperEntityDraft]>) {
+        _entityDraft = entityDraft.first!
     }
 
     var body: some View {
-        TextEditorView(title: "Note", text: $editEntity.note, showTitle: true)
+        TextEditorView(title: "Note", text: $entityDraft.note, showTitle: true)
             .frame(width: 400, height: 250, alignment: .topLeading)
             .padding()
     }

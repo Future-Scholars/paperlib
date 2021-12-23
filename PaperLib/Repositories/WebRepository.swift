@@ -56,7 +56,7 @@ struct RealWebRepository: WebRepository {
     }
 
     func fetch(arxiv entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
-        var arxivID = entity.get("arxiv", type: String.self)
+        var arxivID = entity.arxiv
 
         guard !arxivID.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
 
@@ -102,7 +102,7 @@ struct RealWebRepository: WebRepository {
     }
 
     func fetch(doi entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
-        var doiID = entity.get("doi", type: String.self)
+        var doiID = entity.doi
 
         guard !doiID.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
 
@@ -168,9 +168,9 @@ struct RealWebRepository: WebRepository {
     }
 
     func fetch(ieee entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
-        var title = entity.get("title", type: String.self)
+        var title = entity.title
 
-        guard (!title.isEmpty && (entity.get("publication", type: String.self) == "arXiv" || entity.get("publication", type: String.self).isEmpty)) else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
+        guard (!title.isEmpty && (entity.publication == "arXiv" || entity.publication.isEmpty)) else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
 
         title = formatString(title, removeNewline: true)!
         title = title.replacingOccurrences(of: " ", with: "+")
@@ -201,7 +201,7 @@ struct RealWebRepository: WebRepository {
                         plainHitTitle = formatString(plainHitTitle, removeStr: "&amp")!
                         plainHitTitle = formatString(plainHitTitle, removeSymbol: true, lowercased: true)!
                         
-                        var existTitle = formatString(entity.get("title", type: String.self), removeStr: "&amp")!
+                        var existTitle = formatString(entity.title, removeStr: "&amp")!
                         existTitle = formatString(existTitle, removeSymbol: true, lowercased: true)!
                         
                         if plainHitTitle != existTitle {
@@ -284,7 +284,7 @@ struct RealWebRepository: WebRepository {
                     plainHitTitle = formatString(plainHitTitle, removeStr: "&amp")!
                     plainHitTitle = formatString(plainHitTitle, removeSymbol: true, lowercased: true)!
                     
-                    var existTitle = formatString(entity.get("title", type: String.self), removeStr: "&amp")!
+                    var existTitle = formatString(entity.title, removeStr: "&amp")!
                     existTitle = formatString(existTitle, removeSymbol: true, lowercased: true)!
                     
                     if plainHitTitle != existTitle {
@@ -348,7 +348,7 @@ struct RealWebRepository: WebRepository {
     }
     
     func fetch(dblp entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
-        var dblpQuery = formatString(entity.get("title", type: String.self), removeStr: "&amp")!
+        var dblpQuery = formatString(entity.title, removeStr: "&amp")!
         dblpQuery = formatString(dblpQuery, removeStr: "&")!
         
         guard !dblpQuery.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
@@ -365,10 +365,10 @@ struct RealWebRepository: WebRepository {
     }
 
     func fetch(dblpWithTime entity: PaperEntityDraft, offset: Int) -> AnyPublisher<PaperEntityDraft, Error> {
-        let year = Int(entity.get("pubTime", type: String.self))
-        guard ((entity.get("publication", type: String.self).isEmpty || entity.get("publication", type: String.self) == "arXiv") && year != nil) else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
+        let year = Int(entity.pubTime)
+        guard ((entity.publication.isEmpty || entity.publication == "arXiv") && year != nil) else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
         
-        var dblpQuery = formatString(entity.get("title", type: String.self), removeStr: "&amp")!
+        var dblpQuery = formatString(entity.title, removeStr: "&amp")!
         dblpQuery = formatString(dblpQuery, removeStr: "&")!
         dblpQuery = dblpQuery + " " + "year:\(year! + offset)"
 
@@ -386,7 +386,7 @@ struct RealWebRepository: WebRepository {
     }
 
     func fetch(dblpVenue entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
-        var fetchURL = "https://dblp.org/search/venue/api?q=\(entity.get("publication", type: String.self))&format=json"
+        var fetchURL = "https://dblp.org/search/venue/api?q=\(entity.publication)&format=json"
         fetchURL = fetchURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
 
         func parseResponse(dblpResponse: String?, entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
@@ -419,9 +419,9 @@ struct RealWebRepository: WebRepository {
     }
     
     func fetch(titleExtractor entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
-        guard entity.get("title", type: String.self).isEmpty && formatString(entity.get("arxiv", type: String.self))!.isEmpty && formatString(entity.get("doi", type: String.self))!.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
+        guard entity.title.isEmpty && formatString(entity.arxiv)!.isEmpty && formatString(entity.doi)!.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
 
-        let fileURL = URL(string: entity.get("mainURL", type: String.self))
+        let fileURL = URL(string: entity.mainURL)
         guard fileURL != nil else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
         
         let data = try! Data(contentsOf: fileURL!)

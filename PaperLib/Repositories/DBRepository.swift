@@ -12,10 +12,9 @@ import RealmSwift
 protocol DBRepository {
     func setDBPath(path: String?) -> AnyPublisher<Bool, Error>
 
-    func entities(freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
     func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
-    func entity(id: ObjectId, freeze: Bool) -> AnyPublisher<PaperEntity, Never>
     func entities(ids: Set<ObjectId>, freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
+    func entity(id: ObjectId, freeze: Bool) -> AnyPublisher<PaperEntity, Never>
 
     func tags() -> AnyPublisher<Results<PaperTag>, Error>
     func folders() -> AnyPublisher<Results<PaperFolder>, Error>
@@ -29,15 +28,8 @@ protocol DBRepository {
     func delete(tagId: String) -> AnyPublisher<Bool, Error>
     func delete(folderId: String) -> AnyPublisher<Bool, Error>
 
-    func update(entity: EditPaperEntity, method: String) -> AnyPublisher<Bool, Error>
-    func update(entities: [EditPaperEntity], method: String, editedEntities: [EditPaperEntity]?) -> AnyPublisher<[Bool], Error>
-    func update(entities: [PaperEntity], method: String, editedEntities: [EditPaperEntity]?) -> AnyPublisher<[Bool], Error>
-    func update(entities: Results<PaperEntity>, method: String, editedEntities: [EditPaperEntity]?) -> AnyPublisher<[Bool], Error>
+    func update(from entities: [PaperEntityDraft]) -> AnyPublisher<Bool, Error>
 
-    func copy(entity: PaperEntity) -> AnyPublisher<PaperEntity, Error>
-    func copy(entities: [PaperEntity]) -> AnyPublisher<[PaperEntity], Error>
-
-    func rate(id: ObjectId, value: Int)
 }
 
 public extension Realm {
@@ -135,19 +127,6 @@ struct RealDBRepository: DBRepository {
 
     // MARK: - Select
 
-    func entities(freeze: Bool = true) -> AnyPublisher<Results<PaperEntity>, Error> {
-        let realm = try! Realm()
-
-        var publisher: RealmPublishers.Value<Results<PaperEntity>>
-
-        publisher = realm.objects(PaperEntity.self).collectionPublisher
-
-        if freeze {
-            return publisher.freeze().eraseToAnyPublisher()
-        } else {
-            return publisher.eraseToAnyPublisher()
-        }
-    }
 
     func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool = true) -> AnyPublisher<Results<PaperEntity>, Error> {
         let realm = try! Realm()
@@ -227,27 +206,27 @@ struct RealDBRepository: DBRepository {
             if let entityDraft = $0 {
                 let entity = PaperEntity()
                 
-                entity.id = entityDraft.get("id", type: ObjectId.self)
-                entity.addTime = entityDraft.get("addTime", type: Date.self)
+                entity.id = entityDraft.id
+                entity.addTime = entityDraft.addTime
                 
-                entity.title = entityDraft.get("title", type: String.self)
+                entity.title = entityDraft.title
                 entity.title = entity.title.isEmpty ? "untitled" : entity.title
-                entity.authors = entityDraft.get("authors", type: String.self)
+                entity.authors = entityDraft.authors
                 entity.authors = entity.authors.isEmpty ? "none" : entity.authors
-                entity.publication = entityDraft.get("publication", type: String.self)
-                entity.pubTime = entityDraft.get("pubTime", type: String.self)
-                entity.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entityDraft.get("pubType", type: String.self)) ?? 2
-                entity.doi = entityDraft.get("doi", type: String.self)
-                entity.arxiv = entityDraft.get("arxiv", type: String.self)
-                entity.mainURL = entityDraft.get("mainURL", type: String.self)
+                entity.publication = entityDraft.publication
+                entity.pubTime = entityDraft.pubTime
+                entity.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entityDraft.pubType) ?? 2
+                entity.doi = entityDraft.doi
+                entity.arxiv = entityDraft.arxiv
+                entity.mainURL = entityDraft.mainURL
                 entity.supURLs = List()
-                entityDraft.get("supURLs", type: Array<String>.self).forEach({supURL in entity.supURLs.append(supURL)})
-                entity.rating = entityDraft.get("rating", type: Int.self)
-                entity.flag = entityDraft.get("flag", type: Bool.self)
-                entity.note = entityDraft.get("note", type: String.self)
+                entityDraft.supURLs.forEach({supURL in entity.supURLs.append(supURL)})
+                entity.rating = entityDraft.rating
+                entity.flag = entityDraft.flag
+                entity.note = entityDraft.note
                 
                 entity.tags = List<PaperTag>()
-                formatString(entityDraft.get("tags", type: String.self), removeWhite: true)!
+                formatString(entityDraft.tags, removeWhite: true)!
                     .components(separatedBy: ";")
                     .forEach({tagStr in
                         guard !tagStr.isEmpty else { return }
@@ -256,7 +235,7 @@ struct RealDBRepository: DBRepository {
                         entity.tags.append(tagObj)
                     })
                 entity.folders = List<PaperFolder>()
-                formatString(entityDraft.get("folders", type: String.self), removeWhite: true)!
+                formatString(entityDraft.folders, removeWhite: true)!
                     .components(separatedBy: ";")
                     .forEach({folderStr in
                         guard !folderStr.isEmpty else { return }
@@ -283,13 +262,13 @@ struct RealDBRepository: DBRepository {
             var failedPaths: [String] = .init()
             
             let prepareEntities: [PaperEntityDraft?] = entities.map({ entity in
-                let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity.get("title", type: String.self))\" and authors == \"\(entity.get("authors", type: String.self))\"")
+                let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity.title)\" and authors == \"\(entity.authors))\"")
                 
-                if (existEntities.count > 0 && !entity.get("title", type: String.self).isEmpty && !entity.get("title", type: String.self).isEmpty) {
-                    print("Paper exists: \(entity.get("title", type: String.self))")
+                if (existEntities.count > 0 && !entity.title.isEmpty && !entity.title.isEmpty) {
+                    print("Paper exists: \(entity.title)")
                     
-                    failedPaths.append(entity.get("mainURL", type: String.self))
-                    failedPaths.append(contentsOf: entity.get("supURLs", type: Array<String>.self))
+                    failedPaths.append(entity.mainURL)
+                    failedPaths.append(contentsOf: entity.supURLs)
                     
                     return nil
                 }
@@ -312,6 +291,7 @@ struct RealDBRepository: DBRepository {
         .eraseToAnyPublisher()
     }
 
+    
     // MARK: - Delete
 
     func delete(ids: [ObjectId]) -> AnyPublisher<[String], Error> {
@@ -389,135 +369,73 @@ struct RealDBRepository: DBRepository {
 
     // MARK: - Update
 
-    func copy(entity: PaperEntity) -> AnyPublisher<PaperEntity, Error> {
-        return Future<PaperEntity, Error> { promise in
-            promise(.success(PaperEntity(value: entity)))
-        }
-        .eraseToAnyPublisher()
-    }
-
-    func copy(entities: [PaperEntity]) -> AnyPublisher<[PaperEntity], Error> {
-        return Future<[PaperEntity], Error> { promise in
-            promise(.success(entities.map { PaperEntity(value: $0) }))
-        }
-        .eraseToAnyPublisher()
-    }
-
-    func update(entity: EditPaperEntity, method: String = "update") -> AnyPublisher<Bool, Error> {
-        if method == "flag" {
-            entity.flag.toggle()
-        }
-
+    func update(from entities: [PaperEntityDraft]) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
             let realm = try! Realm()
-            let updateObj = realm.object(ofType: PaperEntity.self, forPrimaryKey: entity.id)!
-
             try! realm.safeWrite {
-                updateObj.title = entity.title
-                updateObj.authors = entity.authors
-                updateObj.publication = entity.publication
-                updateObj.pubTime = entity.pubTime
-                updateObj.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entity.pubType) ?? 2
-                updateObj.doi = entity.doi
-                updateObj.arxiv = entity.arxiv
-                updateObj.mainURL = entity.mainURL
-                updateObj.supURLs = List()
-                entity.supURLs.forEach { url in
-                    updateObj.supURLs.append(url)
-                }
-                updateObj.rating = entity.rating
-                updateObj.flag = entity.flag
-
-                // remove old tags
-                updateObj.tags.forEach { tag in
-                    if let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: tag.id) {
-                        tagObj.count -= 1
-                        if tagObj.count <= 0 {
-                            realm.delete(tagObj)
-                        }
-                    }
-                }
-                updateObj.tags.removeAll()
-                // add new tags
-                entity.tags = formatString(entity.tags, removeWhite: true)!
-                entity.tags.components(separatedBy: ";").forEach { tag in
-                    let tagStr = formatString(tag, returnEmpty: true, trimWhite: true)!
-                    if !tagStr.isEmpty {
-                        let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: "tag-" + tagStr)
-                        if tagObj != nil {
-                            tagObj!.count += 1
-                            updateObj.tags.append(tagObj!)
-                        } else {
-                            let newTagObj = PaperTag(id: tagStr)
-                            realm.add(newTagObj)
-                            updateObj.tags.append(newTagObj)
-                        }
-                    }
-                }
-
-                // remove old folders
-                updateObj.folders.forEach { folder in
-                    if let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: folder.id) {
-                        folderObj.count -= 1
-                        if folderObj.count <= 0 {
-                            realm.delete(folderObj)
-                        }
-                    }
-                }
-                updateObj.folders.removeAll()
-                // add new folders
-                entity.folders = formatString(entity.folders, removeWhite: true)!
-                entity.folders.components(separatedBy: ";").forEach { folder in
-                    let folderStr = formatString(folder, returnEmpty: true, trimWhite: true)!
-                    if !folderStr.isEmpty {
-                        var folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: "folder-" + folderStr)
-                        if folderObj != nil {
-                            folderObj!.count += 1
-                        } else {
-                            folderObj = PaperFolder(id: folderStr)
-                            realm.add(folderObj!)
-                        }
-                        updateObj.folders.append(folderObj!)
-                    }
-                }
+                entities.forEach { entity in
                 
-                updateObj.note = entity.note
+                    let updateObj = realm.object(ofType: PaperEntity.self, forPrimaryKey: entity.id)!
+
+                    updateObj.title = entity.title
+                    updateObj.authors = entity.authors
+                    updateObj.publication = entity.publication
+                    updateObj.pubTime = entity.pubTime
+                    updateObj.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entity.pubType) ?? 2
+                    updateObj.doi = entity.doi
+                    updateObj.arxiv = entity.arxiv
+                    updateObj.mainURL = entity.mainURL
+                    updateObj.supURLs = List()
+                    entity.supURLs.forEach { url in
+                        updateObj.supURLs.append(url)
+                    }
+                    updateObj.rating = entity.rating
+                    updateObj.flag = entity.flag
+
+                    // remove old tags
+                    unlink(tags: updateObj.tags, realm: realm)
+                    updateObj.tags.removeAll()
+                    // add new tags
+                    entity.tags = formatString(entity.tags, removeWhite: true)!
+                    entity.tags.components(separatedBy: ";").forEach { tag in
+                    let tagStr = formatString(tag, returnEmpty: true, trimWhite: true)!
+                        if !tagStr.isEmpty {
+                            let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: "tag-" + tagStr)
+                            if tagObj != nil {
+                                tagObj!.count += 1
+                                updateObj.tags.append(tagObj!)
+                            } else {
+                                let newTagObj = PaperTag(id: tagStr)
+                                realm.add(newTagObj)
+                                updateObj.tags.append(newTagObj)
+                            }
+                        }
+                    }
+
+                    // remove old folders
+                    unlink(folders: updateObj.folders, realm: realm)
+                    updateObj.folders.removeAll()
+                    // add new folders
+                    entity.folders = formatString(entity.folders, removeWhite: true)!
+                    entity.folders.components(separatedBy: ";").forEach { folder in
+                        let folderStr = formatString(folder, returnEmpty: true, trimWhite: true)!
+                        if !folderStr.isEmpty {
+                            var folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: "folder-" + folderStr)
+                            if folderObj != nil {
+                                folderObj!.count += 1
+                            } else {
+                                folderObj = PaperFolder(id: folderStr)
+                                realm.add(folderObj!)
+                            }
+                            updateObj.folders.append(folderObj!)
+                        }
+                    }
+
+                    updateObj.note = entity.note
+                }
             }
             promise(.success(true))
         }
         .eraseToAnyPublisher()
-    }
-
-    func update(entities: [EditPaperEntity], method: String = "update", editedEntities: [EditPaperEntity]?) -> AnyPublisher<[Bool], Error> {
-        var publishers: [AnyPublisher<Bool, Error>] = .init()
-
-        if editedEntities == nil {
-            entities.forEach { entity in
-                publishers.append(update(entity: entity, method: method))
-            }
-        } else {
-            editedEntities!.forEach { entity in
-                publishers.append(update(entity: entity, method: method))
-            }
-        }
-        return Publishers.MergeMany(publishers)
-            .collect()
-            .eraseToAnyPublisher()
-    }
-
-    func update(entities: [PaperEntity], method: String = "update", editedEntities: [EditPaperEntity]?) -> AnyPublisher<[Bool], Error> {
-        return update(entities: entities.map { EditPaperEntity(from: $0) }, method: method, editedEntities: editedEntities)
-    }
-
-    func update(entities: Results<PaperEntity>, method: String = "update", editedEntities: [EditPaperEntity]?) -> AnyPublisher<[Bool], Error> {
-        return update(entities: Array(entities), method: method, editedEntities: editedEntities)
-    }
-
-    func rate(id: ObjectId, value: Int) {
-        let realm = try! Realm()
-        let entity = realm.object(ofType: PaperEntity.self, forPrimaryKey: id)!
-        try! realm.safeWrite {
-            entity.rating = value
-        }
     }
 }

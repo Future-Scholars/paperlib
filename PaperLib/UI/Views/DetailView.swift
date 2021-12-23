@@ -14,14 +14,14 @@ struct DetailView: View {
     @Environment(\.colorScheme) var colorScheme
 
     private var entity: PaperEntity
-    private var editEntity: EditPaperEntity
+    private var editEntity: PaperEntityDraft
 
     @State private var rating: Int
     
     init(entity: PaperEntity) {
         _rating = State(initialValue: entity.rating)
         self.entity = entity
-        editEntity = EditPaperEntity(from: self.entity)
+        editEntity = PaperEntityDraft(from: self.entity)
     }
 
     var body: some View {
@@ -84,7 +84,7 @@ private extension DetailView {
 
     func rate() {
         editEntity.rating = rating
-        injected.interactors.entitiesInteractor.update(entities: [entity], method: "update", editedEntities: [editEntity])
+        injected.interactors.entitiesInteractor.update(entities: [editEntity])
     }
     
     func getJoinedUrl(_ url: String) -> URL? {

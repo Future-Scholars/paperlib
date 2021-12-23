@@ -91,7 +91,7 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
 }
 
 
-class PaperEntityDraft {
+class PaperEntityDraft1 {
     var wrapper: Dictionary<String, Any>
     
     init() {
@@ -169,45 +169,29 @@ class PaperEntityDraft {
 }
 
 
-class EditPaperEntity {
-    var id: ObjectId
-    var addTime: Date
+class PaperEntityDraft: NSObject {
+    @objc var id: ObjectId = .generate()
+    @objc var addTime: Date = .init()
 
-    var title: String
-    var authors: String
-    var publication: String
-    var pubTime: String
-    var pubType: String
-    var doi: String
-    var arxiv: String
-    var mainURL: String
-    var supURLs: [String]
-    var rating: Int
-    var tags: String
-    var folders: String
-    var flag: Bool
-    var note: String
-
-    init() {
-        id = ObjectId.generate()
-        addTime = Date()
-
-        title = ""
-        authors = ""
-        publication = ""
-        pubTime = ""
-        pubType = ""
-        doi = ""
-        arxiv = ""
-        mainURL = ""
-        supURLs = .init()
-        rating = 0
-        tags = ""
-        folders = ""
-        flag = false
-        note = ""
+    @objc var title: String = ""
+    @objc var authors: String = ""
+    @objc var publication: String = ""
+    @objc var pubTime: String = ""
+    @objc var pubType: String = "Others" // 0: Article; 1: Conference; 2: Others
+    @objc var doi: String = ""
+    @objc var arxiv: String = ""
+    @objc var mainURL: String = ""
+    @objc var supURLs: [String] = .init()
+    @objc var rating: Int = 0
+    @objc var tags: String = ""
+    @objc var folders: String = ""
+    @objc var flag: Bool = false
+    @objc var note: String = ""
+    
+    override init() {
+        super.init()
     }
-
+    
     init(from entity: PaperEntity) {
         id = entity.id
         addTime = entity.addTime
@@ -220,14 +204,34 @@ class EditPaperEntity {
         doi = entity.doi
         arxiv = entity.arxiv
         mainURL = entity.mainURL
-        supURLs = .init()
         supURLs = Array(entity.supURLs)
         rating = entity.rating
         tags = Array(entity.tags.map { formatString($0.name, returnEmpty: true, removeStr: "tag-")! }).joined(separator: "; ")
         folders = Array(entity.folders.map { formatString($0.name, returnEmpty: true, removeStr: "folder-")! }).joined(separator: "; ")
         flag = entity.flag
         note = entity.note
-    }
-    
 
+    }
+
+    func set(for key: String, value: Any?, allowEmpty: Bool = false) {
+        guard value != nil || allowEmpty else  { return }
+        
+        var formatedValue = value
+        if formatedValue is String {
+            if key == "title" || key == "authors" {
+                formatedValue = formatString(formatedValue as? String, removeNewline: true, removeStr: ".")
+            }
+            if (formatedValue as! String).isEmpty {
+                if allowEmpty {
+                    setValue(formatedValue, forKey: key)
+                }
+                return
+            } else {
+                setValue(formatedValue, forKey: key)
+            }
+        } else {
+            setValue(formatedValue, forKey: key)
+            return
+        }
+    }
 }
