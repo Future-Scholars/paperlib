@@ -10,25 +10,27 @@ import CoreData
 import RealmSwift
 
 protocol DBRepository {
-    func setDBPath(path: String?) -> AnyPublisher<Bool, Error>
+    func open() -> AnyPublisher<Realm.Configuration, Error>
+    func open(settings: AppState.Setting) -> AnyPublisher<Realm.Configuration, Error>
+    func openLocal() -> AnyPublisher<Realm.Configuration, Error>
+    func migrate(migration: Migration, oldSchemaVersion: UInt64)
+    
+    func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool) async -> AnyPublisher<Results<PaperEntity>, Error>
+    func entities(ids: Set<ObjectId>, freeze: Bool) async -> AnyPublisher<Results<PaperEntity>, Error>
 
-    func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
-    func entities(ids: Set<ObjectId>, freeze: Bool) -> AnyPublisher<Results<PaperEntity>, Error>
-    func entity(id: ObjectId, freeze: Bool) -> AnyPublisher<PaperEntity, Never>
+    func tags() async -> AnyPublisher<Results<PaperTag>, Error>
+    func folders() async -> AnyPublisher<Results<PaperFolder>, Error>
 
-    func tags() -> AnyPublisher<Results<PaperTag>, Error>
-    func folders() -> AnyPublisher<Results<PaperFolder>, Error>
+    func add(for entities: [PaperEntityDraft]) async -> AnyPublisher<[String], Error>
 
-    func add(for entities: [PaperEntityDraft]) -> AnyPublisher<[String], Error>
-
-    func delete(ids: [ObjectId]) -> AnyPublisher<[String], Error>
+    func delete(ids: [ObjectId]) async -> AnyPublisher<[String], Error>
 
     func unlink(tags: List<PaperTag>, realm: Realm?)
     func unlink(folders: List<PaperFolder>, realm: Realm?)
-    func delete(tagId: String) -> AnyPublisher<Bool, Error>
-    func delete(folderId: String) -> AnyPublisher<Bool, Error>
+    func delete(tagId: String) async -> AnyPublisher<Bool, Error>
+    func delete(folderId: String) async -> AnyPublisher<Bool, Error>
 
-    func update(from entities: [PaperEntityDraft]) -> AnyPublisher<Bool, Error>
+    func update(from entities: [PaperEntityDraft]) async -> AnyPublisher<Bool, Error>
 
 }
 
@@ -42,128 +44,163 @@ public extension Realm {
     }
 }
 
-struct RealDBRepository: DBRepository {
+class RealDBRepository: DBRepository {
+    var realmSchemaVersion: UInt64 = 4
+    var syncConfig: Realm.Configuration?
+    var localConfig: Realm.Configuration?
+    
     init() {
-        setDBPath(path: UserDefaults.standard.string(forKey: "appLibFolder"))
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+        open()
+            .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+            .store(in: CancelBag())
     }
 
-    func setDBPath(path: String?) -> AnyPublisher<Bool, Error> {
-        return Future<Bool, Error> { promise in
+    func open() -> AnyPublisher<Realm.Configuration, Error> {
+        if (UserDefaults.standard.bool(forKey: "useSync") && !(UserDefaults.standard.string(forKey: "syncAPIKey") ?? "").isEmpty ) {
+//            openSync()
+            return openLocal()
+        }
+        else {
+            return openLocal()
+        }
+    }
+    
+    func open(settings: AppState.Setting) -> AnyPublisher<Realm.Configuration, Error> {
+//        if (settings.useSync && !settings.syncAPIKey.isEmpty ) {
+//            openSync()
+//        }
+//        else {
+            return openLocal()
+//        }
+    }
+    
+    func openLocal() -> AnyPublisher<Realm.Configuration, Error> {
+        let path = UserDefaults.standard.string(forKey: "appLibFolder")
+        
+        return Future<Realm.Configuration, Error> { promise in
             
             var config = Realm.Configuration(
-                // Set the new schema version. This must be greater than the previously used
-                // version (if you've never set a schema version before, the version is 0).
-                schemaVersion: 3,
-
-                // Set the block which will be called automatically when opening a Realm with
-                // a schema version lower than the one set above
-                migrationBlock: { migration, oldSchemaVersion in
-                    // We haven’t migrated anything yet, so oldSchemaVersion == 0
-                    print("Dataset Version: \(oldSchemaVersion)")
-                    if (oldSchemaVersion < 2) {
-                        migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
-                            newObject!["id"] = oldObject!["id"]
-                            newObject!["addTime"] = oldObject!["addTime"]
-                            newObject!["title"] = oldObject!["title"] ?? ""
-                            newObject!["authors"] = oldObject!["authors"] ?? ""
-                            newObject!["publication"] = oldObject!["publication"] ?? ""
-                            newObject!["pubTime"] = oldObject!["pubTime"] ?? ""
-                            newObject!["pubType"] = oldObject!["pubType"] ?? 2
-                            newObject!["doi"] = oldObject!["doi"] ?? ""
-                            newObject!["arxiv"] = oldObject!["arxiv"] ?? ""
-                            newObject!["mainURL"] = oldObject!["mainURL"] ?? ""
-                            newObject!["rating"] = oldObject!["rating"] ?? 0
-                            newObject!["flag"] = oldObject!["flag"] ?? false
-                        }
-                    }
-                    
-                    if (oldSchemaVersion < 3) {
-                        migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
-
-                            newObject!["mainURL"] = URL(string: (newObject!["mainURL"] as! String))?.lastPathComponent ?? "";
-                            var newObjectSupURLs: Array<String> = .init();
-
-                            unsafeBitCast(newObject!["supURLs"] as! List<DynamicObject>, to: List<String>.self).forEach { supURL in
-                                if let fileName = URL(string: supURL)?.lastPathComponent {
-                                    newObjectSupURLs.append(fileName);
-                                }
-                            }
-                            newObject!["supURLs"] = newObjectSupURLs;
-                      }
-                    }
-                })
+                schemaVersion: self.realmSchemaVersion,
+                migrationBlock: self.migrate)
 
             var url: URL?
-            if path != nil {
-                if !path!.isEmpty {
-                    url = URL(string: path!)
-                }
+            if (path != nil && !(path?.isEmpty ?? true)) {
+                url = URL(string: path!)
             } else {
                 let docPaths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
                 let documentsDirectory = docPaths[0]
                 url = documentsDirectory.appendingPathComponent("paperlib")
             }
 
-            if let applicationSupportURL = url {
+            if let appLibURL = url {
                 do {
-                    try FileManager.default.createDirectory(at: applicationSupportURL, withIntermediateDirectories: true, attributes: nil)
-                    config.fileURL = applicationSupportURL.appendingPathComponent("default.realm")
+                    try FileManager.default.createDirectory(at: appLibURL, withIntermediateDirectories: true, attributes: nil)
+                    config.fileURL = appLibURL.appendingPathComponent("default.realm")
                 } catch let err {
                     print(err)
                 }
             }
-
-            
-            
-            
-            // Set this as the configuration used for the default Realm
-            Realm.Configuration.defaultConfiguration = config
-
-            promise(.success(true))
+            self.localConfig = config
+            promise(.success(config))
         }
         .eraseToAnyPublisher()
     }
-
-    // MARK: - Select
-
-
-    func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool = true) -> AnyPublisher<Results<PaperEntity>, Error> {
-        let realm = try! Realm()
-
-        var filterFormat = ""
-        if search != nil {
-            if !search!.isEmpty {
-                filterFormat += "(title contains[cd] \"\(formatString(search)!)\" OR authors contains[cd] \"\(formatString(search)!)\" OR publication contains[cd] \"\(formatString(search)!)\" OR note contains[cd] \"\(formatString(search)!)\") AND "
+    
+    func migrate(migration: Migration, oldSchemaVersion: UInt64) {
+        print("Dataset Version: \(oldSchemaVersion)")
+        if (oldSchemaVersion < 2) {
+            migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
+                newObject!["id"] = oldObject!["id"]
+                newObject!["addTime"] = oldObject!["addTime"]
+                newObject!["title"] = oldObject!["title"] ?? ""
+                newObject!["authors"] = oldObject!["authors"] ?? ""
+                newObject!["publication"] = oldObject!["publication"] ?? ""
+                newObject!["pubTime"] = oldObject!["pubTime"] ?? ""
+                newObject!["pubType"] = oldObject!["pubType"] ?? 2
+                newObject!["doi"] = oldObject!["doi"] ?? ""
+                newObject!["arxiv"] = oldObject!["arxiv"] ?? ""
+                newObject!["mainURL"] = oldObject!["mainURL"] ?? ""
+                newObject!["rating"] = oldObject!["rating"] ?? 0
+                newObject!["flag"] = oldObject!["flag"] ?? false
             }
         }
-        if flag {
-            filterFormat += "(flag == true) AND "
-        }
-        tags.forEach { tag in
-            filterFormat += "(ANY tags.id == \"\(tag)\") AND "
-        }
-        folders.forEach { folder in
-            filterFormat += "(ANY folders.id == \"\(folder)\") AND "
-        }
+            
+        if (oldSchemaVersion < 3) {
+            migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
 
-        var publisher: RealmPublishers.Value<Results<PaperEntity>>
-        if !filterFormat.isEmpty {
-            filterFormat = String(filterFormat[..<String.Index(utf16Offset: filterFormat.count - 4, in: filterFormat)])
-            publisher = realm.objects(PaperEntity.self).filter(filterFormat).sorted(byKeyPath: sort, ascending: false).collectionPublisher
-        } else {
-            publisher = realm.objects(PaperEntity.self).sorted(byKeyPath: sort, ascending: false).collectionPublisher
-        }
+                newObject!["mainURL"] = URL(string: (newObject!["mainURL"] as! String))?.lastPathComponent ?? "";
+                var newObjectSupURLs: Array<String> = .init();
 
-        if freeze {
-            return publisher.freeze().eraseToAnyPublisher()
-        } else {
-            return publisher.eraseToAnyPublisher()
+                unsafeBitCast(newObject!["supURLs"] as! List<DynamicObject>, to: List<String>.self).forEach { supURL in
+                    if let fileName = URL(string: supURL)?.lastPathComponent {
+                        newObjectSupURLs.append(fileName);
+                    }
+                }
+                newObject!["supURLs"] = newObjectSupURLs;
+            }
+        }
+        
+        if (oldSchemaVersion < 4) {
+            migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
+                newObject!["id"] = oldObject!["id"]
+            }
+            migration.enumerateObjects(ofType: PaperTag.className()) { oldObject, newObject in
+                newObject!["id"] = oldObject!["id"]
+            }
+            migration.enumerateObjects(ofType: PaperFolder.className()) { oldObject, newObject in
+                newObject!["id"] = oldObject!["id"]
+            }
         }
     }
 
-    func entities(ids: Set<ObjectId>, freeze: Bool = true) -> AnyPublisher<Results<PaperEntity>, Error> {
-        let realm = try! Realm()
+    func realm() async throws -> Realm {
+        if (syncConfig == nil) {
+            let realm = try await Realm(configuration: self.localConfig!)
+            return realm
+        }
+        else {
+            let realm = try await Realm(configuration: self.localConfig!)
+            return realm
+        }
+    }
+    
+    
+    // MARK: - Select
+    func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool = true) async -> AnyPublisher<Results<PaperEntity>, Error> {
+        let realm = try! await self.realm()
+            var filterFormat = ""
+            if search != nil {
+                if !search!.isEmpty {
+                    filterFormat += "(title contains[cd] \"\(formatString(search)!)\" OR authors contains[cd] \"\(formatString(search)!)\" OR publication contains[cd] \"\(formatString(search)!)\" OR note contains[cd] \"\(formatString(search)!)\") AND "
+                }
+            }
+            if flag {
+                filterFormat += "(flag == true) AND "
+            }
+            tags.forEach { tag in
+                filterFormat += "(ANY tags.id == \"\(tag)\") AND "
+            }
+            folders.forEach { folder in
+                filterFormat += "(ANY folders.id == \"\(folder)\") AND "
+            }
+
+            var publisher: RealmPublishers.Value<Results<PaperEntity>>
+            if !filterFormat.isEmpty {
+                filterFormat = String(filterFormat[..<String.Index(utf16Offset: filterFormat.count - 4, in: filterFormat)])
+                publisher = realm.objects(PaperEntity.self).filter(filterFormat).sorted(byKeyPath: sort, ascending: false).collectionPublisher
+            } else {
+                publisher = realm.objects(PaperEntity.self).sorted(byKeyPath: sort, ascending: false).collectionPublisher
+            }
+
+            if freeze {
+                return publisher.freeze().eraseToAnyPublisher()
+            } else {
+                return publisher.eraseToAnyPublisher()
+            }
+    }
+
+    func entities(ids: Set<ObjectId>, freeze: Bool = true) async -> AnyPublisher<Results<PaperEntity>, Error> {
+        let realm = try! await self.realm()
 
         var publisher: RealmPublishers.Value<Results<PaperEntity>>
         publisher = realm.objects(PaperEntity.self).filter("id IN %@", ids).collectionPublisher
@@ -174,31 +211,20 @@ struct RealDBRepository: DBRepository {
         }
     }
 
-    func entity(id: ObjectId, freeze: Bool = true) -> AnyPublisher<PaperEntity, Never> {
-        let realm = try! Realm()
-        var publisher: Optional<PaperEntity>.Publisher
-        publisher = realm.object(ofType: PaperEntity.self, forPrimaryKey: id).publisher
-        if freeze {
-            return publisher.freeze().eraseToAnyPublisher()
-        } else {
-            return publisher.eraseToAnyPublisher()
-        }
-    }
-
-    func tags() -> AnyPublisher<Results<PaperTag>, Error> {
-        let realm = try! Realm()
+    func tags() async -> AnyPublisher<Results<PaperTag>, Error> {
+        let realm = try! await self.realm()
         return realm.objects(PaperTag.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.freeze().eraseToAnyPublisher()
     }
 
-    func folders() -> AnyPublisher<Results<PaperFolder>, Error> {
-        let realm = try! Realm()
+    func folders() async -> AnyPublisher<Results<PaperFolder>, Error> {
+        let realm = try! await self.realm()
         return realm.objects(PaperFolder.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.freeze().eraseToAnyPublisher()
     }
 
     // MARK: - Construct from Draft
-    func build(entitiesDraft: [PaperEntityDraft?]) -> [PaperEntity?] {
+    func build(entitiesDraft: [PaperEntityDraft?]) async -> [PaperEntity?] {
         
-        let realm = try! Realm()
+        let realm = try! await self.realm()
         
         var readyEntities:[PaperEntity?] = .init()
         
@@ -256,28 +282,30 @@ struct RealDBRepository: DBRepository {
     
     // MARK: - Add
 
-    func add(for entities: [PaperEntityDraft]) -> AnyPublisher<[String], Error> {
-        return Future<[String], Error> { promise in
-            let realm = try! Realm()
-            var failedPaths: [String] = .init()
+    func add(for entities: [PaperEntityDraft]) async -> AnyPublisher<[String], Error> {
+        let realm = try! await self.realm()
+        
+        var failedPaths: [String] = .init()
+        
+        let prepareEntities: [PaperEntityDraft?] = entities.map({ entity in
+            let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity.title)\" and authors == \"\(entity.authors))\"")
             
-            let prepareEntities: [PaperEntityDraft?] = entities.map({ entity in
-                let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity.title)\" and authors == \"\(entity.authors))\"")
+            if (existEntities.count > 0 && !entity.title.isEmpty && !entity.title.isEmpty) {
+                print("Paper exists: \(entity.title)")
                 
-                if (existEntities.count > 0 && !entity.title.isEmpty && !entity.title.isEmpty) {
-                    print("Paper exists: \(entity.title)")
-                    
-                    failedPaths.append(entity.mainURL)
-                    failedPaths.append(contentsOf: entity.supURLs)
-                    
-                    return nil
-                }
-                else {
-                    return entity
-                }
-            })
-            
-            let readyEntities = self.build(entitiesDraft: prepareEntities)
+                failedPaths.append(entity.mainURL)
+                failedPaths.append(contentsOf: entity.supURLs)
+                
+                return nil
+            }
+            else {
+                return entity
+            }
+        })
+        
+        let readyEntities = await self.build(entitiesDraft: prepareEntities)
+
+        return Future<[String], Error> { promise in
 
             try! realm.safeWrite {
                 readyEntities.forEach({
@@ -294,10 +322,11 @@ struct RealDBRepository: DBRepository {
     
     // MARK: - Delete
 
-    func delete(ids: [ObjectId]) -> AnyPublisher<[String], Error> {
+    func delete(ids: [ObjectId]) async -> AnyPublisher<[String], Error> {
+        let realm = try! await self.realm()
+        
         return Future<[String], Error> { promise in
-            let realm = try! Realm()
-            
+
             var removeFileURLs: [String] = .init()
             let entities = realm.objects(PaperEntity.self).filter("id IN %@", ids)
             
@@ -306,8 +335,8 @@ struct RealDBRepository: DBRepository {
                     removeFileURLs.append(entity.mainURL)
                     removeFileURLs.append(contentsOf: entity.supURLs)
                     
-                    unlink(tags: entity.tags, realm: realm)
-                    unlink(folders: entity.folders, realm: realm)
+                    self.unlink(tags: entity.tags, realm: realm)
+                    self.unlink(folders: entity.folders, realm: realm)
                     realm.delete(entity)
                 }
             }
@@ -341,9 +370,9 @@ struct RealDBRepository: DBRepository {
         }
     }
 
-    func delete(tagId: String) -> AnyPublisher<Bool, Error> {
+    func delete(tagId: String) async -> AnyPublisher<Bool, Error> {
+        let realm = try! await self.realm()
         return Future<Bool, Error> { promise in
-            let realm = try! Realm()
             if let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: tagId){
                 try! realm.safeWrite {
                     realm.delete(tagObj)
@@ -354,9 +383,9 @@ struct RealDBRepository: DBRepository {
         .eraseToAnyPublisher()
     }
 
-    func delete(folderId: String) -> AnyPublisher<Bool, Error> {
+    func delete(folderId: String) async -> AnyPublisher<Bool, Error> {
+        let realm = try! await self.realm()
         return Future<Bool, Error> { promise in
-            let realm = try! Realm()
             if let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: folderId){
                 try! realm.safeWrite {
                     realm.delete(folderObj)
@@ -369,9 +398,11 @@ struct RealDBRepository: DBRepository {
 
     // MARK: - Update
 
-    func update(from entities: [PaperEntityDraft]) -> AnyPublisher<Bool, Error> {
+    func update(from entities: [PaperEntityDraft]) async -> AnyPublisher<Bool, Error> {
+        
+        let realm =  try! await self.realm()
+        
         return Future<Bool, Error> { promise in
-            let realm = try! Realm()
             try! realm.safeWrite {
                 entities.forEach { entity in
                 
@@ -393,7 +424,7 @@ struct RealDBRepository: DBRepository {
                     updateObj.flag = entity.flag
 
                     // remove old tags
-                    unlink(tags: updateObj.tags, realm: realm)
+                    self.unlink(tags: updateObj.tags, realm: realm)
                     updateObj.tags.removeAll()
                     // add new tags
                     entity.tags = formatString(entity.tags, removeWhite: true)!
@@ -413,7 +444,7 @@ struct RealDBRepository: DBRepository {
                     }
 
                     // remove old folders
-                    unlink(folders: updateObj.folders, realm: realm)
+                    self.unlink(folders: updateObj.folders, realm: realm)
                     updateObj.folders.removeAll()
                     // add new folders
                     entity.folders = formatString(entity.folders, removeWhite: true)!

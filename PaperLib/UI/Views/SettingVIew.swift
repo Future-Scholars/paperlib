@@ -14,6 +14,7 @@ struct SettingsView: View {
         case general
         case metadata
         case export
+        case sync
     }
 
     var body: some View {
@@ -28,6 +29,11 @@ struct SettingsView: View {
                     Label("Metadata", systemImage: "network")
                 }
                 .tag(Tabs.metadata)
+            SyncSettingsView()
+                .tabItem {
+                    Label("Sync", systemImage: "icloud.and.arrow.up")
+                }
+                .tag(Tabs.sync)
             ExportSettingsView()
                 .tabItem {
                     Label("Export", systemImage: "square.and.arrow.up")
@@ -125,13 +131,11 @@ struct GeneralSettingsView: View {
                 let pickedFolders = folderPicker.urls
                 appLibFolder = pickedFolders[0].absoluteString
 
-                injected.appState[\.receiveSignals.sideBarTag] += 1
-                injected.appState[\.receiveSignals.sideBarFolder] += 1
-                injected.appState[\.receiveSignals.mainViewEntities] += 1
-                injected.appState[\.receiveSignals.mainViewSelectedEntities] += 1
+                injected.appState[\.receiveSignals.sideBar] += 1
+                injected.appState[\.receiveSignals.mainView] += 1
                 injected.appState[\.setting.appLibFolder] = pickedFolders[0].absoluteString
 
-                injected.interactors.entitiesInteractor.moveLib()
+                injected.interactors.entitiesInteractor.openLib()
             }
         }
     }
@@ -143,8 +147,6 @@ struct MatchSettingsView: View {
 
     @AppStorage("ieeeAPIKey") private var ieeeAPIKey = ""
     @AppStorage("allowFetchPDFMeta") private var allowFetchPDFMeta = true
-
-    @State var showPicker = false
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -165,6 +167,44 @@ struct MatchSettingsView: View {
             .onChange(of: allowFetchPDFMeta, perform: { allowFetchPDFMeta in
                 injected.appState[\.setting.allowFetchPDFMeta] = allowFetchPDFMeta
             })
+        }
+    }
+}
+
+
+struct SyncSettingsView: View {
+    @Environment(\.injected) private var injected: DIContainer
+
+    @AppStorage("syncAPIKey") private var syncAPIKey = ""
+    @AppStorage("useSync") private var useSync = false
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            HStack(alignment: .top) {
+                Text("Cloud Sync API Key, see more on Paperlib's Github.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                TextField("", text: $syncAPIKey)
+            }
+            .onChange(of: syncAPIKey, perform: { syncAPIKey in
+                injected.appState[\.setting.syncAPIKey] = syncAPIKey
+            })
+            
+            HStack(alignment: .top) {
+                Text("Use cloud sync.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Toggle("", isOn: $useSync)
+                    .toggleStyle(.checkbox)
+            }
+            .onChange(of: useSync, perform: onToggleUseSync)
+        }
+    }
+    
+    func onToggleUseSync (useSync: Bool) {
+        injected.appState[\.setting.useSync] = useSync
+        
+        if !syncAPIKey.isEmpty {
+            injected.appState[\.receiveSignals.sideBar] += 1
+            injected.appState[\.receiveSignals.mainView] += 1
+            
+            injected.interactors.entitiesInteractor.openLib()
         }
     }
 }

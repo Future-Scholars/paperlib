@@ -9,7 +9,7 @@ import Foundation
 import RealmSwift
 
 class PaperTag: Object, ObjectKeyIdentifiable {
-    @Persisted var id: String = ""
+    @Persisted(primaryKey: true) var id: String = ""
     @Persisted var count: Int = 0
     @Persisted var name: String = ""
 
@@ -19,7 +19,4 @@ class PaperTag: Object, ObjectKeyIdentifiable {
         name = id
     }
 
-    override static func primaryKey() -> String {
-        return "id"
-    }
 }

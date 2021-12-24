@@ -111,9 +111,8 @@ struct MainView: View {
                 }
             })
             .onReceive(appLibMovedUpdate, perform: { _ in
-                if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.mainViewEntities] > 0, injected.appState[\.receiveSignals.mainViewSelectedEntities] > 0 {
-                    injected.appState[\.receiveSignals.mainViewEntities] -= 1
-                    injected.appState[\.receiveSignals.mainViewSelectedEntities] -= 1
+                if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.mainView] > 0 {
+                    injected.appState[\.receiveSignals.mainView] -= 1
                     reloadEntities()
                     clearSelected()
                 }
@@ -599,7 +598,9 @@ private extension MainView {
 
     func reloadEntities() {
         let (flag, tags, folders) = makeFilter()
+        
         injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText.text, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
+        
     }
 
     func clearSelected() {
@@ -670,6 +671,6 @@ private extension MainView {
     }
 
     var appLibMovedUpdate: AnyPublisher<Date, Never> {
-        injected.appState.updates(for: \.setting.appLibMoved)
+        injected.appState.updates(for: \.receiveSignals.appLibMoved)
     }
 }

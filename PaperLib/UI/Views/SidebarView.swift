@@ -57,12 +57,19 @@ struct SidebarView: View {
             reloadTags()
             reloadFolders()
         })
-        .onReceive(fetchingStateUpdate, perform: { _ in
-            if (injected.appState[\.receiveSignals.updatingCount] > 0) {
+        .onReceive(processingStateUpdate, perform: { _ in
+            if (injected.appState[\.receiveSignals.processingCount] > 0) {
                 showProgressView = true
             }
             else {
                 showProgressView = false
+            }
+        })
+        .onReceive(appLibMovedUpdate, perform: { _ in
+            if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.sideBar] > 0 {
+                injected.appState[\.receiveSignals.sideBar] -= 1
+                reloadTags()
+                reloadFolders()
             }
         })
         
@@ -182,10 +189,10 @@ private extension SidebarView {
     }
 
     var appLibMovedUpdate: AnyPublisher<Date, Never> {
-        injected.appState.updates(for: \.setting.appLibMoved)
+        injected.appState.updates(for: \.receiveSignals.appLibMoved)
     }
     
-    var fetchingStateUpdate: AnyPublisher<Int, Never> {
-        injected.appState.updates(for: \.receiveSignals.updatingCount)
+    var processingStateUpdate: AnyPublisher<Int, Never> {
+        injected.appState.updates(for: \.receiveSignals.processingCount)
     }
 }
