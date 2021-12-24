@@ -27,7 +27,6 @@
     "worker-loader": "^3.0.8"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.13.14",
     "@quasar/app": "^3.0.0",
     "electron": "^16.0.4",
     "eslint": "^7.14.0",

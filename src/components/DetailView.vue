@@ -106,10 +106,6 @@ export default defineComponent({
       type: Object,
       required: true,
     },
-    appLibPath: {
-      type: String,
-      required: true,
-    },
   },
 
   setup(props) {

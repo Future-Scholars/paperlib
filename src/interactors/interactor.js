@@ -145,7 +145,8 @@ export class Interactor {
   }
 
   _replacePublication(publication) {
-    for (let kv in this.appStore.get("exportReplacement")) {
+    for (let kv of this.appStore.get("exportReplacement")) {
+      console.log(kv, publication);
       if (kv.from == publication) {
         return kv.to;
       }
@@ -247,6 +248,14 @@ export class Interactor {
 
     if (setNewDBFolder) {
       await this.dbRepository.initRealm();
+      if (
+        settings.migrateLocalToSync &&
+        settings.syncAPIKey != "" &&
+        settings.useSync
+      ) {
+        console.log("migrateLocalToSync");
+        await this.dbRepository.migrateLocaltoSync();
+      }
       return true;
     } else {
       return false;

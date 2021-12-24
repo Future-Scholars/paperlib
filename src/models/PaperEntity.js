@@ -5,6 +5,7 @@ export const PaperEntitySchema = {
   name: "PaperEntity",
   primaryKey: "_id",
   properties: {
+    id: "objectId",
     _id: "objectId",
     _partition: "string?",
     addTime: "date",
@@ -39,6 +40,7 @@ export class PaperEntityDraft {
   constructor(entity) {
     if (!entity) {
       this._id = new ObjectId();
+      this.id = this._id;
       this._partition = "";
       this.addTime = new Date();
       this.title = "";
@@ -57,6 +59,7 @@ export class PaperEntityDraft {
       this.note = "";
     } else {
       this._id = entity._id;
+      this.id = entity.id;
       this._partition = entity._partition;
       this.addTime = entity.addTime;
       this.title = entity.title;

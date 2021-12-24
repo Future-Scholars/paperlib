@@ -591,7 +591,6 @@
           <DetailView
             v-if="selectedEntities.length > 0"
             :entity="selectedEntities[0]"
-            :appLibPath="appLibPath"
           />
         </div>
       </div>
@@ -1031,6 +1030,62 @@
             </div>
           </q-tab-panel>
 
+          <q-tab-panel name="sync">
+            <div class="row justify-center">
+              <div class="col-5 setting-title">
+                Cloud Sync API Key, see more on Paperlib's Github.
+              </div>
+              <div class="col-5">
+                <div
+                  style="
+                    padding-left: 5px;
+                    border: 1px solid #ddd;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    cursor: pointer;
+                  "
+                  class="radius-border setting-content"
+                >
+                  <q-input
+                    borderless
+                    v-model="settings.syncAPIKey"
+                    dense
+                    style="max-height: 22px"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="row justify-center q-mt-lg">
+              <div class="col-5 setting-title">Use cloud sync.</div>
+              <div class="col-5">
+                <q-checkbox
+                  dense
+                  keep-color
+                  size="xs"
+                  v-model="settings.useSync"
+                  color="grey-5"
+                />
+              </div>
+            </div>
+
+            <div class="row justify-center q-mt-lg">
+              <div class="col-5 setting-title">
+                Migrate the local database to the cloud sync database.
+              </div>
+              <div class="col-5">
+                <q-checkbox
+                  dense
+                  keep-color
+                  size="xs"
+                  v-model="settings.migrateLocalToSync"
+                  color="grey-5"
+                  :disable="!settings.useSync"
+                />
+              </div>
+            </div>
+          </q-tab-panel>
+
           <q-tab-panel name="export">
             <div class="row justify-center">
               <div
@@ -1176,46 +1231,6 @@
               </div>
             </div>
           </q-tab-panel>
-
-          <q-tab-panel name="sync">
-            <div class="row justify-center">
-              <div class="col-5 setting-title">
-                Cloud Sync API Key, see more on Paperlib's Github.
-              </div>
-              <div class="col-5">
-                <div
-                  style="
-                    padding-left: 5px;
-                    border: 1px solid #ddd;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    cursor: pointer;
-                  "
-                  class="radius-border setting-content"
-                >
-                  <q-input
-                    borderless
-                    v-model="settings.syncAPIKey"
-                    dense
-                    style="max-height: 22px"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div class="row justify-center q-mt-lg">
-              <div class="col-5 setting-title">Use cloud sync.</div>
-              <div class="col-5">
-                <q-checkbox
-                  dense
-                  keep-color
-                  size="xs"
-                  v-model="settings.useSync"
-                  color="grey-5"
-                />
-              </div>
-            </div>
-          </q-tab-panel>
         </q-tab-panels>
 
         <div
@@ -1357,6 +1372,7 @@ export default {
       exportReplacement: [],
       useSync: false,
       syncAPIKey: "",
+      migrateLocalToSync: false,
     });
     const settingTab = ref("general");
     const settingNewFolderPicker = ref(null);
@@ -1578,8 +1594,6 @@ export default {
       }
 
       for (let replacement of settings.value.exportReplacement) {
-        console.log(replacement.from);
-        console.log(settings.value.newReplacementFrom);
         if (replacement.from == settings.value.newReplacementFrom) {
           // remove existing replacement
           settings.value.exportReplacement.splice(
@@ -1593,6 +1607,7 @@ export default {
         from: settings.value.newReplacementFrom,
         to: settings.value.newReplacementTo,
       });
+
       settings.value.newReplacementFrom = "";
       settings.value.newReplacementTo = "";
     };
@@ -1756,6 +1771,7 @@ export default {
     };
 
     const saveSettings = async () => {
+      clearSelected();
       window.api
         .saveSettings(JSON.parse(JSON.stringify(settings.value)))
         .then(() => {
