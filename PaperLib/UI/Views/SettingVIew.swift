@@ -181,19 +181,33 @@ struct SyncSettingsView: View {
     var body: some View {
         VStack(alignment: .leading) {
             HStack(alignment: .top) {
-                Text("Cloud Sync API Key, see more on Paperlib's Github.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Text("Cloud Sync API Key is the your identification and authentication on the cloud database. Never share it with others. See more on Paperlib's Github.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 TextField("", text: $syncAPIKey)
             }
             .onChange(of: syncAPIKey, perform: { syncAPIKey in
                 injected.appState[\.setting.syncAPIKey] = syncAPIKey
             })
+            .padding(.bottom, 10)
             
             HStack(alignment: .top) {
-                Text("Use cloud sync.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Text("Use cloud sync. The PDF files are still stored in the folder you selected in the General setting page. The cloud database can only store the index and metadata of your data.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 Toggle("", isOn: $useSync)
                     .toggleStyle(.checkbox)
             }
+            .padding(.bottom, 10)
             .onChange(of: useSync, perform: onToggleUseSync)
+            
+            HStack(alignment: .top) {
+                Text("Migrate the local database to the cloud sync database.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Button (action: {
+                    print("migrate")
+                    injected.interactors.entitiesInteractor.migrateLocaltoSync()
+                }) {
+                    Label("Migrate", systemImage: "icloud.and.arrow.up.fill")
+                }
+                .disabled(!useSync)
+            }
+            .padding(.bottom, 10)
         }
     }
     

@@ -171,53 +171,51 @@ struct RealFileDBRepository: FileRepository {
         let targetFileName = entity.title.replaceCharactersFromSet(in: engLetterandWhiteCharacterSet.inverted, replacementString: "")
             .replacingOccurrences(of: " ", with: "_") + "_\(entity.id)"
 
-        if targetFileName == entity.mainURL.replacingOccurrences(of: "_main.pdf", with: "") {
-            return Just<PaperEntityDraft?>.withErrorType(entity, Error.self).eraseToAnyPublisher()
-        }
-        else{
-            return Future<PaperEntityDraft?, Error> { promise in
-                var sourceURLs = Array(entity.supURLs).map({ return self.constructUrl($0) })
-                var targetURLs = Array<URL?>.init()
 
-                for (i, sourceURL) in sourceURLs.enumerated() {
-                    var targetURL = self.constructUrl(targetFileName + "_sup\(i)")
-                    targetURL?.appendPathExtension(sourceURL?.pathExtension ?? "")
-                    targetURLs.append(targetURL)
-                }
-                
-                let sourceMainURL = self.constructUrl(entity.mainURL)
-                sourceURLs.insert(sourceMainURL, at: 0)
-                var targetMainURL = self.constructUrl(targetFileName + "_main")
-                targetMainURL?.appendPathExtension(sourceMainURL?.pathExtension ?? "")
-                targetURLs.insert(targetMainURL, at: 0)
-
-                var publisher = CurrentValueSubject<Bool, Error>(true).eraseToAnyPublisher()
-
-                for (sourceURL, targetURL) in zip(sourceURLs, targetURLs) {
-                    publisher = publisher.flatMap { flag -> AnyPublisher<Bool, Error> in
-                        if sourceURL == nil || targetURL == nil || !flag {
-                            return CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
-                        } else {
-                            return _move(from: sourceURL!, to: targetURL!)
-                        }
-                    }.eraseToAnyPublisher()
-                }
-
-                publisher.sink(receiveCompletion: { _ in }, receiveValue: {
-                    if $0 {
-                        entity.set(for: "mainURL", value: targetMainURL!.lastPathComponent)
-                        entity.set(for: "supURLs", value: [], allowEmpty: true)
-                        entity.set(for: "supURLs", value: targetURLs[1...].map({ $0!.lastPathComponent }), allowEmpty: true)
-
-                        promise(.success(entity))
-                    } else {
-                        promise(.success(nil))
-                    }
-
-                }).store(in: cancelBag)
+        return Future<PaperEntityDraft?, Error> { promise in
+            var sourceURLs = Array(entity.supURLs).map({ return self.constructUrl($0) })
+            var targetURLs = Array<URL?>.init()
+            
+            for (i, sourceURL) in sourceURLs.enumerated() {
+                var targetURL = self.constructUrl(targetFileName + "_sup\(i)")
+                targetURL?.appendPathExtension(sourceURL?.pathExtension ?? "")
+                targetURLs.append(targetURL)
             }
-            .eraseToAnyPublisher()
+                
+  
+            let sourceMainURL = self.constructUrl(entity.mainURL)
+            sourceURLs.insert(sourceMainURL, at: 0)
+            var targetMainURL = self.constructUrl(targetFileName + "_main")
+            targetMainURL?.appendPathExtension(sourceMainURL?.pathExtension ?? "")
+            targetURLs.insert(targetMainURL, at: 0)
+
+            var publisher = CurrentValueSubject<Bool, Error>(true).eraseToAnyPublisher()
+
+            for (sourceURL, targetURL) in zip(sourceURLs, targetURLs) {
+                publisher = publisher.flatMap { flag -> AnyPublisher<Bool, Error> in
+                    if sourceURL == nil || targetURL == nil || !flag {
+                        return CurrentValueSubject<Bool, Error>(false).eraseToAnyPublisher()
+                    } else {
+                        return _move(from: sourceURL!, to: targetURL!)
+                    }
+                }.eraseToAnyPublisher()
+            }
+
+            publisher.sink(receiveCompletion: { _ in }, receiveValue: {
+                if $0 {
+                    entity.set(for: "mainURL", value: targetMainURL!.lastPathComponent)
+                    entity.set(for: "supURLs", value: [], allowEmpty: true)
+                    entity.set(for: "supURLs", value: targetURLs[1...].map({ $0!.lastPathComponent }), allowEmpty: true)
+
+                    promise(.success(entity))
+                } else {
+                    promise(.success(nil))
+                }
+
+            }).store(in: cancelBag)
         }
+        .eraseToAnyPublisher()
+    
     }
 
     func move(for entities: [PaperEntityDraft]) -> AnyPublisher<[PaperEntityDraft?], Error> {

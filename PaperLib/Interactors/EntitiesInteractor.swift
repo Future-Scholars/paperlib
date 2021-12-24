@@ -13,11 +13,11 @@ import SwiftUI
 
 protocol EntitiesInteractor {
     func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: [String], folders: [String], sort: String)
-    func load(entities: LoadableSubject<Results<PaperEntity>>, drafts: Binding<[PaperEntityDraft]>, ids: Set<ObjectId>)
     func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String?)
     func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String?)
 
     func add(from fileURLs: [URL])
+    func addTestData()
 
     func delete(ids: Set<ObjectId>)
     func delete(tagId: String)
@@ -27,6 +27,7 @@ protocol EntitiesInteractor {
     func match(entities: [PaperEntityDraft])
     
     func openLib()
+    func migrateLocaltoSync()
     func export(entities: [PaperEntity], format: String)
     
     func handleChromePluginUrl(_ url: URL)
@@ -38,7 +39,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     let fileRepository: FileRepository
     let webRepository: WebRepository
     let appState: Store<AppState>
-
+    
     let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "open-lib", "plugin"])
 
     init(appState: Store<AppState>, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
@@ -56,27 +57,13 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         entities.wrappedValue.setIsLoading(cancelBag: cancelBags["entities"])
 
         Task {
-            await dbRepository.entities(search: search, flag: flag, tags: tags, folders: folders, sort: sort, freeze: true)
+            await dbRepository.entities(search: search, flag: flag, tags: tags, folders: folders, sort: sort)
                 .sinkToLoadable {
+                    entities.wrappedValue.setIsLoading(cancelBag: CancelBag())
                     print("[Reloaded] entities")
                     entities.wrappedValue = $0
                 }
                 .store(in: cancelBags["entities"])
-        }
-    }
-
-    func load(entities: LoadableSubject<Results<PaperEntity>>, drafts: Binding<[PaperEntityDraft]>, ids: Set<ObjectId>) {
-        cancelBags.cancel(for: "entitiesByIds")
-
-        entities.wrappedValue.setIsLoading(cancelBag: cancelBags["entitiesByIds"])
-
-        Task {
-            await dbRepository.entities(ids: ids, freeze: true)
-                .sink(receiveCompletion: {_ in}, receiveValue: {
-                    entities.wrappedValue = .loaded($0)
-                    drafts.wrappedValue = $0.map({ PaperEntityDraft(from: $0) })
-                })
-                .store(in: cancelBags["entitiesByIds"])
         }
     }
     
@@ -94,6 +81,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 
             await dbRepository.tags()
                 .sinkToLoadable {
+                    tags.wrappedValue.setIsLoading(cancelBag: cancelBags[key])
                     tags.wrappedValue = $0
                 }
                 .store(in: cancelBags[key])
@@ -114,6 +102,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 
             await dbRepository.folders()
                 .sinkToLoadable {
+                    folders.wrappedValue.setIsLoading(cancelBag: cancelBags[key])
                     folders.wrappedValue = $0
                 }
                 .store(in: cancelBags[key])
@@ -167,6 +156,25 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             .store(in: cancelBags["add"])
     }
 
+    func addTestData() {
+        
+        Task {
+            var testEntities: [PaperEntityDraft] = .init()
+            
+            for i in 0...500 {
+                let entity = PaperEntityDraft()
+                entity.title = "Title \(i)"
+                entity.authors = "Authors \(i)"
+                testEntities.append(entity)
+            }
+            
+            await dbRepository.add(for: testEntities)
+                .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+                .store(in: CancelBag())
+        }
+    }
+
+    
     // MARK: - Delete
 
     func delete(ids: Set<ObjectId>) {
@@ -343,6 +351,11 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         }                       
     }
     
+    func migrateLocaltoSync() {
+        dbRepository.migrateLocaltoSync()
+    }
+    
+    
     func handleChromePluginUrl(_ url: URL) {
         
         cancelBags.cancel(for: "plugin")
@@ -383,6 +396,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
+    func addTestData() {}
     func load(entities: LoadableSubject<Results<PaperEntity>>, drafts: Binding<[PaperEntityDraft]>, ids: Set<ObjectId>) {
         
     }
@@ -396,6 +410,8 @@ struct StubEntitiesInteractor: EntitiesInteractor {
     }
     
     func openLib() {}
+    
+    func migrateLocaltoSync() {}
     
     func delete(tagId _: String) {}
 

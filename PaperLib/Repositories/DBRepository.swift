@@ -15,9 +15,9 @@ protocol DBRepository {
     func openLocal() -> Realm.Configuration
     func openSync() async -> Realm.Configuration
     func migrate(migration: Migration, oldSchemaVersion: UInt64)
+    func migrateLocaltoSync()
     
-    func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool) async -> AnyPublisher<Results<PaperEntity>, Error>
-    func entities(ids: Set<ObjectId>, freeze: Bool) async -> AnyPublisher<Results<PaperEntity>, Error>
+    func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String) async -> AnyPublisher<Results<PaperEntity>, Error>
 
     func tags() async -> AnyPublisher<Results<PaperTag>, Error>
     func folders() async -> AnyPublisher<Results<PaperFolder>, Error>
@@ -66,6 +66,7 @@ class RealDBRepository: DBRepository {
             return await openSync()
         }
         else {
+            self.syncConfig = nil
             return openLocal()
         }
     }
@@ -75,12 +76,12 @@ class RealDBRepository: DBRepository {
             return await openSync()
         }
         else {
+            self.syncConfig = nil
             return openLocal()
         }
     }
     
     func openLocal() -> Realm.Configuration {
-        self.syncConfig = nil
         print("Opening local db...")
         let path = UserDefaults.standard.string(forKey: "appLibFolder")
         
@@ -196,6 +197,17 @@ class RealDBRepository: DBRepository {
         }
     }
 
+    func migrateLocaltoSync() {
+        Task {
+            let localConfig = self.openLocal()
+            let localRealm = try! await Realm(configuration: localConfig)
+            
+            let entities = localRealm.objects(PaperEntity.self)
+            await self.add(for: entities.map({entity in return PaperEntityDraft(from: entity)}))
+        }
+    }
+    
+    
     func realm() async throws -> Realm {
         if (!self.inited) {
             let _ = await self.open()
@@ -224,59 +236,45 @@ class RealDBRepository: DBRepository {
     
     
     // MARK: - Select
-    func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool = true) async -> AnyPublisher<Results<PaperEntity>, Error> {
+    func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String) async -> AnyPublisher<Results<PaperEntity>, Error> {
         let realm = try! await self.realm()
-            var filterFormat = ""
-            if search != nil {
-                if !search!.isEmpty {
-                    filterFormat += "(title contains[cd] \"\(formatString(search)!)\" OR authors contains[cd] \"\(formatString(search)!)\" OR publication contains[cd] \"\(formatString(search)!)\" OR note contains[cd] \"\(formatString(search)!)\") AND "
-                }
+        
+        var filterFormat = ""
+        if search != nil {
+            if !search!.isEmpty {
+                filterFormat += "(title contains[cd] \"\(formatString(search)!)\" OR authors contains[cd] \"\(formatString(search)!)\" OR publication contains[cd] \"\(formatString(search)!)\" OR note contains[cd] \"\(formatString(search)!)\") AND "
             }
-            if flag {
-                filterFormat += "(flag == true) AND "
-            }
-            tags.forEach { tag in
-                filterFormat += "(ANY tags.id == \"\(tag)\") AND "
-            }
-            folders.forEach { folder in
-                filterFormat += "(ANY folders.id == \"\(folder)\") AND "
-            }
-
-            var publisher: RealmPublishers.Value<Results<PaperEntity>>
-            if !filterFormat.isEmpty {
-                filterFormat = String(filterFormat[..<String.Index(utf16Offset: filterFormat.count - 4, in: filterFormat)])
-                publisher = realm.objects(PaperEntity.self).filter(filterFormat).sorted(byKeyPath: sort, ascending: false).collectionPublisher
-            } else {
-                publisher = realm.objects(PaperEntity.self).sorted(byKeyPath: sort, ascending: false).collectionPublisher
-            }
-
-            if freeze {
-                return publisher.freeze().eraseToAnyPublisher()
-            } else {
-                return publisher.eraseToAnyPublisher()
-            }
-    }
-
-    func entities(ids: Set<ObjectId>, freeze: Bool = true) async -> AnyPublisher<Results<PaperEntity>, Error> {
-        let realm = try! await self.realm()
+        }
+        if flag {
+            filterFormat += "(flag == true) AND "
+        }
+        tags.forEach { tag in
+            filterFormat += "(ANY tags.id == \"\(tag)\") AND "
+        }
+        folders.forEach { folder in
+            filterFormat += "(ANY folders.id == \"\(folder)\") AND "
+        }
 
         var publisher: RealmPublishers.Value<Results<PaperEntity>>
-        publisher = realm.objects(PaperEntity.self).filter("id IN %@", ids).collectionPublisher
-        if freeze {
-            return publisher.freeze().eraseToAnyPublisher()
+        if !filterFormat.isEmpty {
+            filterFormat = String(filterFormat[..<String.Index(utf16Offset: filterFormat.count - 4, in: filterFormat)])
+            publisher = realm.objects(PaperEntity.self).filter(filterFormat).sorted(byKeyPath: sort, ascending: false).collectionPublisher
         } else {
-            return publisher.eraseToAnyPublisher()
+            publisher = realm.objects(PaperEntity.self).sorted(byKeyPath: sort, ascending: false).collectionPublisher
         }
+
+        return publisher.eraseToAnyPublisher()
+            
     }
 
     func tags() async -> AnyPublisher<Results<PaperTag>, Error> {
         let realm = try! await self.realm()
-        return realm.objects(PaperTag.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.freeze().eraseToAnyPublisher()
+        return realm.objects(PaperTag.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.eraseToAnyPublisher()
     }
 
     func folders() async -> AnyPublisher<Results<PaperFolder>, Error> {
         let realm = try! await self.realm()
-        return realm.objects(PaperFolder.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.freeze().eraseToAnyPublisher()
+        return realm.objects(PaperFolder.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.eraseToAnyPublisher()
     }
 
     // MARK: - Construct from Draft
@@ -401,8 +399,9 @@ class RealDBRepository: DBRepository {
                     
                     self.unlink(tags: entity.tags, realm: realm)
                     self.unlink(folders: entity.folders, realm: realm)
-                    realm.delete(entity)
                 }
+                
+                realm.delete(entities)
             }
             promise(.success(removeFileURLs))
         }.eraseToAnyPublisher()
@@ -411,7 +410,6 @@ class RealDBRepository: DBRepository {
     func unlink(tags: List<PaperTag>, realm: Realm? = nil) {
         let realm = realm != nil ? realm : try! Realm()
         tags.forEach { tag in
-            print(tag.id)
             let tagObj = realm!.object(ofType: PaperTag.self, forPrimaryKey: tag.id)!
             try! realm!.safeWrite {
                 tagObj.count -= 1

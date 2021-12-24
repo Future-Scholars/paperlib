@@ -9,8 +9,14 @@ import Combine
 import RealmSwift
 import SwiftUI
 
+class MainViewModel: ObservableObject {
+    @Published var selectedIds: Set<ObjectId> = .init()
+    @Published var searchText: String = ""
+}
+
 struct MainView: View {
     @Environment(\.injected) private var injected: DIContainer
+    private var cancelbag = CancelBag()
     // Common
     @State private var selectedIds: Set<ObjectId> = .init()
     @State private var selectedEntities: Loadable<Results<PaperEntity>>
@@ -21,9 +27,8 @@ struct MainView: View {
     @State private var statusText: String = ""
     
     // Main List
+    @StateObject private var mainState = MainViewModel()
     @State private var lastSearchText = ""
-    @StateObject private var searchText = SearchBarViewModel()
-
     @State private var entities: Loadable<Results<PaperEntity>>
 
     // Edit View
@@ -81,9 +86,9 @@ struct MainView: View {
                     }
             }
             .toolbar {
-                SearchBar(text: $searchText.text)
+                SearchBar(text: $mainState.searchText)
                     .onReceive(
-                        searchText.$text
+                        mainState.$searchText
                             .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
                     ) {searchText in
                         switch entities{
@@ -112,15 +117,14 @@ struct MainView: View {
                 
                 return true
             }
-            .onChange(of: selectedIds, perform: { _ in
-                reloadSelectedEntities()
-                if selectedIds.count > 0 {
-                    self.statusText = "\(selectedIds.count) / \(entities.value!.count)"
+            .onReceive(mainState.$selectedIds){ _ in
+                if mainState.selectedIds.count > 0 {
+                    self.statusText = "\(mainState.selectedIds.count) / \(entities.value!.count)"
                 }
                 else {
                     statusText = ""
                 }
-            })
+            }
             .onReceive(appLibMovedUpdate, perform: { _ in
                 if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.mainView] > 0 {
                     injected.appState[\.receiveSignals.mainView] -= 1
@@ -164,7 +168,7 @@ private extension MainView {
     }
 
     func loadingView(_ previouslyLoaded: Results<PaperEntity>?) -> some View {
-        print("loading")
+        print("[Loading] entities")
         if let entities = previouslyLoaded {
             return AnyView(
                 ZStack{
@@ -180,8 +184,8 @@ private extension MainView {
     func loadedView(_ entities: Results<PaperEntity>) -> some View {
         if mainViewSwitcher == 0 {
             return AnyView(
-                List(selection: $selectedIds) {
-                    ForEach(entities) { entity in
+                List(selection: $mainState.selectedIds) {
+                    ForEach(entities.freeze()) { entity in
                         ListRow(entity: entity).frame(height: 55)
                             .contextMenu {
                                 rowContextMenu()
@@ -191,7 +195,7 @@ private extension MainView {
             )
         } else {
             return AnyView(
-                Table(entities, selection: $selectedIds) {
+                Table(entities.freeze(), selection: $mainState.selectedIds) {
                     TableColumn("Title") { entity in
                         Text(entity.title).font(.subheadline)
                     }
@@ -236,7 +240,7 @@ private extension MainView {
             }) {
                 Text("Edit")
             }.keyboardShortcut("e")
-            .disabled(selectedIds.count != 1)
+                .disabled(mainState.selectedIds.count != 1)
             
             Button(action: {
                 matchEntities()
@@ -265,7 +269,7 @@ private extension MainView {
                 Text("Add Tag")
             }
             .keyboardShortcut("t")
-            .disabled(selectedIds.count != 1)
+            .disabled(mainState.selectedIds.count != 1)
             .sheet(isPresented: $showTagEditView, content: { tagEditView() })
 
             Button(action: {
@@ -275,7 +279,7 @@ private extension MainView {
                 Text("Add Folder")
             }
             .keyboardShortcut("g")
-            .disabled(selectedIds.count != 1)
+            .disabled(mainState.selectedIds.count != 1)
             .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
 
             Divider()
@@ -298,7 +302,11 @@ private extension MainView {
     // Detail View
     func detailLoadingView(_ previouslyLoaded: Results<PaperEntity>?) -> some View {
         if let entities = previouslyLoaded {
-            return AnyView(detailLoadedView(entities))
+            return AnyView(
+                ZStack{
+                    detailLoadedView(entities)
+                    ProgressView()
+                })
         } else {
             return AnyView(EmptyView())
         }
@@ -418,10 +426,10 @@ private extension MainView {
                     openEntities()
                 }) {
                     Image(systemName: "doc.text.magnifyingglass")
-                        .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                        .foregroundColor(mainState.selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(selectedIds.count == 0)
+                .disabled(mainState.selectedIds.count == 0)
                 .hidden()
 
                 // Export
@@ -431,7 +439,7 @@ private extension MainView {
                     Image(systemName: "square.and.arrow.up")
                         .foregroundColor(Color.primary.opacity(0.5))
                 }.keyboardShortcut("c")
-                    .disabled(selectedIds.count == 0)
+                    .disabled(mainState.selectedIds.count == 0)
                     .hidden()
 
                 // Match
@@ -439,17 +447,17 @@ private extension MainView {
                     matchEntities()
                 }) {
                     Image(systemName: "doc.text.magnifyingglass")
-                        .foregroundColor(selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                        .foregroundColor(mainState.selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
                 }.keyboardShortcut("r")
                 .help("Match Metadata")
-                .disabled(selectedIds.count == 0)
+                .disabled(mainState.selectedIds.count == 0)
 
                 // Delete
                 Button(action: {
                     showConfirmationDelete.toggle()
                 }) {
                     Image(systemName: "trash")
-                        .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                        .foregroundColor(mainState.selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
                 }
                 .confirmationDialog("Are you sure to delete?", isPresented: $showConfirmationDelete) {
                     Button(action: {
@@ -459,7 +467,7 @@ private extension MainView {
                         Text("Yes")
                     }
                 }
-                .disabled(selectedIds.count < 1).keyboardShortcut(.delete)
+                .disabled(mainState.selectedIds.count < 1).keyboardShortcut(.delete)
                 .help("Delete")
 
                 // Edit
@@ -468,9 +476,9 @@ private extension MainView {
                     self.showEditView.toggle()
                 }) {
                     Image(systemName: "pencil.circle")
-                        .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                        .foregroundColor(mainState.selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
                 }.keyboardShortcut("e")
-                .disabled(selectedIds.count != 1)
+                    .disabled(mainState.selectedIds.count != 1)
                 .sheet(isPresented: $showEditView, content: { editView() })
                 .help("Edit")
 
@@ -479,7 +487,7 @@ private extension MainView {
                     editEntities(op: "flag")
                 }) {
                     Image(systemName: "flag")
-                        .foregroundColor(selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                        .foregroundColor(mainState.selectedIds.count < 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
                 }.keyboardShortcut("g")
                     .help("Toggle Flag")
 
@@ -489,10 +497,10 @@ private extension MainView {
                     self.showTagEditView.toggle()
                 }) {
                     Image(systemName: "tag")
-                        .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                        .foregroundColor(mainState.selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
                 }.keyboardShortcut("t")
                 .help("Edit Tags")
-                .disabled(selectedIds.count != 1)
+                .disabled(mainState.selectedIds.count != 1)
                 .sheet(isPresented: $showTagEditView, content: { tagEditView() })
 
                 // Folder
@@ -501,10 +509,10 @@ private extension MainView {
                     self.showFolderEditView.toggle()
                 }) {
                     Image(systemName: "folder.badge.plus")
-                        .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                        .foregroundColor(mainState.selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
                 }.keyboardShortcut("f")
                 .help("Edit Folders")
-                .disabled(selectedIds.count != 1)
+                .disabled(mainState.selectedIds.count != 1)
                 .sheet(isPresented: $showFolderEditView, content: { folderEditView() })
 
                 // Note
@@ -513,10 +521,10 @@ private extension MainView {
                     self.showNoteEditView.toggle()
                 }) {
                     Image(systemName: "note.text.badge.plus")
-                        .foregroundColor(selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
+                        .foregroundColor(mainState.selectedIds.count != 1 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
                 }.keyboardShortcut("n")
                 .help("Edit Note")
-                .disabled(selectedIds.count != 1)
+                .disabled(mainState.selectedIds.count != 1)
                 .sheet(isPresented: $showNoteEditView, content: { noteEditView() })
             }
             
@@ -551,6 +559,10 @@ private extension MainView {
                 Label("sort", systemImage: "list.bullet.indent")
             }
             .help("Sort by")
+            
+            Button("Dev", action: {
+                addTestData()
+            })
         }
     }
 }
@@ -596,7 +608,7 @@ private extension MainView {
         urlGroup.notify(queue: .main) {
             if urlList.count > 0 {
                 urlList.forEach { supUrl in
-//                    editedSelectedEntity.supURLs.append(supUrl.path)
+                    selectedEntitiesDraft.first?.supURLs.append(supUrl.absoluteString)
                 }
                 editEntities()
             }
@@ -604,23 +616,39 @@ private extension MainView {
     }
 
     func deleteEntities() {
-        injected.interactors.entitiesInteractor.delete(ids: selectedIds)
+        let ids = mainState.selectedIds
         clearSelected()
+        injected.interactors.entitiesInteractor.delete(ids: ids)
     }
 
     func reloadEntities() {
-        let (flag, tags, folders) = makeFilter()
-        
-        injected.interactors.entitiesInteractor.load(entities: $entities, search: searchText.text, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
-        
+        let (search, flag, tags, folders) = makeFilter()
+        injected.interactors.entitiesInteractor.load(entities: $entities, search: search, flag: flag, tags: tags, folders: folders, sort: mainViewSortSwitcher)
+        reloadSelectedEntities()
     }
 
     func clearSelected() {
-        selectedIds.removeAll()
+        $selectedEntities.wrappedValue = .notRequested
+        mainState.selectedIds.removeAll()
     }
 
     func reloadSelectedEntities() {
-        injected.interactors.entitiesInteractor.load(entities: $selectedEntities, drafts: $selectedEntitiesDraft, ids: selectedIds)
+        mainState.$selectedIds
+            .sink(receiveCompletion: {_ in}, receiveValue: { selectedIds in
+                $selectedEntities.wrappedValue.setIsLoading(cancelBag: CancelBag())
+                if ($entities.wrappedValue.value != nil) {
+                    $entities.wrappedValue.value!.filter("id IN %@", selectedIds).collectionPublisher.eraseToAnyPublisher()
+                        .sink(receiveCompletion: {_ in}, receiveValue: { filteredEntities in
+                            $selectedEntities.wrappedValue = .loaded(filteredEntities)
+                            $selectedEntitiesDraft.wrappedValue = filteredEntities.map({entity in return PaperEntityDraft(from: entity)})
+                        })
+                        .store(in: cancelbag)
+                }
+                else {
+                    $selectedEntities.wrappedValue = .notRequested
+                }
+            })
+            .store(in: cancelbag)
     }
     
     func reloadSelectedEntitiesDraft() {
@@ -628,6 +656,8 @@ private extension MainView {
     }
 
     func editEntities(op: String = "update") {
+        print(op)
+        print($selectedEntitiesDraft.wrappedValue)
         if op == "flag" {
             let updateRequestDrafts = $selectedEntitiesDraft.wrappedValue.map({entity -> PaperEntityDraft in
                 entity.flag.toggle()
@@ -645,7 +675,9 @@ private extension MainView {
         injected.interactors.entitiesInteractor.match(entities: $selectedEntitiesDraft.wrappedValue)
     }
 
-    func makeFilter() -> (Bool, [String], [String]) {
+    func makeFilter() -> (String, Bool, [String], [String]) {
+        let search = mainState.searchText
+        
         if selectedFilters.contains("lib-all"), selectedFilters.count > 1 {
             selectedFilters = Set(["lib-all"])
         }
@@ -663,7 +695,7 @@ private extension MainView {
             }
         }
 
-        return (flag, tags, folders)
+        return (search, flag, tags, folders)
     }
 
     func openEntities() {
@@ -684,5 +716,11 @@ private extension MainView {
 
     var appLibMovedUpdate: AnyPublisher<Date, Never> {
         injected.appState.updates(for: \.receiveSignals.appLibMoved)
+    }
+    
+    // For dev
+    
+    func addTestData() {
+        injected.interactors.entitiesInteractor.addTestData()
     }
 }

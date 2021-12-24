@@ -33,6 +33,7 @@ class PaperFolder: PaperFolderIDObject, ObjectKeyIdentifiable {
     convenience init(id: String) {
         self.init()
         self.id = "folder-" + id
+        self._id = self.id
         name = id
     }
 
