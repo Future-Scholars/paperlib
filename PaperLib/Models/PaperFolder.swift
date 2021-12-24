@@ -27,6 +27,7 @@ class PaperFolderIDObject: Object {
 }
 
 class PaperFolder: PaperFolderIDObject, ObjectKeyIdentifiable {
+    @Persisted var _partition: String?
     @Persisted var count: Int = 0
     @Persisted var name: String = ""
 

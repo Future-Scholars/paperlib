@@ -203,7 +203,7 @@ class RealDBRepository: DBRepository {
             let localRealm = try! await Realm(configuration: localConfig)
             
             let entities = localRealm.objects(PaperEntity.self)
-            await self.add(for: entities.map({entity in return PaperEntityDraft(from: entity)}))
+            let _ = await self.add(for: entities.map({entity in return PaperEntityDraft(from: entity)}))
         }
     }
     
@@ -315,6 +315,11 @@ class RealDBRepository: DBRepository {
                         guard !tagStr.isEmpty else { return }
                         let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: "tag-" + tagStr) ?? PaperTag(id: tagStr)
                         tagObj.count += 1
+                        
+                        if (self.syncConfig != nil){
+                            tagObj._partition = self.app!.currentUser?.id.description
+                        }
+                        
                         entity.tags.append(tagObj)
                     })
                 entity.folders = List<PaperFolder>()
@@ -324,6 +329,11 @@ class RealDBRepository: DBRepository {
                         guard !folderStr.isEmpty else { return }
                         let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: "folder-" + folderStr) ?? PaperFolder(id: folderStr)
                         folderObj.count += 1
+                        
+                        if (self.syncConfig != nil){
+                            folderObj._partition = self.app!.currentUser?.id.description
+                        }
+                        
                         entity.folders.append(folderObj)
                     })
                 
@@ -504,6 +514,9 @@ class RealDBRepository: DBRepository {
                                 updateObj.tags.append(tagObj!)
                             } else {
                                 let newTagObj = PaperTag(id: tagStr)
+                                if (self.syncConfig != nil){
+                                    newTagObj._partition = self.app!.currentUser?.id.description
+                                }
                                 realm.add(newTagObj)
                                 updateObj.tags.append(newTagObj)
                             }
@@ -518,14 +531,19 @@ class RealDBRepository: DBRepository {
                     entity.folders.components(separatedBy: ";").forEach { folder in
                         let folderStr = formatString(folder, returnEmpty: true, trimWhite: true)!
                         if !folderStr.isEmpty {
-                            var folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: "folder-" + folderStr)
+                            let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: "folder-" + folderStr)
                             if folderObj != nil {
                                 folderObj!.count += 1
+                                updateObj.folders.append(folderObj!)
                             } else {
-                                folderObj = PaperFolder(id: folderStr)
-                                realm.add(folderObj!)
+                                let newFolderObj = PaperFolder(id: folderStr)
+                                if (self.syncConfig != nil){
+                                    newFolderObj._partition = self.app!.currentUser?.id.description
+                                }
+                                realm.add(newFolderObj)
+                                updateObj.folders.append(newFolderObj)
                             }
-                            updateObj.folders.append(folderObj!)
+                            
                         }
                     }
 

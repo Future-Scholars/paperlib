@@ -656,8 +656,6 @@ private extension MainView {
     }
 
     func editEntities(op: String = "update") {
-        print(op)
-        print($selectedEntitiesDraft.wrappedValue)
         if op == "flag" {
             let updateRequestDrafts = $selectedEntitiesDraft.wrappedValue.map({entity -> PaperEntityDraft in
                 entity.flag.toggle()

@@ -28,6 +28,7 @@ class PaperTagIDObject: Object {
 
 
 class PaperTag: PaperTagIDObject, ObjectKeyIdentifiable {
+    @Persisted var _partition: String?
     @Persisted var count: Int = 0
     @Persisted var name: String = ""
 
