@@ -8,8 +8,26 @@
 import Foundation
 import RealmSwift
 
-class PaperEntity: Object, ObjectKeyIdentifiable {
-    @Persisted(primaryKey: true) var id: ObjectId
+class PaperEntityIDObject: Object {
+    @objc dynamic var id: ObjectId
+    @objc dynamic var _id: ObjectId
+    
+    override init() {
+        self.id = ObjectId.generate()
+        self._id = self.id
+    }
+    
+    override class func primaryKey() -> String? {
+        return "_id"
+    }
+
+    override class func shouldIncludeInDefaultSchema() -> Bool {
+        self != PaperEntityIDObject.self
+    }
+}
+
+class PaperEntity: PaperEntityIDObject, ObjectKeyIdentifiable {
+    
     @Persisted var _partition: String?
     @Persisted var addTime: Date
 
@@ -44,7 +62,6 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
     ) {
         self.init()
 
-        self.id = ObjectId.generate()
         self.addTime = Date()
 
         self.title = title ?? ""
@@ -62,28 +79,6 @@ class PaperEntity: Object, ObjectKeyIdentifiable {
         self.flag = flag ?? false
         
         print("create entity")
-    }
-
-    func setValue(for key: String, value: Any?, allowEmpty: Bool = false) {
-        guard value != nil || allowEmpty else  { return }
-        
-        var formatedValue = value
-        if formatedValue is String {
-            if key == "title" || key == "authors" {
-                formatedValue = formatString(formatedValue as? String, removeNewline: true, removeStr: ".")
-            }
-            if (formatedValue as! String).isEmpty {
-                if allowEmpty {
-                    setValue(formatedValue, forKey: key)
-                }
-                return
-            } else {
-                setValue(formatedValue, forKey: key)
-            }
-        } else {
-            setValue(formatedValue, forKey: key)
-            return
-        }
     }
 }
 

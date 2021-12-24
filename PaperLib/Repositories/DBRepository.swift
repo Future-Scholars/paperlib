@@ -10,9 +10,10 @@ import CoreData
 import RealmSwift
 
 protocol DBRepository {
-    func open() -> AnyPublisher<Realm.Configuration, Error>
-    func open(settings: AppState.Setting) -> AnyPublisher<Realm.Configuration, Error>
-    func openLocal() -> AnyPublisher<Realm.Configuration, Error>
+    func open() async -> Realm.Configuration
+    func open(settings: AppState.Setting) async -> Realm.Configuration
+    func openLocal() -> Realm.Configuration
+    func openSync() async -> Realm.Configuration
     func migrate(migration: Migration, oldSchemaVersion: UInt64)
     
     func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String, freeze: Bool) async -> AnyPublisher<Results<PaperEntity>, Error>
@@ -48,62 +49,104 @@ class RealDBRepository: DBRepository {
     var realmSchemaVersion: UInt64 = 4
     var syncConfig: Realm.Configuration?
     var localConfig: Realm.Configuration?
+    var app: App?
+    var inited: Bool
     
     init() {
-        open()
-            .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
-            .store(in: CancelBag())
+        self.inited = false
+        let _ = Task{
+            let _ = await open()
+            self.inited = true
+        }
+        
     }
 
-    func open() -> AnyPublisher<Realm.Configuration, Error> {
+    func open() async -> Realm.Configuration {
         if (UserDefaults.standard.bool(forKey: "useSync") && !(UserDefaults.standard.string(forKey: "syncAPIKey") ?? "").isEmpty ) {
-//            openSync()
-            return openLocal()
+            return await openSync()
         }
         else {
             return openLocal()
         }
     }
     
-    func open(settings: AppState.Setting) -> AnyPublisher<Realm.Configuration, Error> {
-//        if (settings.useSync && !settings.syncAPIKey.isEmpty ) {
-//            openSync()
-//        }
-//        else {
+    func open(settings: AppState.Setting) async -> Realm.Configuration {
+        if (settings.useSync && !settings.syncAPIKey.isEmpty ) {
+            return await openSync()
+        }
+        else {
             return openLocal()
-//        }
+        }
     }
     
-    func openLocal() -> AnyPublisher<Realm.Configuration, Error> {
+    func openLocal() -> Realm.Configuration {
+        self.syncConfig = nil
+        print("Opening local db...")
         let path = UserDefaults.standard.string(forKey: "appLibFolder")
         
-        return Future<Realm.Configuration, Error> { promise in
-            
-            var config = Realm.Configuration(
-                schemaVersion: self.realmSchemaVersion,
-                migrationBlock: self.migrate)
+        var config = Realm.Configuration(
+            schemaVersion: self.realmSchemaVersion,
+            migrationBlock: self.migrate)
 
-            var url: URL?
-            if (path != nil && !(path?.isEmpty ?? true)) {
-                url = URL(string: path!)
-            } else {
-                let docPaths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-                let documentsDirectory = docPaths[0]
-                url = documentsDirectory.appendingPathComponent("paperlib")
-            }
-
-            if let appLibURL = url {
-                do {
-                    try FileManager.default.createDirectory(at: appLibURL, withIntermediateDirectories: true, attributes: nil)
-                    config.fileURL = appLibURL.appendingPathComponent("default.realm")
-                } catch let err {
-                    print(err)
-                }
-            }
-            self.localConfig = config
-            promise(.success(config))
+        var url: URL?
+        if (path != nil && !(path?.isEmpty ?? true)) {
+            url = URL(string: path!)
+        } else {
+            let docPaths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+            let documentsDirectory = docPaths[0]
+            url = documentsDirectory.appendingPathComponent("paperlib")
         }
-        .eraseToAnyPublisher()
+
+        if let appLibURL = url {
+            do {
+                try FileManager.default.createDirectory(at: appLibURL, withIntermediateDirectories: true, attributes: nil)
+                config.fileURL = appLibURL.appendingPathComponent("default.realm")
+            } catch let err {
+                print(err)
+            }
+        }
+        self.localConfig = config
+        
+        return config
+    }
+    
+    func openSync() async -> Realm.Configuration {
+        print("Opening sync db...")
+        do {
+            let user = try await self.loginSync()
+            self.app!.syncManager.errorHandler = { error, session in
+                print(error)
+            }
+            
+            let partitionValue = user.id
+            var config = user.configuration(
+                partitionValue: partitionValue
+            )
+            config.schemaVersion = self.realmSchemaVersion
+            config.migrationBlock = self.migrate
+            self.syncConfig = config
+            
+            return config
+        }
+        catch {
+            print("Cannot login to sync db.")
+            return self.openLocal()
+        }
+    }
+    
+    func loginSync() async throws -> User {
+        if (self.app == nil) {
+            self.app = App(id: "paperlib-iadbj")
+        }
+        
+        if self.app!.currentUser != nil {
+            return self.app!.currentUser!
+        } else {
+            self.app = App(id: "paperlib-iadbj")
+            let credentials = Credentials.userAPIKey(UserDefaults.standard.string(forKey: "syncAPIKey")!)
+            let loggedInUser = try await self.app!.login(credentials: credentials)
+            return loggedInUser
+        }
     }
     
     func migrate(migration: Migration, oldSchemaVersion: UInt64) {
@@ -142,25 +185,40 @@ class RealDBRepository: DBRepository {
         
         if (oldSchemaVersion < 4) {
             migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
-                newObject!["id"] = oldObject!["id"]
+                newObject!["_id"] = oldObject!["id"]
             }
             migration.enumerateObjects(ofType: PaperTag.className()) { oldObject, newObject in
-                newObject!["id"] = oldObject!["id"]
+                newObject!["_id"] = oldObject!["id"]
             }
             migration.enumerateObjects(ofType: PaperFolder.className()) { oldObject, newObject in
-                newObject!["id"] = oldObject!["id"]
+                newObject!["_id"] = oldObject!["id"]
             }
         }
     }
 
     func realm() async throws -> Realm {
+        if (!self.inited) {
+            let _ = await self.open()
+            self.inited = true
+        }
+        
         if (syncConfig == nil) {
             let realm = try await Realm(configuration: self.localConfig!)
             return realm
         }
         else {
-            let realm = try await Realm(configuration: self.localConfig!)
-            return realm
+            do {
+                let realm = try await Realm(configuration: self.syncConfig!, downloadBeforeOpen: .always)
+                return realm
+            }
+            catch {
+                print(error)
+                self.syncConfig = nil
+                UserDefaults.standard.set(false, forKey: "useSync")
+                let _ = await self.open()
+                let realm = try await Realm(configuration: self.localConfig!)
+                return realm
+            }
         }
     }
     
@@ -232,6 +290,7 @@ class RealDBRepository: DBRepository {
             if let entityDraft = $0 {
                 let entity = PaperEntity()
                 
+                entity._id = entityDraft.id
                 entity.id = entityDraft.id
                 entity.addTime = entityDraft.addTime
                 
@@ -269,6 +328,11 @@ class RealDBRepository: DBRepository {
                         folderObj.count += 1
                         entity.folders.append(folderObj)
                     })
+                
+                if (self.syncConfig != nil){
+                    entity._partition = self.app!.currentUser?.id.description
+                }
+                
                 readyEntities.append(entity)
             }
             else {
@@ -347,6 +411,7 @@ class RealDBRepository: DBRepository {
     func unlink(tags: List<PaperTag>, realm: Realm? = nil) {
         let realm = realm != nil ? realm : try! Realm()
         tags.forEach { tag in
+            print(tag.id)
             let tagObj = realm!.object(ofType: PaperTag.self, forPrimaryKey: tag.id)!
             try! realm!.safeWrite {
                 tagObj.count -= 1
@@ -408,6 +473,10 @@ class RealDBRepository: DBRepository {
                 
                     let updateObj = realm.object(ofType: PaperEntity.self, forPrimaryKey: entity.id)!
 
+                    if (self.syncConfig != nil){
+                        updateObj._partition = self.app!.currentUser?.id.description
+                    }
+                    
                     updateObj.title = entity.title
                     updateObj.authors = entity.authors
                     updateObj.publication = entity.publication

@@ -335,17 +335,12 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     }
 
     func openLib() {
-        cancelBags.cancel(for: "open-lib")
-
-        Just<Void>
-            .withErrorType(Error.self)
-            .flatMap {
-                dbRepository.open(settings: appState[\.setting])
-            }
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in
+        Task{
+            let _ = await dbRepository.open(settings: appState[\.setting])
+            DispatchQueue.main.sync{
                 appState[\.receiveSignals.appLibMoved] = Date()
-            })
-            .store(in: cancelBags["open-lib"])
+            }
+        }                       
     }
     
     func handleChromePluginUrl(_ url: URL) {

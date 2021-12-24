@@ -21,6 +21,7 @@ struct MainView: View {
     @State private var statusText: String = ""
     
     // Main List
+    @State private var lastSearchText = ""
     @StateObject private var searchText = SearchBarViewModel()
 
     @State private var entities: Loadable<Results<PaperEntity>>
@@ -84,10 +85,21 @@ struct MainView: View {
                     .onReceive(
                         searchText.$text
                             .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
-                    ) {
-                        clearSelected()
-                        reloadEntities()
-                        guard !$0.isEmpty else { return }
+                    ) {searchText in
+                        switch entities{
+                        case .loaded(_):
+                            do {
+                                
+                                if searchText != self.lastSearchText{
+                                    self.lastSearchText = searchText
+                                    clearSelected()
+                                    reloadEntities()
+                                }
+                                guard !searchText.isEmpty else { return }
+                        
+                        }
+                        default: return
+                        }
                     }
                 Spacer()
                 menuButtons()
@@ -100,7 +112,6 @@ struct MainView: View {
                 
                 return true
             }
-            .onAppear(perform: reloadEntities)
             .onChange(of: selectedIds, perform: { _ in
                 reloadSelectedEntities()
                 if selectedIds.count > 0 {
@@ -117,12 +128,13 @@ struct MainView: View {
                     clearSelected()
                 }
             })
+            .onAppear(perform: reloadEntities)
         }
     }
 
     private func MainContent() -> AnyView {
         switch entities {
-        case .notRequested: return AnyView(notRequestedView().onAppear(perform: reloadEntities))
+        case .notRequested: return AnyView(notRequestedView())
         case let .isLoading(last, _): return AnyView(loadingView(last))
         case let .loaded(entities): return AnyView(loadedView(entities))
         case let .failed(error): return AnyView(failedView(error))

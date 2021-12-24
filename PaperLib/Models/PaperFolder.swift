@@ -8,8 +8,25 @@
 import Foundation
 import RealmSwift
 
-class PaperFolder: Object, ObjectKeyIdentifiable {
-    @Persisted(primaryKey: true) var id: String = ""
+class PaperFolderIDObject: Object {
+    @objc dynamic var id: String
+    @objc dynamic var _id: String
+    
+    override init() {
+        self.id = ""
+        self._id = self.id
+    }
+    
+    override class func primaryKey() -> String? {
+        return "_id"
+    }
+
+    override class func shouldIncludeInDefaultSchema() -> Bool {
+        self != PaperFolderIDObject.self
+    }
+}
+
+class PaperFolder: PaperFolderIDObject, ObjectKeyIdentifiable {
     @Persisted var count: Int = 0
     @Persisted var name: String = ""
 
