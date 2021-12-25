@@ -17,9 +17,9 @@ export class DBRepository {
     this.initRealm();
   }
 
-  realm() {
+  async realm() {
     if (!this._realm) {
-      this.initRealm();
+      await this.initRealm();
     }
     return this._realm;
   }
@@ -173,11 +173,12 @@ export class DBRepository {
     return entitiesJson;
   }
 
-  entity(id) {
-    return this.realm().objectForPrimaryKey("PaperEntity", new ObjectId(id));
+  async entity(id) {
+    let realm = await this.realm();
+    return realm.objectForPrimaryKey("PaperEntity", new ObjectId(id));
   }
 
-  entities(search, flag, tag, folder, sortBy, sortOrder) {
+  async entities(search, flag, tag, folder, sortBy, sortOrder) {
     var filterFormat = "";
     if (search) {
       filterFormat += `(title contains[c] \"${formatString({
@@ -200,19 +201,18 @@ export class DBRepository {
       filterFormat += `(ANY folders._id == \"${folder}\") AND `;
     }
 
+    let realm = await this.realm();
     if (filterFormat) {
       filterFormat = filterFormat.slice(0, -5);
       return this.jsonfyEntity(
-        this.realm()
+        realm
           .objects("PaperEntity")
           .filtered(filterFormat)
           .sorted(sortBy, sortOrder == "desc")
       );
     } else {
       return this.jsonfyEntity(
-        this.realm()
-          .objects("PaperEntity")
-          .sorted(sortBy, sortOrder == "desc")
+        realm.objects("PaperEntity").sorted(sortBy, sortOrder == "desc")
       );
     }
   }
@@ -226,12 +226,14 @@ export class DBRepository {
     return jsons;
   }
 
-  tags() {
-    return this.jsonfyTagFolder(this.realm().objects("PaperTag"));
+  async tags() {
+    let realm = await this.realm();
+    return this.jsonfyTagFolder(realm.objects("PaperTag"));
   }
 
-  folders() {
-    return this.jsonfyTagFolder(this.realm().objects("PaperFolder"));
+  async folders() {
+    let realm = await this.realm();
+    return this.jsonfyTagFolder(realm.objects("PaperFolder"));
   }
 
   // ============================================================

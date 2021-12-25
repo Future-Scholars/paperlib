@@ -14,8 +14,8 @@ export class Interactor {
     this.webRepository = new WebRepository(this.appStore);
   }
 
-  load(search, flag, tag, folder, sortBy, sortOrder) {
-    let entitiesResults = this.dbRepository.entities(
+  async load(search, flag, tag, folder, sortBy, sortOrder) {
+    let entitiesResults = await this.dbRepository.entities(
       search,
       flag,
       tag,
@@ -26,13 +26,13 @@ export class Interactor {
     return entitiesResults;
   }
 
-  loadTags() {
-    let tagsResults = this.dbRepository.tags();
+  async loadTags() {
+    let tagsResults = await this.dbRepository.tags();
     return tagsResults;
   }
 
-  loadFolders() {
-    let foldersResults = this.dbRepository.folders();
+  async loadFolders() {
+    let foldersResults = await this.dbRepository.folders();
     return foldersResults;
   }
 
@@ -219,9 +219,10 @@ export class Interactor {
     });
   }
 
-  listenRealmChange(callback) {
+  async listenRealmChange(callback) {
     try {
-      this.dbRepository.realm().addListener("change", callback);
+      let realm = await this.dbRepository.realm();
+      realm.addListener("change", callback);
     } catch (error) {
       console.error(
         `An exception was thrown within the change listener: ${error}`

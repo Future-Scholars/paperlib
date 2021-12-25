@@ -51,16 +51,16 @@ contextBridge.exposeInMainWorld("api", {
   },
 
   // Load
-  load(search, flag, tag, folder, sortBy, sortOrder) {
-    return interactor.load(search, flag, tag, folder, sortBy, sortOrder);
+  async load(search, flag, tag, folder, sortBy, sortOrder) {
+    return await interactor.load(search, flag, tag, folder, sortBy, sortOrder);
   },
 
-  loadTags() {
-    return interactor.loadTags();
+  async loadTags() {
+    return await interactor.loadTags();
   },
 
-  loadFolders() {
-    return interactor.loadFolders();
+  async loadFolders() {
+    return await interactor.loadFolders();
   },
 
   // Add

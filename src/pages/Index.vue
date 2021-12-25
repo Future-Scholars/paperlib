@@ -1667,7 +1667,7 @@ export default {
       appLibPath.value = window.api.getFolder(window.api.loadAppLibPath());
     };
 
-    const reloadEntities = () => {
+    const reloadEntities = async () => {
       var flaged = null;
       var tag = null;
       var folder = null;
@@ -1679,7 +1679,7 @@ export default {
         flaged = true;
       }
 
-      let results = window.api.load(
+      let results = await window.api.load(
         searchText.value,
         flaged,
         tag,
@@ -1690,13 +1690,13 @@ export default {
       entities.value = results;
     };
 
-    const reloadTags = () => {
-      let results = window.api.loadTags();
+    const reloadTags = async () => {
+      let results = await window.api.loadTags();
       tags.value = results;
     };
 
-    const reloadFolders = () => {
-      let results = window.api.loadFolders();
+    const reloadFolders = async () => {
+      let results = await window.api.loadFolders();
       folders.value = results;
     };
 
