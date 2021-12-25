@@ -172,6 +172,12 @@ export default defineComponent({
     };
   },
 
+  mounted() {
+    this.$nextTick(function () {
+      this.showPreview();
+    });
+  },
+
   updated() {
     this.$nextTick(function () {
       this.showPreview();
