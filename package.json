@@ -1,6 +1,6 @@
 {
   "name": "paperlib_win",
-  "version": "1.2.5",
+  "version": "1.0.0",
   "description": "A simple academic paper management tool for CSer.",
   "productName": "Paperlib",
   "author": "GeoffreyChen <geoffreychen777@gmail.com>",
@@ -15,6 +15,7 @@
     "core-js": "^3.6.5",
     "drag-drop": "^7.2.0",
     "electron-store": "^8.0.1",
+    "electron-updater": "^4.6.1",
     "fast-xml-parser": "^4.0.0-beta.8",
     "fs": "^0.0.1-security",
     "got": "11.8.3",

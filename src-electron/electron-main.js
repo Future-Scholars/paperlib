@@ -1,7 +1,8 @@
-import { app, BrowserWindow, nativeTheme } from "electron";
+import { app, BrowserWindow, nativeTheme, dialog } from "electron";
 import { initialize, enable } from "@electron/remote/main";
 import path from "path";
 import os from "os";
+const { autoUpdater } = require("electron-updater");
 
 initialize();
 
@@ -81,3 +82,19 @@ if (process.defaultApp) {
 } else {
   app.setAsDefaultProtocolClient("paperlib");
 }
+
+autoUpdater.checkForUpdates();
+
+autoUpdater.on("update-available", (info) => {
+  const dialogOpts = {
+    type: "info",
+    buttons: ["Update Now", "Cancel"],
+    title: "A new version of PaperLib is available.",
+    message: "A new version of PaperLib is available.",
+    detail: "It will be downloaded and installed automatically.",
+  };
+
+  dialog.showMessageBox(dialogOpts, (response) => {
+    if (response === 1) autoUpdater.quitAndInstall();
+  });
+});
