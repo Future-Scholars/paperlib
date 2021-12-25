@@ -18,6 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Read version
+        id: version
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ./VERSION
+
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
         with:
@@ -26,9 +32,14 @@ jobs:
       - run: yarn install && yarn add @quasar/cli
       - run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
 
-      - uses: actions/upload-artifact@v2
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: upload release
-          path: |
-            ./dist/electron/Packaged/paperlib*
+          files: |
+            ./dist/electron/Packaged/paperlib Setup ${{ steps.version.outputs.content }}.exe
             ./dist/electron/Packaged/latest.yml
+          prerelease: true
+          tag_name: v${{ steps.version.outputs.content }}-win
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
