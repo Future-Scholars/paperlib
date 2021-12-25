@@ -212,10 +212,8 @@ module.exports = configure(function (ctx) {
         // https://www.electron.build/configuration/configuration
         appId: "dev.paperlib.app",
         productName: "paperlib",
-        appId: "dev.paperlib.app",
         win: {
           target: "nsis",
-          publish: ["generic"],
         },
         nsis: {
           oneClick: false,

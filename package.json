@@ -19,11 +19,9 @@
     "fs": "^0.0.1-security",
     "got": "11.8.3",
     "mousetrap": "^1.6.5",
-    "pdf-to-img": "^1.1.1",
     "pdfjs-dist": "^2.10.377",
     "quasar": "^2.0.0",
     "realm": "^10.10.1",
-    "vue-pdf-embed": "^1.0.5",
     "worker-loader": "^3.0.8"
   },
   "devDependencies": {

@@ -48,9 +48,8 @@
     "
     v-on:dblclick="openFileEvent(entity.mainURL)"
   />
-  <vue-pdf-embed
-    :source="joined(entity.mainURL)"
-    :page="1"
+  <canvas
+    id="preview"
     style="height: 210px; width: 150px; margin-bottom: 1em"
   />
 
@@ -92,14 +91,12 @@
 
 <script>
 import { defineComponent, toRefs } from "vue";
-import VuePdfEmbed from "vue-pdf-embed";
+import * as pdfjs from "pdfjs-dist";
 
 export default defineComponent({
   name: "DetailView",
 
-  components: {
-    VuePdfEmbed,
-  },
+  components: {},
 
   props: {
     entity: {
@@ -109,6 +106,9 @@ export default defineComponent({
   },
 
   setup(props) {
+    const pdfjsWorker = import("pdfjs-dist/build/pdf.worker.entry");
+    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+
     const openFileEvent = (url) => {
       window.api.open(url);
     };
@@ -132,6 +132,32 @@ export default defineComponent({
       window.api.update(editEntity);
     };
 
+    const showPreview = async () => {
+      const pdf = await pdfjs.getDocument(joined(props.entity.mainURL)).promise;
+      const page = await pdf.getPage(1);
+
+      var scale = 0.3;
+      var viewport = page.getViewport({ scale: scale });
+      // Support HiDPI-screens.
+      var outputScale = window.devicePixelRatio || 1;
+
+      var canvas = document.getElementById("preview");
+      var context = canvas.getContext("2d");
+
+      canvas.width = Math.floor(viewport.width * outputScale);
+      canvas.height = Math.floor(viewport.height * outputScale);
+
+      var transform =
+        outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+
+      var renderContext = {
+        canvasContext: context,
+        transform: transform,
+        viewport: viewport,
+      };
+      page.render(renderContext);
+    };
+
     const joined = (url) => {
       return window.api.getJoinedPath(url, true);
     };
@@ -142,7 +168,14 @@ export default defineComponent({
       ratingEvent,
       joined,
       ...toRefs(props),
+      showPreview,
     };
+  },
+
+  updated() {
+    this.$nextTick(function () {
+      this.showPreview();
+    });
   },
 });
 </script>
