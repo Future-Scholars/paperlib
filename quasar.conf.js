@@ -212,9 +212,12 @@ module.exports = configure(function (ctx) {
         // https://www.electron.build/configuration/configuration
         appId: "dev.paperlib.app",
         productName: "paperlib",
-        win: {
-          target: "nsis",
-        },
+        publish: [
+          {
+            provider: "generic",
+            url: "https://paperlib.geoch.top/distribution/win/",
+          },
+        ],
         nsis: {
           oneClick: false,
           createDesktopShortcut: "always",
