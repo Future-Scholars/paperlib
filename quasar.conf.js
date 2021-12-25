@@ -195,7 +195,7 @@ module.exports = configure(function (ctx) {
 
     // Full list of options: https://quasar.dev/quasar-cli/developing-electron-apps/configuring-electron
     electron: {
-      bundler: "packager", // 'packager' or 'builder'
+      bundler: "builder", // 'packager' or 'builder'
 
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
@@ -210,22 +210,18 @@ module.exports = configure(function (ctx) {
 
       builder: {
         // https://www.electron.build/configuration/configuration
-
-        appId: "paperlib_win",
-      },
-
-      // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
-      chainWebpackMain(chain) {
-        // chain
-        //   .plugin("eslint-webpack-plugin")
-        //   .use(ESLintPlugin, [{ extensions: ["js"] }]);
-      },
-
-      // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
-      chainWebpackPreload(chain) {
-        // chain
-        //   .plugin("eslint-webpack-plugin")
-        //   .use(ESLintPlugin, [{ extensions: ["js"] }]);
+        appId: "dev.paperlib.app",
+        productName: "paperlib",
+        appId: "dev.paperlib.app",
+        win: {
+          target: "nsis",
+          publish: ["generic"],
+        },
+        nsis: {
+          oneClick: false,
+          createDesktopShortcut: "always",
+          allowToChangeInstallationDirectory: true,
+        },
       },
     },
   };
