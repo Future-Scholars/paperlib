@@ -29,4 +29,6 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: upload release
-          path: ./dist/
+          path: |
+            ./dist/electron/Packaged/paperlib*
+            ./dist/electron/Packaged/latest.yml
