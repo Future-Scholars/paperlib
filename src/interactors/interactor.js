@@ -62,7 +62,7 @@ export class Interactor {
       try {
         let entity = await this.dbRepository.entity(id);
         await this.fileRepository.remove(entity);
-        this.dbRepository.delete(entity);
+        await this.dbRepository.delete(entity);
       } catch (error) {
         console.log(error);
       }
@@ -71,8 +71,8 @@ export class Interactor {
     Promise.all(ids.map((id) => deletePromise(id)));
   }
 
-  addSups(id, urlList) {
-    var entity = this.dbRepository.entity(id);
+  async addSups(id, urlList) {
+    var entity = await this.dbRepository.entity(id);
     entity = new PaperEntityDraft(entity);
 
     for (let url of urlList) {
@@ -136,7 +136,7 @@ export class Interactor {
     let updatePromise = async () => {
       try {
         await this.fileRepository.move(entity);
-        this.dbRepository.update(entity);
+        await this.dbRepository.update(entity);
       } catch (error) {
         console.log(error);
       }

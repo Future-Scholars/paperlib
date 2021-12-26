@@ -90,7 +90,7 @@
 </style>
 
 <script>
-import { defineComponent, toRefs } from "vue";
+import { defineComponent, toRefs, ref } from "vue";
 import * as pdfjs from "pdfjs-dist";
 
 export default defineComponent({
@@ -106,6 +106,8 @@ export default defineComponent({
   },
 
   setup(props) {
+    const rendering = ref(false);
+
     const pdfjsWorker = import("pdfjs-dist/build/pdf.worker.entry");
     pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
@@ -133,6 +135,10 @@ export default defineComponent({
     };
 
     const showPreview = async () => {
+      if (rendering.value) {
+        return;
+      }
+      rendering.value = true;
       const pdf = await pdfjs.getDocument(joined(props.entity.mainURL)).promise;
       const page = await pdf.getPage(1);
 
@@ -156,6 +162,7 @@ export default defineComponent({
         viewport: viewport,
       };
       page.render(renderContext);
+      rendering.value = false;
     };
 
     const joined = (url) => {
@@ -163,6 +170,7 @@ export default defineComponent({
     };
 
     return {
+      rendering,
       openFileEvent,
       deleteSupEvent,
       ratingEvent,
@@ -179,9 +187,7 @@ export default defineComponent({
   },
 
   updated() {
-    this.$nextTick(function () {
-      this.showPreview();
-    });
+    this.showPreview();
   },
 });
 </script>

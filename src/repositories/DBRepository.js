@@ -86,8 +86,14 @@ export class DBRepository {
     console.log(entities);
     // Write to sync server
     await this.initSync();
+
+    // Add without tags and folders
     for (const entity of entities) {
       this.add(new PaperEntityDraft(entity));
+    }
+    // Add tags and folders
+    for (const entity of entities) {
+      await this.update(entity);
     }
   }
 
@@ -238,7 +244,8 @@ export class DBRepository {
 
   // ============================================================
 
-  buildTag(entity) {
+  async buildTag(entity) {
+    let realm = await this.realm();
     var tagNames = [];
     var tagObjs = [];
     if (typeof entity.tags == "string") {
@@ -257,9 +264,11 @@ export class DBRepository {
       });
       if (tagName) {
         var tagObj;
-        tagObj = this.realm().objectForPrimaryKey("PaperTag", "tag-" + tagName);
+        tagObj = realm.objectForPrimaryKey("PaperTag", "tag-" + tagName);
         if (tagObj) {
-          tagObj.count += 1;
+          realm.write(() => {
+            tagObj.count += 1;
+          });
         } else {
           tagObj = {
             _id: "tag-" + tagName,
@@ -269,7 +278,9 @@ export class DBRepository {
           };
         }
         if (this.syncUser) {
-          tagObj._partition = this.syncUser.id;
+          realm.write(() => {
+            tagObj._partition = this.syncUser.id;
+          });
         }
         tagObjs.push(tagObj);
       }
@@ -277,7 +288,8 @@ export class DBRepository {
     return tagObjs;
   }
 
-  buildFolder(entity) {
+  async buildFolder(entity) {
+    let realm = await this.realm();
     var folderNames = [];
     var folderObjs = [];
     if (typeof entity.folders == "string") {
@@ -296,12 +308,14 @@ export class DBRepository {
       });
       if (folderName) {
         var folderObj;
-        folderObj = this.realm().objectForPrimaryKey(
+        folderObj = realm.objectForPrimaryKey(
           "PaperFolder",
           "folder-" + folderName
         );
         if (folderObj) {
-          folderObj.count += 1;
+          realm.write(() => {
+            folderObj.count += 1;
+          });
         } else {
           folderObj = {
             _id: "folder-" + folderName,
@@ -311,7 +325,9 @@ export class DBRepository {
           };
         }
         if (this.syncUser) {
-          folderObj._partition = this.syncUser.id;
+          realm.write(() => {
+            folderObj._partition = this.syncUser.id;
+          });
         }
         folderObjs.push(folderObj);
       }
@@ -319,17 +335,16 @@ export class DBRepository {
     return folderObjs;
   }
 
-  add(entity) {
+  async add(entity) {
     if (this.syncUser) {
       entity._partition = this.syncUser.id;
     }
+    entity.tags = [];
+    entity.folders = [];
 
-    let tagObjs = this.buildTag(entity);
-    let folderObjs = this.buildFolder(entity);
-    entity.tags = tagObjs;
-    entity.folders = folderObjs;
+    let realm = await this.realm();
 
-    let existEntities = this.realm()
+    let existEntities = realm
       .objects("PaperEntity")
       .filtered(
         `title == \"${entity.title}\" and authors == \"${entity.authors}\"`
@@ -337,64 +352,62 @@ export class DBRepository {
     if (existEntities.length > 0) {
       return false;
     }
-    this.realm().write(() => {
-      this.realm().create("PaperEntity", entity);
+    realm.write(() => {
+      realm.create("PaperEntity", entity);
     });
     return true;
   }
 
   // Delete
-  delete(entity) {
-    this.realm().write(() => {
+  async delete(entity) {
+    let realm = await this.realm();
+    realm.write(() => {
       for (let tag of entity.tags) {
-        let tagObj = this.realm().objectForPrimaryKey("PaperTag", tag._id);
+        let tagObj = realm.objectForPrimaryKey("PaperTag", tag._id);
         tagObj.count -= 1;
         if (tagObj.count <= 0) {
-          this.realm().delete(tagObj);
+          realm.delete(tagObj);
         }
       }
 
       for (let folder of entity.folders) {
-        let folderObj = this.realm().objectForPrimaryKey(
-          "PaperFolder",
-          folder._id
-        );
+        let folderObj = realm.objectForPrimaryKey("PaperFolder", folder._id);
         folderObj.count -= 1;
         if (folderObj.count <= 0) {
-          this.realm().delete(folderObj);
+          realm.delete(folderObj);
         }
       }
 
-      this.realm().delete(
-        this.realm().objectForPrimaryKey(
-          "PaperEntity",
-          new ObjectId(entity._id)
-        )
+      realm.delete(
+        realm.objectForPrimaryKey("PaperEntity", new ObjectId(entity._id))
       );
     });
   }
 
-  deleteTag(tagId) {
-    this.realm().write(() => {
-      let tagObj = this.realm().objectForPrimaryKey("PaperTag", tagId);
-      this.realm().delete(tagObj);
+  async deleteTag(tagId) {
+    let realm = await this.realm();
+    realm.write(() => {
+      let tagObj = realm.objectForPrimaryKey("PaperTag", tagId);
+      realm.delete(tagObj);
     });
   }
 
-  deleteFolder(folderId) {
-    this.realm().write(() => {
-      let folderObj = this.realm().objectForPrimaryKey("PaperFolder", folderId);
-      this.realm().delete(folderObj);
+  async deleteFolder(folderId) {
+    let realm = await this.realm();
+    realm.write(() => {
+      let folderObj = realm.objectForPrimaryKey("PaperFolder", folderId);
+      realm.delete(folderObj);
     });
   }
 
   // Update
-  update(entity) {
-    let editEntity = this.realm().objectForPrimaryKey(
+  async update(entity) {
+    let realm = await this.realm();
+    let editEntity = realm.objectForPrimaryKey(
       "PaperEntity",
       new ObjectId(entity._id)
     );
-    this.realm().write(() => {
+    realm.write(() => {
       editEntity.title = entity.title;
       editEntity.authors = entity.authors;
       editEntity.publication = entity.publication;
@@ -407,36 +420,39 @@ export class DBRepository {
       editEntity.rating = entity.rating;
       editEntity.flag = entity.flag;
       editEntity.note = entity.note;
+    });
 
+    realm.write(() => {
       // remove old tags
       for (const tag of editEntity.tags) {
-        let tagObj = this.realm().objectForPrimaryKey("PaperTag", tag._id);
+        let tagObj = realm.objectForPrimaryKey("PaperTag", tag._id);
         tagObj.count -= 1;
         if (tagObj.count <= 0) {
-          this.realm().delete(tagObj);
+          realm.delete(tagObj);
         }
       }
       editEntity.tags = [];
-      // add new tags
-      let tagObjs = this.buildTag(entity);
+    });
+    // add new tags
+    let tagObjs = await this.buildTag(entity);
+    realm.write(() => {
       for (const tag of tagObjs) {
         editEntity.tags.push(tag);
       }
 
       // remove old folders
       for (const folder of editEntity.folders) {
-        let folderObj = this.realm().objectForPrimaryKey(
-          "PaperFolder",
-          folder._id
-        );
+        let folderObj = realm.objectForPrimaryKey("PaperFolder", folder._id);
         folderObj.count -= 1;
         if (folderObj.count <= 0) {
-          this.realm().delete(folderObj);
+          realm.delete(folderObj);
         }
       }
       editEntity.folders = [];
-      // add new folders
-      let folderObjs = this.buildFolder(entity);
+    });
+    // add new folders
+    let folderObjs = await this.buildFolder(entity);
+    realm.write(() => {
       for (const folder of folderObjs) {
         editEntity.folders.push(folder);
       }

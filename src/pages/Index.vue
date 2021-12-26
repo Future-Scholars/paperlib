@@ -1437,9 +1437,9 @@ export default {
     };
 
     const realmChangedEvent = () => {
-      window.api.listenRealmChange(() => {
+      window.api.listenRealmChange(async () => {
         reloadAppLibPath();
-        reloadEntities();
+        await reloadEntities();
         reloadTags();
         reloadFolders();
         reloadSelectedEntities();
@@ -1774,9 +1774,9 @@ export default {
       clearSelected();
       window.api
         .saveSettings(JSON.parse(JSON.stringify(settings.value)))
-        .then(() => {
+        .then(async () => {
           reloadAppLibPath();
-          reloadEntities();
+          await reloadEntities();
           reloadTags();
           reloadFolders();
           reloadSelectedEntities();
@@ -1791,21 +1791,21 @@ export default {
       showLoadingIcon.value = false;
     });
 
-    window.api.registerSignal("realmChanged", (event, message) => {
+    window.api.registerSignal("realmChanged", async (event, message) => {
       clearSelected();
       realmChangedEvent();
       reloadSettings();
       reloadAppLibPath();
-      reloadEntities();
-      reloadTags();
-      reloadFolders();
+      await reloadEntities();
+      await reloadTags();
+      await reloadFolders();
       reloadSelectedEntities();
     });
 
-    onMounted(() => {
+    onMounted(async () => {
       reloadAppLibPath();
       reloadSettings();
-      reloadEntities();
+      await reloadEntities();
       reloadTags();
       reloadFolders();
       dropEvent();
