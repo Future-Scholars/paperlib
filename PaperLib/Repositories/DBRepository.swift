@@ -203,7 +203,33 @@ class RealDBRepository: DBRepository {
             let localRealm = try! await Realm(configuration: localConfig)
             
             let entities = localRealm.objects(PaperEntity.self)
-            let _ = await self.add(for: entities.map({entity in return PaperEntityDraft(from: entity)}))
+            
+            let realm = try! await self.realm()
+            
+            // 1. First only migrate main entity without tag and folder.
+            let onlyMainEntities = Array(entities).map({et -> PaperEntity in
+                let entity = PaperEntity(value: et)
+                entity.tags = List<PaperTag>()
+                entity.folders = List<PaperFolder>()
+                if (self.syncConfig != nil){
+                    entity._partition = self.app!.currentUser?.id.description
+                }
+                return entity
+            })
+            
+            try! realm.safeWrite {
+                realm.add(onlyMainEntities)
+            }
+            
+            
+            
+            let entitiesWithTagsFolders = Array(entities).map({et -> PaperEntityDraft in
+                let entityDraft = PaperEntityDraft(from: et)
+                return entityDraft
+            })
+            
+            let _ = await self.update(from: entitiesWithTagsFolders)
+
         }
     }
     

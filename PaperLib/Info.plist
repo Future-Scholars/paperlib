@@ -29,7 +29,7 @@
 		</dict>
 	</dict>
 	<key>SUFeedURL</key>
-	<string>https://paperlib.geoch.top/appcast.xml</string>
+	<string>https://paperlib.geoch.top/distribution/mac/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>fdDkWGo44bJjgu+9qAEn2hcp1J0wnU04YdTkxIveMwc=</string>
 	<key>CFBundleVersion</key>

@@ -559,10 +559,6 @@ private extension MainView {
                 Label("sort", systemImage: "list.bullet.indent")
             }
             .help("Sort by")
-            
-            Button("Dev", action: {
-                addTestData()
-            })
         }
     }
 }
