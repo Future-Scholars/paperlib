@@ -17,23 +17,23 @@ struct AppState: Equatable {
 extension AppState {
     struct Setting: Equatable {
         var settingOpened = false
-        var appLibMoved = Date()
         var appLibFolder = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
         var colorScheme = UserDefaults.standard.string(forKey: "preferColorTheme") ?? "System Default"
         var invertColor = UserDefaults.standard.bool(forKey: "invertColor")
-        var ieeeAPIKey = UserDefaults.standard.string(forKey: "ieeeAPIKey")
+        var ieeeAPIKey = UserDefaults.standard.string(forKey: "ieeeAPIKey") ?? ""
         var allowFetchPDFMeta = UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")
         var deleteSourceFile = UserDefaults.standard.bool(forKey: "deleteSourceFile")
         var exportReplacement = UserDefaults.standard.data(forKey: "exportReplacement")
         var enableExportReplacement = UserDefaults.standard.bool(forKey: "enableExportReplacement")
+        var syncAPIKey = UserDefaults.standard.string(forKey: "syncAPIKey") ?? ""
+        var useSync = UserDefaults.standard.bool(forKey: "useSync")
     }
 
     struct ReceiveSignals: Equatable {
-        var sideBarTag = 0
-        var sideBarFolder = 0
-        var mainViewEntities = 0
-        var mainViewSelectedEntities = 0
-        var fetchingEntities = 0
+        var sideBar = 0
+        var mainView = 0
+        var processingCount = 0
+        var appLibMoved = Date()
     }
 }
 

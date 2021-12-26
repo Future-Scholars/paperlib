@@ -33,3 +33,5 @@ yarn-error.log*
 *.sln
 package-lock.json
 yarn.lock
+
+mongodb-realm

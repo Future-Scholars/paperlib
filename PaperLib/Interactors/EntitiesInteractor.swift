@@ -13,21 +13,21 @@ import SwiftUI
 
 protocol EntitiesInteractor {
     func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: [String], folders: [String], sort: String)
-    func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>)
-    func load(entity: Binding<EditPaperEntity>, id: ObjectId)
-    func load(entity: LoadableSubject<PaperEntity>, id: ObjectId)
     func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String?)
     func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String?)
 
     func add(from fileURLs: [URL])
+    func addTestData()
 
     func delete(ids: Set<ObjectId>)
     func delete(tagId: String)
     func delete(folderId: String)
 
-    func update(entities: [PaperEntity], method: String, editedEntities: [EditPaperEntity]?)
-    func match(entities: [PaperEntity], fetchWeb: Bool)
-    func moveLib()
+    func update(entities: [PaperEntityDraft])
+    func match(entities: [PaperEntityDraft])
+    
+    func openLib()
+    func migrateLocaltoSync()
     func export(entities: [PaperEntity], format: String)
     
     func handleChromePluginUrl(_ url: URL)
@@ -39,8 +39,8 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     let fileRepository: FileRepository
     let webRepository: WebRepository
     let appState: Store<AppState>
-
-    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "editEntityById", "entityById", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "move-lib", "plugin"])
+    
+    let cancelBags: CancelBags = .init(["entities", "entitiesByIds", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "open-lib", "plugin"])
 
     init(appState: Store<AppState>, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
         self.appState = appState
@@ -56,81 +56,57 @@ struct RealEntitiesInteractor: EntitiesInteractor {
 
         entities.wrappedValue.setIsLoading(cancelBag: cancelBags["entities"])
 
-        dbRepository.entities(search: search, flag: flag, tags: tags, folders: folders, sort: sort, freeze: true)
-            .sinkToLoadable {
-                print("[Reloaded] entities")
-                entities.wrappedValue = $0
-            }
-            .store(in: cancelBags["entities"])
-    }
-
-    func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>) {
-        cancelBags.cancel(for: "entitiesByIds")
-
-        entities.wrappedValue.setIsLoading(cancelBag: cancelBags["entitiesByIds"])
-
-        dbRepository.entities(ids: ids, freeze: true)
-            .sinkToLoadable {
-                entities.wrappedValue = $0
-            }
-            .store(in: cancelBags["entitiesByIds"])
-    }
-
-    func load(entity: Binding<EditPaperEntity>, id: ObjectId) {
-        cancelBags.cancel(for: "editEntityById")
-
-        dbRepository.entity(id: id, freeze: true)
-            .sink(receiveCompletion: { _ in }, receiveValue: {
-                entity.wrappedValue = EditPaperEntity(from: $0)
-            })
-            .store(in: cancelBags["editEntityById"])
-    }
-
-    func load(entity: LoadableSubject<PaperEntity>, id: ObjectId) {
-        cancelBags.cancel(for: "entityById")
-
-        entity.wrappedValue.setIsLoading(cancelBag: cancelBags["entityById"])
-
-        dbRepository.entity(id: id, freeze: true)
-            .sinkToLoadable {
-                entity.wrappedValue = $0
-            }
-            .store(in: cancelBags["entityById"])
-    }
-
-    func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String? = nil) {
-        var key: String
-        if cancelBagKey == nil {
-            key = "tags"
-        } else {
-            key = cancelBagKey!
+        Task {
+            await dbRepository.entities(search: search, flag: flag, tags: tags, folders: folders, sort: sort)
+                .sinkToLoadable {
+                    entities.wrappedValue.setIsLoading(cancelBag: CancelBag())
+                    print("[Reloaded] entities")
+                    entities.wrappedValue = $0
+                }
+                .store(in: cancelBags["entities"])
         }
-        cancelBags.cancel(for: key)
-        tags.wrappedValue.setIsLoading(cancelBag: cancelBags[key])
+    }
+    
+    func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String? = nil) {
 
-        dbRepository.tags()
-            .sinkToLoadable {
-                tags.wrappedValue = $0
+        Task {
+            var key: String
+            if cancelBagKey == nil {
+                key = "tags"
+            } else {
+                key = cancelBagKey!
             }
-            .store(in: cancelBags[key])
+            cancelBags.cancel(for: key)
+            tags.wrappedValue.setIsLoading(cancelBag: cancelBags[key])
+
+            await dbRepository.tags()
+                .sinkToLoadable {
+                    tags.wrappedValue.setIsLoading(cancelBag: cancelBags[key])
+                    tags.wrappedValue = $0
+                }
+                .store(in: cancelBags[key])
+        }
     }
 
     func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String? = nil) {
-        var key: String
-        if cancelBagKey == nil {
-            key = "folders"
-        } else {
-            key = cancelBagKey!
-        }
-        cancelBags.cancel(for: key)
-
-        folders.wrappedValue.setIsLoading(cancelBag: cancelBags[key])
-
-        dbRepository.folders()
-            .sinkToLoadable {
-                folders.wrappedValue = $0
+        Task {
+            var key: String
+            if cancelBagKey == nil {
+                key = "folders"
+            } else {
+                key = cancelBagKey!
             }
-            .store(in: cancelBags[key])
+            cancelBags.cancel(for: key)
+
+            folders.wrappedValue.setIsLoading(cancelBag: cancelBags[key])
+
+            await dbRepository.folders()
+                .sinkToLoadable {
+                    folders.wrappedValue.setIsLoading(cancelBag: cancelBags[key])
+                    folders.wrappedValue = $0
+                }
+                .store(in: cancelBags[key])
+        }
     }
 
     // MARK: - Add
@@ -138,155 +114,163 @@ struct RealEntitiesInteractor: EntitiesInteractor {
     func add(from fileURLs: [URL]) {
         cancelBags.cancel(for: "add")
 
-        var publisherList: [AnyPublisher<Bool, Error>] = .init()
+        var publisherList: [AnyPublisher<PaperEntityDraft, Error>] = .init()
         
         fileURLs.forEach { url in
-            appState[\.receiveSignals.fetchingEntities] += 1
+            appState[\.receiveSignals.processingCount] += 1
             let publisher = Just<Void>
                 .withErrorType(Error.self)
                 .flatMap { _ in
                     fileRepository.read(from: url)
                 }
-                .flatMap { entity -> AnyPublisher<Bool, Error> in
-                    if (entity != nil) {
-                        return webRepository.fetch(for: entity!, enable: true)
-                            .flatMap { entity in
-                                fileRepository.move(for: entity)
-                            }
-                            .flatMap { entity in
-                                dbRepository.add(for: entity).zip(Just<PaperEntity?>.withErrorType(entity, Error.self))
-                            }
-                            .flatMap { successWithEntity -> AnyPublisher<Bool, Error> in
-                                if !successWithEntity.0 {
-                                    return fileRepository.remove(for: successWithEntity.1)
-                                } else {
-                                    return Just<Bool>.withErrorType(false, Error.self)
-                                }
-                            }
-                            .eraseToAnyPublisher()
-                    }
-                    else {
-                        return Just<Bool>.withErrorType(false, Error.self).eraseToAnyPublisher()
-                    }
+                .flatMap { entity -> AnyPublisher<PaperEntityDraft, Error> in
+                    return webRepository.fetch(for: entity!, enable: true).eraseToAnyPublisher()
                 }
                 .eraseToAnyPublisher()
 
             publisherList.append(publisher)
         }
-
+        
+        let c = publisherList.count
+        
         Publishers.MergeMany(publisherList)
-            .sink(receiveCompletion: { _ in
-            }, receiveValue: { _ in
-                appState[\.receiveSignals.fetchingEntities] -= 1
+            .collect()
+            .flatMap({ entities in
+                fileRepository.move(for: entities)
+            })
+            .sink(receiveCompletion: { _ in }, receiveValue: {entities in
+                
+                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
+                Task {
+                    await dbRepository.add(for: filteredEntities)
+                        .flatMap { failedPaths -> AnyPublisher<[Bool], Error> in
+                            return fileRepository.remove(for: failedPaths)
+                        }
+                        .sink(receiveCompletion: { _ in }, receiveValue: {_ in
+                            appState[\.receiveSignals.processingCount] -= c
+                        })
+                        .store(in: CancelBag())
+                }
+                
             })
             .store(in: cancelBags["add"])
     }
 
+    func addTestData() {
+        
+        Task {
+            var testEntities: [PaperEntityDraft] = .init()
+            
+            for i in 0...500 {
+                let entity = PaperEntityDraft()
+                entity.title = "Title \(i)"
+                entity.authors = "Authors \(i)"
+                testEntities.append(entity)
+            }
+            
+            await dbRepository.add(for: testEntities)
+                .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+                .store(in: CancelBag())
+        }
+    }
+
+    
     // MARK: - Delete
 
     func delete(ids: Set<ObjectId>) {
         cancelBags.cancel(for: "delete")
 
-        Just<Void>
-            .withErrorType(Error.self)
-            .flatMap { _ in
-                dbRepository.entities(ids: ids, freeze: true)
-            }
-            .removeDuplicates()
-            .flatMap { entities in
-                fileRepository.remove(for: entities).zip(dbRepository.delete(entities: entities))
-            }
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-            .store(in: cancelBags["delete"])
+        Task {
+            await dbRepository.delete(ids: Array(ids))
+                .flatMap { filePaths in
+                    fileRepository.remove(for: filePaths)
+                }
+                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+                .store(in: cancelBags["delete"])
+        }
     }
 
     func delete(tagId: String) {
         cancelBags.cancel(for: "delete-tag")
 
-        Just<Void>
-            .withErrorType(Error.self)
-            .flatMap { _ in
-                dbRepository.delete(tagId: tagId)
-            }
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-            .store(in: cancelBags["delete-tag"])
+        Task {
+            await dbRepository.delete(tagId: tagId)
+                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+                .store(in: cancelBags["delete-tag"])
+        }
     }
 
     func delete(folderId: String) {
         cancelBags.cancel(for: "delete-folder")
 
-        Just<Void>
-            .withErrorType(Error.self)
-            .flatMap { _ in
-                dbRepository.delete(folderId: folderId)
-            }
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-            .store(in: cancelBags["delete-folder"])
+        Task{
+            await dbRepository.delete(folderId: folderId)
+                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+                .store(in: cancelBags["delete-folder"])
+        }
     }
 
     // MARK: - Update
 
-    func update(entities: [PaperEntity], method: String, editedEntities: [EditPaperEntity]?) {
+    func update(entities: [PaperEntityDraft]) {
         cancelBags.cancel(for: "update")
 
-        let editEntities = Array(entities.map { EditPaperEntity(from: $0) })
-
-        Just<Void>
-            .withErrorType(Error.self)
-            .flatMap { _ -> AnyPublisher<[EditPaperEntity?], Error> in
-                if editedEntities != nil {
-                    return fileRepository.move(for: editedEntities!)
-                } else {
-                    return CurrentValueSubject<[EditPaperEntity?], Error>.init([nil]).eraseToAnyPublisher()
+        Just<[PaperEntityDraft]>
+            .withErrorType(entities, Error.self)
+            .flatMap { entities in
+                fileRepository.move(for: entities)
+            }
+            .sink(receiveCompletion: { _ in }, receiveValue: {entities in
+                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
+                Task{
+                    await dbRepository.update(from: filteredEntities)
+                        .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+                        .store(in: CancelBag())
                 }
-            }
-            .map {
-                $0.filter { $0 != nil }.map { $0! }
-            }
-            .flatMap { editedEntities -> AnyPublisher<[EditPaperEntity]?, Error> in
-                if editedEntities.count == 0 {
-                    return CurrentValueSubject<[EditPaperEntity]?, Error>.init(nil).eraseToAnyPublisher()
-                } else {
-                    return CurrentValueSubject<[EditPaperEntity]?, Error>.init(editedEntities).eraseToAnyPublisher()
-                }
-            }
-            .flatMap { editedEntities in
-                dbRepository.update(entities: editEntities, method: method, editedEntities: editedEntities)
-            }
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+            })
             .store(in: cancelBags["update"])
+
     }
 
-    func match(entities: [PaperEntity], fetchWeb: Bool) {
+    func match(entities: [PaperEntityDraft]) {
         cancelBags.cancel(for: "match")
-
-        var publisherList: [AnyPublisher<Bool, Error>] = .init()
-
+        
+        var publisherList: [AnyPublisher<PaperEntityDraft, Error>] = .init()
+        
         entities.forEach { entity in
+            appState[\.receiveSignals.processingCount] += 1
             let publisher = Just<Void>
                 .withErrorType(Error.self)
-                .flatMap { _ in
-                    dbRepository.copy(entity: entity)
-                }
-                .flatMap { entity in
-                    webRepository.fetch(for: entity, enable: fetchWeb)
-                }
-                .flatMap { entity in
-                    fileRepository.move(for: entity)
-                }
-                .flatMap { entity in
-                    dbRepository.update(entity: EditPaperEntity(from: entity!), method: "update")
+                .flatMap { _ -> AnyPublisher<PaperEntityDraft, Error> in
+                    return webRepository.fetch(for: entity, enable: true).eraseToAnyPublisher()
                 }
                 .eraseToAnyPublisher()
+
             publisherList.append(publisher)
         }
-
+        
+        let c = publisherList.count
+        
         Publishers.MergeMany(publisherList)
             .collect()
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+            .flatMap { entities in
+                fileRepository.move(for: entities)
+            }
+            .sink(receiveCompletion: { _ in }, receiveValue: { entities in
+                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
+                Task {
+                    await dbRepository.update(from: filteredEntities)
+                        .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+                        .store(in: CancelBag())
+                    
+                    appState[\.receiveSignals.processingCount] -= c
+                }
+                
+            })
             .store(in: cancelBags["match"])
     }
 
+    // MARK: -
     func export(entities: [PaperEntity], format: String) {
         if format == "bibtex" {
             _exportBibtex(entities: entities)
@@ -358,24 +342,24 @@ struct RealEntitiesInteractor: EntitiesInteractor {
         pasteBoard.writeObjects([allPlain as NSString])
     }
 
-    func moveLib() {
-        cancelBags.cancel(for: "move-lib")
-
-        Just<Void>
-            .withErrorType(Error.self)
-            .flatMap {
-                dbRepository.setDBPath(path: appState[\.setting.appLibFolder])
+    func openLib() {
+        Task{
+            let _ = await dbRepository.open(settings: appState[\.setting])
+            DispatchQueue.main.sync{
+                appState[\.receiveSignals.appLibMoved] = Date()
             }
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in
-                appState[\.setting.appLibMoved] = Date()
-            })
-            .store(in: cancelBags["move-lib"])
+        }                       
     }
+    
+    func migrateLocaltoSync() {
+        dbRepository.migrateLocaltoSync()
+    }
+    
     
     func handleChromePluginUrl(_ url: URL) {
         
         cancelBags.cancel(for: "plugin")
-        appState[\.receiveSignals.fetchingEntities] += 1
+        appState[\.receiveSignals.processingCount] += 1
         
         var urlStr = url.absoluteString
         urlStr = formatString(urlStr, removeStr: "paperlib://")!
@@ -389,7 +373,7 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             if let downloadUrl = URL(string: downloadLink) {
                 fileRepository.download(url: downloadUrl)
                 .sink(receiveCompletion: {_ in}, receiveValue: {
-                    appState[\.receiveSignals.fetchingEntities] -= 1
+                    appState[\.receiveSignals.processingCount] -= 1
                     if let downloadedUrl = $0 {
                         add(from: [downloadedUrl])
                     }
@@ -408,16 +392,26 @@ struct RealEntitiesInteractor: EntitiesInteractor {
             return nil
         }
     }
-        
     
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
+    func addTestData() {}
+    func load(entities: LoadableSubject<Results<PaperEntity>>, drafts: Binding<[PaperEntityDraft]>, ids: Set<ObjectId>) {
+        
+    }
+    
+    func update(entities: [PaperEntityDraft]) {
+        
+    }
+    
     func getJoinedUrl(_ url: String) -> URL? {
         return URL(string: "")
     }
     
-    func moveLib() {}
+    func openLib() {}
+    
+    func migrateLocaltoSync() {}
     
     func delete(tagId _: String) {}
 
@@ -427,17 +421,9 @@ struct StubEntitiesInteractor: EntitiesInteractor {
 
     func load(folders _: LoadableSubject<Results<PaperFolder>>, cancelBagKey _: String? = nil) {}
 
-    func load(entities _: LoadableSubject<Results<PaperEntity>>, ids _: Set<ObjectId>) {}
-
     func load(tags _: LoadableSubject<Results<PaperTag>>, cancelBagKey _: String?) {}
 
-    func load(entity _: Binding<EditPaperEntity>, id _: ObjectId) {}
-
-    func update(entities _: [PaperEntity], method _: String, editedEntities _: [EditPaperEntity]?) {}
-
-    func match(entities _: [PaperEntity], fetchWeb _: Bool) {}
-
-    func load(entity _: LoadableSubject<PaperEntity>, id _: ObjectId) {}
+    func match(entities _: [PaperEntityDraft]) {}
 
     func load(entities _: LoadableSubject<Results<PaperEntity>>, search _: String?, flag _: Bool, tags _: [String], folders _: [String], sort _: String) {}
 

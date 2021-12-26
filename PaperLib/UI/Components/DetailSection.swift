@@ -72,7 +72,6 @@ struct DetailsSupSection: View {
         LazyVGrid(columns: columns, spacing: 1) {
             ForEach(sups, id: \.self) { sup in
                 Button(action: {
-                    print(sup)
                     NSWorkspace.shared.open(sup)
                 }) {
                     Text("FILE").font(.subheadline).underline()
