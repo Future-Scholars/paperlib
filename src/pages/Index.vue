@@ -1772,15 +1772,7 @@ export default {
 
     const saveSettings = async () => {
       clearSelected();
-      window.api
-        .saveSettings(JSON.parse(JSON.stringify(settings.value)))
-        .then(async () => {
-          reloadAppLibPath();
-          await reloadEntities();
-          reloadTags();
-          reloadFolders();
-          reloadSelectedEntities();
-        });
+      window.api.saveSettings(JSON.parse(JSON.stringify(settings.value)));
     };
 
     // Signal
@@ -1788,6 +1780,12 @@ export default {
       showLoadingIcon.value = true;
     });
     window.api.registerSignal("hideLoading", (event, message) => {
+      showLoadingIcon.value = false;
+    });
+
+    window.api.registerSignal("pluginURL", async (event, message) => {
+      showLoadingIcon.value = true;
+      await window.api.add([message]);
       showLoadingIcon.value = false;
     });
 

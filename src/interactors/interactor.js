@@ -266,25 +266,4 @@ export class Interactor {
   appLibPath() {
     return this.appStore.get("appLibFolder");
   }
-
-  async addFromPlugin(url) {
-    let addPromise = async (url) => {
-      try {
-        var entity = await this.fileRepository.read(url, true);
-        entity = await this.webRepository.fetch(entity);
-        let moveSuccess = await this.fileRepository.move(entity);
-        if (moveSuccess) {
-          let addSuccess = this.dbRepository.add(entity);
-          if (!addSuccess) {
-            await this.fileRepository.remove(entity);
-          }
-        } else {
-          console.log("move file failed");
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    return await addPromise(url);
-  }
 }

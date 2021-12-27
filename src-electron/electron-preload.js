@@ -154,9 +154,3 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.on(signal, callback);
   },
 });
-
-app.on("open-url", async (event, url) => {
-  BrowserWindow.getFocusedWindow().webContents.send("showLoading");
-  await interactor.addFromPlugin(url);
-  BrowserWindow.getFocusedWindow().webContents.send("hideLoading");
-});

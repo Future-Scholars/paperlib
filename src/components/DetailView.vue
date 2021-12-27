@@ -37,7 +37,7 @@
     @update:model-value="ratingEvent"
   />
 
-  <div class="detail-section-title">Preview</div>
+  <div class="detail-section-title" v-show="ifShowPreview">Preview</div>
   <div
     style="
       height: 210px;
@@ -46,10 +46,12 @@
       border: 1px solid #ddd;
       border-radius: 5px;
     "
+    v-show="ifShowPreview"
     v-on:dblclick="openFileEvent(entity.mainURL)"
   />
   <canvas
     id="preview"
+    v-show="ifShowPreview"
     style="height: 210px; width: 150px; margin-bottom: 1em"
   />
 
@@ -90,7 +92,7 @@
 </style>
 
 <script>
-import { defineComponent, toRefs, ref } from "vue";
+import { defineComponent, toRefs, ref, watch } from "vue";
 import * as pdfjs from "pdfjs-dist";
 
 export default defineComponent({
@@ -107,6 +109,7 @@ export default defineComponent({
 
   setup(props) {
     const rendering = ref(false);
+    const ifShowPreview = ref(false);
 
     const pdfjsWorker = import("pdfjs-dist/build/pdf.worker.entry");
     pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -139,38 +142,55 @@ export default defineComponent({
         return;
       }
       rendering.value = true;
-      const pdf = await pdfjs.getDocument(joined(props.entity.mainURL)).promise;
-      const page = await pdf.getPage(1);
 
-      var scale = 0.3;
-      var viewport = page.getViewport({ scale: scale });
-      // Support HiDPI-screens.
-      var outputScale = window.devicePixelRatio || 1;
+      try {
+        const pdf = await pdfjs.getDocument(joined(props.entity.mainURL))
+          .promise;
+        const page = await pdf.getPage(1);
 
-      var canvas = document.getElementById("preview");
-      var context = canvas.getContext("2d");
+        var scale = 0.3;
+        var viewport = page.getViewport({ scale: scale });
+        // Support HiDPI-screens.
+        var outputScale = window.devicePixelRatio || 1;
 
-      canvas.width = Math.floor(viewport.width * outputScale);
-      canvas.height = Math.floor(viewport.height * outputScale);
+        var canvas = document.getElementById("preview");
+        var context = canvas.getContext("2d");
 
-      var transform =
-        outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+        canvas.width = Math.floor(viewport.width * outputScale);
+        canvas.height = Math.floor(viewport.height * outputScale);
 
-      var renderContext = {
-        canvasContext: context,
-        transform: transform,
-        viewport: viewport,
-      };
-      page.render(renderContext);
-      rendering.value = false;
+        var transform =
+          outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+
+        var renderContext = {
+          canvasContext: context,
+          transform: transform,
+          viewport: viewport,
+        };
+        page.render(renderContext);
+        ifShowPreview.value = true;
+      } catch (e) {
+        console.log(e);
+        ifShowPreview.value = false;
+      } finally {
+        rendering.value = false;
+      }
     };
 
     const joined = (url) => {
       return window.api.getJoinedPath(url, true);
     };
 
+    watch(
+      () => props.entity.mainURL,
+      () => {
+        showPreview();
+      }
+    );
+
     return {
       rendering,
+      ifShowPreview,
       openFileEvent,
       deleteSupEvent,
       ratingEvent,
@@ -184,10 +204,6 @@ export default defineComponent({
     this.$nextTick(function () {
       this.showPreview();
     });
-  },
-
-  updated() {
-    this.showPreview();
   },
 });
 </script>

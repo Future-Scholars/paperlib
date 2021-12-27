@@ -44,9 +44,10 @@ export class FileRepository {
     }
   }
 
-  async read(url, webURL) {
+  async read(url) {
+    console.log("read", url);
     if (url.endsWith(".pdf")) {
-      if (webURL) {
+      if (url.startsWith("paperlib://")) {
         return this.downloadPDF(url);
       } else {
         return await this.readPDF(url);
@@ -87,10 +88,12 @@ export class FileRepository {
   }
 
   async downloadPDF(url) {
+    console.log("download", url);
     try {
       let downloadUrl = url.split("=").pop();
       let filename = url.split("/").pop();
-      let targetUrl = path.join(process.env.HOME, "Downloads", filename);
+      let targetUrl = path.join(os.homedir(), "Downloads", filename);
+      console.log(targetUrl);
       console.log(downloadUrl);
       console.log(targetUrl);
       const pipeline = promisify(stream.pipeline);

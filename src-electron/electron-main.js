@@ -62,16 +62,26 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on("second-instance", (event, commandLine, workingDirectory) => {
+  app.on("second-instance", async (event, argv) => {
+    let deeplinkingUrl = argv.find((arg) => arg.startsWith("paperlib://"));
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
+
+      BrowserWindow.getFocusedWindow().webContents.send(
+        "pluginURL",
+        deeplinkingUrl
+      );
     }
   });
 
   app.whenReady().then(() => {
     createWindow();
+  });
+
+  app.on("open-url", (event, url) => {
+    dialog.showErrorBox("Welcome Back openurl", `You arrived from: ${url}`);
   });
 }
 
@@ -97,7 +107,7 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient("paperlib");
 }
 
-autoUpdater.checkForUpdates();
+// autoUpdater.checkForUpdates();
 
 autoUpdater.on("update-available", (info) => {
   const dialogOpts = {

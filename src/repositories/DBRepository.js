@@ -83,7 +83,6 @@ export class DBRepository {
     var entities = this._realm.objects("PaperEntity");
 
     console.log("Migrate local data to sync.");
-    console.log(entities);
     // Write to sync server
     await this.initSync();
 
