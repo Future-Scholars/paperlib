@@ -55,7 +55,7 @@ struct GeneralSettingsView: View {
     @Environment(\.injected) private var injected: DIContainer
 
     @AppStorage("appLibFolder") private var appLibFolder = ""
-    @AppStorage("invertColor") private var invertColor = true
+    @AppStorage("invertColor") private var invertColor = false
     @AppStorage("preferColorTheme") private var preferColorTheme = "System Default"
     @AppStorage("deleteSourceFile") private var deleteSourceFile = false
 
@@ -96,7 +96,7 @@ struct GeneralSettingsView: View {
             })
 
             HStack(alignment: .top) {
-                Text("Invert color of previews in the dark mode.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Text("Invert colors of previews in the dark mode.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 Toggle("", isOn: $invertColor)
                     .toggleStyle(.checkbox)
             }
@@ -105,7 +105,7 @@ struct GeneralSettingsView: View {
             })
             
             HStack(alignment: .top) {
-                Text("Automaticly delete the imported source file.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Text("Automatically delete the imported source file.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 Toggle("", isOn: $deleteSourceFile)
                     .toggleStyle(.checkbox)
             }
@@ -146,10 +146,23 @@ struct MatchSettingsView: View {
     @Environment(\.injected) private var injected: DIContainer
 
     @AppStorage("ieeeAPIKey") private var ieeeAPIKey = ""
-    @AppStorage("allowFetchPDFMeta") private var allowFetchPDFMeta = true
+    @AppStorage("allowFetchPDFMeta") private var allowFetchPDFMeta = false
+    @AppStorage("allowRoutineMatch") private var allowRoutineMatch = false
+    @AppStorage("rematchInterval") private var rematchInterval = 7
 
+    
     var body: some View {
         VStack(alignment: .leading) {
+            
+            HStack(alignment: .top) {
+                Text("Scrape PDF's built-in metadata.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Toggle("", isOn: $allowFetchPDFMeta)
+                    .toggleStyle(.checkbox)
+            }
+            .onChange(of: allowFetchPDFMeta, perform: { allowFetchPDFMeta in
+                injected.appState[\.setting.allowFetchPDFMeta] = allowFetchPDFMeta
+            })
+            
             HStack(alignment: .top) {
                 Text("IEEE Xplorer API Key, the request limitation with the IEEE API is up to 200 per day. The API Key can applied from IEEE Developer website. See more on Paperlib's Github.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 TextField("", text: $ieeeAPIKey)
@@ -158,14 +171,30 @@ struct MatchSettingsView: View {
             .onChange(of: ieeeAPIKey, perform: { ieeeAPIKey in
                 injected.appState[\.setting.ieeeAPIKey] = ieeeAPIKey
             })
+            .padding(.bottom, 10)
+            
+            Divider()
             
             HStack(alignment: .top) {
-                Text("Allow fetch PDF's built-in metadata.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
-                Toggle("", isOn: $allowFetchPDFMeta)
+                Text("Automatically re-match metadata for preprint papers.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Toggle("", isOn: $allowRoutineMatch)
                     .toggleStyle(.checkbox)
             }
-            .onChange(of: allowFetchPDFMeta, perform: { allowFetchPDFMeta in
-                injected.appState[\.setting.allowFetchPDFMeta] = allowFetchPDFMeta
+            .onChange(of: allowRoutineMatch, perform: { allowRoutineMatch in
+                injected.appState[\.setting.allowRoutineMatch] = allowRoutineMatch
+            })
+            .padding(.top, 10)
+            HStack(alignment: .top) {
+                Text("Rountine re-matching interval.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
+                Picker("", selection: $rematchInterval) {
+                    ForEach([1, 7, 30], id: \.self) {
+                        Text("\($0) day(s)")
+                    }
+                }.pickerStyle(MenuPickerStyle()).padding(.leading, -8)
+            }
+            .onChange(of: rematchInterval, perform: { rematchInterval in
+                injected.appState[\.setting.rematchInterval] = rematchInterval
+                injected.interactors.entitiesInteractor.setRoutineTimer()
             })
         }
     }
