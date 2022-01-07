@@ -22,6 +22,9 @@ extension AppState {
         var invertColor = UserDefaults.standard.bool(forKey: "invertColor")
         var ieeeAPIKey = UserDefaults.standard.string(forKey: "ieeeAPIKey") ?? ""
         var allowFetchPDFMeta = UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")
+        var allowRoutineMatch = UserDefaults.standard.bool(forKey: "allowRoutineMatch")
+        var rematchInterval = UserDefaults.standard.integer(forKey: "rematchInterval") == 0 ? 7: UserDefaults.standard.integer(forKey: "rematchInterval")
+        var lastRematchTime = UserDefaults.standard.integer(forKey: "lastRematchTime")
         var deleteSourceFile = UserDefaults.standard.bool(forKey: "deleteSourceFile")
         var exportReplacement = UserDefaults.standard.data(forKey: "exportReplacement")
         var enableExportReplacement = UserDefaults.standard.bool(forKey: "enableExportReplacement")

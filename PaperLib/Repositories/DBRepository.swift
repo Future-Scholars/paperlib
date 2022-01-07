@@ -18,7 +18,8 @@ protocol DBRepository {
     func migrateLocaltoSync()
     
     func entities(search: String?, flag: Bool, tags: [String], folders: [String], sort: String) async -> AnyPublisher<Results<PaperEntity>, Error>
-
+    func preprintEntities() async -> Results<PaperEntity>
+        
     func tags() async -> AnyPublisher<Results<PaperTag>, Error>
     func folders() async -> AnyPublisher<Results<PaperFolder>, Error>
 
@@ -293,6 +294,14 @@ class RealDBRepository: DBRepository {
             
     }
 
+    func preprintEntities() async -> Results<PaperEntity> {
+        let realm = try! await self.realm()
+        
+        let filterFormat = "publication contains[cd] \"arXiv\""
+        return realm.objects(PaperEntity.self).filter(filterFormat)
+    }
+
+    
     func tags() async -> AnyPublisher<Results<PaperTag>, Error> {
         let realm = try! await self.realm()
         return realm.objects(PaperTag.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.eraseToAnyPublisher()
@@ -386,7 +395,7 @@ class RealDBRepository: DBRepository {
         var failedPaths: [String] = .init()
         
         let prepareEntities: [PaperEntityDraft?] = entities.map({ entity in
-            let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity.title)\" and authors == \"\(entity.authors))\"")
+            let existEntities = realm.objects(PaperEntity.self).filter("title == \"\(entity.title)\" and authors == \"\(entity.authors)\"")
             
             if (existEntities.count > 0 && !entity.title.isEmpty && !entity.title.isEmpty) {
                 print("Paper exists: \(entity.title)")
