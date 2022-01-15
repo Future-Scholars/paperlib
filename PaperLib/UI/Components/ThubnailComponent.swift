@@ -6,22 +6,29 @@
 //
 import AppKit
 import Combine
-import QuickLookThumbnailing
 import SwiftUI
+import PDFKit
 
 struct ThumbnailComponent: View {
     @Environment(\.injected) private var injected: DIContainer
-
-    var url: URL?
-    @State private var thumbnail: NSImage? = nil
-    @State private var curUrl: URL? = nil
-
+    
+    private var url: URL?
+    private var thumbnail: NSImage?
     @State private var invertColor: Bool = true
 
     @Environment(\.colorScheme) var colorScheme
 
+    init(url: URL?) {
+        self.url = url
+        if url != nil {
+            let preview = drawPDFfromURL(url: url!)
+            self.thumbnail = preview
+        }
+    }
+    
+    
     var body: some View {
-        if url == curUrl && self.thumbnail != nil {
+        if self.thumbnail != nil {
             if colorScheme == .dark {
                 if invertColor {
                     Image(nsImage: self.thumbnail!)
@@ -46,9 +53,7 @@ struct ThumbnailComponent: View {
                     }
             }
         } else {
-            Image(systemName: "photo").onAppear(perform: {
-                generateThumbnail()
-            })
+            Image(systemName: "photo")
         }
         EmptyView()
             .onReceive(invertColorUpdate, perform: {
@@ -56,28 +61,26 @@ struct ThumbnailComponent: View {
             })
     }
 
-    func generateThumbnail() {
-        guard url != nil else {
-            return
-        }
-        let size = NSSize(width: 150, height: 150 * 1.4)
-        let request = QLThumbnailGenerator.Request(fileAt: url!, size: size, scale: (NSScreen.main?.backingScaleFactor)!, representationTypes: .all)
-        let generator = QLThumbnailGenerator.shared
-
-        generator.generateRepresentations(for: request) { thumbnail, _, error in
-            DispatchQueue.main.async {
-                if error != nil {
-                    if (error! as NSError).code != 2 {
-                        print("[Error] Thumbnail failed to generate")
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        self.thumbnail = thumbnail!.nsImage
-                        self.curUrl = url
-                    }
+    
+    func drawPDFfromURL(url: URL) -> NSImage? {
+        let document = PDFDocument(url: url)
+        var preview: NSImage?
+        if let pdf = document {
+            let page = pdf.page(at: 0)
+            if let firstPage = page{
+                preview = firstPage.thumbnail(of: NSSize(width: 350, height: 350 * 1.4), for: .mediaBox)
+                if let previewImg = preview {
+                    let destSize = NSMakeSize(CGFloat(150), CGFloat(150 * 1.4))
+                    let newImage = NSImage(size: destSize)
+                    newImage.lockFocus()
+                    previewImg.draw(in: NSMakeRect(0, 0, destSize.width, destSize.height), from: NSMakeRect(0, 0, previewImg.size.width, previewImg.size.height), operation: NSCompositingOperation.copy, fraction: CGFloat(1))
+                    newImage.unlockFocus()
+                    newImage.size = destSize
+                    preview = newImage
                 }
             }
         }
+        return preview
     }
 
     var invertColorUpdate: AnyPublisher<Bool, Never> {

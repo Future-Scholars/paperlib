@@ -42,7 +42,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
     let webRepository: WebRepository
     let appState: Store<AppState>
     
-    let cancelBags: CancelBags = .init(["timer", "entities", "entitiesByIds", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "open-lib", "plugin"])
+    let cancelBags: CancelBags = .init(["apiVersion","timer", "entities", "entitiesByIds", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "open-lib", "plugin"])
 
     var routineTimer: Publishers.Autoconnect<Timer.TimerPublisher> = Timer.publish(every: 86400, on: .main, in: .common).autoconnect()
     
@@ -53,6 +53,10 @@ class RealEntitiesInteractor: EntitiesInteractor {
         self.webRepository = webRepository
                
         self.setRoutineTimer()
+        
+        self.webRepository.apiVersion()
+            .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+            .store(in: cancelBags["apiVersion"])
     }
 
     // MARK: - Select
