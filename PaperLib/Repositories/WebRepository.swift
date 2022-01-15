@@ -12,6 +12,7 @@ import SwiftyJSON
 import SwiftyXMLParser
 
 protocol WebRepository {
+    func apiVersion() -> AnyPublisher<DataResponse<String, AFError>, Never>
     func fetch(for: PaperEntityDraft, enable: Bool) -> AnyPublisher<PaperEntityDraft, Error>
     func fetch(arxiv entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error>
     func fetch(doi entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error>
@@ -23,6 +24,14 @@ protocol WebRepository {
 }
 
 struct RealWebRepository: WebRepository {
+    
+    func apiVersion() -> AnyPublisher<DataResponse<String, AFError>, Never> {
+        let versionURL = "https://paperlib.geoch.top/api/version"
+
+        return AF.request(versionURL)
+            .publishString()
+            .eraseToAnyPublisher()
+    }
     
     func fetch(for entity: PaperEntityDraft, enable: Bool) -> AnyPublisher<PaperEntityDraft, Error> {
         if enable {
@@ -174,7 +183,7 @@ struct RealWebRepository: WebRepository {
         title = formatString(title, removeNewline: true)!
         title = title.replacingOccurrences(of: " ", with: "+")
 
-        let fetchURL = "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=\(String(describing: UserDefaults.standard.string(forKey: "ieeeAPIKey")))&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=\(title)"
+        let fetchURL = "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=\(formatString(UserDefaults.standard.string(forKey: "ieeeAPIKey"))!)&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=\(title)"
         let headers: HTTPHeaders = ["Accept": "application/json"]
 
         func parseResponse(ieeeResponse: String?, entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
