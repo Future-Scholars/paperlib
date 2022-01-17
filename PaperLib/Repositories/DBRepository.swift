@@ -29,8 +29,8 @@ protocol DBRepository {
 
     func unlink(tags: List<PaperTag>, realm: Realm?)
     func unlink(folders: List<PaperFolder>, realm: Realm?)
-    func delete(tagId: String) async -> AnyPublisher<Bool, Error>
-    func delete(folderId: String) async -> AnyPublisher<Bool, Error>
+    func delete(tagName: String) async -> AnyPublisher<Bool, Error>
+    func delete(folderName: String) async -> AnyPublisher<Bool, Error>
 
     func update(from entities: [PaperEntityDraft]) async -> AnyPublisher<Bool, Error>
 
@@ -47,7 +47,7 @@ public extension Realm {
 }
 
 class RealDBRepository: DBRepository {
-    var realmSchemaVersion: UInt64 = 4
+    var realmSchemaVersion: UInt64 = 5
     var syncConfig: Realm.Configuration?
     var localConfig: Realm.Configuration?
     var app: App?
@@ -73,6 +73,7 @@ class RealDBRepository: DBRepository {
     }
     
     func open(settings: AppState.Setting) async -> Realm.Configuration {
+        await self.logoutSync()
         if (settings.useSync && !settings.syncAPIKey.isEmpty ) {
             return await openSync()
         }
@@ -132,6 +133,7 @@ class RealDBRepository: DBRepository {
         }
         catch {
             print("Cannot login to sync db.")
+            UserDefaults.standard.set(false, forKey: "useSync")
             return self.openLocal()
         }
     }
@@ -151,9 +153,22 @@ class RealDBRepository: DBRepository {
         }
     }
     
+    func logoutSync() async {
+        do {
+            if (self.app == nil) {
+                self.app = App(id: "paperlib-iadbj")
+            }
+            
+            try await self.app!.currentUser?.logOut()
+        }
+        catch {
+            print("Cannot logout from sync db.")
+        }
+    }
+    
     func migrate(migration: Migration, oldSchemaVersion: UInt64) {
         print("Dataset Version: \(oldSchemaVersion)")
-        if (oldSchemaVersion < 2) {
+        if (oldSchemaVersion == 1) {
             migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
                 newObject!["id"] = oldObject!["id"]
                 newObject!["addTime"] = oldObject!["addTime"]
@@ -164,13 +179,31 @@ class RealDBRepository: DBRepository {
                 newObject!["pubType"] = oldObject!["pubType"] ?? 2
                 newObject!["doi"] = oldObject!["doi"] ?? ""
                 newObject!["arxiv"] = oldObject!["arxiv"] ?? ""
-                newObject!["mainURL"] = oldObject!["mainURL"] ?? ""
                 newObject!["rating"] = oldObject!["rating"] ?? 0
                 newObject!["flag"] = oldObject!["flag"] ?? false
+                
+                newObject!["mainURL"] = URL(string: ((newObject!["mainURL"] ?? "") as! String))?.lastPathComponent ?? "";
+                var newObjectSupURLs: Array<String> = .init();
+
+                unsafeBitCast(newObject!["supURLs"] as! List<DynamicObject>, to: List<String>.self).forEach { supURL in
+                    if let fileName = URL(string: supURL)?.lastPathComponent {
+                        newObjectSupURLs.append(fileName);
+                    }
+                }
+                newObject!["supURLs"] = newObjectSupURLs;
+                newObject!["_id"] = oldObject!["id"]
+                
+            }
+            
+            migration.enumerateObjects(ofType: PaperTag.className()) { oldObject, newObject in
+                newObject!["_id"] = ObjectId.generate()
+            }
+            migration.enumerateObjects(ofType: PaperFolder.className()) { oldObject, newObject in
+                newObject!["_id"] = ObjectId.generate()
             }
         }
             
-        if (oldSchemaVersion < 3) {
+        if (oldSchemaVersion == 2) {
             migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
 
                 newObject!["mainURL"] = URL(string: (newObject!["mainURL"] as! String))?.lastPathComponent ?? "";
@@ -182,18 +215,34 @@ class RealDBRepository: DBRepository {
                     }
                 }
                 newObject!["supURLs"] = newObjectSupURLs;
+                newObject!["_id"] = oldObject!["id"]
+            }
+            migration.enumerateObjects(ofType: PaperTag.className()) { oldObject, newObject in
+                newObject!["_id"] = ObjectId.generate()
+            }
+            migration.enumerateObjects(ofType: PaperFolder.className()) { oldObject, newObject in
+                newObject!["_id"] = ObjectId.generate()
             }
         }
         
-        if (oldSchemaVersion < 4) {
+        if (oldSchemaVersion == 3) {
             migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
                 newObject!["_id"] = oldObject!["id"]
             }
             migration.enumerateObjects(ofType: PaperTag.className()) { oldObject, newObject in
-                newObject!["_id"] = oldObject!["id"]
+                newObject!["_id"] = ObjectId.generate()
             }
             migration.enumerateObjects(ofType: PaperFolder.className()) { oldObject, newObject in
-                newObject!["_id"] = oldObject!["id"]
+                newObject!["_id"] = ObjectId.generate()
+            }
+        }
+        
+        if (oldSchemaVersion == 4) {
+            migration.enumerateObjects(ofType: PaperTag.className()) { oldObject, newObject in
+                newObject!["_id"] = ObjectId.generate()
+            }
+            migration.enumerateObjects(ofType: PaperFolder.className()) { oldObject, newObject in
+                newObject!["_id"] = ObjectId.generate()
             }
         }
     }
@@ -233,8 +282,7 @@ class RealDBRepository: DBRepository {
 
         }
     }
-    
-    
+        
     func realm() async throws -> Realm {
         if (!self.inited) {
             let _ = await self.open()
@@ -276,10 +324,10 @@ class RealDBRepository: DBRepository {
             filterFormat += "(flag == true) AND "
         }
         tags.forEach { tag in
-            filterFormat += "(ANY tags.id == \"\(tag)\") AND "
+            filterFormat += "(ANY tags.name == \"\(String(tag[String.Index(utf16Offset: 4, in: tag)...]))\") AND "
         }
         folders.forEach { folder in
-            filterFormat += "(ANY folders.id == \"\(folder)\") AND "
+            filterFormat += "(ANY folders.name == \"\(String(folder[String.Index(utf16Offset: 7, in: folder)...]))\") AND "
         }
 
         var publisher: RealmPublishers.Value<Results<PaperEntity>>
@@ -348,7 +396,9 @@ class RealDBRepository: DBRepository {
                     .components(separatedBy: ";")
                     .forEach({tagStr in
                         guard !tagStr.isEmpty else { return }
-                        let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: "tag-" + tagStr) ?? PaperTag(id: tagStr)
+                        let existTags = realm.objects(PaperTag.self).filter("ANY tags.name == \"\(tagStr)\"")
+                        let tagObj = existTags.count > 0 ? existTags.first! : PaperTag(name: tagStr)
+                         
                         tagObj.count += 1
                         
                         if (self.syncConfig != nil){
@@ -362,7 +412,9 @@ class RealDBRepository: DBRepository {
                     .components(separatedBy: ";")
                     .forEach({folderStr in
                         guard !folderStr.isEmpty else { return }
-                        let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: "folder-" + folderStr) ?? PaperFolder(id: folderStr)
+                        let existFolders = realm.objects(PaperFolder.self).filter("ANY folders.name == \"\(folderStr)\"")
+                        let folderObj = existFolders.count > 0 ? existFolders.first! : PaperFolder(name: folderStr)
+                        
                         folderObj.count += 1
                         
                         if (self.syncConfig != nil){
@@ -426,6 +478,64 @@ class RealDBRepository: DBRepository {
         .eraseToAnyPublisher()
     }
 
+    func link(tagStrs: String, realm: Realm? = nil) -> [PaperTag] {
+        let realm = realm != nil ? realm : try! Realm()
+        var tags: [PaperTag] = .init()
+        let tagNames = tagStrs.components(separatedBy: ";")
+        try! realm!.safeWrite {
+            tagNames.forEach { tagName in
+                let tagName = formatString(tagName, returnEmpty: true, trimWhite: true)!
+                if !tagName.isEmpty {
+                    let existTags = realm!.objects(PaperTag.self).filter("name == \"\(tagName)\"")
+                    if existTags.count > 0 {
+                        let tagObj = existTags.first!
+                        tagObj.count += 1
+                        tags.append(tagObj)
+                    } else {
+                        let newTagObj = PaperTag(name: tagName)
+                        newTagObj.count += 1
+                        if (self.syncConfig != nil){
+                            newTagObj._partition = self.app!.currentUser?.id.description
+                        }
+                        realm!.add(newTagObj)
+                        tags.append(newTagObj)
+                    }
+                }
+            }
+        }
+        
+        return tags
+    }
+    
+    func link(folderStrs: String, realm: Realm? = nil) -> [PaperFolder] {
+        let realm = realm != nil ? realm : try! Realm()
+        var folders: [PaperFolder] = .init()
+        let folderNames = folderStrs.components(separatedBy: ";")
+        try! realm!.safeWrite {
+            folderNames.forEach { folderName in
+                let folderName = formatString(folderName, returnEmpty: true, trimWhite: true)!
+                if !folderName.isEmpty {
+                    let existFolders = realm!.objects(PaperFolder.self).filter("name == \"\(folderName)\"")
+                    if existFolders.count > 0 {
+                        let folderObj = existFolders.first!
+                        folderObj.count += 1
+                        folders.append(folderObj)
+                    } else {
+                        let newFolderObj = PaperFolder(name: folderName)
+                        newFolderObj.count += 1
+                        if (self.syncConfig != nil){
+                            newFolderObj._partition = self.app!.currentUser?.id.description
+                        }
+                        realm!.add(newFolderObj)
+                        folders.append(newFolderObj)
+                    }
+                }
+            }
+        }
+        
+        return folders
+    }
+    
     
     // MARK: - Delete
 
@@ -435,7 +545,7 @@ class RealDBRepository: DBRepository {
         return Future<[String], Error> { promise in
 
             var removeFileURLs: [String] = .init()
-            let entities = realm.objects(PaperEntity.self).filter("id IN %@", ids)
+            let entities = realm.objects(PaperEntity.self).filter("_id IN %@", ids)
             
             try! realm.safeWrite {
                 entities.forEach { entity in
@@ -454,12 +564,12 @@ class RealDBRepository: DBRepository {
 
     func unlink(tags: List<PaperTag>, realm: Realm? = nil) {
         let realm = realm != nil ? realm : try! Realm()
-        tags.forEach { tag in
-            let tagObj = realm!.object(ofType: PaperTag.self, forPrimaryKey: tag.id)!
-            try! realm!.safeWrite {
-                tagObj.count -= 1
-                if tagObj.count <= 0 {
-                    realm!.delete(tagObj)
+        
+        try! realm!.safeWrite {
+            tags.forEach { tag in
+                tag.count -= 1
+                if tag.count <= 0 {
+                    realm!.delete(tag)
                 }
             }
         }
@@ -467,22 +577,23 @@ class RealDBRepository: DBRepository {
 
     func unlink(folders: List<PaperFolder>, realm: Realm? = nil) {
         let realm = realm != nil ? realm : try! Realm()
-        folders.forEach { folder in
-            let folderObj = realm!.object(ofType: PaperFolder.self, forPrimaryKey: folder.id)!
-            try! realm!.safeWrite {
-                folderObj.count -= 1
-                if folderObj.count <= 0 {
-                    realm!.delete(folderObj)
+        try! realm!.safeWrite {
+            folders.forEach { folder in
+                folder.count -= 1
+                if folder.count <= 0 {
+                    realm!.delete(folder)
                 }
             }
         }
+        
     }
 
-    func delete(tagId: String) async -> AnyPublisher<Bool, Error> {
+    func delete(tagName: String) async -> AnyPublisher<Bool, Error> {
         let realm = try! await self.realm()
         return Future<Bool, Error> { promise in
-            if let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: tagId){
-                try! realm.safeWrite {
+            let tagObjs = realm.objects(PaperTag.self).filter("name == \"\(tagName)\"")
+            try! realm.safeWrite {
+                tagObjs.forEach { tagObj in
                     realm.delete(tagObj)
                 }
             }
@@ -491,11 +602,12 @@ class RealDBRepository: DBRepository {
         .eraseToAnyPublisher()
     }
 
-    func delete(folderId: String) async -> AnyPublisher<Bool, Error> {
+    func delete(folderName: String) async -> AnyPublisher<Bool, Error> {
         let realm = try! await self.realm()
         return Future<Bool, Error> { promise in
-            if let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: folderId){
-                try! realm.safeWrite {
+            let folderObjs = realm.objects(PaperFolder.self).filter("name == \"\(folderName)\"")
+            try! realm.safeWrite {
+                folderObjs.forEach { folderObj in
                     realm.delete(folderObj)
                 }
             }
@@ -507,7 +619,6 @@ class RealDBRepository: DBRepository {
     // MARK: - Update
 
     func update(from entities: [PaperEntityDraft]) async -> AnyPublisher<Bool, Error> {
-        
         let realm =  try! await self.realm()
         
         return Future<Bool, Error> { promise in
@@ -534,54 +645,25 @@ class RealDBRepository: DBRepository {
                     }
                     updateObj.rating = entity.rating
                     updateObj.flag = entity.flag
-
+                    
                     // remove old tags
                     self.unlink(tags: updateObj.tags, realm: realm)
                     updateObj.tags.removeAll()
                     // add new tags
-                    entity.tags = formatString(entity.tags, removeWhite: true)!
-                    entity.tags.components(separatedBy: ";").forEach { tag in
-                    let tagStr = formatString(tag, returnEmpty: true, trimWhite: true)!
-                        if !tagStr.isEmpty {
-                            let tagObj = realm.object(ofType: PaperTag.self, forPrimaryKey: "tag-" + tagStr)
-                            if tagObj != nil {
-                                tagObj!.count += 1
-                                updateObj.tags.append(tagObj!)
-                            } else {
-                                let newTagObj = PaperTag(id: tagStr)
-                                if (self.syncConfig != nil){
-                                    newTagObj._partition = self.app!.currentUser?.id.description
-                                }
-                                realm.add(newTagObj)
-                                updateObj.tags.append(newTagObj)
-                            }
-                        }
+                    let tags = self.link(tagStrs: formatString(entity.tags, removeWhite: true)!, realm: realm)
+                    tags.forEach { tag in
+                        updateObj.tags.append(tag)
                     }
-
+                    
                     // remove old folders
                     self.unlink(folders: updateObj.folders, realm: realm)
                     updateObj.folders.removeAll()
                     // add new folders
-                    entity.folders = formatString(entity.folders, removeWhite: true)!
-                    entity.folders.components(separatedBy: ";").forEach { folder in
-                        let folderStr = formatString(folder, returnEmpty: true, trimWhite: true)!
-                        if !folderStr.isEmpty {
-                            let folderObj = realm.object(ofType: PaperFolder.self, forPrimaryKey: "folder-" + folderStr)
-                            if folderObj != nil {
-                                folderObj!.count += 1
-                                updateObj.folders.append(folderObj!)
-                            } else {
-                                let newFolderObj = PaperFolder(id: folderStr)
-                                if (self.syncConfig != nil){
-                                    newFolderObj._partition = self.app!.currentUser?.id.description
-                                }
-                                realm.add(newFolderObj)
-                                updateObj.folders.append(newFolderObj)
-                            }
-                            
-                        }
+                    let folders = self.link(folderStrs: formatString(entity.folders, removeWhite: true)!, realm: realm)
+                    folders.forEach { folder in
+                        updateObj.folders.append(folder)
                     }
-
+                    
                     updateObj.note = entity.note
                 }
             }

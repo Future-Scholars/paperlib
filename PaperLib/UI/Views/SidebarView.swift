@@ -123,9 +123,10 @@ private extension SidebarView {
                         Label(tag.name, systemImage: "tag")
                             .contextMenu {
                                 Button("Remove", action: {
-                                    removeTag(tagId: tag.id)
+                                    removeTag(tagName: tag.name)
                                 })
                             }
+                            .tag("tag-\(tag.name)")
                     }
                 },
                 label: { sectionTitle("Tags") }
@@ -151,9 +152,10 @@ private extension SidebarView {
                         Label(folder.name, systemImage: "folder")
                             .contextMenu {
                                 Button("Remove", action: {
-                                    removeFolder(folderId: folder.id)
+                                    removeFolder(folderName: folder.name)
                                 })
                             }
+                            .tag("folder-\(folder.name)")
                     }
                 },
                 label: { sectionTitle("Folders") }
@@ -180,12 +182,12 @@ private extension SidebarView {
         injected.interactors.entitiesInteractor.load(folders: $folders, cancelBagKey: nil)
     }
 
-    func removeTag(tagId: String) {
-        injected.interactors.entitiesInteractor.delete(tagId: tagId)
+    func removeTag(tagName: String) {
+        injected.interactors.entitiesInteractor.delete(tagName: tagName)
     }
 
-    func removeFolder(folderId: String) {
-        injected.interactors.entitiesInteractor.delete(folderId: folderId)
+    func removeFolder(folderName: String) {
+        injected.interactors.entitiesInteractor.delete(folderName: folderName)
     }
 
     var appLibMovedUpdate: AnyPublisher<Date, Never> {

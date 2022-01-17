@@ -212,6 +212,7 @@ struct SyncSettingsView: View {
             HStack(alignment: .top) {
                 Text("Cloud Sync API Key is the your identification and authentication on the cloud database. Never share it with others. See more on Paperlib's Github.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 TextField("", text: $syncAPIKey)
+                    .disabled(useSync)
             }
             .onChange(of: syncAPIKey, perform: { syncAPIKey in
                 injected.appState[\.setting.syncAPIKey] = syncAPIKey

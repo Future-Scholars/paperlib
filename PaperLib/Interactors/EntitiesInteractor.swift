@@ -20,8 +20,8 @@ protocol EntitiesInteractor {
     func addTestData()
 
     func delete(ids: Set<ObjectId>)
-    func delete(tagId: String)
-    func delete(folderId: String)
+    func delete(tagName: String)
+    func delete(folderName: String)
 
     func update(entities: [PaperEntityDraft])
     func match(entities: [PaperEntityDraft])
@@ -200,21 +200,21 @@ class RealEntitiesInteractor: EntitiesInteractor {
         }
     }
 
-    func delete(tagId: String) {
+    func delete(tagName: String) {
         self.cancelBags.cancel(for: "delete-tag")
 
         Task {
-            await self.dbRepository.delete(tagId: tagId)
+            await self.dbRepository.delete(tagName: tagName)
                 .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
                 .store(in: self.cancelBags["delete-tag"])
         }
     }
 
-    func delete(folderId: String) {
+    func delete(folderName: String) {
         self.cancelBags.cancel(for: "delete-folder")
 
         Task{
-            await self.dbRepository.delete(folderId: folderId)
+            await self.dbRepository.delete(folderName: folderName)
                 .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
                 .store(in: self.cancelBags["delete-folder"])
         }
@@ -456,9 +456,9 @@ struct StubEntitiesInteractor: EntitiesInteractor {
     
     func migrateLocaltoSync() {}
     
-    func delete(tagId _: String) {}
+    func delete(tagName _: String) {}
 
-    func delete(folderId _: String) {}
+    func delete(folderName _: String) {}
 
     func export(entities _: [PaperEntity], format _: String) {}
 

@@ -9,12 +9,10 @@ import Foundation
 import RealmSwift
 
 class PaperTagIDObject: Object {
-    @objc dynamic var id: String
-    @objc dynamic var _id: String
+    @objc dynamic var _id: ObjectId
     
     override init() {
-        self.id = ""
-        self._id = self.id
+        self._id = ObjectId.generate()
     }
     
     override class func primaryKey() -> String? {
@@ -27,16 +25,15 @@ class PaperTagIDObject: Object {
 }
 
 
+
 class PaperTag: PaperTagIDObject, ObjectKeyIdentifiable {
     @Persisted var _partition: String?
     @Persisted var count: Int = 0
     @Persisted var name: String = ""
 
-    convenience init(id: String) {
+    convenience init(name: String) {
         self.init()
-        self.id = "tag-" + id
-        self._id = self.id
-        name = id
+        self.name = name
     }
 
 }
