@@ -37,6 +37,7 @@ jobs:
         with:
           files: |
             ./dist/electron/Packaged/paperlib Setup ${{ steps.version.outputs.content }}.exe
+            ./dist/electron/Packaged/paperlib Setup ${{ steps.version.outputs.content }}.exe.blockmap
             ./dist/electron/Packaged/latest.yml
           draft: true
           tag_name: v${{ steps.version.outputs.content }}-win
