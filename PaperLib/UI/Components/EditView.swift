@@ -146,7 +146,7 @@ struct TagEditView: View {
     func tagLoadedView(_ tags: Results<PaperTag>) -> some View {
         return AnyView(
             List(tags, selection: $selectTag) { tag in
-                Text(tag.name)
+                Text(tag.name).tag(tag.name)
             }
             .frame(height: 300)
             .onChange(
@@ -158,7 +158,7 @@ struct TagEditView: View {
                     }
                     tagList = tagList.map { formatString($0, trimWhite: true)! }
 
-                    let formatedSelectTag = formatString(selectTag, removeStr: "tag-", trimWhite: true)!
+                    let formatedSelectTag = formatString(selectTag, trimWhite: true)!
                     if !tagList.contains(formatedSelectTag) {
                         tagList.append(formatedSelectTag)
                     }
@@ -226,7 +226,7 @@ struct FolderEditView: View {
     func folderLoadedView(_ folders: Results<PaperFolder>) -> some View {
         return AnyView(
             List(folders, selection: $selectFolder) { folder in
-                Text(folder.name)
+                Text(folder.name).tag(folder.name)
             }
             .frame(height: 300)
             .onChange(
@@ -238,7 +238,7 @@ struct FolderEditView: View {
                     }
                     folderList = folderList.map { formatString($0, trimWhite: true)! }
 
-                    let formatedSelectFolder = formatString(selectFolder, removeStr: "folder-", trimWhite: true)!
+                    let formatedSelectFolder = formatString(selectFolder, trimWhite: true)!
                     if !folderList.contains(formatedSelectFolder) {
                         folderList.append(formatedSelectFolder)
                     }

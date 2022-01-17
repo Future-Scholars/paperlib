@@ -62,6 +62,8 @@ class PaperEntity: PaperEntityIDObject, ObjectKeyIdentifiable {
     ) {
         self.init()
 
+        self.id = self._id
+        
         self.addTime = Date()
 
         self.title = title ?? ""
