@@ -107,9 +107,9 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient("paperlib");
 }
 
-// autoUpdater.checkForUpdates();
+autoUpdater.checkForUpdates();
 
-autoUpdater.on("update-available", (info) => {
+autoUpdater.on("update-downloaded", async (info) => {
   const dialogOpts = {
     type: "info",
     buttons: ["Update Now", "Cancel"],
@@ -118,7 +118,8 @@ autoUpdater.on("update-available", (info) => {
     detail: "It will be downloaded and installed automatically.",
   };
 
-  dialog.showMessageBox(dialogOpts, (response) => {
-    if (response === 1) autoUpdater.quitAndInstall();
-  });
+  let response = await dialog.showMessageBox(dialogOpts);
+  if (response.response === 0) {
+    autoUpdater.quitAndInstall();
+  }
 });
