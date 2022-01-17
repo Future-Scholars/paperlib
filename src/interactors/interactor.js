@@ -5,6 +5,8 @@ import { AppStore } from "../utils/appstate";
 import { PaperEntityDraft } from "../models/PaperEntity";
 import { clipboard } from "electron";
 import { formatString } from "../utils/misc";
+import moment from "moment";
+import { ToadScheduler, SimpleIntervalJob, Task } from 'toad-scheduler';
 
 export class Interactor {
   constructor() {
@@ -235,6 +237,10 @@ export class Interactor {
   }
 
   async saveSettings(settings) {
+    if (settings.rematchInterval != this.appStore.get("rematchInterval")) {
+        this.setRoutineTimer()
+    }
+
     var setNewDBFolder = false;
     if (
       settings.appLibFolder != this.appStore.get("appLibFolder") ||
@@ -265,5 +271,44 @@ export class Interactor {
 
   appLibPath() {
     return this.appStore.get("appLibFolder");
+  }
+
+  async routineMatch() {
+    console.log("routineMatch");
+    let allowRoutineMatch = this.appStore.get("allowRoutineMatch")
+    if (allowRoutineMatch) {
+        this.appStore.set("lastRematchTime", moment().unix());
+        let entities = await this.dbRepository.preprintEntities();
+        this.match(entities.map((entity) => entity.id));
+    }
+  }
+
+  setRoutineTimer() {
+    let rematchInterval = this.appStore.get("rematchInterval")
+    let lastRematchTime = this.appStore.get("lastRematchTime")
+
+    if (moment().unix() - lastRematchTime > 86400 * rematchInterval) {
+        this.routineMatch()
+    }
+
+    if (this.scheduler == null) {
+        this.scheduler = new ToadScheduler()
+    }
+    else {
+        this.scheduler.stop()
+        this.scheduler.removeById("rematch")
+    }
+
+    const task = new Task('rematch', () => {
+        this.routineMatch()
+    });
+    
+    const job = new SimpleIntervalJob(
+        { seconds: 86400 * rematchInterval, runImmediately: false },
+        task,
+        'rematch'
+    );
+   
+    this.scheduler.addSimpleIntervalJob(job);
   }
 }

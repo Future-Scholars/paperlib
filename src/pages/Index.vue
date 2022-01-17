@@ -1028,6 +1028,50 @@
                 />
               </div>
             </div>
+
+            <hr class="q-ml-lg q-mr-lg q-mt-lg"/>
+
+            <div class="row justify-center q-mt-lg">
+              <div class="col-5 setting-title">
+                Automatically re-match metadata for preprint papers.
+              </div>
+              <div class="col-5">
+                <q-checkbox
+                  dense
+                  keep-color
+                  size="xs"
+                  v-model="settings.allowRoutineMatch"
+                  color="grey-5"
+                />
+              </div>
+            </div>
+
+            <div class="row justify-center q-mt-md">
+              <div class="col-5 setting-title">
+                Rountine re-matching interval (days).
+              </div>
+              <div class="col-5">
+                <div
+                  style="
+                    padding-left: 5px;
+                    border: 1px solid #ddd;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    cursor: pointer;
+                  "
+                  class="radius-border setting-content"
+                >
+                  <q-input
+                    borderless
+                    v-model="settings.rematchInterval"
+                    dense
+                    type="number"
+                    style="max-height: 22px"
+                  />
+                </div>
+              </div>
+            </div>
+
           </q-tab-panel>
 
           <q-tab-panel name="sync">
@@ -1374,6 +1418,9 @@ export default {
       useSync: false,
       syncAPIKey: "",
       migrateLocalToSync: false,
+      allowRoutineMatch: false,
+      rematchInterval: 7,
+      lastRematchTime: 0,
     });
     const settingTab = ref("general");
     const settingNewFolderPicker = ref(null);
@@ -1811,6 +1858,7 @@ export default {
       realmChangedEvent();
       bindKeyboard();
       version.value = window.api.version();
+      window.api.setRoutineTimer();
     });
 
     return {

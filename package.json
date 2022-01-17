@@ -19,10 +19,12 @@
     "fast-xml-parser": "^4.0.0-beta.8",
     "fs": "^0.0.1-security",
     "got": "11.8.3",
+    "moment": "^2.29.1",
     "mousetrap": "^1.6.5",
     "pdfjs-dist": "^2.10.377",
     "quasar": "^2.0.0",
     "realm": "^10.10.1",
+    "toad-scheduler": "^1.6.0",
     "worker-loader": "^3.0.8"
   },
   "devDependencies": {

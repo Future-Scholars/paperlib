@@ -153,4 +153,8 @@ contextBridge.exposeInMainWorld("api", {
   registerSignal(signal, callback) {
     ipcRenderer.on(signal, callback);
   },
+
+  setRoutineTimer() {
+      interactor.setRoutineTimer();
+  }
 });

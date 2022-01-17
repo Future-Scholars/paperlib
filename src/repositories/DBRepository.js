@@ -227,6 +227,8 @@ export class DBRepository {
     }
   }
 
+  // ===========================================================
+
   jsonfyEntity(entities) {
     var entitiesJson = [];
     entities.forEach((entity) => {
@@ -300,6 +302,13 @@ export class DBRepository {
     let realm = await this.realm();
     return this.jsonfyTagFolder(realm.objects("PaperFolder").sorted("name"));
   }
+
+  async preprintEntities() {
+    let realm = await this.realm();
+    
+    let filterFormat = "publication contains[c] \"arXiv\""
+    return this.jsonfyEntity(realm.objects("PaperEntity").filtered(filterFormat))
+}
 
   // ============================================================
 

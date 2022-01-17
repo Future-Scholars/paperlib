@@ -191,7 +191,7 @@ export class FileRepository {
   async move(entity) {
     try {
       let targetFileName =
-        entity.title.replace(/[^a-zA-Z ]/g, "").replace(/\s/g, "_") +
+        entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") +
         "_" +
         entity._id.toString();
 

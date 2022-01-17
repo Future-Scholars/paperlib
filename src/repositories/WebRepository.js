@@ -126,7 +126,7 @@ export class WebRepository {
     try {
       if (
         entity.title &&
-        (entity.publication == "arXiv" || !entity.publication)
+        (entity.publication == "arXiv" || !entity.publication) && this.appStore.get("ieeeAPIKey")
       ) {
         let requestTitle = formatString({
           str: entity.title,
@@ -206,7 +206,7 @@ export class WebRepository {
       }
       return entity;
     } catch (error) {
-      console.error("DOI request error.");
+      console.error("IEEE request error.");
       console.error(error);
       return entity;
     }

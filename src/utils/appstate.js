@@ -2,6 +2,7 @@ import Store from "electron-store";
 import path from "path";
 import os from "os";
 import fs from "fs";
+import moment from "moment";
 
 export class AppStore {
   constructor() {
@@ -24,6 +25,12 @@ export class AppStore {
       this.set("useSync", false);
       this.set("syncAPIKey", "");
     }
+
+    if (!this.store.has("lastRematchTime")) {
+      this.set("lastRematchTime", moment().unix());
+      this.set("rematchInterval", 7);
+      this.set("allowRoutineMatch", false)
+    }
   }
 
   get(key) {
@@ -44,6 +51,9 @@ export class AppStore {
       exportReplacement: this.get("exportReplacement"),
       useSync: this.get("useSync"),
       syncAPIKey: this.get("syncAPIKey"),
+      lastRematchTime: this.get("lastRematchTime"),
+      rematchInterval: this.get("rematchInterval"),
+      allowRoutineMatch: this.get("allowRoutineMatch")
     };
   }
 
@@ -56,5 +66,8 @@ export class AppStore {
     this.set("exportReplacement", obj.exportReplacement);
     this.set("useSync", obj.useSync);
     this.set("syncAPIKey", obj.syncAPIKey);
+    this.set("lastRematchTime", obj.lastRematchTime);
+    this.set("rematchInterval", obj.rematchInterval);
+    this.set("allowRoutineMatch", obj.allowRoutineMatch)
   }
 }
