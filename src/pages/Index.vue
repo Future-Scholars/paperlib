@@ -103,9 +103,9 @@
           active-class="sidebar-list-item-active"
           v-show="showSidebarTag"
           v-for="tag in tags"
-          :key="tag._id"
-          :active="sidebarFilter === tag._id"
-          @click="sidebarFilter = tag._id"
+          :key="'tag-' + tag.name"
+          :active="sidebarFilter === ('tag-' + tag.name)"
+          @click="sidebarFilter = ('tag-' + tag.name)"
         >
           <q-icon
             class="q-mr-md sidebar-list-icon"
@@ -149,9 +149,9 @@
           active-class="sidebar-list-item-active"
           v-show="showSidebarFolder"
           v-for="folder in folders"
-          :key="folder._id"
-          :active="sidebarFilter === folder._id"
-          @click="sidebarFilter = folder._id"
+          :key="'folder-' + folder.name"
+          :active="sidebarFilter === ('folder-' + folder.name)"
+          @click="sidebarFilter = ('folder-' + folder.name)"
         >
           <q-icon
             class="q-mr-md sidebar-list-icon"
@@ -739,7 +739,7 @@
               clickable
               class="sidebar-list-item"
               v-for="tag in tags"
-              :key="tag._id"
+              :key="'tag-' + tag.name"
               @click="addExistTagEvent(tag)"
             >
               <q-icon
@@ -790,7 +790,7 @@
               clickable
               class="sidebar-list-item"
               v-for="folder in folders"
-              :key="folder._id"
+              :key="'folder-' + folder.name"
               @click="addExistFolderEvent(folder)"
             >
               <q-icon
@@ -1051,6 +1051,7 @@
                     v-model="settings.syncAPIKey"
                     dense
                     style="max-height: 22px"
+                    :disable="settings.useSync"
                   />
                 </div>
               </div>
@@ -1293,7 +1294,7 @@ const columns = [
     align: "left",
     field: "authors",
     classes: "ellipsis-cell",
-    style: "max-width: 150px;",
+    style: "max-width: 130px;",
     headerStyle: "max-width: 150px;",
   },
   {
@@ -1311,8 +1312,8 @@ const columns = [
     align: "left",
     field: "pubTime",
     classes: "ellipsis-cell",
-    style: "max-width: 35px;",
-    headerStyle: "max-width: 35px;",
+    style: "max-width: 40px;",
+    headerStyle: "max-width: 40px;",
   },
   {
     name: "Flag",
@@ -1672,9 +1673,9 @@ export default {
       var tag = null;
       var folder = null;
       if (sidebarFilter.value.startsWith("tag-")) {
-        tag = sidebarFilter.value;
+        tag = sidebarFilter.value.replace("tag-", "");
       } else if (sidebarFilter.value.startsWith("folder-")) {
-        folder = sidebarFilter.value;
+        folder = sidebarFilter.value.replace("folder-", "");
       } else if (sidebarFilter.value === "lib-flaged") {
         flaged = true;
       }
@@ -1758,11 +1759,11 @@ export default {
     };
 
     const deleteTag = (tag) => {
-      window.api.deleteTag(tag._id);
+      window.api.deleteTag(tag.name);
     };
 
     const deleteFolder = (folder) => {
-      window.api.deleteFolder(folder._id);
+      window.api.deleteFolder(folder.name);
     };
 
     // Settings

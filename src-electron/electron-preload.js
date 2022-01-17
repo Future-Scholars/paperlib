@@ -81,12 +81,12 @@ contextBridge.exposeInMainWorld("api", {
     interactor.deleteSup(entity, supURL);
   },
 
-  deleteTag(tagId) {
-    interactor.deleteTag(tagId);
+  deleteTag(tagName) {
+    interactor.deleteTag(tagName);
   },
 
-  deleteFolder(folderId) {
-    interactor.deleteFolder(folderId);
+  deleteFolder(folderName) {
+    interactor.deleteFolder(folderName);
   },
 
   // Update

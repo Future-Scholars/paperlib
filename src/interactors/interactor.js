@@ -92,12 +92,12 @@ export class Interactor {
     }
   }
 
-  deleteTag(tagId) {
-    this.dbRepository.deleteTag(tagId);
+  deleteTag(tagName) {
+    this.dbRepository.deleteTag(tagName);
   }
 
-  deleteFolder(folderId) {
-    this.dbRepository.deleteFolder(folderId);
+  deleteFolder(folderName) {
+    this.dbRepository.deleteFolder(folderName);
   }
 
   flag(ids) {

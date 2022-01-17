@@ -2,8 +2,7 @@ export const PaperFolderSchema = {
   name: "PaperFolder",
   primaryKey: "_id",
   properties: {
-    id: "string",
-    _id: "string",
+    _id: "objectId",
     _partition: "string?",
     name: "string",
     count: "int",
