@@ -134,7 +134,7 @@ export class DBRepository {
       for (const objectIndex in oldTags) {
         const oldTag = oldTags[objectIndex];
         const newTag = newTags[objectIndex];
-        newTag["_id"] = ObjectId.generate()
+        newTag["_id"] = new ObjectId()
       }
 
       const oldFolders = oldRealm.objects("PaperFolder");
@@ -143,7 +143,7 @@ export class DBRepository {
       for (const objectIndex in oldFolders) {
         const oldFolder = oldFolders[objectIndex];
         const newFolder = newFolders[objectIndex];
-        newFolder["_id"] = ObjectId.generate()
+        newFolder["_id"] = new ObjectId()
       }
     }
 
@@ -168,7 +168,7 @@ export class DBRepository {
       for (const objectIndex in oldTags) {
         const oldTag = oldTags[objectIndex];
         const newTag = newTags[objectIndex];
-        newTag["_id"] = ObjectId.generate()
+        newTag["_id"] = new ObjectId()
       }
 
       const oldFolders = oldRealm.objects("PaperFolder");
@@ -177,7 +177,7 @@ export class DBRepository {
       for (const objectIndex in oldFolders) {
         const oldFolder = oldFolders[objectIndex];
         const newFolder = newFolders[objectIndex];
-        newFolder["_id"] = ObjectId.generate()
+        newFolder["_id"] = new ObjectId()
       }
     }
 
@@ -197,7 +197,7 @@ export class DBRepository {
       for (const objectIndex in oldTags) {
         const oldTag = oldTags[objectIndex];
         const newTag = newTags[objectIndex];
-        newTag["_id"] = ObjectId.generate()
+        newTag["_id"] = new ObjectId()
       }
 
       const oldFolders = oldRealm.objects("PaperFolder");
@@ -206,7 +206,7 @@ export class DBRepository {
       for (const objectIndex in oldFolders) {
         const oldFolder = oldFolders[objectIndex];
         const newFolder = newFolders[objectIndex];
-        newFolder["_id"] = ObjectId.generate()
+        newFolder["_id"] = new ObjectId()
       }
     }
 
@@ -215,14 +215,14 @@ export class DBRepository {
         const newTags = newRealm.objects("PaperTag");
         for (const objectIndex in oldTags) {
           const newTag = newTags[objectIndex];
-          newTag["_id"] = ObjectId.generate()
+          newTag["_id"] = new ObjectId()
         }
         
         const oldFolders = oldRealm.objects("PaperFolder");
         const newFolders = newRealm.objects("PaperFolder");
         for (const objectIndex in oldFolders) {
           const newFolder = newFolders[objectIndex];
-          newFolder["_id"] = ObjectId.generate()
+          newFolder["_id"] = new ObjectId()
         }
     }
   }
