@@ -4,10 +4,12 @@
 <img src="https://img.shields.io/github/v/release/GeoffreyChen777/paperlib.svg" />
 <img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
 <img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />
-<h2>PaperLib</h2>
+<br />
+<span  style="font-size: 22px">PaperLib</span>
+<br />
 A simple academic paper management tool for CSer.
 <br />
-<a href="https://paperlib.geoch.top/" > https://paperlib.geoch.top/ </a>
+<a href="https://paperlib.geoch.top/" > Product Page </a>
 </div>
 
 ![](./assets/macOS_ui.png)
