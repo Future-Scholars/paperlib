@@ -1,0 +1,1 @@
+The branch `macosNative` is for native macOS development.

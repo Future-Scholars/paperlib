@@ -7,32 +7,33 @@
 <h2>PaperLib</h2>
 A simple academic paper management tool for CSer.
 <br />
+<a href="https://paperlib.geoch.top/" > https://paperlib.geoch.top/ </a>
 </div>
-
 
 ![](./assets/macOS_ui.png)
 
-## Download
-[Web Page](https://paperlib.geoch.top/)
+<div align="center">
 
-## Features
-1. Native macOS app, electron for Windows.
-2. Automaticly match paper's metadata from arXiv, DBLP, DOI and IEEE Xplorer.
-3. Organise papers by tags and folders.
-4. Support Table/List view and dark mode.
-5. Export paper reference to bibtex or plain text.
-6. Cloud Sync (BETA)
+<a href="https://paperlib.geoch.top/download/" style="font-size: 16px"> » Download Here « </a>
 
-## Donate
+</div>
 
-<a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+---
 
-## Usage
+## Highlights
+- Scrape paper’s metadata from arXiv, doi.org, DBLP, IEEE and our online engine.
+- Mark papers with multiple methods such as rating and flaging.
+- Create tags and filter by tags. Create folders and filter by folders.
+- Access your data from everywhere with a sync databsed supported by MongoDB atlas.
+- Export papers to bibtex or plain text.
+
+## Quick Start
 [Introduction](https://paperlib.geoch.top/introduction/)
 
-## Metadata Matching
-1. IEEE Xplorer: The API Key can be obtained from here: [IEEE Developer](https://developer.ieee.org/apps/mykeys)
+## Donate
+<a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-## Cloud Sync
-1. In BETA, ask Paperlib’s author for the sync API key.
+<a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="./assets/wechat.png" alt="Buy Me A Coffee" height="174" width="174"></a>
 
+## License
+[GPL-3.0 License](./LICENSE)

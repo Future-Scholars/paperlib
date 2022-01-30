@@ -1,0 +1,1 @@
+The branch `electron` is for native macOS development.
