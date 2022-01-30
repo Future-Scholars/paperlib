@@ -129,7 +129,8 @@ struct RealFileDBRepository: FileRepository {
     
     func _move(from sourcePath: URL, to targetPath: URL) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
-            if !FileManager.default.fileExists(atPath: targetPath.path) {
+            var isDir: ObjCBool = false
+            if (!FileManager.default.fileExists(atPath: targetPath.path) && FileManager.default.fileExists(atPath: sourcePath.path, isDirectory: &isDir) && !isDir.boolValue) {
                 do {
                     if (UserDefaults.standard.bool(forKey: "deleteSourceFile")) {
                         try FileManager.default.moveItem(atPath: sourcePath.path, toPath: targetPath.path)
@@ -151,7 +152,8 @@ struct RealFileDBRepository: FileRepository {
 
     func _remove(for fileURL: URL) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
-            if FileManager.default.fileExists(atPath: fileURL.path) {
+            var isDir: ObjCBool = false
+            if (FileManager.default.fileExists(atPath: fileURL.path, isDirectory: &isDir) && !isDir.boolValue){
                 do {
                     try FileManager.default.removeItem(atPath: fileURL.path)
                     promise(.success(true))
