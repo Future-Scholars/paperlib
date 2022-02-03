@@ -55,6 +55,7 @@ jobs:
         run: |
           ditto -V -c -k --keepParent "Export/PaperLib.app" "PaperLib_v${{ env.VERSION_SHORT }}.zip"
           cp PaperLib_v${{ env.VERSION_SHORT }}.zip ./distribution/mac
+          cp PaperLib_v${{ env.VERSION_SHORT }}.zip ./distribution/mac/latest.zip
 
       - name: Release app
         uses: softprops/action-gh-release@v1
@@ -67,7 +68,10 @@ jobs:
         run: |
           brew install pandoc
           pandoc -f markdown -t html ./CHANGELOG_EN.md -o PaperLib_v${{ env.VERSION_SHORT }}.html
-          mv PaperLib_v${{ env.VERSION_SHORT }}.html ./distribution/mac/
+          cp PaperLib_v${{ env.VERSION_SHORT }}.html ./distribution/mac
+          cp PaperLib_v${{ env.VERSION_SHORT }}.html ./distribution/mac/changelog_en.html
+          pandoc -f markdown -t html ./CHANGELOG_CN.md -o PaperLib_v${{ env.VERSION_SHORT }}_CN.html
+          cp PaperLib_v${{ env.VERSION_SHORT }}_CN.html ./distribution/mac/changelog_cn.html
 
       - name: Install Sparkle
         run: |
@@ -83,4 +87,7 @@ jobs:
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./distribution/mac/appcast.xml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/mac/appcast.xml
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./distribution/mac/PaperLib_v${{ env.VERSION_SHORT }}.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/mac/PaperLib_v${{ env.VERSION_SHORT }}.zip
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./distribution/mac/PaperLib_v${{ env.VERSION_SHORT }}.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/mac/PaperLib_v${{ env.VERSION_SHORT }}.html
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./distribution/mac/latest.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/mac/latest.zip
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./distribution/mac/changelog_en.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/mac/changelog_en.html
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./distribution/mac/changelog_cn.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/mac/changelog_cn.html
           oci os object bulk-upload --bucket-name ${{ secrets.OCI_OS_BUCKET }} --src-dir ./ --namespace ${{ secrets.OCI_OS_NAMESPACE }} --include "distribution/mac/PaperLib"${{ env.VERSION }}"*" --overwrite
