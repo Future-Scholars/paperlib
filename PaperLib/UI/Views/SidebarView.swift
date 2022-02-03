@@ -35,7 +35,7 @@ struct SidebarView: View {
         List(selection: $selectedFilters) {
             sectionTitle("Library")
             HStack{
-                Label("All Papers", systemImage: "book")
+                Label("All Papers", systemImage: "rectangle.stack")
                 if (showProgressView) {
                     Spacer()
                     Text("     ")
