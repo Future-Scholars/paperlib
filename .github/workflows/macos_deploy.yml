@@ -1,4 +1,4 @@
-name: macos_deploy
+name: Build and Release (macOS)
 
 on:
   push:
