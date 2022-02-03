@@ -1,0 +1,86 @@
+name: macos_deploy
+
+on:
+  push:
+    tags: [ release* ]
+
+
+jobs:
+  macos_deploy:
+    runs-on: macos-latest
+
+    steps:
+      - name: "Checkout Project"
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          release_version=${GITHUB_REF#refs/*/}
+          export VERSION=${release_version:8}
+          export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
+
+      - name: "Import Certificates"
+        run: |
+          echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output certificate.p12
+          export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+
+          security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: "Build & Archive"
+        uses: devbotsxyz/xcode-archive@v1
+
+      - name: Export
+        uses: GeoffreyChen777/xcode-export-archive@main
+        with:
+          export-method: "mac-application"
+
+      - name: Install Oracle Cloud CLI
+        run: |
+          brew install oci-cli && mkdir ~/.oci
+          echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
+          mv config ~/.oci
+          echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode --output oraclekey.cer
+          mv oraclekey.cer ~/.oci
+
+      - name: Download Existing Versions
+        run: oci os object bulk-download --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --prefix "distribution/mac/" --download-dir ./
+
+      - name: Package for Distribution
+        run: |
+          ditto -V -c -k --keepParent "Export/PaperLib.app" "PaperLib_v${{ env.VERSION_SHORT }}.zip"
+          cp PaperLib_v${{ env.VERSION_SHORT }}.zip ./distribution/mac
+
+      - name: Release app
+        uses: softprops/action-gh-release@v1
+        with:
+          files: PaperLib_v${{ env.VERSION_SHORT }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Convert Change Log to HTML
+        run: |
+          brew install pandoc
+          pandoc -f markdown -t html ./CHANGELOG_EN.md -o PaperLib_v${{ env.VERSION_SHORT }}.html
+          mv PaperLib_v${{ env.VERSION_SHORT }}.html ./distribution/mac/
+
+      - name: Install Sparkle
+        run: |
+          wget -q https://github.com/sparkle-project/Sparkle/releases/download/2.0.0/Sparkle-2.0.0.tar.xz
+          tar -xf Sparkle-2.0.0.tar.xz
+
+      - name: Generate Sparkle Appcast
+        run: |
+          ./bin/generate_appcast -s ${{ secrets.SPARKLE_KEY }} ./distribution/mac/
+
+      - name: Upload to Oracle Storage
+        run: |
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./distribution/mac/appcast.xml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/mac/appcast.xml
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./distribution/mac/PaperLib_v${{ env.VERSION_SHORT }}.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/mac/PaperLib_v${{ env.VERSION_SHORT }}.zip
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./distribution/mac/PaperLib_v${{ env.VERSION_SHORT }}.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/mac/PaperLib_v${{ env.VERSION_SHORT }}.html
+          oci os object bulk-upload --bucket-name ${{ secrets.OCI_OS_BUCKET }} --src-dir ./ --namespace ${{ secrets.OCI_OS_NAMESPACE }} --include "distribution/mac/PaperLib"${{ env.VERSION }}"*" --overwrite
