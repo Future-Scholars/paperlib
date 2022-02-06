@@ -12,7 +12,7 @@ A simple academic paper management tool for CSer.
 
 <div align="center">
 
-<a href="https://paperlib.geoch.top/download/" style="font-size: 16px"> » Download Here « </a>
+<a href="https://paperlib.geoch.top/en/download/" style="font-size: 16px"> » Download Here « </a>
 
 </div>
 
