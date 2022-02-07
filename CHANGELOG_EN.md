@@ -1,3 +1,6 @@
+## v1.3.7 Feb 07 2022
+1.  Fixed a bug in sync migration.
+
 ## v1.3.6 Feb 03 2022
 1. New library icon. 
 
