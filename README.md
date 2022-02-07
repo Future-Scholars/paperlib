@@ -26,8 +26,8 @@ A simple academic paper management tool for CSer.
 - Export papers to bibtex or plain text.
 
 ## Quick Start
-[Introduction](https://paperlib.geoch.top/introduction/)
-
+[Introduction (EN)](https://paperlib.geoch.top/en/blog/intro/).  
+[Introduction (CN)](https://paperlib.geoch.top/cn/blog/intro/)
 ## Donate
 <a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
