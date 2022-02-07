@@ -250,36 +250,20 @@ class RealDBRepository: DBRepository {
     func migrateLocaltoSync() {
         Task {
             let localConfig = self.openLocal()
-            let localRealm = try! await Realm(configuration: localConfig)
-            
-            let entities = localRealm.objects(PaperEntity.self)
-            
-            let realm = try! await self.realm()
-            
-            // 1. First only migrate main entity without tag and folder.
-            let onlyMainEntities = Array(entities).map({et -> PaperEntity in
-                let entity = PaperEntity(value: et)
-                entity.tags = List<PaperTag>()
-                entity.folders = List<PaperFolder>()
-                if (self.syncConfig != nil){
-                    entity._partition = self.app!.currentUser?.id.description
-                }
-                return entity
-            })
-            
-            try! realm.safeWrite {
-                realm.add(onlyMainEntities)
-            }
-            
-            
-            
-            let entitiesWithTagsFolders = Array(entities).map({et -> PaperEntityDraft in
-                let entityDraft = PaperEntityDraft(from: et)
-                return entityDraft
-            })
-            
-            let _ = await self.update(from: entitiesWithTagsFolders)
+            do {
+                let localRealm = try await Realm(configuration: localConfig)
+                let entities = localRealm.objects(PaperEntity.self)
 
+                let entitiesWithTagsFolders = Array(entities).map({et -> PaperEntityDraft in
+                    let entityDraft = PaperEntityDraft(from: et)
+                    return entityDraft
+                })
+                
+                let _ = await self.update(from: entitiesWithTagsFolders)
+            }
+            catch let error {
+                print(error)
+            }
         }
     }
         
@@ -622,52 +606,64 @@ class RealDBRepository: DBRepository {
         let realm =  try! await self.realm()
         
         return Future<Bool, Error> { promise in
+            var newObjs: [PaperEntityDraft] = .init()
+            
             try! realm.safeWrite {
-                entities.forEach { entity in
                 
-                    let updateObj = realm.object(ofType: PaperEntity.self, forPrimaryKey: entity.id)!
+                entities.forEach { entity in
+                    
+                    if let updateObj = realm.object(ofType: PaperEntity.self, forPrimaryKey: entity.id){
 
-                    if (self.syncConfig != nil){
-                        updateObj._partition = self.app!.currentUser?.id.description
+                        if (self.syncConfig != nil){
+                            updateObj._partition = self.app!.currentUser?.id.description
+                        }
+                        
+                        updateObj.title = entity.title
+                        updateObj.authors = entity.authors
+                        updateObj.publication = entity.publication
+                        updateObj.pubTime = entity.pubTime
+                        updateObj.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entity.pubType) ?? 2
+                        updateObj.doi = entity.doi
+                        updateObj.arxiv = entity.arxiv
+                        updateObj.mainURL = entity.mainURL
+                        updateObj.supURLs = List()
+                        entity.supURLs.forEach { url in
+                            updateObj.supURLs.append(url)
+                        }
+                        updateObj.rating = entity.rating
+                        updateObj.flag = entity.flag
+                        
+                        // remove old tags
+                        self.unlink(tags: updateObj.tags, realm: realm)
+                        updateObj.tags.removeAll()
+                        // add new tags
+                        let tags = self.link(tagStrs: formatString(entity.tags, removeWhite: true)!, realm: realm)
+                        tags.forEach { tag in
+                            updateObj.tags.append(tag)
+                        }
+                        
+                        // remove old folders
+                        self.unlink(folders: updateObj.folders, realm: realm)
+                        updateObj.folders.removeAll()
+                        // add new folders
+                        let folders = self.link(folderStrs: formatString(entity.folders, removeWhite: true)!, realm: realm)
+                        folders.forEach { folder in
+                            updateObj.folders.append(folder)
+                        }
+                        
+                        updateObj.note = entity.note
                     }
-                    
-                    updateObj.title = entity.title
-                    updateObj.authors = entity.authors
-                    updateObj.publication = entity.publication
-                    updateObj.pubTime = entity.pubTime
-                    updateObj.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entity.pubType) ?? 2
-                    updateObj.doi = entity.doi
-                    updateObj.arxiv = entity.arxiv
-                    updateObj.mainURL = entity.mainURL
-                    updateObj.supURLs = List()
-                    entity.supURLs.forEach { url in
-                        updateObj.supURLs.append(url)
+                    else {
+                        newObjs.append(entity)
                     }
-                    updateObj.rating = entity.rating
-                    updateObj.flag = entity.flag
-                    
-                    // remove old tags
-                    self.unlink(tags: updateObj.tags, realm: realm)
-                    updateObj.tags.removeAll()
-                    // add new tags
-                    let tags = self.link(tagStrs: formatString(entity.tags, removeWhite: true)!, realm: realm)
-                    tags.forEach { tag in
-                        updateObj.tags.append(tag)
-                    }
-                    
-                    // remove old folders
-                    self.unlink(folders: updateObj.folders, realm: realm)
-                    updateObj.folders.removeAll()
-                    // add new folders
-                    let folders = self.link(folderStrs: formatString(entity.folders, removeWhite: true)!, realm: realm)
-                    folders.forEach { folder in
-                        updateObj.folders.append(folder)
-                    }
-                    
-                    updateObj.note = entity.note
                 }
             }
-            promise(.success(true))
+            
+            let newObjList = newObjs
+            Task {
+                await self.add(for: newObjList)
+                promise(.success(true))
+            }
         }
         .eraseToAnyPublisher()
     }
