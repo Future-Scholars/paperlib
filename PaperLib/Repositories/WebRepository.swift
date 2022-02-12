@@ -24,7 +24,7 @@ protocol WebRepository {
 }
 
 struct RealWebRepository: WebRepository {
-    
+
     func apiVersion() -> AnyPublisher<DataResponse<String, AFError>, Never> {
         let versionURL = "https://paperlib.geoch.top/api/version"
 
@@ -32,7 +32,7 @@ struct RealWebRepository: WebRepository {
             .publishString()
             .eraseToAnyPublisher()
     }
-    
+
     func fetch(for entity: PaperEntityDraft, enable: Bool) -> AnyPublisher<PaperEntityDraft, Error> {
         if enable {
             return Just<PaperEntityDraft>.withErrorType(entity, Error.self)
@@ -178,7 +178,7 @@ struct RealWebRepository: WebRepository {
 
     func fetch(ieee entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
         var title = entity.title
-        guard (!title.isEmpty && (entity.publication == "arXiv" || entity.publication.isEmpty) && !formatString(UserDefaults.standard.string(forKey: "ieeeAPIKey"))!.isEmpty) else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
+        guard !title.isEmpty && (entity.publication == "arXiv" || entity.publication.isEmpty) && !formatString(UserDefaults.standard.string(forKey: "ieeeAPIKey"))!.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
 
         title = formatString(title, removeNewline: true)!
         title = title.replacingOccurrences(of: " ", with: "+")
@@ -198,20 +198,20 @@ struct RealWebRepository: WebRepository {
                 var pubTime: String
                 var pubType: String
                 var publication: String
-                
-                if (ieeeData["total_records"] > 0) {
+
+                if ieeeData["total_records"] > 0 {
 
                     let hits = ieeeData["articles"]
-                    
+
                     for hit in hits {
                         let hitTitle = hit.1["title"].stringValue
                         var plainHitTitle = hit.1["title"].stringValue
                         plainHitTitle = formatString(plainHitTitle, removeStr: "&amp")!
                         plainHitTitle = formatString(plainHitTitle, removeSymbol: true, lowercased: true)!
-                        
+
                         var existTitle = formatString(entity.title, removeStr: "&amp")!
                         existTitle = formatString(existTitle, removeSymbol: true, lowercased: true)!
-                        
+
                         if plainHitTitle != existTitle {
                             continue
                         } else {
@@ -220,25 +220,23 @@ struct RealWebRepository: WebRepository {
                             // Authors
                             var authorsList = [String]()
                             let authorResults = hit.1["authors"]["authors"]
-                        
+
                             authorResults.forEach { author in
                                 authorsList.append(author.1["full_name"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
                             }
-                            
+
                             authors = String(authorsList.joined(separator: ", "))
 
                             pubTime = hit.1["publication_year"].stringValue
-                            
-                            if (hit.1["content_type"].stringValue.contains("Articles")) {
+
+                            if hit.1["content_type"].stringValue.contains("Articles") {
                                 pubType = "Journal"
-                            }
-                            else if (hit.1["content_type"].stringValue.contains("Conferences")) {
+                            } else if hit.1["content_type"].stringValue.contains("Conferences") {
                                 pubType = "Conference"
-                            }
-                            else {
+                            } else {
                                 pubType = "Others"
                             }
-                            
+
                             publication = hit.1["publication_title"].stringValue
 
                             entity.set(for: "title", value: title, allowEmpty: false)
@@ -246,16 +244,15 @@ struct RealWebRepository: WebRepository {
                             entity.set(for: "pubTime", value: pubTime, allowEmpty: false)
                             entity.set(for: "pubType", value: pubType, allowEmpty: false)
                             entity.set(for: "publication", value: publication, allowEmpty: false)
-                                
+
                             break
                         }
                     }
                 }
-            }
-            catch {
+            } catch {
                 print("[Error] invalid ieee response.")
             }
-            
+
             return Just<PaperEntityDraft>.withErrorType(entity, Error.self)
                 .eraseToAnyPublisher()
         }
@@ -267,7 +264,7 @@ struct RealWebRepository: WebRepository {
             }
             .eraseToAnyPublisher()
     }
-    
+
     func _parseDBLPResponse(dblpResponse: String?, entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
         guard dblpResponse != nil else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
 
@@ -281,20 +278,19 @@ struct RealWebRepository: WebRepository {
             var pubType: String
             var pubKey: String?
 
-            
             if dblpData["result"]["hits"]["@sent"].intValue > 0 {
                 let hits = dblpData["result"]["hits"]["hit"]
-                
+
                 for hit in hits {
                     let paperInfo = hit.1["info"]
                     let hitTitle = paperInfo["title"].stringValue
                     var plainHitTitle = paperInfo["title"].stringValue
                     plainHitTitle = formatString(plainHitTitle, removeStr: "&amp")!
                     plainHitTitle = formatString(plainHitTitle, removeSymbol: true, lowercased: true)!
-                    
+
                     var existTitle = formatString(entity.title, removeStr: "&amp")!
                     existTitle = formatString(existTitle, removeSymbol: true, lowercased: true)!
-                    
+
                     if plainHitTitle != existTitle {
                         continue
                     } else {
@@ -303,22 +299,21 @@ struct RealWebRepository: WebRepository {
                         // Authors
                         var authorsList = [String]()
                         let authorResults = paperInfo["authors"]["author"]
-                        
+
                         if authorResults["@pid"].exists() {
                             authorsList.append(authorResults["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
-                        }
-                        else {
+                        } else {
                             paperInfo["authors"]["author"].forEach { author in
                                 authorsList.append(author.1["text"].stringValue.trimmingCharacters(in: CharacterSet.letters.inverted))
                             }
                         }
-                        
+
                         authors = String(authorsList.joined(separator: ", "))
 
                         pubTime = paperInfo["year"].stringValue
                         pubType = [
                             "Conference and Workshop Papers": "Conference",
-                            "Journal Articles": "Journal",
+                            "Journal Articles": "Journal"
                         ][paperInfo["type"].stringValue] ?? "Others"
                         pubKey = paperInfo["key"].stringValue.components(separatedBy: "/")[...1].joined(separator: "/")
 
@@ -330,7 +325,7 @@ struct RealWebRepository: WebRepository {
                             entity.set(for: "pubType", value: pubType, allowEmpty: false)
 
                             entity.set(for: "publication", value: pubKey, allowEmpty: false)
-                            
+
                             break
                         }
 
@@ -354,11 +349,11 @@ struct RealWebRepository: WebRepository {
                 .eraseToAnyPublisher()
         }
     }
-    
+
     func fetch(dblp entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
         var dblpQuery = formatString(entity.title, removeStr: "&amp")!
         dblpQuery = formatString(dblpQuery, removeStr: "&")!
-        
+
         guard !dblpQuery.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
 
         var fetchURL = "https://dblp.org/search/publ/api?q=\(dblpQuery)&format=json"
@@ -374,11 +369,10 @@ struct RealWebRepository: WebRepository {
 
     func fetch(dblpWithTime entity: PaperEntityDraft, offset: Int) -> AnyPublisher<PaperEntityDraft, Error> {
         let year = Int(entity.pubTime)
-        guard ((entity.publication.isEmpty || entity.publication == "arXiv") && year != nil) else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
-        
+        guard (entity.publication.isEmpty || entity.publication == "arXiv") && year != nil else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
+
         var dblpQuery = formatString(entity.title, removeStr: "&amp")!
-        dblpQuery = formatString(dblpQuery, removeStr: "&")!
-        dblpQuery = dblpQuery + " " + "year:\(year! + offset)"
+        dblpQuery = formatString(dblpQuery, removeStr: "&")! + " " + "year:\(year! + offset)"
 
         guard !dblpQuery.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
 
@@ -413,7 +407,7 @@ struct RealWebRepository: WebRepository {
             } catch {
                 print("[Error] invalid dblp venue response.")
             }
-            
+
             return Just<PaperEntityDraft>.withErrorType(entity, Error.self)
                 .eraseToAnyPublisher()
         }
@@ -425,14 +419,24 @@ struct RealWebRepository: WebRepository {
             }
             .eraseToAnyPublisher()
     }
-    
+
     func fetch(titleExtractor entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
-        guard entity.title.isEmpty && formatString(entity.arxiv)!.isEmpty && formatString(entity.doi)!.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
+        guard entity.title.isEmpty && formatString(entity.arxiv)!.isEmpty && formatString(entity.doi)!.isEmpty
+        else {
+            return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher()
+        }
 
         let fileURL = URL(string: entity.mainURL)
         guard fileURL != nil else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
-        
-        let data = try! Data(contentsOf: fileURL!)
+
+        var data: Data
+        do {
+            data = try Data(contentsOf: fileURL!)
+        } catch let err {
+            print(err)
+            return Just<PaperEntityDraft>.withErrorType(entity, Error.self)
+                .eraseToAnyPublisher()
+        }
 
         func parseResponse(titleExtractorResponse: String?, entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
             guard titleExtractorResponse != nil else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
@@ -442,18 +446,16 @@ struct RealWebRepository: WebRepository {
             do {
                 let titleData = try JSON(data: jsonData)
                 entity.set(for: "title", value: titleData["title"].stringValue, allowEmpty: false)
-            }
-            catch {
+            } catch {
                 print("[Error] invalid dblp response.")
             }
             return Just<PaperEntityDraft>.withErrorType(entity, Error.self)
                 .eraseToAnyPublisher()
         }
-        
 
         return AF.upload(
             multipartFormData: { multipartFormData in
-                multipartFormData.append(data, withName: "file", fileName: "file", mimeType:"application/pdf")
+                multipartFormData.append(data, withName: "file", fileName: "file", mimeType: "application/pdf")
             },
             to: "https://paperlib.geoch.top/api/files/upload/"
         )
@@ -463,5 +465,5 @@ struct RealWebRepository: WebRepository {
             }
             .eraseToAnyPublisher()
     }
-    
+
 }

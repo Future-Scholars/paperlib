@@ -28,7 +28,6 @@ extension NSTextField {
     }
 }
 
-
 class SearchBarViewModel: ObservableObject {
     @Published var text: String = ""
 }

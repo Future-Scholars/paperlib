@@ -12,7 +12,7 @@ struct TextfieldView: View {
     let title: String
     @Binding var text: String
     let showTitle: Bool
-    var placeHolder: String? = nil
+    var placeHolder: String?
 
     var body: some View {
         HStack {
@@ -47,7 +47,7 @@ struct TextEditorView: View {
     let showTitle: Bool
 
     var body: some View {
-        VStack (alignment: .leading) {
+        VStack(alignment: .leading) {
             if showTitle {
                 Text(title).foregroundColor(Color.primary).bold().padding(.leading, 8).padding(.top, 8)
             }
@@ -66,7 +66,7 @@ struct TextEditorView: View {
 
 struct EditView: View {
     @Binding var entityDraft: PaperEntityDraft
-    
+
     init(_ entityDraft: Binding<[PaperEntityDraft]>) {
         _entityDraft = entityDraft.first!
     }
@@ -90,7 +90,7 @@ struct EditView: View {
             }
             TextfieldView(title: "Tags", text: $entityDraft.tags, showTitle: true).padding(.bottom, 10)
             TextfieldView(title: "Folders", text: $entityDraft.folders, showTitle: true).padding(.bottom, 10)
-            
+
             TextEditorView(title: "Note", text: $entityDraft.note, showTitle: true)
         }
         .frame(width: 450, alignment: .leading).padding()
@@ -256,10 +256,9 @@ private extension FolderEditView {
     }
 }
 
-
 struct NoteEditView: View {
     @Binding var entityDraft: PaperEntityDraft
-    
+
     init(_ entityDraft: Binding<[PaperEntityDraft]>) {
         _entityDraft = entityDraft.first!
     }

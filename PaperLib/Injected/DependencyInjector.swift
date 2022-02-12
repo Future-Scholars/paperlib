@@ -53,8 +53,7 @@ extension DIContainer {
 
 extension View {
     func inject(_ appState: AppState,
-                _ interactors: DIContainer.Interactors) -> some View
-    {
+                _ interactors: DIContainer.Interactors) -> some View {
         let container = DIContainer(appState: .init(appState),
                                     interactors: interactors)
         return inject(container)

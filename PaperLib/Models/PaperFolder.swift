@@ -10,11 +10,11 @@ import RealmSwift
 
 class PaperFolderIDObject: Object {
     @objc dynamic var _id: ObjectId
-    
+
     override init() {
         self._id = ObjectId.generate()
     }
-    
+
     override class func primaryKey() -> String? {
         return "_id"
     }

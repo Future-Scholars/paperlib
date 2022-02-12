@@ -14,14 +14,14 @@ struct SidebarView: View {
     @Binding var selectedFilters: Set<String>
 
     @State private var showProgressView: Bool = false
-    
+
     // Tags
     @State private var tags: Loadable<Results<PaperTag>>
     @State private var tagExpanded: Bool = true
     // Folders
     @State private var folders: Loadable<Results<PaperFolder>>
     @State private var folderExpanded: Bool = true
-    
+
     @Binding private var statusText: String
 
     init(selectedFilters: Binding<Set<String>>, statusText: Binding<String>) {
@@ -34,34 +34,33 @@ struct SidebarView: View {
     var body: some View {
         List(selection: $selectedFilters) {
             sectionTitle("Library")
-            HStack{
+            HStack {
                 Label("All Papers", systemImage: "rectangle.stack")
-                if (showProgressView) {
+                if showProgressView {
                     Spacer()
                     Text("     ")
-                        .overlay{
+                        .overlay {
                             ProgressView()
                                 .scaleEffect(x: 0.5, y: 0.5, anchor: .center)
                         }
                 }
             }
             .tag("lib-all")
-                
+
             Label("Flags", systemImage: "flag").tag("lib-flag")
 
             TagContent()
             FolderContent()
-            
+
         }
         .onAppear(perform: {
             reloadTags()
             reloadFolders()
         })
         .onReceive(processingStateUpdate, perform: { _ in
-            if (injected.appState[\.receiveSignals.processingCount] > 0) {
+            if injected.appState[\.receiveSignals.processingCount] > 0 {
                 showProgressView = true
-            }
-            else {
+            } else {
                 showProgressView = false
             }
         })
@@ -72,7 +71,7 @@ struct SidebarView: View {
                 reloadFolders()
             }
         })
-        
+
         Spacer()
         Text(statusText).font(.footnote).foregroundColor(Color.primary.opacity(0.4)).frame(alignment: .center).padding(.bottom, 10)
     }
@@ -193,7 +192,7 @@ private extension SidebarView {
     var appLibMovedUpdate: AnyPublisher<Date, Never> {
         injected.appState.updates(for: \.receiveSignals.appLibMoved)
     }
-    
+
     var processingStateUpdate: AnyPublisher<Int, Never> {
         injected.appState.updates(for: \.receiveSignals.processingCount)
     }

@@ -103,7 +103,7 @@ struct GeneralSettingsView: View {
             .onChange(of: invertColor, perform: { invert in
                 injected.appState[\.setting.invertColor] = invert
             })
-            
+
             HStack(alignment: .top) {
                 Text("Automatically delete the imported source file.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 Toggle("", isOn: $deleteSourceFile)
@@ -141,7 +141,6 @@ struct GeneralSettingsView: View {
     }
 }
 
-
 struct MatchSettingsView: View {
     @Environment(\.injected) private var injected: DIContainer
 
@@ -150,10 +149,9 @@ struct MatchSettingsView: View {
     @AppStorage("allowRoutineMatch") private var allowRoutineMatch = false
     @AppStorage("rematchInterval") private var rematchInterval = 7
 
-    
     var body: some View {
         VStack(alignment: .leading) {
-            
+
             HStack(alignment: .top) {
                 Text("Scrape PDF's built-in metadata.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 Toggle("", isOn: $allowFetchPDFMeta)
@@ -162,7 +160,7 @@ struct MatchSettingsView: View {
             .onChange(of: allowFetchPDFMeta, perform: { allowFetchPDFMeta in
                 injected.appState[\.setting.allowFetchPDFMeta] = allowFetchPDFMeta
             })
-            
+
             HStack(alignment: .top) {
                 Text("IEEE Xplorer API Key, the request limitation with the IEEE API is up to 200 per day. The API Key can applied from IEEE Developer website. See more on Paperlib's Github.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 TextField("", text: $ieeeAPIKey)
@@ -172,9 +170,9 @@ struct MatchSettingsView: View {
                 injected.appState[\.setting.ieeeAPIKey] = ieeeAPIKey
             })
             .padding(.bottom, 10)
-            
+
             Divider()
-            
+
             HStack(alignment: .top) {
                 Text("Automatically re-match metadata for preprint papers.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 Toggle("", isOn: $allowRoutineMatch)
@@ -200,7 +198,6 @@ struct MatchSettingsView: View {
     }
 }
 
-
 struct SyncSettingsView: View {
     @Environment(\.injected) private var injected: DIContainer
 
@@ -218,7 +215,7 @@ struct SyncSettingsView: View {
                 injected.appState[\.setting.syncAPIKey] = syncAPIKey
             })
             .padding(.bottom, 10)
-            
+
             HStack(alignment: .top) {
                 Text("Use cloud sync. The PDF files are still stored in the folder you selected in the General setting page. The cloud database can only store the index and metadata of your data.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 Toggle("", isOn: $useSync)
@@ -226,10 +223,10 @@ struct SyncSettingsView: View {
             }
             .padding(.bottom, 10)
             .onChange(of: useSync, perform: onToggleUseSync)
-            
+
             HStack(alignment: .top) {
                 Text("Migrate the local database to the cloud sync database.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
-                Button (action: {
+                Button(action: {
                     print("migrate")
                     injected.interactors.entitiesInteractor.migrateLocaltoSync()
                 }) {
@@ -240,19 +237,18 @@ struct SyncSettingsView: View {
             .padding(.bottom, 10)
         }
     }
-    
+
     func onToggleUseSync (useSync: Bool) {
         injected.appState[\.setting.useSync] = useSync
-        
+
         if !syncAPIKey.isEmpty {
             injected.appState[\.receiveSignals.sideBar] += 1
             injected.appState[\.receiveSignals.mainView] += 1
-            
+
             injected.interactors.entitiesInteractor.openLib()
         }
     }
 }
-
 
 struct ExportSettingsView: View {
     @Environment(\.injected) private var injected: DIContainer
@@ -262,10 +258,10 @@ struct ExportSettingsView: View {
     @State private var exportReplacementContainer: [String: String] = .init()
     @State private var newReplacementKey: String = ""
     @State private var newReplacementValue: String = ""
-    
+
     var body: some View {
         VStack(alignment: .leading) {
-            HStack{
+            HStack {
                 Text("Enable replacing publication title with customed string when exporting to bibtex. For example, replace 'Conference on Computer Vision and Pattern Recognition' by 'CVPR'.").font(.caption)
                 Toggle("", isOn: $enableExportReplacement)
                     .toggleStyle(.checkbox)
@@ -273,28 +269,28 @@ struct ExportSettingsView: View {
                         injected.appState[\.setting.enableExportReplacement] = enableExportReplacement
                     })
             }
-            HStack{
+            HStack {
                 TextField("original", text: $newReplacementKey).frame(width: 217, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 Image(systemName: "arrow.right")
                 TextField("replacement", text: $newReplacementValue).frame(width: 217, alignment: .leading).multilineTextAlignment(.leading).font(.caption)
                 Button(action: {
-                    if (!newReplacementKey.isEmpty && !newReplacementValue.isEmpty) {
+                    if !newReplacementKey.isEmpty && !newReplacementValue.isEmpty {
                         exportReplacementContainer[formatString(newReplacementKey, removeNewline: true)!] = formatString(newReplacementValue, removeNewline: true)!
                     }
-                }){
+                }) {
                     Image(systemName: "plus.circle")
                 }
                 .buttonStyle(PlainButtonStyle())
             }
             List {
                 ForEach(Array(exportReplacementContainer.keys), id: \.self) { key in
-                    HStack{
+                    HStack {
                         Text(key).frame(width: 200, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                         Image(systemName: "arrow.right")
                         Text(exportReplacementContainer[key]!).frame(width: 200, alignment: .leading).multilineTextAlignment(.leading).font(.caption)
                         Button(action: {
                             exportReplacementContainer.removeValue(forKey: key)
-                        }){
+                        }) {
                             Image(systemName: "delete.left")
                         }
                         .buttonStyle(PlainButtonStyle())

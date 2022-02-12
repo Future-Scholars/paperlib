@@ -16,7 +16,7 @@ struct ListRow: View {
             Text(entity.authors).lineLimit(1).font(.subheadline)
             HStack {
                 Text(entity.pubTime).lineLimit(1)
-                if (!entity.pubTime.isEmpty) {
+                if !entity.pubTime.isEmpty {
                     Text("|")
                 }
                 Text(entity.publication).italic().lineLimit(1)

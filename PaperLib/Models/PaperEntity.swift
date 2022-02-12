@@ -11,12 +11,12 @@ import RealmSwift
 class PaperEntityIDObject: Object {
     @objc dynamic var id: ObjectId
     @objc dynamic var _id: ObjectId
-    
+
     override init() {
         self.id = ObjectId.generate()
         self._id = self.id
     }
-    
+
     override class func primaryKey() -> String? {
         return "_id"
     }
@@ -27,7 +27,7 @@ class PaperEntityIDObject: Object {
 }
 
 class PaperEntity: PaperEntityIDObject, ObjectKeyIdentifiable {
-    
+
     @Persisted var _partition: String?
     @Persisted var addTime: Date
 
@@ -45,7 +45,6 @@ class PaperEntity: PaperEntityIDObject, ObjectKeyIdentifiable {
     @Persisted var folders: List<PaperFolder>
     @Persisted var flag: Bool = false
     @Persisted var note: String = ""
-    
 
     convenience init(
         title: String?,
@@ -63,7 +62,7 @@ class PaperEntity: PaperEntityIDObject, ObjectKeyIdentifiable {
         self.init()
 
         self.id = self._id
-        
+
         self.addTime = Date()
 
         self.title = title ?? ""
@@ -79,11 +78,10 @@ class PaperEntity: PaperEntityIDObject, ObjectKeyIdentifiable {
         }
         self.rating = rating ?? 0
         self.flag = flag ?? false
-        
+
         print("create entity")
     }
 }
-
 
 class PaperEntityDraft: NSObject {
     @objc var id: ObjectId = .generate()
@@ -103,11 +101,11 @@ class PaperEntityDraft: NSObject {
     @objc var folders: String = ""
     @objc var flag: Bool = false
     @objc var note: String = ""
-    
+
     override init() {
         super.init()
     }
-    
+
     init(from entity: PaperEntity) {
         id = entity.id
         addTime = entity.addTime
@@ -130,14 +128,14 @@ class PaperEntityDraft: NSObject {
     }
 
     func set(for key: String, value: Any?, allowEmpty: Bool = false) {
-        guard value != nil || allowEmpty else  { return }
-        
+        guard value != nil || allowEmpty else { return }
+
         var formatedValue = value
         if formatedValue is String {
             if key == "title" || key == "authors" {
                 formatedValue = formatString(formatedValue as? String, removeNewline: true, removeStr: ".")
             }
-            if (formatedValue as! String).isEmpty {
+            if (formatedValue as? String ?? "").isEmpty {
                 if allowEmpty {
                     setValue(formatedValue, forKey: key)
                 }

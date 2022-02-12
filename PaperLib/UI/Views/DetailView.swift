@@ -17,7 +17,7 @@ struct DetailView: View {
     private var editEntity: PaperEntityDraft
 
     @State private var rating: Int
-    
+
     init(entity: PaperEntity) {
         _rating = State(initialValue: entity.rating)
         self.entity = entity
@@ -53,14 +53,14 @@ private extension DetailView {
                     .onChange(of: rating, perform: { _ in
                         rate()
                     })
-                if (FileManager.default.fileExists(atPath: getJoinedUrl(entity.mainURL)?.path ?? "")){
+                if FileManager.default.fileExists(atPath: getJoinedUrl(entity.mainURL)?.path ?? "") {
                     DetailThumbnailSection(url: getJoinedUrl(entity.mainURL)).inject(injected)
                 }
                 if entity.supURLs.count >= 1 {
                     DetailsSupSection(sups: Array(entity.supURLs).map({return getJoinedUrl($0)}).filter({ $0 != nil}).map({$0!}))
                 }
-                
-                if (!entity.note.isEmpty) {
+
+                if !entity.note.isEmpty {
                     DetailTextSection(title: "Note", value: entity.note)
                 }
                 Spacer()
@@ -86,10 +86,9 @@ private extension DetailView {
         editEntity.rating = rating
         injected.interactors.entitiesInteractor.update(entities: [editEntity])
     }
-    
+
     func getJoinedUrl(_ url: String) -> URL? {
         return injected.interactors.entitiesInteractor.getJoinedUrl(url)
     }
 
-    
 }

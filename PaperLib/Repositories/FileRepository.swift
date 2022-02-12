@@ -11,14 +11,13 @@ import PDFKit
 import RealmSwift
 import Alamofire
 
-
 protocol FileRepository {
     func read(from url: URL) -> AnyPublisher<PaperEntityDraft?, Error>
     func read(pdfUrl: URL) -> AnyPublisher<PaperEntityDraft?, Error>
-    
+
     func move(for entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft?, Error>
     func move(for entities: [PaperEntityDraft]) -> AnyPublisher<[PaperEntityDraft?], Error>
-    
+
     func remove(for filePath: String) -> AnyPublisher<Bool, Error>
     func remove(for filePaths: [String]) -> AnyPublisher<[Bool], Error>
     func remove(for entity: PaperEntityDraft) -> AnyPublisher<Bool, Error>
@@ -27,7 +26,7 @@ protocol FileRepository {
 }
 
 struct RealFileDBRepository: FileRepository {
-    
+
     let queue: DispatchQueue = .init(label: "fileQueue")
     let cancelBag: CancelBag = .init()
 
@@ -45,13 +44,13 @@ struct RealFileDBRepository: FileRepository {
         return Future<PaperEntityDraft?, Error> { promise in
             queue.async {
                 let document = PDFDocument(url: pdfUrl)
-                
+
                 if let pdf = document {
                     let entity = PaperEntityDraft()
-                    
+
                     entity.set(for: "mainURL", value: pdfUrl.absoluteString)
-                    
-                    if (UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")) {
+
+                    if UserDefaults.standard.bool(forKey: "allowFetchPDFMeta") {
                         let title = pdf.documentAttributes?[PDFDocumentAttribute.titleAttribute]
                         let authors = pdf.documentAttributes?[PDFDocumentAttribute.authorAttribute]
                         entity.set(for: "title", value: title as? String ?? "", allowEmpty: false)
@@ -62,8 +61,7 @@ struct RealFileDBRepository: FileRepository {
                     let arxivID = extractArxiv(pdf)
                     entity.set(for: "arxiv", value: arxivID, allowEmpty: false)
                     promise(.success(entity))
-                }
-                else {
+                } else {
                     promise(.success(nil))
                 }
             }
@@ -73,23 +71,23 @@ struct RealFileDBRepository: FileRepository {
 
     func extractIdentifier(_ document: PDFDocument, pattern: String) -> String? {
         // From subject metadata
-        let subject = document.documentAttributes?[PDFDocumentAttribute.subjectAttribute] ?? ""
-        let subjectMatch = matches(for: pattern, in: subject as! String)
+        let subject = document.documentAttributes?[PDFDocumentAttribute.subjectAttribute] as? String ?? ""
+        let subjectMatch = matches(for: pattern, in: subject)
         let matchedIdentifier = subjectMatch.first
 
         if let identifier = matchedIdentifier {
             return identifier
         }
-        
+
         // From fulltext
         let page = document.page(at: 0)
         let pageContent = page?.attributedString
 
         let fulltextMatch = matches(for: pattern, in: pageContent?.string ?? "")
         return fulltextMatch.first
-        
+
     }
-    
+
     func extractDOI(_ document: PDFDocument) -> String? {
         let pattern = "(?:(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%\"#? ])\\S)+))"
         return extractIdentifier(document, pattern: pattern)
@@ -116,26 +114,24 @@ struct RealFileDBRepository: FileRepository {
     // MARK: - Move
 
     func constructUrl(_ path: String) -> URL? {
-        if (path.starts(with: "file://")){
+        if path.starts(with: "file://") {
             return URL(string: path)
-        }
-        else {
+        } else {
             let dbRoot = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
             var url = URL(string: dbRoot)
             url?.appendPathComponent(path)
             return url
         }
     }
-    
+
     func _move(from sourcePath: URL, to targetPath: URL) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
             var isDir: ObjCBool = false
-            if (!FileManager.default.fileExists(atPath: targetPath.path) && FileManager.default.fileExists(atPath: sourcePath.path, isDirectory: &isDir) && !isDir.boolValue) {
+            if !FileManager.default.fileExists(atPath: targetPath.path) && FileManager.default.fileExists(atPath: sourcePath.path, isDirectory: &isDir) && !isDir.boolValue {
                 do {
-                    if (UserDefaults.standard.bool(forKey: "deleteSourceFile")) {
+                    if UserDefaults.standard.bool(forKey: "deleteSourceFile") {
                         try FileManager.default.moveItem(atPath: sourcePath.path, toPath: targetPath.path)
-                    }
-                    else {
+                    } else {
                         try FileManager.default.copyItem(atPath: sourcePath.path, toPath: targetPath.path)
                     }
                     promise(.success(true))
@@ -153,7 +149,7 @@ struct RealFileDBRepository: FileRepository {
     func _remove(for fileURL: URL) -> AnyPublisher<Bool, Error> {
         return Future<Bool, Error> { promise in
             var isDir: ObjCBool = false
-            if (FileManager.default.fileExists(atPath: fileURL.path, isDirectory: &isDir) && !isDir.boolValue){
+            if FileManager.default.fileExists(atPath: fileURL.path, isDirectory: &isDir) && !isDir.boolValue {
                 do {
                     try FileManager.default.removeItem(atPath: fileURL.path)
                     promise(.success(true))
@@ -169,22 +165,20 @@ struct RealFileDBRepository: FileRepository {
     }
 
     func move(for entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft?, Error> {
-        
+
         let targetFileName = entity.title.replaceCharactersFromSet(in: engLetterandWhiteCharacterSet.inverted, replacementString: "")
             .replacingOccurrences(of: " ", with: "_") + "_\(entity.id)"
 
-
         return Future<PaperEntityDraft?, Error> { promise in
             var sourceURLs = Array(entity.supURLs).map({ return self.constructUrl($0) })
-            var targetURLs = Array<URL?>.init()
-            
+            var targetURLs = [URL?].init()
+
             for (i, sourceURL) in sourceURLs.enumerated() {
                 var targetURL = self.constructUrl(targetFileName + "_sup\(i)")
                 targetURL?.appendPathExtension(sourceURL?.pathExtension ?? "")
                 targetURLs.append(targetURL)
             }
-                
-  
+
             let sourceMainURL = self.constructUrl(entity.mainURL)
             sourceURLs.insert(sourceMainURL, at: 0)
             var targetMainURL = self.constructUrl(targetFileName + "_main")
@@ -217,7 +211,7 @@ struct RealFileDBRepository: FileRepository {
             }).store(in: cancelBag)
         }
         .eraseToAnyPublisher()
-    
+
     }
 
     func move(for entities: [PaperEntityDraft]) -> AnyPublisher<[PaperEntityDraft?], Error> {
@@ -241,10 +235,10 @@ struct RealFileDBRepository: FileRepository {
                 publisherList.append(_remove(for: url))
             }
         }
-        
+
         return Publishers.MergeMany(publisherList).allSatisfy({ return $0 }).eraseToAnyPublisher()
     }
-    
+
     func remove(for entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], Error> {
         var publisherList: [AnyPublisher<Bool, Error>] = .init()
         entities.forEach { entity in
@@ -254,12 +248,11 @@ struct RealFileDBRepository: FileRepository {
             .collect()
             .eraseToAnyPublisher()
     }
-    
+
     func remove(for filePath: String) -> AnyPublisher<Bool, Error> {
         if let fileURL = self.constructUrl(filePath) {
             return _remove(for: fileURL)
-        }
-        else {
+        } else {
             return Just<Bool>.withErrorType(false, Error.self)
         }
     }
@@ -273,11 +266,11 @@ struct RealFileDBRepository: FileRepository {
             .collect()
             .eraseToAnyPublisher()
     }
-    
+
     // MARK: - Download
     func download(url: URL) -> AnyPublisher<URL?, Error> {
         let destination = DownloadRequest.suggestedDownloadDestination(for: .downloadsDirectory)
-        
+
         func parseResponse(downloadResponse: String?, url: URL) -> AnyPublisher<URL?, Error> {
             guard downloadResponse != nil else { return CurrentValueSubject(nil).eraseToAnyPublisher() }
 
@@ -286,14 +279,12 @@ struct RealFileDBRepository: FileRepository {
                 downloadedUrl = downloadedUrl.appendingPathComponent(filename)
                 return CurrentValueSubject(downloadedUrl)
                     .eraseToAnyPublisher()
-            }
-            else {
+            } else {
                 return CurrentValueSubject(nil)
                     .eraseToAnyPublisher()
             }
         }
-        
-        
+
         return AF.download(url, to: destination)
             .publishString()
             .flatMap {

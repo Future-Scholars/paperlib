@@ -37,8 +37,7 @@ extension Store {
 
 extension Binding where Value: Equatable {
     func dispatched<State>(to state: Store<State>,
-                           _ keyPath: WritableKeyPath<State, Value>) -> Self
-    {
+                           _ keyPath: WritableKeyPath<State, Value>) -> Self {
         return onSet { state[keyPath] = $0 }
     }
 }

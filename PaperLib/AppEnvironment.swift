@@ -32,8 +32,7 @@ extension AppEnvironment {
     }
 
     private static func configuredInteractors(appState: Store<AppState>,
-                                              repositories: DIContainer.Repositories) -> DIContainer.Interactors
-    {
+                                              repositories: DIContainer.Repositories) -> DIContainer.Interactors {
         let entitiesInteractor = RealEntitiesInteractor(
             appState: appState,
             dbRepository: repositories.dbRepository,
