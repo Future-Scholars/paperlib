@@ -378,29 +378,49 @@ class RealEntitiesInteractor: EntitiesInteractor {
     }
     
     func handleChromePluginUrl(_ url: URL) {
-        
         self.cancelBags.cancel(for: "plugin")
         self.appState[\.receiveSignals.processingCount] += 1
-        
-        var urlStr = url.absoluteString
-        urlStr = formatString(urlStr, removeStr: "paperlib://")!
-        let urlComponents = urlStr.components(separatedBy: "?")
-        let operation = urlComponents.first
-        
-        if (operation == "download") {
-            var downloadLink = urlComponents[1].components(separatedBy: "=")[1]
-            downloadLink = downloadLink.replacingOccurrences(of: ".pdf.pdf", with: ".pdf")
-            
-            if let downloadUrl = URL(string: downloadLink) {
-                self.fileRepository.download(url: downloadUrl)
-                .sink(receiveCompletion: {_ in}, receiveValue: {
-                    self.appState[\.receiveSignals.processingCount] -= 1
-                    if let downloadedUrl = $0 {
-                        self.add(from: [downloadedUrl])
+
+        do {
+            var urlStr = url.absoluteString
+            urlStr = formatString(urlStr, removeStr: "paperlib://")!
+            let urlComponents = urlStr.components(separatedBy: "?")
+            let operation = urlComponents.first
+
+            if operation == "download" {
+                if url.absoluteString.contains("arxiv.org") {
+                    let pattern = "(\\d{4}.\\d{4,5}|[a-z\\-] (\\.[A-Z]{2})?\\/\\d{7})(v\\d )?"
+                    var downloadLink = urlComponents[1].components(separatedBy: "=")[1]
+
+                    let regex = try NSRegularExpression(pattern: pattern)
+                    let results = regex.matches(in: downloadLink, range: NSRange(downloadLink.startIndex..., in: downloadLink))
+                    let arxivID = results.map {
+                        String(downloadLink[Range($0.range, in: downloadLink)!])
+                    }.first
+
+                    if let arxivID = arxivID {
+                        downloadLink = "https://arxiv.org/pdf/\(arxivID).pdf"
+
+                        print(downloadLink)
+
+                        if let downloadUrl = URL(string: downloadLink) {
+                            self.fileRepository.download(url: downloadUrl)
+                            .sink(receiveCompletion: {_ in}, receiveValue: {
+                                self.appState[\.receiveSignals.processingCount] -= 1
+                                if let downloadedUrl = $0 {
+                                    self.add(from: [downloadedUrl])
+                                }
+                            })
+                            .store(in: self.cancelBags["plugin"])
+                        }
+                    } else {
+                        self.appState[\.receiveSignals.processingCount] -= 1
                     }
-                })
-                .store(in: self.cancelBags["plugin"])
+                }
             }
+        } catch let err {
+            self.appState[\.receiveSignals.processingCount] -= 1
+            print(err)
         }
     }
     
