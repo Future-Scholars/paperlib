@@ -13,14 +13,12 @@ import SwiftUI
 
 protocol EntitiesInteractor {
     func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: [String], folders: [String], sort: String)
-    func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String?)
-    func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String?)
+    func load<T: PaperCategorizer>(categorizers: LoadableSubject<Results<T>>, cancelBagKey: String)
 
     func add(from fileURLs: [URL])
 
     func delete(ids: Set<ObjectId>)
-    func delete(tagName: String)
-    func delete(folderName: String)
+    func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type)
 
     func update(entities: [PaperEntityDraft])
     func match(entities: [PaperEntityDraft])
@@ -41,7 +39,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
     let webRepository: WebRepository
     let appState: Store<AppState>
 
-    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "entitiesByIds", "tags", "folders", "update", "add", "match", "delete", "tags-edit", "folders-edit", "delete-tag", "delete-folder", "open-lib", "plugin"])
+    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "entitiesByIds", "update", "add", "match", "delete", "edit", "folders-edit", "delete-tag", "delete-folder", "open-lib", "plugin", "categorizers"])
 
     var routineTimer: Publishers.Autoconnect<Timer.TimerPublisher> = Timer.publish(every: 86400, on: .main, in: .common).autoconnect()
 
@@ -76,45 +74,17 @@ class RealEntitiesInteractor: EntitiesInteractor {
         }
     }
 
-    func load(tags: LoadableSubject<Results<PaperTag>>, cancelBagKey: String? = nil) {
-
+    func load<T: PaperCategorizer>(categorizers: LoadableSubject<Results<T>>, cancelBagKey: String) {
         Task {
-            var key: String
-            if cancelBagKey == nil {
-                key = "tags"
-            } else {
-                key = cancelBagKey!
-            }
-            self.cancelBags.cancel(for: key)
-            tags.wrappedValue.setIsLoading(cancelBag: self.cancelBags[key])
+            self.cancelBags.cancel(for: cancelBagKey)
+            categorizers.wrappedValue.setIsLoading(cancelBag: self.cancelBags[cancelBagKey])
 
-            await self.dbRepository.categorizers(categorizerType: PaperTag.self)
+            await self.dbRepository.categorizers(categorizerType: T.self)
                 .sinkToLoadable {
-                    tags.wrappedValue.setIsLoading(cancelBag: self.cancelBags[key])
-                    tags.wrappedValue = $0
+                    categorizers.wrappedValue.setIsLoading(cancelBag: self.cancelBags[cancelBagKey])
+                    categorizers.wrappedValue = $0
                 }
-                .store(in: self.cancelBags[key])
-        }
-    }
-
-    func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String? = nil) {
-        Task {
-            var key: String
-            if cancelBagKey == nil {
-                key = "folders"
-            } else {
-                key = cancelBagKey!
-            }
-            self.cancelBags.cancel(for: key)
-
-            folders.wrappedValue.setIsLoading(cancelBag: self.cancelBags[key])
-
-            await self.dbRepository.categorizers(categorizerType: PaperFolder.self)
-                .sinkToLoadable {
-                    folders.wrappedValue.setIsLoading(cancelBag: self.cancelBags[key])
-                    folders.wrappedValue = $0
-                }
-                .store(in: self.cancelBags[key])
+                .store(in: self.cancelBags[cancelBagKey])
         }
     }
 
@@ -180,23 +150,13 @@ class RealEntitiesInteractor: EntitiesInteractor {
         }
     }
 
-    func delete(tagName: String) {
-        self.cancelBags.cancel(for: "delete-tag")
+    func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type) {
+        self.cancelBags.cancel(for: "delete-categorizer")
 
         Task {
-            await self.dbRepository.delete(categorizerName: tagName, categorizerType: PaperTag.self)
+            await self.dbRepository.delete(categorizerName: categorizerName, categorizerType: categorizerType)
                 .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-                .store(in: self.cancelBags["delete-tag"])
-        }
-    }
-
-    func delete(folderName: String) {
-        self.cancelBags.cancel(for: "delete-folder")
-
-        Task {
-            await self.dbRepository.delete(categorizerName: folderName, categorizerType: PaperFolder.self)
-                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-                .store(in: self.cancelBags["delete-folder"])
+                .store(in: self.cancelBags["delete-categorizer"])
         }
     }
 
@@ -275,7 +235,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         }
     }
 
-    // MARK: -
+    // MARK: - Misc
     func export(entities: [PaperEntity], format: String) {
         if format == "bibtex" {
             _exportBibtex(entities: entities)
@@ -441,44 +401,26 @@ class RealEntitiesInteractor: EntitiesInteractor {
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
-    func load(entities: LoadableSubject<Results<PaperEntity>>, drafts: Binding<[PaperEntityDraft]>, ids: Set<ObjectId>) {
-
-    }
-
-    func update(entities: [PaperEntityDraft]) {
-
-    }
-
-    func getJoinedUrl(_ url: String) -> URL? {
-        return URL(string: "")
-    }
-
-    func openLib() {}
-
-    func migrateLocaltoSync() {}
-
-    func delete(tagName _: String) {}
-
-    func delete(folderName _: String) {}
-
-    func export(entities _: [PaperEntity], format _: String) {}
-
-    func load(folders _: LoadableSubject<Results<PaperFolder>>, cancelBagKey _: String? = nil) {}
-
-    func load(tags _: LoadableSubject<Results<PaperTag>>, cancelBagKey _: String?) {}
-
-    func match(entities _: [PaperEntityDraft]) {}
-
-    func routineMatch() {}
 
     func load(entities _: LoadableSubject<Results<PaperEntity>>, search _: String?, flag _: Bool, tags _: [String], folders _: [String], sort _: String) {}
+    func load<T: PaperCategorizer>(categorizers: LoadableSubject<Results<T>>, cancelBagKey: String) {}
 
     func add(from _: [URL]) {}
 
     func delete(ids _: Set<ObjectId>) {}
+    func delete<T>(categorizerName: String, categorizerType: T.Type) where T: PaperCategorizer {}
 
+    func update(entities: [PaperEntityDraft]) {}
+    func match(entities _: [PaperEntityDraft]) {}
+    func routineMatch() {}
+
+    func getJoinedUrl(_ url: String) -> URL? {
+        return URL(string: "")
+    }
+    func openLib() {}
+    func migrateLocaltoSync() {}
+    func export(entities _: [PaperEntity], format _: String) {}
     func handleChromePluginUrl(_ url: URL) {}
-
     func setRoutineTimer() {}
 
 }

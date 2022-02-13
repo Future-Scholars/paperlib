@@ -174,19 +174,19 @@ private extension SidebarView {
 
 private extension SidebarView {
     func reloadTags() {
-        injected.interactors.entitiesInteractor.load(tags: $tags, cancelBagKey: nil)
+        injected.interactors.entitiesInteractor.load(categorizers: $tags, cancelBagKey: "categorizers")
     }
 
     func reloadFolders() {
-        injected.interactors.entitiesInteractor.load(folders: $folders, cancelBagKey: nil)
+        injected.interactors.entitiesInteractor.load(categorizers: $folders, cancelBagKey: "categorizers")
     }
 
     func removeTag(tagName: String) {
-        injected.interactors.entitiesInteractor.delete(tagName: tagName)
+        injected.interactors.entitiesInteractor.delete(categorizerName: tagName, categorizerType: PaperTag.self)
     }
 
     func removeFolder(folderName: String) {
-        injected.interactors.entitiesInteractor.delete(folderName: folderName)
+        injected.interactors.entitiesInteractor.delete(categorizerName: folderName, categorizerType: PaperFolder.self)
     }
 
     var appLibMovedUpdate: AnyPublisher<Date, Never> {

@@ -172,7 +172,7 @@ struct TagEditView: View {
 
 private extension TagEditView {
     func reloadTags() {
-        injected.interactors.entitiesInteractor.load(tags: $tags, cancelBagKey: "tags-edit")
+        injected.interactors.entitiesInteractor.load(categorizers: $tags, cancelBagKey: "edit")
     }
 }
 
@@ -252,7 +252,7 @@ struct FolderEditView: View {
 
 private extension FolderEditView {
     func reloadFolders() {
-        injected.interactors.entitiesInteractor.load(folders: $folders, cancelBagKey: "folders-edit")
+        injected.interactors.entitiesInteractor.load(categorizers: $folders, cancelBagKey: "edit")
     }
 }
 
