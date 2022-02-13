@@ -8,6 +8,13 @@
 import Foundation
 import RealmSwift
 
+protocol PaperCategorizer: Object {
+    var _partition: String? { get set }
+    var count: Int { get set }
+    var name: String { get set }
+    init(name: String)
+}
+
 class IDObject: Object {
     @objc dynamic var _id: ObjectId
 
@@ -24,7 +31,7 @@ class IDObject: Object {
     }
 }
 
-class PaperCategorizer: IDObject {
+class PaperTag: IDObject, ObjectKeyIdentifiable, PaperCategorizer {
     @Persisted var _partition: String?
     @Persisted var count: Int = 0
     @Persisted var name: String = ""
@@ -35,8 +42,13 @@ class PaperCategorizer: IDObject {
     }
 }
 
-class PaperTag: PaperCategorizer, ObjectKeyIdentifiable {
-}
+class PaperFolder: IDObject, ObjectKeyIdentifiable, PaperCategorizer {
+    @Persisted var _partition: String?
+    @Persisted var count: Int = 0
+    @Persisted var name: String = ""
 
-class PaperFolder: PaperCategorizer, ObjectKeyIdentifiable {
+    convenience required init(name: String) {
+        self.init()
+        self.name = name
+    }
 }

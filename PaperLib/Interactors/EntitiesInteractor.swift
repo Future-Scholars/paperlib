@@ -17,7 +17,6 @@ protocol EntitiesInteractor {
     func load(folders: LoadableSubject<Results<PaperFolder>>, cancelBagKey: String?)
 
     func add(from fileURLs: [URL])
-    func addTestData()
 
     func delete(ids: Set<ObjectId>)
     func delete(tagName: String)
@@ -67,7 +66,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         entities.wrappedValue.setIsLoading(cancelBag: self.cancelBags["entities"])
 
         Task {
-            await self.dbRepository.entities(search: search, flag: flag, tags: tags, folders: folders, sort: sort)
+            await self.dbRepository.entities(search: search, publication: nil, flag: flag, tags: tags, folders: folders, sort: sort)
                 .sinkToLoadable {
                     entities.wrappedValue.setIsLoading(cancelBag: CancelBag())
                     print("[Reloaded] entities")
@@ -89,7 +88,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
             self.cancelBags.cancel(for: key)
             tags.wrappedValue.setIsLoading(cancelBag: self.cancelBags[key])
 
-            await self.dbRepository.tags()
+            await self.dbRepository.categorizers(categorizerType: PaperTag.self)
                 .sinkToLoadable {
                     tags.wrappedValue.setIsLoading(cancelBag: self.cancelBags[key])
                     tags.wrappedValue = $0
@@ -110,7 +109,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
             folders.wrappedValue.setIsLoading(cancelBag: self.cancelBags[key])
 
-            await self.dbRepository.folders()
+            await self.dbRepository.categorizers(categorizerType: PaperFolder.self)
                 .sinkToLoadable {
                     folders.wrappedValue.setIsLoading(cancelBag: self.cancelBags[key])
                     folders.wrappedValue = $0
@@ -152,9 +151,9 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
                 let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
                 Task {
-                    await self.dbRepository.add(for: filteredEntities)
-                        .flatMap { failedPaths -> AnyPublisher<[Bool], Error> in
-                            return self.fileRepository.remove(for: failedPaths)
+                    await self.dbRepository.update(from: filteredEntities)
+                        .flatMap { successes -> AnyPublisher<[Bool], Error> in
+                            return self.fileRepository.remove(for: filteredEntities.filter({ !successes[filteredEntities.firstIndex(of: $0)!] }))
                         }
                         .sink(receiveCompletion: { _ in }, receiveValue: {_ in
                             self.appState[\.receiveSignals.processingCount] -= c
@@ -164,24 +163,6 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
             })
             .store(in: self.cancelBags["add"])
-    }
-
-    func addTestData() {
-
-        Task {
-            var testEntities: [PaperEntityDraft] = .init()
-
-            for i in 0...500 {
-                let entity = PaperEntityDraft()
-                entity.title = "Title \(i)"
-                entity.authors = "Authors \(i)"
-                testEntities.append(entity)
-            }
-
-            await self.dbRepository.add(for: testEntities)
-                .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
-                .store(in: CancelBag())
-        }
     }
 
     // MARK: - Delete
@@ -285,9 +266,12 @@ class RealEntitiesInteractor: EntitiesInteractor {
             self.appState[\.setting.lastRematchTime] = Int(Date().timeIntervalSince1970)
             UserDefaults.standard.set(Int(Date().timeIntervalSince1970), forKey: "lastRematchTime")
 
-            let entities = await self.dbRepository.preprintEntities()
-            let drafts = entities.map({entity in return PaperEntityDraft(from: entity)})
-            self.match(entities: Array(drafts))
+            await self.dbRepository.entities(search: nil, publication: "arXiv", flag: false, tags: [], folders: [], sort: "title")
+                .sink(receiveCompletion: {_ in}, receiveValue: { entities in
+                    let drafts = entities.map({entity in return PaperEntityDraft(from: entity)})
+                    self.match(entities: Array(drafts))
+                })
+                .store(in: CancelBag())
         }
     }
 
@@ -364,7 +348,8 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
     func openLib() {
         Task {
-            _ = await self.dbRepository.getConfig(settings: self.appState[\.setting])
+            await self.dbRepository.logoutCloud()
+            _ = await self.dbRepository.getConfig()
             DispatchQueue.main.sync {
                 self.appState[\.receiveSignals.appLibMoved] = Date()
             }
@@ -456,7 +441,6 @@ class RealEntitiesInteractor: EntitiesInteractor {
 }
 
 struct StubEntitiesInteractor: EntitiesInteractor {
-    func addTestData() {}
     func load(entities: LoadableSubject<Results<PaperEntity>>, drafts: Binding<[PaperEntityDraft]>, ids: Set<ObjectId>) {
 
     }
