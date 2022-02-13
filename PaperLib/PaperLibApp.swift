@@ -19,7 +19,7 @@ struct PaperLibApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(container: self.environment.container)
-                .handlesExternalEvents(preferring: Set(arrayLiteral: "{path of URL?}"), allowing: Set(arrayLiteral: "*"))
+                .handlesExternalEvents(preferring: Set(["paperlib"]), allowing: Set(["*"]))
                 .onOpenURL(perform: {
                     self.environment.container.interactors.entitiesInteractor.handleChromePluginUrl($0)
                 })
@@ -30,7 +30,6 @@ struct PaperLibApp: App {
                 CheckForUpdatesView(updaterViewModel: updaterViewModel)
             }
         }
-        .handlesExternalEvents(matching: Set(arrayLiteral: "{same path of URL?}"))
         Settings {
             SettingsView().inject(self.environment.container)
         }

@@ -71,7 +71,12 @@ struct ThumbnailComponent: View {
                     let destSize = NSSize(width: CGFloat(150), height: CGFloat(150 * 1.4))
                     let newImage = NSImage(size: destSize)
                     newImage.lockFocus()
-                    previewImg.draw(in: NSRect(x: 0, y: 0, width: destSize.width, height: destSize.height), from: NSRect(x: 0, y: 0, width: previewImg.size.width, height: previewImg.size.height), operation: NSCompositingOperation.copy, fraction: CGFloat(1))
+                    previewImg.draw(
+                        in: NSRect(x: 0, y: 0, width: destSize.width, height: destSize.height),
+                        from: NSRect(x: 0, y: 0, width: previewImg.size.width, height: previewImg.size.height),
+                        operation: NSCompositingOperation.copy,
+                        fraction: CGFloat(1)
+                    )
                     newImage.unlockFocus()
                     newImage.size = destSize
                     preview = newImage

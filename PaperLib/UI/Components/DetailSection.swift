@@ -70,14 +70,17 @@ struct DetailsSupSection: View {
             .foregroundColor(Color.secondary.opacity(0.8))
 
         LazyVGrid(columns: columns, spacing: 1) {
+            // TODO: Delete
             ForEach(sups, id: \.self) { sup in
-                Button(action: {
-                    NSWorkspace.shared.open(sup)
-                }) {
-                    Text("FILE").font(.subheadline).underline()
-                }
+                Button(
+                    action: {
+                        NSWorkspace.shared.open(sup)
+                    },
+                    label: {
+                        Text("FILE").font(.subheadline).underline()
+                    }
+                )
                 .buttonStyle(PlainButtonStyle())
-                // TODO: Delete
             }
         }.frame(alignment: .leading)
     }

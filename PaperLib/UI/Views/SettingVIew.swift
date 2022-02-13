@@ -64,7 +64,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         VStack(alignment: .leading) {
             HStack(alignment: .top) {
-                Text("Choose a folder to store paper files (e.g., PDF etc.) and the database files. Note that this operation will create a new database in the selected folder instead of migrating the current one (or read the available database in the selected folder.). It is commenly used when you setup paperlib on a new device to access your previous data stored on a network shared folder.").frame(width: 250).multilineTextAlignment(.trailing).font(.caption)
+                Text("Choose a folder to store paper files (e.g., PDF etc.) and the local database files.").frame(width: 250).multilineTextAlignment(.trailing).font(.caption)
                 Text(
                     (appLibFolder.count > 7) ? String(appLibFolder[String.Index(utf16Offset: 7, in: appLibFolder)...]) : "Choose a folder"
                 )
@@ -226,12 +226,15 @@ struct SyncSettingsView: View {
 
             HStack(alignment: .top) {
                 Text("Migrate the local database to the cloud sync database.").frame(width: 250, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
-                Button(action: {
-                    print("migrate")
-                    injected.interactors.entitiesInteractor.migrateLocaltoSync()
-                }) {
-                    Label("Migrate", systemImage: "icloud.and.arrow.up.fill")
-                }
+                Button(
+                    action: {
+                        print("migrate")
+                        injected.interactors.entitiesInteractor.migrateLocaltoSync()
+                    },
+                    label: {
+                        Label("Migrate", systemImage: "icloud.and.arrow.up.fill")
+                    }
+                )
                 .disabled(!useSync)
             }
             .padding(.bottom, 10)
@@ -273,13 +276,16 @@ struct ExportSettingsView: View {
                 TextField("original", text: $newReplacementKey).frame(width: 217, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                 Image(systemName: "arrow.right")
                 TextField("replacement", text: $newReplacementValue).frame(width: 217, alignment: .leading).multilineTextAlignment(.leading).font(.caption)
-                Button(action: {
-                    if !newReplacementKey.isEmpty && !newReplacementValue.isEmpty {
-                        exportReplacementContainer[formatString(newReplacementKey, removeNewline: true)!] = formatString(newReplacementValue, removeNewline: true)!
+                Button(
+                    action: {
+                        if !newReplacementKey.isEmpty && !newReplacementValue.isEmpty {
+                            exportReplacementContainer[formatString(newReplacementKey, removeNewline: true)!] = formatString(newReplacementValue, removeNewline: true)!
+                        }
+                    },
+                    label: {
+                        Image(systemName: "plus.circle")
                     }
-                }) {
-                    Image(systemName: "plus.circle")
-                }
+                )
                 .buttonStyle(PlainButtonStyle())
             }
             List {
@@ -288,11 +294,14 @@ struct ExportSettingsView: View {
                         Text(key).frame(width: 200, alignment: .trailing).multilineTextAlignment(.trailing).font(.caption)
                         Image(systemName: "arrow.right")
                         Text(exportReplacementContainer[key]!).frame(width: 200, alignment: .leading).multilineTextAlignment(.leading).font(.caption)
-                        Button(action: {
-                            exportReplacementContainer.removeValue(forKey: key)
-                        }) {
-                            Image(systemName: "delete.left")
-                        }
+                        Button(
+                            action: {
+                                exportReplacementContainer.removeValue(forKey: key)
+                            },
+                            label: {
+                                Image(systemName: "delete.left")
+                            }
+                        )
                         .buttonStyle(PlainButtonStyle())
                     }
                 }

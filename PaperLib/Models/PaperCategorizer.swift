@@ -1,5 +1,5 @@
 //
-//  PaperFolder.swift
+//  PaperTag.swift
 //  PaperLib
 //
 //  Created by GeoffreyChen on 26/11/2021.
@@ -8,7 +8,7 @@
 import Foundation
 import RealmSwift
 
-class PaperFolderIDObject: Object {
+class IDObject: Object {
     @objc dynamic var _id: ObjectId
 
     override init() {
@@ -20,18 +20,23 @@ class PaperFolderIDObject: Object {
     }
 
     override class func shouldIncludeInDefaultSchema() -> Bool {
-        self != PaperFolderIDObject.self
+        self != IDObject.self
     }
 }
 
-class PaperFolder: PaperFolderIDObject, ObjectKeyIdentifiable {
+class PaperCategorizer: IDObject {
     @Persisted var _partition: String?
     @Persisted var count: Int = 0
     @Persisted var name: String = ""
 
-    convenience init(name: String) {
+    convenience required init(name: String) {
         self.init()
         self.name = name
     }
+}
 
+class PaperTag: PaperCategorizer, ObjectKeyIdentifiable {
+}
+
+class PaperFolder: PaperCategorizer, ObjectKeyIdentifiable {
 }

@@ -203,7 +203,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         self.cancelBags.cancel(for: "delete-tag")
 
         Task {
-            await self.dbRepository.delete(tagName: tagName)
+            await self.dbRepository.delete(categorizerName: tagName, categorizerType: PaperTag.self)
                 .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
                 .store(in: self.cancelBags["delete-tag"])
         }
@@ -213,7 +213,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         self.cancelBags.cancel(for: "delete-folder")
 
         Task {
-            await self.dbRepository.delete(folderName: folderName)
+            await self.dbRepository.delete(categorizerName: folderName, categorizerType: PaperFolder.self)
                 .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
                 .store(in: self.cancelBags["delete-folder"])
         }
@@ -421,7 +421,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
             print(err)
         }
     }
-    
+
     func getJoinedUrl(_ url: String) -> URL? {
         if var joinedURL = URL(string: self.appState[\.setting.appLibFolder]) {
             joinedURL.appendPathComponent(url)

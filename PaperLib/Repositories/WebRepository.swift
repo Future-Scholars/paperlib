@@ -178,7 +178,8 @@ struct RealWebRepository: WebRepository {
 
     func fetch(ieee entity: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, Error> {
         var title = entity.title
-        guard !title.isEmpty && (entity.publication == "arXiv" || entity.publication.isEmpty) && !formatString(UserDefaults.standard.string(forKey: "ieeeAPIKey"))!.isEmpty else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
+        guard !title.isEmpty && (entity.publication == "arXiv" || entity.publication.isEmpty) && !formatString(UserDefaults.standard.string(forKey: "ieeeAPIKey"))!.isEmpty
+        else { return Just<PaperEntityDraft>.withErrorType(entity, Error.self).eraseToAnyPublisher() }
 
         title = formatString(title, removeNewline: true)!
         title = title.replacingOccurrences(of: " ", with: "+")

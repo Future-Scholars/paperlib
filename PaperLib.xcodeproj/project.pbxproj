@@ -36,8 +36,7 @@
 		BE79C9C2275140AC008F3E97 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9C1275140AC008F3E97 /* MainView.swift */; };
 		BE79C9C527514112008F3E97 /* ListRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9C427514112008F3E97 /* ListRow.swift */; };
 		BE79C9C8275142D1008F3E97 /* PaperEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9C7275142D1008F3E97 /* PaperEntity.swift */; };
-		BE79C9CF275154D5008F3E97 /* PaperTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9CE275154D5008F3E97 /* PaperTag.swift */; };
-		BE79C9D12751550D008F3E97 /* PaperFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9D02751550D008F3E97 /* PaperFolder.swift */; };
+		BE79C9CF275154D5008F3E97 /* PaperCategorizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9CE275154D5008F3E97 /* PaperCategorizer.swift */; };
 		BE79C9D32752DCFF008F3E97 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9D22752DCFF008F3E97 /* DetailView.swift */; };
 		BE79C9D52752EE84008F3E97 /* RatingComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9D42752EE84008F3E97 /* RatingComponent.swift */; };
 		BE79C9D72752F9F4008F3E97 /* DetailSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE79C9D62752F9F4008F3E97 /* DetailSection.swift */; };
@@ -73,8 +72,7 @@
 		BE79C9C1275140AC008F3E97 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		BE79C9C427514112008F3E97 /* ListRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListRow.swift; sourceTree = "<group>"; };
 		BE79C9C7275142D1008F3E97 /* PaperEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperEntity.swift; sourceTree = "<group>"; };
-		BE79C9CE275154D5008F3E97 /* PaperTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperTag.swift; sourceTree = "<group>"; };
-		BE79C9D02751550D008F3E97 /* PaperFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperFolder.swift; sourceTree = "<group>"; };
+		BE79C9CE275154D5008F3E97 /* PaperCategorizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperCategorizer.swift; sourceTree = "<group>"; };
 		BE79C9D22752DCFF008F3E97 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		BE79C9D42752EE84008F3E97 /* RatingComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingComponent.swift; sourceTree = "<group>"; };
 		BE79C9D62752F9F4008F3E97 /* DetailSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailSection.swift; sourceTree = "<group>"; };
@@ -225,8 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				BE79C9C7275142D1008F3E97 /* PaperEntity.swift */,
-				BE79C9CE275154D5008F3E97 /* PaperTag.swift */,
-				BE79C9D02751550D008F3E97 /* PaperFolder.swift */,
+				BE79C9CE275154D5008F3E97 /* PaperCategorizer.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -344,7 +341,6 @@
 				BE79C9B227512EEA008F3E97 /* SidebarView.swift in Sources */,
 				BE79C9BA275130F8008F3E97 /* EntitiesInteractor.swift in Sources */,
 				BE79C9BD275131A9008F3E97 /* DBRepository.swift in Sources */,
-				BE79C9D12751550D008F3E97 /* PaperFolder.swift in Sources */,
 				BE79C9D92752FB10008F3E97 /* ThubnailComponent.swift in Sources */,
 				BE79C9C0275134FB008F3E97 /* AppEnvironment.swift in Sources */,
 				BE5BE4A727582C6A00E6F832 /* FileRepository.swift in Sources */,
@@ -355,7 +351,7 @@
 				BE79C9D32752DCFF008F3E97 /* DetailView.swift in Sources */,
 				BE5BE4A32758278F00E6F832 /* SettingVIew.swift in Sources */,
 				BE79C9C2275140AC008F3E97 /* MainView.swift in Sources */,
-				BE79C9CF275154D5008F3E97 /* PaperTag.swift in Sources */,
+				BE79C9CF275154D5008F3E97 /* PaperCategorizer.swift in Sources */,
 				BEEB7AA22762C93B00383CCA /* Updater.swift in Sources */,
 				BE79C9C527514112008F3E97 /* ListRow.swift in Sources */,
 				BE79C99C27512D02008F3E97 /* PaperLibApp.swift in Sources */,
