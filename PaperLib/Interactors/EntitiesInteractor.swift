@@ -159,6 +159,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
                 receiveCompletion: { error in
                     print(error)
                     print("[!] Cannot add.")
+                    self.appState[\.receiveSignals.processingCount] -= c
                 },
                 receiveValue: { _ in
                     self.appState[\.receiveSignals.processingCount] -= c

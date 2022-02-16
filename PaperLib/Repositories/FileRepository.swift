@@ -46,7 +46,6 @@ struct RealFileDBRepository: FileRepository {
         } else {
             return Fail(error: FileError.urlFormatError).eraseToAnyPublisher()
         }
-
     }
 
     func read(fromLocal url: URL) -> AnyPublisher<PaperEntityDraft, FileError> {
