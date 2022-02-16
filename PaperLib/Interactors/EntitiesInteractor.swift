@@ -45,7 +45,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
     let webRepository: WebRepository
     let appState: Store<AppState>
 
-    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "categorizer-tags", "categorizer-folders", "entitiesByIds", "update", "add", "match", "delete", "edit", "folders-edit", "delete-tag", "delete-folder", "open-lib", "plugin"])
+    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "categorizer-tags", "categorizer-folders", "entitiesByIds", "update", "add", "match", "delete", "edit", "folders-edit", "delete-categorizer", "open-lib", "plugin"])
 
     var routineTimer: Publishers.Autoconnect<Timer.TimerPublisher> = Timer.publish(every: 86400, on: .main, in: .common).autoconnect()
 
@@ -156,13 +156,13 @@ class RealEntitiesInteractor: EntitiesInteractor {
                     }
             }
             .sink(
-                receiveCompletion: { error in
-                    print(error)
-                    print("[!] Cannot add.")
-                    self.appState[\.receiveSignals.processingCount] -= c
+                receiveCompletion: { completion in
+                    switch completion {
+                    case .failure(let error): print("Error \(error)")
+                    case .finished: self.appState[\.receiveSignals.processingCount] -= c
+                    }
                 },
                 receiveValue: { _ in
-                    self.appState[\.receiveSignals.processingCount] -= c
             })
             .store(in: self.cancelBags["add"])
     }
@@ -170,22 +170,48 @@ class RealEntitiesInteractor: EntitiesInteractor {
     // MARK: - Delete
 
     func delete(ids: Set<ObjectId>) {
-//        self.cancelBags.cancel(for: "delete")
-//
-//        Task {
-//            await self.dbRepository.delete(ids: Array(ids))
-//                .flatMap { filePaths in
-//                    self.fileRepository.remove(for: filePaths)
-//                }
-//                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-//                .store(in: self.cancelBags["delete"])
-//        }
+        self.cancelBags.cancel(for: "delete")
+
+        Just<Void>
+            .withErrorType(InteractorError.self)
+            .flatMap {
+                self.dbRepository.delete(ids: Array(ids))
+                    .mapError { dbError in
+                        return InteractorError.DBError(error: dbError)
+                    }
+            }
+            .flatMap { filePaths in
+                self.fileRepository.remove(for: filePaths)
+                    .mapError { fileError in
+                        return InteractorError.FileError(error: fileError)
+                    }
+            }
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .failure(let error): print("Error \(error)")
+                case .finished: print("Delete successful.")
+                }
+            }, receiveValue: { _ in })
+            .store(in: self.cancelBags["delete"])
     }
 
     func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type) {
         self.cancelBags.cancel(for: "delete-categorizer")
-        self.dbRepository.delete(categorizerName: categorizerName, categorizerType: categorizerType)
-            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+
+        Just<Void>
+            .withErrorType(InteractorError.self)
+            .flatMap {
+                self.dbRepository.delete(categorizerName: categorizerName, categorizerType: categorizerType)
+                    .mapError { dbError in
+                        return InteractorError.DBError(error: dbError)
+                    }
+            }
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .failure(let error): print("Error \(error)")
+                case .finished: print("Delete successful.")
+                }
+            }, receiveValue: { _ in })
             .store(in: self.cancelBags["delete-categorizer"])
     }
 
