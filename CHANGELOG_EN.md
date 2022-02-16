@@ -1,3 +1,6 @@
+## v1.3.9 Feb 16 2022
+1.  Fixed some bugs.
+
 ## v1.3.8 Feb 12 2022
 1.  Fixed a bug when import papers from arXiv.
 
