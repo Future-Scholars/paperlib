@@ -1,1 +1,1 @@
-The branch `macosNative` is for native macOS development.
+The branch `macosNative` is for the native macOS development.
