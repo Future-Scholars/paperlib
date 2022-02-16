@@ -174,11 +174,11 @@ private extension SidebarView {
 
 private extension SidebarView {
     func reloadTags() {
-        injected.interactors.entitiesInteractor.load(categorizers: $tags, cancelBagKey: "categorizers")
+        injected.interactors.entitiesInteractor.load(categorizers: $tags, cancelBagKey: "categorizer-tags")
     }
 
     func reloadFolders() {
-        injected.interactors.entitiesInteractor.load(categorizers: $folders, cancelBagKey: "categorizers")
+        injected.interactors.entitiesInteractor.load(categorizers: $folders, cancelBagKey: "categorizer-folders")
     }
 
     func removeTag(tagName: String) {

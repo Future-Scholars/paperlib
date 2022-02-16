@@ -11,6 +11,12 @@ import Foundation
 import RealmSwift
 import SwiftUI
 
+enum InteractorError: Error {
+    case FileError(error: Error)
+    case WebError(error: Error)
+    case DBError(error: Error)
+}
+
 protocol EntitiesInteractor {
     func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: [String], folders: [String], sort: String)
     func load<T: PaperCategorizer>(categorizers: LoadableSubject<Results<T>>, cancelBagKey: String)
@@ -28,8 +34,8 @@ protocol EntitiesInteractor {
     func migrateLocaltoSync()
     func export(entities: [PaperEntity], format: String)
 
-    func handleChromePluginUrl(_ url: URL)
-    func getJoinedUrl(_ url: String) -> URL?
+    func handleChromePluginURL(_ url: URL)
+    func getJoinedURL(_ url: String) -> URL?
     func setRoutineTimer()
 }
 
@@ -39,7 +45,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
     let webRepository: WebRepository
     let appState: Store<AppState>
 
-    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "entitiesByIds", "update", "add", "match", "delete", "edit", "folders-edit", "delete-tag", "delete-folder", "open-lib", "plugin", "categorizers"])
+    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "categorizer-tags", "categorizer-folders", "entitiesByIds", "update", "add", "match", "delete", "edit", "folders-edit", "delete-tag", "delete-folder", "open-lib", "plugin"])
 
     var routineTimer: Publishers.Autoconnect<Timer.TimerPublisher> = Timer.publish(every: 86400, on: .main, in: .common).autoconnect()
 
@@ -63,47 +69,49 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
         entities.wrappedValue.setIsLoading(cancelBag: self.cancelBags["entities"])
 
-        Task {
-            await self.dbRepository.entities(search: search, publication: nil, flag: flag, tags: tags, folders: folders, sort: sort)
-                .sinkToLoadable {
-                    entities.wrappedValue.setIsLoading(cancelBag: CancelBag())
-                    print("[Reloaded] entities")
-                    entities.wrappedValue = $0
-                }
-                .store(in: self.cancelBags["entities"])
-        }
+        self.dbRepository.entities(search: search, publication: nil, flag: flag, tags: tags, folders: folders, sort: sort)
+            .sinkToLoadable {
+                entities.wrappedValue.setIsLoading(cancelBag: CancelBag())
+                print("[Reloaded] entities")
+                entities.wrappedValue = $0
+            }
+            .store(in: self.cancelBags["entities"])
     }
 
     func load<T: PaperCategorizer>(categorizers: LoadableSubject<Results<T>>, cancelBagKey: String) {
-        Task {
-            self.cancelBags.cancel(for: cancelBagKey)
-            categorizers.wrappedValue.setIsLoading(cancelBag: self.cancelBags[cancelBagKey])
+        self.cancelBags.cancel(for: cancelBagKey)
+        categorizers.wrappedValue.setIsLoading(cancelBag: self.cancelBags[cancelBagKey])
 
-            await self.dbRepository.categorizers(categorizerType: T.self)
-                .sinkToLoadable {
-                    categorizers.wrappedValue.setIsLoading(cancelBag: self.cancelBags[cancelBagKey])
-                    categorizers.wrappedValue = $0
-                }
-                .store(in: self.cancelBags[cancelBagKey])
-        }
+        self.dbRepository.categorizers(categorizerType: T.self)
+            .sinkToLoadable {
+                categorizers.wrappedValue.setIsLoading(cancelBag: self.cancelBags[cancelBagKey])
+                categorizers.wrappedValue = $0
+            }
+            .store(in: self.cancelBags[cancelBagKey])
     }
 
     // MARK: - Add
 
-    func add(from fileURLs: [URL]) {
+    func add(from urlList: [URL]) {
         self.cancelBags.cancel(for: "add")
 
-        var publisherList: [AnyPublisher<PaperEntityDraft, Error>] = .init()
-
-        fileURLs.forEach { url in
+        // 1. Files processing and web scraping publishers.
+        var publisherList: [AnyPublisher<PaperEntityDraft, InteractorError>] = .init()
+        urlList.forEach { url in
             self.appState[\.receiveSignals.processingCount] += 1
             let publisher = Just<Void>
-                .withErrorType(Error.self)
+                .withErrorType(InteractorError.self)
                 .flatMap { _ in
                     self.fileRepository.read(from: url)
+                        .mapError { fileError in
+                            return InteractorError.FileError(error: fileError)
+                        }
                 }
-                .flatMap { entity -> AnyPublisher<PaperEntityDraft, Error> in
-                    return self.webRepository.fetch(for: entity!, enable: true).eraseToAnyPublisher()
+                .flatMap { entityDraft in
+                    self.webRepository.scrape(for: entityDraft)
+                        .mapError { webError in
+                            return InteractorError.WebError(error: webError)
+                        }
                 }
                 .eraseToAnyPublisher()
 
@@ -112,25 +120,48 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
         let c = publisherList.count
 
+        // 2. Database processing publishers.
         Publishers.MergeMany(publisherList)
             .collect()
-            .flatMap({ entities in
-                self.fileRepository.move(for: entities)
-            })
-            .sink(receiveCompletion: { _ in }, receiveValue: {entities in
-
-                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
-                Task {
-                    await self.dbRepository.update(from: filteredEntities)
-                        .flatMap { successes -> AnyPublisher<[Bool], Error> in
-                            return self.fileRepository.remove(for: filteredEntities.filter({ !successes[filteredEntities.firstIndex(of: $0)!] }))
-                        }
-                        .sink(receiveCompletion: { _ in }, receiveValue: {_ in
-                            self.appState[\.receiveSignals.processingCount] -= c
-                        })
-                        .store(in: CancelBag())
+            .flatMap { entityDrafts in
+                self.fileRepository.move(for: entityDrafts)
+                    .mapError { fileError in
+                        return InteractorError.FileError(error: fileError)
+                    }
+            }
+            .flatMap { entityDrafts in
+                self.dbRepository.update(from: entityDrafts)
+                    .mapError { error in
+                        return InteractorError.DBError(error: error)
+                    }
+                    .zip(
+                        Just<[PaperEntityDraft]>
+                            .withErrorType(entityDrafts, InteractorError.self)
+                            .eraseToAnyPublisher()
+                    )
+            }
+            .flatMap { (successes, entityDrafts) -> AnyPublisher<[PaperEntityDraft], InteractorError> in
+                var unsuccessedEntityList: [PaperEntityDraft] = .init()
+                for (entityDraft, success) in zip(entityDrafts, successes) where !success {
+                    unsuccessedEntityList.append(entityDraft)
                 }
-
+                return Just<[PaperEntityDraft]>
+                    .withErrorType(unsuccessedEntityList, InteractorError.self)
+                    .eraseToAnyPublisher()
+            }
+            .flatMap { entityDrafts in
+                return self.fileRepository.remove(for: entityDrafts)
+                    .mapError { fileError in
+                        return InteractorError.FileError(error: fileError)
+                    }
+            }
+            .sink(
+                receiveCompletion: { error in
+                    print(error)
+                    print("[!] Cannot add.")
+                },
+                receiveValue: { _ in
+                    self.appState[\.receiveSignals.processingCount] -= c
             })
             .store(in: self.cancelBags["add"])
     }
@@ -138,86 +169,83 @@ class RealEntitiesInteractor: EntitiesInteractor {
     // MARK: - Delete
 
     func delete(ids: Set<ObjectId>) {
-        self.cancelBags.cancel(for: "delete")
-
-        Task {
-            await self.dbRepository.delete(ids: Array(ids))
-                .flatMap { filePaths in
-                    self.fileRepository.remove(for: filePaths)
-                }
-                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-                .store(in: self.cancelBags["delete"])
-        }
+//        self.cancelBags.cancel(for: "delete")
+//
+//        Task {
+//            await self.dbRepository.delete(ids: Array(ids))
+//                .flatMap { filePaths in
+//                    self.fileRepository.remove(for: filePaths)
+//                }
+//                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+//                .store(in: self.cancelBags["delete"])
+//        }
     }
 
     func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type) {
         self.cancelBags.cancel(for: "delete-categorizer")
-
-        Task {
-            await self.dbRepository.delete(categorizerName: categorizerName, categorizerType: categorizerType)
-                .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-                .store(in: self.cancelBags["delete-categorizer"])
-        }
+        self.dbRepository.delete(categorizerName: categorizerName, categorizerType: categorizerType)
+            .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+            .store(in: self.cancelBags["delete-categorizer"])
     }
 
     // MARK: - Update
 
     func update(entities: [PaperEntityDraft]) {
-        self.cancelBags.cancel(for: "update")
-
-        Just<[PaperEntityDraft]>
-            .withErrorType(entities, Error.self)
-            .flatMap { entities in
-                self.fileRepository.move(for: entities)
-            }
-            .sink(receiveCompletion: { _ in }, receiveValue: {entities in
-                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
-                Task {
-                    await self.dbRepository.update(from: filteredEntities)
-                        .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
-                        .store(in: CancelBag())
-                }
-            })
-            .store(in: self.cancelBags["update"])
+//        self.cancelBags.cancel(for: "update")
+//
+//        Just<[PaperEntityDraft]>
+//            .withErrorType(entities, Error.self)
+//            .flatMap { entities in
+//                self.fileRepository.move(for: entities)
+//            }
+//            .sink(receiveCompletion: { _ in }, receiveValue: {entities in
+//                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
+//                Task {
+//                    await self.dbRepository.update(from: filteredEntities)
+//                        .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+//                        .store(in: CancelBag())
+//                }
+//            })
+//            .store(in: self.cancelBags["update"])
 
     }
 
     func match(entities: [PaperEntityDraft]) {
-        self.cancelBags.cancel(for: "match")
-
-        var publisherList: [AnyPublisher<PaperEntityDraft, Error>] = .init()
-
-        entities.forEach { entity in
-            self.appState[\.receiveSignals.processingCount] += 1
-            let publisher = Just<Void>
-                .withErrorType(Error.self)
-                .flatMap { _ -> AnyPublisher<PaperEntityDraft, Error> in
-                    return self.webRepository.fetch(for: entity, enable: true).eraseToAnyPublisher()
-                }
-                .eraseToAnyPublisher()
-
-            publisherList.append(publisher)
-        }
-
-        let c = publisherList.count
-
-        Publishers.MergeMany(publisherList)
-            .collect()
-            .flatMap { entities in
-                self.fileRepository.move(for: entities)
-            }
-            .sink(receiveCompletion: { _ in }, receiveValue: { entities in
-                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
-                Task {
-                    await self.dbRepository.update(from: filteredEntities)
-                        .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
-                        .store(in: CancelBag())
-
-                    self.appState[\.receiveSignals.processingCount] -= c
-                }
-
-            })
-            .store(in: self.cancelBags["match"])
+//        self.cancelBags.cancel(for: "match")
+//
+//        var publisherList: [AnyPublisher<PaperEntityDraft, WebError>] = .init()
+//
+//        entities.forEach { entity in
+//            self.appState[\.receiveSignals.processingCount] += 1
+//            let publisher = Just<Void>
+//                .withErrorType(Error.self)
+//                .flatMap { _ -> AnyPublisher<PaperEntityDraft, WebError> in
+//                    return self.webRepository.scrape(for: entity)
+//                }
+//                .eraseToAnyPublisher()
+//
+//            publisherList.append(publisher)
+//        }
+//
+//        let c = publisherList.count
+//
+//        Publishers.MergeMany(publisherList)
+//            .collect()
+//            .flatMap { entities in
+//                self.fileRepository.move(for: entities)
+//            }
+//            .sink(receiveCompletion: { _ in }, receiveValue: { entities in
+//                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
+//                Task {
+//                    await self.dbRepository.update(from: filteredEntities)
+//                        .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
+//                        .store(in: CancelBag())
+//
+//                    self.appState[\.receiveSignals.processingCount] -= c
+//                }
+//
+//            })
+//            .store(in: self.cancelBags["match"])
     }
 
     func routineMatch() {
@@ -226,7 +254,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
             self.appState[\.setting.lastRematchTime] = Int(Date().timeIntervalSince1970)
             UserDefaults.standard.set(Int(Date().timeIntervalSince1970), forKey: "lastRematchTime")
 
-            await self.dbRepository.entities(search: nil, publication: "arXiv", flag: false, tags: [], folders: [], sort: "title")
+            self.dbRepository.entities(search: nil, publication: "arXiv", flag: false, tags: [], folders: [], sort: "title")
                 .sink(receiveCompletion: {_ in}, receiveValue: { entities in
                     let drafts = entities.map({entity in return PaperEntityDraft(from: entity)})
                     self.match(entities: Array(drafts))
@@ -320,7 +348,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         self.dbRepository.migrateLocaltoCloud()
     }
 
-    func handleChromePluginUrl(_ url: URL) {
+    func handleChromePluginURL(_ url: URL) {
         self.cancelBags.cancel(for: "plugin")
         self.appState[\.receiveSignals.processingCount] += 1
 
@@ -346,12 +374,12 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
                         print(downloadLink)
 
-                        if let downloadUrl = URL(string: downloadLink) {
-                            self.fileRepository.download(url: downloadUrl)
+                        if let downloadURL = URL(string: downloadLink) {
+                            self.fileRepository.download(url: downloadURL)
                             .sink(receiveCompletion: {_ in}, receiveValue: {
                                 self.appState[\.receiveSignals.processingCount] -= 1
-                                if let downloadedUrl = $0 {
-                                    self.add(from: [downloadedUrl])
+                                if let downloadedURL = $0 {
+                                    self.add(from: [downloadedURL])
                                 }
                             })
                             .store(in: self.cancelBags["plugin"])
@@ -367,7 +395,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         }
     }
 
-    func getJoinedUrl(_ url: String) -> URL? {
+    func getJoinedURL(_ url: String) -> URL? {
         if var joinedURL = URL(string: self.appState[\.setting.appLibFolder]) {
             joinedURL.appendPathComponent(url)
             return joinedURL
@@ -414,13 +442,13 @@ struct StubEntitiesInteractor: EntitiesInteractor {
     func match(entities _: [PaperEntityDraft]) {}
     func routineMatch() {}
 
-    func getJoinedUrl(_ url: String) -> URL? {
+    func getJoinedURL(_ url: String) -> URL? {
         return URL(string: "")
     }
     func openLib() {}
     func migrateLocaltoSync() {}
     func export(entities _: [PaperEntity], format _: String) {}
-    func handleChromePluginUrl(_ url: URL) {}
+    func handleChromePluginURL(_ url: URL) {}
     func setRoutineTimer() {}
 
 }

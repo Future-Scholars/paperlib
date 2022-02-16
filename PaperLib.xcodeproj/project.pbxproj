@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BE07382D27BC232D0072F8CC /* Scraper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE07382C27BC232D0072F8CC /* Scraper.swift */; };
+		BE07382F27BC287B0072F8CC /* ArXiv.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE07382E27BC287B0072F8CC /* ArXiv.swift */; };
+		BE07383127BC4BDF0072F8CC /* TitleExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE07383027BC4BDF0072F8CC /* TitleExtractor.swift */; };
+		BE07383327BC56D10072F8CC /* DOI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE07383227BC56D10072F8CC /* DOI.swift */; };
+		BE07383527BC5E240072F8CC /* IEEE.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE07383427BC5E240072F8CC /* IEEE.swift */; };
+		BE07383727BC61B90072F8CC /* DBLP.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE07383627BC61B90072F8CC /* DBLP.swift */; };
 		BE07A2C12769487500BF5050 /* KeyValueRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE07A2C02769487500BF5050 /* KeyValueRow.swift */; };
 		BE174C7527B2E0F00048D82B /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = BE174C7427B2E0F00048D82B /* .swiftlint.yml */; };
 		BE1C196D275C3171000B3059 /* EditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1C196C275C3171000B3059 /* EditView.swift */; };
@@ -47,6 +53,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BE07382C27BC232D0072F8CC /* Scraper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scraper.swift; sourceTree = "<group>"; };
+		BE07382E27BC287B0072F8CC /* ArXiv.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArXiv.swift; sourceTree = "<group>"; };
+		BE07383027BC4BDF0072F8CC /* TitleExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleExtractor.swift; sourceTree = "<group>"; };
+		BE07383227BC56D10072F8CC /* DOI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DOI.swift; sourceTree = "<group>"; };
+		BE07383427BC5E240072F8CC /* IEEE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IEEE.swift; sourceTree = "<group>"; };
+		BE07383627BC61B90072F8CC /* DBLP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBLP.swift; sourceTree = "<group>"; };
 		BE07A2C02769487500BF5050 /* KeyValueRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueRow.swift; sourceTree = "<group>"; };
 		BE174C7427B2E0F00048D82B /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		BE1C196C275C3171000B3059 /* EditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditView.swift; sourceTree = "<group>"; };
@@ -100,6 +112,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BE07382B27BC22D90072F8CC /* Scrapers */ = {
+			isa = PBXGroup;
+			children = (
+				BE07382C27BC232D0072F8CC /* Scraper.swift */,
+				BE07382E27BC287B0072F8CC /* ArXiv.swift */,
+				BE07383027BC4BDF0072F8CC /* TitleExtractor.swift */,
+				BE07383227BC56D10072F8CC /* DOI.swift */,
+				BE07383427BC5E240072F8CC /* IEEE.swift */,
+				BE07383627BC61B90072F8CC /* DBLP.swift */,
+			);
+			path = Scrapers;
+			sourceTree = "<group>";
+		};
 		BE79C98F27512D02008F3E97 = {
 			isa = PBXGroup;
 			children = (
@@ -198,6 +223,7 @@
 		BE79C9BB2751318D008F3E97 /* Repositories */ = {
 			isa = PBXGroup;
 			children = (
+				BE07382B27BC22D90072F8CC /* Scrapers */,
 				BE79C9BC275131A9008F3E97 /* DBRepository.swift */,
 				BE5BE4A427582B2300E6F832 /* WebRepository.swift */,
 				BE5BE4A627582C6A00E6F832 /* FileRepository.swift */,
@@ -265,7 +291,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1310;
-				LastUpgradeCheck = 1310;
+				LastUpgradeCheck = 1320;
 				TargetAttributes = {
 					BE79C99727512D02008F3E97 = {
 						CreatedOnToolsVersion = 13.1;
@@ -335,8 +361,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE07383327BC56D10072F8CC /* DOI.swift in Sources */,
 				BE5BE4A12757CEE700E6F832 /* CancelBag.swift in Sources */,
+				BE07382D27BC232D0072F8CC /* Scraper.swift in Sources */,
 				BE79C9B727512FFF008F3E97 /* Store.swift in Sources */,
+				BE07383527BC5E240072F8CC /* IEEE.swift in Sources */,
 				BE79C9B427512F96008F3E97 /* DependencyInjector.swift in Sources */,
 				BE79C9B227512EEA008F3E97 /* SidebarView.swift in Sources */,
 				BE79C9BA275130F8008F3E97 /* EntitiesInteractor.swift in Sources */,
@@ -345,6 +374,7 @@
 				BE79C9C0275134FB008F3E97 /* AppEnvironment.swift in Sources */,
 				BE5BE4A727582C6A00E6F832 /* FileRepository.swift in Sources */,
 				BE79C9C8275142D1008F3E97 /* PaperEntity.swift in Sources */,
+				BE07383727BC61B90072F8CC /* DBLP.swift in Sources */,
 				BE07A2C12769487500BF5050 /* KeyValueRow.swift in Sources */,
 				BE79C9D72752F9F4008F3E97 /* DetailSection.swift in Sources */,
 				BE79C99E27512D02008F3E97 /* ContentView.swift in Sources */,
@@ -362,7 +392,9 @@
 				BE1C196D275C3171000B3059 /* EditView.swift in Sources */,
 				BE5BE49F2756FC2900E6F832 /* Loadable.swift in Sources */,
 				BE79C9D52752EE84008F3E97 /* RatingComponent.swift in Sources */,
+				BE07382F27BC287B0072F8CC /* ArXiv.swift in Sources */,
 				BE79C9AF27512E24008F3E97 /* AppState.swift in Sources */,
+				BE07383127BC4BDF0072F8CC /* TitleExtractor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

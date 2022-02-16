@@ -594,8 +594,8 @@ private extension MainView {
 
         urlGroup.notify(queue: .main) {
             if urlList.count > 0 {
-                urlList.forEach { supUrl in
-                    selectedEntitiesDraft.first?.supURLs.append(supUrl.absoluteString)
+                urlList.forEach { supURL in
+                    selectedEntitiesDraft.first?.supURLs.append(supURL.absoluteString)
                 }
                 editEntities()
             }
@@ -685,7 +685,7 @@ private extension MainView {
     func openEntities() {
         if let selectedEntities = selectedEntities.value {
             selectedEntities.forEach { entity in
-                if let url = injected.interactors.entitiesInteractor.getJoinedUrl(entity.mainURL) {
+                if let url = injected.interactors.entitiesInteractor.getJoinedURL(entity.mainURL) {
                     NSWorkspace.shared.open(url)
                 }
             }

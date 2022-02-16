@@ -21,7 +21,7 @@ struct PaperLibApp: App {
             ContentView(container: self.environment.container)
                 .handlesExternalEvents(preferring: Set(["paperlib"]), allowing: Set(["*"]))
                 .onOpenURL(perform: {
-                    self.environment.container.interactors.entitiesInteractor.handleChromePluginUrl($0)
+                    self.environment.container.interactors.entitiesInteractor.handleChromePluginURL($0)
                 })
         }
         .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
