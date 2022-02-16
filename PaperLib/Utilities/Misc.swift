@@ -106,3 +106,14 @@ extension Subscribers.Completion {
         }
     }
 }
+
+func getJoinedURL(_ url: String) -> URL? {
+    let rootPathStr = UserDefaults.standard.string(forKey: "appLibFolder")
+
+    if var joinedURL = URL(string: rootPathStr ?? "") {
+        joinedURL.appendPathComponent(url)
+        return joinedURL
+    } else {
+        return nil
+    }
+}

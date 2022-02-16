@@ -237,7 +237,7 @@ private extension MainView {
             })
                 .keyboardShortcut("e")
                 .disabled(mainState.selectedIds.count != 1)
-            Button("Match", action: matchEntities).keyboardShortcut("r")
+            Button("Match", action: scrapeEntities).keyboardShortcut("r")
             Button("Delete", action: deleteEntities).keyboardShortcut(.delete)
 
             Divider()
@@ -264,10 +264,10 @@ private extension MainView {
 
             Menu("Export") {
                 Button("Bibtex", action: {
-                    exportEntities(format: "bibtex")
+                    exportEntities(format: .bibtex)
                 })
                 Button("Plain Text", action: {
-                    exportEntities(format: "plain")
+                    exportEntities(format: .plain)
                 })
             }
         }
@@ -400,7 +400,7 @@ private extension MainView {
                 // Export
                 Button(
                     action: {
-                        exportEntities(format: "bibtex")
+                        exportEntities(format: .bibtex)
                     },
                     label: {
                         Image(systemName: "square.and.arrow.up")
@@ -413,7 +413,7 @@ private extension MainView {
 
                 // Match
                 Button(
-                    action: matchEntities,
+                    action: scrapeEntities,
                     label: {
                         Image(systemName: "doc.text.magnifyingglass")
                             .foregroundColor(mainState.selectedIds.count == 0 ? Color.primary.opacity(0.2) : Color.primary.opacity(0.7))
@@ -655,8 +655,8 @@ private extension MainView {
         }
     }
 
-    func matchEntities() {
-        injected.interactors.entitiesInteractor.match(entities: $selectedEntitiesDraft.wrappedValue)
+    func scrapeEntities() {
+        injected.interactors.entitiesInteractor.scrape(entities: $selectedEntitiesDraft.wrappedValue)
     }
 
     func makeFilter() -> (String, Bool, [String], [String]) {
@@ -685,14 +685,14 @@ private extension MainView {
     func openEntities() {
         if let selectedEntities = selectedEntities.value {
             selectedEntities.forEach { entity in
-                if let url = injected.interactors.entitiesInteractor.getJoinedURL(entity.mainURL) {
+                if let url = getJoinedURL(entity.mainURL) {
                     NSWorkspace.shared.open(url)
                 }
             }
         }
     }
 
-    func exportEntities(format: String = "bibtex") {
+    func exportEntities(format: ExportFormat = .bibtex) {
         if let selectedEntities = selectedEntities.value {
             injected.interactors.entitiesInteractor.export(entities: Array(selectedEntities), format: format)
         }

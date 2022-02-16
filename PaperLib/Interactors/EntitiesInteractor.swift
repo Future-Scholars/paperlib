@@ -27,15 +27,14 @@ protocol EntitiesInteractor {
     func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type)
 
     func update(entities: [PaperEntityDraft])
-    func match(entities: [PaperEntityDraft])
-    func routineMatch()
+    func scrape(entities: [PaperEntityDraft])
+    func routineScrape()
 
     func openLib()
     func migrateLocaltoSync()
-    func export(entities: [PaperEntity], format: String)
+    func export(entities: [PaperEntity], format: ExportFormat)
 
     func handleChromePluginURL(_ url: URL)
-    func getJoinedURL(_ url: String) -> URL?
     func setRoutineTimer()
 }
 
@@ -44,8 +43,9 @@ class RealEntitiesInteractor: EntitiesInteractor {
     let fileRepository: FileRepository
     let webRepository: WebRepository
     let appState: Store<AppState>
+    let exporter: Exporter
 
-    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "categorizer-tags", "categorizer-folders", "entitiesByIds", "update", "add", "match", "delete", "edit", "folders-edit", "delete-categorizer", "open-lib", "plugin"])
+    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "categorizer-tags", "categorizer-folders", "entitiesByIds", "update", "add", "scrape", "delete", "edit", "folders-edit", "delete-categorizer", "open-lib", "plugin"])
 
     var routineTimer: Publishers.Autoconnect<Timer.TimerPublisher> = Timer.publish(every: 86400, on: .main, in: .common).autoconnect()
 
@@ -54,6 +54,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         self.dbRepository = dbRepository
         self.fileRepository = fileRepository
         self.webRepository = webRepository
+        self.exporter = Exporter(appState: self.appState)
 
         self.setRoutineTimer()
 
@@ -218,147 +219,106 @@ class RealEntitiesInteractor: EntitiesInteractor {
     // MARK: - Update
 
     func update(entities: [PaperEntityDraft]) {
-//        self.cancelBags.cancel(for: "update")
-//
-//        Just<[PaperEntityDraft]>
-//            .withErrorType(entities, Error.self)
-//            .flatMap { entities in
-//                self.fileRepository.move(for: entities)
-//            }
-//            .sink(receiveCompletion: { _ in }, receiveValue: {entities in
-//                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
-//                Task {
-//                    await self.dbRepository.update(from: filteredEntities)
-//                        .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
-//                        .store(in: CancelBag())
-//                }
-//            })
-//            .store(in: self.cancelBags["update"])
+        self.cancelBags.cancel(for: "update")
+
+        self.appState[\.receiveSignals.processingCount] += entities.count
+
+        Just<[PaperEntityDraft]>
+            .withErrorType(entities, InteractorError.self)
+            .flatMap { entityDrafts in
+                self.fileRepository.move(for: entityDrafts)
+                    .mapError { fileError in
+                        return InteractorError.FileError(error: fileError)
+                    }
+            }
+            .flatMap { entityDrafts in
+                self.dbRepository.update(from: entityDrafts)
+                    .mapError { error in
+                        return InteractorError.DBError(error: error)
+                    }
+                    .zip(
+                        Just<[PaperEntityDraft]>
+                            .withErrorType(entityDrafts, InteractorError.self)
+                            .eraseToAnyPublisher()
+                    )
+            }
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .failure(let error): print("Error \(error)")
+                case .finished: do {
+                    print("Update successful.")
+                    self.appState[\.receiveSignals.processingCount] -= entities.count
+                }
+                }
+            }, receiveValue: { _ in })
+            .store(in: self.cancelBags["update"])
 
     }
 
-    func match(entities: [PaperEntityDraft]) {
-//        self.cancelBags.cancel(for: "match")
-//
-//        var publisherList: [AnyPublisher<PaperEntityDraft, WebError>] = .init()
-//
-//        entities.forEach { entity in
-//            self.appState[\.receiveSignals.processingCount] += 1
-//            let publisher = Just<Void>
-//                .withErrorType(Error.self)
-//                .flatMap { _ -> AnyPublisher<PaperEntityDraft, WebError> in
-//                    return self.webRepository.scrape(for: entity)
-//                }
-//                .eraseToAnyPublisher()
-//
-//            publisherList.append(publisher)
-//        }
-//
-//        let c = publisherList.count
-//
-//        Publishers.MergeMany(publisherList)
-//            .collect()
-//            .flatMap { entities in
-//                self.fileRepository.move(for: entities)
-//            }
-//            .sink(receiveCompletion: { _ in }, receiveValue: { entities in
-//                let filteredEntities = entities.filter({ $0 != nil }).map({ $0! })
-//                Task {
-//                    await self.dbRepository.update(from: filteredEntities)
-//                        .sink(receiveCompletion: {_ in}, receiveValue: {_ in})
-//                        .store(in: CancelBag())
-//
-//                    self.appState[\.receiveSignals.processingCount] -= c
-//                }
-//
-//            })
-//            .store(in: self.cancelBags["match"])
-    }
+    func scrape(entities: [PaperEntityDraft]) {
+        self.cancelBags.cancel(for: "scrape")
 
-    func routineMatch() {
-        Task {
-            print("[Routine] rematch")
-            self.appState[\.setting.lastRematchTime] = Int(Date().timeIntervalSince1970)
-            UserDefaults.standard.set(Int(Date().timeIntervalSince1970), forKey: "lastRematchTime")
+        var publisherList: [AnyPublisher<PaperEntityDraft, InteractorError>] = .init()
 
-            self.dbRepository.entities(search: nil, publication: "arXiv", flag: false, tags: [], folders: [], sort: "title")
-                .sink(receiveCompletion: {_ in}, receiveValue: { entities in
-                    let drafts = entities.map({entity in return PaperEntityDraft(from: entity)})
-                    self.match(entities: Array(drafts))
-                })
-                .store(in: CancelBag())
+        entities.forEach { entityDraft in
+            self.appState[\.receiveSignals.processingCount] += 1
+            let publisher = Just<Void>
+                .withErrorType(InteractorError.self)
+                .flatMap { _ in
+                    return self.webRepository.scrape(for: entityDraft)
+                        .mapError { webError in
+                            return InteractorError.WebError(error: webError)
+                        }
+                }
+                .eraseToAnyPublisher()
+
+            publisherList.append(publisher)
         }
+
+        let c = publisherList.count
+
+        Publishers.MergeMany(publisherList)
+            .collect()
+            .sink(
+                receiveCompletion: { completion in
+                    switch completion {
+                    case .failure(let error): print("Error \(error)")
+                    case .finished: do {
+                        print("Scrape successful.")
+                        self.appState[\.receiveSignals.processingCount] -= c
+                    }
+                    }
+                },
+                receiveValue: { entityDrafts in
+                    self.update(entities: entityDrafts)
+                }
+            )
+            .store(in: self.cancelBags["scrape"])
+
+    }
+
+    func routineScrape() {
+        self.appState[\.setting.lastRematchTime] = Int(Date().timeIntervalSince1970)
+        UserDefaults.standard.set(Int(Date().timeIntervalSince1970), forKey: "lastRematchTime")
+
+        Just<Void>
+            .withErrorType(InteractorError.self)
+            .flatMap { _ in
+                self.dbRepository.entities(search: nil, publication: "arXiv", flag: false, tags: [], folders: [], sort: "title")
+                    .mapError { error in
+                        InteractorError.DBError(error: error)
+                    }
+            }
+            .sink(receiveCompletion: {_ in}, receiveValue: { entities in
+                let drafts = entities.map({entity in return PaperEntityDraft(from: entity)})
+                self.scrape(entities: Array(drafts))
+            })
+            .store(in: CancelBag())
     }
 
     // MARK: - Misc
-    func export(entities: [PaperEntity], format: String) {
-        if format == "bibtex" {
-            _exportBibtex(entities: entities)
-        } else if format == "plain" {
-            _exportPlain(entities: entities)
-        }
-    }
-
-    func _replacePublication(_ publication: String) -> String {
-        if self.appState[\.setting.exportReplacement] == nil || !self.appState[\.setting.enableExportReplacement] {
-            return publication
-        }
-        let exportReplacement = try? JSONDecoder().decode([String: String].self, from: self.appState[\.setting.exportReplacement]!)
-        if exportReplacement == nil {
-            return publication
-        }
-        if let replace = exportReplacement![publication] {
-            return replace
-        } else {
-            return publication
-        }
-    }
-
-    func _exportBibtex(entities: [PaperEntity]) {
-        var allTexBib = ""
-
-        entities.forEach { entity in
-            var citeKey = ""
-            citeKey += entity.authors.split(separator: " ")[0] + "_"
-            citeKey += entity.pubTime + "_"
-            citeKey += formatString(String(entity.title[..<String.Index(utf16Offset: 3, in: entity.title)]), removeNewline: true, removeWhite: true, removeSymbol: true)!
-            var texbib = ""
-            if entity.pubType == 1 {
-                texbib = """
-                @inproceedings{\(citeKey),
-                    year = \(entity.pubTime),
-                    title = {\(entity.title)},
-                    author = {\(entity.authors.replacingOccurrences(of: ", ", with: " and "))},
-                    booktitle = {\(_replacePublication(entity.publication))},
-                }
-                """
-            } else {
-                texbib = """
-                @article{\(citeKey),
-                    year = \(entity.pubTime),
-                    title = {\(entity.title)},
-                    author = {\(entity.authors.replacingOccurrences(of: ", ", with: " and "))},
-                    journal = {\(_replacePublication(entity.publication))},
-                }
-                """
-            }
-            allTexBib += texbib + "\n\n"
-        }
-        let pasteBoard = NSPasteboard.general
-        pasteBoard.clearContents()
-        pasteBoard.writeObjects([allTexBib as NSString])
-    }
-
-    func _exportPlain(entities: [PaperEntity]) {
-        var allPlain = ""
-
-        entities.forEach { entity in
-            let text = "\(entity.authors). \"\(entity.title)\" In \(entity.publication), \(entity.pubTime). \n\n"
-            allPlain += text
-        }
-        let pasteBoard = NSPasteboard.general
-        pasteBoard.clearContents()
-        pasteBoard.writeObjects([allPlain as NSString])
+    func export(entities: [PaperEntity], format: ExportFormat) {
+        self.exporter.export(entities: entities, format: format)
     }
 
     func openLib() {
@@ -422,15 +382,6 @@ class RealEntitiesInteractor: EntitiesInteractor {
         }
     }
 
-    func getJoinedURL(_ url: String) -> URL? {
-        if var joinedURL = URL(string: self.appState[\.setting.appLibFolder]) {
-            joinedURL.appendPathComponent(url)
-            return joinedURL
-        } else {
-            return nil
-        }
-    }
-
     func setRoutineTimer() {
 
         if self.appState[\.setting.lastRematchTime] == 0 {
@@ -439,7 +390,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         }
 
         if (Int(Date().timeIntervalSince1970) - self.appState[\.setting.lastRematchTime]) > (86400 * self.appState[\.setting.rematchInterval]) {
-            self.routineMatch()
+            self.routineScrape()
         }
         self.routineTimer.upstream.connect().cancel()
         self.cancelBags.cancel(for: "timer")
@@ -447,7 +398,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         self.routineTimer
             .sink(receiveValue: { [weak self] _ in
                 if self?.appState[\.setting.allowRoutineMatch] ?? false {
-                    self?.routineMatch()
+                    self?.routineScrape()
                 }
             })
             .store(in: self.cancelBags["timer"])
@@ -466,15 +417,12 @@ struct StubEntitiesInteractor: EntitiesInteractor {
     func delete<T>(categorizerName: String, categorizerType: T.Type) where T: PaperCategorizer {}
 
     func update(entities: [PaperEntityDraft]) {}
-    func match(entities _: [PaperEntityDraft]) {}
-    func routineMatch() {}
+    func scrape(entities _: [PaperEntityDraft]) {}
+    func routineScrape() {}
 
-    func getJoinedURL(_ url: String) -> URL? {
-        return URL(string: "")
-    }
+    func export(entities: [PaperEntity], format: ExportFormat) {}
     func openLib() {}
     func migrateLocaltoSync() {}
-    func export(entities _: [PaperEntity], format _: String) {}
     func handleChromePluginURL(_ url: URL) {}
     func setRoutineTimer() {}
 

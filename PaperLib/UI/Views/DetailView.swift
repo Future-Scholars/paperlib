@@ -87,8 +87,4 @@ private extension DetailView {
         injected.interactors.entitiesInteractor.update(entities: [editEntity])
     }
 
-    func getJoinedURL(_ url: String) -> URL? {
-        return injected.interactors.entitiesInteractor.getJoinedURL(url)
-    }
-
 }

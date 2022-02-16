@@ -50,6 +50,7 @@
 		BEB7583227559A700086E360 /* SearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB7583127559A700086E360 /* SearchBar.swift */; };
 		BEB7583427559CF00086E360 /* Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB7583327559CF00086E360 /* Misc.swift */; };
 		BEEB7AA22762C93B00383CCA /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEB7AA12762C93B00383CCA /* Updater.swift */; };
+		BEF5586327BDA9EC00BB281B /* Exporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF5586227BDA9EC00BB281B /* Exporter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -93,6 +94,7 @@
 		BEB7583327559CF00086E360 /* Misc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Misc.swift; sourceTree = "<group>"; };
 		BEEB7AA12762C93B00383CCA /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		BEEB7AA32762CB1300383CCA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		BEF5586227BDA9EC00BB281B /* Exporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exporter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -223,6 +225,7 @@
 		BE79C9BB2751318D008F3E97 /* Repositories */ = {
 			isa = PBXGroup;
 			children = (
+				BEF5586127BDA9D100BB281B /* Exporters */,
 				BE07382B27BC22D90072F8CC /* Scrapers */,
 				BE79C9BC275131A9008F3E97 /* DBRepository.swift */,
 				BE5BE4A427582B2300E6F832 /* WebRepository.swift */,
@@ -252,6 +255,14 @@
 				BE79C9CE275154D5008F3E97 /* PaperCategorizer.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		BEF5586127BDA9D100BB281B /* Exporters */ = {
+			isa = PBXGroup;
+			children = (
+				BEF5586227BDA9EC00BB281B /* Exporter.swift */,
+			);
+			path = Exporters;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -388,6 +399,7 @@
 				BE79C9AC27512D88008F3E97 /* RootViewModifier.swift in Sources */,
 				BEB7583227559A700086E360 /* SearchBar.swift in Sources */,
 				BEB7583427559CF00086E360 /* Misc.swift in Sources */,
+				BEF5586327BDA9EC00BB281B /* Exporter.swift in Sources */,
 				BE5BE4A527582B2300E6F832 /* WebRepository.swift in Sources */,
 				BE1C196D275C3171000B3059 /* EditView.swift in Sources */,
 				BE5BE49F2756FC2900E6F832 /* Loadable.swift in Sources */,
