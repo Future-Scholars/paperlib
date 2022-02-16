@@ -1,1 +1,1 @@
-The branch `electron` is for native macOS development.
+The branch `electron` is for the windows development.
