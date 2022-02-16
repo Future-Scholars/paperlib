@@ -20,10 +20,10 @@ protocol DBRepository {
     func entities(search: String?, publication: String?, flag: Bool, tags: [String], folders: [String], sort: String) -> AnyPublisher<Results<PaperEntity>, Error>
     func categorizers<T: PaperCategorizer>(categorizerType: T.Type) -> AnyPublisher<Results<T>, Error>
 
-    func delete(ids: [ObjectId]) -> AnyPublisher<[String], Error>
-    func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type?) -> AnyPublisher<Bool, Error>
+    func delete(ids: [ObjectId]) -> AnyPublisher<[String], DBError>
+    func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type?) -> AnyPublisher<Bool, DBError>
 
-    func update(from entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], Error>
+    func update(from entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], DBError>
 }
 
 public extension Realm {
@@ -34,6 +34,12 @@ public extension Realm {
             try write(block)
         }
     }
+}
+
+enum DBError: Error {
+    case deleteError(error: Error)
+    case addError(error: Error)
+    case updateError(error: Error)
 }
 
 class RealDBRepository: DBRepository {
@@ -358,9 +364,9 @@ class RealDBRepository: DBRepository {
     }
 
     // MARK: - Delete
-    func delete(ids: [ObjectId]) -> AnyPublisher<[String], Error> {
+    func delete(ids: [ObjectId]) -> AnyPublisher<[String], DBError> {
         return self.realm()
-            .flatMap { realm -> AnyPublisher<[String], Error> in
+            .flatMap { realm -> AnyPublisher<[String], DBError> in
                 var removeFileURLs: [String] = .init()
                 let entities = realm.objects(PaperEntity.self).filter("_id IN %@", ids)
 
@@ -378,16 +384,17 @@ class RealDBRepository: DBRepository {
                     }
                 } catch let err {
                     print("Cannot delete entities. \(String(describing: err))")
+                    return Fail(error: DBError.deleteError(error: err)).eraseToAnyPublisher()
                 }
                 return Just<[String]>
-                    .withErrorType(removeFileURLs, Error.self)
+                    .withErrorType(removeFileURLs, DBError.self)
                     .eraseToAnyPublisher()
             }.eraseToAnyPublisher()
     }
 
-    func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type?) -> AnyPublisher<Bool, Error> {
+    func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type?) -> AnyPublisher<Bool, DBError> {
         return self.realm()
-            .flatMap { realm -> AnyPublisher<Bool, Error> in
+            .flatMap { realm -> AnyPublisher<Bool, DBError> in
                 let categorizers = realm.objects(T.self).filter("name == \"\(categorizerName)\"")
                 do {
                     try realm.safeWrite {
@@ -397,9 +404,10 @@ class RealDBRepository: DBRepository {
                     }
                 } catch let err {
                     print("Cannot delete categorizers. \(String(describing: err))")
+                    return Fail(error: DBError.deleteError(error: err)).eraseToAnyPublisher()
                 }
                 return Just<Bool>
-                    .withErrorType(true, Error.self)
+                    .withErrorType(true, DBError.self)
                     .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
@@ -448,9 +456,9 @@ class RealDBRepository: DBRepository {
         return entity
     }
 
-    func update(from entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], Error> {
+    func update(from entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], DBError> {
         return self.realm()
-            .flatMap { realm -> AnyPublisher<[Bool], Error> in
+            .flatMap { realm -> AnyPublisher<[Bool], DBError> in
                 var successes: [Bool] = .init()
                 do {
                     try realm.safeWrite {
@@ -510,10 +518,11 @@ class RealDBRepository: DBRepository {
                     }
                 } catch let err {
                     print("Cannot update db. \(String(describing: err))")
+                    return Fail(error: DBError.updateError(error: err)).eraseToAnyPublisher()
                 }
 
                 return Just<[Bool]>
-                    .withErrorType(successes, Error.self)
+                    .withErrorType(successes, DBError.self)
                     .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
