@@ -160,8 +160,9 @@ class RealEntitiesInteractor: EntitiesInteractor {
                 receiveCompletion: { completion in
                     switch completion {
                     case .failure(let error): print("Error \(error)")
-                    case .finished: self.appState[\.receiveSignals.processingCount] -= c
+                    case .finished: print("Add successful.")
                     }
+                    self.appState[\.receiveSignals.processingCount] -= c
                 },
                 receiveValue: { _ in
             })

@@ -22,6 +22,7 @@ enum WebError: Error {
     case doiError(entityDraft: PaperEntityDraft)
     case dblpError(entityDraft: PaperEntityDraft)
     case ieeeError(entityDraft: PaperEntityDraft)
+    case cvfError(entityDraft: PaperEntityDraft)
     case titleExtractorError(entityDraft: PaperEntityDraft)
 }
 
@@ -34,7 +35,8 @@ struct RealWebRepository: WebRepository {
         DBLPbyTimeScraper(offset: 0),
         DBLPbyTimeScraper(offset: 1),
         DBLPVenueScraper(),
-        IEEEScraper()
+        IEEEScraper(),
+        CVFScraper()
     ]
 
     func apiVersion() -> AnyPublisher<DataResponse<String, AFError>, Never> {
@@ -65,6 +67,10 @@ struct RealWebRepository: WebRepository {
         }
         case .titleExtractorError(entityDraft: let entityDraft): do {
             print("[!] Title Extractor scraper error")
+            return entityDraft
+        }
+        case .cvfError(entityDraft: let entityDraft): do {
+            print("[!] CVF scraper error")
             return entityDraft
         }
         }
