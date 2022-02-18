@@ -1,3 +1,6 @@
+## v1.3.10 Feb 18 2022
+1.  Added a CVF scraper to scrape the metadata for ICCV2021.
+
 ## v1.3.9 Feb 16 2022
 1.  Fixed some bugs.
 
