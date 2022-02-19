@@ -54,7 +54,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         self.dbRepository = dbRepository
         self.fileRepository = fileRepository
         self.webRepository = webRepository
-        self.exporter = Exporter(appState: self.appState)
+        self.exporter = Exporter()
 
         self.setRoutineTimer()
 
@@ -299,7 +299,6 @@ class RealEntitiesInteractor: EntitiesInteractor {
     }
 
     func routineScrape() {
-        self.appState[\.setting.lastRematchTime] = Int(Date().timeIntervalSince1970)
         UserDefaults.standard.set(Int(Date().timeIntervalSince1970), forKey: "lastRematchTime")
 
         Just<Void>
@@ -385,20 +384,19 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
     func setRoutineTimer() {
 
-        if self.appState[\.setting.lastRematchTime] == 0 {
+        if UserDefaults.standard.integer(forKey: "lastRematchTime") == 0 {
             UserDefaults.standard.set(Int(Date().timeIntervalSince1970), forKey: "lastRematchTime")
-            self.appState[\.setting.lastRematchTime] = Int(Date().timeIntervalSince1970)
         }
 
-        if (Int(Date().timeIntervalSince1970) - self.appState[\.setting.lastRematchTime]) > (86400 * self.appState[\.setting.rematchInterval]) {
+        if (Int(Date().timeIntervalSince1970) - UserDefaults.standard.integer(forKey: "lastRematchTime")) > (86400 * UserDefaults.standard.integer(forKey: "rematchInterval")) {
             self.routineScrape()
         }
         self.routineTimer.upstream.connect().cancel()
         self.cancelBags.cancel(for: "timer")
-        self.routineTimer = Timer.publish(every: Double(86400 * self.appState[\.setting.rematchInterval]), on: .main, in: .common).autoconnect()
+        self.routineTimer = Timer.publish(every: Double(86400 * UserDefaults.standard.integer(forKey: "rematchInterval")), on: .main, in: .common).autoconnect()
         self.routineTimer
             .sink(receiveValue: { [weak self] _ in
-                if self?.appState[\.setting.allowRoutineMatch] ?? false {
+                if UserDefaults.standard.bool(forKey: "allowRoutineMatch") {
                     self?.routineScrape()
                 }
             })

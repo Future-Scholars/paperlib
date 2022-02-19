@@ -36,6 +36,6 @@ struct ContentView: View {
     }
 
     var colorSchemeUpdate: AnyPublisher<String, Never> {
-        container.appState.updates(for: \.setting.colorScheme)
+        UserDefaults.standard.publisher(for: \.preferColorTheme).eraseToAnyPublisher()
     }
 }

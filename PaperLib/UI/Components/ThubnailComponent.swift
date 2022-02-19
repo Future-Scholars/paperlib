@@ -87,6 +87,6 @@ struct ThumbnailComponent: View {
     }
 
     var invertColorUpdate: AnyPublisher<Bool, Never> {
-        injected.appState.updates(for: \.setting.invertColor)
+        UserDefaults.standard.publisher(for: \.invertColor).eraseToAnyPublisher()
     }
 }

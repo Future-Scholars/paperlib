@@ -16,18 +16,30 @@ enum ExportFormat {
 }
 
 class Exporter {
-    let appState: Store<AppState>
-
-    init(appState: Store<AppState>) {
-        self.appState = appState
-    }
-
     func export(entities: [PaperEntity], format: ExportFormat) {
         switch format {
         case .plain:
             return self._exportPlain(entities: entities)
         case .bibtex:
             return self._exportBibtex(entities: entities)
+        }
+    }
+
+    func _replacePublication(_ publication: String) -> String {
+        do {
+            if let exportReplacement = UserDefaults.standard.data(forKey: "exportReplacement"), UserDefaults.standard.bool(forKey: "enableExportReplacement") {
+                let exportReplacementMap = try JSONDecoder().decode([String: String].self, from: exportReplacement)
+                if let replace = exportReplacementMap[publication] {
+                    return replace
+                } else {
+                    return publication
+                }
+            } else {
+                return publication
+            }
+        } catch let err {
+            print(err)
+            return publication
         }
     }
 }
@@ -37,7 +49,7 @@ extension Exporter {
         var allPlain = ""
 
         entities.forEach { entity in
-            let text = "\(entity.authors). \"\(entity.title)\" In \(entity.publication), \(entity.pubTime). \n\n"
+            let text = "\(entity.authors). \"\(entity.title)\" In \(_replacePublication(entity.publication)), \(entity.pubTime). \n\n"
             allPlain += text
         }
         let pasteBoard = NSPasteboard.general
@@ -47,21 +59,6 @@ extension Exporter {
 }
 
 extension Exporter {
-    func _replacePublication(_ publication: String) -> String {
-        if self.appState[\.setting.exportReplacement] == nil || !self.appState[\.setting.enableExportReplacement] {
-            return publication
-        }
-        let exportReplacement = try? JSONDecoder().decode([String: String].self, from: self.appState[\.setting.exportReplacement]!)
-        if exportReplacement == nil {
-            return publication
-        }
-        if let replace = exportReplacement![publication] {
-            return replace
-        } else {
-            return publication
-        }
-    }
-
     func _exportBibtex(entities: [PaperEntity]) {
         var allTexBib = ""
 

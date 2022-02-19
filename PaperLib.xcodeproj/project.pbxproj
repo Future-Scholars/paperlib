@@ -52,6 +52,7 @@
 		BEB7583427559CF00086E360 /* Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB7583327559CF00086E360 /* Misc.swift */; };
 		BEEB7AA22762C93B00383CCA /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEB7AA12762C93B00383CCA /* Updater.swift */; };
 		BEF5586327BDA9EC00BB281B /* Exporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF5586227BDA9EC00BB281B /* Exporter.swift */; };
+		BEFAB71427C1543900804026 /* Preference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEFAB71327C1543900804026 /* Preference.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -97,6 +98,7 @@
 		BEEB7AA12762C93B00383CCA /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		BEEB7AA32762CB1300383CCA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BEF5586227BDA9EC00BB281B /* Exporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exporter.swift; sourceTree = "<group>"; };
+		BEFAB71327C1543900804026 /* Preference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preference.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -180,6 +182,8 @@
 				BE79C9C3275140FA008F3E97 /* Components */,
 				BE79C9B027512EDD008F3E97 /* Views */,
 				BE79C9AB27512D88008F3E97 /* RootViewModifier.swift */,
+				BE79C9C1275140AC008F3E97 /* MainView.swift */,
+				BE79C99D27512D02008F3E97 /* ContentView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -197,9 +201,7 @@
 			isa = PBXGroup;
 			children = (
 				BE5BE4A22758278F00E6F832 /* SettingVIew.swift */,
-				BE79C99D27512D02008F3E97 /* ContentView.swift */,
 				BE79C9B127512EEA008F3E97 /* SidebarView.swift */,
-				BE79C9C1275140AC008F3E97 /* MainView.swift */,
 				BE79C9D22752DCFF008F3E97 /* DetailView.swift */,
 			);
 			path = Views;
@@ -213,6 +215,7 @@
 				BE5BE49E2756FC2900E6F832 /* Loadable.swift */,
 				BE5BE4A02757CEE700E6F832 /* CancelBag.swift */,
 				BEEB7AA12762C93B00383CCA /* Updater.swift */,
+				BEFAB71327C1543900804026 /* Preference.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -387,6 +390,7 @@
 				BE79C9D92752FB10008F3E97 /* ThubnailComponent.swift in Sources */,
 				BE79C9C0275134FB008F3E97 /* AppEnvironment.swift in Sources */,
 				BE5BE4A727582C6A00E6F832 /* FileRepository.swift in Sources */,
+				BEFAB71427C1543900804026 /* Preference.swift in Sources */,
 				BE79C9C8275142D1008F3E97 /* PaperEntity.swift in Sources */,
 				BE07383727BC61B90072F8CC /* DBLP.swift in Sources */,
 				BE07A2C12769487500BF5050 /* KeyValueRow.swift in Sources */,

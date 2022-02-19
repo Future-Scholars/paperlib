@@ -128,7 +128,7 @@ struct MainView: View {
                 }
             }
             .onReceive(appLibMovedUpdate, perform: { _ in
-                if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.mainView] > 0 {
+                if injected.appState[\.receiveSignals.settingOpened], injected.appState[\.receiveSignals.mainView] > 0 {
                     injected.appState[\.receiveSignals.mainView] -= 1
                     reloadEntities()
                     clearSelected()

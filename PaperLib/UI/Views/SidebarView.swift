@@ -65,7 +65,7 @@ struct SidebarView: View {
             }
         })
         .onReceive(appLibMovedUpdate, perform: { _ in
-            if injected.appState[\.setting.settingOpened], injected.appState[\.receiveSignals.sideBar] > 0 {
+            if injected.appState[\.receiveSignals.settingOpened], injected.appState[\.receiveSignals.sideBar] > 0 {
                 injected.appState[\.receiveSignals.sideBar] -= 1
                 reloadTags()
                 reloadFolders()

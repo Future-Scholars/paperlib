@@ -23,8 +23,6 @@ struct CVFScraper: Scraper {
     }
 
     func parsingProcess(response: String?, entityDraft: PaperEntityDraft) -> AnyPublisher<PaperEntityDraft, WebError> {
-
-        print(response)
         if let response = response {
             do {
                 let jsonData = response.data(using: .utf8)!

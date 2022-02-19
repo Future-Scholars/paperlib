@@ -43,10 +43,10 @@ struct SettingsView: View {
         .padding()
         .frame(width: 550, height: 300)
         .onAppear(perform: {
-            injected.appState[\.setting.settingOpened] = true
+            injected.appState[\.receiveSignals.settingOpened] = true
         })
         .onDisappear(perform: {
-            injected.appState[\.setting.settingOpened] = false
+            injected.appState[\.receiveSignals.settingOpened] = false
         })
     }
 }
@@ -91,8 +91,8 @@ struct GeneralSettingsView: View {
                 .frame(width: 150)
             }
             .padding(.bottom, 15)
-            .onChange(of: preferColorTheme, perform: { colorTheme in
-                injected.appState[\.setting.colorScheme] = colorTheme
+            .onChange(of: preferColorTheme, perform: { preferColorTheme in
+                UserDefaults.standard.set(preferColorTheme, forKey: "preferColorTheme")
             })
 
             HStack(alignment: .top) {
@@ -101,7 +101,7 @@ struct GeneralSettingsView: View {
                     .toggleStyle(.checkbox)
             }
             .onChange(of: invertColor, perform: { invert in
-                injected.appState[\.setting.invertColor] = invert
+                UserDefaults.standard.set(invert, forKey: "invertColor")
             })
 
             HStack(alignment: .top) {
@@ -110,7 +110,8 @@ struct GeneralSettingsView: View {
                     .toggleStyle(.checkbox)
             }
             .onChange(of: deleteSourceFile, perform: { deleteSourceFile in
-                injected.appState[\.setting.deleteSourceFile] = deleteSourceFile
+                UserDefaults.standard.set(deleteSourceFile, forKey: "deleteSourceFile")
+
             })
         }
     }
@@ -131,11 +132,13 @@ struct GeneralSettingsView: View {
                 let pickedFolders = folderPicker.urls
                 appLibFolder = pickedFolders[0].absoluteString
 
+                UserDefaults.standard.set(appLibFolder, forKey: "appLibFolder")
+                injected.interactors.entitiesInteractor.openLib()
+
+                // TODO: Signal should be sent by dbrepo.
                 injected.appState[\.receiveSignals.sideBar] += 1
                 injected.appState[\.receiveSignals.mainView] += 1
-                injected.appState[\.setting.appLibFolder] = pickedFolders[0].absoluteString
 
-                injected.interactors.entitiesInteractor.openLib()
             }
         }
     }
@@ -158,7 +161,7 @@ struct MatchSettingsView: View {
                     .toggleStyle(.checkbox)
             }
             .onChange(of: allowFetchPDFMeta, perform: { allowFetchPDFMeta in
-                injected.appState[\.setting.allowFetchPDFMeta] = allowFetchPDFMeta
+                UserDefaults.standard.set(allowFetchPDFMeta, forKey: "allowFetchPDFMeta")
             })
 
             HStack(alignment: .top) {
@@ -167,7 +170,7 @@ struct MatchSettingsView: View {
                     .toggleStyle(.checkbox)
             }
             .onChange(of: ieeeAPIKey, perform: { ieeeAPIKey in
-                injected.appState[\.setting.ieeeAPIKey] = ieeeAPIKey
+                UserDefaults.standard.set(ieeeAPIKey, forKey: "ieeeAPIKey")
             })
             .padding(.bottom, 10)
 
@@ -179,7 +182,7 @@ struct MatchSettingsView: View {
                     .toggleStyle(.checkbox)
             }
             .onChange(of: allowRoutineMatch, perform: { allowRoutineMatch in
-                injected.appState[\.setting.allowRoutineMatch] = allowRoutineMatch
+                UserDefaults.standard.set(allowRoutineMatch, forKey: "allowRoutineMatch")
             })
             .padding(.top, 10)
             HStack(alignment: .top) {
@@ -191,7 +194,7 @@ struct MatchSettingsView: View {
                 }.pickerStyle(MenuPickerStyle()).padding(.leading, -8)
             }
             .onChange(of: rematchInterval, perform: { rematchInterval in
-                injected.appState[\.setting.rematchInterval] = rematchInterval
+                UserDefaults.standard.set(rematchInterval, forKey: "rematchInterval")
                 injected.interactors.entitiesInteractor.setRoutineTimer()
             })
         }
@@ -212,7 +215,7 @@ struct SyncSettingsView: View {
                     .disabled(useSync)
             }
             .onChange(of: syncAPIKey, perform: { syncAPIKey in
-                injected.appState[\.setting.syncAPIKey] = syncAPIKey
+                UserDefaults.standard.set(syncAPIKey, forKey: "syncAPIKey")
             })
             .padding(.bottom, 10)
 
@@ -242,7 +245,7 @@ struct SyncSettingsView: View {
     }
 
     func onToggleUseSync (useSync: Bool) {
-        injected.appState[\.setting.useSync] = useSync
+        UserDefaults.standard.set(useSync, forKey: "useSync")
 
         if !syncAPIKey.isEmpty {
             injected.appState[\.receiveSignals.sideBar] += 1
@@ -269,7 +272,7 @@ struct ExportSettingsView: View {
                 Toggle("", isOn: $enableExportReplacement)
                     .toggleStyle(.checkbox)
                     .onChange(of: enableExportReplacement, perform: { enableExportReplacement in
-                        injected.appState[\.setting.enableExportReplacement] = enableExportReplacement
+                        UserDefaults.standard.set(enableExportReplacement, forKey: "enableExportReplacement")
                     })
             }
             HStack {
@@ -314,7 +317,7 @@ struct ExportSettingsView: View {
         .onChange(of: exportReplacementContainer, perform: { _ in
             guard let encodedExportReplacement = try? JSONEncoder().encode(exportReplacementContainer) else { return }
             self.exportReplacement = encodedExportReplacement
-            injected.appState[\.setting.exportReplacement] = self.exportReplacement
+            UserDefaults.standard.set(exportReplacement, forKey: "exportReplacement")
         })
     }
 }

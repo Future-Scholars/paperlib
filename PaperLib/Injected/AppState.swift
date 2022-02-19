@@ -10,29 +10,13 @@ import RealmSwift
 import SwiftUI
 
 struct AppState: Equatable {
-    var setting = Setting()
     var receiveSignals = ReceiveSignals()
 }
 
 extension AppState {
-    struct Setting: Equatable {
-        var settingOpened = false
-        var appLibFolder = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
-        var colorScheme = UserDefaults.standard.string(forKey: "preferColorTheme") ?? "System Default"
-        var invertColor = UserDefaults.standard.bool(forKey: "invertColor")
-        var ieeeAPIKey = UserDefaults.standard.string(forKey: "ieeeAPIKey") ?? ""
-        var allowFetchPDFMeta = UserDefaults.standard.bool(forKey: "allowFetchPDFMeta")
-        var allowRoutineMatch = UserDefaults.standard.bool(forKey: "allowRoutineMatch")
-        var rematchInterval = UserDefaults.standard.integer(forKey: "rematchInterval") == 0 ? 7: UserDefaults.standard.integer(forKey: "rematchInterval")
-        var lastRematchTime = UserDefaults.standard.integer(forKey: "lastRematchTime")
-        var deleteSourceFile = UserDefaults.standard.bool(forKey: "deleteSourceFile")
-        var exportReplacement = UserDefaults.standard.data(forKey: "exportReplacement")
-        var enableExportReplacement = UserDefaults.standard.bool(forKey: "enableExportReplacement")
-        var syncAPIKey = UserDefaults.standard.string(forKey: "syncAPIKey") ?? ""
-        var useSync = UserDefaults.standard.bool(forKey: "useSync")
-    }
 
     struct ReceiveSignals: Equatable {
+        var settingOpened = false
         var sideBar = 0
         var mainView = 0
         var processingCount = 0
@@ -41,5 +25,5 @@ extension AppState {
 }
 
 func == (lhs: AppState, rhs: AppState) -> Bool {
-    return lhs.setting == rhs.setting && lhs.receiveSignals == rhs.receiveSignals
+    return lhs.receiveSignals == rhs.receiveSignals
 }
