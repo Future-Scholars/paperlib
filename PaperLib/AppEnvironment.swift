@@ -13,6 +13,7 @@ struct AppEnvironment {
 
 extension AppEnvironment {
     static func bootstrap() -> AppEnvironment {
+        registerPreference()
         let appState = Store<AppState>(AppState())
 
         let repositories = configuredRepositories(appState: appState)

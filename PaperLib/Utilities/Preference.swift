@@ -26,3 +26,23 @@ extension UserDefaults {
         }
     }
 }
+
+func registerPreference () {
+    UserDefaults.standard.register(
+        defaults:
+            [
+                "appLibFolder": FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("paperlib").absoluteString,
+                "invertColor": false,
+                "preferColorTheme": "System Default",
+                "deleteSourceFile": true,
+                "ieeeAPIKey": "",
+                "allowFetchPDFMeta": true,
+                "allowRoutineMatch": false,
+                "rematchInterval": 7,
+                "syncAPIKey": "",
+                "useSync": false,
+                "exportReplacement": Data.init(),
+                "enableExportReplacement": false
+            ]
+    )
+}
