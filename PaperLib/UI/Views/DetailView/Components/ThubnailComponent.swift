@@ -10,8 +10,6 @@ import SwiftUI
 import PDFKit
 
 struct ThumbnailComponent: View {
-    @Environment(\.injected) private var injected: DIContainer
-
     private var url: URL?
     private var thumbnail: NSImage?
     @State private var invertColor: Bool = true

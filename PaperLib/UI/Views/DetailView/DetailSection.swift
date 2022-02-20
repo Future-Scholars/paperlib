@@ -16,7 +16,9 @@ struct DetailTextSection: View {
             Text(title)
                 .font(.caption)
                 .foregroundColor(Color.secondary.opacity(0.8))
-            Text(value).font(.subheadline).textSelection(.enabled)
+            Text(value)
+                .font(.subheadline)
+                .textSelection(.enabled)
         }.padding(.vertical, 2)
     }
 }
@@ -37,18 +39,14 @@ struct DetailRatingSection: View {
 }
 
 struct DetailThumbnailSection: View {
-    @Environment(\.injected) private var injected: DIContainer
-    let url: URL?
+    let url: URL
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("Preview")
                 .font(.caption)
                 .foregroundColor(Color.secondary.opacity(0.8))
-
-            if url != nil {
-                ThumbnailComponent(url: url).inject(injected).padding(.vertical, 5)
-            }
+            ThumbnailComponent(url: url).padding(.vertical, 5)
         }.padding(.vertical, 2)
     }
 }

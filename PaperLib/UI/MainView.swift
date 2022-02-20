@@ -18,9 +18,10 @@ struct MainView: View {
     @Environment(\.injected) private var injected: DIContainer
     private var cancelbag = CancelBag()
     // Common
-    @State private var selectedIds: Set<ObjectId> = .init()
     @State private var selectedEntities: Loadable<Results<PaperEntity>>
     @State private var selectedEntitiesDraft: [PaperEntityDraft] = .init()
+
+    @State private var selectedEntitiesDraft_: Loadable<[PaperEntityDraft]>
 
     // Sidebar
     @State private var selectedFilters: Set<String> = .init()
@@ -52,6 +53,7 @@ struct MainView: View {
     init() {
         _entities = .init(initialValue: Loadable<Results<PaperEntity>>.notRequested)
         _selectedEntities = .init(initialValue: Loadable<Results<PaperEntity>>.notRequested)
+        _selectedEntitiesDraft_ = .init(initialValue: Loadable<[PaperEntityDraft]>.notRequested)
     }
 
     var body: some View {
@@ -148,12 +150,7 @@ struct MainView: View {
     }
 
     private func detailContent() -> AnyView {
-        switch selectedEntities {
-        case .notRequested: return AnyView(notRequestedView())
-        case let .isLoading(last, _): return AnyView(detailLoadingView(last))
-        case let .loaded(detailEntities): return AnyView(detailLoadedView(detailEntities))
-        case let .failed(error): return AnyView(failedView(error))
-        }
+        return AnyView(DetailView(selectedEntitiesDraft: $selectedEntitiesDraft_))
     }
 }
 
@@ -274,25 +271,25 @@ private extension MainView {
     }
 
     // Detail View
-    func detailLoadingView(_ previouslyLoaded: Results<PaperEntity>?) -> some View {
-        if let entities = previouslyLoaded {
-            return AnyView(
-                ZStack {
-                    detailLoadedView(entities)
-                    ProgressView()
-                })
-        } else {
-            return AnyView(EmptyView())
-        }
-    }
-
-    func detailLoadedView(_ entities: Results<PaperEntity>) -> some View {
-        if entities.count == 1 {
-            return AnyView(DetailView(entity: entities.first!).inject(injected))
-        } else {
-            return AnyView(EmptyView())
-        }
-    }
+//    func detailLoadingView(_ previouslyLoaded: Results<PaperEntity>?) -> some View {
+//        if let entities = previouslyLoaded {
+//            return AnyView(
+//                ZStack {
+//                    detailLoadedView(entities)
+//                    ProgressView()
+//                })
+//        } else {
+//            return AnyView(EmptyView())
+//        }
+//    }
+//
+//    func detailLoadedView(_ entities: Results<PaperEntity>) -> some View {
+//        if entities.count == 1 {
+//            return AnyView(DetailView(entity: entities.first!).inject(injected))
+//        } else {
+//            return AnyView(EmptyView())
+//        }
+//    }
 
     // Edit View
 
@@ -623,11 +620,13 @@ private extension MainView {
         mainState.$selectedIds
             .sink(receiveCompletion: {_ in}, receiveValue: { selectedIds in
                 $selectedEntities.wrappedValue.setIsLoading(cancelBag: CancelBag())
+                $selectedEntitiesDraft_.wrappedValue.setIsLoading(cancelBag: CancelBag())
                 if $entities.wrappedValue.value != nil {
                     $entities.wrappedValue.value!.filter("id IN %@", selectedIds).collectionPublisher.eraseToAnyPublisher()
                         .sink(receiveCompletion: {_ in}, receiveValue: { filteredEntities in
                             $selectedEntities.wrappedValue = .loaded(filteredEntities)
                             $selectedEntitiesDraft.wrappedValue = filteredEntities.map({entity in return PaperEntityDraft(from: entity)})
+                            $selectedEntitiesDraft_.wrappedValue = .loaded(filteredEntities.map({entity in return PaperEntityDraft(from: entity)}))
                         })
                         .store(in: cancelbag)
                 } else {
