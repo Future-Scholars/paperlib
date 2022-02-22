@@ -1,3 +1,9 @@
+## v1.4.0 Feb 22 2022
+1.  Fixed some bugs.
+2.  Added error handler and logger.
+3.  Drag an paper and drop it to the side bar to tag or folder it.
+4.  Add count to the sidebar.  
+
 ## v1.3.10 Feb 18 2022
 1.  Added a CVF scraper to scrape the metadata for ICCV2021.
 
