@@ -18,17 +18,17 @@ struct DetailView: View {
     @Environment(\.colorScheme) var colorScheme
 
     @StateObject private var viewState = DetailViewState()
-    @Binding var selectedEntitiesDraft: Loadable<[PaperEntityDraft]>
+    @Binding var entities: Loadable<Results<PaperEntity>> // Currently only show the first entity.
 
     var body: some View {
         content()
     }
 
     func content() -> some View {
-        switch selectedEntitiesDraft {
+        switch entities {
         case .notRequested: return AnyView(notRequestedView())
         case let .isLoading(last, _): return AnyView(loadingView(last))
-        case let .loaded(detailEntities): return AnyView(loadedView(detailEntities))
+        case let .loaded(entities): return AnyView(loadedView(entities))
         case let .failed(error): return AnyView(failedView(error))
         }
     }
@@ -45,7 +45,7 @@ private extension DetailView {
         return EmptyView()
     }
 
-    func loadingView(_ previouslyLoaded: [PaperEntityDraft]?) -> some View {
+    func loadingView(_ previouslyLoaded: Results<PaperEntity>?) -> some View {
         if let previouslyLoaded = previouslyLoaded, previouslyLoaded.count == 1 {
             return AnyView(
                 ZStack {
@@ -57,47 +57,49 @@ private extension DetailView {
         }
     }
 
-    func loadedView(_ entityDrafts: [PaperEntityDraft]) -> some View {
-        if entityDrafts.count == 1 {
-            let entityDraft = entityDrafts.first!
-
+    func loadedView(_ entities: Results<PaperEntity>) -> some View {
+        if let entity = entities.first, entities.count == 1 {
             let view = HStack {
                 Divider()
                 VStack(alignment: .leading) {
-                    Text(entityDraft.title).font(.title2).bold().lineLimit(nil).textSelection(.enabled)
+                    Text(entity.title).font(.title2).bold().lineLimit(nil).textSelection(.enabled)
 
                     Group {
-                        DetailTextSection(title: "Authors", value: entityDraft.authors)
-                        DetailTextSection(title: "Publication", value: entityDraft.publication)
-                        DetailTextSection(title: "Publication Year", value: entityDraft.pubTime)
-                        if !entityDraft.tags.isEmpty {
-                            DetailTextSection(title: "Tags", value: entityDraft.tags)
+                        DetailTextSection(title: "Authors", value: entity.authors)
+                        DetailTextSection(title: "Publication", value: entity.publication)
+                        DetailTextSection(title: "Publication Year", value: entity.pubTime)
+                        if entity.tags.count > 0 {
+                            DetailTextSection(title: "Tags", value: Array(entity.tags.map { formatString($0.name, returnEmpty: true, removeStr: "tag-")! }).joined(separator: "; "))
                         }
-                        if !entityDraft.folders.isEmpty {
-                            DetailTextSection(title: "Folders", value: entityDraft.folders)
+                        if entity.folders.count > 0 {
+                            DetailTextSection(title: "Folders", value: Array(entity.folders.map { formatString($0.name, returnEmpty: true, removeStr: "folder-")! }).joined(separator: "; "))
                         }
-                        DetailTextSection(title: "AddTime", value: date2String(entityDraft.addTime))
+                        DetailTextSection(title: "AddTime", value: date2String(entity.addTime))
                     }
 
-                    DetailRatingSection(shownRating: entityDraft.rating, rating: $viewState.rating)
+                    DetailRatingSection(shownRating: entity.rating, rating: $viewState.rating)
                         .onReceive(viewState.$rating, perform: {
                             self.onRatingChanged(rating: $0)
                         })
 
-                    if FileManager.default.fileExists(atPath: getJoinedURL(entityDraft.mainURL)?.path ?? "") {
-                        DetailThumbnailSection(url: getJoinedURL(entityDraft.mainURL)!)
+                    if FileManager.default.fileExists(atPath: getJoinedURL(entity.mainURL)?.path ?? "") {
+                        DetailThumbnailSection(url: getJoinedURL(entity.mainURL)!)
                     }
-                    if entityDraft.supURLs.count >= 1 {
-                        DetailsSupSection(sups: Array(entityDraft.supURLs).map({return getJoinedURL($0)}).filter({ $0 != nil}).map({$0!}))
+                    if entity.supURLs.count >= 1 {
+                        DetailsSupSection(sups: Array(entity.supURLs).map({return getJoinedURL($0)}).filter({ $0 != nil}).map({$0!}))
                     }
 
-                    if !entityDraft.note.isEmpty {
-                        DetailTextSection(title: "Note", value: entityDraft.note)
+                    if !entity.note.isEmpty {
+                        DetailTextSection(title: "Note", value: entity.note)
                     }
                     Spacer()
                 }
                 .frame(width: 300, alignment: .topLeading)
                 .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
+                .onDrop(of: ["public.file-url"], isTargeted: nil) { providers -> Bool in
+                    onFileDroped(providers: providers)
+                    return true
+                }
             }
 
             return colorScheme != .dark ? AnyView(view.background(Color.white)) : AnyView(view)
@@ -119,11 +121,36 @@ private extension DetailView {
     }
 
     func onRatingChanged(rating: Int) {
-        if rating >= 0 {
-            if let entityDraft = selectedEntitiesDraft.value!.first {
-                entityDraft.rating = rating
+        if let entity = entities.value?.first, rating >= 0 {
+            let entityDraft = PaperEntityDraft(from: entity)
+            entityDraft.set(for: "rating", value: rating)
+            injected.interactors.entitiesInteractor.update(entities: [entityDraft])
+            viewState.rating = -1
+        }
+    }
+
+    func onFileDroped(providers: [NSItemProvider]) {
+        let urlGroup = DispatchGroup()
+
+        var urlList: [URL] = .init()
+        providers.forEach { provider in
+            urlGroup.enter()
+            provider.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { data, _ in
+                if let data = data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
+                    urlList.append(url)
+                    urlGroup.leave()
+                }
+            })
+        }
+
+        urlGroup.notify(queue: .main) {
+            if let entity = entities.value?.first, urlList.count > 0 {
+                let entityDraft = PaperEntityDraft(from: entity)
+
+                urlList.forEach { supURL in
+                    entityDraft.supURLs.append(supURL.absoluteString)
+                }
                 injected.interactors.entitiesInteractor.update(entities: [entityDraft])
-                viewState.rating = -1
             }
         }
     }

@@ -18,7 +18,7 @@ enum InteractorError: Error {
 }
 
 protocol EntitiesInteractor {
-    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: [String], folders: [String], sort: String)
+    func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>?, search: String?, flag: Bool, tags: [String], folders: [String], sort: String, cancelBagKey: String)
     func load<T: PaperCategorizer>(categorizers: LoadableSubject<Results<T>>, cancelBagKey: String)
 
     func add(from fileURLs: [URL])
@@ -36,6 +36,8 @@ protocol EntitiesInteractor {
 
     func handleChromePluginURL(_ url: URL)
     func setRoutineTimer()
+
+    func debug()
 }
 
 class RealEntitiesInteractor: EntitiesInteractor {
@@ -65,18 +67,28 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
     // MARK: - Select
 
-    func load(entities: LoadableSubject<Results<PaperEntity>>, search: String?, flag: Bool, tags: [String], folders: [String], sort: String) {
-        self.cancelBags.cancel(for: "entities")
+    func debug() {
+//        self.dbRepository.initRealm(reinit: false)
+    }
 
-        entities.wrappedValue.setIsLoading(cancelBag: self.cancelBags["entities"])
+    func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>?, search: String?, flag: Bool, tags: [String], folders: [String], sort: String, cancelBagKey: String) {
+        self.cancelBags.cancel(for: cancelBagKey)
 
-        self.dbRepository.entities(search: search, publication: nil, flag: flag, tags: tags, folders: folders, sort: sort)
+        entities.wrappedValue.setIsLoading(cancelBag: self.cancelBags[cancelBagKey])
+
+        Just<Void>
+            .withErrorType(InteractorError.self)
+            .flatMap {
+                self.dbRepository.entities(ids: ids, search: search, publication: nil, flag: flag, tags: tags, folders: folders, sort: sort)
+                    .mapError { dbError in
+                        return InteractorError.DBError(error: dbError)
+                    }
+            }
             .sinkToLoadable {
-                entities.wrappedValue.setIsLoading(cancelBag: CancelBag())
-                print("[Reloaded] entities")
+                entities.wrappedValue.setIsLoading(cancelBag: self.cancelBags[cancelBagKey])
                 entities.wrappedValue = $0
             }
-            .store(in: self.cancelBags["entities"])
+            .store(in: self.cancelBags[cancelBagKey])
     }
 
     func load<T: PaperCategorizer>(categorizers: LoadableSubject<Results<T>>, cancelBagKey: String) {
@@ -304,7 +316,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         Just<Void>
             .withErrorType(InteractorError.self)
             .flatMap { _ in
-                self.dbRepository.entities(search: nil, publication: "arXiv", flag: false, tags: [], folders: [], sort: "title")
+                self.dbRepository.entities(ids: nil, search: nil, publication: "arXiv", flag: false, tags: [], folders: [], sort: "title")
                     .mapError { error in
                         InteractorError.DBError(error: error)
                     }
@@ -407,7 +419,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
 struct StubEntitiesInteractor: EntitiesInteractor {
 
-    func load(entities _: LoadableSubject<Results<PaperEntity>>, search _: String?, flag _: Bool, tags _: [String], folders _: [String], sort _: String) {}
+    func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>?, search: String?, flag: Bool, tags: [String], folders: [String], sort: String, cancelBagKey: String) {}
     func load<T: PaperCategorizer>(categorizers: LoadableSubject<Results<T>>, cancelBagKey: String) {}
 
     func add(from _: [URL]) {}
@@ -425,4 +437,5 @@ struct StubEntitiesInteractor: EntitiesInteractor {
     func handleChromePluginURL(_ url: URL) {}
     func setRoutineTimer() {}
 
+    func debug() {}
 }

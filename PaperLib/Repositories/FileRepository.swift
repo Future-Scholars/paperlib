@@ -186,7 +186,6 @@ struct RealFileDBRepository: FileRepository {
         }
 
         // 2. Move sup files
-        entity.set(for: "supURLs", value: [], allowEmpty: true)
         let sourceSupURLs = Array(entity.supURLs).map({ return self.constructURL($0) })
         var targetSupURLs: [String] = .init()
         for (i, sourceSupURL) in sourceSupURLs.enumerated() {

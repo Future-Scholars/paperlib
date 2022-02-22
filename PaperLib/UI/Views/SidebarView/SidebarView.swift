@@ -11,28 +11,18 @@ import SwiftUI
 
 struct SidebarView: View {
     @Environment(\.injected) private var injected: DIContainer
-    @Binding var selectedFilters: Set<String>
 
     @State private var showProgressView: Bool = false
 
     // Tags
-    @State private var tags: Loadable<Results<PaperTag>>
+    @Binding var tags: Loadable<Results<PaperTag>>
     @State private var tagExpanded: Bool = true
     // Folders
-    @State private var folders: Loadable<Results<PaperFolder>>
+    @Binding var folders: Loadable<Results<PaperFolder>>
     @State private var folderExpanded: Bool = true
 
-    @Binding private var statusText: String
-
-    init(selectedFilters: Binding<Set<String>>, statusText: Binding<String>) {
-        _tags = .init(initialValue: Loadable<Results<PaperTag>>.notRequested)
-        _folders = .init(initialValue: Loadable<Results<PaperFolder>>.notRequested)
-        _selectedFilters = selectedFilters
-        _statusText = statusText
-    }
-
     var body: some View {
-        List(selection: $selectedFilters) {
+        List(selection: injected.sharedState.selection.selectedCategorizer.binding) {
             sectionTitle("Library")
             HStack {
                 Label("All Papers", systemImage: "rectangle.stack")
@@ -53,10 +43,6 @@ struct SidebarView: View {
             FolderContent()
 
         }
-        .onAppear(perform: {
-            reloadTags()
-            reloadFolders()
-        })
         .onReceive(processingStateUpdate, perform: { _ in
             if injected.appState[\.receiveSignals.processingCount] > 0 {
                 showProgressView = true
@@ -64,16 +50,22 @@ struct SidebarView: View {
                 showProgressView = false
             }
         })
-        .onReceive(appLibMovedUpdate, perform: { _ in
-            if injected.appState[\.receiveSignals.settingOpened], injected.appState[\.receiveSignals.sideBar] > 0 {
-                injected.appState[\.receiveSignals.sideBar] -= 1
-                reloadTags()
-                reloadFolders()
+        .toolbar {
+            ToolbarItem(placement: ToolbarItemPlacement.status) {
+                Button(
+                    action: {
+                        NSApp.keyWindow?.firstResponder?.tryToPerform(
+                            #selector(NSSplitViewController.toggleSidebar(_:)), with: nil
+                        )
+                    },
+                    label: {
+                        Label("Toggle Sidebar", systemImage: "sidebar.left")
+                    }
+                )
             }
-        })
+        }
 
         Spacer()
-        Text(statusText).font(.footnote).foregroundColor(Color.primary.opacity(0.4)).frame(alignment: .center).padding(.bottom, 10)
     }
 
     private func TagContent() -> AnyView {
@@ -173,14 +165,6 @@ private extension SidebarView {
 // MARK: - Side Effects
 
 private extension SidebarView {
-    func reloadTags() {
-        injected.interactors.entitiesInteractor.load(categorizers: $tags, cancelBagKey: "categorizer-tags")
-    }
-
-    func reloadFolders() {
-        injected.interactors.entitiesInteractor.load(categorizers: $folders, cancelBagKey: "categorizer-folders")
-    }
-
     func removeTag(tagName: String) {
         injected.interactors.entitiesInteractor.delete(categorizerName: tagName, categorizerType: PaperTag.self)
     }

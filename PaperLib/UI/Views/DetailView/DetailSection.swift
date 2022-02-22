@@ -75,7 +75,7 @@ struct DetailsSupSection: View {
                         NSWorkspace.shared.open(sup)
                     },
                     label: {
-                        Text("FILE").font(.subheadline).underline()
+                        Text(sup.pathExtension.uppercased()).font(.subheadline).underline()
                     }
                 )
                 .buttonStyle(PlainButtonStyle())

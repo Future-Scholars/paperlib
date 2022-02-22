@@ -15,11 +15,12 @@ extension AppEnvironment {
     static func bootstrap() -> AppEnvironment {
         registerPreference()
         let appState = Store<AppState>(AppState())
+        let sharedState = SharedState()
 
         let repositories = configuredRepositories(appState: appState)
         let interactors = configuredInteractors(appState: appState,
                                                 repositories: repositories)
-        let diContainer = DIContainer(appState: appState, interactors: interactors)
+        let diContainer = DIContainer(appState: appState, interactors: interactors, sharedState: sharedState)
 
         return AppEnvironment(container: diContainer)
     }

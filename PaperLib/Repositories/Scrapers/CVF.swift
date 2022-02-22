@@ -16,7 +16,6 @@ struct CVFScraper: Scraper {
 
         let shortTitle = formatString(entityDraft.title, removeWhite: true, removeStr: "&amp")!
         let scrapeURL = "https://paperlib.geoch.top/api/cvf/\(shortTitle)"
-        print(scrapeURL)
         let headers: HTTPHeaders = []
 
         return (scrapeURL, headers, enable)
@@ -26,7 +25,6 @@ struct CVFScraper: Scraper {
         if let response = response {
             do {
                 let jsonData = response.data(using: .utf8)!
-                print(jsonData)
                 let cvfData = try JSON(data: jsonData)
 
                 // PubTime

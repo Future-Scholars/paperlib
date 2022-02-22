@@ -17,7 +17,8 @@ protocol DBRepository {
     func migrateLocaltoCloud()
     func logoutCloud() async
 
-    func entities(search: String?, publication: String?, flag: Bool, tags: [String], folders: [String], sort: String) -> AnyPublisher<Results<PaperEntity>, Error>
+    func entities() -> AnyPublisher<Results<PaperEntity>, Error>
+    func entities(ids: Set<ObjectId>?, search: String?, publication: String?, flag: Bool, tags: [String], folders: [String], sort: String) -> AnyPublisher<Results<PaperEntity>, Error>
     func categorizers<T: PaperCategorizer>(categorizerType: T.Type) -> AnyPublisher<Results<T>, Error>
 
     func delete(ids: [ObjectId]) -> AnyPublisher<[String], DBError>
@@ -37,6 +38,7 @@ public extension Realm {
 }
 
 enum DBError: Error {
+    case realmNilError
     case deleteError(error: Error)
     case addError(error: Error)
     case updateError(error: Error)
@@ -47,15 +49,12 @@ class RealDBRepository: DBRepository {
     var cloudConfig: Realm.Configuration?
     var localConfig: Realm.Configuration?
     var app: App?
-    var inited: Bool
+    var inited: Bool = false
+
+    let realmPublisher: CurrentValueSubject<Realm?, Never> = .init(nil)
 
     init() {
-        self.inited = false
-        _ = Task {
-            _ = await getConfig()
-            self.inited = true
-        }
-
+        self.initRealm()
     }
 
     func getConfig() async -> Realm.Configuration {
@@ -271,10 +270,47 @@ class RealDBRepository: DBRepository {
         }.eraseToAnyPublisher()
     }
 
+    func initRealm(reinit: Bool = false) {
+        Task {
+            if !self.inited || reinit {
+                _ = await self.getConfig()
+                self.inited = true
+            }
+
+            var realm: Realm?
+
+            if self.cloudConfig == nil {
+                realm = try await Realm(configuration: self.localConfig!)
+            } else {
+                do {
+                    realm = try await Realm(configuration: self.cloudConfig!)
+                } catch let err as NSError {
+                    print("Cannot open cloud database. \(String(describing: err))")
+                }
+            }
+            // swiftlint:enable force_try
+            print("init")
+            self.realmPublisher.send(realm)
+        }
+    }
+
     // MARK: - Select
-    func entities(search: String?, publication: String?, flag: Bool, tags: [String], folders: [String], sort: String) -> AnyPublisher<Results<PaperEntity>, Error> {
-        return self.realm()
+
+    func entities() -> AnyPublisher<Results<PaperEntity>, Error> {
+        return realmPublisher
             .flatMap { realm -> AnyPublisher<Results<PaperEntity>, Error> in
+                if let realm = realm {
+                    return realm.objects(PaperEntity.self).collectionPublisher.eraseToAnyPublisher()
+                } else {
+                    return Empty(completeImmediately: false).setFailureType(to: Error.self).eraseToAnyPublisher()
+                }
+            }
+            .eraseToAnyPublisher()
+    }
+
+    func entities(ids: Set<ObjectId>?, search: String?, publication: String?, flag: Bool, tags: [String], folders: [String], sort: String) -> AnyPublisher<Results<PaperEntity>, Error> {
+        return self.entities()
+            .flatMap { results -> AnyPublisher<Results<PaperEntity>, Error> in
                 var filterFormat = ""
                 if search != nil {
                     if !search!.isEmpty {
@@ -295,11 +331,16 @@ class RealDBRepository: DBRepository {
                 }
 
                 var publisher: RealmPublishers.Value<Results<PaperEntity>>
-                if !filterFormat.isEmpty {
+
+                if ids != nil && !filterFormat.isEmpty {
+                    return Empty(completeImmediately: false).setFailureType(to: Error.self).eraseToAnyPublisher()
+                } else if let ids = ids {
+                    return results.filter("id IN %@", ids).collectionPublisher.eraseToAnyPublisher()
+                } else if !filterFormat.isEmpty {
                     filterFormat = String(filterFormat[..<String.Index(utf16Offset: filterFormat.count - 4, in: filterFormat)])
-                    publisher = realm.objects(PaperEntity.self).filter(filterFormat).sorted(byKeyPath: sort, ascending: false).collectionPublisher
+                    publisher = results.filter(filterFormat).sorted(byKeyPath: sort, ascending: false).collectionPublisher
                 } else {
-                    publisher = realm.objects(PaperEntity.self).sorted(byKeyPath: sort, ascending: false).collectionPublisher
+                    publisher = results.sorted(byKeyPath: sort, ascending: false).collectionPublisher
                 }
                 return publisher.eraseToAnyPublisher()
             }
@@ -457,68 +498,73 @@ class RealDBRepository: DBRepository {
     }
 
     func update(from entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], DBError> {
-        return self.realm()
+        print(entities.first!.supURLs)
+        return realmPublisher
             .flatMap { realm -> AnyPublisher<[Bool], DBError> in
                 var successes: [Bool] = .init()
-                do {
-                    try realm.safeWrite {
-                        entities.forEach { entity in
-                            if let updateObj = realm.object(ofType: PaperEntity.self, forPrimaryKey: entity.id) {
-                                if self.cloudConfig != nil {
-                                    updateObj._partition = self.app!.currentUser?.id.description
-                                }
+                if let realm = realm {
+                    do {
+                        try realm.safeWrite {
+                            entities.forEach { entity in
+                                if let updateObj = realm.object(ofType: PaperEntity.self, forPrimaryKey: entity.id) {
+                                    if self.cloudConfig != nil {
+                                        updateObj._partition = self.app!.currentUser?.id.description
+                                    }
 
-                                updateObj.title = entity.title
-                                updateObj.authors = entity.authors
-                                updateObj.publication = entity.publication
-                                updateObj.pubTime = entity.pubTime
-                                updateObj.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entity.pubType) ?? 2
-                                updateObj.doi = entity.doi
-                                updateObj.arxiv = entity.arxiv
-                                updateObj.mainURL = entity.mainURL
-                                updateObj.supURLs = List()
-                                entity.supURLs.forEach { url in
-                                    updateObj.supURLs.append(url)
-                                }
-                                updateObj.rating = entity.rating
-                                updateObj.flag = entity.flag
+                                    updateObj.title = entity.title
+                                    updateObj.authors = entity.authors
+                                    updateObj.publication = entity.publication
+                                    updateObj.pubTime = entity.pubTime
+                                    updateObj.pubType = ["Journal", "Conference", "Others"].firstIndex(of: entity.pubType) ?? 2
+                                    updateObj.doi = entity.doi
+                                    updateObj.arxiv = entity.arxiv
+                                    updateObj.mainURL = entity.mainURL
+                                    updateObj.supURLs = List()
+                                    entity.supURLs.forEach { url in
+                                        updateObj.supURLs.append(url)
+                                    }
+                                    updateObj.rating = entity.rating
+                                    updateObj.flag = entity.flag
 
-                                // remove old tags
-                                self.unlink(categorizers: updateObj.tags, realm: realm)
-                                updateObj.tags.removeAll()
-                                // add new tags
-                                let tags: [PaperTag] = self.link(categorizerStrs: formatString(entity.tags, removeWhite: true)!, realm: realm)
-                                tags.forEach { tag in
-                                    updateObj.tags.append(tag)
-                                }
+                                    // remove old tags
+                                    self.unlink(categorizers: updateObj.tags, realm: realm)
+                                    updateObj.tags.removeAll()
+                                    // add new tags
+                                    let tags: [PaperTag] = self.link(categorizerStrs: formatString(entity.tags, removeWhite: true)!, realm: realm)
+                                    tags.forEach { tag in
+                                        updateObj.tags.append(tag)
+                                    }
 
-                                // remove old folders
-                                self.unlink(categorizers: updateObj.folders, realm: realm)
-                                updateObj.folders.removeAll()
-                                // add new folders
-                                let folders: [PaperFolder] = self.link(categorizerStrs: formatString(entity.folders, removeWhite: true)!, realm: realm)
-                                folders.forEach { folder in
-                                    updateObj.folders.append(folder)
-                                }
+                                    // remove old folders
+                                    self.unlink(categorizers: updateObj.folders, realm: realm)
+                                    updateObj.folders.removeAll()
+                                    // add new folders
+                                    let folders: [PaperFolder] = self.link(categorizerStrs: formatString(entity.folders, removeWhite: true)!, realm: realm)
+                                    folders.forEach { folder in
+                                        updateObj.folders.append(folder)
+                                    }
 
-                                updateObj.note = entity.note
-                                successes.append(true)
-                            } else {
-                                let existingObjs = realm.objects(PaperEntity.self).filter("title == \"\(entity.title)\" and authors == \"\(entity.authors)\"")
-                                if existingObjs.count > 0 {
-                                    print("Paper Existing: \(entity.title)")
-                                    successes.append(false)
-                                } else {
-                                    let newObj = self.build(entityDraft: entity, realm: realm)
-                                    realm.add(newObj)
+                                    updateObj.note = entity.note
                                     successes.append(true)
+                                } else {
+                                    let existingObjs = realm.objects(PaperEntity.self).filter("title == \"\(entity.title)\" and authors == \"\(entity.authors)\"")
+                                    if existingObjs.count > 0 {
+                                        print("Paper Existing: \(entity.title)")
+                                        successes.append(false)
+                                    } else {
+                                        let newObj = self.build(entityDraft: entity, realm: realm)
+                                        realm.add(newObj)
+                                        successes.append(true)
+                                    }
                                 }
                             }
                         }
+                    } catch let err {
+                        print("Cannot update db. \(String(describing: err))")
+                        return Fail(error: DBError.updateError(error: err)).eraseToAnyPublisher()
                     }
-                } catch let err {
-                    print("Cannot update db. \(String(describing: err))")
-                    return Fail(error: DBError.updateError(error: err)).eraseToAnyPublisher()
+                } else {
+                    return Fail(error: DBError.realmNilError).eraseToAnyPublisher()
                 }
 
                 return Just<[Bool]>

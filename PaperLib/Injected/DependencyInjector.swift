@@ -12,20 +12,22 @@ import SwiftUI
 
 struct DIContainer: EnvironmentKey {
     let appState: Store<AppState>
+    let sharedState: SharedState
     let interactors: Interactors
 
-    init(appState: Store<AppState>, interactors: Interactors) {
+    init(appState: Store<AppState>, interactors: Interactors, sharedState: SharedState) {
         self.appState = appState
+        self.sharedState = sharedState
         self.interactors = interactors
     }
 
-    init(appState: AppState, interactors: Interactors) {
-        self.init(appState: Store<AppState>(appState), interactors: interactors)
+    init(appState: AppState, interactors: Interactors, sharedState: SharedState) {
+        self.init(appState: Store<AppState>(appState), interactors: interactors, sharedState: sharedState)
     }
 
     static var defaultValue: Self { Self.default }
 
-    private static let `default` = Self(appState: AppState(), interactors: .stub)
+    private static let `default` = Self(appState: AppState(), interactors: .stub, sharedState: SharedState())
 }
 
 extension EnvironmentValues {
@@ -53,9 +55,13 @@ extension DIContainer {
 
 extension View {
     func inject(_ appState: AppState,
-                _ interactors: DIContainer.Interactors) -> some View {
+                _ interactors: DIContainer.Interactors,
+                _ sharedState: SharedState
+    ) -> some View {
         let container = DIContainer(appState: .init(appState),
-                                    interactors: interactors)
+                                    interactors: interactors,
+                                    sharedState: sharedState
+        )
         return inject(container)
     }
 
