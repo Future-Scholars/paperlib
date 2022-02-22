@@ -80,6 +80,7 @@ jobs:
 
       - name: Generate Sparkle Appcast
         run: |
+          rm -rf /Users/runner/Library/Caches/Sparkle_generate_appcast/*
           ./bin/generate_appcast -s ${{ secrets.SPARKLE_KEY }} ./distribution/mac/
 
       - name: Upload to Oracle Storage
