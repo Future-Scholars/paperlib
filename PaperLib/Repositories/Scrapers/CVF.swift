@@ -12,7 +12,7 @@ import SwiftyJSON
 
 struct CVFScraper: Scraper {
     func preProcess(entityDraft: PaperEntityDraft) -> (String, HTTPHeaders, Bool) {
-        let enable = !entityDraft.title.isEmpty && (entityDraft.publication == "arXiv" || entityDraft.publication.isEmpty)
+        let enable = !entityDraft.title.isEmpty && (entityDraft.publication == "arXiv" || entityDraft.publication.isEmpty) && UserDefaults.standard.bool(forKey: "cvfScraper")
 
         let shortTitle = formatString(entityDraft.title, removeWhite: true, removeStr: "&amp")!
         let scrapeURL = "https://paperlib.geoch.top/api/cvf/\(shortTitle)"

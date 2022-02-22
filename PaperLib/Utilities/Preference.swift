@@ -35,14 +35,25 @@ func registerPreference () {
                 "invertColor": false,
                 "preferColorTheme": "System Default",
                 "deleteSourceFile": true,
-                "ieeeAPIKey": "",
-                "allowFetchPDFMeta": true,
+                "showSidebarCount": true,
                 "allowRoutineMatch": false,
                 "rematchInterval": 7,
                 "syncAPIKey": "",
                 "useSync": false,
                 "exportReplacement": Data.init(),
-                "enableExportReplacement": false
+                "enableExportReplacement": false,
+
+                // Scraper
+                "pdfBuiltinScraper": true,
+                "arXivScraper": true,
+                "doiScraper": true,
+                "teScraper": true,
+                "ieeeScraper": true,
+                "dblpScraper": true,
+                "cvfScraper": true,
+
+                // ScraperAPIKey
+                "ieeeAPIKey": ""
             ]
     )
 }

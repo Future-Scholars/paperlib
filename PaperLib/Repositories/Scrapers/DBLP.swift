@@ -92,7 +92,7 @@ struct DBLPScraper: Scraper {
         var dblpQuery = formatString(entityDraft.title, removeStr: "&amp")!
         dblpQuery = formatString(dblpQuery, removeStr: "&")!
 
-        let enable = !dblpQuery.isEmpty
+        let enable = !dblpQuery.isEmpty && UserDefaults.standard.bool(forKey: "dblpScraper")
 
         var scrapeURL = "https://dblp.org/search/publ/api?q=\(dblpQuery)&format=json"
         scrapeURL = scrapeURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
@@ -108,7 +108,7 @@ struct DBLPScraper: Scraper {
 
 struct DBLPVenueScraper: Scraper {
     func preProcess(entityDraft: PaperEntityDraft) -> (String, HTTPHeaders, Bool) {
-        let enable = entityDraft.publication.starts(with: "dblp://")
+        let enable = entityDraft.publication.starts(with: "dblp://") && UserDefaults.standard.bool(forKey: "dblpScraper")
 
         entityDraft.publication = entityDraft.publication.replacingOccurrences(of: "dblp://", with: "")
         var scrapeURL = "https://dblp.org/search/venue/api?q=\(entityDraft.publication)&format=json"
@@ -124,10 +124,15 @@ struct DBLPVenueScraper: Scraper {
                 let dblpData = try JSON(data: jsonData)
 
                 if dblpData["result"]["hits"]["@sent"].intValue > 0 {
-                    let hit = dblpData["result"]["hits"]["hit"].first!
-                    let venueInfo = hit.1["info"]
-                    let venue = venueInfo["venue"].stringValue
-                    entityDraft.set(for: "publication", value: venue, allowEmpty: false)
+                    let hits = dblpData["result"]["hits"]["hit"]
+                    for hit in hits {
+                        let venueInfo = hit.1["info"]
+                        if venueInfo["url"].stringValue.contains(entityDraft.publication + "/") {
+                            let venue = venueInfo["venue"].stringValue
+                            entityDraft.set(for: "publication", value: venue, allowEmpty: false)
+                            break
+                        }
+                    }
                 }
 
                 return Just<PaperEntityDraft>
@@ -151,7 +156,7 @@ struct DBLPbyTimeScraper: Scraper {
         var dblpQuery = formatString(entityDraft.title, removeStr: "&amp")!
         dblpQuery = formatString(dblpQuery, removeStr: "&")! + " " + "year:\(year ?? 0 + offset)"
 
-        let enable = !dblpQuery.isEmpty
+        let enable = !dblpQuery.isEmpty && UserDefaults.standard.bool(forKey: "dblpScraper")
 
         var scrapeURL = "https://dblp.org/search/publ/api?q=\(dblpQuery)&format=json"
         scrapeURL = scrapeURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""

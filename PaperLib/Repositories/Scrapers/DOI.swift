@@ -12,7 +12,7 @@ import SwiftyJSON
 
 struct DOIScraper: Scraper {
     func preProcess(entityDraft: PaperEntityDraft) -> (String, HTTPHeaders, Bool) {
-        let enable = !entityDraft.doi.isEmpty
+        let enable = !entityDraft.doi.isEmpty && UserDefaults.standard.bool(forKey: "doiScraper")
 
         let doiID = formatString(entityDraft.doi, removeNewline: true, removeWhite: true)!
         let scrapeURL = "https://dx.doi.org/\(doiID)"

@@ -11,8 +11,10 @@ import SwiftUI
 
 struct SidebarView: View {
     @Environment(\.injected) private var injected: DIContainer
+    @AppStorage("showSidebarCount") private var showSidebarCount = true
 
-    @State private var showProgressView: Bool = false
+    @State private var entitiesCount: Int = 0
+    @State private var isProgressViewShown: Bool = false
 
     // Tags
     @Binding var tags: Loadable<Results<PaperTag>>
@@ -26,13 +28,26 @@ struct SidebarView: View {
             sectionTitle("Library")
             HStack {
                 Label("All Papers", systemImage: "rectangle.stack")
-                if showProgressView {
+                Spacer()
+                if isProgressViewShown {
                     Spacer()
                     Text("     ")
                         .overlay {
                             ProgressView()
                                 .scaleEffect(x: 0.5, y: 0.5, anchor: .center)
                         }
+                }
+                if showSidebarCount {
+                    Text("\(entitiesCount)")
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .frame(minWidth: 22)
+                        .font(.caption)
+                        .background(Color.secondary.opacity(0.2))
+                        .clipShape(Capsule())
+                        .onReceive(injected.sharedState.viewState.entitiesCount.publisher, perform: { entitiesCount in
+                            self.entitiesCount = entitiesCount
+                        })
                 }
             }
             .tag("lib-all")
@@ -43,11 +58,11 @@ struct SidebarView: View {
             FolderContent()
 
         }
-        .onReceive(processingStateUpdate, perform: { _ in
-            if injected.appState[\.receiveSignals.processingCount] > 0 {
-                showProgressView = true
+        .onReceive(injected.sharedState.viewState.processingQueueCount.publisher, perform: { processingQueueCount in
+            if processingQueueCount > 0 {
+                isProgressViewShown = true
             } else {
-                showProgressView = false
+                isProgressViewShown = false
             }
         })
         .toolbar {
@@ -111,13 +126,29 @@ private extension SidebarView {
                 isExpanded: $tagExpanded,
                 content: {
                     ForEach(tags) { tag in
-                        Label(tag.name, systemImage: "tag")
+                        HStack {
+                            Label(tag.name, systemImage: "tag")
+                            Spacer()
+                            if showSidebarCount {
+                                Text("\(tag.count)")
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .frame(minWidth: 22)
+                                    .font(.caption)
+                                    .background(Color.secondary.opacity(0.2))
+                                    .clipShape(Capsule())
+                            }
+                        }
                             .contextMenu {
                                 Button("Remove", action: {
                                     removeTag(tagName: tag.name)
                                 })
                             }
                             .tag("tag-\(tag.name)")
+                            .onDrop(of: ["public.url"], isTargeted: nil) { providers -> Bool in
+                                onDropEntitiesToTag(providers: providers, tag: "\(tag.name)")
+                                return true
+                            }
                     }
                 },
                 label: { sectionTitle("Tags") }
@@ -140,13 +171,29 @@ private extension SidebarView {
                 isExpanded: $folderExpanded,
                 content: {
                     ForEach(folders) { folder in
-                        Label(folder.name, systemImage: "folder")
+                        HStack {
+                            Label(folder.name, systemImage: "folder")
+                            Spacer()
+                            if showSidebarCount {
+                                Text("\(folder.count)")
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .frame(minWidth: 22)
+                                    .font(.caption)
+                                    .background(Color.secondary.opacity(0.2))
+                                    .clipShape(Capsule())
+                            }
+                        }
                             .contextMenu {
                                 Button("Remove", action: {
                                     removeFolder(folderName: folder.name)
                                 })
                             }
                             .tag("folder-\(folder.name)")
+                            .onDrop(of: ["public.url"], isTargeted: nil) { providers -> Bool in
+                                onDropEntitiesToFolder(providers: providers, folder: "\(folder.name)")
+                                return true
+                            }
                     }
                 },
                 label: { sectionTitle("Folders") }
@@ -165,19 +212,55 @@ private extension SidebarView {
 // MARK: - Side Effects
 
 private extension SidebarView {
+    func onDropEntitiesToTag(providers: [NSItemProvider], tag: String) {
+        let urlGroup = DispatchGroup()
+
+        var urlList: [URL] = .init()
+        providers.forEach { provider in
+            urlGroup.enter()
+            provider.loadDataRepresentation(forTypeIdentifier: "public.url", completionHandler: { data, _ in
+                if let data = data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
+                    urlList.append(url)
+                    urlGroup.leave()
+                }
+            })
+        }
+
+        urlGroup.notify(queue: .main) {
+            if urlList.count > 0 {
+                let ids = urlList.map({url in try? ObjectId(string: url.absoluteString.replacingOccurrences(of: "entity://", with: ""))}).filter({id in id != nil}).map({id in id!})
+                injected.interactors.entitiesInteractor.tag(ids: ids, tag: tag)
+            }
+        }
+    }
+
+    func onDropEntitiesToFolder(providers: [NSItemProvider], folder: String) {
+        let urlGroup = DispatchGroup()
+
+        var urlList: [URL] = .init()
+        providers.forEach { provider in
+            urlGroup.enter()
+            provider.loadDataRepresentation(forTypeIdentifier: "public.url", completionHandler: { data, _ in
+                if let data = data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
+                    urlList.append(url)
+                    urlGroup.leave()
+                }
+            })
+        }
+
+        urlGroup.notify(queue: .main) {
+            if urlList.count > 0 {
+                let ids = urlList.map({url in try? ObjectId(string: url.absoluteString.replacingOccurrences(of: "entity://", with: ""))}).filter({id in id != nil}).map({id in id!})
+                injected.interactors.entitiesInteractor.folder(ids: ids, folder: folder)
+            }
+        }
+    }
+
     func removeTag(tagName: String) {
         injected.interactors.entitiesInteractor.delete(categorizerName: tagName, categorizerType: PaperTag.self)
     }
 
     func removeFolder(folderName: String) {
         injected.interactors.entitiesInteractor.delete(categorizerName: folderName, categorizerType: PaperFolder.self)
-    }
-
-    var appLibMovedUpdate: AnyPublisher<Date, Never> {
-        injected.appState.updates(for: \.receiveSignals.appLibMoved)
-    }
-
-    var processingStateUpdate: AnyPublisher<Int, Never> {
-        injected.appState.updates(for: \.receiveSignals.processingCount)
     }
 }

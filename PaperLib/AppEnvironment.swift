@@ -14,29 +14,25 @@ struct AppEnvironment {
 extension AppEnvironment {
     static func bootstrap() -> AppEnvironment {
         registerPreference()
-        let appState = Store<AppState>(AppState())
         let sharedState = SharedState()
-
-        let repositories = configuredRepositories(appState: appState)
-        let interactors = configuredInteractors(appState: appState,
-                                                repositories: repositories)
-        let diContainer = DIContainer(appState: appState, interactors: interactors, sharedState: sharedState)
+        let repositories = configuredRepositories(sharedState: sharedState)
+        let interactors = configuredInteractors(sharedState: sharedState, repositories: repositories)
+        let diContainer = DIContainer(interactors: interactors, sharedState: sharedState)
 
         return AppEnvironment(container: diContainer)
     }
 
-    private static func configuredRepositories(appState _: Store<AppState>) -> DIContainer.Repositories {
-        let dbRepository = RealDBRepository()
+    private static func configuredRepositories(sharedState: SharedState) -> DIContainer.Repositories {
+        let dbRepository = RealDBRepository(sharedState: sharedState)
         let fileRepository = RealFileDBRepository()
         let webRepository = RealWebRepository()
 
         return .init(dbRepository: dbRepository, fileRepository: fileRepository, webRepository: webRepository)
     }
 
-    private static func configuredInteractors(appState: Store<AppState>,
-                                              repositories: DIContainer.Repositories) -> DIContainer.Interactors {
+    private static func configuredInteractors(sharedState: SharedState, repositories: DIContainer.Repositories) -> DIContainer.Interactors {
         let entitiesInteractor = RealEntitiesInteractor(
-            appState: appState,
+            sharedState: sharedState,
             dbRepository: repositories.dbRepository,
             fileRepository: repositories.fileRepository,
             webRepository: repositories.webRepository

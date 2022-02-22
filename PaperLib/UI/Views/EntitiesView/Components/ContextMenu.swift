@@ -12,6 +12,7 @@ struct ContextMenu: View {
     @Environment(\.injected) private var injected: DIContainer
 
     let clickedEntity: PaperEntity
+
     @Binding var selectedEntities: Loadable<Results<PaperEntity>>
 
     var body: some View {
@@ -72,6 +73,7 @@ private extension ContextMenu {
                 Button("Bibtex", action: {
                     exportSelectedEntities(format: .bibtex)
                 })
+                    .keyboardShortcut("c", modifiers: [.command, .shift])
                 Button("Plain Text", action: {
                     exportSelectedEntities(format: .plain)
                 })

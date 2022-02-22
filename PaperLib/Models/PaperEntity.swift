@@ -78,8 +78,6 @@ class PaperEntity: PaperEntityIDObject, ObjectKeyIdentifiable {
         }
         self.rating = rating ?? 0
         self.flag = flag ?? false
-
-        print("create entity")
     }
 }
 

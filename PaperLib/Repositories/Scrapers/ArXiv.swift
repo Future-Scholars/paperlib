@@ -12,7 +12,7 @@ import SwiftyXMLParser
 
 struct ArXivScraper: Scraper {
     func preProcess(entityDraft: PaperEntityDraft) -> (String, HTTPHeaders, Bool) {
-        let enable = !entityDraft.arxiv.isEmpty
+        let enable = !entityDraft.arxiv.isEmpty && UserDefaults.standard.bool(forKey: "arXivScraper")
 
         var arxivID = entityDraft.arxiv
         if arxivID.starts(with: "arXiv:") {

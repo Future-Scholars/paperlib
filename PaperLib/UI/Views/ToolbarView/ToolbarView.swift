@@ -21,7 +21,9 @@ struct ToolbarView: View {
     var body: some View {
         SearchBar(text: $viewState.searchText)
             .onReceive(viewState.$searchText.debounce(for: .seconds(0.3), scheduler: DispatchQueue.main), perform: { searchText in
-                injected.sharedState.sharedData.searchQuery.value = searchText
+                if injected.sharedState.sharedData.searchQuery.value != nil || !searchText.isEmpty {
+                    injected.sharedState.sharedData.searchQuery.value = searchText
+                }
             })
         Spacer()
         MenuButtons(selectedEntities: $selectedEntities)

@@ -10,6 +10,7 @@ import Combine
 import CoreData
 import SwiftyJSON
 import SwiftyXMLParser
+import os.log
 
 protocol WebRepository {
     func apiVersion() -> AnyPublisher<DataResponse<String, AFError>, Never>
@@ -27,6 +28,8 @@ enum WebError: Error {
 }
 
 struct RealWebRepository: WebRepository {
+    let logger: Logger = .init()
+
     let scraperList: [Scraper] = [
         TitleExtractorScraper(),
         ArXivScraper(),
@@ -50,27 +53,27 @@ struct RealWebRepository: WebRepository {
     func handelScraperErrors(error: WebError) -> PaperEntityDraft {
         switch error {
         case .arXivError(entityDraft: let entityDraft): do {
-            print("[!] ArXiv scraper error")
+            logger.error("[WEB] ArXiv scraper error: \(String(describing: error))")
             return entityDraft
         }
         case .doiError(entityDraft: let entityDraft): do {
-            print("[!] DOI scraper error")
+            logger.error("[!] DOI scraper error: \(String(describing: error))")
             return entityDraft
         }
         case .dblpError(entityDraft: let entityDraft): do {
-            print("[!] DBLP scraper error")
+            logger.error("[!] DBLP scraper error: \(String(describing: error))")
             return entityDraft
         }
         case .ieeeError(entityDraft: let entityDraft): do {
-            print("[!] IEEE scraper error")
+            logger.error("[!] IEEE scraper error: \(String(describing: error))")
             return entityDraft
         }
         case .titleExtractorError(entityDraft: let entityDraft): do {
-            print("[!] Title Extractor scraper error")
+            logger.error("[!] Title Extractor scraper error: \(String(describing: error))")
             return entityDraft
         }
         case .cvfError(entityDraft: let entityDraft): do {
-            print("[!] CVF scraper error")
+            logger.error("[!] CVF scraper error: \(String(describing: error))")
             return entityDraft
         }
         }

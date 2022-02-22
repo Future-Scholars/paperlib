@@ -8,6 +8,7 @@
 import Combine
 import CoreData
 import RealmSwift
+import os.log
 
 protocol DBRepository {
     func getConfig() async -> Realm.Configuration
@@ -16,6 +17,7 @@ protocol DBRepository {
     func migrate(migration: Migration, oldSchemaVersion: UInt64)
     func migrateLocaltoCloud()
     func logoutCloud() async
+    func initRealm(reinit: Bool)
 
     func entities() -> AnyPublisher<Results<PaperEntity>, Error>
     func entities(ids: Set<ObjectId>?, search: String?, publication: String?, flag: Bool, tags: [String], folders: [String], sort: String) -> AnyPublisher<Results<PaperEntity>, Error>
@@ -45,6 +47,9 @@ enum DBError: Error {
 }
 
 class RealDBRepository: DBRepository {
+    let logger: Logger
+    var sharedState: SharedState
+
     var realmSchemaVersion: UInt64 = 5
     var cloudConfig: Realm.Configuration?
     var localConfig: Realm.Configuration?
@@ -53,7 +58,10 @@ class RealDBRepository: DBRepository {
 
     let realmPublisher: CurrentValueSubject<Realm?, Never> = .init(nil)
 
-    init() {
+    init(sharedState: SharedState) {
+        self.sharedState = sharedState
+        self.logger = Logger()
+
         self.initRealm()
     }
 
@@ -67,7 +75,7 @@ class RealDBRepository: DBRepository {
     }
 
     func getLocalConfig() -> Realm.Configuration {
-        print("Opening local db...")
+        self.logger.info("[DB] Opening local db...")
         let pathStr = UserDefaults.standard.string(forKey: "appLibFolder")
 
         var config = Realm.Configuration(
@@ -81,11 +89,12 @@ class RealDBRepository: DBRepository {
                 try FileManager.default.createDirectory(at: pathURL, withIntermediateDirectories: true, attributes: nil)
                 config.fileURL = pathURL.appendingPathComponent("default.realm")
                 UserDefaults.standard.set(pathURL.absoluteString, forKey: "appLibFolder")
-            } catch let err {
-                print(err)
+            } catch let error {
+                self.sharedState.viewState.alertInformation.value = "[DB] Cannot create folder: \(String(describing: error)) \(Date())"
+                self.logger.error("[DB] Cannot create folder: \(String(describing: error))")
             }
         } else {
-            print("Cannot set custom path \(String(describing: pathStr)) for local database.")
+            self.logger.error("[DB] Cannot set custom path \(String(describing: pathStr)) for local database.")
         }
 
         self.localConfig = config
@@ -93,11 +102,11 @@ class RealDBRepository: DBRepository {
     }
 
     func getCloudConfig() async -> Realm.Configuration {
-        print("Opening sync db...")
+        self.logger.info("[DB] Opening sync db...")
 
         if let cloudUser = await self.loginCloud() {
             self.app!.syncManager.errorHandler = { error, _ in
-                print(error)
+                self.logger.error("[DB] Sync: \(String(describing: error))")
             }
 
             let partitionValue = cloudUser.id
@@ -110,7 +119,7 @@ class RealDBRepository: DBRepository {
             self.cloudConfig = config
             return config
         } else {
-            print("Cannot login to sync db.")
+            self.logger.error("[DB] Cannot login to sync db.")
             UserDefaults.standard.set(false, forKey: "useSync")
             return self.getLocalConfig()
         }
@@ -123,8 +132,11 @@ class RealDBRepository: DBRepository {
         do {
             let credentials = Credentials.userAPIKey(UserDefaults.standard.string(forKey: "syncAPIKey")!)
             return self.app!.currentUser == nil ? try await self.app!.login(credentials: credentials) : self.app!.currentUser
-        } catch let err {
-            print("Cannot login to sync db. \(String(describing: err))")
+        } catch let error {
+            DispatchQueue.main.async {
+                self.sharedState.viewState.alertInformation.value = "[DB] Cannot login to sync db: \(String(describing: error)) \(Date())"
+            }
+            self.logger.error("[DB] Cannot login to sync db. \(String(describing: error))")
             return nil
         }
     }
@@ -135,13 +147,13 @@ class RealDBRepository: DBRepository {
         }
         do {
             try await self.app!.currentUser?.logOut()
-        } catch let err {
-            print("Cannot logout from sync db. \(String(describing: err))")
+        } catch let error {
+            self.logger.error("[DB]Cannot logout from sync db. \(String(describing: error))")
         }
     }
 
     func migrate(migration: Migration, oldSchemaVersion: UInt64) {
-        print("Dataset Version: \(oldSchemaVersion)")
+        self.logger.info("[DB] Dataset Version: \(oldSchemaVersion)")
         if oldSchemaVersion == 1 {
             migration.enumerateObjects(ofType: PaperEntity.className()) { oldObject, newObject in
                 newObject!["id"] = oldObject!["id"]
@@ -237,42 +249,35 @@ class RealDBRepository: DBRepository {
                     return entityDraft
                 })
 
-                _ = self.update(from: entityDrafts)
-            } catch let err {
-                print(err)
+                self.update(from: entityDrafts)
+                    .sink(receiveCompletion: {completion in
+                        switch completion {
+                        case .failure(let error): do {
+                            DispatchQueue.main.async {
+                                self.sharedState.viewState.alertInformation.value = "[DB] Cannot migrate from local to cloud: \(String(describing: error)) \(Date())"
+                            }
+                            self.logger.error("[DB] Cannot migrate from local to cloud: \(String(describing: error))")
+                        }
+                        case .finished: do {
+                            self.logger.info("[DB] Migrate local to cloud successful.")
+                        }
+                        }
+                    }, receiveValue: { _ in })
+                    .store(in: CancelBag())
+
+            } catch let error {
+                DispatchQueue.main.async {
+                    self.sharedState.viewState.alertInformation.value = "[DB] Cannot migrate from local to cloud: \(String(describing: error)) \(Date())"
+                }
+                self.logger.error("[DB] Mirgrate local to cloud failed: \(String(describing: error))")
             }
         }
-    }
-
-    func realm() -> AnyPublisher<Realm, Never> {
-        return Future { promise in
-             Task {
-                 if !self.inited {
-                     _ = await self.getConfig()
-                     self.inited = true
-                 }
-                 var realm: Realm
-                 // swiftlint:disable force_try
-                 if self.cloudConfig == nil {
-                     realm = try! await Realm(configuration: self.localConfig!)
-                 } else {
-                     do {
-                         realm = try await Realm(configuration: self.cloudConfig!, downloadBeforeOpen: .always)
-                     } catch let err as NSError {
-                         print("Cannot open cloud database. \(String(describing: err))")
-                         self.localConfig = self.getLocalConfig()
-                         realm = try! await Realm(configuration: self.localConfig!)
-                     }
-                 }
-                 // swiftlint:enable force_try
-                 promise(.success(realm))
-             }
-        }.eraseToAnyPublisher()
     }
 
     func initRealm(reinit: Bool = false) {
         Task {
             if !self.inited || reinit {
+                await self.logoutCloud()
                 _ = await self.getConfig()
                 self.inited = true
             }
@@ -280,17 +285,29 @@ class RealDBRepository: DBRepository {
             var realm: Realm?
 
             if self.cloudConfig == nil {
-                realm = try await Realm(configuration: self.localConfig!)
+                do {
+                    realm = try await Realm(configuration: self.localConfig!)
+                } catch let error {
+                    DispatchQueue.main.async {
+                        self.sharedState.viewState.alertInformation.value = "[DB] Cannot open local database: \(String(describing: error)) \(Date())"
+                    }
+                    self.logger.error("[DB] Cannot open local database: \(String(describing: error))")
+                }
             } else {
                 do {
                     realm = try await Realm(configuration: self.cloudConfig!)
-                } catch let err as NSError {
-                    print("Cannot open cloud database. \(String(describing: err))")
+                } catch let error {
+                    DispatchQueue.main.async {
+                        self.sharedState.viewState.alertInformation.value = "[DB] Cannot open cloud database: \(String(describing: error)) \(Date())"
+                    }
+                    self.logger.error("[DB] Cannot open cloud database: \(String(describing: error))")
                 }
             }
-            // swiftlint:enable force_try
-            print("init")
             self.realmPublisher.send(realm)
+
+            if reinit {
+                self.sharedState.viewState.realmReinited.value = Date()
+            }
         }
     }
 
@@ -302,6 +319,7 @@ class RealDBRepository: DBRepository {
                 if let realm = realm {
                     return realm.objects(PaperEntity.self).collectionPublisher.eraseToAnyPublisher()
                 } else {
+                    self.logger.notice("[DB] Realm nil (entities): \(String(describing: DBError.realmNilError))")
                     return Empty(completeImmediately: false).setFailureType(to: Error.self).eraseToAnyPublisher()
                 }
             }
@@ -311,6 +329,8 @@ class RealDBRepository: DBRepository {
     func entities(ids: Set<ObjectId>?, search: String?, publication: String?, flag: Bool, tags: [String], folders: [String], sort: String) -> AnyPublisher<Results<PaperEntity>, Error> {
         return self.entities()
             .flatMap { results -> AnyPublisher<Results<PaperEntity>, Error> in
+                self.sharedState.viewState.entitiesCount.value = results.count
+
                 var filterFormat = ""
                 if search != nil {
                     if !search!.isEmpty {
@@ -348,9 +368,14 @@ class RealDBRepository: DBRepository {
     }
 
     func categorizers<T: PaperCategorizer>(categorizerType: T.Type) -> AnyPublisher<Results<T>, Error> {
-        return self.realm()
+        return realmPublisher
             .flatMap { realm -> AnyPublisher<Results<T>, Error> in
-                return realm.objects(T.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.eraseToAnyPublisher()
+                if let realm = realm {
+                    return realm.objects(T.self).sorted(byKeyPath: "name", ascending: true).collectionPublisher.eraseToAnyPublisher()
+                } else {
+                    self.logger.notice("[DB] Realm nil (categorizers): \(String(describing: DBError.realmNilError))")
+                    return Empty(completeImmediately: false).setFailureType(to: Error.self).eraseToAnyPublisher()
+                }
             }
             .eraseToAnyPublisher()
     }
@@ -358,7 +383,7 @@ class RealDBRepository: DBRepository {
     // MARK: - Function for Categorizer
     func link<T: PaperCategorizer>(categorizerStrs: String, realm: Realm) -> [T] {
         var categorizers: [T] = .init()
-        let categorizerNameList = categorizerStrs.components(separatedBy: ";")
+        let categorizerNameList = Array(Set(categorizerStrs.components(separatedBy: ";")))
         do {
             try realm.safeWrite {
                 categorizerNameList.forEach { categorizerName in
@@ -381,8 +406,8 @@ class RealDBRepository: DBRepository {
                     }
                 }
             }
-        } catch let err {
-            print("Cannot link categorizer. \(String(describing: err))")
+        } catch let error {
+            self.logger.error("[DB] Cannot link categorizer. \(String(describing: error))")
         }
 
         return categorizers
@@ -399,57 +424,67 @@ class RealDBRepository: DBRepository {
                     }
                 }
             }
-        } catch let err {
-            print("Cannot unlink categorizers. \(String(describing: err))")
+        } catch let error {
+            self.logger.error("[DB] Cannot unlink categorizers. \(String(describing: error))")
         }
     }
 
     // MARK: - Delete
     func delete(ids: [ObjectId]) -> AnyPublisher<[String], DBError> {
-        return self.realm()
+        return realmPublisher
             .flatMap { realm -> AnyPublisher<[String], DBError> in
-                var removeFileURLs: [String] = .init()
-                let entities = realm.objects(PaperEntity.self).filter("_id IN %@", ids)
+                if let realm = realm {
+                    var removeFileURLs: [String] = .init()
+                    let entities = realm.objects(PaperEntity.self).filter("_id IN %@", ids)
 
-                do {
-                    try realm.safeWrite {
-                        entities.forEach { entity in
-                            removeFileURLs.append(entity.mainURL)
-                            removeFileURLs.append(contentsOf: entity.supURLs)
+                    do {
+                        try realm.safeWrite {
+                            entities.forEach { entity in
+                                removeFileURLs.append(entity.mainURL)
+                                removeFileURLs.append(contentsOf: entity.supURLs)
 
-                            self.unlink(categorizers: entity.tags, realm: realm)
-                            self.unlink(categorizers: entity.folders, realm: realm)
+                                self.unlink(categorizers: entity.tags, realm: realm)
+                                self.unlink(categorizers: entity.folders, realm: realm)
+                            }
+
+                            realm.delete(entities)
                         }
-
-                        realm.delete(entities)
+                    } catch let err {
+                        self.logger.error("Cannot delete entities. \(String(describing: err))")
+                        return Fail(error: DBError.deleteError(error: err)).eraseToAnyPublisher()
                     }
-                } catch let err {
-                    print("Cannot delete entities. \(String(describing: err))")
-                    return Fail(error: DBError.deleteError(error: err)).eraseToAnyPublisher()
+                    return Just<[String]>
+                        .withErrorType(removeFileURLs, DBError.self)
+                        .eraseToAnyPublisher()
+                } else {
+                    self.logger.notice("[DB] Realm nil (delete entities): \(String(describing: DBError.realmNilError))")
+                    return Empty(completeImmediately: false).setFailureType(to: DBError.self).eraseToAnyPublisher()
                 }
-                return Just<[String]>
-                    .withErrorType(removeFileURLs, DBError.self)
-                    .eraseToAnyPublisher()
             }.eraseToAnyPublisher()
     }
 
     func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type?) -> AnyPublisher<Bool, DBError> {
-        return self.realm()
+        return realmPublisher
             .flatMap { realm -> AnyPublisher<Bool, DBError> in
-                let categorizers = realm.objects(T.self).filter("name == \"\(categorizerName)\"")
-                do {
-                    try realm.safeWrite {
-                        categorizers.forEach { tagObj in
-                            realm.delete(tagObj)
+                if let realm = realm {
+                    let categorizers = realm.objects(T.self).filter("name == \"\(categorizerName)\"")
+                    do {
+                        try realm.safeWrite {
+                            categorizers.forEach { tagObj in
+                                realm.delete(tagObj)
+                            }
                         }
+                    } catch let err {
+                        self.logger.error("Cannot delete categorizers. \(String(describing: err))")
+                        return Fail(error: DBError.deleteError(error: err)).eraseToAnyPublisher()
                     }
-                } catch let err {
-                    print("Cannot delete categorizers. \(String(describing: err))")
-                    return Fail(error: DBError.deleteError(error: err)).eraseToAnyPublisher()
+                    return Just<Bool>
+                        .withErrorType(true, DBError.self)
+                        .eraseToAnyPublisher()
+                } else {
+                    self.logger.notice("[DB] Realm nil (delete categorizers): \(String(describing: DBError.realmNilError))")
+                    return Empty(completeImmediately: false).setFailureType(to: DBError.self).eraseToAnyPublisher()
                 }
-                return Just<Bool>
-                    .withErrorType(true, DBError.self)
-                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }
@@ -498,7 +533,6 @@ class RealDBRepository: DBRepository {
     }
 
     func update(from entities: [PaperEntityDraft]) -> AnyPublisher<[Bool], DBError> {
-        print(entities.first!.supURLs)
         return realmPublisher
             .flatMap { realm -> AnyPublisher<[Bool], DBError> in
                 var successes: [Bool] = .init()
@@ -549,7 +583,7 @@ class RealDBRepository: DBRepository {
                                 } else {
                                     let existingObjs = realm.objects(PaperEntity.self).filter("title == \"\(entity.title)\" and authors == \"\(entity.authors)\"")
                                     if existingObjs.count > 0 {
-                                        print("Paper Existing: \(entity.title)")
+                                        self.logger.info("[DB] Paper Existing: \(entity.title)")
                                         successes.append(false)
                                     } else {
                                         let newObj = self.build(entityDraft: entity, realm: realm)
@@ -559,9 +593,9 @@ class RealDBRepository: DBRepository {
                                 }
                             }
                         }
-                    } catch let err {
-                        print("Cannot update db. \(String(describing: err))")
-                        return Fail(error: DBError.updateError(error: err)).eraseToAnyPublisher()
+                    } catch let error {
+                        self.logger.error("[DB] Cannot update db. \(String(describing: error))")
+                        return Fail(error: DBError.updateError(error: error)).eraseToAnyPublisher()
                     }
                 } else {
                     return Fail(error: DBError.realmNilError).eraseToAnyPublisher()

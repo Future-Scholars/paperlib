@@ -193,8 +193,6 @@ private extension MenuButtons {
                 Label("sort", systemImage: "list.bullet.indent")
             }
                 .help("Sort by")
-
-            Button("Debug", action: injected.interactors.entitiesInteractor.debug)
         }
     }
 }

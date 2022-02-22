@@ -12,7 +12,7 @@ import SwiftyJSON
 
 struct IEEEScraper: Scraper {
     func preProcess(entityDraft: PaperEntityDraft) -> (String, HTTPHeaders, Bool) {
-        let enable = !entityDraft.title.isEmpty && (entityDraft.publication == "arXiv" || entityDraft.publication.isEmpty) && !formatString(UserDefaults.standard.string(forKey: "ieeeAPIKey"))!.isEmpty
+        let enable = !entityDraft.title.isEmpty && (entityDraft.publication == "arXiv" || entityDraft.publication.isEmpty) && !formatString(UserDefaults.standard.string(forKey: "ieeeAPIKey"))!.isEmpty && UserDefaults.standard.bool(forKey: "ieeeScraper")
 
         var title = formatString(entityDraft.title, removeNewline: true)!
         title = title.replacingOccurrences(of: " ", with: "+")

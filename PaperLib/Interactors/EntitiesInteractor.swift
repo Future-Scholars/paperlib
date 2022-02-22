@@ -10,6 +10,7 @@ import Combine
 import Foundation
 import RealmSwift
 import SwiftUI
+import os.log
 
 enum InteractorError: Error {
     case FileError(error: Error)
@@ -29,6 +30,8 @@ protocol EntitiesInteractor {
     func update(entities: [PaperEntityDraft])
     func scrape(entities: [PaperEntityDraft])
     func routineScrape()
+    func tag(ids: [ObjectId], tag: String)
+    func folder(ids: [ObjectId], folder: String)
 
     func openLib()
     func migrateLocaltoSync()
@@ -37,22 +40,26 @@ protocol EntitiesInteractor {
     func handleChromePluginURL(_ url: URL)
     func setRoutineTimer()
 
-    func debug()
 }
 
 class RealEntitiesInteractor: EntitiesInteractor {
+    let logger: Logger
+    let sharedState: SharedState
+
     let dbRepository: DBRepository
     let fileRepository: FileRepository
     let webRepository: WebRepository
-    let appState: Store<AppState>
+
     let exporter: Exporter
 
-    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "categorizer-tags", "categorizer-folders", "entitiesByIds", "update", "add", "scrape", "delete", "edit", "folders-edit", "delete-categorizer", "open-lib", "plugin"])
+    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "categorizer-tags", "categorizer-folders", "entitiesByIds", "update", "add", "scrape", "delete", "edit", "folders-edit", "delete-categorizer", "open-lib", "plugin", "tag", "folder"])
 
     var routineTimer: Publishers.Autoconnect<Timer.TimerPublisher> = Timer.publish(every: 86400, on: .main, in: .common).autoconnect()
 
-    init(appState: Store<AppState>, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
-        self.appState = appState
+    init(sharedState: SharedState, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
+        self.logger = Logger()
+        self.sharedState = sharedState
+
         self.dbRepository = dbRepository
         self.fileRepository = fileRepository
         self.webRepository = webRepository
@@ -66,10 +73,6 @@ class RealEntitiesInteractor: EntitiesInteractor {
     }
 
     // MARK: - Select
-
-    func debug() {
-//        self.dbRepository.initRealm(reinit: false)
-    }
 
     func load(entities: LoadableSubject<Results<PaperEntity>>, ids: Set<ObjectId>?, search: String?, flag: Bool, tags: [String], folders: [String], sort: String, cancelBagKey: String) {
         self.cancelBags.cancel(for: cancelBagKey)
@@ -111,7 +114,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         // 1. Files processing and web scraping publishers.
         var publisherList: [AnyPublisher<PaperEntityDraft, InteractorError>] = .init()
         urlList.forEach { url in
-            self.appState[\.receiveSignals.processingCount] += 1
+            self.sharedState.viewState.processingQueueCount.value += 1
             let publisher = Just<Void>
                 .withErrorType(InteractorError.self)
                 .flatMap { _ in
@@ -171,10 +174,15 @@ class RealEntitiesInteractor: EntitiesInteractor {
             .sink(
                 receiveCompletion: { completion in
                     switch completion {
-                    case .failure(let error): print("Error \(error)")
-                    case .finished: print("Add successful.")
+                    case .failure(let error): do {
+                        DispatchQueue.main.async {
+                            self.sharedState.viewState.alertInformation.value = "Cannot add this paper: \(String(describing: error)) \(Date())"
+                        }
+                        self.logger.error("Cannot add this paper: \(String(describing: error))")
                     }
-                    self.appState[\.receiveSignals.processingCount] -= c
+                    case .finished: self.logger.info("Add successful.")
+                    }
+                    self.sharedState.viewState.processingQueueCount.value -= c
                 },
                 receiveValue: { _ in
             })
@@ -202,8 +210,11 @@ class RealEntitiesInteractor: EntitiesInteractor {
             }
             .sink(receiveCompletion: { completion in
                 switch completion {
-                case .failure(let error): print("Error \(error)")
-                case .finished: print("Delete successful.")
+                case .failure(let error): do {
+                    self.sharedState.viewState.alertInformation.value = "Cannot delete this paper: \(String(describing: error)) \(Date())"
+                    self.logger.error("Cannot delete this paper: \(String(describing: error))")
+                }
+                case .finished: self.logger.info("Delete successful.")
                 }
             }, receiveValue: { _ in })
             .store(in: self.cancelBags["delete"])
@@ -222,8 +233,11 @@ class RealEntitiesInteractor: EntitiesInteractor {
             }
             .sink(receiveCompletion: { completion in
                 switch completion {
-                case .failure(let error): print("Error \(error)")
-                case .finished: print("Delete successful.")
+                case .failure(let error): do {
+                    self.sharedState.viewState.alertInformation.value = "Cannot delete this categorizer: \(String(describing: error)) \(Date())"
+                    self.logger.error("Cannot delete this categorizer: \(String(describing: error))")
+                }
+                case .finished: self.logger.info("Delete successful.")
                 }
             }, receiveValue: { _ in })
             .store(in: self.cancelBags["delete-categorizer"])
@@ -234,7 +248,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
     func update(entities: [PaperEntityDraft]) {
         self.cancelBags.cancel(for: "update")
 
-        self.appState[\.receiveSignals.processingCount] += entities.count
+        self.sharedState.viewState.processingQueueCount.value += entities.count
 
         Just<[PaperEntityDraft]>
             .withErrorType(entities, InteractorError.self)
@@ -257,10 +271,13 @@ class RealEntitiesInteractor: EntitiesInteractor {
             }
             .sink(receiveCompletion: { completion in
                 switch completion {
-                case .failure(let error): print("Error \(error)")
+                case .failure(let error): do {
+                    self.sharedState.viewState.alertInformation.value = "Cannot update this paper: \(String(describing: error)) \(Date())"
+                    self.logger.error("Cannot update this paper: \(String(describing: error))")
+                }
                 case .finished: do {
-                    print("Update successful.")
-                    self.appState[\.receiveSignals.processingCount] -= entities.count
+                    self.logger.info("Update successful.")
+                    self.sharedState.viewState.processingQueueCount.value -= entities.count
                 }
                 }
             }, receiveValue: { _ in })
@@ -274,7 +291,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
         var publisherList: [AnyPublisher<PaperEntityDraft, InteractorError>] = .init()
 
         entities.forEach { entityDraft in
-            self.appState[\.receiveSignals.processingCount] += 1
+            self.sharedState.viewState.processingQueueCount.value += 1
             let publisher = Just<Void>
                 .withErrorType(InteractorError.self)
                 .flatMap { _ in
@@ -295,10 +312,13 @@ class RealEntitiesInteractor: EntitiesInteractor {
             .sink(
                 receiveCompletion: { completion in
                     switch completion {
-                    case .failure(let error): print("Error \(error)")
+                    case .failure(let error): do {
+                        self.sharedState.viewState.alertInformation.value = "Cannot scrape metadata: \(String(describing: error)) \(Date())"
+                        self.logger.error("Cannot scrape metadata: \(String(describing: error))")
+                    }
                     case .finished: do {
-                        print("Scrape successful.")
-                        self.appState[\.receiveSignals.processingCount] -= c
+                        self.logger.info("Scrape successful.")
+                        self.sharedState.viewState.processingQueueCount.value -= c
                     }
                     }
                 },
@@ -321,26 +341,77 @@ class RealEntitiesInteractor: EntitiesInteractor {
                         InteractorError.DBError(error: error)
                     }
             }
-            .sink(receiveCompletion: {_ in}, receiveValue: { entities in
+            .sink(
+                receiveCompletion: { completion in
+                    switch completion {
+                    case .failure(let error): do {
+                        self.sharedState.viewState.alertInformation.value = "Cannot update (routine) metadata: \(String(describing: error)) \(Date())"
+                        self.logger.error("Cannot update (routine) metadata: \(String(describing: error))")
+                    }
+                    case .finished: do {
+                        self.logger.info("Scrape successful.")
+                    }
+                    }
+                },
+                receiveValue: { entities in
                 let drafts = entities.map({entity in return PaperEntityDraft(from: entity)})
                 self.scrape(entities: Array(drafts))
             })
             .store(in: CancelBag())
     }
 
+    func tag(ids: [ObjectId], tag: String) {
+        self.cancelBags.cancel(for: "tag")
+        Just<[ObjectId]>
+            .withErrorType(ids, InteractorError.self)
+            .flatMap { ids in
+                self.dbRepository.entities(ids: Set(ids), search: nil, publication: nil, flag: false, tags: [], folders: [], sort: "addTime")
+                    .first()
+                    .mapError { dbError in
+                        return InteractorError.DBError(error: dbError)
+                    }
+            }
+            .sink(receiveCompletion: { _ in }, receiveValue: { entities in
+                let entityDrafts = entities.map({ entity -> PaperEntityDraft in
+                    let entityDraft = PaperEntityDraft(from: entity)
+                    entityDraft.tags += ";\(tag)"
+                    return entityDraft
+                })
+                self.update(entities: Array(entityDrafts))
+            })
+            .store(in: self.cancelBags["tag"])
+    }
+
+    func folder(ids: [ObjectId], folder: String) {
+        self.cancelBags.cancel(for: "folder")
+        Just<[ObjectId]>
+            .withErrorType(ids, InteractorError.self)
+            .flatMap { ids in
+                self.dbRepository.entities(ids: Set(ids), search: nil, publication: nil, flag: false, tags: [], folders: [], sort: "addTime")
+                    .first()
+                    .mapError { dbError in
+                        return InteractorError.DBError(error: dbError)
+                    }
+            }
+            .sink(receiveCompletion: { _ in }, receiveValue: { entities in
+                let entityDrafts = entities.map({ entity -> PaperEntityDraft in
+                    let entityDraft = PaperEntityDraft(from: entity)
+                    entityDraft.folders += ";\(folder)"
+                    return entityDraft
+                })
+                self.update(entities: Array(entityDrafts))
+            })
+            .store(in: self.cancelBags["folder"])
+    }
+
     // MARK: - Misc
+
     func export(entities: [PaperEntity], format: ExportFormat) {
         self.exporter.export(entities: entities, format: format)
     }
 
     func openLib() {
-        Task {
-            await self.dbRepository.logoutCloud()
-            _ = await self.dbRepository.getConfig()
-            DispatchQueue.main.sync {
-                self.appState[\.receiveSignals.appLibMoved] = Date()
-            }
-        }
+        self.dbRepository.initRealm(reinit: true)
     }
 
     func migrateLocaltoSync() {
@@ -349,7 +420,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
     func handleChromePluginURL(_ url: URL) {
         self.cancelBags.cancel(for: "plugin")
-        self.appState[\.receiveSignals.processingCount] += 1
+        self.sharedState.viewState.processingQueueCount.value += 1
 
         do {
             var urlStr = url.absoluteString
@@ -371,12 +442,10 @@ class RealEntitiesInteractor: EntitiesInteractor {
                     if let arxivID = arxivID {
                         downloadLink = "https://arxiv.org/pdf/\(arxivID).pdf"
 
-                        print(downloadLink)
-
                         if let downloadURL = URL(string: downloadLink) {
                             self.fileRepository.download(url: downloadURL)
                             .sink(receiveCompletion: {_ in}, receiveValue: {
-                                self.appState[\.receiveSignals.processingCount] -= 1
+                                self.sharedState.viewState.processingQueueCount.value -= 1
                                 if let downloadedURL = $0 {
                                     self.add(from: [downloadedURL])
                                 }
@@ -384,13 +453,14 @@ class RealEntitiesInteractor: EntitiesInteractor {
                             .store(in: self.cancelBags["plugin"])
                         }
                     } else {
-                        self.appState[\.receiveSignals.processingCount] -= 1
+                        self.sharedState.viewState.processingQueueCount.value -= 1
                     }
                 }
             }
-        } catch let err {
-            self.appState[\.receiveSignals.processingCount] -= 1
-            print(err)
+        } catch let error {
+            self.sharedState.viewState.processingQueueCount.value -= 1
+            self.sharedState.viewState.alertInformation.value = "Cannot add this paper: \(String(describing: error)) \(Date())"
+            self.logger.error("Cannot add this paper: \(String(describing: error))")
         }
     }
 
@@ -430,6 +500,8 @@ struct StubEntitiesInteractor: EntitiesInteractor {
     func update(entities: [PaperEntityDraft]) {}
     func scrape(entities _: [PaperEntityDraft]) {}
     func routineScrape() {}
+    func tag(ids: [ObjectId], tag: String) {}
+    func folder(ids: [ObjectId], folder: String) {}
 
     func export(entities: [PaperEntity], format: ExportFormat) {}
     func openLib() {}

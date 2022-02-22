@@ -10,6 +10,7 @@ import CoreData
 import PDFKit
 import RealmSwift
 import Alamofire
+import os.log
 
 protocol FileRepository {
     func read(from url: URL) -> AnyPublisher<PaperEntityDraft, FileError>
@@ -34,7 +35,7 @@ enum FileError: Error {
 }
 
 struct RealFileDBRepository: FileRepository {
-
+    let logger: Logger = .init()
     let queue: DispatchQueue = .init(label: "fileQueue")
     let cancelBag: CancelBag = .init()
 
@@ -131,8 +132,8 @@ struct RealFileDBRepository: FileRepository {
             return results.map {
                 String(text[Range($0.range, in: text)!])
             }
-        } catch {
-            print("invalid regex: \(error.localizedDescription)")
+        } catch let error {
+            logger.error("[FILE] invalid regex: \(error.localizedDescription)")
             return []
         }
     }
@@ -160,8 +161,8 @@ struct RealFileDBRepository: FileRepository {
                     try FileManager.default.copyItem(atPath: sourcePath.path, toPath: targetPath.path)
                 }
                 return true
-            } catch {
-                print("Cannot move \(sourcePath.path)")
+            } catch let error {
+                logger.error("[FILE] Cannot move \(sourcePath.path): \(String(describing: error))")
                 return false
             }
         } else {
@@ -224,8 +225,8 @@ struct RealFileDBRepository: FileRepository {
                 do {
                     try FileManager.default.removeItem(atPath: fileURL.path)
                     promise(.success(true))
-                } catch {
-                    print("Cannot remove \(fileURL.path)")
+                } catch let error {
+                    logger.error("[FILE] Cannot move \(fileURL.path): \(String(describing: error))")
                     promise(.success(false))
                 }
             } else {

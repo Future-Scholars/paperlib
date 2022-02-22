@@ -12,22 +12,37 @@ struct ListRow: View {
     let entity: PaperEntity
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(entity.title).bold().lineLimit(1)
-            Text(entity.authors).lineLimit(1).font(.subheadline)
-            HStack {
-                Text(entity.pubTime).lineLimit(1)
-                if !entity.pubTime.isEmpty {
-                    Text("|")
+        ZStack(alignment: .trailing) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entity.title).bold().lineLimit(1)
+                Text(entity.authors).lineLimit(1).font(.subheadline)
+                HStack {
+                    Text(entity.pubTime).lineLimit(1)
+                    if !entity.pubTime.isEmpty {
+                        Text("|")
+                    }
+                    Text(entity.publication).italic().lineLimit(1)
+                    if entity.flag {
+                        Text("|")
+                        Image(systemName: "flag.fill")
+                    }
+                }.foregroundColor(Color.secondary).font(.subheadline)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text("    ")
+                .frame(minWidth: 20, minHeight: 50, alignment: .trailing)
+                .onDrag {
+                    if let url = URL(string: "entity://\(entity.id)") {
+                        return NSItemProvider(object: url as NSURL)
+                    } else {
+                        return NSItemProvider.init()
+                    }
+                } preview: {
+                    Text(entity.title).frame(minWidth: 150).lineLimit(1)
                 }
-                Text(entity.publication).italic().lineLimit(1)
-                if entity.flag {
-                    Text("|")
-                    Image(systemName: "flag.fill")
-                }
-            }.foregroundColor(Color.secondary).font(.subheadline)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+
     }
 }
 

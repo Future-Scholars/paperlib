@@ -9,25 +9,6 @@ import Combine
 import RealmSwift
 import SwiftUI
 
-struct AppState: Equatable {
-    var receiveSignals = ReceiveSignals()
-}
-
-extension AppState {
-
-    struct ReceiveSignals: Equatable {
-        var settingOpened = false
-        var sideBar = 0
-        var mainView = 0
-        var processingCount = 0
-        var appLibMoved = Date()
-    }
-}
-
-func == (lhs: AppState, rhs: AppState) -> Bool {
-    return lhs.receiveSignals == rhs.receiveSignals
-}
-
 class StateWrapper<T: Equatable> {
     private var _state: T
     private var _lastState: T
@@ -68,28 +49,37 @@ class StateWrapper<T: Equatable> {
 
 }
 
-struct SelectionState {
-    var selectedCategorizer = StateWrapper("lib-all" as String?)
-    var selectedIds = StateWrapper(Set<ObjectId>.init())
-}
-
-struct ViewState {
-    var entitiesViewSwitcher = StateWrapper(0)
-    var entitiesViewSortSwitcher = StateWrapper("addTime" as String)
-    var isEditViewShown = StateWrapper(false)
-    var isTagViewShown = StateWrapper(false)
-    var isFolderViewShown = StateWrapper(false)
-    var isNoteViewShown = StateWrapper(false)
-    var isDeleteConfirmationViewShown = StateWrapper(false)
-}
-
-struct SharedData {
-    var searchQuery = StateWrapper("" as String)
-    var editEntityDraft = StateWrapper(PaperEntityDraft())
-}
-
 struct SharedState {
     var selection = SelectionState()
     var viewState = ViewState()
     var sharedData = SharedData()
+}
+
+// MARK: -
+
+struct SelectionState {
+    var selectedCategorizer = StateWrapper(nil as String?)
+    var selectedIds = StateWrapper(Set<ObjectId>.init())
+}
+
+struct ViewState {
+    var entitiesCount = StateWrapper(0)
+
+    var entitiesViewSwitcher = StateWrapper(0)
+    var entitiesViewSortSwitcher = StateWrapper(nil as String?)
+
+    var isEditViewShown = StateWrapper(false)
+    var isTagViewShown = StateWrapper(false)
+    var isFolderViewShown = StateWrapper(false)
+    var isNoteViewShown = StateWrapper(false)
+
+    var alertInformation = StateWrapper(nil as String?)
+
+    var processingQueueCount = StateWrapper(0)
+    var realmReinited = StateWrapper(nil as Date?)
+}
+
+struct SharedData {
+    var searchQuery = StateWrapper(nil as String?)
+    var editEntityDraft = StateWrapper(PaperEntityDraft())
 }

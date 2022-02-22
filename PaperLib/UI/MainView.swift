@@ -27,6 +27,9 @@ struct MainView: View {
     @State private var isTagViewShown: Bool = false
     @State private var isFolderViewShown: Bool = false
     @State private var isNoteViewShown: Bool = false
+    @State private var isAlertShown: Bool = false
+
+    @State private var alertInformation: String = ""
 
     init() {
         _entities = .init(initialValue: Loadable<Results<PaperEntity>>.notRequested)
@@ -50,11 +53,11 @@ struct MainView: View {
                     .sheet(isPresented: $isTagViewShown, content: { TagEditView(tags: $tags) })
                     .sheet(isPresented: $isFolderViewShown, content: { FolderEditView(folders: $folders) })
                     .sheet(isPresented: $isNoteViewShown, content: { NoteEditView() })
-                    .onReceive(injected.sharedState.selection.selectedCategorizer.publisher, perform: { _ in
-                        reloadEntities()
+                    .onReceive(injected.sharedState.selection.selectedCategorizer.publisher, perform: { selectedCategorizer in
+                        if selectedCategorizer != nil { reloadEntities() }
                     })
-                    .onReceive(injected.sharedState.viewState.entitiesViewSortSwitcher.publisher, perform: { _ in
-                        reloadEntities()
+                    .onReceive(injected.sharedState.viewState.entitiesViewSortSwitcher.publisher, perform: { entitiesViewSortSwitcher in
+                        if entitiesViewSortSwitcher != nil { reloadEntities() }
                     })
                     .onReceive(injected.sharedState.viewState.isEditViewShown.publisher, perform: { isEditViewShown in
                         self.isEditViewShown = isEditViewShown
@@ -77,13 +80,25 @@ struct MainView: View {
             }
             .toolbar {
                 ToolbarView(selectedEntities: $selectedEntities)
-                    .onReceive(injected.sharedState.sharedData.searchQuery.publisher, perform: { _ in
-                        reloadEntities()
+                    .onReceive(injected.sharedState.sharedData.searchQuery.publisher, perform: { searchQuery in
+                        if searchQuery != nil { reloadEntities() }
                     })
             }
-            .onReceive(appLibMovedUpdate, perform: { _ in
-                if injected.appState[\.receiveSignals.settingOpened], injected.appState[\.receiveSignals.mainView] > 0 {
-                    injected.appState[\.receiveSignals.mainView] -= 1
+            .alert(Text("An error occurred."), isPresented: $isAlertShown) {
+                Button("OK") {
+                    self.isAlertShown = false
+                }
+            } message: {
+                Text(alertInformation)
+            }
+            .onReceive(injected.sharedState.viewState.alertInformation.publisher, perform: { alertInformation in
+                if let alertInformation = alertInformation {
+                    self.isAlertShown = true
+                    self.alertInformation = alertInformation
+                }
+            })
+            .onReceive(injected.sharedState.viewState.realmReinited.publisher, perform: { realmReinited in
+                if realmReinited != nil {
                     clearSelected()
                     reloadEntities()
                     reloadTags()
@@ -145,7 +160,7 @@ private extension MainView {
     }
 
     func makeFilter() -> (String, Bool, [String], [String], String) {
-        let search = injected.sharedState.sharedData.searchQuery.value
+        let search = injected.sharedState.sharedData.searchQuery.value ?? ""
 
         let flag: Bool = injected.sharedState.selection.selectedCategorizer.value == "lib-flag"
         var tags: [String] = .init()
@@ -158,13 +173,9 @@ private extension MainView {
             folders.append(injected.sharedState.selection.selectedCategorizer.value!)
         }
 
-        let sortBy = injected.sharedState.viewState.entitiesViewSortSwitcher.value
+        let sortBy = injected.sharedState.viewState.entitiesViewSortSwitcher.value ?? "addTime"
 
         return (search, flag, tags, folders, sortBy)
-    }
-
-    var appLibMovedUpdate: AnyPublisher<Date, Never> {
-        injected.appState.updates(for: \.receiveSignals.appLibMoved)
     }
 
 }
