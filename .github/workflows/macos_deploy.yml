@@ -49,7 +49,7 @@ jobs:
           mv oraclekey.cer ~/.oci
 
       - name: Download Existing Versions
-        run: oci os object bulk-download --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --prefix "distribution/mac/" --download-dir ./
+        run: oci os object bulk-download --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --prefix "distribution/mac/appcast.xml" --download-dir ./
 
       - name: Package for Distribution
         run: |
