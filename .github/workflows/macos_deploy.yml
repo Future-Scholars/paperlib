@@ -55,7 +55,6 @@ jobs:
         run: |
           ditto -V -c -k --keepParent "Export/PaperLib.app" "PaperLib_v${{ env.VERSION_SHORT }}.zip"
           cp PaperLib_v${{ env.VERSION_SHORT }}.zip ./distribution/mac
-          cp PaperLib_v${{ env.VERSION_SHORT }}.zip ./distribution/mac/latest.zip
 
       - name: Release app
         uses: softprops/action-gh-release@v1
@@ -80,8 +79,8 @@ jobs:
 
       - name: Generate Sparkle Appcast
         run: |
-          rm -rf /Users/runner/Library/Caches/Sparkle_generate_appcast/*
           ./bin/generate_appcast -s ${{ secrets.SPARKLE_KEY }} ./distribution/mac/
+          cp PaperLib_v${{ env.VERSION_SHORT }}.zip ./distribution/mac/latest.zip
 
       - name: Upload to Oracle Storage
         run: |
