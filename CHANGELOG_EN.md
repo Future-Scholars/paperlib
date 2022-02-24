@@ -1,3 +1,6 @@
+## v1.4.1 Feb 24 2022
+1. New domain url.
+
 ## v1.4.0 Feb 22 2022
 1.  Fixed some bugs.
 2.  Added error handler and logger.
