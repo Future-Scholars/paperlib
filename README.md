@@ -4,7 +4,7 @@
 <img src="https://img.shields.io/github/v/release/GeoffreyChen777/paperlib.svg" />
 <img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
 <img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />
-<h2><a href="https://paperlib.geoch.top/" > Paperlib </a></h2>
+<h2><a href="https://paperlib.app/" > Paperlib </a></h2>
 A simple academic paper management tool for CSer.
 </div>
 
@@ -12,7 +12,7 @@ A simple academic paper management tool for CSer.
 
 <div align="center">
 
-<a href="https://paperlib.geoch.top/en/download/" style="font-size: 16px"> » Download Here « </a>
+<a href="https://paperlib.app/en/download/" style="font-size: 16px"> » Download Here « </a>
 
 </div>
 
