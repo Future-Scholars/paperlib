@@ -12,9 +12,8 @@ import SwiftyJSON
 
 struct TitleExtractorScraper: Scraper {
     func preProcess(entityDraft: PaperEntityDraft) -> (String, HTTPHeaders, Bool) {
-        let enable = entityDraft.title.isEmpty && formatString(entityDraft.arxiv)!.isEmpty && formatString(entityDraft.doi)!.isEmpty && FileManager.default.fileExists(atPath: entityDraft.mainURL) && UserDefaults.standard.bool(forKey: "teScraper")
-
-        let scrapeURL = "https://paperlib.geoch.top/api/files/upload/"
+        let enable = entityDraft.title.isEmpty && formatString(entityDraft.arxiv)!.isEmpty && formatString(entityDraft.doi)!.isEmpty && FileManager.default.fileExists(atPath: URL(string: entityDraft.mainURL)?.path ?? "") && UserDefaults.standard.bool(forKey: "teScraper")
+        let scrapeURL = "https://paperlib.app/api/files/upload/"
         let headers: HTTPHeaders = []
 
         return (scrapeURL, headers, enable)

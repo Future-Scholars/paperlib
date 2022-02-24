@@ -15,7 +15,7 @@ struct CVFScraper: Scraper {
         let enable = !entityDraft.title.isEmpty && (entityDraft.publication == "arXiv" || entityDraft.publication.isEmpty) && UserDefaults.standard.bool(forKey: "cvfScraper")
 
         let shortTitle = formatString(entityDraft.title, removeWhite: true, removeStr: "&amp")!
-        let scrapeURL = "https://paperlib.geoch.top/api/cvf/\(shortTitle)"
+        let scrapeURL = "https://paperlib.app/api/cvf/\(shortTitle)"
         let headers: HTTPHeaders = []
 
         return (scrapeURL, headers, enable)

@@ -43,7 +43,7 @@ struct RealWebRepository: WebRepository {
     ]
 
     func apiVersion() -> AnyPublisher<DataResponse<String, AFError>, Never> {
-        let versionURL = "https://paperlib.geoch.top/api/version"
+        let versionURL = "https://paperlib.app/api/version"
 
         return AF.request(versionURL)
             .publishString()
