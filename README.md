@@ -22,7 +22,7 @@ A simple academic paper management tool for CSer.
 - Scrape paper’s metadata from arXiv, doi.org, DBLP, IEEE and our online engine.
 - Mark papers with multiple methods such as rating and flaging.
 - Create tags and filter by tags. Create folders and filter by folders.
-- Access your data from everywhere with a sync databsed supported by MongoDB atlas.
+- Access your data from everywhere supported by MongoDB atlas.
 - Export papers to bibtex or plain text.
 
 ## Quick Start
