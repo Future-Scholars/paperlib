@@ -1,0 +1,112 @@
+<template>
+    <div v-show="isThumbnailShown">
+        <div class="detail-section-title"> Preview </div>
+        <q-spinner-oval
+            color="primary"
+            size="1em"
+            v-if="isRendering"
+        />
+        <div
+            style="
+                height: 210px;
+                width: 150px;
+                position: absolute;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            "
+            v-on:dblclick="openThumbnail"
+            v-show="!isRendering"
+        />
+        <canvas
+            id="thumbnail"
+            style="height: 210px; width: 150px; margin-bottom: 1em"
+            v-show="!isRendering"
+        />
+    </div>
+</template>
+
+<style lang="sass">
+@import 'src/css/detailview.scss'
+</style>
+
+<script>
+import { defineComponent, ref, watch } from "vue";
+import * as pdfjs from "pdfjs-dist";
+
+export default defineComponent({
+    name: "DetailThumbnailSection",
+    components: {},
+    props: {
+        url: String,
+    },
+    setup(props) {
+        const isRendering = ref(false);
+        const isThumbnailShown = ref(false);
+
+        const pdfjsWorker = import("pdfjs-dist/build/pdf.worker.entry");
+        pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+
+        const renderThumbnail = async () => {
+            if (isRendering.value) {
+                return;
+            }
+            isRendering.value = true;
+
+            try {
+                const pdf = await pdfjs.getDocument(props.url).promise;
+                const page = await pdf.getPage(1);
+
+                var scale = 0.3;
+                var viewport = page.getViewport({ scale: scale });
+                // Support HiDPI-screens.
+                var outputScale = window.devicePixelRatio || 1;
+
+                var canvas = document.getElementById("thumbnail");
+                var context = canvas.getContext("2d");
+
+                canvas.width = Math.floor(viewport.width * outputScale);
+                canvas.height = Math.floor(viewport.height * outputScale);
+
+                var transform =
+                    outputScale !== 1
+                        ? [outputScale, 0, 0, outputScale, 0, 0]
+                        : null;
+
+                var renderContext = {
+                    canvasContext: context,
+                    transform: transform,
+                    viewport: viewport,
+                };
+                page.render(renderContext);
+                isThumbnailShown.value = true;
+            } catch (e) {
+                console.log(e);
+                isThumbnailShown.value = false;
+            } finally {
+                isRendering.value = false;
+            }
+        };
+
+        const openThumbnail = () => {
+            window.api.open(props.url);
+        };
+
+        watch(
+            () => props.url,
+            renderThumbnail
+        );
+
+        return {
+            isRendering,
+            isThumbnailShown,
+            renderThumbnail,
+            openThumbnail
+        };
+    },
+    mounted() {
+        this.$nextTick(function () {
+            this.renderThumbnail();
+        });
+    }
+});
+</script>

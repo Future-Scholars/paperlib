@@ -9,11 +9,11 @@ const stream = require("stream");
 const { promisify } = require("util");
 
 export class FileRepository {
-  constructor(appStore) {
+  constructor(preference) {
     const pdfjsWorker = import("pdfjs-dist/build/pdf.worker.entry");
     pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
-    this.appStore = appStore;
+    this.preference = preference;
   }
 
   // ============================================================
@@ -24,7 +24,7 @@ export class FileRepository {
       outURL = url;
     } else {
       if (joined) {
-        outURL = path.join(this.appStore.get("appLibFolder"), url);
+        outURL = path.join(this.preference.get("appLibFolder"), url);
       } else {
         outURL = url;
       }
@@ -64,7 +64,7 @@ export class FileRepository {
 
       const entity = new PaperEntityDraft();
 
-      if (this.appStore.get("allowFetchPDFMeta")) {
+      if (this.preference.get("allowFetchPDFMeta")) {
         const metaData = await pdf.getMetadata();
         const title = metaData.info.Title;
         const authors = metaData.info.Author;
@@ -177,7 +177,7 @@ export class FileRepository {
 
     try {
       await fsPromise.copyFile(_sourcePath, _targetPath);
-      if (this.appStore.get("deleteSourceFile")) {
+      if (this.preference.get("deleteSourceFile")) {
         await fsPromise.unlink(sourcePath);
       }
       return true;

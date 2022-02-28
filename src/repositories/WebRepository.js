@@ -5,8 +5,8 @@ import FormData from "form-data";
 import fs from "fs";
 
 export class WebRepository {
-  constructor(appStore) {
-    this.appStore = appStore;
+  constructor(preference) {
+    this.preference = preference;
     this.xmlParser = new XMLParser();
   }
 
@@ -126,14 +126,14 @@ export class WebRepository {
     try {
       if (
         entity.title &&
-        (entity.publication == "arXiv" || !entity.publication) && this.appStore.get("ieeeAPIKey")
+        (entity.publication == "arXiv" || !entity.publication) && this.preference.get("ieeeAPIKey")
       ) {
         let requestTitle = formatString({
           str: entity.title,
           removeNewline: true,
         }).replace(/\s/g, "+");
 
-        let apiKey = this.appStore.get("ieeeAPIKey");
+        let apiKey = this.preference.get("ieeeAPIKey");
 
         let ieeeResponse = await got(
           "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=" +
