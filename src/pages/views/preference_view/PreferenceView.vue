@@ -86,7 +86,6 @@ export default defineComponent({
         preference: Object
     },
     setup(props, { emit }) {
-        console.log(props.preference)
         const isPreferenceViewShown = ref(false);
         const selectedTab = ref("general");
 

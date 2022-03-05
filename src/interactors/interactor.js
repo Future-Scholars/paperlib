@@ -8,60 +8,70 @@ import { formatString } from "../utils/misc";
 import moment from "moment";
 import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
 
+import { ipcRenderer } from "electron";
+
 export class Interactor {
     constructor(sharedState) {
         this.sharedState = sharedState;
 
         this.preference = new Preference();
-        this.dbRepository = new DBRepository(this.preference);
+        this.dbRepository = new DBRepository(this.preference, this.sharedState);
         this.fileRepository = new FileRepository(this.preference);
         this.webRepository = new WebRepository(this.preference);
     }
 
+    registerSignal(signal, callback) {
+        ipcRenderer.on(signal, callback);
+    }
+
     async load(search, flag, tag, folder, sortBy, sortOrder) {
-        let entitiesResults = await this.dbRepository.entities(
+        return await this.dbRepository.entities(
             search,
             flag,
             tag,
             folder,
             sortBy,
-            sortOrder
+            sortOrder,
         );
-        return entitiesResults;
     }
 
     async loadTags() {
-        let tagsResults = await this.dbRepository.tags();
-        return tagsResults;
+        return await this.dbRepository.tags();
     }
 
     async loadFolders() {
-        let foldersResults = await this.dbRepository.folders();
-        return foldersResults;
+        return await this.dbRepository.folders();
     }
 
     async add(urlList) {
         this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") + urlList.length);
-        let addPromise = async (url) => {
-            try {
-                var entity = await this.fileRepository.read(url);
-                entity = await this.webRepository.fetch(entity);
-                let moveSuccess = await this.fileRepository.move(entity);
-                if (moveSuccess) {
-                    let addSuccess = this.dbRepository.add(entity);
-                    if (!addSuccess) {
-                        await this.fileRepository.remove(entity);
-                    }
-                } else {
-                    console.log("move file failed");
+        try {
+            // 1. Metadata scraping.
+            let scrapingPromise = async (url) => {
+                var entityDraft;
+                try {
+
+                    entityDraft = await this.fileRepository.read(url);
+                    entityDraft = await this.webRepository.scrape(entityDraft);
+                } catch (error) {
+                    console.log(error);
                 }
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        let reuslts = await Promise.all(urlList.map((url) => addPromise(url)));
+                return entityDraft;
+            };
+            var entityDrafts = await Promise.all(urlList.map((url) => scrapingPromise(url)));
+            entityDrafts = entityDrafts.filter((entity) => entity != null);
+
+            // 2. Database processing.
+            let moveSuccesses = await Promise.all(entityDrafts.map((entityDraft) => this.fileRepository.move(entityDraft)));
+            entityDrafts = entityDrafts.filter((entityDraft, index) => moveSuccesses[index]);
+            let dbSuccesses = await this.dbRepository.update(entityDrafts);
+            // find unsuccessful entities.
+            let unsuccessfulEntityDrafts = entityDrafts.filter((entityDraft, index) => !dbSuccesses[index]);
+            await Promise.all(unsuccessfulEntityDrafts.map((entityDraft) => this.fileRepository.remove(entityDraft)));
+        } catch (error) {
+            console.log(error);
+        }
         this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") - urlList.length);
-        return reuslts
     }
 
     delete(ids) {
@@ -107,49 +117,37 @@ export class Interactor {
         this.dbRepository.deleteFolder(folderName);
     }
 
-    flag(ids) {
-        let flagPromise = async (id) => {
-            try {
-                var entity = await this.dbRepository.entity(id);
-                entity = new PaperEntityDraft(entity);
-                entity.flag = !entity.flag;
+    async scrape(entities) {
+        entities = JSON.parse(entities);
+        entities = entities.map((entity) => new PaperEntityDraft(entity));
 
-                this.dbRepository.update(entity);
+        let matchPromise = async (entityDraft) => {
+            try {
+                entityDraft = await this.webRepository.scrape(entityDraft);
             } catch (error) {
                 console.log(error);
             }
+            return entityDraft
         };
 
-        Promise.all(ids.map((id) => flagPromise(id)));
-    }
-
-    async match(entities) {
-        let matchPromise = async (entity) => {
-            try {
-                var entityDraft = new PaperEntityDraft(entity);
-                entityDraft = await this.webRepository.fetch(entityDraft);
-
-                this.update(entityDraft);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-
-        return await Promise.all(entities.map((entity) => matchPromise(entity)));
+        let entityDrafts = await Promise.all(entities.map((entity) => matchPromise(entity)));
+        this.update(entityDrafts);
     }
 
     async update(entities) {
         this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") + entities.length);
-        let updatePromise = async (entity) => {
+        let updatePromise = async (entities) => {
             try {
-                await this.fileRepository.move(entity);
-                await this.dbRepository.update(entity);
+                for (let entity of entities) {
+                    await this.fileRepository.move(entity);
+                }
             } catch (error) {
                 console.log(error);
             }
+            await this.dbRepository.update(entities);
         };
 
-        await Promise.all(entities.map((entity) => updatePromise(entity)));
+        await updatePromise(entities);
         this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") - entities.length);
     }
 
@@ -226,50 +224,6 @@ export class Interactor {
             }
             clipboard.writeText(text);
         });
-    }
-
-    async listenRealmChange(callback) {
-        try {
-            let realm = await this.dbRepository.realm();
-            realm.addListener("change", callback);
-        } catch (error) {
-            console.error(
-                `An exception was thrown within the change listener: ${error}`
-            );
-        }
-    }
-
-    async saveSettings(settings) {
-        if (settings.rematchInterval != this.preference.get("rematchInterval")) {
-            this.setRoutineTimer();
-        }
-
-        var setNewDBFolder = false;
-        if (
-            settings.appLibFolder != this.preference.get("appLibFolder") ||
-            ((settings.useSync != this.preference.get("useSync") ||
-                settings.syncAPIKey != this.preference.get("syncAPIKey")) &&
-                settings.syncAPIKey != "")
-        ) {
-            console.log("setNewDBFolder");
-            setNewDBFolder = true;
-        }
-        this.preference.setAll(settings);
-
-        if (setNewDBFolder) {
-            await this.dbRepository.initRealm();
-            if (
-                settings.migrateLocalToSync &&
-                settings.syncAPIKey != "" &&
-                settings.useSync
-            ) {
-                console.log("migrateLocalToSync");
-                await this.dbRepository.migrateLocaltoSync();
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     appLibPath() {

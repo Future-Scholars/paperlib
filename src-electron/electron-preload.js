@@ -100,12 +100,8 @@ contextBridge.exposeInMainWorld("api", {
     },
 
     // Update
-    flag(entities) {
-        interactor.flag(entities);
-    },
-
-    async match(entities) {
-        return await interactor.match(entities);
+    async scrape(entities) {
+        return await interactor.scrape(entities);
     },
 
     update(entities) {

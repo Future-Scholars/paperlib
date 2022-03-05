@@ -123,9 +123,20 @@ export default {
             reloadPreference();
         });
 
+        window.api.registerSignal("dbState.entitiesUpdated", (event, message) => {
+            reloadEntities();
+        });
+
+        window.api.registerSignal("dbState.tagsUpdated", (event, message) => {
+            reloadTags();
+        });
+
+        window.api.registerSignal("dbState.foldersUpdated", (event, message) => {
+            reloadFolders();
+        });
+
         // =======================================
         // Data
-
         const reloadEntities = async () => {
             var flaged = null;
             var tag = null;
@@ -147,6 +158,7 @@ export default {
                 sortOrder.value
             );
             entities.value = results;
+            reloadSelectedEntities();
         };
 
         const reloadTags = async () => {
@@ -176,17 +188,6 @@ export default {
             preference.value = window.api.loadPreferences();
         };
 
-        // =======================================
-
-        const realmChangedEvent = () => {
-            window.api.listenRealmChange(async () => {
-                await reloadEntities();
-                reloadTags();
-                reloadFolders();
-                reloadSelectedEntities();
-            });
-        };
-
         // Signal
         window.api.registerSignal("pluginURL", async (event, message) => {
             showLoadingIcon.value = true;
@@ -194,23 +195,11 @@ export default {
             showLoadingIcon.value = false;
         });
 
-        window.api.registerSignal("realmChanged", async (event, message) => {
-            console.log("realmChanged")
-            clearSelected();
-            realmChangedEvent();
+        onMounted(async () => {
             reloadPreference();
             await reloadEntities();
             await reloadTags();
             await reloadFolders();
-            reloadSelectedEntities();
-        });
-
-        onMounted(async () => {
-            reloadPreference();
-            reloadEntities();
-            reloadTags();
-            reloadFolders();
-            realmChangedEvent();
             window.api.setRoutineTimer();
         });
 

@@ -7,14 +7,20 @@ import { PaperFolderSchema } from "../models/PaperFolder";
 import { formatString } from "../utils/misc";
 
 export class DBRepository {
-    constructor(preference) {
+    constructor(preference, sharedState) {
         this.preference = preference;
+        this.sharedState = sharedState;
 
-        this._realmApp = null;
         this._realm = null;
         this._schemaVersion = 5;
 
-        this.initRealm();
+        this.app = null;
+        this.cloudConfig = null;
+        this.localConfig = null;
+
+        this.entitiesListenerInited = false;
+        this.tagsListenerInited = false;
+        this.foldersListenerInited = false;
     }
 
     async realm() {
@@ -24,54 +30,113 @@ export class DBRepository {
         return this._realm;
     }
 
-    async initRealm() {
-        if (this._realm) {
+    async initRealm(reinit = false) {
+        if (this._realm && reinit) {
             this._realm.close();
             this._realm = null;
         }
-        if (this.preference.get("useSync") && this.preference.get("syncAPIKey")) {
-            await this.initSync();
+
+        if (this._realm) {
+            return;
+        }
+        await this.getConfig();
+        if (this.cloudConfig) {
+            try {
+                this._realm = new Realm(this.cloudConfig);
+            } catch (err) {
+                console.log(err);
+            }
         } else {
-            this.initLocal();
+            try {
+                this._realm = new Realm(this.localConfig);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+
+        // TODO: send signal
+    }
+
+    async getConfig() {
+        if (
+            this.preference.get("useSync") &&
+            this.preference.get("syncAPIKey") !== ""
+        ) {
+            return await this.getCloudConfig();
+        } else {
+            this.cloudConfig = null;
+            return this.getLocalConfig();
         }
     }
 
-    async loginSync() {
-        if (!this.syncUser) {
-            this._realmApp = new Realm.App({ id: "paperlib-iadbj" });
-            let apiKey = this.preference.get("syncAPIKey");
-            const credentials = Realm.Credentials.serverApiKey(apiKey);
+    getLocalConfig() {
+        let config = {
+            schema: [PaperEntitySchema, PaperTagSchema, PaperFolderSchema],
+            schemaVersion: this._schemaVersion,
+            path: path.join(
+                this.preference.get("appLibFolder"),
+                "default.realm"
+            ),
+            migration: this.migrate,
+        };
+        this.localConfig = config;
+        return config;
+    }
+
+    async getCloudConfig() {
+        let cloudUser = await this.loginCloud();
+        if (cloudUser) {
+            let config = {
+                schema: [PaperEntitySchema, PaperTagSchema, PaperFolderSchema],
+                schemaVersion: this._schemaVersion,
+                sync: {
+                    user: this.app.currentUser,
+                    partitionValue: this.app.currentUser.id,
+                },
+            };
+            this.cloudConfig = config;
+            return config;
+        } else {
+            this.preference.set("useSync", false);
+            this.sharedState.set(
+                "viewState.preferenceUpdated",
+                new Date().getTime()
+            );
+            return this.getLocalConfig();
+        }
+    }
+
+    async loginCloud() {
+        await this.logoutCloud();
+
+        if (!this.app) {
+            this.app = new Realm.App({
+                id: "paperlib-iadbj",
+            });
+        }
+        if (!this.app.currentUser) {
             try {
-                this.syncUser = await this._realmApp.logIn(credentials);
+                const credentials = Realm.Credentials.serverApiKey(
+                    this.preference.get("syncAPIKey")
+                );
+                await this.app.logIn(credentials);
                 console.log("Successfully logged in!");
             } catch (err) {
                 this.preference.set("useSync", false);
+                this.sharedState.set(
+                    "viewState.preferenceUpdated",
+                    new Date().getTime()
+                );
                 console.error("Failed to log in", err.message);
             }
+            return null;
+        } else {
+            return this.app.currentUser;
         }
     }
 
-    async initSync() {
-        console.log("Init Sync.");
-        await this.loginSync();
-        this._realm = new Realm({
-            schema: [PaperEntitySchema, PaperTagSchema, PaperFolderSchema],
-            schemaVersion: this._schemaVersion,
-            sync: {
-                user: this.syncUser,
-                partitionValue: this.syncUser.id,
-            },
-        });
-    }
-
-    initLocal() {
-        console.log("Init Local.");
-        this._realm = new Realm({
-            schema: [PaperEntitySchema, PaperTagSchema, PaperFolderSchema],
-            schemaVersion: this._schemaVersion,
-            path: path.join(this.preference.get("appLibFolder"), "default.realm"),
-            migration: this.migrate,
-        });
+    async logoutCloud() {
+        await this.app.currentUser.logOut();
     }
 
     async migrateLocaltoSync() {
@@ -244,18 +309,6 @@ export class DBRepository {
     }
 
     // ===========================================================
-
-    jsonfyEntity(entities) {
-        var entitiesJson = [];
-        entities.forEach((entity) => {
-            let entityJson = entity.toJSON();
-            entityJson._id = entityJson._id.toString();
-            entityJson.id = entityJson.id.toString();
-            entitiesJson.push(entityJson);
-        });
-        return entitiesJson;
-    }
-
     async entity(id) {
         let realm = await this.realm();
         return realm.objectForPrimaryKey("PaperEntity", new ObjectId(id));
@@ -285,171 +338,81 @@ export class DBRepository {
         }
 
         let realm = await this.realm();
+        let objects = realm
+            .objects("PaperEntity")
+            .sorted(sortBy, sortOrder == "desc");
+
+        if (!this.entitiesListenerInited) {
+            objects.addListener((objs, changes) => {
+                let deletionCount = changes.deletions.length;
+                let insertionCount = changes.insertions.length
+                let modificationCount = changes.modifications.length
+                if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
+                    this.sharedState.set("dbState.entitiesUpdated", new Date().getTime());
+                }
+            });
+            this.entitiesListenerInited = true;
+        }
+
         if (filterFormat) {
             filterFormat = filterFormat.slice(0, -5);
-            return this.jsonfyEntity(
-                realm
-                    .objects("PaperEntity")
-                    .filtered(filterFormat)
-                    .sorted(sortBy, sortOrder == "desc")
-            );
-        } else {
-            return this.jsonfyEntity(
-                realm.objects("PaperEntity").sorted(sortBy, sortOrder == "desc")
-            );
-        }
-    }
 
-    jsonfyTagFolder(tagOrFolder) {
-        var jsons = [];
-        tagOrFolder.forEach((obj) => {
-            let json = obj.toJSON();
-            jsons.push(json);
-        });
-        return jsons;
+            return objects.filtered(filterFormat).toJSON().map((entity) => {
+                entity.id = entity.id.toString()
+                entity._id = entity._id.toString()
+                return entity
+            }); 
+        } else {
+            return objects.toJSON().map((entity) => {
+                entity.id = entity.id.toString()
+                entity._id = entity._id.toString()
+                return entity
+            });
+        }
     }
 
     async tags() {
         let realm = await this.realm();
-        return this.jsonfyTagFolder(realm.objects("PaperTag").sorted("name"));
+        let objects = realm.objects("PaperTag").sorted("name");
+        if (!this.tagsListenerInited) {
+            objects.addListener((objs, changes) => {
+                let deletionCount = changes.deletions.length;
+                let insertionCount = changes.insertions.length
+                let modificationCount = changes.modifications.length
+                if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
+                    this.sharedState.set("dbState.tagsUpdated", new Date().getTime());
+                }
+            });
+            this.tagsListenerInited = true;
+        };
+        return objects.toJSON();
     }
 
     async folders() {
         let realm = await this.realm();
-        return this.jsonfyTagFolder(
-            realm.objects("PaperFolder").sorted("name")
-        );
+        let objects = realm.objects("PaperFolder").sorted("name");
+        if (!this.foldersListenerInited) {
+            objects.addListener((objs, changes) => {
+                let deletionCount = changes.deletions.length;
+                let insertionCount = changes.insertions.length
+                let modificationCount = changes.modifications.length
+                if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
+                    this.sharedState.set("dbState.foldersUpdated", new Date().getTime());
+                }
+            });
+            this.foldersListenerInited = true;
+        };
+        return objects.toJSON();
     }
 
     async preprintEntities() {
         let realm = await this.realm();
 
         let filterFormat = 'publication contains[c] "arXiv"';
-        return this.jsonfyEntity(
-            realm.objects("PaperEntity").filtered(filterFormat)
-        );
+        return realm.objects("PaperEntity").filtered(filterFormat).toJSON();
     }
 
     // ============================================================
-
-    async buildTag(entity) {
-        let realm = await this.realm();
-        var tagNames = [];
-        var tagObjList = [];
-        if (typeof entity.tags == "string") {
-            let tagsStr = formatString({ str: entity.tags, removeWhite: true });
-            tagNames = tagsStr.split(";");
-        } else {
-            tagNames = entity.tags.map((tag) => {
-                return tag.name;
-            });
-        }
-        for (const name of tagNames) {
-            let tagName = formatString({
-                str: name,
-                returnEmpty: true,
-                trimWhite: true,
-            });
-            if (tagName) {
-                var tagObj;
-                let tagObjs = realm
-                    .objects("PaperTag")
-                    .filtered(`name == "${tagName}"`);
-                if (tagObjs.length > 0) {
-                    tagObj = tagObjs[0];
-                    realm.write(() => {
-                        tagObj.count += 1;
-                    });
-                } else {
-                    tagObj = {
-                        _id: new ObjectId(),
-                        name: tagName,
-                        count: 1,
-                    };
-                }
-                if (this.syncUser) {
-                    realm.write(() => {
-                        tagObj._partition = this.syncUser.id;
-                    });
-                }
-                tagObjList.push(tagObj);
-            }
-        }
-        return tagObjList;
-    }
-
-    async buildFolder(entity) {
-        let realm = await this.realm();
-        var folderNames = [];
-        var folderObjList = [];
-        if (typeof entity.folders == "string") {
-            let foldersStr = formatString({
-                str: entity.folders,
-                removeWhite: true,
-            });
-            folderNames = foldersStr.split(";");
-        } else {
-            folderNames = entity.folders.map((folder) => {
-                return folder.name;
-            });
-        }
-        for (const name of folderNames) {
-            let folderName = formatString({
-                str: name,
-                returnEmpty: true,
-                trimWhite: true,
-            });
-            if (folderName) {
-                var folderObj;
-                let folderObjs = realm
-                    .objects("PaperFolder")
-                    .filtered(`name == "${folderName}"`);
-                if (folderObjs.length > 0) {
-                    folderObj = folderObjs[0];
-                    realm.write(() => {
-                        folderObj.count += 1;
-                    });
-                } else {
-                    folderObj = {
-                        _id: new ObjectId(),
-                        name: folderName,
-                        count: 1,
-                    };
-                }
-                if (this.syncUser) {
-                    realm.write(() => {
-                        folderObj._partition = this.syncUser.id;
-                    });
-                }
-                folderObjList.push(folderObj);
-            }
-        }
-        return folderObjList;
-    }
-
-    async add(entity) {
-        if (this.syncUser) {
-            entity._partition = this.syncUser.id;
-        }
-        entity.tags = [];
-        entity.folders = [];
-
-        let realm = await this.realm();
-
-        let existEntities = realm
-            .objects("PaperEntity")
-            .filtered(
-                `title == \"${entity.title}\" and authors == \"${entity.authors}\"`
-            );
-        if (existEntities.length > 0) {
-            return false;
-        }
-        realm.write(() => {
-            realm.create("PaperEntity", entity);
-        });
-        return true;
-    }
-
     // Delete
     async delete(entity) {
         let realm = await this.realm();
@@ -507,70 +470,104 @@ export class DBRepository {
         });
     }
 
-    // Update
-    async update(entity) {
-        let realm = await this.realm();
-        let editEntity = realm.objectForPrimaryKey(
-            "PaperEntity",
-            new ObjectId(entity._id)
+    unlinkCategorizers(categorizers, realm) {
+        categorizers.forEach (
+            (categorizer) => {
+                categorizer.count -= 1
+                if (categorizer.count <= 0) {
+                    realm.delete(categorizer)
+                }
+            }
         );
-        realm.write(() => {
-            editEntity.title = entity.title;
-            editEntity.authors = entity.authors;
-            editEntity.publication = entity.publication;
-            editEntity.pubTime = entity.pubTime;
-            editEntity.pubType = entity.pubType;
-            editEntity.doi = entity.doi;
-            editEntity.arxiv = entity.arxiv;
-            editEntity.mainURL = entity.mainURL;
-            editEntity.supURLs = entity.supURLs;
-            editEntity.rating = entity.rating;
-            editEntity.flag = entity.flag;
-            editEntity.note = entity.note;
-        });
+    }
 
+    linkCategorizers(categorizerStrs, realm, categorizerType) {
+        var categorizers = [];
+        let categorizerNameList = new Set(categorizerStrs.split(";"))
+        for (var categorizerName of categorizerNameList) {
+            var categorizerName = formatString({
+                str: categorizerName,
+                returnEmpty: true,
+                trimWhite: true
+            });
+            if (categorizerName === "") {
+                continue;
+            }
+            let existCategorizers = realm.objects(categorizerType).filtered(`name == "${categorizerName}"`)
+            if (existCategorizers.length > 0) {
+                let categorizer = existCategorizers[0]
+                categorizer.count += 1
+                categorizers.push(categorizer)
+            } else {
+                let categorizer = {
+                    _id: new ObjectId(),
+                    name: categorizerName,
+                    count: 1,
+                }
+                if (this.cloudConfig) {
+                    categorizer["_partition"] = this.app.currentUser.id.toString()
+                }
+                realm.create(categorizerType, categorizer);
+                categorizers.push(categorizer)
+            }
+        }
+        return categorizers
+    }
+
+    // Update
+    async update(entities) {
+        let realm = await this.realm();
+        let successes = [];
         realm.write(() => {
-            // remove old tags
-            for (const tag of editEntity.tags) {
-                let tagObjs = realm
-                    .objects("PaperTag")
-                    .filtered(`name == "${tag.name}"`);
-                for (let tagObj of tagObjs) {
-                    tagObj.count -= 1;
-                    if (tagObj.count == 0) {
-                        realm.delete(tagObj);
+            for (let entity of entities) {
+                let updateObj = realm.objectForPrimaryKey(
+                    "PaperEntity",
+                    new ObjectId(entity._id)
+                );
+                if (updateObj) {
+                    updateObj.title = entity.title;
+                    updateObj.authors = entity.authors;
+                    updateObj.publication = entity.publication;
+                    updateObj.pubTime = entity.pubTime;
+                    updateObj.pubType = entity.pubType;
+                    updateObj.doi = entity.doi;
+                    updateObj.arxiv = entity.arxiv;
+                    updateObj.mainURL = entity.mainURL;
+                    updateObj.supURLs = entity.supURLs;
+                    updateObj.rating = entity.rating;
+                    updateObj.flag = entity.flag;
+                    updateObj.note = entity.note;
+
+                    // remove old tags
+                    this.unlinkCategorizers(updateObj.tags, realm)
+                    // add new tags
+                    updateObj.tags = this.linkCategorizers(entity.tags, realm, "PaperTag")
+                    // remove old folders
+                    this.unlinkCategorizers(updateObj.folders, realm)
+                    // add new folders
+                    updateObj.folders = this.linkCategorizers(entity.folders, realm, "PaperFolder")
+                    successes.push(true);
+                }
+                else {
+                    if (this.cloudConfig) {
+                        entity._partition = this.app.currentUser.id.toString();
                     }
+                    entity.tags = [];
+                    entity.folders = [];
+
+                    let reduplicatedEntities = realm
+                        .objects("PaperEntity")
+                        .filtered(
+                            `title == \"${entity.title}\" and authors == \"${entity.authors}\"`
+                        );
+                    if (reduplicatedEntities.length > 0) {
+                        continue;
+                    }
+                    realm.create("PaperEntity", entity);
+                    successes.push(true);
                 }
             }
-            editEntity.tags = [];
         });
-        // add new tags
-        let tagObjs = await this.buildTag(entity);
-        realm.write(() => {
-            for (const tag of tagObjs) {
-                editEntity.tags.push(tag);
-            }
-
-            // remove old folders
-            for (const folder of editEntity.folders) {
-                let folderObjs = realm
-                    .objects("PaperFolder")
-                    .filtered(`name == "${folder.name}"`);
-                for (let folderObj of folderObjs) {
-                    folderObj.count -= 1;
-                    if (folderObj.count == 0) {
-                        realm.delete(folderObj);
-                    }
-                }
-            }
-            editEntity.folders = [];
-        });
-        // add new folders
-        let folderObjs = await this.buildFolder(entity);
-        realm.write(() => {
-            for (const folder of folderObjs) {
-                editEntity.folders.push(folder);
-            }
-        });
+        return successes;
     }
 }

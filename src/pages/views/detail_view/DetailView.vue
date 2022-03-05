@@ -61,7 +61,7 @@ export default defineComponent({
         const onRatingChanged = (value) => {
             let entityDraft = new PaperEntityDraft(props.entity);
             entityDraft.setValue("rating", value, false);
-            window.api.update(entityDraft);
+            window.api.update(JSON.stringify([entityDraft]));
         };
 
         const onDeleteSup = (url) => {
@@ -72,7 +72,7 @@ export default defineComponent({
         const onAddSups = (urls) => {
             let entityDraft = new PaperEntityDraft(props.entity);
             entityDraft.setValue("supURLs", [...entityDraft.supURLs, ...urls], false);
-            window.api.update(entityDraft);
+            window.api.update(JSON.stringify([entityDraft]));
         }
 
         const registerDropHandler = () => {

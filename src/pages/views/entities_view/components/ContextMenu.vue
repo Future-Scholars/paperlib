@@ -61,9 +61,8 @@ export default defineComponent({
         };
 
         const scrapeSelectedEntities = () => {
-            let entity = props.selectedEntities[0];
-            let entityDraft = new PaperEntityDraft(entity)
-            window.api.match(entityDraft);
+            let entities = props.selectedEntities;
+            window.api.scrape(JSON.stringify(entities));
         };
 
         const deleteSelectedEntities = () => {
@@ -79,7 +78,7 @@ export default defineComponent({
                     return entityDraft
                 }
             );
-            window.api.update(entityDrafts);
+            window.api.update(JSON.stringify(entityDrafts));
         };
 
         const tagSelectedEntities = () => {

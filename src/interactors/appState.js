@@ -31,6 +31,13 @@ export class SharedState {
         this.sharedData = {
             editEntityDraft: "",
         }
+
+        // DB State
+        this.dbState = {
+            entitiesUpdated: new Date().getTime(),
+            tagsUpdated: new Date().getTime(),
+            foldersUpdated: new Date().getTime(),
+        }
     }
 
     set(path, value, obj) {
