@@ -124,11 +124,11 @@ contextBridge.exposeInMainWorld("api", {
     },
 
     openLib() {
-        interactor.openLib()
+        interactor.openLib();
     },
 
     migrateLocaltoSync() {
-        interactor.migrateLocaltoSync()
+        interactor.migrateLocaltoSync();
     },
 
     // ==============================
@@ -157,5 +157,5 @@ contextBridge.exposeInMainWorld("api", {
 
     sendSignal(signal, data) {
         sharedState.set(signal, data);
-    }
+    },
 });
