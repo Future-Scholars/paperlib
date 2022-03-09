@@ -1,11 +1,30 @@
 <template>
     <div v-show="isThumbnailShown">
         <div class="detail-section-title"> Preview </div>
-        <q-spinner-oval
-            color="primary"
-            size="1em"
-            v-if="isRendering"
-        />
+        <div
+            style="
+                height: 210px;
+                width: 150px;
+                position: absolute;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            "
+            v-show="isRendering"
+        >
+            <q-card flat>
+                <q-card-section>
+                    <q-skeleton type="text" class="text-subtitle1" />
+                    <q-skeleton type="text" width="50%" class="text-subtitle1" />
+                    <q-skeleton type="text" class="text-caption" />
+                    <q-skeleton type="text" class="text-caption" />
+                    <q-skeleton type="text" class="text-caption" />
+                    <q-skeleton type="text" width="80%" class="text-caption" />
+                    <q-skeleton type="text" class="text-caption" />
+                    <q-skeleton type="text" class="text-caption" />
+                </q-card-section>
+            </q-card>
+        </div>
+
         <div
             style="
                 height: 210px;
