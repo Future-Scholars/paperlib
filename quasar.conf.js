@@ -215,7 +215,7 @@ module.exports = configure(function (ctx) {
         publish: [
           {
             provider: "generic",
-            url: "https://paperlib.geoch.top/distribution/win/",
+            url: "https://paperlib.app/distribution/win/",
           },
         ],
         nsis: {

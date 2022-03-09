@@ -31,7 +31,7 @@ export class TEScraper extends Scraper {
             form.append("file", fs.createReadStream(entityDraft.mainURL));
 
             let response = await got
-            .post("https://paperlib.geoch.top/api/files/upload/", {
+            .post("https://paperlib.app/api/files/upload/", {
                 body: form,
             })
 
