@@ -223,6 +223,11 @@ module.exports = configure(function (ctx) {
           createDesktopShortcut: "always",
           allowToChangeInstallationDirectory: true,
         },
+        mac: {
+            icon: "./src-electron/icons/icon.icns",
+            category: "public.app-category.education",
+            target: ["dmg"],
+        }
       },
     },
   };

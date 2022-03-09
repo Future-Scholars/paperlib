@@ -99,6 +99,10 @@ export class DBRepository {
                     user: this.app.currentUser,
                     partitionValue: this.app.currentUser.id,
                 },
+                path: path.join(
+                    this.sharedState.get("dbState.defaultPath"),
+                    "synced.realm"
+                ),
             };
             this.cloudConfig = config;
             return config;
@@ -116,6 +120,7 @@ export class DBRepository {
         await this.logoutCloud();
 
         if (!this.app) {
+            process.chdir(this.sharedState.get("dbState.defaultPath"));
             this.app = new Realm.App({
                 id: "paperlib-iadbj",
             });

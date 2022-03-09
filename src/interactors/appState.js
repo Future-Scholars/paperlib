@@ -1,5 +1,4 @@
-import { BrowserWindow } from "@electron/remote";
-
+import { app, BrowserWindow } from "@electron/remote";
 
 export class SharedState {
     constructor() {
@@ -32,12 +31,12 @@ export class SharedState {
         this.sharedData = {
             editEntityDraft: "",
         }
-
         // DB State
         this.dbState = {
             entitiesUpdated: new Date().getTime(),
             tagsUpdated: new Date().getTime(),
             foldersUpdated: new Date().getTime(),
+            defaultPath: app.getPath("userData"),
         }
     }
 
