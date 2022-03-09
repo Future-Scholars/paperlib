@@ -61,12 +61,18 @@ export default defineComponent({
         };
 
         const scrapeSelectedEntities = () => {
-            let entities = props.selectedEntities;
-            window.api.scrape(JSON.stringify(entities));
+            let entityDrafts = props.selectedEntities.map(
+                (entity) => {
+                    var entityDraft = new PaperEntityDraft(entity)
+                    return entityDraft
+                }
+            );
+            window.api.scrape(JSON.stringify(entityDrafts));
         };
 
         const deleteSelectedEntities = () => {
             let ids = props.selectedEntities.map((entity) => entity._id);
+            window.api.sendSignal("selectionState.selectedIndex", JSON.stringify([]));
             window.api.delete(ids);
         };
 

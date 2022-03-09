@@ -158,8 +158,6 @@ export class DBLPVenueScraper extends Scraper {
             let hits = response.result.hits.hit;
             for (const hit of hits) {
                 let venueInfo = hit["info"]
-                console.log(venueInfo["url"])
-                console.log(entityDraft.publication.replace("dblp://", "") + "/")
                 if (venueInfo["url"].includes(entityDraft.publication.replace("dblp://", "") + "/")) {
                     let venue = venueInfo["venue"]
                     entityDraft.setValue("publication", venue, false)

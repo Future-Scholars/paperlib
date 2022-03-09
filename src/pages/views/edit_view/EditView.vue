@@ -36,7 +36,8 @@
                     class="col-3"
                     unelevated
                     no-caps
-                    color="primary"
+                    color="secondary"
+                    text-color="primary"
                     label="Close"
                     @click="isEditViewShown = false"
                 />
@@ -44,7 +45,8 @@
                     class="col-3"
                     unelevated
                     no-caps
-                    color="primary"
+                    color="secondary"
+                    text-color="primary"
                     label="Save & Close"
                     @click="saveAndClose()"
                 />

@@ -414,40 +414,27 @@ export class DBRepository {
 
     // ============================================================
     // Delete
-    async delete(entity) {
+    async delete(ids) {
         let realm = await this.realm();
-        realm.write(() => {
-            for (let tag of entity.tags) {
-                let tagObjs = realm
-                    .objects("PaperTag")
-                    .filtered(`name == "${tag.name}"`);
-                for (let tagObj of tagObjs) {
-                    tagObj.count -= 1;
-                    if (tagObj.count == 0) {
-                        realm.delete(tagObj);
-                    }
-                }
-            }
+        const idsQuery = ids.map(id => `_id == oid(${id})`).join(' OR ');
+        let entities = realm.objects("PaperEntity").filtered(`(${idsQuery})`);
+        var removeFileURLs = new Array();
+        try {
+            realm.write(() => {
+                for (let entity of entities) {
+                    removeFileURLs.push(entity.mainURL)
+                    removeFileURLs.push(...entity.supURLs)
 
-            for (let folder of entity.folders) {
-                let folderObjs = realm
-                    .objects("PaperFolder")
-                    .filtered(`name == "${folder.name}"`);
-                for (let folderObj of folderObjs) {
-                    folderObj.count -= 1;
-                    if (folderObj.count == 0) {
-                        realm.delete(folderObj);
-                    }
+                    this.unlinkCategorizers(entity.tags, realm)
+                    this.unlinkCategorizers(entity.folders, realm)
                 }
-            }
-
-            realm.delete(
-                realm.objectForPrimaryKey(
-                    "PaperEntity",
-                    new ObjectId(entity._id)
-                )
-            );
-        });
+                realm.delete(entities);
+            });
+            return removeFileURLs
+        } catch (error) {
+            console.log(error)
+            return []
+        }
     }
 
     async deleteTag(tagName) {

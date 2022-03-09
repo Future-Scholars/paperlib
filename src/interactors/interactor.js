@@ -7,6 +7,7 @@ import { clipboard } from "electron";
 import { formatString } from "../utils/misc";
 import moment from "moment";
 import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
+import path from "path";
 
 import { ipcRenderer } from "electron";
 
@@ -74,36 +75,23 @@ export class Interactor {
         this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") - urlList.length);
     }
 
-    delete(ids) {
-        let deletePromise = async (id) => {
-            try {
-                let entity = await this.dbRepository.entity(id);
-                await this.fileRepository.remove(entity);
-                await this.dbRepository.delete(entity);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-
-        Promise.all(ids.map((id) => deletePromise(id)));
-    }
-
-    async addSups(id, urlList) {
-        var entity = await this.dbRepository.entity(id);
-        entity = new PaperEntityDraft(entity);
-
-        for (let url of urlList) {
-            entity.supURLs.push(url);
+    async delete(ids) {
+        try {
+            let removeFileURLs = await this.dbRepository.delete(ids);
+            await Promise.all(removeFileURLs.map((url) => this.fileRepository.removeFile(url)));
+        } catch (error) {
+            console.log(error);
         }
-
-        this.update(entity);
     }
 
     deleteSup(entity, url) {
+        entity = JSON.parse(entity);
+        entity = new PaperEntityDraft(entity);
+
         try {
-            this.fileRepository.removeFile(url);
-            entity.supURLs = entity.supURLs.filter((supUrl) => supUrl !== url);
-            this.dbRepository.update(entity);
+            this.fileRepository.removeFile(path.basename(url));
+            entity.supURLs = entity.supURLs.filter((supUrl) => supUrl !== path.basename(url));
+            this.dbRepository.update([entity]);
         } catch (error) {
             console.log(error);
         }
@@ -121,6 +109,7 @@ export class Interactor {
         entities = JSON.parse(entities);
         entities = entities.map((entity) => new PaperEntityDraft(entity));
 
+        this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") + entities.length);
         let matchPromise = async (entityDraft) => {
             try {
                 entityDraft = await this.webRepository.scrape(entityDraft);
@@ -131,10 +120,14 @@ export class Interactor {
         };
 
         let entityDrafts = await Promise.all(entities.map((entity) => matchPromise(entity)));
-        this.update(entityDrafts);
+        await this.update(JSON.stringify(entityDrafts));
+        this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") - entities.length);
     }
 
     async update(entities) {
+        entities = JSON.parse(entities);
+        entities = entities.map((entity) => new PaperEntityDraft(entity));
+
         this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") + entities.length);
         let updatePromise = async (entities) => {
             try {

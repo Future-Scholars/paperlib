@@ -71,11 +71,12 @@ export default defineComponent({
         const scrapeSelectedEntities = () => {
             let entity = props.selectedEntities[0];
             let entityDraft = new PaperEntityDraft(entity)
-            window.api.match(entityDraft);
+            window.api.scrape(JSON.stringfy(entityDraft));
         };
 
         const deleteSelectedEntities = () => {
             let ids = props.selectedEntities.map((entity) => entity._id);
+            window.api.sendSignal("selectionState.selectedIndex", JSON.stringify([]));
             window.api.delete(ids);
         };
 

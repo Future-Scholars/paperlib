@@ -48,11 +48,6 @@ contextBridge.exposeInMainWorld("api", {
 
     // ==============================
     // Interactor functions
-    // Listening to Realm change
-    listenRealmChange(callback) {
-        interactor.listenRealmChange(callback);
-    },
-
     // Load
     async load(search, flag, tag, folder, sortBy, sortOrder) {
         return await interactor.load(
@@ -78,10 +73,6 @@ contextBridge.exposeInMainWorld("api", {
         return await interactor.add(pathList);
     },
 
-    addSups(id, pathList) {
-        interactor.addSups(id, pathList);
-    },
-
     // Delete
     delete(entities) {
         interactor.delete(entities);
@@ -105,7 +96,7 @@ contextBridge.exposeInMainWorld("api", {
     },
 
     update(entities) {
-        interactor.update(JSON.parse(entities));
+        interactor.update(entities);
     },
 
     // Open
