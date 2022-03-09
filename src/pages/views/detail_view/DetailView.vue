@@ -66,7 +66,7 @@ export default defineComponent({
 
         const onDeleteSup = (url) => {
             let entityDraft = new PaperEntityDraft(props.entity);
-            window.api.deleteSup(entityDraft, url);
+            window.api.deleteSup(JSON.stringify(entityDraft), url);
         };
 
         const onAddSups = (urls) => {

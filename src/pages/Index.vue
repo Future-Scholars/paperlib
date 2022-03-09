@@ -135,6 +135,17 @@ export default {
             reloadFolders();
         });
 
+        window.api.registerSignal("pluginURL", async (event, message) => {
+            await window.api.add([message]);
+        });
+
+        window.api.registerSignal("viewState.realmReinited", async (event, message) => {
+            clearSelected();
+            await reloadEntities();
+            await reloadTags();
+            await reloadFolders();
+        });
+
         // =======================================
         // Data
         const reloadEntities = async () => {
@@ -187,13 +198,6 @@ export default {
         const reloadPreference = () => {
             preference.value = window.api.loadPreferences();
         };
-
-        // Signal
-        window.api.registerSignal("pluginURL", async (event, message) => {
-            showLoadingIcon.value = true;
-            await window.api.add([message]);
-            showLoadingIcon.value = false;
-        });
 
         onMounted(async () => {
             reloadPreference();

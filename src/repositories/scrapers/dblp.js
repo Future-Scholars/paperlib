@@ -42,6 +42,12 @@ function dblpParsingProcess(rawResponse, entityDraft) {
                         authorList.push(author.text.trim());
                     }
                 }
+
+                // only keep english characters
+                authorList = authorList.map((author) => {
+                    return author.replace(/[0-9]/g, "");
+                });
+                
                 let authors = authorList.join(", ");
 
                 let pubTime = article.year;
@@ -71,9 +77,9 @@ function dblpParsingProcess(rawResponse, entityDraft) {
 }
 
 export class DBLPScraper extends Scraper {
-    constructor(enable) {
+    constructor(preference) {
         super();
-        this.enable = enable;
+        this.preference = preference;
     }
 
     preProcess(entityDraft) {
@@ -86,7 +92,7 @@ export class DBLPScraper extends Scraper {
             removeStr: "&",
         }).replace("—", "-");
 
-        let enable = dblpQuery !== "" && this.enable;
+        let enable = dblpQuery !== "" && this.preference.get("dblpScraper");
         let scrapeURL = "https://dblp.org/search/publ/api?q=" +
                         dblpQuery +
                         "&format=json"
@@ -158,8 +164,6 @@ export class DBLPVenueScraper extends Scraper {
             let hits = response.result.hits.hit;
             for (const hit of hits) {
                 let venueInfo = hit["info"]
-                console.log(venueInfo["url"])
-                console.log(entityDraft.publication.replace("dblp://", "") + "/")
                 if (venueInfo["url"].includes(entityDraft.publication.replace("dblp://", "") + "/")) {
                     let venue = venueInfo["venue"]
                     entityDraft.setValue("publication", venue, false)

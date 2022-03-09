@@ -2,14 +2,13 @@ import { Scraper } from "./scraper";
 import { formatString } from "../../utils/misc";
 
 export class IEEEScraper extends Scraper {
-    constructor(enable, apiKey) {
+    constructor(preference) {
         super();
-        this.enable = enable;
-        this.apiKey = apiKey;
+        this.preference = preference;
     }
 
     preProcess(entityDraft) {
-        let enable = entityDraft.title !== "" && (entityDraft.publication === "arXiv" || entityDraft.publication === "") && this.enable;
+        let enable = entityDraft.title !== "" && (entityDraft.publication === "arXiv" || entityDraft.publication === "") && this.preference.get("ieeeScraper");
         var requestTitle = formatString({
             str: entityDraft.title, 
             removeNewline: true
@@ -17,7 +16,7 @@ export class IEEEScraper extends Scraper {
         requestTitle = requestTitle.replace(" ", "+")
 
         let scrapeURL = "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=" +
-                        this.apiKey +
+                        this.preference.get("ieeeAPIKey") +
                         "&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=" +
                         requestTitle;
 

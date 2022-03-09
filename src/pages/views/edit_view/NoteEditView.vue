@@ -15,7 +15,8 @@
                     class="col-3"
                     unelevated
                     no-caps
-                    color="primary"
+                    color="secondary"
+                    text-color="primary"
                     label="Close"
                     @click="onClose"
                 />
@@ -23,7 +24,8 @@
                     class="col-3"
                     unelevated
                     no-caps
-                    color="primary"
+                    color="secondary"
+                    text-color="primary"
                     label="Save & Close"
                     @click="onSave"
                 />

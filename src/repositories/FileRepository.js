@@ -1,7 +1,7 @@
 import * as pdfjs from "pdfjs-dist";
 import { formatString } from "../utils/misc";
 import { PaperEntityDraft } from "../models/PaperEntity";
-import { promises as fsPromise, createWriteStream } from "fs";
+import { promises as fsPromise, createWriteStream, existsSync } from "fs";
 import path from "path";
 import os from "os";
 import got from "got";
@@ -18,7 +18,7 @@ export class FileRepository {
 
     // ============================================================
     // Read file from local storage
-    constructUrl(url, joined, withProtocol = true) {
+    constructURL(url, joined, withProtocol = true) {
         var outURL;
         if (path.isAbsolute(url)) {
             outURL = url;
@@ -45,27 +45,35 @@ export class FileRepository {
     }
 
     async read(url) {
-        console.log("read", url);
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            return await this.readFromWeb(url);
+        }
+        else {
+            return await this.readFromLocal(url);
+        }
+    }
+
+    // ============================================================
+   // Read file from local
+     async readFromLocal(url) {
         if (url.endsWith(".pdf")) {
-            if (url.startsWith("paperlib://")) {
-                return this.downloadPDF(url);
-            } else {
-                return await this.readPDF(url);
-            }
+            return await this.readPDF(url);
         } else {
             throw new Error("Unsupported file type.");
         }
     }
 
+    // ============================================================
+    // PDF files
     async readPDF(url) {
         try {
             const pdf = await pdfjs.getDocument(
-                this.constructUrl(url, false, true)
+                this.constructURL(url, false, true)
             ).promise;
 
             const entity = new PaperEntityDraft();
 
-            if (this.preference.get("allowFetchPDFMeta")) {
+            if (this.preference.get("pdfBuiltinScraper")) {
                 const metaData = await pdf.getMetadata();
                 const title = metaData.info.Title;
                 const authors = metaData.info.Author;
@@ -82,28 +90,6 @@ export class FileRepository {
 
             entity.setValue("mainURL", url, false);
             return entity;
-        } catch (error) {
-            console.log(error);
-            throw error;
-        }
-    }
-
-    async downloadPDF(url) {
-        console.log("download", url);
-        try {
-            let downloadUrl = url.split("=").pop();
-            let filename = url.split("/").pop();
-            let targetUrl = path.join(os.homedir(), "Downloads", filename);
-            console.log(targetUrl);
-            console.log(downloadUrl);
-            console.log(targetUrl);
-            const pipeline = promisify(stream.pipeline);
-
-            await pipeline(
-                got.stream(downloadUrl),
-                createWriteStream(this.constructUrl(targetUrl, false, false))
-            );
-            return this.readPDF(targetUrl);
         } catch (error) {
             console.log(error);
             throw error;
@@ -167,6 +153,25 @@ export class FileRepository {
     }
 
     // ============================================================
+    // Read file from web
+    async download(url) {
+        try {
+            let filename = url.split("/").pop();
+            let targetUrl = path.join(os.homedir(), "Downloads", filename);
+            const pipeline = promisify(stream.pipeline);
+
+            await pipeline(
+                got.stream(url),
+                createWriteStream(this.constructURL(targetUrl, false, false))
+            );
+            return await this.readFromLocal(targetUrl);
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    }
+
+    // ============================================================
     // Move local file to destination
     async _move(sourcePath, targetPath) {
         var _sourcePath = JSON.parse(JSON.stringify(sourcePath)).replace(
@@ -192,55 +197,38 @@ export class FileRepository {
 
     // Move to DB folder
     async move(entity) {
-        try {
-            let targetFileName =
-                entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") +
-                "_" +
-                entity._id.toString();
+        let targetFileName =
+            entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") +
+            "_" +
+            entity._id.toString();
 
-            var sourceUrls = [];
-            for (let url of entity.supURLs) {
-                sourceUrls.push(this.constructUrl(url, true, false));
-            }
-            entity.supURLs = [];
-
-            var targetUrls = [];
-            for (let i = 0; i < sourceUrls.length; i++) {
-                let targetSupName =
-                    targetFileName +
-                    "_sup" +
-                    i +
-                    sourceUrls[i].substr(sourceUrls[i].lastIndexOf("."));
-                targetUrls.push(this.constructUrl(targetSupName, true, false));
-                entity.supURLs.push(targetSupName);
-            }
-
-            sourceUrls.push(this.constructUrl(entity.mainURL, true, false));
-            let targetMainName =
-                targetFileName +
-                "_main" +
-                entity.mainURL.substr(entity.mainURL.lastIndexOf("."));
-            targetUrls.push(this.constructUrl(targetMainName, true, false));
-            entity.mainURL = targetMainName;
-
-            var promiseList = [];
-            for (let i = 0; i < sourceUrls.length; i++) {
-                if (sourceUrls[i] !== targetUrls[i]) {
-                    promiseList.push(this._move(sourceUrls[i], targetUrls[i]));
-                }
-            }
-            if (promiseList.length > 0) {
-                let successes = await Promise.all(promiseList);
-                let success = successes.every((success) => success);
-                return success;
-            } else {
-                return true;
-            }
-        } catch (error) {
-            console.log(error);
-            console.log("Error moving file.");
-            return false;
+        // 1. Move main file.
+        let sourceMainURL = this.constructURL(entity.mainURL, true, false);
+        var targetMainURL = this.constructURL(targetFileName + "_main", true, false);
+        targetMainURL += path.extname(sourceMainURL);
+        let mainSuccess = this._move(sourceMainURL, targetMainURL);
+        if (mainSuccess) {
+            entity.setValue("mainURL", path.basename(targetMainURL), false)
+        } else {
+            throw new Error("Move main file error.");
         }
+
+        // 2. Move supplementary files.
+        let sourceSupURLs = entity.supURLs.map((url) => this.constructURL(url));
+        var targetSupURLs = new Array()
+        sourceSupURLs.forEach((sourceSupURL, i) => {
+            var targetSupURL = this.constructURL(targetFileName + `_sup${i}`, true, false);
+            targetSupURL += path.extname(sourceSupURL);
+
+            let supSuccess = this._move(sourceSupURL, targetSupURL);
+            if (supSuccess) {
+                targetSupURLs.push(path.basename(targetSupURL));
+            } else {
+                throw new Error("Move supplementary file error.");
+            }
+        });
+        entity.setValue("supURLs", targetSupURLs, true)
+        return entity;
     }
 
     // Remove local file
@@ -259,9 +247,9 @@ export class FileRepository {
         try {
             var sourceUrls = [];
             for (let url of entity.supURLs) {
-                sourceUrls.push(this.constructUrl(url, true, false));
+                sourceUrls.push(this.constructURL(url, true, false));
             }
-            sourceUrls.push(this.constructUrl(entity.mainURL, true, false));
+            sourceUrls.push(this.constructURL(entity.mainURL, true, false));
 
             var promiseList = [];
             for (let url of sourceUrls) {
@@ -280,8 +268,11 @@ export class FileRepository {
 
     async removeFile(url) {
         try {
-            await this._remove(this.constructUrl(url, true, false));
-            return true;
+            if (existsSync(this.constructURL(url, true, false))) {
+                return await this._remove(this.constructURL(url, true, false));
+            } else {
+                return true;
+            }
         } catch (error) {
             console.log(error);
             console.log("Error removing file.");

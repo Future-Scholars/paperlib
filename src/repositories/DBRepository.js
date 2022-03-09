@@ -31,9 +31,17 @@ export class DBRepository {
     }
 
     async initRealm(reinit = false) {
-        if (this._realm && reinit) {
-            this._realm.close();
+        if (this._realm || reinit) {
+            if (this._realm) {
+                this._realm.close();
+            }
             this._realm = null;
+            this.app = null;
+            this.cloudConfig = null;
+            this.localConfig = null;
+            this.entitiesListenerInited = false;
+            this.tagsListenerInited = false;
+            this.foldersListenerInited = false;
         }
 
         if (this._realm) {
@@ -41,6 +49,7 @@ export class DBRepository {
         }
         await this.getConfig();
         if (this.cloudConfig) {
+            console.log(this.cloudConfig)
             try {
                 this._realm = new Realm(this.cloudConfig);
             } catch (err) {
@@ -136,28 +145,22 @@ export class DBRepository {
     }
 
     async logoutCloud() {
-        await this.app.currentUser.logOut();
+        if (this.app && this.app.currentUser) {
+            await this.app.currentUser.logOut();
+        }
     }
 
     async migrateLocaltoSync() {
-        if (this._realm) {
-            this._realm.close();
-        }
-        // Read local data
-        this.initLocal();
-        var entities = this._realm.objects("PaperEntity");
+        try {
+            let localConfig = this.getLocalConfig();
+            let localRealm = new Realm(localConfig);
 
-        console.log("Migrate local data to sync.");
-        // Write to sync server
-        await this.initSync();
+            let entities = localRealm.objects("PaperEntity")
+            let entityDrafts = entities.map((entity) => new PaperEntityDraft(entity))
 
-        // Add without tags and folders
-        for (const entity of entities) {
-            this.add(new PaperEntityDraft(entity));
-        }
-        // Add tags and folders
-        for (const entity of entities) {
-            await this.update(entity);
+            await this.update(entityDrafts);
+        } catch (error) {
+            console.log(error);
         }
     }
 
@@ -414,40 +417,27 @@ export class DBRepository {
 
     // ============================================================
     // Delete
-    async delete(entity) {
+    async delete(ids) {
         let realm = await this.realm();
-        realm.write(() => {
-            for (let tag of entity.tags) {
-                let tagObjs = realm
-                    .objects("PaperTag")
-                    .filtered(`name == "${tag.name}"`);
-                for (let tagObj of tagObjs) {
-                    tagObj.count -= 1;
-                    if (tagObj.count == 0) {
-                        realm.delete(tagObj);
-                    }
-                }
-            }
+        const idsQuery = ids.map(id => `_id == oid(${id})`).join(' OR ');
+        let entities = realm.objects("PaperEntity").filtered(`(${idsQuery})`);
+        var removeFileURLs = new Array();
+        try {
+            realm.write(() => {
+                for (let entity of entities) {
+                    removeFileURLs.push(entity.mainURL)
+                    removeFileURLs.push(...entity.supURLs)
 
-            for (let folder of entity.folders) {
-                let folderObjs = realm
-                    .objects("PaperFolder")
-                    .filtered(`name == "${folder.name}"`);
-                for (let folderObj of folderObjs) {
-                    folderObj.count -= 1;
-                    if (folderObj.count == 0) {
-                        realm.delete(folderObj);
-                    }
+                    this.unlinkCategorizers(entity.tags, realm)
+                    this.unlinkCategorizers(entity.folders, realm)
                 }
-            }
-
-            realm.delete(
-                realm.objectForPrimaryKey(
-                    "PaperEntity",
-                    new ObjectId(entity._id)
-                )
-            );
-        });
+                realm.delete(entities);
+            });
+            return removeFileURLs
+        } catch (error) {
+            console.log(error)
+            return []
+        }
     }
 
     async deleteTag(tagName) {

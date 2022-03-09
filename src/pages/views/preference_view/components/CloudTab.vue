@@ -38,6 +38,19 @@
                     style="font-size: 10px;"
                     class="q-ml-sm"
                     @click="onLoginClicked"
+                    v-if="!preference.useSync"
+                />
+                <q-btn
+                    unelevated
+                    no-caps
+                    size="xs"
+                    text-color="primary"
+                    color="secondary"
+                    label="Logout"
+                    style="font-size: 10px;"
+                    class="q-ml-sm"
+                    @click="onLogoutClicked"
+                    v-if="preference.useSync"
                 />
             </div>
         </div>
@@ -47,17 +60,18 @@
                 Migrate the local database to the cloud database.
             </span>
         </div>
-            <q-btn
-                unelevated
-                no-caps
-                size="sm"
-                text-color="primary"
-                color="secondary"
-                label="Migrate"
-                style="font-size: 12px;"
-                class="q-mt-sm"
-                @click="onMigrateClicked"
-            />
+        <q-btn
+            unelevated
+            no-caps
+            size="sm"
+            text-color="primary"
+            color="secondary"
+            label="Migrate"
+            style="font-size: 12px;"
+            class="q-mt-sm"
+            @click="onMigrateClicked"
+            :disable="!preference.useSync"
+        />
     </q-tab-panel>
 </template>
 
@@ -79,8 +93,25 @@ export default defineComponent({
             window.api.updatePreference(key, value);
         };
 
+        const onLoginClicked = () => {
+            window.api.updatePreference("useSync", true)
+            window.api.openLib();
+        };
+
+        const onLogoutClicked = () => {
+            window.api.updatePreference("useSync", false)
+            window.api.openLib();
+        };
+
+        const onMigrateClicked = () => {
+            window.api.migrateLocaltoSync();
+        };
+
         return {
             onUpdate,
+            onLoginClicked,
+            onLogoutClicked,
+            onMigrateClicked,
             ...toRefs(props),
         };
     },

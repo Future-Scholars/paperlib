@@ -69,13 +69,18 @@ export default defineComponent({
         };
 
         const scrapeSelectedEntities = () => {
-            let entity = props.selectedEntities[0];
-            let entityDraft = new PaperEntityDraft(entity)
-            window.api.match(entityDraft);
+            let entityDrafts = props.selectedEntities.map(
+                (entity) => {
+                    var entityDraft = new PaperEntityDraft(entity)
+                    return entityDraft
+                }
+            );
+            window.api.scrape(JSON.stringify(entityDrafts));
         };
 
         const deleteSelectedEntities = () => {
             let ids = props.selectedEntities.map((entity) => entity._id);
+            window.api.sendSignal("selectionState.selectedIndex", JSON.stringify([]));
             window.api.delete(ids);
         };
 
@@ -127,6 +132,17 @@ export default defineComponent({
             window.api.sendSignal("viewState.searchText", JSON.stringify(searchText));
         };
 
+        const exportSelectedEntities = (format) => {
+            let entityDrafts = props.selectedEntities.map(
+                (entity) => {
+                    var entityDraft = new PaperEntityDraft(entity)
+                    entityDraft.flag = !entityDraft.flag;
+                    return entityDraft
+                }
+            );
+            window.api.export(JSON.stringify(entityDrafts), format);
+        };
+
         const bindShortcut = () => {
             Mousetrap.bind("enter", function () {
                 if (selectedEntities.value.length == 1) {
@@ -134,7 +150,7 @@ export default defineComponent({
                 }
             });
             Mousetrap.bind("ctrl+shift+c", function () {
-                exportEntities("bibtex");
+                exportSelectedEntities("bibtex");
             });
             Mousetrap.bind("ctrl+e", function () {
                 if (selectedEntities.value.length == 1) {
