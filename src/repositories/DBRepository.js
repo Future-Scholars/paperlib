@@ -62,8 +62,6 @@ export class DBRepository {
                 console.log(err);
             }
         }
-
-        // TODO: send signal
     }
 
     async getConfig() {
@@ -123,24 +121,21 @@ export class DBRepository {
                 id: "paperlib-iadbj",
             });
         }
-        if (!this.app.currentUser) {
-            try {
-                const credentials = Realm.Credentials.serverApiKey(
-                    this.preference.get("syncAPIKey")
-                );
-                await this.app.logIn(credentials);
-                console.log("Successfully logged in!");
-            } catch (err) {
-                this.preference.set("useSync", false);
-                this.sharedState.set(
-                    "viewState.preferenceUpdated",
-                    new Date().getTime()
-                );
-                console.error("Failed to log in", err.message);
-            }
-            return null;
-        } else {
+        try {
+            const credentials = Realm.Credentials.serverApiKey(
+                this.preference.get("syncAPIKey")
+            );
+            await this.app.logIn(credentials);
+            console.log("Successfully logged in!");
             return this.app.currentUser;
+        } catch (err) {
+            this.preference.set("useSync", false);
+            this.sharedState.set(
+                "viewState.preferenceUpdated",
+                new Date().getTime()
+            );
+            console.error("Failed to log in", err.message);
+            return null;
         }
     }
 
@@ -344,6 +339,8 @@ export class DBRepository {
         let objects = realm
             .objects("PaperEntity")
             .sorted(sortBy, sortOrder == "desc");
+        
+        this.sharedState.set("viewState.entitiesCount", objects.length);
 
         if (!this.entitiesListenerInited) {
             objects.addListener((objs, changes) => {

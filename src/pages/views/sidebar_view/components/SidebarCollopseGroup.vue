@@ -32,6 +32,7 @@
             :name=icon
         />
         <span class=""> {{ categorizer.name }} </span>
+        <q-badge rounded class="absolute-right q-mt-sm q-mb-sm q-mr-sm" text-color="primary" align="middle" :label="categorizer.count" style="background-color: rgb(202, 202, 202); font-size: 0.8em"/>
         <q-menu touch-position context-menu>
             <q-list dense style="min-width: 50px">
                 <q-item clickable v-close-popup @click="deleteCategorizer(categorizer)">

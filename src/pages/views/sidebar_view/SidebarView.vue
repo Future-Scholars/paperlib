@@ -7,7 +7,7 @@
                 <span class="text-primary">Library</span>
             </q-item>
 
-            <SidebarItem label="All Papers" icon="bi-collection" :withSpinner="true" :active="selectedCategorizer === 'lib-all'" @click="onSelectCategorizer('lib-all')" />
+            <SidebarItem label="All Papers" icon="bi-collection" :count="entitiesCount" :withSpinner="true" :active="selectedCategorizer === 'lib-all'" @click="onSelectCategorizer('lib-all')" />
             <SidebarItem label="Flags" icon="bi-flag" :withSpinner="false" :active="selectedCategorizer === 'lib-flaged'" @click="onSelectCategorizer('lib-flaged')" />
 
             <SidebarCollopseGroup label="Tags" icon="bi-tag" :categorizers="tags" categorizerType="tag" :selectedCategorizer="selectedCategorizer" @select-categorizer="onSelectCategorizer" />
@@ -23,7 +23,7 @@
 </style>
 
 <script>
-import { defineComponent, toRefs } from "vue";
+import { defineComponent, toRefs, ref } from "vue";
 
 import WindowControl from "src/pages/views/sidebar_view/components/WindowControl.vue";
 import SidebarItem from "src/pages/views/sidebar_view/components/SidebarItem.vue";
@@ -45,11 +45,19 @@ export default defineComponent({
     },
 
     setup(props, { emit }) {
+        const entitiesCount = ref(0);
+
         const onSelectCategorizer = (categorizer) => {
             window.api.sendSignal("selectionState.selectedCategorizer", JSON.stringify(categorizer));
         };
 
+        window.api.registerSignal("viewState.entitiesCount", (event, message) => {
+            entitiesCount.value = JSON.parse(message);
+        });
+
+
         return {
+            entitiesCount,
             onSelectCategorizer,
             ...toRefs(props),
         }

@@ -6,6 +6,7 @@ export class SharedState {
         // View State
         this.viewState = {
             processingQueueCount: 0,
+            entitiesCount: 0,
 
             sortBy: "addTime",
             sortOrder: "desc",
