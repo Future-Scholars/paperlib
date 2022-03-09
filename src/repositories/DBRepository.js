@@ -52,13 +52,13 @@ export class DBRepository {
             try {
                 this._realm = new Realm(this.cloudConfig);
             } catch (err) {
-                console.log(err);
+                this.sharedState.set("viewState.alertInformation", `Open cloud database faild: ${err}`);
             }
         } else {
             try {
                 this._realm = new Realm(this.localConfig);
             } catch (err) {
-                console.log(err);
+                this.sharedState.set("viewState.alertInformation", `Open cloud database faild: ${err}`);
             }
         }
     }
@@ -130,7 +130,7 @@ export class DBRepository {
                 this.preference.get("syncAPIKey")
             );
             await this.app.logIn(credentials);
-            console.log("Successfully logged in!");
+            this.sharedState.set("viewState.alertInformation", "Successfully logged in!");
             return this.app.currentUser;
         } catch (err) {
             this.preference.set("useSync", false);
@@ -159,7 +159,7 @@ export class DBRepository {
 
             await this.update(entityDrafts);
         } catch (error) {
-            console.log(error);
+            this.sharedState.set("viewState.alertInformation", `Migrate local to sync faild: ${error}`);
         }
     }
 
@@ -436,7 +436,7 @@ export class DBRepository {
             });
             return removeFileURLs
         } catch (error) {
-            console.log(error)
+            this.sharedState.set("viewState.alertInformation", `Error deleting entities: ${error}`);
             return []
         }
     }

@@ -19,6 +19,8 @@ export class SharedState {
 
             preferenceUpdated: new Date().getTime(),
             realmReinited: new Date().getTime(),
+
+            alertInformation: "",
         }
 
         // Selection State
@@ -89,7 +91,6 @@ export class SharedState {
     }
 
     sendSignal(signal, data) {
-        console.log("Sending", signal, data);
         BrowserWindow.getAllWindows()[0].webContents.send(signal, data);
     }
 }

@@ -48,6 +48,7 @@
 
 <script>
 import { ref, onMounted } from "vue";
+import { useQuasar } from 'quasar'
 
 import SidebarView from "src/pages/views/sidebar_view/SidebarView.vue";
 import EntitiesView from "src/pages/views/entities_view/EntitiesView.vue";
@@ -73,6 +74,8 @@ export default {
     },
 
     setup() {
+        const $q = useQuasar()
+
         const sortBy = ref("addTime");
         const sortOrder = ref("desc");
 
@@ -146,6 +149,10 @@ export default {
             await reloadTags();
             await reloadFolders();
         });
+
+        window.api.registerSignal("viewState.alertInformation", async (event, message) => {
+            $q.notify(message);
+        });  
 
         // =======================================
         // Data

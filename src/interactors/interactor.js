@@ -57,7 +57,7 @@ export class Interactor {
                     entityDraft = await this.fileRepository.read(url);
                     entityDraft = await this.webRepository.scrape(entityDraft);
                 } catch (error) {
-                    console.log(error);
+                    this.sharedState.set("viewState.alertInformation", `Add failed: ${error}`);
                 }
                 return entityDraft;
             };
@@ -72,7 +72,7 @@ export class Interactor {
             let unsuccessfulEntityDrafts = entityDrafts.filter((entityDraft, index) => !dbSuccesses[index]);
             await Promise.all(unsuccessfulEntityDrafts.map((entityDraft) => this.fileRepository.remove(entityDraft)));
         } catch (error) {
-            console.log(error);
+            this.sharedState.set("viewState.alertInformation", `Add failed: ${error}`);
         }
         this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") - urlList.length);
     }
@@ -82,7 +82,7 @@ export class Interactor {
             let removeFileURLs = await this.dbRepository.delete(ids);
             await Promise.all(removeFileURLs.map((url) => this.fileRepository.removeFile(url)));
         } catch (error) {
-            console.log(error);
+            this.sharedState.set("viewState.alertInformation", `Delete failed: ${error}`);
         }
     }
 
@@ -95,7 +95,7 @@ export class Interactor {
             entity.supURLs = entity.supURLs.filter((supUrl) => supUrl !== path.basename(url));
             this.dbRepository.update([entity]);
         } catch (error) {
-            console.log(error);
+            this.sharedState.set("viewState.alertInformation", `Delete failed: ${error}`);
         }
     }
 
@@ -116,7 +116,7 @@ export class Interactor {
             try {
                 entityDraft = await this.webRepository.scrape(entityDraft);
             } catch (error) {
-                console.log(error);
+                this.sharedState.set("viewState.alertInformation", `Scrape failed: ${error}`);
             }
             return entityDraft
         };
@@ -137,7 +137,7 @@ export class Interactor {
                     await this.fileRepository.move(entity);
                 }
             } catch (error) {
-                console.log(error);
+                this.sharedState.set("viewState.alertInformation", `Update failed: ${error}`);
             }
             await this.dbRepository.update(entities);
         };
@@ -157,7 +157,7 @@ export class Interactor {
     async routineScrape() {
         let allowRoutineMatch = this.preference.get("allowRoutineMatch");
         if (allowRoutineMatch) {
-            console.log("Routine scraping started.");
+            this.sharedState.set("viewState.alertInformation", "Start routine scraping...");
             this.preference.set("lastRematchTime", moment().unix());
             let entities = await this.dbRepository.preprintEntities();
             let entityDrafts = entities.map((entity) => new PaperEntityDraft(entity));

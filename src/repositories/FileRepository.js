@@ -91,7 +91,7 @@ export class FileRepository {
             entity.setValue("mainURL", url, false);
             return entity;
         } catch (error) {
-            console.log(error);
+            this.sharedState.set("viewState.alertInformation", `Could not read PDF file: ${error}`);
             throw error;
         }
     }
@@ -166,7 +166,7 @@ export class FileRepository {
             );
             return await this.readFromLocal(targetUrl);
         } catch (error) {
-            console.log(error);
+            this.sharedState.set("viewState.alertInformation", `Could not download PDF file: ${error}`);
             throw error;
         }
     }
@@ -190,7 +190,7 @@ export class FileRepository {
             }
             return true;
         } catch (error) {
-            console.log("Copy file error: " + error);
+            this.sharedState.set("viewState.alertInformation", `Could not copy file: ${error}`);
             return false;
         }
     }
@@ -238,7 +238,7 @@ export class FileRepository {
             await fsPromise.unlink(_sourcePath);
             return true;
         } catch (error) {
-            console.log("Remove file error: " + error);
+            this.sharedState.set("viewState.alertInformation", `Could not remove file: ${error}`);
             return false;
         }
     }
@@ -260,8 +260,7 @@ export class FileRepository {
             let success = successes.every((success) => success);
             return success;
         } catch (error) {
-            console.log(error);
-            console.log("Error removing file.");
+            this.sharedState.set("viewState.alertInformation", `Could not remove file: ${error}`);
             return false;
         }
     }
@@ -274,8 +273,7 @@ export class FileRepository {
                 return true;
             }
         } catch (error) {
-            console.log(error);
-            console.log("Error removing file.");
+            this.sharedState.set("viewState.alertInformation", `Could not remove file: ${error}`);
             return false;
         }
     }

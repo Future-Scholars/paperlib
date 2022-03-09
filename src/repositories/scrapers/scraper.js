@@ -6,7 +6,7 @@ export class Scraper {
         try {
             entityDraft = await this.scrapeImpl(entityDraft);
         } catch (error) {
-            console.log(error);
+            this.sharedState.set("viewState.alertInformation", `Scraper Error: ${error}`);
         }
         return entityDraft;
     }
