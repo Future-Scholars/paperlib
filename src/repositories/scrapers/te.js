@@ -1,14 +1,16 @@
 import { Scraper } from "./scraper";
-import fs from "fs";
+import fs from "fs"
+import got from "got";
+
 
 export class TEScraper extends Scraper {
-    constructor(enable) {
+    constructor(preference) {
         super();
-        this.enable = enable;
+        this.preference = preference;
     }
 
     preProcess(entityDraft) {
-        let enable = entityDraft.title === "" && entityDraft.arxiv === "" && entityDraft.doi === "" && fs.existsSync(entityDraft.mainURL) && this.enable
+        let enable = entityDraft.title === "" && entityDraft.arxiv === "" && entityDraft.doi === "" && fs.existsSync(entityDraft.mainURL) && this.preference.get("teScraper");
         let scrapeURL = "https://paperlib.app/api/files/upload/"
         let headers = {};
 

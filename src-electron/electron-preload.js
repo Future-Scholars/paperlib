@@ -119,17 +119,19 @@ contextBridge.exposeInMainWorld("api", {
         return interactor.loadPreferences();
     },
 
-    getFolder(path) {
-        return pathLib.dirname(path);
-    },
-
     version() {
         return app.getVersion();
     },
 
-    loadAppLibPath() {
-        return interactor.appLibPath();
+    openLib() {
+        interactor.openLib()
     },
+
+    migrateLocaltoSync() {
+        interactor.migrateLocaltoSync()
+    },
+
+    // ==============================
 
     getJoinedPath(url, withProtocol) {
         let joinedPath = pathLib.join(interactor.appLibPath(), url);

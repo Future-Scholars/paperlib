@@ -82,10 +82,11 @@ export default defineComponent({
         const onFolderConfirmed = (file) => {
             let newFolderPath = file.path.split("/").slice(0, -1).join("/");
             window.api.updatePreference("appLibFolder", newFolderPath);
+            window.api.openLib()
         };
 
-        const onToggleDeleteSourceFile = () => {
-            window.api.updatePreference("deleteSourceFile", !props.preference.deleteSourceFile);
+        const onToggleDeleteSourceFile = (value) => {
+            window.api.updatePreference("deleteSourceFile", value);
         };
 
         return {

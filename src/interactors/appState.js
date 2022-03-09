@@ -18,7 +18,7 @@ export class SharedState {
             isPreferenceViewShown: false,
 
             preferenceUpdated: new Date().getTime(),
-
+            realmReinited: new Date().getTime(),
         }
 
         // Selection State

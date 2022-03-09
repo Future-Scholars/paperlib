@@ -2,13 +2,13 @@ import { Scraper } from "./scraper";
 import { formatString } from "../../utils/misc";
 
 export class DOIScraper extends Scraper {
-    constructor(enable) {
+    constructor(preference) {
         super();
-        this.enable = enable;
+        this.preference = preference;
     }
 
     preProcess(entityDraft) {
-        let enable = entityDraft.doi !== "" && this.enable;
+        let enable = entityDraft.doi !== "" && this.preference.get("doiScraper");
         let doiID = formatString({
             str: entityDraft.doi,
             removeNewline: true,

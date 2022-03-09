@@ -10,15 +10,15 @@ export class WebRepository {
         this.preference = preference;
 
         this.scraperList = [
-            new TEScraper(this.preference.get("teScraper")),
-            new ArXivScraper(this.preference.get("arXivScraper")),
-            new DOIScraper(this.preference.get("doiScraper")),
-            new DBLPScraper(this.preference.get("dblpScraper")),
-            new DBLPbyTimeScraper(this.preference.get("dblpScraper"), 0),
-            new DBLPbyTimeScraper(this.preference.get("dblpScraper"), 1),
-            new DBLPVenueScraper(this.preference.get("dblpScraper")),
-            new CVFScraper(this.preference.get("cvfScraper")),
-            new IEEEScraper(this.preference.get("ieeeScraper"), this.preference.get("ieeeAPIKey")),
+            new TEScraper(this.preference),
+            new ArXivScraper(this.preference),
+            new DOIScraper(this.preference),
+            new DBLPScraper(this.preference),
+            new DBLPbyTimeScraper(this.preference, 0),
+            new DBLPbyTimeScraper(this.preference, 1),
+            new DBLPVenueScraper(this.preference),
+            new CVFScraper(this.preference),
+            new IEEEScraper(this.preference),
         ]
     }
 

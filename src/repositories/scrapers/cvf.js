@@ -2,13 +2,13 @@ import { Scraper } from "./scraper";
 import { formatString } from "../../utils/misc";
 
 export class CVFScraper extends Scraper {
-    constructor(enable) {
+    constructor(preference) {
         super();
-        this.enable = enable;
+        this.preference = preference;
     }
 
     preProcess(entityDraft) {
-        let enable = entityDraft.title !== "" && (entityDraft.publication === "arXiv" || entityDraft.publication === "") && this.enable;
+        let enable = entityDraft.title !== "" && (entityDraft.publication === "arXiv" || entityDraft.publication === "") && this.preference.get("cvfScraper");
         let shortTitle = formatString({
             str: entityDraft.title, 
             removeWhite: true, 

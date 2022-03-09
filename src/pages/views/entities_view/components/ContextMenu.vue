@@ -108,8 +108,15 @@ export default defineComponent({
             window.api.sendSignal("viewState.isNoteViewShown", JSON.stringify(true));
         };
 
-        const exportSelectedEntities = (form) => {
-            // TODO: export to file
+        const exportSelectedEntities = (format) => {
+            let entityDrafts = props.selectedEntities.map(
+                (entity) => {
+                    var entityDraft = new PaperEntityDraft(entity)
+                    entityDraft.flag = !entityDraft.flag;
+                    return entityDraft
+                }
+            );
+            window.api.export(JSON.stringify(entityDrafts), format);
         };
 
         const getJoinedPath = (url) => {

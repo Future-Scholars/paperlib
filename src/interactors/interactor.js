@@ -1,10 +1,10 @@
 import { FileRepository } from "../repositories/FileRepository";
 import { DBRepository } from "../repositories/DBRepository";
 import { WebRepository } from "../repositories/WebRepository";
+import { Exporter } from "../repositories/exporters/exporter";
 import { Preference } from "../utils/preference";
 import { PaperEntityDraft } from "../models/PaperEntity";
 import { clipboard } from "electron";
-import { formatString } from "../utils/misc";
 import moment from "moment";
 import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
 import path from "path";
@@ -19,6 +19,8 @@ export class Interactor {
         this.dbRepository = new DBRepository(this.preference, this.sharedState);
         this.fileRepository = new FileRepository(this.preference);
         this.webRepository = new WebRepository(this.preference);
+
+        this.exporter = new Exporter(this.preference);
     }
 
     registerSignal(signal, callback) {
@@ -144,92 +146,22 @@ export class Interactor {
         this.sharedState.set("viewState.processingQueueCount", this.sharedState.get("viewState.processingQueueCount") - entities.length);
     }
 
-    _replacePublication(publication) {
-        for (let kv of this.preference.get("exportReplacement")) {
-            console.log(kv, publication);
-            if (kv.from == publication) {
-                return kv.to;
-            }
-        }
-        return publication;
+    export(entities, format) {
+        entities = JSON.parse(entities);
+        entities = entities.map((entity) => new PaperEntityDraft(entity));
+
+        let text = this.exporter.export(entities, format);
+        clipboard.writeText(text);
     }
 
-    _exportBibtex(entities) {
-        var allTexBib = "";
-
-        for (let entity of entities) {
-            var citeKey = "";
-            citeKey += entity.authors.split(" ")[0] + "_";
-            citeKey += entity.pubTime + "_";
-            citeKey += formatString({
-                str: entity.title.slice(0, 3),
-                removeNewline: true,
-                removeWhite: true,
-                removeSymbol: true,
-            });
-            var texbib = "";
-            if (entity.pubType == 1) {
-                texbib = `@inproceedings{${citeKey},
-    year = ${entity.pubTime},
-    title = {${entity.title}},
-    author = {${entity.authors.replace(", ", " and ")}},
-    booktitle = {${this._replacePublication(entity.publication)}},
-}`;
-            } else {
-                texbib = `@article{${citeKey},
-    year = ${entity.pubTime},
-    title = {${entity.title}},
-    author = {${entity.authors.replace(", ", " and ")}},
-    journal = {${this._replacePublication(entity.publication)}},
-}`;
-            }
-            allTexBib += texbib + "\n\n";
-        }
-        return allTexBib;
-    }
-
-    _exportPlainText(entities) {
-        var allPlain = "";
-
-        for (let entity of entities) {
-            let text = `${entity.authors}. \"${entity.title}\" In ${entity.publication}, ${entity.pubTime}. \n\n`;
-            allPlain += text;
-        }
-        return allPlain;
-    }
-
-    export(ids, format) {
-        let loadPromise = async (id) => {
-            try {
-                return await this.dbRepository.entity(id);
-            } catch (error) {
-                console.log(error);
-                return null;
-            }
-        };
-
-        Promise.all(ids.map((id) => loadPromise(id))).then((entities) => {
-            var text;
-            if (format === "bibtex") {
-                text = this._exportBibtex(entities);
-            } else {
-                text = this._exportPlainText(entities);
-            }
-            clipboard.writeText(text);
-        });
-    }
-
-    appLibPath() {
-        return this.preference.get("appLibFolder");
-    }
-
-    async routineMatch() {
-        console.log("routineMatch");
+    async routineScrape() {
         let allowRoutineMatch = this.preference.get("allowRoutineMatch");
         if (allowRoutineMatch) {
+            console.log("Routine scraping started.");
             this.preference.set("lastRematchTime", moment().unix());
             let entities = await this.dbRepository.preprintEntities();
-            this.match(entities.map((entity) => entity.id));
+            let entityDrafts = entities.map((entity) => new PaperEntityDraft(entity));
+            this.scrape(JSON.stringify(entityDrafts));
         }
     }
 
@@ -238,24 +170,24 @@ export class Interactor {
         let lastRematchTime = this.preference.get("lastRematchTime");
 
         if (moment().unix() - lastRematchTime > 86400 * rematchInterval) {
-            this.routineMatch();
+            this.routineScrape();
         }
 
         if (this.scheduler == null) {
             this.scheduler = new ToadScheduler();
         } else {
             this.scheduler.stop();
-            this.scheduler.removeById("rematch");
+            this.scheduler.removeById("routineScrape");
         }
 
-        const task = new Task("rematch", () => {
-            this.routineMatch();
+        const task = new Task("routineScrape", () => {
+            this.routineScrape();
         });
 
         const job = new SimpleIntervalJob(
-            { seconds: 86400 * rematchInterval, runImmediately: false },
+            { seconds: rematchInterval, runImmediately: false },
             task,
-            "rematch"
+            "routineScrape"
         );
 
         this.scheduler.addSimpleIntervalJob(job);
@@ -269,5 +201,18 @@ export class Interactor {
     updatePreference(name, value) {
         this.preference.set(name, value);
         this.sharedState.set("viewState.preferenceUpdated", new Date().getTime());
+    }
+
+    appLibPath() {
+        return this.preference.get("appLibFolder");
+    }
+
+    async openLib() {
+        await this.dbRepository.initRealm(true);
+        this.sharedState.set("viewState.realmReinited", new Date().getTime());
+    }
+
+    migrateLocaltoSync() {
+        this.dbRepository.migrateLocaltoSync();
     }
 }

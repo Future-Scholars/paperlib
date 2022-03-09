@@ -4,14 +4,14 @@ import { Scraper } from "./scraper";
 import { formatString } from "../../utils/misc";
 
 export class ArXivScraper extends Scraper {
-    constructor(enable) {
+    constructor(preference) {
         super();
-        this.enable = enable;
+        this.preference = preference;
         this.xmlParser = new XMLParser();
     }
 
     preProcess(entityDraft) {
-        let enable = entityDraft.arxiv !== "" && this.enable;
+        let enable = entityDraft.arxiv !== "" && this.preference.get("arXivScraper");
         let arxivID = formatString({
             str: entityDraft.arxiv,
             removeStr: "arXiv:",
