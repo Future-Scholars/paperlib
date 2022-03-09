@@ -185,7 +185,7 @@ export class Interactor {
         });
 
         const job = new SimpleIntervalJob(
-            { seconds: rematchInterval, runImmediately: false },
+            { seconds: 86400 * rematchInterval, runImmediately: false },
             task,
             "routineScrape"
         );

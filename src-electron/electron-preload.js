@@ -142,6 +142,10 @@ contextBridge.exposeInMainWorld("api", {
         }
     },
 
+    getFolderPath(url) {
+        return pathLib.dirname(url);
+    },
+
     setRoutineTimer() {
         interactor.setRoutineTimer();
     },

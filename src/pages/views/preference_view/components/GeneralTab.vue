@@ -88,7 +88,6 @@ export default defineComponent({
         preference: Object,
     },
     setup(props, { emit }) {
-
         const folderPicker = ref(null);
 
         const onPickerClicked = () => {
@@ -96,7 +95,7 @@ export default defineComponent({
         };
 
         const onFolderConfirmed = (file) => {
-            let newFolderPath = file.path.split("/").slice(0, -1).join("/");
+            let newFolderPath = window.api.getFolderPath(file.path);
             window.api.updatePreference("appLibFolder", newFolderPath);
             window.api.openLib()
         };
