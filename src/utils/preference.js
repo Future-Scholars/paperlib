@@ -3,9 +3,11 @@ import path from "path";
 import os from "os";
 import moment from "moment";
 
+
 const defaultPreferences = {
     appLibFolder: path.join(os.homedir(), "Documents", "paperlib"),
     deleteSourceFile: false,
+    showSidebarCount: true,
     enableExportReplacement: true,
     exportReplacement: [],
     useSync: false,
@@ -47,7 +49,6 @@ export class Preference {
     }
 
     set(key, value) {
-        console.log(key, value)
         this.store.set(key, value);
     }
 }

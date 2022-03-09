@@ -18,7 +18,7 @@
             size="1em"
             v-if="isProgressViewShown && withSpinner"
         />
-        <q-badge rounded class="absolute-right q-mt-sm q-mb-sm q-mr-sm" text-color="primary" align="middle" :label="count" v-if="count != null" style="background-color: rgb(202, 202, 202); font-size: 0.8em"/>
+        <q-badge rounded class="absolute-right q-mt-sm q-mb-sm q-mr-sm" text-color="primary" align="middle" :label="count" v-if="count != null && showCount" style="background-color: rgb(202, 202, 202); font-size: 0.8em"/>
     </q-item>
 </template>
 
@@ -37,6 +37,7 @@ export default defineComponent({
         count: Number,
         withSpinner: Boolean,
         active: Boolean,
+        showCount: Boolean,
     },
     setup(props) {
         const isProgressViewShown = ref(false)

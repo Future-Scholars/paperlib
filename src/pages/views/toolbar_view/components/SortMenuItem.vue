@@ -32,7 +32,6 @@ export default defineComponent({
     },
 
     setup(props) {
-        console.log(props.sortBy, props.name)
         return {
             ...toRefs(props),
         };

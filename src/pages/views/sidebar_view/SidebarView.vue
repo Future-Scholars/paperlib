@@ -7,11 +7,11 @@
                 <span class="text-primary">Library</span>
             </q-item>
 
-            <SidebarItem label="All Papers" icon="bi-collection" :count="entitiesCount" :withSpinner="true" :active="selectedCategorizer === 'lib-all'" @click="onSelectCategorizer('lib-all')" />
+            <SidebarItem label="All Papers" icon="bi-collection" :count="entitiesCount" :showCount="showSidebarCount" :withSpinner="true" :active="selectedCategorizer === 'lib-all'" @click="onSelectCategorizer('lib-all')" />
             <SidebarItem label="Flags" icon="bi-flag" :withSpinner="false" :active="selectedCategorizer === 'lib-flaged'" @click="onSelectCategorizer('lib-flaged')" />
 
-            <SidebarCollopseGroup label="Tags" icon="bi-tag" :categorizers="tags" categorizerType="tag" :selectedCategorizer="selectedCategorizer" @select-categorizer="onSelectCategorizer" />
-            <SidebarCollopseGroup label="Folders" icon="bi-folder" :categorizers="folders" categorizerType="folder" :selectedCategorizer="selectedCategorizer" @select-categorizer="onSelectCategorizer" />
+            <SidebarCollopseGroup label="Tags" icon="bi-tag" :showCount="showSidebarCount" :categorizers="tags" categorizerType="tag" :selectedCategorizer="selectedCategorizer" @select-categorizer="onSelectCategorizer" />
+            <SidebarCollopseGroup label="Folders" icon="bi-folder" :showCount="showSidebarCount" :categorizers="folders" categorizerType="folder" :selectedCategorizer="selectedCategorizer" @select-categorizer="onSelectCategorizer" />
 
         </q-list>
     </div>
@@ -42,6 +42,7 @@ export default defineComponent({
         tags: Array,
         folders: Array,
         selectedCategorizer: String,
+        showSidebarCount: Boolean
     },
 
     setup(props, { emit }) {
@@ -54,7 +55,6 @@ export default defineComponent({
         window.api.registerSignal("viewState.entitiesCount", (event, message) => {
             entitiesCount.value = JSON.parse(message);
         });
-
 
         return {
             entitiesCount,

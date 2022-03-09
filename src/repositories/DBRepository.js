@@ -49,7 +49,6 @@ export class DBRepository {
         }
         await this.getConfig();
         if (this.cloudConfig) {
-            console.log(this.cloudConfig)
             try {
                 this._realm = new Realm(this.cloudConfig);
             } catch (err) {

@@ -1,7 +1,7 @@
 <template>
     <q-page class="flex flex-center">
         <!-- Sidebar -->
-        <SidebarView :selectedCategorizer="selectedCategorizer" :tags="tags" :folders="folders"/>
+        <SidebarView :selectedCategorizer="selectedCategorizer" :tags="tags" :folders="folders" :showSidebarCount="showSidebarCount"/>
         <!-- Content -->
         <div ref="mainview" class="mainview absolute-full">
             <!-- Menu Bar -->
@@ -86,6 +86,7 @@ export default {
         const selectedEntities = ref([]);
 
         const preference = ref({});
+        const showSidebarCount = ref(false);
         const version = ref("-1");
 
         // =======================================
@@ -197,6 +198,7 @@ export default {
         // Settings
         const reloadPreference = () => {
             preference.value = window.api.loadPreferences();
+            showSidebarCount.value = preference.value.showSidebarCount;
         };
 
         onMounted(async () => {
@@ -222,6 +224,7 @@ export default {
             selectedEntities,
 
             preference,
+            showSidebarCount,
 
             reloadEntities,
             reloadSelectedEntities,

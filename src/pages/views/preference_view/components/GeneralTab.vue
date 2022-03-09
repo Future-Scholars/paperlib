@@ -52,7 +52,23 @@
                     size="xs"
                     color="grey-5"
                     v-model="preference.deleteSourceFile"
-                    @update:model-value="onToggleDeleteSourceFile"
+                    @update:model-value="(value) => onUpdate('deleteSourceFile', value)"
+                />
+            </div>
+        </div>
+
+        <div class="row justify-center q-mt-lg">
+            <div class="col-5 setting-title">
+                Show count number in sidebar.
+            </div>
+            <div class="col-5">
+                <q-checkbox
+                    dense
+                    keep-color
+                    size="xs"
+                    color="grey-5"
+                    v-model="preference.showSidebarCount"
+                    @update:model-value="(value) => onUpdate('showSidebarCount', value)"
                 />
             </div>
         </div>
@@ -85,15 +101,15 @@ export default defineComponent({
             window.api.openLib()
         };
 
-        const onToggleDeleteSourceFile = (value) => {
-            window.api.updatePreference("deleteSourceFile", value);
+        const onUpdate = (key, value) => {
+            window.api.updatePreference(key, value);
         };
 
         return {
             folderPicker,
             onPickerClicked,
             onFolderConfirmed,
-            onToggleDeleteSourceFile,
+            onUpdate,
             ...toRefs(props),
         };
     },
