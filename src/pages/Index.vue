@@ -140,6 +140,7 @@ export default {
         });
 
         window.api.registerSignal("pluginURL", async (event, message) => {
+            console.log(message)
             await window.api.add([message]);
         });
 

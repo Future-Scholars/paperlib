@@ -154,7 +154,7 @@ export class FileRepository {
 
     // ============================================================
     // Read file from web
-    async download(url) {
+    async readFromWeb(url) {
         try {
             let filename = url.split("/").pop();
             let targetUrl = path.join(os.homedir(), "Downloads", filename);
