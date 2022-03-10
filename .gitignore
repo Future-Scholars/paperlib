@@ -35,3 +35,6 @@ package-lock.json
 yarn.lock
 
 mongodb-realm
+
+*.lock
+.vscode
