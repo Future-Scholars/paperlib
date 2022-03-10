@@ -47,16 +47,14 @@ jobs:
       - name: "Build and Package"
         run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg
-            ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg.blockmap
-            ./dist/electron/Packaged/latest.yml
-          draft: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     files: |
+      #       ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg
+      #     draft: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -108,16 +106,14 @@ jobs:
       - name: "Build and Package"
         run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ./dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe
-            ./dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe.blockmap
-            ./dist/electron/Packaged/latest.yml
-          draft: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     files: |
+      #       ./dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe
+      #     draft: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Oracle Cloud CLI
         run: |
