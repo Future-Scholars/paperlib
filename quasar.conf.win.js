@@ -224,7 +224,6 @@ module.exports = configure(function (ctx) {
           allowToChangeInstallationDirectory: true,
         },
         files: [
-            "!node_modules/realm/build${/*}",
             "!node_modules/realm/react-native${/*}",
             "!node_modules/realm/scripts${/*}",
             "!node_modules/realm/src${/*}",
