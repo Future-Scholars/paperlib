@@ -215,13 +215,13 @@ module.exports = configure(function (ctx) {
         publish: [
           {
             provider: "generic",
-            url: "https://paperlib.app/distribution/electron-mac/",
+            url: "https://paperlib.app/distribution/electron-win/",
           },
         ],
-        mac: {
-            icon: "./src-electron/icons/icon.icns",
-            category: "public.app-category.education",
-            target: ["dmg"],
+        nsis: {
+          oneClick: false,
+          createDesktopShortcut: "always",
+          allowToChangeInstallationDirectory: true,
         },
         files: [
             "!node_modules/realm/build${/*}",

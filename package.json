@@ -25,7 +25,9 @@
     "quasar": "^2.0.0",
     "realm": "^10.10.1",
     "toad-scheduler": "^1.6.0",
-    "worker-loader": "^3.0.8"
+    "worker-loader": "^3.0.8",
+    "vue": "^3.0.0",
+    "vue-router": "^4.0.0"
   },
   "devDependencies": {
     "@quasar/app": "^3.0.0",
