@@ -117,6 +117,7 @@ jobs:
 
       - name: Install Oracle Cloud CLI
         run: |
+          pip install cffi
           curl https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1 --output install.ps1
           powershell ./install.ps1 -OfflineInstall -AcceptAllDefaults
           mkdir ~/.oci
