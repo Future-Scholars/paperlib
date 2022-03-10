@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('api', {
 
   close() {
     BrowserWindow.getFocusedWindow().close();
+    app.quit();
   },
 
   // ==============================
