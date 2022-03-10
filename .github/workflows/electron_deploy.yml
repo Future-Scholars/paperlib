@@ -26,13 +26,23 @@ jobs:
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./quasar.conf.mac.js ./quasar.conf.js
 
+      # - name: "Import Certificates"
+      #   run: |
+      #     echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output certificate.p12
+      #     export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+      #     security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+      #     security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+      #     security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+      #     security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+      #     security list-keychain -d user -s $KEYCHAIN_PATH
+
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: "Install Node Module"
-        run: yarn install && yarn add @quasar/cli
+        run: yarn install && yarn add @quasar/cli@3.2.5
 
       - name: "Build and Package"
         run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
@@ -62,7 +72,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ["16.13.1"]
+        node-versions: ["16.14.0"]
 
     steps:
       - name: "Checkout Project"
