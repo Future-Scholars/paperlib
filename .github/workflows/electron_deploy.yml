@@ -26,15 +26,15 @@ jobs:
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./quasar.conf.mac.js ./quasar.conf.js
 
-      # - name: "Import Certificates"
-      #   run: |
-      #     echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output certificate.p12
-      #     export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
-      #     security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
-      #     security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-      #     security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
-      #     security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-      #     security list-keychain -d user -s $KEYCHAIN_PATH
+      - name: "Import Certificates"
+        run: |
+          echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output certificate.p12
+          export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+          security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
@@ -47,14 +47,14 @@ jobs:
       - name: "Build and Package"
         run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
 
-      # - name: Release
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     files: |
-      #       ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg
-      #     draft: true
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -66,10 +66,10 @@ jobs:
 
       - name: Upload to Oracle Storage
         run: |
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/paperlib-${{ env.VERSION }}.dmg
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/latest.dmg
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/paperlib-${{ env.VERSION }}.dmg.blockmap
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/latest-mac.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/latest-mac.yml
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron/paperlib-${{ env.VERSION }}.dmg
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron/latest.dmg
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron/paperlib-${{ env.VERSION }}.dmg.blockmap
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/latest-mac.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron/latest-mac.yml
 
   win_deploy:
     runs-on: windows-latest
@@ -106,14 +106,14 @@ jobs:
       - name: "Build and Package"
         run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
 
-      # - name: Release
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     files: |
-      #       ./dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe
-      #     draft: true
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -130,7 +130,7 @@ jobs:
 
       - name: Upload to Oracle Storage
         run: |
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/paperlib Setup ${{ env.VERSION }}.exe'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-win/latest.exe
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/paperlib Setup ${{ env.VERSION }}.exe.blockmap'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/latest.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-win/latest.yml
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron/paperlib Setup ${{ env.VERSION }}.exe'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron/latest.exe
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron/paperlib Setup ${{ env.VERSION }}.exe.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/latest.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron/latest.yml
