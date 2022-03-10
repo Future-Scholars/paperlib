@@ -60,12 +60,17 @@ jobs:
       #   run: |
       #     ditto -V -c -k --keepParent "Export/PaperLib.app" "PaperLib_v${{ env.VERSION_SHORT }}.zip"
       #     cp PaperLib_v${{ env.VERSION_SHORT }}.zip ./distribution/mac
-      # - name: Release app
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     files: PaperLib_v${{ env.VERSION_SHORT }}.zip
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe
+            ./dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe.blockmap
+            ./dist/electron/Packaged/latest.yml
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # - name: Convert Change Log to HTML
       #   run: |
