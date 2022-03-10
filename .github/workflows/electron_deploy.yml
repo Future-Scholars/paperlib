@@ -119,7 +119,7 @@ jobs:
         run: |
           pip install cffi
           curl https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1 --output install.ps1
-          powershell ./install.ps1 -OfflineInstall -AcceptAllDefaults
+          powershell ./install.ps1 -AcceptAllDefaults
           mkdir ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
           mv config ~/.oci
