@@ -117,7 +117,8 @@ jobs:
 
       - name: Install Oracle Cloud CLI
         run: |
-          powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1'))"
+          wget https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1
+          ./install.ps1 -OfflineInstall
           mkdir ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
           mv config ~/.oci
