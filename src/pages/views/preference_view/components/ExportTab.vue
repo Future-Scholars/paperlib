@@ -121,58 +121,58 @@
 </style>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import {defineComponent, ref, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "ExportTab",
-    props: {
-        preference: Object,
-    },
-    setup(props, { emit }) {
-        const newReplacementFrom = ref("");
-        const newReplacementTo = ref("");
+  name: 'ExportTab',
+  props: {
+    preference: Object,
+  },
+  setup(props, {emit}) {
+    const newReplacementFrom = ref('');
+    const newReplacementTo = ref('');
 
-        const onUpdate = (key, value) => {
-            window.api.updatePreference(key, value);
-        };
+    const onUpdate = (key, value) => {
+      window.api.updatePreference(key, value);
+    };
 
-        const onReplacementAdd = () => {
-            var replacements = props.preference.exportReplacement;
-            // Remove duplicates
-            replacements = replacements.filter(
-                (item) => item.from !== newReplacementFrom.value
-            )
-            // Add new replacement
-            replacements.push({
-                from: newReplacementFrom.value,
-                to: newReplacementTo.value,
-            });
-            // Update preference
-            onUpdate("exportReplacement", replacements);
+    const onReplacementAdd = () => {
+      let replacements = props.preference.exportReplacement;
+      // Remove duplicates
+      replacements = replacements.filter(
+          (item) => item.from !== newReplacementFrom.value,
+      );
+      // Add new replacement
+      replacements.push({
+        from: newReplacementFrom.value,
+        to: newReplacementTo.value,
+      });
+      // Update preference
+      onUpdate('exportReplacement', replacements);
 
-            newReplacementFrom.value = "";
-            newReplacementTo.value = "";
-        }
+      newReplacementFrom.value = '';
+      newReplacementTo.value = '';
+    };
 
-        const onReplacementDelete = (replacement) => {
-            var replacements = props.preference.exportReplacement;
-            // Remove
-            replacements = replacements.filter(
-                (item) => item.from !== replacement.from && item.to !== replacement.to
-            )
-            // Update preference
-            onUpdate("exportReplacement", replacements);
-        }
+    const onReplacementDelete = (replacement) => {
+      let replacements = props.preference.exportReplacement;
+      // Remove
+      replacements = replacements.filter(
+          (item) => item.from !== replacement.from && item.to !== replacement.to,
+      );
+      // Update preference
+      onUpdate('exportReplacement', replacements);
+    };
 
 
-        return {
-            newReplacementFrom,
-            newReplacementTo,
-            onUpdate,
-            onReplacementAdd,
-            onReplacementDelete,
-            ...toRefs(props),
-        };
-    }
+    return {
+      newReplacementFrom,
+      newReplacementTo,
+      onUpdate,
+      onReplacementAdd,
+      onReplacementDelete,
+      ...toRefs(props),
+    };
+  },
 });
 </script>

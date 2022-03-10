@@ -7,10 +7,10 @@
 // https://quasar.dev/quasar-cli/quasar-conf-js
 
 /* eslint-env node */
-const ESLintPlugin = require("eslint-webpack-plugin");
-const { configure } = require("quasar/wrappers");
+const ESLintPlugin = require('eslint-webpack-plugin');
+const {configure} = require('quasar/wrappers');
 
-module.exports = configure(function (ctx) {
+module.exports = configure(function(ctx) {
   return {
     // https://quasar.dev/quasar-cli/supporting-ts
     supportTS: false,
@@ -24,7 +24,7 @@ module.exports = configure(function (ctx) {
     boot: [],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css
-    css: ["app.sass"],
+    css: ['app.sass'],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
@@ -36,14 +36,14 @@ module.exports = configure(function (ctx) {
       // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
-      "roboto-font", // optional, you are not bound to it
-      "material-icons", // optional, you are not bound to it
-      "bootstrap-icons",
+      'roboto-font', // optional, you are not bound to it
+      'material-icons', // optional, you are not bound to it
+      'bootstrap-icons',
     ],
 
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
-      vueRouterMode: "hash", // available values: 'hash', 'history'
+      vueRouterMode: 'hash', // available values: 'hash', 'history'
 
       // transpile: false,
       // publicPath: '/',
@@ -74,7 +74,7 @@ module.exports = configure(function (ctx) {
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-devServer
     devServer: {
       server: {
-        type: "http",
+        type: 'http',
       },
       port: 8080,
       open: true, // opens browser window automatically
@@ -84,8 +84,8 @@ module.exports = configure(function (ctx) {
     framework: {
       config: {
         brand: {
-          primary: "#565656",
-          secondary: "#DADADA",
+          primary: '#565656',
+          secondary: '#DADADA',
         },
       },
 
@@ -100,7 +100,7 @@ module.exports = configure(function (ctx) {
       // directives: [],
 
       // Quasar plugins
-      plugins: ["Dialog", 'Notify'],
+      plugins: ['Dialog', 'Notify'],
     },
 
     // animations: 'all', // --- includes all animations
@@ -122,62 +122,62 @@ module.exports = configure(function (ctx) {
 
       chainWebpackWebserver(chain) {
         chain
-          .plugin("eslint-webpack-plugin")
-          .use(ESLintPlugin, [{ extensions: ["js"] }]);
+            .plugin('eslint-webpack-plugin')
+            .use(ESLintPlugin, [{extensions: ['js']}]);
       },
 
       middlewares: [
-        ctx.prod ? "compression" : "",
-        "render", // keep this as last one
+        ctx.prod ? 'compression' : '',
+        'render', // keep this as last one
       ],
     },
 
     // https://quasar.dev/quasar-cli/developing-pwa/configuring-pwa
     pwa: {
-      workboxPluginMode: "GenerateSW", // 'GenerateSW' or 'InjectManifest'
+      workboxPluginMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
       workboxOptions: {}, // only for GenerateSW
 
       // for the custom service worker ONLY (/src-pwa/custom-service-worker.[js|ts])
       // if using workbox in InjectManifest mode
       chainWebpackCustomSW(chain) {
         chain
-          .plugin("eslint-webpack-plugin")
-          .use(ESLintPlugin, [{ extensions: ["js"] }]);
+            .plugin('eslint-webpack-plugin')
+            .use(ESLintPlugin, [{extensions: ['js']}]);
       },
 
       manifest: {
         name: `Paperlib`,
         short_name: `Paperlib`,
         description: `A simple academic paper management tool for CSer.`,
-        display: "standalone",
-        orientation: "portrait",
-        background_color: "#ffffff",
-        theme_color: "#027be3",
+        display: 'standalone',
+        orientation: 'portrait',
+        background_color: '#ffffff',
+        theme_color: '#027be3',
         icons: [
           {
-            src: "icons/icon-128x128.png",
-            sizes: "128x128",
-            type: "image/png",
+            src: 'icons/icon-128x128.png',
+            sizes: '128x128',
+            type: 'image/png',
           },
           {
-            src: "icons/icon-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
+            src: 'icons/icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
           },
           {
-            src: "icons/icon-256x256.png",
-            sizes: "256x256",
-            type: "image/png",
+            src: 'icons/icon-256x256.png',
+            sizes: '256x256',
+            type: 'image/png',
           },
           {
-            src: "icons/icon-384x384.png",
-            sizes: "384x384",
-            type: "image/png",
+            src: 'icons/icon-384x384.png',
+            sizes: '384x384',
+            type: 'image/png',
           },
           {
-            src: "icons/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
+            src: 'icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
           },
         ],
       },
@@ -195,7 +195,7 @@ module.exports = configure(function (ctx) {
 
     // Full list of options: https://quasar.dev/quasar-cli/developing-electron-apps/configuring-electron
     electron: {
-      bundler: "builder", // 'packager' or 'builder'
+      bundler: 'builder', // 'packager' or 'builder'
 
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
@@ -210,24 +210,24 @@ module.exports = configure(function (ctx) {
 
       builder: {
         // https://www.electron.build/configuration/configuration
-        appId: "dev.paperlib.app",
-        productName: "paperlib",
+        appId: 'dev.paperlib.app',
+        productName: 'paperlib',
         publish: [
           {
-            provider: "generic",
-            url: "https://paperlib.app/distribution/electron-mac/",
+            provider: 'generic',
+            url: 'https://paperlib.app/distribution/electron-mac/',
           },
         ],
         mac: {
-            icon: "./src-electron/icons/icon.icns",
-            category: "public.app-category.education",
-            target: ["dmg"],
+          icon: './src-electron/icons/icon.icns',
+          category: 'public.app-category.education',
+          target: ['dmg'],
         },
         files: [
-            "!node_modules/realm/react-native${/*}",
-            "!node_modules/realm/scripts${/*}",
-            "!node_modules/realm/src${/*}",
-            "!node_modules/realm/vendor${/*}"
+          '!node_modules/realm/react-native${/*}',
+          '!node_modules/realm/scripts${/*}',
+          '!node_modules/realm/src${/*}',
+          '!node_modules/realm/vendor${/*}',
         ],
       },
     },

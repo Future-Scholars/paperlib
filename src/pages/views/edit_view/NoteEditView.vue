@@ -39,47 +39,47 @@
 </style>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import {defineComponent, ref, toRefs} from 'vue';
 
-import { PaperEntityDraft } from "src/models/PaperEntity";
+import {PaperEntityDraft} from 'src/models/PaperEntity';
 
 export default defineComponent({
-    name: "NoteEditView",
-    setup(props, { emit }) {
-        const isNoteViewShown = ref(false);
-        const entityDraft = ref(new PaperEntityDraft());
+  name: 'NoteEditView',
+  setup(props, {emit}) {
+    const isNoteViewShown = ref(false);
+    const entityDraft = ref(new PaperEntityDraft());
 
-        window.api.registerSignal(
-            "viewState.isNoteViewShown",
-            (event, message) => {
-                isNoteViewShown.value = JSON.parse(message);
-            }
-        );
+    window.api.registerSignal(
+        'viewState.isNoteViewShown',
+        (event, message) => {
+          isNoteViewShown.value = JSON.parse(message);
+        },
+    );
 
-        window.api.registerSignal(
-            "sharedData.editEntityDraft",
-            (event, message) => {
-                entityDraft.value = JSON.parse(message);
-            }
-        );
+    window.api.registerSignal(
+        'sharedData.editEntityDraft',
+        (event, message) => {
+          entityDraft.value = JSON.parse(message);
+        },
+    );
 
-        const onClose= () => {
-            window.api.sendSignal("viewState.isNoteViewShown", false)
-        };
+    const onClose= () => {
+      window.api.sendSignal('viewState.isNoteViewShown', false);
+    };
 
-        const onSave = () => {
-            window.api.update(JSON.stringify([entityDraft.value]));
-            window.api.sendSignal("viewState.isNoteViewShown", false)
-        };
+    const onSave = () => {
+      window.api.update(JSON.stringify([entityDraft.value]));
+      window.api.sendSignal('viewState.isNoteViewShown', false);
+    };
 
 
-        return {
-            isNoteViewShown,
-            entityDraft,
-            onSave,
-            onClose,
-            ...toRefs(props),
-        };
-    },
+    return {
+      isNoteViewShown,
+      entityDraft,
+      onSave,
+      onClose,
+      ...toRefs(props),
+    };
+  },
 });
 </script>

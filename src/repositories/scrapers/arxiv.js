@@ -1,45 +1,45 @@
-import { XMLParser } from "fast-xml-parser";
+import {XMLParser} from 'fast-xml-parser';
 
-import { Scraper } from "./scraper";
-import { formatString } from "../../utils/misc";
+import {Scraper} from './scraper';
+import {formatString} from '../../utils/misc';
 
 export class ArXivScraper extends Scraper {
-    constructor(preference) {
-        super();
-        this.preference = preference;
-        this.xmlParser = new XMLParser();
-    }
+  constructor(preference) {
+    super();
+    this.preference = preference;
+    this.xmlParser = new XMLParser();
+  }
 
-    preProcess(entityDraft) {
-        let enable = entityDraft.arxiv !== "" && this.preference.get("arXivScraper");
-        let arxivID = formatString({
-            str: entityDraft.arxiv,
-            removeStr: "arXiv:",
-        });
-        let scrapeURL = `https://export.arxiv.org/api/query?id_list=${arxivID}`;
-        let headers = {
-            "accept-encoding": "UTF-32BE",
-        };
+  preProcess(entityDraft) {
+    const enable = entityDraft.arxiv !== '' && this.preference.get('arXivScraper');
+    const arxivID = formatString({
+      str: entityDraft.arxiv,
+      removeStr: 'arXiv:',
+    });
+    const scrapeURL = `https://export.arxiv.org/api/query?id_list=${arxivID}`;
+    const headers = {
+      'accept-encoding': 'UTF-32BE',
+    };
 
-        return { scrapeURL, headers, enable };
-    }
+    return {scrapeURL, headers, enable};
+  }
 
-    parsingProcess(rawResponse, entityDraft) {
-        let arxivResponse = this.xmlParser.parse(rawResponse.body).feed.entry;
-        let title = arxivResponse.title;
-        let authorList = arxivResponse.author;
-        let authors = authorList
-            .map((author) => {
-                return author.name;
-            })
-            .join(", ");
-        let pubTime = arxivResponse.published.substring(0, 4);
-        entityDraft.setValue("title", title, false);
-        entityDraft.setValue("authors", authors, false);
-        entityDraft.setValue("pubTime", pubTime, false);
-        entityDraft.setValue("pubType", 0, false);
-        entityDraft.setValue("publication", "arXiv", false);
+  parsingProcess(rawResponse, entityDraft) {
+    const arxivResponse = this.xmlParser.parse(rawResponse.body).feed.entry;
+    const title = arxivResponse.title;
+    const authorList = arxivResponse.author;
+    const authors = authorList
+        .map((author) => {
+          return author.name;
+        })
+        .join(', ');
+    const pubTime = arxivResponse.published.substring(0, 4);
+    entityDraft.setValue('title', title, false);
+    entityDraft.setValue('authors', authors, false);
+    entityDraft.setValue('pubTime', pubTime, false);
+    entityDraft.setValue('pubType', 0, false);
+    entityDraft.setValue('publication', 'arXiv', false);
 
-        return entityDraft
-    }
+    return entityDraft;
+  }
 }

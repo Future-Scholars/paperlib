@@ -1,4 +1,5 @@
 <template>
+  <div>
     <div class="detail-section-title">Rating</div>
     <q-rating
         :model-value="initRating"
@@ -8,6 +9,7 @@
         style="margin-bottom: 1em"
         @update:model-value="onRatingChanged"
     />
+  </div>
 </template>
 
 <style lang="sass">
@@ -15,23 +17,23 @@
 </style>
 
 <script>
-import { defineComponent, ref, watch, defineEmits } from "vue";
+import {defineComponent, ref, watch, defineEmits} from 'vue';
 
 export default defineComponent({
-    name: "DetailRatingSection",
-    components: {},
-    props: {
-        initRating: Number,
-    },
-    emits: ["ratingChanged"],
-    setup(props, { emit }) {
-        const onRatingChanged = async (newValue) => {
-            emit('ratingChanged', newValue)
-        };
+  name: 'DetailRatingSection',
+  components: {},
+  props: {
+    initRating: Number,
+  },
+  emits: ['ratingChanged'],
+  setup(props, {emit}) {
+    const onRatingChanged = async (newValue) => {
+      emit('ratingChanged', newValue);
+    };
 
-        return {
-            onRatingChanged,
-        };
-    }
+    return {
+      onRatingChanged,
+    };
+  },
 });
 </script>

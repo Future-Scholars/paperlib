@@ -35,29 +35,28 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import {defineComponent} from 'vue';
 
 export default defineComponent({
-    name: "WindowControl",
-    setup() {
-        const closeWindow = () => {
-            window.api.close();
-        };
+  name: 'WindowControl',
+  setup() {
+    const closeWindow = () => {
+      window.api.close();
+    };
 
-        const minimizeWindow = () => {
-            window.api.minimize();
-        };
+    const minimizeWindow = () => {
+      window.api.minimize();
+    };
 
-        const maximizeWindow = () => {
-            window.api.toggleMaximize();
-        };
+    const maximizeWindow = () => {
+      window.api.toggleMaximize();
+    };
 
-        return {
-            closeWindow,
-            minimizeWindow,
-            maximizeWindow,
-        }
-
-    }
+    return {
+      closeWindow,
+      minimizeWindow,
+      maximizeWindow,
+    };
+  },
 });
 </script>

@@ -1,38 +1,38 @@
-import { ObjectId } from "bson";
-import { formatString } from "../utils/misc";
+import {ObjectId} from 'bson';
+import {formatString} from '../utils/misc';
 
 export const PaperEntitySchema = {
-  name: "PaperEntity",
-  primaryKey: "_id",
+  name: 'PaperEntity',
+  primaryKey: '_id',
   properties: {
-    id: "objectId",
-    _id: "objectId",
-    _partition: "string?",
-    addTime: "date",
+    id: 'objectId',
+    _id: 'objectId',
+    _partition: 'string?',
+    addTime: 'date',
 
-    title: "string",
-    authors: "string",
-    publication: "string",
-    pubTime: "string",
-    pubType: "int",
-    doi: "string",
-    arxiv: "string",
-    mainURL: "string",
+    title: 'string',
+    authors: 'string',
+    publication: 'string',
+    pubTime: 'string',
+    pubType: 'int',
+    doi: 'string',
+    arxiv: 'string',
+    mainURL: 'string',
     supURLs: {
-      type: "list",
-      objectType: "string",
+      type: 'list',
+      objectType: 'string',
     },
-    rating: "int",
+    rating: 'int',
     tags: {
-      type: "list",
-      objectType: "PaperTag",
+      type: 'list',
+      objectType: 'PaperTag',
     },
     folders: {
-      type: "list",
-      objectType: "PaperFolder",
+      type: 'list',
+      objectType: 'PaperFolder',
     },
-    flag: "bool",
-    note: "string",
+    flag: 'bool',
+    note: 'string',
   },
 };
 
@@ -41,22 +41,22 @@ export class PaperEntityDraft {
     if (!entity) {
       this._id = new ObjectId();
       this.id = this._id;
-      this._partition = "";
+      this._partition = '';
       this.addTime = new Date();
-      this.title = "";
-      this.authors = "";
-      this.publication = "";
-      this.pubTime = "";
+      this.title = '';
+      this.authors = '';
+      this.publication = '';
+      this.pubTime = '';
       this.pubType = 2;
-      this.doi = "";
-      this.arxiv = "";
-      this.mainURL = "";
+      this.doi = '';
+      this.arxiv = '';
+      this.mainURL = '';
       this.supURLs = [];
       this.rating = 0;
-      this.tags = "";
-      this.folders = "";
+      this.tags = '';
+      this.folders = '';
       this.flag = false;
-      this.note = "";
+      this.note = '';
     } else {
       this._id = entity._id;
       this.id = entity.id;
@@ -75,42 +75,42 @@ export class PaperEntityDraft {
       this.note = entity.note;
 
       this.supURLs = [];
-      for (let url of entity.supURLs) {
+      for (const url of entity.supURLs) {
         this.supURLs.push(url);
       }
       this.tags = [];
-      if (typeof entity.tags === "string") {
+      if (typeof entity.tags === 'string') {
         this.tags = entity.tags;
       } else {
-        for (let tag of entity.tags) {
+        for (const tag of entity.tags) {
           this.tags.push(tag.name);
         }
-        this.tags = this.tags.join("; ");
+        this.tags = this.tags.join('; ');
       }
       this.folders = [];
-      if (typeof entity.folders === "string") {
+      if (typeof entity.folders === 'string') {
         this.folders = entity.folders;
       } else {
-        for (let folder of entity.folders) {
+        for (const folder of entity.folders) {
           this.folders.push(folder.name);
         }
-        this.folders = this.folders.join("; ");
+        this.folders = this.folders.join('; ');
       }
     }
   }
 
   setValue(key, value, allowEmpty) {
     if (value != null) {
-      var formatedValue = value;
+      let formatedValue = value;
       if (
-        typeof formatedValue === "string" ||
+        typeof formatedValue === 'string' ||
         formatedValue instanceof String
       ) {
-        if (key == "title" || key == "authors") {
+        if (key == 'title' || key == 'authors') {
           formatedValue = formatString({
             str: formatedValue,
             removeNewline: true,
-            removeStr: ".",
+            removeStr: '.',
           });
         }
         if (formatedValue) {

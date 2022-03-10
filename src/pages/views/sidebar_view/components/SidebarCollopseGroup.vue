@@ -1,4 +1,5 @@
 <template>
+  <div>
     <q-item clickable class="sidebar-list-title" @click="onCollopse">
         <q-icon
             v-if="!isCollopsed"
@@ -17,7 +18,7 @@
 
     <q-item
         clickable
-        v-ripple
+        dense
         class="sidebar-list-item"
         active-class="sidebar-list-item-active"
         v-show="!isCollopsed"
@@ -32,7 +33,14 @@
             :name=icon
         />
         <span class=""> {{ categorizer.name }} </span>
-        <q-badge rounded class="absolute-right q-mt-sm q-mb-sm q-mr-sm" text-color="primary" align="middle" :label="categorizer.count" style="background-color: rgb(202, 202, 202); font-size: 0.8em" v-if="showCount"/>
+        <q-badge
+          rounded class="absolute-right q-mt-sm q-mb-sm q-mr-sm"
+          text-color="primary"
+          align="middle"
+          :label="categorizer.count"
+          style="background-color: rgb(202, 202, 202); font-size: 0.8em"
+          v-if="showCount"
+        />
         <q-menu touch-position context-menu>
             <q-list dense style="min-width: 50px">
                 <q-item clickable v-close-popup @click="deleteCategorizer(categorizer)">
@@ -43,6 +51,7 @@
             </q-list>
         </q-menu>
     </q-item>
+  </div>
 </template>
 
 <style lang="sass">
@@ -50,46 +59,45 @@
 </style>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import {defineComponent, ref, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "SidebarCollopseGroup",
-    props: {
-        label: String,
-        icon: String,
-        categorizers: Array,
-        categorizerType: String,
-        selectedCategorizer: String,
-        showCount: Boolean,
-    },
-    emits: ["selectCategorizer"],
-    setup(props, { emit }) {
-        const isCollopsed = ref(false);
+  name: 'SidebarCollopseGroup',
+  props: {
+    label: String,
+    icon: String,
+    categorizers: Array,
+    categorizerType: String,
+    selectedCategorizer: String,
+    showCount: Boolean,
+  },
+  emits: ['selectCategorizer'],
+  setup(props, {emit}) {
+    const isCollopsed = ref(false);
 
-        const onCollopse = () => {
-            isCollopsed.value = !isCollopsed.value;
-        };
+    const onCollopse = () => {
+      isCollopsed.value = !isCollopsed.value;
+    };
 
-        const onSelectCategorizer = (categorizer) => {
-            emit("selectCategorizer", categorizer);
-        };
+    const onSelectCategorizer = (categorizer) => {
+      emit('selectCategorizer', categorizer);
+    };
 
-        const deleteCategorizer = (categorizer) => {
-            if (props.categorizerType === "tag") {
-                window.api.deleteTag(categorizer.name);
-            }
-            else {
-                window.api.deleteFolder(categorizer.name);
-            }
-        };
+    const deleteCategorizer = (categorizer) => {
+      if (props.categorizerType === 'tag') {
+        window.api.deleteTag(categorizer.name);
+      } else {
+        window.api.deleteFolder(categorizer.name);
+      }
+    };
 
-        return {
-            isCollopsed,
-            onCollopse,
-            onSelectCategorizer,
-            deleteCategorizer,
-            ...toRefs(props),
-        };
-    },
+    return {
+      isCollopsed,
+      onCollopse,
+      onSelectCategorizer,
+      deleteCategorizer,
+      ...toRefs(props),
+    };
+  },
 });
 </script>

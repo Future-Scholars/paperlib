@@ -80,37 +80,37 @@
 </style>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import {defineComponent, ref, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "GeneralTab",
-    props: {
-        preference: Object,
-    },
-    setup(props, { emit }) {
-        const folderPicker = ref(null);
+  name: 'GeneralTab',
+  props: {
+    preference: Object,
+  },
+  setup(props, {emit}) {
+    const folderPicker = ref(null);
 
-        const onPickerClicked = () => {
-            folderPicker.value.pickFiles();
-        };
+    const onPickerClicked = () => {
+      folderPicker.value.pickFiles();
+    };
 
-        const onFolderConfirmed = (file) => {
-            let newFolderPath = window.api.getFolderPath(file.path);
-            window.api.updatePreference("appLibFolder", newFolderPath);
-            window.api.openLib()
-        };
+    const onFolderConfirmed = (file) => {
+      const newFolderPath = window.api.getFolderPath(file.path);
+      window.api.updatePreference('appLibFolder', newFolderPath);
+      window.api.openLib();
+    };
 
-        const onUpdate = (key, value) => {
-            window.api.updatePreference(key, value);
-        };
+    const onUpdate = (key, value) => {
+      window.api.updatePreference(key, value);
+    };
 
-        return {
-            folderPicker,
-            onPickerClicked,
-            onFolderConfirmed,
-            onUpdate,
-            ...toRefs(props),
-        };
-    },
+    return {
+      folderPicker,
+      onPickerClicked,
+      onFolderConfirmed,
+      onUpdate,
+      ...toRefs(props),
+    };
+  },
 });
 </script>

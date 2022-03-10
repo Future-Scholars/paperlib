@@ -80,40 +80,39 @@
 </style>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import {defineComponent, ref, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "CloudTab",
-    props: {
-        preference: Object,
-    },
-    setup(props, { emit }) {
+  name: 'CloudTab',
+  props: {
+    preference: Object,
+  },
+  setup(props, {emit}) {
+    const onUpdate = (key, value) => {
+      window.api.updatePreference(key, value);
+    };
 
-        const onUpdate = (key, value) => {
-            window.api.updatePreference(key, value);
-        };
+    const onLoginClicked = () => {
+      window.api.updatePreference('useSync', true);
+      window.api.openLib();
+    };
 
-        const onLoginClicked = () => {
-            window.api.updatePreference("useSync", true)
-            window.api.openLib();
-        };
+    const onLogoutClicked = () => {
+      window.api.updatePreference('useSync', false);
+      window.api.openLib();
+    };
 
-        const onLogoutClicked = () => {
-            window.api.updatePreference("useSync", false)
-            window.api.openLib();
-        };
+    const onMigrateClicked = () => {
+      window.api.migrateLocaltoSync();
+    };
 
-        const onMigrateClicked = () => {
-            window.api.migrateLocaltoSync();
-        };
-
-        return {
-            onUpdate,
-            onLoginClicked,
-            onLogoutClicked,
-            onMigrateClicked,
-            ...toRefs(props),
-        };
-    },
+    return {
+      onUpdate,
+      onLoginClicked,
+      onLogoutClicked,
+      onMigrateClicked,
+      ...toRefs(props),
+    };
+  },
 });
 </script>

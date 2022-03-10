@@ -199,23 +199,22 @@
 </style>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import {defineComponent, ref, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "ScraperTab",
-    props: {
-        preference: Object,
-    },
-    setup(props, { emit }) {
+  name: 'ScraperTab',
+  props: {
+    preference: Object,
+  },
+  setup(props, {emit}) {
+    const onUpdate = (key, value) => {
+      window.api.updatePreference(key, value);
+    };
 
-        const onUpdate = (key, value) => {
-            window.api.updatePreference(key, value);
-        };
-
-        return {
-            onUpdate,
-            ...toRefs(props),
-        };
-    },
+    return {
+      onUpdate,
+      ...toRefs(props),
+    };
+  },
 });
 </script>

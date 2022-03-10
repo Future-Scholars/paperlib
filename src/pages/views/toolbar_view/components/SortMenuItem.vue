@@ -20,21 +20,21 @@
 </style>
 
 <script>
-import { defineComponent, toRefs } from "vue";
+import {defineComponent, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "SortMenuItem",
-    props: {
-        label: String,
-        name: String,
-        icon: String,
-        sortBy: String,
-    },
+  name: 'SortMenuItem',
+  props: {
+    label: String,
+    name: String,
+    icon: String,
+    sortBy: String,
+  },
 
-    setup(props) {
-        return {
-            ...toRefs(props),
-        };
-    },
+  setup(props) {
+    return {
+      ...toRefs(props),
+    };
+  },
 });
 </script>

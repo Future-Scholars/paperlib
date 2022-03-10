@@ -39,28 +39,28 @@
 </style>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import {defineComponent, ref, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "InfoTab",
-    props: {
-        preference: Object,
-    },
-    setup(props, { emit }) {
-        const version = ref("");
+  name: 'InfoTab',
+  props: {
+    preference: Object,
+  },
+  setup(props, {emit}) {
+    const version = ref('');
 
-        const getVersion = () => {
-            version.value = window.api.version()
-        }
+    const getVersion = () => {
+      version.value = window.api.version();
+    };
 
-        return {
-            version,
-            getVersion,
-            ...toRefs(props),
-        };
-    },
-    mounted() {
-        this.getVersion();
-    }
+    return {
+      version,
+      getVersion,
+      ...toRefs(props),
+    };
+  },
+  mounted() {
+    this.getVersion();
+  },
 });
 </script>

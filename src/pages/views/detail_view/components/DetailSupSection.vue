@@ -33,28 +33,28 @@
 </style>
 
 <script>
-import { defineComponent, toRefs } from "vue";
+import {defineComponent, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "DetailSupSection",
-    components: {},
-    props: {
-        urls: Array,
-    },
+  name: 'DetailSupSection',
+  components: {},
+  props: {
+    urls: Array,
+  },
 
-    setup(props) {
-        const fileExtension = (url) => {
-            return url.split(".").pop().toUpperCase()
-        };
+  setup(props) {
+    const fileExtension = (url) => {
+      return url.split('.').pop().toUpperCase();
+    };
 
-        const openFile = (url) => {
-            window.api.open(url);
-        };
-        return {
-            fileExtension,
-            openFile,
-            ...toRefs(props),
-        }
-    }
+    const openFile = (url) => {
+      window.api.open(url);
+    };
+    return {
+      fileExtension,
+      openFile,
+      ...toRefs(props),
+    };
+  },
 });
 </script>

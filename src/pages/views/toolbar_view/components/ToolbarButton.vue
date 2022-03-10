@@ -10,19 +10,19 @@
 </template>
 
 <script>
-import { defineComponent, toRefs } from "vue";
+import {defineComponent, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "ToolbarButton",
-    props: {
-        icon: String,
-    },
+  name: 'ToolbarButton',
+  props: {
+    icon: String,
+  },
 
-    setup(props) {
-        return {
-            ...toRefs(props),
-        }
-    }
+  setup(props) {
+    return {
+      ...toRefs(props),
+    };
+  },
 
 });
 </script>

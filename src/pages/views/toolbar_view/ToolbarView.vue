@@ -25,7 +25,7 @@
         <ToolbarButton icon="bi-card-text" @click="noteSelectedEntities" :disable="selectedEntities.length !== 1" />
         <SortMenu :sortBy="sortBy" :sortOrder="sortOrder" @sort-by-changed="onSortByChanged" @sort-order-changed="onSortOrderChanged" />
         <ToolbarButton icon="bi-gear" @click="openPreference" />
-     
+
     </q-bar>
 
 </template>
@@ -35,170 +35,169 @@
 </style>
 
 <script>
-import { defineComponent, toRefs } from "vue";
+import {defineComponent, toRefs} from 'vue';
 
-import ToolbarButton from "src/pages/views/toolbar_view/components/ToolbarButton.vue";
-import SortMenu from "src/pages/views/toolbar_view/components/SortMenu.vue";
+import ToolbarButton from 'src/pages/views/toolbar_view/components/ToolbarButton.vue';
+import SortMenu from 'src/pages/views/toolbar_view/components/SortMenu.vue';
 
-import { PaperEntityDraft } from "src/models/PaperEntity";
-import Mousetrap from "mousetrap";
+import {PaperEntityDraft} from 'src/models/PaperEntity';
+import Mousetrap from 'mousetrap';
 
 
 export default defineComponent({
-    name: "ToolbarView",
+  name: 'ToolbarView',
 
-    components: {
-        ToolbarButton,
-        SortMenu,
-    },
+  components: {
+    ToolbarButton,
+    SortMenu,
+  },
 
-    props: {
-        selectedEntities: Array,
-        sortBy: String,
-        sortOrder: String,
-        searchText: String,
-    },
+  props: {
+    selectedEntities: Array,
+    sortBy: String,
+    sortOrder: String,
+    searchText: String,
+  },
 
-    setup(props, { emit }) {
+  setup(props, {emit}) {
+    const editSelectedEntities = () => {
+      const entity = props.selectedEntities[0];
+      const entityDraft = new PaperEntityDraft(entity);
+      window.api.sendSignal('sharedData.editEntityDraft', JSON.stringify(entityDraft));
+      window.api.sendSignal('viewState.isEditViewShown', JSON.stringify(true));
+    };
 
-        const editSelectedEntities = () => {
-            let entity = props.selectedEntities[0];
-            let entityDraft = new PaperEntityDraft(entity)
-            window.api.sendSignal("sharedData.editEntityDraft", JSON.stringify(entityDraft));
-            window.api.sendSignal("viewState.isEditViewShown", JSON.stringify(true));
-        };
+    const scrapeSelectedEntities = () => {
+      const entityDrafts = props.selectedEntities.map(
+          (entity) => {
+            const entityDraft = new PaperEntityDraft(entity);
+            return entityDraft;
+          },
+      );
+      window.api.scrape(JSON.stringify(entityDrafts));
+    };
 
-        const scrapeSelectedEntities = () => {
-            let entityDrafts = props.selectedEntities.map(
-                (entity) => {
-                    var entityDraft = new PaperEntityDraft(entity)
-                    return entityDraft
-                }
-            );
-            window.api.scrape(JSON.stringify(entityDrafts));
-        };
+    const deleteSelectedEntities = () => {
+      const ids = props.selectedEntities.map((entity) => entity._id);
+      window.api.sendSignal('selectionState.selectedIndex', JSON.stringify([]));
+      window.api.delete(ids);
+    };
 
-        const deleteSelectedEntities = () => {
-            let ids = props.selectedEntities.map((entity) => entity._id);
-            window.api.sendSignal("selectionState.selectedIndex", JSON.stringify([]));
-            window.api.delete(ids);
-        };
+    const flagSelectedEntities = () => {
+      const entityDrafts = props.selectedEntities.map(
+          (entity) => {
+            const entityDraft = new PaperEntityDraft(entity);
+            entityDraft.flag = !entityDraft.flag;
+            return entityDraft;
+          },
+      );
+      window.api.update(JSON.stringify(entityDrafts));
+    };
 
-        const flagSelectedEntities = () => {
-            let entityDrafts = props.selectedEntities.map(
-                (entity) => {
-                    var entityDraft = new PaperEntityDraft(entity)
-                    entityDraft.flag = !entityDraft.flag;
-                    return entityDraft
-                }
-            );
-            window.api.update(JSON.stringify(entityDrafts));
-        };
+    const tagSelectedEntities = () => {
+      const entity = props.selectedEntities[0];
+      const entityDraft = new PaperEntityDraft(entity);
+      window.api.sendSignal('sharedData.editEntityDraft', JSON.stringify(entityDraft));
+      window.api.sendSignal('viewState.isTagViewShown', JSON.stringify(true));
+    };
 
-        const tagSelectedEntities = () => {
-            let entity = props.selectedEntities[0];
-            let entityDraft = new PaperEntityDraft(entity)
-            window.api.sendSignal("sharedData.editEntityDraft", JSON.stringify(entityDraft));
-            window.api.sendSignal("viewState.isTagViewShown", JSON.stringify(true));
-        };
+    const folderSelectedEntities = () => {
+      const entity = props.selectedEntities[0];
+      const entityDraft = new PaperEntityDraft(entity);
+      window.api.sendSignal('sharedData.editEntityDraft', JSON.stringify(entityDraft));
+      window.api.sendSignal('viewState.isFolderViewShown', JSON.stringify(true));
+    };
 
-        const folderSelectedEntities = () => {
-            let entity = props.selectedEntities[0];
-            let entityDraft = new PaperEntityDraft(entity)
-            window.api.sendSignal("sharedData.editEntityDraft", JSON.stringify(entityDraft));
-            window.api.sendSignal("viewState.isFolderViewShown", JSON.stringify(true));
-        };
+    const noteSelectedEntities = () => {
+      const entity = props.selectedEntities[0];
+      const entityDraft = new PaperEntityDraft(entity);
+      window.api.sendSignal('sharedData.editEntityDraft', JSON.stringify(entityDraft));
+      window.api.sendSignal('viewState.isNoteViewShown', JSON.stringify(true));
+    };
 
-        const noteSelectedEntities = () => {
-            let entity = props.selectedEntities[0];
-            let entityDraft = new PaperEntityDraft(entity)
-            window.api.sendSignal("sharedData.editEntityDraft", JSON.stringify(entityDraft));
-            window.api.sendSignal("viewState.isNoteViewShown", JSON.stringify(true));
-        };
+    const openPreference = () => {
+      window.api.sendSignal('viewState.isPreferenceViewShown', JSON.stringify(true));
+    };
 
-        const openPreference = () => {
-            window.api.sendSignal("viewState.isPreferenceViewShown", JSON.stringify(true));
-        };
+    const onSortByChanged = (sortBy) => {
+      window.api.sendSignal('viewState.sortBy', JSON.stringify(sortBy));
+    };
 
-        const onSortByChanged = (sortBy) => {
-            window.api.sendSignal("viewState.sortBy", JSON.stringify(sortBy));
-        };
+    const onSortOrderChanged = (sortOrder) => {
+      window.api.sendSignal('viewState.sortOrder', JSON.stringify(sortOrder));
+    };
 
-        const onSortOrderChanged = (sortOrder) => {
-            window.api.sendSignal("viewState.sortOrder", JSON.stringify(sortOrder));
-        };
+    const onSearchTextChanged = (searchText) => {
+      window.api.sendSignal('viewState.searchText', JSON.stringify(searchText));
+    };
 
-        const onSearchTextChanged = (searchText) => {
-            window.api.sendSignal("viewState.searchText", JSON.stringify(searchText));
-        };
+    const exportSelectedEntities = (format) => {
+      const entityDrafts = props.selectedEntities.map(
+          (entity) => {
+            const entityDraft = new PaperEntityDraft(entity);
+            entityDraft.flag = !entityDraft.flag;
+            return entityDraft;
+          },
+      );
+      window.api.export(JSON.stringify(entityDrafts), format);
+    };
 
-        const exportSelectedEntities = (format) => {
-            let entityDrafts = props.selectedEntities.map(
-                (entity) => {
-                    var entityDraft = new PaperEntityDraft(entity)
-                    entityDraft.flag = !entityDraft.flag;
-                    return entityDraft
-                }
-            );
-            window.api.export(JSON.stringify(entityDrafts), format);
-        };
-
-        const bindShortcut = () => {
-            Mousetrap.bind("enter", function () {
-                if (selectedEntities.value.length == 1) {
-                    window.api.open(window.api.getJoinedPath(selectedEntities.value[0].mainURL, true));
-                }
-            });
-            Mousetrap.bind("ctrl+shift+c", function () {
-                exportSelectedEntities("bibtex");
-            });
-            Mousetrap.bind("ctrl+e", function () {
-                if (selectedEntities.value.length == 1) {
-                    editSelectedEntities();
-                }
-            });
-            Mousetrap.bind("ctrl+f", function () {
-                flagSelectedEntities()
-            });
-            Mousetrap.bind("ctrl+t", function () {
-                if (selectedEntities.value.length == 1) {
-                    tagSelectedEntities();
-                }
-            });
-            Mousetrap.bind("ctrl+g", function () {
-                if (selectedEntities.value.length == 1) {
-                    folderSelectedEntities();
-                }
-            });
-            Mousetrap.bind("ctrl+r", function () {
-                scrapeSelectedEntities();
-            });
-            Mousetrap.bind("ctrl+n", function () {
-                if (selectedEntities.value.length == 1) {
-                    noteSelectedEntities();
-                }
-            });
-        };
-
-        return {
-            editSelectedEntities,
-            scrapeSelectedEntities,
-            deleteSelectedEntities,
-            flagSelectedEntities,
-            tagSelectedEntities,
-            folderSelectedEntities,
-            noteSelectedEntities,
-            openPreference,
-            onSortByChanged,
-            onSortOrderChanged,
-            onSearchTextChanged,
-            bindShortcut,
-            ...toRefs(props),
+    const bindShortcut = () => {
+      Mousetrap.bind('enter', function() {
+        if (selectedEntities.value.length == 1) {
+          window.api.open(window.api.getJoinedPath(selectedEntities.value[0].mainURL, true));
         }
-    },
-    mounted() {
-        this.bindShortcut();
-    },
+      });
+      Mousetrap.bind('ctrl+shift+c', function() {
+        exportSelectedEntities('bibtex');
+      });
+      Mousetrap.bind('ctrl+e', function() {
+        if (selectedEntities.value.length == 1) {
+          editSelectedEntities();
+        }
+      });
+      Mousetrap.bind('ctrl+f', function() {
+        flagSelectedEntities();
+      });
+      Mousetrap.bind('ctrl+t', function() {
+        if (selectedEntities.value.length == 1) {
+          tagSelectedEntities();
+        }
+      });
+      Mousetrap.bind('ctrl+g', function() {
+        if (selectedEntities.value.length == 1) {
+          folderSelectedEntities();
+        }
+      });
+      Mousetrap.bind('ctrl+r', function() {
+        scrapeSelectedEntities();
+      });
+      Mousetrap.bind('ctrl+n', function() {
+        if (selectedEntities.value.length == 1) {
+          noteSelectedEntities();
+        }
+      });
+    };
+
+    return {
+      editSelectedEntities,
+      scrapeSelectedEntities,
+      deleteSelectedEntities,
+      flagSelectedEntities,
+      tagSelectedEntities,
+      folderSelectedEntities,
+      noteSelectedEntities,
+      openPreference,
+      onSortByChanged,
+      onSortOrderChanged,
+      onSearchTextChanged,
+      bindShortcut,
+      ...toRefs(props),
+    };
+  },
+  mounted() {
+    this.bindShortcut();
+  },
 
 });
 </script>

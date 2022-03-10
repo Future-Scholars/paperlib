@@ -65,39 +65,39 @@
 </style>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import {defineComponent, ref, toRefs} from 'vue';
 
-import GeneralTab from "src/pages/views/preference_view/components/GeneralTab.vue"
-import ScraperTab from "src/pages/views/preference_view/components/ScraperTab.vue"
-import CloudTab from "src/pages/views/preference_view/components/CloudTab.vue"
-import ExportTab from "src/pages/views/preference_view/components/ExportTab.vue"
-import InfoTab from "src/pages/views/preference_view/components/InfoTab.vue"
+import GeneralTab from 'src/pages/views/preference_view/components/GeneralTab.vue';
+import ScraperTab from 'src/pages/views/preference_view/components/ScraperTab.vue';
+import CloudTab from 'src/pages/views/preference_view/components/CloudTab.vue';
+import ExportTab from 'src/pages/views/preference_view/components/ExportTab.vue';
+import InfoTab from 'src/pages/views/preference_view/components/InfoTab.vue';
 
 export default defineComponent({
-    name: "PreferenceView",
-    components: { 
-        GeneralTab,
-        ScraperTab,
-        CloudTab,
-        ExportTab,
-        InfoTab
-    },
-    props: {
-        preference: Object
-    },
-    setup(props, { emit }) {
-        const isPreferenceViewShown = ref(false);
-        const selectedTab = ref("general");
+  name: 'PreferenceView',
+  components: {
+    GeneralTab,
+    ScraperTab,
+    CloudTab,
+    ExportTab,
+    InfoTab,
+  },
+  props: {
+    preference: Object,
+  },
+  setup(props, {emit}) {
+    const isPreferenceViewShown = ref(false);
+    const selectedTab = ref('general');
 
-        window.api.registerSignal("viewState.isPreferenceViewShown", (event, message) => {
-            isPreferenceViewShown.value = JSON.parse(message);
-        });
+    window.api.registerSignal('viewState.isPreferenceViewShown', (event, message) => {
+      isPreferenceViewShown.value = JSON.parse(message);
+    });
 
-        return {
-            isPreferenceViewShown,
-            selectedTab,
-            ...toRefs(props),
-        };
-    },
+    return {
+      isPreferenceViewShown,
+      selectedTab,
+      ...toRefs(props),
+    };
+  },
 });
 </script>

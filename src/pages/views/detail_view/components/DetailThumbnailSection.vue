@@ -49,83 +49,81 @@
 </style>
 
 <script>
-import { defineComponent, ref, watch } from "vue";
-import * as pdfjs from "pdfjs-dist";
+import {defineComponent, ref, watch} from 'vue';
+import * as pdfjs from 'pdfjs-dist';
 
 export default defineComponent({
-    name: "DetailThumbnailSection",
-    components: {},
-    props: {
-        url: String,
-    },
-    setup(props) {
-        const isRendering = ref(false);
-        const isThumbnailShown = ref(false);
+  name: 'DetailThumbnailSection',
+  components: {},
+  props: {
+    url: String,
+  },
+  setup(props) {
+    const isRendering = ref(false);
+    const isThumbnailShown = ref(false);
 
-        const pdfjsWorker = import("pdfjs-dist/build/pdf.worker.entry");
-        pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+    const pdfjsWorker = import('pdfjs-dist/build/pdf.worker.entry');
+    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
-        const renderThumbnail = async () => {
-            if (isRendering.value) {
-                return;
-            }
-            isRendering.value = true;
+    const renderThumbnail = async () => {
+      if (isRendering.value) {
+        return;
+      }
+      isRendering.value = true;
 
-            try {
-                const pdf = await pdfjs.getDocument(props.url).promise;
-                const page = await pdf.getPage(1);
+      try {
+        const pdf = await pdfjs.getDocument(props.url).promise;
+        const page = await pdf.getPage(1);
 
-                var scale = 0.3;
-                var viewport = page.getViewport({ scale: scale });
-                // Support HiDPI-screens.
-                var outputScale = window.devicePixelRatio || 1;
+        const scale = 0.3;
+        const viewport = page.getViewport({scale: scale});
+        // Support HiDPI-screens.
+        const outputScale = window.devicePixelRatio || 1;
 
-                var canvas = document.getElementById("thumbnail");
-                var context = canvas.getContext("2d");
+        const canvas = document.getElementById('thumbnail');
+        const context = canvas.getContext('2d');
 
-                canvas.width = Math.floor(viewport.width * outputScale);
-                canvas.height = Math.floor(viewport.height * outputScale);
+        canvas.width = Math.floor(viewport.width * outputScale);
+        canvas.height = Math.floor(viewport.height * outputScale);
 
-                var transform =
-                    outputScale !== 1
-                        ? [outputScale, 0, 0, outputScale, 0, 0]
-                        : null;
+        const transform =
+                    outputScale !== 1 ?
+                        [outputScale, 0, 0, outputScale, 0, 0] :
+                        null;
 
-                var renderContext = {
-                    canvasContext: context,
-                    transform: transform,
-                    viewport: viewport,
-                };
-                page.render(renderContext);
-                isThumbnailShown.value = true;
-            } catch (e) {
-                console.log(e);
-                isThumbnailShown.value = false;
-            } finally {
-                isRendering.value = false;
-            }
+        const renderContext = {
+          canvasContext: context,
+          transform: transform,
+          viewport: viewport,
         };
+        page.render(renderContext);
+        isThumbnailShown.value = true;
+      } catch (e) {
+        console.log(e);
+        isThumbnailShown.value = false;
+      } finally {
+        isRendering.value = false;
+      }
+    };
 
-        const openThumbnail = () => {
-            window.api.open(props.url);
-        };
+    const openThumbnail = () => {
+      window.api.open(props.url);
+    };
 
-        watch(
-            () => props.url,
-            renderThumbnail
-        );
+    watch(
+        () => props.url,
+        renderThumbnail,
+    );
 
-        return {
-            isRendering,
-            isThumbnailShown,
-            renderThumbnail,
-            openThumbnail
-        };
-    },
-    mounted() {
-        this.$nextTick(function () {
-            this.renderThumbnail();
-        });
-    }
+    return {
+      isRendering,
+      isThumbnailShown,
+      renderThumbnail,
+      openThumbnail,
+    };
+  },
+  mounted() {
+    this.$nextTick(this.renderThumbnail);
+  },
 });
 </script>

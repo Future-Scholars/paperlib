@@ -8,14 +8,14 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import {defineComponent} from 'vue';
 
 export default defineComponent({
-    name: "EntitiesViewContextMenuItem",
+  name: 'EntitiesViewContextMenuItem',
 
-    props: {
-        label: String,
-        shortcut: String,
-    },
+  props: {
+    label: String,
+    shortcut: String,
+  },
 });
 </script>

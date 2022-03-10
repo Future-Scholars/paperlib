@@ -16,146 +16,146 @@
  *   })
  */
 
-import { contextBridge, shell, ipcRenderer, ipcMain } from "electron";
-import { app, BrowserWindow } from "@electron/remote";
+import {contextBridge, shell, ipcRenderer, ipcMain} from 'electron';
+import {app, BrowserWindow} from '@electron/remote';
 
-import { SharedState } from "../src/interactors/appState";
-import { Interactor } from "../src/interactors/interactor";
-import * as pathLib from "path";
+import {SharedState} from '../src/interactors/appState';
+import {Interactor} from '../src/interactors/interactor';
+import * as pathLib from 'path';
 
 const sharedState = new SharedState();
 const interactor = new Interactor(sharedState);
 
-contextBridge.exposeInMainWorld("api", {
-    // Window functions
-    minimize() {
-        BrowserWindow.getFocusedWindow().minimize();
-    },
+contextBridge.exposeInMainWorld('api', {
+  // Window functions
+  minimize() {
+    BrowserWindow.getFocusedWindow().minimize();
+  },
 
-    toggleMaximize() {
-        const win = BrowserWindow.getFocusedWindow();
+  toggleMaximize() {
+    const win = BrowserWindow.getFocusedWindow();
 
-        if (win.isMaximized()) {
-            win.unmaximize();
-        } else {
-            win.maximize();
-        }
-    },
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+  },
 
-    close() {
-        BrowserWindow.getFocusedWindow().close();
-    },
+  close() {
+    BrowserWindow.getFocusedWindow().close();
+  },
 
-    // ==============================
-    // Interactor functions
-    // Load
-    async load(search, flag, tag, folder, sortBy, sortOrder) {
-        return await interactor.load(
-            search,
-            flag,
-            tag,
-            folder,
-            sortBy,
-            sortOrder
-        );
-    },
+  // ==============================
+  // Interactor functions
+  // Load
+  async load(search, flag, tag, folder, sortBy, sortOrder) {
+    return await interactor.load(
+        search,
+        flag,
+        tag,
+        folder,
+        sortBy,
+        sortOrder,
+    );
+  },
 
-    async loadTags() {
-        return await interactor.loadTags();
-    },
+  async loadTags() {
+    return await interactor.loadTags();
+  },
 
-    async loadFolders() {
-        return await interactor.loadFolders();
-    },
+  async loadFolders() {
+    return await interactor.loadFolders();
+  },
 
-    // Add
-    async add(pathList) {
-        return await interactor.add(pathList);
-    },
+  // Add
+  async add(pathList) {
+    return await interactor.add(pathList);
+  },
 
-    // Delete
-    delete(entities) {
-        interactor.delete(entities);
-    },
+  // Delete
+  delete(entities) {
+    interactor.delete(entities);
+  },
 
-    deleteSup(entity, supURL) {
-        interactor.deleteSup(entity, supURL);
-    },
+  deleteSup(entity, supURL) {
+    interactor.deleteSup(entity, supURL);
+  },
 
-    deleteTag(tagName) {
-        interactor.deleteTag(tagName);
-    },
+  deleteTag(tagName) {
+    interactor.deleteTag(tagName);
+  },
 
-    deleteFolder(folderName) {
-        interactor.deleteFolder(folderName);
-    },
+  deleteFolder(folderName) {
+    interactor.deleteFolder(folderName);
+  },
 
-    // Update
-    async scrape(entities) {
-        return await interactor.scrape(entities);
-    },
+  // Update
+  async scrape(entities) {
+    return await interactor.scrape(entities);
+  },
 
-    update(entities) {
-        interactor.update(entities);
-    },
+  update(entities) {
+    interactor.update(entities);
+  },
 
-    // Open
-    open(url) {
-        shell.openPath(url.replace("file://", ""));
-    },
+  // Open
+  open(url) {
+    shell.openPath(url.replace('file://', ''));
+  },
 
-    // Export
-    export(entities, format) {
-        interactor.export(entities, format);
-    },
+  // Export
+  export(entities, format) {
+    interactor.export(entities, format);
+  },
 
-    // ==============================
-    // Preferences
-    updatePreference(name, value) {
-        interactor.updatePreference(name, value);
-    },
+  // ==============================
+  // Preferences
+  updatePreference(name, value) {
+    interactor.updatePreference(name, value);
+  },
 
-    loadPreferences() {
-        return interactor.loadPreferences();
-    },
+  loadPreferences() {
+    return interactor.loadPreferences();
+  },
 
-    version() {
-        return app.getVersion();
-    },
+  version() {
+    return app.getVersion();
+  },
 
-    openLib() {
-        interactor.openLib();
-    },
+  openLib() {
+    interactor.openLib();
+  },
 
-    migrateLocaltoSync() {
-        interactor.migrateLocaltoSync();
-    },
+  migrateLocaltoSync() {
+    interactor.migrateLocaltoSync();
+  },
 
-    // ==============================
+  // ==============================
 
-    getJoinedPath(url, withProtocol) {
-        let joinedPath = pathLib.join(interactor.appLibPath(), url);
-        if (withProtocol) {
-            return "file://" + joinedPath;
-        } else {
-            return joinedPath.replace("file://", "");
-        }
-    },
+  getJoinedPath(url, withProtocol) {
+    const joinedPath = pathLib.join(interactor.appLibPath(), url);
+    if (withProtocol) {
+      return 'file://' + joinedPath;
+    } else {
+      return joinedPath.replace('file://', '');
+    }
+  },
 
-    getFolderPath(url) {
-        return pathLib.dirname(url);
-    },
+  getFolderPath(url) {
+    return pathLib.dirname(url);
+  },
 
-    setRoutineTimer() {
-        interactor.setRoutineTimer();
-    },
+  setRoutineTimer() {
+    interactor.setRoutineTimer();
+  },
 
-    // ==============================
-    registerSignal(signal, callback) {
-        ipcRenderer.on(signal, callback);
-    },
+  // ==============================
+  registerSignal(signal, callback) {
+    ipcRenderer.on(signal, callback);
+  },
 
-    sendSignal(signal, data) {
-        sharedState.set(signal, data);
-    },
+  sendSignal(signal, data) {
+    sharedState.set(signal, data);
+  },
 });

@@ -12,29 +12,25 @@
 </template>
 
 <script>
-import { defineComponent, ref, toRefs } from "vue";
+import {defineComponent, ref, toRefs} from 'vue';
 
 export default defineComponent({
-    name: "EditTextField",
-    components: {},
-    props: {
-        label: String,
-        value: String,
-    },
+  name: 'EditTextField',
+  components: {},
+  props: {
+    label: String,
+    value: String,
+  },
 
-    setup(props, { emit }) {
-        const value = ref(props.value);
-        const label = ref(props.label);
+  setup(props, {emit}) {
+    const onUpdate = (value) => {
+      emit('update:model-value', value);
+    };
 
-        const onUpdate = (value) => {
-            emit("update:model-value", value);
-        };
-
-        return {
-            label,
-            value,
-            onUpdate,
-        };
-    },
+    return {
+      onUpdate,
+      ...toRefs(props),
+    };
+  },
 });
 </script>
