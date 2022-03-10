@@ -69,7 +69,7 @@ jobs:
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/paperlib-${{ env.VERSION }}.dmg
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/latest.dmg
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/paperlib-${{ env.VERSION }}.dmg.blockmap
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/latest.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/latest.yml
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/latest.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/latest-mac.yml
 
   win_deploy:
     runs-on: windows-latest
@@ -117,7 +117,7 @@ jobs:
 
       - name: Install Oracle Cloud CLI
         run: |
-          wget https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1
+          Invoke-WebRequest https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1
           ./install.ps1 -OfflineInstall
           mkdir ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
@@ -130,4 +130,4 @@ jobs:
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/paperlib Setup ${{ env.VERSION }}.exe'
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-win/latest.exe
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/paperlib-${{ env.VERSION }}.dmg.blockmap
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/latest.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-win/latest.yml
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/latest.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-win/latest-win.yml
