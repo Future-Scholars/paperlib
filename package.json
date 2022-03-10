@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@electron/remote": "^2.0.1",
-    "@quasar/extras": "^1.0.0",
+    "@quasar/extras": "^1.12.2",
     "core-js": "^3.6.5",
     "drag-drop": "^7.2.0",
     "electron-store": "^8.0.1",
@@ -26,11 +26,11 @@
     "realm": "^10.10.1",
     "toad-scheduler": "^1.6.0",
     "worker-loader": "^3.0.8",
-    "vue": "^3.0.0",
-    "vue-router": "^4.0.0"
+    "vue": "^3.2.26",
+    "vue-router": "^4.0.12"
   },
   "devDependencies": {
-    "@quasar/app": "^3.0.0",
+    "@quasar/app": "^3.2.5",
     "electron": "16.0.4",
     "electron-builder": "^22.14.5",
     "eslint": "^7.14.0",
