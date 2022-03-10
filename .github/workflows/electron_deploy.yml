@@ -2,7 +2,7 @@ name: Build and Release (electron)
 
 on:
   push:
-    tags: [ release-electron* ]
+    # tags: [ release-electron* ]
 
 
 jobs:
@@ -34,10 +34,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: "Build & Archive"
-        run: |
-          yarn install && yarn add @quasar/cli
-          ./node_modules/@quasar/app/bin/quasar build -m electron -P always
+      - name: "Install Node Module"
+        run: yarn install && yarn add @quasar/cli
+
+      - name: "Build and Package"
+        run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
 
       - name: "List"
         run: |
