@@ -6,6 +6,53 @@ on:
 
 
 jobs:
+  mac_deploy:
+    runs-on: macos-latest
+
+    strategy:
+      matrix:
+        node-versions: ["16.13.1"]
+
+    steps:
+      - name: "Checkout Project"
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          release_version=${GITHUB_REF#refs/*/}
+          export VERSION=${release_version:17}
+          export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
+          cp ./quasar.conf.mac.js ./quasar.conf.js
+
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: "Install Node Module"
+        run: yarn install && yarn add @quasar/cli
+
+      - name: "Build and Package"
+        run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
+
+      - name: "List"
+        run: |
+          ls ./dist/electron
+          ls ./dist/electron/Packaged/
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg
+            ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg.blockmap
+            ./dist/electron/Packaged/latest.yml
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   win_deploy:
     runs-on: windows-latest
 
