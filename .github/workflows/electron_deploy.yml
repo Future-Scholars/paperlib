@@ -43,7 +43,8 @@ jobs:
 
       - name: "List"
         run: |
-          ls ./
+          ls ./dist/electron
+          ls ./dist/electron/Packaged/
 
 
       # - name: Install Oracle Cloud CLI
