@@ -86,7 +86,7 @@ private extension DetailView {
                         DetailThumbnailSection(url: getJoinedURL(entity.mainURL)!)
                     }
                     if entity.supURLs.count >= 1 {
-                        DetailsSupSection(sups: Array(entity.supURLs).map({return getJoinedURL($0)}).filter({ $0 != nil}).map({$0!}))
+                        DetailsSupSection(entity: entity)
                     }
 
                     if !entity.note.isEmpty {
@@ -150,6 +150,7 @@ private extension DetailView {
                 urlList.forEach { supURL in
                     entityDraft.supURLs.append(supURL.absoluteString)
                 }
+
                 injected.interactors.entitiesInteractor.update(entities: [entityDraft])
             }
         }

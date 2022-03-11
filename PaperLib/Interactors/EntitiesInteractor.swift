@@ -26,6 +26,7 @@ protocol EntitiesInteractor {
 
     func delete(ids: Set<ObjectId>)
     func delete<T: PaperCategorizer>(categorizerName: String, categorizerType: T.Type)
+    func deleteSup(entity: PaperEntityDraft, url: URL)
 
     func update(entities: [PaperEntityDraft])
     func scrape(entities: [PaperEntityDraft])
@@ -241,6 +242,48 @@ class RealEntitiesInteractor: EntitiesInteractor {
                 }
             }, receiveValue: { _ in })
             .store(in: self.cancelBags["delete-categorizer"])
+    }
+
+    func deleteSup(entity: PaperEntityDraft, url: URL) {
+        self.cancelBags.cancel(for: "delete")
+
+        self.sharedState.viewState.processingQueueCount.value += 1
+
+        Just<Void>
+            .withErrorType(InteractorError.self)
+            .flatMap {
+                return self.fileRepository.remove(for: url.lastPathComponent)
+                    .mapError { fileError in
+                        return InteractorError.FileError(error: fileError)
+                    }
+            }
+            .flatMap { success -> AnyPublisher<PaperEntityDraft, InteractorError> in
+                if success {
+                    entity.supURLs = entity.supURLs.filter({sup in sup != url.lastPathComponent})
+                }
+                return Just<PaperEntityDraft>
+                    .withErrorType(entity, InteractorError.self)
+                    .eraseToAnyPublisher()
+            }
+            .flatMap { entity in
+                return self.dbRepository.update(from: [entity])
+                    .mapError { dbError in
+                        return InteractorError.DBError(error: dbError)
+                    }
+            }
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .failure(let error): do {
+                    self.sharedState.viewState.alertInformation.value = "Cannot delete this supplementary: \(String(describing: error)) \(Date())"
+                    self.logger.error("Cannot delete this supplementary: \(String(describing: error))")
+                }
+                case .finished: self.logger.info("Delete supplementary successful.")
+                }
+            }, receiveValue: { _ in })
+            .store(in: self.cancelBags["delete"])
+
+        self.sharedState.viewState.processingQueueCount.value -= 1
+
     }
 
     // MARK: - Update
@@ -496,6 +539,7 @@ struct StubEntitiesInteractor: EntitiesInteractor {
 
     func delete(ids _: Set<ObjectId>) {}
     func delete<T>(categorizerName: String, categorizerType: T.Type) where T: PaperCategorizer {}
+    func deleteSup(entity: PaperEntityDraft, url: URL) {}
 
     func update(entities: [PaperEntityDraft]) {}
     func scrape(entities _: [PaperEntityDraft]) {}

@@ -50,36 +50,3 @@ struct DetailThumbnailSection: View {
         }.padding(.vertical, 2)
     }
 }
-
-struct DetailsSupSection: View {
-    var sups: [URL]
-
-    private let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
-
-    var body: some View {
-        Text("Supplementary")
-            .font(.caption)
-            .foregroundColor(Color.secondary.opacity(0.8))
-
-        LazyVGrid(columns: columns, spacing: 1) {
-            // TODO: Delete
-            ForEach(sups, id: \.self) { sup in
-                Button(
-                    action: {
-                        NSWorkspace.shared.open(sup)
-                    },
-                    label: {
-                        Text(sup.pathExtension.uppercased()).font(.subheadline).underline()
-                    }
-                )
-                .buttonStyle(PlainButtonStyle())
-            }
-        }.frame(alignment: .leading)
-    }
-}
