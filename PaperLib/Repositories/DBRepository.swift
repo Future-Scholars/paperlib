@@ -332,11 +332,20 @@ class RealDBRepository: DBRepository {
                 self.sharedState.viewState.entitiesCount.value = results.count
 
                 var filterFormat = ""
-                if search != nil {
-                    if !search!.isEmpty {
+
+                if let search = search, !search.isEmpty {
+                    switch self.sharedState.viewState.searchMode.value {
+                    case .general: do {
                         filterFormat += "(title contains[cd] \"\(formatString(search)!)\" OR authors contains[cd] \"\(formatString(search)!)\" OR publication contains[cd] \"\(formatString(search)!)\" OR note contains[cd] \"\(formatString(search)!)\") AND "
                     }
+                    case .fulltext: do {
+                    }
+                    case .advanced: do {
+                        filterFormat += "(\(search.replacingOccurrences(of: "contains", with: "contains[cd]") )) AND "
+                    }
+                    }
                 }
+
                 if publication != nil {
                     filterFormat += "(publication contains[cd] \"\(formatString(publication)!)\") AND "
                 }

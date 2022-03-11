@@ -77,6 +77,8 @@ struct ViewState {
 
     var processingQueueCount = StateWrapper(0)
     var realmReinited = StateWrapper(nil as Date?)
+
+    var searchMode = StateWrapper(SearchMode.general)
 }
 
 struct SharedData {
