@@ -147,6 +147,9 @@ private extension MainView {
     }
 
     func reloadSelectedEntities() {
+        let validIds = Set(entities.value?.map({entity in return entity.id}) ?? [])
+        injected.sharedState.selection.selectedIds.value = validIds.intersection(injected.sharedState.selection.selectedIds.value)
+
         injected.interactors.entitiesInteractor.load(
             entities: $selectedEntities,
             ids: injected.sharedState.selection.selectedIds.value,
