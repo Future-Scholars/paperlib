@@ -13,6 +13,8 @@ A simple academic paper management tool for CSer.
 <div align="center">
 
 <a href="https://paperlib.app/en/download/" style="font-size: 16px"> » Download Here « </a>
+  
+<a href="https://github.com/users/GeoffreyChen777/projects/1/views/1" style="font-size: 16px"> » Roadmap « </a>
 
 </div>
 
