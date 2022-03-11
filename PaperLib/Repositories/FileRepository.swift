@@ -166,7 +166,7 @@ struct RealFileDBRepository: FileRepository {
                 return false
             }
         } else {
-            return false
+            return true
         }
     }
 
