@@ -1,7 +1,7 @@
 <div align="center">
 <img src="./assets/icon.png" height="95" />
 <br />
-<img src="https://img.shields.io/github/v/release/GeoffreyChen777/paperlib.svg" />
+<img src="https://img.shields.io/badge/dynamic/json?label=macOS-release&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2FGeoffreyChen777%2Fpaperlib%2FmacOS-native%2Fversion.json" />
 <img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
 <img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />
 <h2><a href="https://paperlib.app/" > Paperlib </a></h2>
