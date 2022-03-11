@@ -1,3 +1,7 @@
+## v1.4.2 Mar 11 2022
+1. Delete supplementaries.
+2. Fixed some bugs.
+
 ## v1.4.1 Feb 24 2022
 1. New domain url.
 
