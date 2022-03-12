@@ -18,6 +18,7 @@ struct SearchBar: View {
 
     @Binding var text: String
     @State var searchMode: SearchMode = .general
+    @State var searchModeIcon: String = "magnifyingglass"
     @State var searchModeText: String = "Search..."
     @State var isHelpShown: Bool = false
 
@@ -25,6 +26,8 @@ struct SearchBar: View {
         HStack {
             Button(
                 action: {
+                    NSApp.keyWindow?.makeFirstResponder(nil)
+                    text = ""
                     switch searchMode {
                     case .general: do {
                         injected.sharedState.viewState.searchMode.value = .fulltext
@@ -38,22 +41,13 @@ struct SearchBar: View {
                     }
                 },
                 label: {
-                    switch searchMode {
-                    case .general: do {
-                        Image(systemName: "magnifyingglass")
-                    }
-                    case .fulltext: do {
-                        Image(systemName: "text.magnifyingglass")
-                    }
-                    case .advanced: do {
-                        Image(systemName: "plus.magnifyingglass")
-                    }
-                    }
+                    Image(systemName: searchModeIcon)
                 }
             )
                 .buttonStyle(PlainButtonStyle())
                 .help(
                     Text(isHelpShown ? """
+
 Operators:            ==, <, >, <=, >=, !=, in, contains, and, or
 Queryable fields:  title, authors, publication, pubTime, rating, note
 
@@ -77,10 +71,13 @@ Examples:
                     switch searchMode {
                     case .general:
                         searchModeText = "Search..."
+                        searchModeIcon = "magnifyingglass"
                     case .fulltext:
                         searchModeText = "Fulltext Search..."
+                        searchModeIcon = "text.magnifyingglass"
                     case .advanced:
                         searchModeText = "Advanced Search..."
+                        searchModeIcon = "plus.magnifyingglass"
                     }
                 })
                 .onHover(perform: { isHover in

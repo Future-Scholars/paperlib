@@ -80,7 +80,8 @@ class RealDBRepository: DBRepository {
 
         var config = Realm.Configuration(
             schemaVersion: self.realmSchemaVersion,
-            migrationBlock: self.migrate
+            migrationBlock: self.migrate,
+            objectTypes: [PaperEntity.self, PaperTag.self, PaperFolder.self]
         )
 
         let pathURL = URL(string: pathStr ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("paperlib").absoluteString)
@@ -115,6 +116,7 @@ class RealDBRepository: DBRepository {
             )
             config.schemaVersion = self.realmSchemaVersion
             config.migrationBlock = self.migrate
+            config.objectTypes = [PaperEntity.self, PaperTag.self, PaperFolder.self]
 
             self.cloudConfig = config
             return config

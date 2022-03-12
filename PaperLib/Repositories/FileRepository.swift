@@ -140,17 +140,6 @@ struct RealFileDBRepository: FileRepository {
 
     // MARK: - Move
 
-    func constructURL(_ path: String) -> URL? {
-        if path.starts(with: "file://") {
-            return URL(string: path)
-        } else {
-            let dbRoot = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
-            var url = URL(string: dbRoot)
-            url?.appendPathComponent(path)
-            return url
-        }
-    }
-
     func _move(from sourcePath: URL, to targetPath: URL) -> Bool {
         var isDir: ObjCBool = false
         if !FileManager.default.fileExists(atPath: targetPath.path) && FileManager.default.fileExists(atPath: sourcePath.path, isDirectory: &isDir) && !isDir.boolValue {
@@ -176,8 +165,8 @@ struct RealFileDBRepository: FileRepository {
             .replacingOccurrences(of: " ", with: "_") + "_\(entity.id)"
 
         // 1. Move main file.
-        let sourceMainURL = self.constructURL(entity.mainURL)
-        var targetMainURL = self.constructURL(targetFileName + "_main")
+        let sourceMainURL = constructURL(entity.mainURL)
+        var targetMainURL = constructURL(targetFileName + "_main")
         targetMainURL?.appendPathExtension(sourceMainURL?.pathExtension ?? "")
         if let sourceMainURL = sourceMainURL, let targetMainURL = targetMainURL {
             let mainSuccess = self._move(from: sourceMainURL, to: targetMainURL)
@@ -187,10 +176,10 @@ struct RealFileDBRepository: FileRepository {
         }
 
         // 2. Move sup files
-        let sourceSupURLs = Array(entity.supURLs).map({ return self.constructURL($0) })
+        let sourceSupURLs = Array(entity.supURLs).map({ return constructURL($0) })
         var targetSupURLs: [String] = .init()
         for (i, sourceSupURL) in sourceSupURLs.enumerated() {
-            var targetSupURL = self.constructURL(targetFileName + "_sup\(i)")
+            var targetSupURL = constructURL(targetFileName + "_sup\(i)")
             targetSupURL?.appendPathExtension(sourceSupURL?.pathExtension ?? "")
 
             if let sourceSupURL = sourceSupURL, let targetSupURL = targetSupURL {
@@ -237,8 +226,8 @@ struct RealFileDBRepository: FileRepository {
     }
 
     func remove(for entity: PaperEntityDraft) -> AnyPublisher<Bool, FileError> {
-        var fileURLs = entity.supURLs.map({ return self.constructURL($0) })
-        fileURLs.insert(self.constructURL(entity.mainURL), at: 0)
+        var fileURLs = entity.supURLs.map({ return constructURL($0) })
+        fileURLs.insert(constructURL(entity.mainURL), at: 0)
 
         var publisherList: [AnyPublisher<Bool, FileError>] = .init()
         fileURLs.forEach { fileURL in
@@ -261,7 +250,7 @@ struct RealFileDBRepository: FileRepository {
     }
 
     func remove(for filePath: String) -> AnyPublisher<Bool, FileError> {
-        if let fileURL = self.constructURL(filePath) {
+        if let fileURL = constructURL(filePath) {
             return _remove(for: fileURL)
         } else {
             return Just<Bool>.withErrorType(false, FileError.self)
