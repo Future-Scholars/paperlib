@@ -1,3 +1,6 @@
+## v1.4.3 Mar 12 2022
+1. Advanced search and fulltext search.
+
 ## v1.4.2 Mar 11 2022
 1. Delete supplementaries.
 2. Fixed some bugs.
