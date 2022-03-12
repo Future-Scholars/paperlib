@@ -80,7 +80,8 @@ class RealDBRepository: DBRepository {
 
         var config = Realm.Configuration(
             schemaVersion: self.realmSchemaVersion,
-            migrationBlock: self.migrate
+            migrationBlock: self.migrate,
+            objectTypes: [PaperEntity.self, PaperTag.self, PaperFolder.self]
         )
 
         let pathURL = URL(string: pathStr ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("paperlib").absoluteString)
@@ -115,6 +116,7 @@ class RealDBRepository: DBRepository {
             )
             config.schemaVersion = self.realmSchemaVersion
             config.migrationBlock = self.migrate
+            config.objectTypes = [PaperEntity.self, PaperTag.self, PaperFolder.self]
 
             self.cloudConfig = config
             return config
@@ -332,11 +334,20 @@ class RealDBRepository: DBRepository {
                 self.sharedState.viewState.entitiesCount.value = results.count
 
                 var filterFormat = ""
-                if search != nil {
-                    if !search!.isEmpty {
+
+                if let search = search, !search.isEmpty {
+                    switch self.sharedState.viewState.searchMode.value {
+                    case .general: do {
                         filterFormat += "(title contains[cd] \"\(formatString(search)!)\" OR authors contains[cd] \"\(formatString(search)!)\" OR publication contains[cd] \"\(formatString(search)!)\" OR note contains[cd] \"\(formatString(search)!)\") AND "
                     }
+                    case .fulltext: do {
+                    }
+                    case .advanced: do {
+                        filterFormat += "(\(search.replacingOccurrences(of: "contains", with: "contains[cd]") )) AND "
+                    }
+                    }
                 }
+
                 if publication != nil {
                     filterFormat += "(publication contains[cd] \"\(formatString(publication)!)\") AND "
                 }

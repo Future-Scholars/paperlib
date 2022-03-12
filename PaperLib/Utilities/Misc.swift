@@ -117,3 +117,14 @@ func getJoinedURL(_ url: String) -> URL? {
         return nil
     }
 }
+
+func constructURL(_ path: String) -> URL? {
+    if path.starts(with: "file://") {
+        return URL(string: path)
+    } else {
+        let dbRoot = UserDefaults.standard.string(forKey: "appLibFolder") ?? ""
+        var url = URL(string: dbRoot)
+        url?.appendPathComponent(path)
+        return url
+    }
+}

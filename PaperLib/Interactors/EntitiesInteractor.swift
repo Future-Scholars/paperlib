@@ -16,6 +16,7 @@ enum InteractorError: Error {
     case FileError(error: Error)
     case WebError(error: Error)
     case DBError(error: Error)
+    case CacheError(error: Error)
 }
 
 protocol EntitiesInteractor {
@@ -50,20 +51,22 @@ class RealEntitiesInteractor: EntitiesInteractor {
     let dbRepository: DBRepository
     let fileRepository: FileRepository
     let webRepository: WebRepository
+    let cacheRepository: CacheRepository
 
     let exporter: Exporter
 
-    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "categorizer-tags", "categorizer-folders", "entitiesByIds", "update", "add", "scrape", "delete", "edit", "folders-edit", "delete-categorizer", "open-lib", "plugin", "tag", "folder"])
+    let cancelBags: CancelBags = .init(["apiVersion", "timer", "entities", "categorizer-tags", "categorizer-folders", "entitiesByIds", "update", "add", "scrape", "delete", "edit", "folders-edit", "delete-categorizer", "open-lib", "plugin", "tag", "folder", "cache"])
 
     var routineTimer: Publishers.Autoconnect<Timer.TimerPublisher> = Timer.publish(every: 86400, on: .main, in: .common).autoconnect()
 
-    init(sharedState: SharedState, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository) {
+    init(sharedState: SharedState, dbRepository: DBRepository, fileRepository: FileRepository, webRepository: WebRepository, cacheRepository: CacheRepository) {
         self.logger = Logger()
         self.sharedState = sharedState
 
         self.dbRepository = dbRepository
         self.fileRepository = fileRepository
         self.webRepository = webRepository
+        self.cacheRepository = cacheRepository
         self.exporter = Exporter()
 
         self.setRoutineTimer()
@@ -86,6 +89,12 @@ class RealEntitiesInteractor: EntitiesInteractor {
                 self.dbRepository.entities(ids: ids, search: search, publication: nil, flag: flag, tags: tags, folders: folders, sort: sort)
                     .mapError { dbError in
                         return InteractorError.DBError(error: dbError)
+                    }
+            }
+            .flatMap { entities in
+                self.cacheRepository.filter(entities: entities, query: search)
+                    .mapError { cacheError in
+                        return InteractorError.CacheError(error: cacheError)
                     }
             }
             .sinkToLoadable {
@@ -111,6 +120,7 @@ class RealEntitiesInteractor: EntitiesInteractor {
 
     func add(from urlList: [URL]) {
         self.cancelBags.cancel(for: "add")
+        self.cancelBags.cancel(for: "cache")
 
         // 1. Files processing and web scraping publishers.
         var publisherList: [AnyPublisher<PaperEntityDraft, InteractorError>] = .init()
@@ -138,6 +148,9 @@ class RealEntitiesInteractor: EntitiesInteractor {
         let c = publisherList.count
 
         // 2. Database processing publishers.
+        var successedIds: [ObjectId] = .init()
+        let successedIdsPublisher: CurrentValueSubject<[ObjectId], InteractorError> = .init([])
+
         Publishers.MergeMany(publisherList)
             .collect()
             .flatMap { entityDrafts in
@@ -162,6 +175,10 @@ class RealEntitiesInteractor: EntitiesInteractor {
                 for (entityDraft, success) in zip(entityDrafts, successes) where !success {
                     unsuccessedEntityList.append(entityDraft)
                 }
+                for (entityDraft, success) in zip(entityDrafts, successes) where success {
+                    successedIds.append(entityDraft.id)
+                }
+
                 return Just<[PaperEntityDraft]>
                     .withErrorType(unsuccessedEntityList, InteractorError.self)
                     .eraseToAnyPublisher()
@@ -181,13 +198,47 @@ class RealEntitiesInteractor: EntitiesInteractor {
                         }
                         self.logger.error("Cannot add this paper: \(String(describing: error))")
                     }
-                    case .finished: self.logger.info("Add successful.")
+                    case .finished: do {
+                        self.logger.info("Add successful.")
+                        successedIdsPublisher.send(successedIds)
+                    }
                     }
                     self.sharedState.viewState.processingQueueCount.value -= c
                 },
                 receiveValue: { _ in
             })
             .store(in: self.cancelBags["add"])
+
+        // 3. Create fulltext cache
+
+//        successedIdsPublisher
+//            .flatMap { ids in
+//                self.dbRepository.entities(ids: Set(ids), search: nil, publication: nil, flag: false, tags: [], folders: [], sort: "desc")
+//                    .mapError { error in
+//                        return InteractorError.DBError(error: error)
+//                    }
+//            }
+//            .flatMap { entities in
+//                self.cacheRepository.add(entities: entities)
+//                    .mapError { error in
+//                        return InteractorError.CacheError(error: error)
+//                    }
+//            }
+//            .sink(
+//                receiveCompletion: { completion in
+//                    switch completion {
+//                    case .failure(let error): do {
+//                        self.logger.error("Cannot create fulltext cache: \(String(describing: error))")
+//                    }
+//                    case .finished: do {
+//                        self.logger.info("Create fulltext cache successful.")
+//                    }
+//                    }
+//                },
+//                receiveValue: { _ in
+//            })
+//            .store(in: self.cancelBags["cache"])
+
     }
 
     // MARK: - Delete
@@ -198,6 +249,12 @@ class RealEntitiesInteractor: EntitiesInteractor {
         Just<Void>
             .withErrorType(InteractorError.self)
             .flatMap {
+                self.cacheRepository.delete(ids: Array(ids))
+                    .mapError { dbError in
+                        return InteractorError.CacheError(error: dbError)
+                    }
+            }
+            .flatMap { _ in
                 self.dbRepository.delete(ids: Array(ids))
                     .mapError { dbError in
                         return InteractorError.DBError(error: dbError)

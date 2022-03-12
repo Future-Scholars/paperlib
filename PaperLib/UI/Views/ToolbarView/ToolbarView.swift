@@ -20,7 +20,7 @@ struct ToolbarView: View {
 
     var body: some View {
         SearchBar(text: $viewState.searchText)
-            .onReceive(viewState.$searchText.debounce(for: .seconds(0.3), scheduler: DispatchQueue.main), perform: { searchText in
+            .onReceive(viewState.$searchText.debounce(for: .seconds(injected.sharedState.viewState.searchMode.value == .advanced ? 0.6 : 0.3), scheduler: DispatchQueue.main), perform: { searchText in
                 if injected.sharedState.sharedData.searchQuery.value != nil || !searchText.isEmpty {
                     injected.sharedState.sharedData.searchQuery.value = searchText
                 }

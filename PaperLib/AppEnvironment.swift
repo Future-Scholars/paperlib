@@ -26,8 +26,9 @@ extension AppEnvironment {
         let dbRepository = RealDBRepository(sharedState: sharedState)
         let fileRepository = RealFileDBRepository()
         let webRepository = RealWebRepository()
+        let cacheRepository = RealCacheRepository(sharedState: sharedState)
 
-        return .init(dbRepository: dbRepository, fileRepository: fileRepository, webRepository: webRepository)
+        return .init(dbRepository: dbRepository, fileRepository: fileRepository, webRepository: webRepository, cacheRepository: cacheRepository)
     }
 
     private static func configuredInteractors(sharedState: SharedState, repositories: DIContainer.Repositories) -> DIContainer.Interactors {
@@ -35,7 +36,8 @@ extension AppEnvironment {
             sharedState: sharedState,
             dbRepository: repositories.dbRepository,
             fileRepository: repositories.fileRepository,
-            webRepository: repositories.webRepository
+            webRepository: repositories.webRepository,
+            cacheRepository: repositories.cacheRepository
         )
 
         return .init(entitiesInteractor: entitiesInteractor)
@@ -47,5 +49,6 @@ extension DIContainer {
         let dbRepository: DBRepository
         let fileRepository: FileRepository
         let webRepository: WebRepository
+        let cacheRepository: CacheRepository
     }
 }
