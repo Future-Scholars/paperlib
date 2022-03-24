@@ -1,6 +1,7 @@
 import { ipcRenderer, IpcRendererEvent, shell } from 'electron';
 import { app, BrowserWindow, dialog, nativeTheme } from '@electron/remote';
 import keytar from 'keytar';
+import os from 'os';
 
 import { SharedState } from './app-state';
 import { Preference, PreferenceType } from '../utils/preference';
@@ -63,6 +64,10 @@ export class SystemInteractor {
 
     this.sharedState.set('viewState.theme', preferedTheme);
     this.theme.set(preferedTheme);
+  }
+
+  platform() {
+    return os.platform();
   }
 
   // ============================================================

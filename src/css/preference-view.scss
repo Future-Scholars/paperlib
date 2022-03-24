@@ -5,6 +5,10 @@
   color: var(--q-text) !important;
 }
 
+.preference-view .scroll {
+    overflow: hidden;
+}
+
 .preference-view input {
   color: var(--q-text) !important;
 }

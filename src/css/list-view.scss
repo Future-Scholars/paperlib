@@ -17,7 +17,7 @@
 
 .list-item :nth-child(2) :first-child > span {
   color: var(--q-text);
-  font-weight: 800;
+  font-weight: 600;
   font-size: 0.84rem;
   line-height: 1.1rem;
 }
@@ -47,7 +47,7 @@
 
 .list-item-active :nth-child(2) :first-child > span {
   color: var(--q-text-accent);
-  font-weight: 800;
+  font-weight: 600;
   font-size: 0.84rem;
   line-height: 1.1rem;
 }

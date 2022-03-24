@@ -1,5 +1,5 @@
 <template>
-    <div class="sidebar absolute-full">
+    <div class="sidebar absolute-full" :style="{'background-color': backgroundColor}">
         <WindowControl />
 
         <q-list dense class="sidebar-list q-pl-md q-pr-md">
@@ -55,7 +55,6 @@
 
 <script lang="ts">
 import {defineComponent, toRefs, ref} from 'vue';
-
 import WindowControl from './components/WindowControl.vue';
 import SidebarItem from './components/SidebarItem.vue';
 import SidebarCollopseGroup from './components/SidebarCollopseGroup.vue';
@@ -78,6 +77,12 @@ export default defineComponent({
 
   setup(props, {emit}) {
     const entitiesCount = ref(0);
+    const backgroundColor = ref('none')
+
+    console.log(window.systemInteractor.platform())
+    if (window.systemInteractor.platform() !== 'darwin') {
+      backgroundColor.value = 'var(--q-bg-secondary)'
+    }
 
     const onSelectCategorizer = (categorizer: string) => {
       window.systemInteractor.setState('selectionState.selectedCategorizer', JSON.stringify(categorizer));
@@ -89,6 +94,7 @@ export default defineComponent({
 
     return {
       entitiesCount,
+      backgroundColor,
       onSelectCategorizer,
       ...toRefs(props),
     };
