@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /**
  * This file is used specifically for security reasons.
  * Here you can access Nodejs stuff and inject functionality into
@@ -15,148 +20,43 @@
  *     doAThing: () => {}
  *   })
  */
+import { contextBridge } from 'electron';
 
-import {contextBridge, shell, ipcRenderer, ipcMain} from 'electron';
-import {app, BrowserWindow} from '@electron/remote';
-
-import {SharedState} from '../src/interactors/appState';
-import {Interactor} from '../src/interactors/interactor';
-import * as pathLib from 'path';
+import { SharedState } from '../src/interactors/app-state';
+import { Preference } from '../src/utils/preference';
+import { EntityInteractor } from '../src/interactors/entity-interactor';
+import { SystemInteractor } from '../src/interactors/system-interactor';
 
 const sharedState = new SharedState();
-const interactor = new Interactor(sharedState);
+const preference = new Preference();
 
-contextBridge.exposeInMainWorld('api', {
-  // Window functions
-  minimize() {
-    BrowserWindow.getFocusedWindow().minimize();
-  },
+const entityInteractor = new EntityInteractor(sharedState, preference);
+const systemInteractor = new SystemInteractor(sharedState, preference);
 
-  toggleMaximize() {
-    const win = BrowserWindow.getFocusedWindow();
+function createInteractorProxy(interactor) {
+  const interactorFuncs = Object.getOwnPropertyNames(interactor.__proto__);
+  const interactorProps = Object.getOwnPropertyNames(interactor);
 
-    if (win.isMaximized()) {
-      win.unmaximize();
-    } else {
-      win.maximize();
+  const interactorProxy = {};
+  for (let func of interactorFuncs) {
+    if (func === 'constructor') {
+      continue;
     }
-  },
+    interactorProxy[func] = interactor[func].bind(interactor);
+  }
 
-  close() {
-    BrowserWindow.getFocusedWindow().close();
-    app.quit();
-  },
-
-  // ==============================
-  // Interactor functions
-  // Load
-  async load(search, flag, tag, folder, sortBy, sortOrder) {
-    return await interactor.load(
-        search,
-        flag,
-        tag,
-        folder,
-        sortBy,
-        sortOrder,
-    );
-  },
-
-  async loadTags() {
-    return await interactor.loadTags();
-  },
-
-  async loadFolders() {
-    return await interactor.loadFolders();
-  },
-
-  // Add
-  async add(pathList) {
-    return await interactor.add(pathList);
-  },
-
-  // Delete
-  delete(entities) {
-    interactor.delete(entities);
-  },
-
-  deleteSup(entity, supURL) {
-    interactor.deleteSup(entity, supURL);
-  },
-
-  deleteTag(tagName) {
-    interactor.deleteTag(tagName);
-  },
-
-  deleteFolder(folderName) {
-    interactor.deleteFolder(folderName);
-  },
-
-  // Update
-  async scrape(entities) {
-    return await interactor.scrape(entities);
-  },
-
-  update(entities) {
-    interactor.update(entities);
-  },
-
-  // Open
-  open(url) {
-    shell.openPath(url.replace('file://', ''));
-  },
-
-  // Export
-  export(entities, format) {
-    interactor.export(entities, format);
-  },
-
-  // ==============================
-  // Preferences
-  updatePreference(name, value) {
-    interactor.updatePreference(name, value);
-  },
-
-  loadPreferences() {
-    return interactor.loadPreferences();
-  },
-
-  version() {
-    return app.getVersion();
-  },
-
-  openLib() {
-    interactor.openLib();
-  },
-
-  migrateLocaltoSync() {
-    interactor.migrateLocaltoSync();
-  },
-
-  // ==============================
-
-  getJoinedPath(url, withProtocol) {
-    const joinedPath = pathLib.join(interactor.appLibPath(), url);
-    if (withProtocol) {
-      return 'file://' + joinedPath;
-    } else {
-      return joinedPath.replace('file://', '');
+  for (let prop of interactorProps) {
+    if (prop === 'constructor') {
+      continue;
     }
-  },
+    interactorProxy[prop] = interactor[prop];
+  }
 
-  getFolderPath(url) {
-    return pathLib.dirname(url);
-  },
+  return interactorProxy;
+}
 
-  setRoutineTimer() {
-    interactor.setRoutineTimer();
-  },
+const entityInteractorProxy = createInteractorProxy(entityInteractor);
+const systemInteractorProxy = createInteractorProxy(systemInteractor);
 
-  // ==============================
-  registerSignal(signal, callback) {
-    ipcRenderer.on(signal, callback);
-  },
-
-  sendSignal(signal, data) {
-    sharedState.set(signal, data);
-  },
-});
+contextBridge.exposeInMainWorld('entityInteractor', entityInteractorProxy);
+contextBridge.exposeInMainWorld('systemInteractor', systemInteractorProxy);

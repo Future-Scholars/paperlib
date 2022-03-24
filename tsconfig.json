@@ -1,0 +1,8 @@
+{
+  "extends": "@quasar/app/tsconfig-preset",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "types": ["@types/offscreencanvas"],
+    "typeRoots": ["./src/types"]
+  }
+}

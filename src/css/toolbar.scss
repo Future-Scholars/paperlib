@@ -1,0 +1,35 @@
+@import './quasar.variables.scss';
+
+.menubar {
+  height: 50px;
+  width: 100%;
+  background-color: var(--q-bg-primary);
+}
+
+.menubar-drag-box {
+  width: calc(100% - 250px);
+  height: 100%;
+}
+
+.search-bar {
+  width: 300px;
+  font-size: 0.8rem;
+}
+
+.search-bar input {
+  color: var(--q-text-2) !important;
+}
+
+.mainview .q-field--focused input {
+  color: var(--q-text) !important;
+}
+
+.search-bar-icon {
+  color: var(--q-text) !important;
+  font-size: 0.8rem !important;
+}
+
+.q-dialog .q-card {
+  color: var(--q-text);
+  background-color: var(--q-bg-primary);
+}

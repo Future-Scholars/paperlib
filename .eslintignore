@@ -4,3 +4,6 @@
 /src-cordova
 /.quasar
 /node_modules
+.eslintrc.js
+babel.config.js
+/src-ssr

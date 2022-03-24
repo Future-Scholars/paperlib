@@ -1,0 +1,73 @@
+@import './quasar.variables.scss';
+
+.detail-panel {
+  min-width: 320px;
+  max-width: 320px;
+  border-left: 1px solid var(--q-divider);
+  margin-left: -10px;
+  padding-left: 18px;
+  padding-right: 15px;
+}
+
+.detail-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1.4rem;
+  margin-top: 0.2rem;
+  margin-bottom: 0.5rem;
+  color: var(--q-text);
+}
+
+.detail-section-title {
+  font-size: 0.65rem;
+  font-weight: 500;
+  opacity: 0.4;
+  user-select: none;
+  color: var(--q-text);
+}
+
+.detail-section-content {
+  font-size: 0.8em;
+  margin-bottom: 1em;
+  color: var(--q-text);
+}
+
+.q-rating__icon {
+  text-shadow: none;
+}
+
+.q-rating__icon--active {
+  color: var(--q-text) !important;
+}
+
+.detail-skeleton {
+  height: 210px;
+  width: 150px;
+  border: 1px solid var(--q-divider);
+  border-radius: 5px;
+}
+
+.detail-skeleton .q-skeleton {
+  background: var(--q-skeleton-item);
+}
+
+.detail-skeleton .q-skeleton--anim-wave:after {
+  background: linear-gradient(
+    90deg,
+    rgb(70 70 70 / 0%),
+    rgb(70 70 70 / 35%),
+    rgba(255, 255, 255, 0)
+  );
+  animation: q-skeleton--wave var(--q-skeleton-speed) linear 0.5s infinite;
+}
+
+.detail-skeleton .q-card {
+  background: var(--q-skeleton-bg);
+}
+
+.detail-skeleton {
+  height: 210px;
+  width: 150px;
+  border: 1px solid var(--q-divider);
+  border-radius: 5px;
+}
