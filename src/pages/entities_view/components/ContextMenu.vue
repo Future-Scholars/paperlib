@@ -3,20 +3,20 @@
         <q-list dense style="min-width: 200px" class="menu-list">
             <EntitiesViewContextMenuItem label="Open" shortcutKey="enter" @click="openSelectedEntities" />
             <EntitiesViewContextMenuItem
-              label="Edit" shortcutCmd="true" shortcutKey="E" @click="editSelectedEntities" :disable="selectedEntities.length > 1"
+              label="Edit" :shortcutCmd="true" shortcutKey="E" @click="editSelectedEntities" :disable="selectedEntities.length > 1"
             />
-            <EntitiesViewContextMenuItem label="Scrape" shortcutCmd="true" shortcutKey="R" @click="scrapeSelectedEntities"/>
+            <EntitiesViewContextMenuItem label="Scrape" :shortcutCmd="true" shortcutKey="R" @click="scrapeSelectedEntities"/>
             <EntitiesViewContextMenuItem label="Delete" shortcutKey="" @click="deleteSelectedEntities"/>
             <q-separator />
-            <EntitiesViewContextMenuItem label="Toggle Flag" shortcutCmd="true" shortcutKey="F" @click="flagSelectedEntities"/>
+            <EntitiesViewContextMenuItem label="Toggle Flag" :shortcutCmd="true" shortcutKey="F" @click="flagSelectedEntities"/>
             <EntitiesViewContextMenuItem
-              label="Add Tags" shortcutCmd="true" shortcutKey="T" @click="tagSelectedEntities" :disable="selectedEntities.length > 1"
+              label="Add Tags" :shortcutCmd="true" shortcutKey="T" @click="tagSelectedEntities" :disable="selectedEntities.length > 1"
             />
             <EntitiesViewContextMenuItem
-              label="Add Folders" shortcutCmd="true" shortcutKey="G" @click="folderSelectedEntities" :disable="selectedEntities.length > 1"
+              label="Add Folders" :shortcutCmd="true" shortcutKey="G" @click="folderSelectedEntities" :disable="selectedEntities.length > 1"
             />
             <EntitiesViewContextMenuItem
-              label="Add Note" shortcutCmd="true" shortcutKey="N" @click="noteSelectedEntities" :disable="selectedEntities.length > 1"
+              label="Add Note" :shortcutCmd="true" shortcutKey="N" @click="noteSelectedEntities" :disable="selectedEntities.length > 1"
             />
             <q-separator />
             <q-item clickable class="menu-list-item">
@@ -26,7 +26,7 @@
                 </q-item-section>
                 <q-menu anchor="top end" self="top start">
                     <q-list dense style="min-width: 160px" class="menu-list">
-                        <EntitiesViewContextMenuItem label="Bibtex" shortcutCmd="true" shortcutShift="true" shortcutKey="C" @click="exportSelectedEntities('bibtex')"/>
+                        <EntitiesViewContextMenuItem label="Bibtex" :shortcutCmd="true" shortcutShift="true" shortcutKey="C" @click="exportSelectedEntities('bibtex')"/>
                         <EntitiesViewContextMenuItem label="Plain Text" shortcutKey="" @click="exportSelectedEntities('plain')"/>
                     </q-list>
                 </q-menu>

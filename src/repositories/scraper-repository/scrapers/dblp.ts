@@ -73,6 +73,8 @@ function parsingProcess(
           pubType = 0;
         } else if (article.type.includes('Conference')) {
           pubType = 1;
+        } else if (article.type.includes('Book')) {
+          pubType = 3;
         } else {
           pubType = 2;
         }
