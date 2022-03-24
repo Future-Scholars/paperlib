@@ -218,42 +218,59 @@ Examples: <br/>
       window.systemInteractor.setState('viewState.viewType', JSON.stringify(viewType));
     };
 
-    const bindShortcut = () => {
-      Mousetrap.bind('enter', function() {
-        if (props.selectedEntities.length == 1) {
-          void window.entityInteractor.open(props.selectedEntities[0].mainURL);
-        }
-      });
-      Mousetrap.bind('ctrl+shift+c', function() {
+    window.systemInteractor.registerSignal('shortcutClicked-Space', () => {
+      if (props.selectedEntities.length == 1) {
+        void window.entityInteractor.preview(props.selectedEntities[0].mainURL)
+      }
+    });
+
+    window.systemInteractor.registerSignal('shortcutClicked-Enter', () => {
+      if (props.selectedEntities.length == 1) {
+        void window.entityInteractor.open(props.selectedEntities[0].mainURL);
+      }
+    });
+
+    window.systemInteractor.registerSignal('shortcutClicked-cmd-shift-c', () => {
+      if (props.selectedEntities.length >= 1) {
         exportSelectedEntities('bibtex');
-      });
-      Mousetrap.bind('ctrl+e', function() {
-        if (props.selectedEntities.length == 1) {
-          editSelectedEntities();
-        }
-      });
-      Mousetrap.bind('ctrl+f', function() {
+      }
+    });
+
+    window.systemInteractor.registerSignal('shortcutClicked-cmd-e', () => {
+      if (props.selectedEntities.length == 1) {
+        editSelectedEntities();
+      }
+    });
+
+    window.systemInteractor.registerSignal('shortcutClicked-cmd-f', () => {
+      if (props.selectedEntities.length >= 1) {
         flagSelectedEntities();
-      });
-      Mousetrap.bind('ctrl+t', function() {
-        if (props.selectedEntities.length == 1) {
-          tagSelectedEntities();
-        }
-      });
-      Mousetrap.bind('ctrl+g', function() {
-        if (props.selectedEntities.length == 1) {
-          folderSelectedEntities();
-        }
-      });
-      Mousetrap.bind('ctrl+r', function() {
+      }
+    });
+
+    window.systemInteractor.registerSignal('shortcutClicked-cmd-t', () => {
+      if (props.selectedEntities.length == 1) {
+        tagSelectedEntities();
+      }
+    });
+
+    window.systemInteractor.registerSignal('shortcutClicked-cmd-g', () => {
+      if (props.selectedEntities.length == 1) {
+        folderSelectedEntities();
+      }
+    });
+
+    window.systemInteractor.registerSignal('shortcutClicked-cmd-r', () => {
+      if (props.selectedEntities.length >= 1) {
         scrapeSelectedEntities();
-      });
-      Mousetrap.bind('ctrl+n', function() {
-        if (props.selectedEntities.length == 1) {
-          noteSelectedEntities();
-        }
-      });
-    };
+      }
+    });
+
+    window.systemInteractor.registerSignal('shortcutClicked-cmd-n', () => {
+      if (props.selectedEntities.length == 1) {
+        noteSelectedEntities();
+      }
+    });
 
     return {
       searchText,
@@ -276,13 +293,8 @@ Examples: <br/>
       onSortOrderChanged,
       onSearchTextChanged,
       onChangeViewType,
-      bindShortcut,
       ...toRefs(props),
     };
   },
-  mounted() {
-    this.bindShortcut();
-  },
-
 });
 </script>

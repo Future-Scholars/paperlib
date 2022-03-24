@@ -54,7 +54,6 @@ export default defineComponent({
     const isDownloading = ref(false);
 
     const worker = new Worker(new URL('./renderer.worker.js', import.meta.url));
-    console.log(worker)
 
     const registerCanvas = () => {
       let canvasMain = document.getElementById('thumbnail') as HTMLCanvasElement

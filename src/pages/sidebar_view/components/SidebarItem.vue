@@ -49,7 +49,6 @@ export default defineComponent({
     if (props.withSpinner) {
       window.systemInteractor.registerState('viewState.processingQueueCount', (event, message) => {
         const processingQueueCount = JSON.parse(message as string) as number;
-        console.log(processingQueueCount)
         if (processingQueueCount > 0) {
           isProgressViewShown.value = true;
         } else {

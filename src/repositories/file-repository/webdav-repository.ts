@@ -145,8 +145,6 @@ export class WebDavFileRepository extends FileRepository {
     const _sourceURL = sourceURL.replace('webdav://', '/paperlib/');
     const _targetURL = targetURL.replace('file://', '/');
 
-    console.log(_sourceURL, _targetURL);
-
     const buffer: Buffer = (await this.webdavClient?.getFileContents(
       _sourceURL
     )) as Buffer;
@@ -211,7 +209,6 @@ export class WebDavFileRepository extends FileRepository {
       '',
       'webdav://'
     );
-    console.log(targetMainURL);
     const mainSuccess = await this._move(sourceMainURL, targetMainURL);
     if (mainSuccess) {
       entity.mainURL = path.basename(targetMainURL);

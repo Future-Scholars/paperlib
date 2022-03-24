@@ -33,7 +33,6 @@ export default defineComponent({
 
   setup(props, {emit}) {
     const textFieldValue = ref(props.value);
-    console.log(textFieldValue)
 
     const onUpdate = (value: string) => {
       emit('update:model-value', value);

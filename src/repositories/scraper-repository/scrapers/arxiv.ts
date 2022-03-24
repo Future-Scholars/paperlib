@@ -24,7 +24,6 @@ export class ArXivScraper extends Scraper {
       removeStr: 'arXiv:',
     });
     const scrapeURL = `https://export.arxiv.org/api/query?id_list=${arxivID}`;
-    console.log(scrapeURL);
 
     const headers = {
       'accept-encoding': 'UTF-32BE',

@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { app, BrowserWindow, nativeTheme, Menu, MenuItem } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  nativeTheme,
+  Menu,
+  MenuItem,
+  globalShortcut,
+} from 'electron';
 import { initialize, enable } from '@electron/remote/main';
 import path from 'path';
 import os from 'os';
@@ -113,12 +120,72 @@ function setMainMenu() {
     // { role: 'fileMenu' }
     {
       label: 'File',
-      submenu: [isMac ? { role: 'close' } : { role: 'quit' }],
+      submenu: [
+        {
+          label: 'Open',
+          accelerator: 'Enter',
+          click: () => {
+            mainWindow.webContents.send('shortcutClicked-Enter');
+          },
+        },
+        { type: 'separator' },
+        {
+          label: 'Copy Bibtex',
+          accelerator: isMac ? 'cmd+shift+c' : 'ctrl+shift+c',
+          click: () => {
+            mainWindow.webContents.send('shortcutClicked-cmd-shift-c');
+          },
+        },
+        isMac ? { role: 'close' } : { role: 'quit' },
+      ],
     },
     // { role: 'editMenu' }
     {
       label: 'Edit',
       submenu: [
+        {
+          label: 'Scrape',
+          accelerator: isMac ? 'cmd+r' : 'ctrl+r',
+          click: () => {
+            mainWindow.webContents.send('shortcutClicked-cmd-r');
+          },
+        },
+        {
+          label: 'Edit Metadata',
+          accelerator: isMac ? 'cmd+e' : 'ctrl+e',
+          click: () => {
+            mainWindow.webContents.send('shortcutClicked-cmd-e');
+          },
+        },
+        {
+          label: 'Add Tag',
+          accelerator: isMac ? 'cmd+t' : 'ctrl+t',
+          click: () => {
+            mainWindow.webContents.send('shortcutClicked-cmd-t');
+          },
+        },
+        {
+          label: 'Add to Folder',
+          accelerator: isMac ? 'cmd+g' : 'ctrl+g',
+          click: () => {
+            mainWindow.webContents.send('shortcutClicked-cmd-g');
+          },
+        },
+        {
+          label: 'Add Note',
+          accelerator: isMac ? 'cmd+n' : 'ctrl+n',
+          click: () => {
+            mainWindow.webContents.send('shortcutClicked-cmd-n');
+          },
+        },
+        {
+          label: 'Flag',
+          accelerator: isMac ? 'cmd+f' : 'ctrl+f',
+          click: () => {
+            mainWindow.webContents.send('shortcutClicked-cmd-f');
+          },
+        },
+        { type: 'separator' },
         { role: 'undo' },
         { role: 'redo' },
         { type: 'separator' },
@@ -143,9 +210,13 @@ function setMainMenu() {
     {
       label: 'View',
       submenu: [
-        { role: 'reload' },
-        { role: 'forceReload' },
-        { role: 'toggleDevTools' },
+        {
+          label: 'Preview',
+          accelerator: 'Space',
+          click: () => {
+            mainWindow.webContents.send('shortcutClicked-Space');
+          },
+        },
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },

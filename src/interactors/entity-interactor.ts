@@ -1,6 +1,8 @@
 import { clipboard, shell } from 'electron';
 import path from 'path';
 import moment from 'moment';
+import { BrowserWindow } from '@electron/remote';
+
 import { ToadScheduler, SimpleIntervalJob, Task } from 'toad-scheduler';
 
 import { SharedState } from './app-state';
@@ -378,6 +380,13 @@ export class EntityInteractor {
   async open(url: string) {
     const fileURL = await this.access(url, true);
     void shell.openPath(fileURL.replace('file://', ''));
+  }
+
+  async preview(url: string) {
+    const fileURL = await this.access(url, true);
+    BrowserWindow.getFocusedWindow()?.previewFile(
+      fileURL.replace('file://', '')
+    );
   }
 
   async access(url: string, download: boolean) {

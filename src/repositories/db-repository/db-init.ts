@@ -147,7 +147,6 @@ export async function logoutCloud(this: DBRepository) {
   if (this.app) {
     // @ts-ignore
     for (const [_, user] of Object.entries(this.app.allUsers)) {
-      console.log('remove', user);
       await this.app.removeUser(user);
     }
   }

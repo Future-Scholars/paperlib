@@ -79,7 +79,6 @@ export default defineComponent({
     const entitiesCount = ref(0);
     const backgroundColor = ref('none')
 
-    console.log(window.systemInteractor.platform())
     if (window.systemInteractor.platform() !== 'darwin') {
       backgroundColor.value = 'var(--q-bg-secondary)'
     }

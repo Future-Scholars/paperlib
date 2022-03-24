@@ -138,7 +138,6 @@ export default defineComponent({
       if (duplicatedCategorizers.length == 0) {
         existingCategorizers.push(categorizer.name);
         categorizerDraftStr.value = existingCategorizers.join('; ');
-        console.log(categorizerDraftStr.value)
       }
     };
 

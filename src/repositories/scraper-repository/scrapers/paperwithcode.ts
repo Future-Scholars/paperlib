@@ -23,13 +23,11 @@ export class PwCScraper extends Scraper {
     })
       .replace(/ /g, '-')
       .replace(/\./g, '');
-    console.log(connectedTitle);
     const scrapeURL = `https://paperswithcode.com/api/v1/search/?q=${connectedTitle}`;
 
     const headers = {
       Accept: 'application/json',
     };
-    console.log(scrapeURL);
     return { scrapeURL, headers, enable };
   }
 
