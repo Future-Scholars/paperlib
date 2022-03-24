@@ -21,10 +21,10 @@ export default defineComponent({
   props: {
     initRating: Number,
   },
-  emits: ['ratingChanged'],
+  emits: ['rating-changed'],
   setup(props, {emit}) {
     const onRatingChanged = (newValue: number) => {
-      emit('ratingChanged', newValue);
+      emit('rating-changed', newValue);
     };
 
     return {

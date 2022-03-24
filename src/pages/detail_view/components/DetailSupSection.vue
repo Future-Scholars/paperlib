@@ -19,7 +19,7 @@
             </div>
             <q-menu touch-position context-menu>
                 <q-list dense style="min-width: 50px">
-                    <q-item clickable v-close-popup @click="$emit('deleteSup', url)">
+                    <q-item clickable v-close-popup @click="$emit('delete-sup', url)">
                         <q-item-section style="font-size: 0.9em">Delete</q-item-section>
                     </q-item>
                 </q-list>

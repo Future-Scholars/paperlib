@@ -66,7 +66,7 @@ export default defineComponent({
     selectedCategorizer: String,
     showCount: Boolean,
   },
-  emits: ['selectCategorizer'],
+  emits: ['select-categorizer'],
   setup(props, {emit}) {
     const isCollopsed = ref(false);
 
@@ -75,7 +75,7 @@ export default defineComponent({
     };
 
     const onSelectCategorizerInGroup = (categorizer: PaperCategorizer) => {
-      emit('selectCategorizer', categorizer);
+      emit('select-categorizer', categorizer);
     };
 
     const deleteCategorizer = (categorizer: PaperCategorizer) => {

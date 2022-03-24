@@ -9,18 +9,18 @@
     >
         <q-menu>
             <q-list dense style="min-width: 100px" class="menu-list">
-                <SortMenuItem label="Title" name="title" icon="bi-fonts" :sortBy="sortBy" @click="$emit('sortByChanged', 'title')"/>
-                <SortMenuItem name="authors" label="Authors" icon="bi-person" :sortBy="sortBy" @click="$emit('sortByChanged', 'authors')"/>
-                <SortMenuItem name="pubTime" label="Year" icon="bi-calendar3" :sortBy="sortBy" @click="$emit('sortByChanged', 'pubTime')"/>
+                <SortMenuItem label="Title" name="title" icon="bi-fonts" :sortBy="sortBy" @click="$emit('sortby-changed', 'title')"/>
+                <SortMenuItem name="authors" label="Authors" icon="bi-person" :sortBy="sortBy" @click="$emit('sortby-changed', 'authors')"/>
+                <SortMenuItem name="pubTime" label="Year" icon="bi-calendar3" :sortBy="sortBy" @click="$emit('sortby-changed', 'pubTime')"/>
                 <SortMenuItem
-                  name="publication" label="Publication" icon="bi-book" :sortBy="sortBy" @click="$emit('sortByChanged', 'publication')"
+                  name="publication" label="Publication" icon="bi-book" :sortBy="sortBy" @click="$emit('sortby-changed', 'publication')"
                 />
-                <SortMenuItem name="addTime" label="Add Time" icon="bi-clock" :sortBy="sortBy" @click="$emit('sortByChanged', 'addTime')"/>
+                <SortMenuItem name="addTime" label="Add Time" icon="bi-clock" :sortBy="sortBy" @click="$emit('sortby-changed', 'addTime')"/>
                 <q-separator />
                 <SortMenuItem
-                  name="desc" label="Descending" icon="bi-sort-down" :sortBy="sortOrder" @click="$emit('sortOrderChanged', 'desc')"
+                  name="desc" label="Descending" icon="bi-sort-down" :sortBy="sortOrder" @click="$emit('sort-order-changed', 'desc')"
                 />
-                <SortMenuItem name="asc" label="Ascending" icon="bi-sort-up" :sortBy="sortOrder" @click="$emit('sortOrderChanged', 'asc')"/>
+                <SortMenuItem name="asc" label="Ascending" icon="bi-sort-up" :sortBy="sortOrder" @click="$emit('sort-order-changed', 'asc')"/>
             </q-list>
         </q-menu>
     </q-btn>

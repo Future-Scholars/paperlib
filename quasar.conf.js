@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * This file runs in a Node context (it's NOT transpiled by Babel), so use only
  * the ES6 features that are supported by your Node version. https://node.green/
@@ -7,13 +10,21 @@
 // https://quasar.dev/quasar-cli/quasar-conf-js
 
 /* eslint-env node */
-const ESLintPlugin = require('eslint-webpack-plugin');
-const {configure} = require('quasar/wrappers');
+/* eslint-disable @typescript-eslint/no-var-requires */
+const { configure } = require('quasar/wrappers');
+const WorkerPlugin = require('worker-plugin');
 
-module.exports = configure(function(ctx) {
+module.exports = configure(function (ctx) {
   return {
     // https://quasar.dev/quasar-cli/supporting-ts
-    supportTS: false,
+    supportTS: {
+      tsCheckerConfig: {
+        eslint: {
+          enabled: true,
+          files: './src/**/*.{ts,tsx,js,jsx,vue}',
+        },
+      },
+    },
 
     // https://quasar.dev/quasar-cli/prefetch-feature
     // preFetch: true,
@@ -24,7 +35,7 @@ module.exports = configure(function(ctx) {
     boot: [],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css
-    css: ['app.sass'],
+    css: ['app.scss'],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
@@ -35,8 +46,6 @@ module.exports = configure(function(ctx) {
       // 'themify',
       // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
-
-      'roboto-font', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
       'bootstrap-icons',
     ],
@@ -64,10 +73,17 @@ module.exports = configure(function(ctx) {
 
       // https://quasar.dev/quasar-cli/handling-webpack
       // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
-      chainWebpack(chain) {
-        //     chain
-        //       .plugin("eslint-webpack-plugin")
-        //       .use(ESLintPlugin, [{ extensions: ["js", "vue"] }]);
+      chainWebpack(chain, { isServer, isClient }) {
+        chain.output.set('globalObject', 'this');
+      },
+      extendWebpack(cfg) {
+        cfg.plugins.push(new WorkerPlugin()),
+          cfg.module.rules.push({
+            enforce: 'pre',
+            test: /\.(js|vue|ts)$/,
+            loader: 'eslint-loader',
+            exclude: /node_modules/,
+          });
       },
     },
 
@@ -83,9 +99,8 @@ module.exports = configure(function(ctx) {
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-framework
     framework: {
       config: {
-        brand: {
-          primary: '#565656',
-          secondary: '#DADADA',
+        notify: {
+          /* look at QuasarConfOptions from the API card */
         },
       },
 
@@ -105,7 +120,7 @@ module.exports = configure(function(ctx) {
 
     // animations: 'all', // --- includes all animations
     // https://quasar.dev/options/animations
-    animations: [],
+    animations: ['fadeIn', 'fadeOut'],
 
     // https://quasar.dev/quasar-cli/developing-ssr/configuring-ssr
     ssr: {
@@ -120,10 +135,8 @@ module.exports = configure(function(ctx) {
       maxAge: 1000 * 60 * 60 * 24 * 30,
       // Tell browser when a file from the server should expire from cache (in ms)
 
-      chainWebpackWebserver(chain) {
-        chain
-            .plugin('eslint-webpack-plugin')
-            .use(ESLintPlugin, [{extensions: ['js']}]);
+      chainWebpackWebserver(/* chain */) {
+        //
       },
 
       middlewares: [
@@ -139,10 +152,8 @@ module.exports = configure(function(ctx) {
 
       // for the custom service worker ONLY (/src-pwa/custom-service-worker.[js|ts])
       // if using workbox in InjectManifest mode
-      chainWebpackCustomSW(chain) {
-        chain
-            .plugin('eslint-webpack-plugin')
-            .use(ESLintPlugin, [{extensions: ['js']}]);
+      chainWebpackCustomSW(/* chain */) {
+        //
       },
 
       manifest: {
@@ -229,6 +240,18 @@ module.exports = configure(function(ctx) {
           '!node_modules/realm/src${/*}',
           '!node_modules/realm/vendor${/*}',
         ],
+      },
+
+      // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
+      chainWebpack(/* chain */) {
+        // do something with the Electron main process Webpack cfg
+        // extendWebpackMain also available besides this chainWebpackMain
+      },
+
+      // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
+      chainWebpackPreload(/* chain */) {
+        // do something with the Electron main process Webpack cfg
+        // extendWebpackPreload also available besides this chainWebpackPreload
       },
     },
   };
