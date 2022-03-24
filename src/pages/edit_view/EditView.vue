@@ -10,27 +10,20 @@
                 <EditTextField
                   label="PubTime"
                   class="col"
-                  style="margin-right: 20px;"
+                  style="margin-right: 15px;"
                   :value="entityDraft.pubTime"
                   @update:model-value="(value) => onUpdate('pubTime', value)"
                 />
-                <q-btn-toggle
-                    class="col q-ml-xs"
-                    no-caps
-                    flat
-                    toggle-color="primary"
-                    color="white"
-                    text-color="grey-5"
-                    size="11.5px"
-                    :options="[
-                        { label: 'Journal', value: 0 },
-                        { label: 'Conference', value: 1 },
-                        { label: 'Others', value: 2 },
-                    ]"
-                    style="height: 40px; margin-top: 8px;"
-                    v-model="entityDraft.pubType"
-                    @update:model-value="(value) => onUpdate('pubType', value)"
+                <q-select 
+                  dense
+                  class="col q-mr-sm q-mt-sm edit-select-field"
+                  standout="bg-accent text-secondary"
+                  v-model="pubType" 
+                  :options="['Journal', 'Conference', 'Book', 'Others']" 
+                  label="Publication Type"
+                  @update:model-value="(value) => onUpdatePubType(value)"
                 />
+
             </div>
             <div class="row" style="margin-top: -8px; margin-bottom: -8px;">
                 <EditTextField
@@ -83,6 +76,7 @@ export default defineComponent({
   setup(props, {emit}) {
     const isEditViewShown = ref(false);
     const entityDraft = ref(new PaperEntityDraft());
+    const pubType = ref('Journal');
 
     window.systemInteractor.registerState('viewState.isEditViewShown', (event, message) => {
       isEditViewShown.value = JSON.parse(message as string) as boolean;
@@ -90,6 +84,7 @@ export default defineComponent({
 
     window.systemInteractor.registerState('sharedData.editEntityDraft', (event, message) => {
       entityDraft.value.initialize(JSON.parse(message as string) as PaperEntity);
+      pubType.value = ['Journal', 'Conference', 'Others', 'Book'][entityDraft.value.pubType];
     });
 
     const onClose = () => {
@@ -105,10 +100,16 @@ export default defineComponent({
       entityDraft.value[propName] = value;
     };
 
+    const onUpdatePubType = (value: string) => {
+      entityDraft.value.pubType = ['Journal', 'Conference', 'Others', 'Book'].indexOf(value);
+    };
+
     return {
       isEditViewShown,
       entityDraft,
+      pubType,
       onUpdate,
+      onUpdatePubType,
       onClose,
       onSave,
       ...toRefs(props),
