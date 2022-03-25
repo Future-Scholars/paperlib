@@ -355,6 +355,15 @@ autoUpdater.on('error', (error) => {
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 autoUpdater.on('update-downloaded', async (info) => {
   BrowserWindow.getFocusedWindow().webContents.send('log', info);
+
+  if (!info.releaseNotes) {
+    info.releaseNotes = '';
+  }
+
+  if (!info.version) {
+    info.version = '';
+  }
+
   const dialogOpts = {
     type: 'info',
     buttons: ['Update Now', 'Cancel'],
