@@ -212,6 +212,9 @@ export default defineComponent({
       window.systemInteractor.setTheme(theme);
     }
 
+    window.systemInteractor.registerSignal('log', (_event, message) => {
+      console.log(message);
+    });
 
     onMounted(async () => {
       reloadPreference();

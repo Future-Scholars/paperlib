@@ -2,8 +2,7 @@ name: Build and Release (electron)
 
 on:
   push:
-    tags: [ release-electron* ]
-
+    tags: [release-electron*]
 
 jobs:
   mac_deploy:
@@ -11,10 +10,10 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ["16.14.0"]
+        node-versions: ['16.14.0']
 
     steps:
-      - name: "Checkout Project"
+      - name: 'Checkout Project'
         uses: actions/checkout@v2
 
       - name: Set env
@@ -26,7 +25,7 @@ jobs:
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./quasar.conf.mac.js ./quasar.conf.js
 
-      - name: "Import Certificates"
+      - name: 'Import Certificates'
         run: |
           echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output certificate.p12
           export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
@@ -41,10 +40,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: "Install Node Module"
-        run: yarn install && yarn add @quasar/cli
+      - name: 'Install Node Module'
+        run: npm install --force && yarn add @quasar/cli
 
-      - name: "Build and Package"
+      - name: 'Build and Package'
         run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
 
       - name: Release
@@ -56,6 +55,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert Change Log to HTML
+        run: |
+          brew install pandoc
+          pandoc -f markdown -t html ./CHANGELOG_EN.md -o PaperLib_v${{ env.VERSION_SHORT }}.html
+          pandoc -f markdown -t html ./CHANGELOG_CN.md -o PaperLib_v${{ env.VERSION_SHORT }}_CN.html
+
       - name: Install Oracle Cloud CLI
         run: |
           brew install oci-cli && mkdir ~/.oci
@@ -66,6 +71,11 @@ jobs:
 
       - name: Upload to Oracle Storage
         run: |
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./PaperLib_v${{ env.VERSION_SHORT }}.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron_mac/PaperLib_v${{ env.VERSION_SHORT }}.html
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./PaperLib_v${{ env.VERSION_SHORT }}_CN.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron_mac/PaperLib_v${{ env.VERSION_SHORT }}_CN.html
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}-mac.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron_mac/paperlib-${{ env.VERSION }}-mac.zip
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}-mac.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron_mac/paperlib-${{ env.VERSION }}-mac.zip
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}-mac.zip.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron_mac/paperlib-${{ env.VERSION }}-mac.zip.blockmap
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron_mac/paperlib-${{ env.VERSION }}.dmg
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron_mac/latest.dmg
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron_mac/paperlib-${{ env.VERSION }}.dmg.blockmap
@@ -80,10 +90,10 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ["16.14.0"]
+        node-versions: ['16.14.0']
 
     steps:
-      - name: "Checkout Project"
+      - name: 'Checkout Project'
         uses: actions/checkout@v2
 
       - name: Set env
@@ -100,10 +110,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: "Install Node Module"
-        run: yarn install && yarn add @quasar/cli
+      - name: 'Install Node Module'
+        run: npm install --force && yarn add @quasar/cli
 
-      - name: "Build and Package"
+      - name: 'Build and Package'
         run: ./node_modules/@quasar/app/bin/quasar build -m electron -P always
 
       - name: Release

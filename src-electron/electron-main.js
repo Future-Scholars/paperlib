@@ -1,19 +1,14 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import {
-  app,
-  BrowserWindow,
-  nativeTheme,
-  Menu,
-  MenuItem,
-  globalShortcut,
-} from 'electron';
+import { app, BrowserWindow, nativeTheme, Menu, dialog } from 'electron';
 import { initialize, enable } from '@electron/remote/main';
 import path from 'path';
 import os from 'os';
 import Store from 'electron-store';
+import { autoUpdater } from 'electron-updater';
 
 Store.initRenderer();
 initialize();
@@ -103,6 +98,25 @@ function setMainMenu() {
                 accelerator: 'Cmd+,',
                 click: () => {
                   mainWindow.webContents.send('preferenceShortcutClicked');
+                },
+              },
+              {
+                label: 'Check for Updates',
+                click: () => {
+                  autoUpdater
+                    .checkForUpdates()
+                    .then((results) => {
+                      BrowserWindow.getFocusedWindow().webContents.send(
+                        'log',
+                        results
+                      );
+                    })
+                    .catch((err) => {
+                      BrowserWindow.getFocusedWindow().webContents.send(
+                        'log',
+                        err
+                      );
+                    });
                 },
               },
               { type: 'separator' },
@@ -223,6 +237,7 @@ function setMainMenu() {
         { role: 'zoomOut' },
         { type: 'separator' },
         { role: 'togglefullscreen' },
+        { role: 'toggleDevTools' },
       ],
     },
     // { role: 'windowMenu' }
@@ -248,7 +263,7 @@ function setMainMenu() {
           label: 'Learn More',
           click: async () => {
             const { shell } = require('electron');
-            await shell.openExternal('https://electronjs.org');
+            await shell.openExternal('https://paperlib.app/en/blog/intro/');
           },
         },
       ],
@@ -293,3 +308,62 @@ if (!gotTheLock) {
     }
   });
 }
+
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('paperlib', process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
+  }
+} else {
+  app.setAsDefaultProtocolClient('paperlib');
+}
+
+autoUpdater.checkForUpdates();
+
+autoUpdater.on('checking-for-update', () => {
+  BrowserWindow.getFocusedWindow().webContents.send(
+    'log',
+    'Checking for update...'
+  );
+});
+
+autoUpdater.on('update-available', () => {
+  BrowserWindow.getFocusedWindow().webContents.send(
+    'log',
+    'Avaliable update...'
+  );
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Close'],
+    title: 'A new version of PaperLib is available',
+    message: 'A new version of PaperLib is available',
+    detail: 'It is downloading and will notify you when it is ready.',
+  };
+  await dialog.showMessageBox(dialogOpts);
+});
+
+autoUpdater.on('update-not-available', () => {
+  BrowserWindow.getFocusedWindow().webContents.send('log', 'No update...');
+});
+
+autoUpdater.on('error', (error) => {
+  BrowserWindow.getFocusedWindow().webContents.send('log', error);
+});
+
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+autoUpdater.on('update-downloaded', async (info) => {
+  BrowserWindow.getFocusedWindow().webContents.send('log', info);
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Update Now', 'Cancel'],
+    title: `A new version ${info.version} of PaperLib is automatically downloaded.`,
+    message: `A new version ${info.version} of PaperLib is automatically downloaded.`,
+    detail: `${info.releaseNotes}`,
+  };
+
+  const response = await dialog.showMessageBox(dialogOpts);
+  if (response.response === 0) {
+    autoUpdater.quitAndInstall();
+  }
+});

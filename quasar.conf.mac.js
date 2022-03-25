@@ -157,9 +157,9 @@ module.exports = configure(function (ctx) {
       },
 
       manifest: {
-        name: `Paperlib`,
-        short_name: `Paperlib`,
-        description: `A simple academic paper management tool for CSer.`,
+        name: 'Paperlib',
+        short_name: 'Paperlib',
+        description: 'A simple academic paper management tool for CSer.',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
@@ -232,7 +232,10 @@ module.exports = configure(function (ctx) {
         mac: {
           icon: './src-electron/icons/icon.icns',
           category: 'public.app-category.education',
-          target: ['dmg'],
+          target: ['default'],
+          releaseInfo: {
+            releaseNotesFile: './src-electron/release-notes.md',
+          },
         },
         files: [
           '!node_modules/realm/react-native${/*}',

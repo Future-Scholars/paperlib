@@ -46,7 +46,6 @@ module.exports = configure(function (ctx) {
       // 'themify',
       // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
-      'roboto-font',
       'material-icons', // optional, you are not bound to it
       'bootstrap-icons',
     ],
@@ -158,9 +157,9 @@ module.exports = configure(function (ctx) {
       },
 
       manifest: {
-        name: `Paperlib`,
-        short_name: `Paperlib`,
-        description: `A simple academic paper management tool for CSer.`,
+        name: 'Paperlib',
+        short_name: 'Paperlib',
+        description: 'A simple academic paper management tool for CSer.',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
@@ -234,6 +233,9 @@ module.exports = configure(function (ctx) {
           oneClick: false,
           createDesktopShortcut: 'always',
           allowToChangeInstallationDirectory: true,
+          releaseInfo: {
+            releaseNotesFile: './src-electron/release-notes.md',
+          },
         },
         files: [
           '!node_modules/realm/react-native${/*}',
