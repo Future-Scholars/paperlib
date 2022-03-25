@@ -233,9 +233,6 @@ module.exports = configure(function (ctx) {
           oneClick: false,
           createDesktopShortcut: 'always',
           allowToChangeInstallationDirectory: true,
-          releaseInfo: {
-            releaseNotesFile: './src-electron/release-notes.md',
-          },
         },
         files: [
           '!node_modules/realm/react-native${/*}',
