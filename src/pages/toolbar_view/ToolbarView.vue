@@ -218,12 +218,6 @@ Examples: <br/>
       window.systemInteractor.setState('viewState.viewType', JSON.stringify(viewType));
     };
 
-    window.systemInteractor.registerSignal('shortcutClicked-Space', () => {
-      if (props.selectedEntities.length == 1) {
-        void window.entityInteractor.preview(props.selectedEntities[0].mainURL)
-      }
-    });
-
     window.systemInteractor.registerSignal('shortcutClicked-Enter', () => {
       if (props.selectedEntities.length == 1) {
         void window.entityInteractor.open(props.selectedEntities[0].mainURL);
