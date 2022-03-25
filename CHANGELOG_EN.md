@@ -1,7 +1,8 @@
 ## v1.5.0 Mar 24 2022
 
 1. Advanced search, fulltext search and dark mode for Electron version.
-2. In the future, the native Mac version may be freezed due to my research pressure, although the native version is smooth.
+2. Scrape code repository.
+3. In the future, the native Mac version may be freezed due to my research pressure, although the native version is smooth.
 
 ## v1.4.3 Mar 12 2022
 
