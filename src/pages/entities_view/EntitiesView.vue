@@ -33,6 +33,20 @@ export default defineComponent({
       viewType.value = JSON.parse(message as string) as string;
     });
 
+    function preventSpaceScrollEvent (event: KeyboardEvent) {
+      console.log(event)
+      if (event.code === 'Space') {
+        if (event.target instanceof HTMLInputElement) {
+          return true;
+        }
+        event.preventDefault()
+        if (props.selectedEntities?.length == 1) {
+          void window.entityInteractor.preview(props.selectedEntities[0].mainURL)
+        }
+      }
+    }
+    window.addEventListener('keydown', preventSpaceScrollEvent, true)
+
     return {
       viewType,
       ...toRefs(props),
