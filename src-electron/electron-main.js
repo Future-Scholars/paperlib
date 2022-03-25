@@ -328,7 +328,8 @@ autoUpdater.on('checking-for-update', () => {
   );
 });
 
-autoUpdater.on('update-available', () => {
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+autoUpdater.on('update-available', async () => {
   BrowserWindow.getFocusedWindow().webContents.send(
     'log',
     'Avaliable update...'
