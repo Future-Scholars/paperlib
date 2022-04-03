@@ -1,3 +1,7 @@
+## v1.5.3 Apr 03 2022
+
+1. Table UI bug fix.
+
 ## v1.5.2 Apr 03 2022
 
 1. Scraper bug fix.
