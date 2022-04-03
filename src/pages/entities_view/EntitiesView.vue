@@ -34,7 +34,6 @@ export default defineComponent({
     });
 
     function preventSpaceScrollEvent (event: KeyboardEvent) {
-      console.log(event)
       if (event.code === 'Space') {
         if (event.target instanceof HTMLInputElement) {
           return true;

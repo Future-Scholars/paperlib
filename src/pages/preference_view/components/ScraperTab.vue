@@ -59,23 +59,6 @@
         </div>
 
         <div class="row justify-center">
-            <div class="col-4 setting-title q-pt-xs">
-                Paperlib's Title Extractor
-            </div>
-            <div class="col-1">
-                <q-checkbox
-                    dense
-                    keep-color
-                    size="xs"
-                    color="grey-5"
-                    v-model="teScraper"
-                    @update:model-value="(value) => onUpdate('teScraper', value)"
-                />
-            </div>
-            <div class="col-5"></div>
-        </div>
-
-        <div class="row justify-center">
             <div class="col-4 setting-title q-pt-xs">DBLP</div>
             <div class="col-1">
                 <q-checkbox
@@ -207,7 +190,6 @@ export default defineComponent({
     const pdfBuiltinScraper = ref(props.preference.pdfBuiltinScraper);
     const arXivScraper = ref(props.preference.arXivScraper);
     const doiScraper = ref(props.preference.doiScraper);
-    const teScraper = ref(props.preference.teScraper);
     const dblpScraper = ref(props.preference.dblpScraper);
     const cvfScraper = ref(props.preference.cvfScraper);
     const ieeeScraper = ref(props.preference.ieeeScraper);
@@ -225,7 +207,6 @@ export default defineComponent({
       pdfBuiltinScraper,
       arXivScraper,
       doiScraper,
-      teScraper,
       dblpScraper,
       cvfScraper,
       ieeeScraper,
