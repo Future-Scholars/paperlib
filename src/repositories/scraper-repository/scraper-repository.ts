@@ -1,6 +1,5 @@
 import { ScraperType } from './scrapers/scraper';
 import { PDFScraper } from './scrapers/pdf';
-import { TEScraper } from './scrapers/te';
 import { DOIScraper } from './scrapers/doi';
 import { ArXivScraper } from './scrapers/arxiv';
 import {
@@ -27,7 +26,6 @@ export class ScraperRepository {
 
     this.scraperList = [
       new PDFScraper(this.preference),
-      new TEScraper(this.preference),
       new ArXivScraper(this.preference),
       new DOIScraper(this.preference),
       new DBLPScraper(this.preference),

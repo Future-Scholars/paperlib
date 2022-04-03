@@ -88,6 +88,10 @@ export class PDFScraper extends Scraper {
       entityDraft.setValue('doi', doi);
     }
 
+    if (!arxivIds && !dois) {
+      entityDraft.setValue('title', rawResponse.largestText);
+    }
+
     return entityDraft;
   }
 
@@ -107,11 +111,12 @@ async function scrapeImpl(
         constructFileURL(scrapeURL, false, true)
       ).promise;
       const metaData = await pdf.getMetadata();
-      const firstPageText = await _getPDFText(pdf);
+      const pageText = await _getPDFText(pdf);
 
       const response = {
         metaData: metaData,
-        firstPageText: firstPageText,
+        firstPageText: pageText.text,
+        largestText: pageText.largestText,
       };
 
       // @ts-ignore
@@ -124,15 +129,16 @@ async function scrapeImpl(
   }
 }
 
-async function _getPDFText(pdfData: PDFDocumentProxy): Promise<string> {
-  let firstPageText = '';
+async function _getPDFText(
+  pdfData: PDFDocumentProxy
+): Promise<{ text: string; largestText: string }> {
   const pageData = await pdfData.getPage(1);
-  const pageText = await _renderPage(pageData);
-  firstPageText = `${firstPageText}\n\n${pageText}`;
-  return firstPageText;
+  return await _renderPage(pageData);
 }
 
-async function _renderPage(pageData: PDFPageProxy): Promise<string> {
+async function _renderPage(
+  pageData: PDFPageProxy
+): Promise<{ text: string; largestText: string }> {
   const renderOptions = {
     normalizeWhitespace: false,
     disableCombineTextItems: false,
@@ -142,8 +148,24 @@ async function _renderPage(pageData: PDFPageProxy): Promise<string> {
 
   let lastY;
   let text = '';
+  let largestText = '';
+  let secondLargestText = '';
+  let largestFontSize = 0;
+  let secondLargestFontSize = 0;
+  let largestTextList: string[] = [];
+  let secondLargestTextList: string[] = [];
   for (let item of textContent.items) {
     item = item as TextItem;
+
+    if (item.height > largestFontSize) {
+      secondLargestFontSize = largestFontSize;
+      secondLargestTextList = largestTextList;
+      largestFontSize = item.height;
+      largestTextList = [item.str];
+    } else if (item.height === largestFontSize) {
+      largestTextList.push(item.str);
+    }
+
     if (lastY === item.transform[5] || !lastY) {
       text += item.str;
     } else {
@@ -152,7 +174,19 @@ async function _renderPage(pageData: PDFPageProxy): Promise<string> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     lastY = item.transform[5];
   }
-  return text;
+
+  largestTextList = largestTextList.filter((text) => text.length > 0);
+  largestText = largestTextList.join(' ');
+  secondLargestTextList = secondLargestTextList.filter(
+    (text) => text.length > 0
+  );
+  secondLargestText = secondLargestTextList.join(' ');
+
+  if (largestText.length === 1) {
+    largestText = secondLargestText;
+  }
+
+  return { text: text, largestText: largestText };
 }
 
 export interface PDFFileResponseType {
@@ -163,4 +197,5 @@ export interface PDFFileResponseType {
     };
   };
   firstPageText: string;
+  largestText: string;
 }

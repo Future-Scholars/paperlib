@@ -29,7 +29,6 @@ export type PreferenceType = {
   pdfBuiltinScraper: boolean;
   arXivScraper: boolean;
   doiScraper: boolean;
-  teScraper: boolean;
   dblpScraper: boolean;
   cvfScraper: boolean;
   ieeeScraper: boolean;
@@ -65,7 +64,6 @@ export const defaultPreferences: PreferenceType = {
   pdfBuiltinScraper: true,
   arXivScraper: true,
   doiScraper: true,
-  teScraper: true,
   dblpScraper: true,
   cvfScraper: true,
   ieeeScraper: true,
