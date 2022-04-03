@@ -1,3 +1,12 @@
+## v1.5.2 Apr 03 2022
+
+1. Scraper bug fix.
+2. Table UI bug fix.
+
+## v1.5.1 Mar 24 2022
+
+1. Bugfix
+
 ## v1.5.0 Mar 24 2022
 
 1. Advanced search, fulltext search and dark mode for Electron version.

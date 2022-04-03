@@ -1,3 +1,2 @@
-1. Support for advanced search and fulltext search.
-2. Support for scraping available code repos.
-3. Dark mode.
+1. Scraper bug fix.
+2. Table UI bug fix.
