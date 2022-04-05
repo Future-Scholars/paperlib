@@ -1,1 +1,1 @@
-1. Table UI bug fix.
+1. Fix the routine re-scraping bug.

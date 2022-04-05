@@ -1,3 +1,7 @@
+## v1.5.4 Apr 05 2022
+
+1. Fix the routine re-scraping bug.
+
 ## v1.5.3 Apr 03 2022
 
 1. Table UI bug fix.
