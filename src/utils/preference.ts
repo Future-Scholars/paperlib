@@ -1,7 +1,6 @@
 import path from 'path';
 import os from 'os';
 import Store from 'electron-store';
-import moment from 'moment';
 
 export type PreferenceType = {
   appLibFolder: string;
@@ -58,7 +57,7 @@ export const defaultPreferences: PreferenceType = {
   webdavPassword: '',
 
   allowRoutineMatch: true,
-  lastRematchTime: moment().unix(),
+  lastRematchTime: Math.round(Date.now() / 1000),
   rematchInterval: 7,
 
   pdfBuiltinScraper: true,

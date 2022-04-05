@@ -13,15 +13,12 @@
   "dependencies": {
     "@electron/remote": "2.0.1",
     "@quasar/extras": "1.12.2",
-    "core-js": "3.20.1",
     "drag-drop": "7.2.0",
     "electron-store": "8.0.1",
     "electron-updater": "4.6.1",
     "fast-xml-parser": "4.0.6",
     "got": "11.8.3",
     "keytar": "7.9.0",
-    "moment": "2.29.1",
-    "mousetrap": "1.6.5",
     "pdfjs-dist": "2.10.377",
     "quasar": "2.4.0",
     "realm": "10.13.0",
@@ -33,7 +30,6 @@
   "devDependencies": {
     "@babel/eslint-parser": "7.13.14",
     "@quasar/app": "3.3.3",
-    "@types/mousetrap": "1.6.5",
     "@types/node": "12.20.21",
     "@types/offscreencanvas": "2019.6.4",
     "@types/uuid": "8.3.4",

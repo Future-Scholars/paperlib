@@ -1,6 +1,5 @@
 import { clipboard, shell } from 'electron';
 import path from 'path';
-import moment from 'moment';
 import { BrowserWindow } from '@electron/remote';
 
 import { ToadScheduler, SimpleIntervalJob, Task } from 'toad-scheduler';
@@ -284,30 +283,28 @@ export class EntityInteractor {
   }
 
   async routineScrape() {
-    // const allowRoutineMatch = this.preference.get(
-    //   'allowRoutineMatch'
-    // ) as boolean;
-    // if (allowRoutineMatch) {
-    //   this.sharedState.set(
-    //     'viewState.alertInformation',
-    //     'Start routine scraping...'
-    //   );
-    //   this.preference.set('lastRematchTime', moment().unix());
-    //   const entities = await this.dbRepository.preprintEntities();
-    //   const entityDrafts = entities.map((entity) => {
-    //     const draft = new PaperEntityDraft();
-    //     draft.initialize(entity);
-    //     return draft;
-    //   });
-    //   void this.scrape(JSON.stringify(entityDrafts));
-    // }
+    const allowRoutineMatch = this.preference.get(
+      'allowRoutineMatch'
+    ) as boolean;
+    if (allowRoutineMatch) {
+      this.sharedState.set(
+        'viewState.alertInformation',
+        'Start routine scraping...'
+      );
+      this.preference.set('lastRematchTime', Math.round(Date.now() / 1000));
+      const entities = await this.dbRepository.preprintEntities();
+      void this.scrape(JSON.stringify(entities));
+    }
   }
 
   setupRoutineScrape() {
     const rematchInterval = this.preference.get('rematchInterval') as number;
     const lastRematchTime = this.preference.get('lastRematchTime') as number;
 
-    if (moment().unix() - lastRematchTime > 86400 * rematchInterval) {
+    if (
+      Math.round(Date.now() / 1000) - lastRematchTime >
+      86400 * rematchInterval
+    ) {
       void this.routineScrape();
     }
 
@@ -323,7 +320,7 @@ export class EntityInteractor {
     });
 
     const job = new SimpleIntervalJob(
-      { seconds: rematchInterval, runImmediately: false },
+      { seconds: rematchInterval * 86400, runImmediately: false },
       task,
       'routineScrape'
     );
