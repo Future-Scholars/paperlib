@@ -49,7 +49,6 @@ Examples: <br/>
 
 <script lang="ts">
 import { useQuasar } from 'quasar';
-import Mousetrap from 'mousetrap';
 import {defineComponent, PropType, toRefs, ref} from 'vue';
 
 import ToolbarButton from './components/ToolbarButton.vue';
