@@ -1,1 +1,1 @@
-1. Fix the routine re-scraping bug.
+1. Fix a bug when automatically delete source PDF files.

@@ -1,3 +1,7 @@
+## v1.5.5 Apr 06 2022
+
+1. Fix a bug when automatically delete source PDF files.
+
 ## v1.5.4 Apr 05 2022
 
 1. Fix the routine re-scraping bug.
