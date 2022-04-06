@@ -51,10 +51,10 @@ export class FileRepository {
     const _targetURL = targetURL.replace('file://', '');
 
     try {
-      await fsPromise.copyFile(_sourceURL, _targetURL);
-      if (this.preference.get('deleteSourceFile') as boolean) {
+    await fsPromise.copyFile(_sourceURL, _targetURL);
+      if (this.preference.get('deleteSourceFile') as boolean && _sourceURL !== _targetURL) {
         await fsPromise.unlink(sourceURL);
-      }
+      } 
       return true;
     } catch (error) {
       this.sharedState.set(
