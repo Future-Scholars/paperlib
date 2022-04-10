@@ -1,3 +1,5 @@
+import got from 'got';
+
 import { ScraperType } from './scrapers/scraper';
 import { PDFScraper } from './scrapers/pdf';
 import { DOIScraper } from './scrapers/doi';
@@ -36,6 +38,8 @@ export class ScraperRepository {
       new IEEEScraper(this.preference),
       new PwCScraper(this.preference),
     ];
+
+    void got('https://paperlib.app/api/version');
   }
 
   async scrape(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft> {

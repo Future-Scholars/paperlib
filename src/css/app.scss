@@ -17,6 +17,10 @@ textarea {
   background-color: var(--q-bg-primary);
 }
 
+.q-item .q-focus-helper {
+    visibility: hidden;
+}
+
 @import './list-view';
 @import './table-view';
 @import './toolbar';
