@@ -1,3 +1,8 @@
+## v1.5.6 Apr 10 2022
+
+1. Remove useless animations.
+
+
 ## v1.5.5 Apr 06 2022
 
 1. Fix a bug when automatically delete source PDF files.

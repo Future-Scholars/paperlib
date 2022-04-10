@@ -1,1 +1,1 @@
-1. Fix a bug when automatically delete source PDF files.
+1. Remove some useless animations.
