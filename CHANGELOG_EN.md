@@ -1,3 +1,7 @@
+## v1.5.7 Apr 11 2022
+
+1. Fix animations of the context menu.
+
 ## v1.5.6 Apr 10 2022
 
 1. Remove useless animations.
