@@ -5,7 +5,7 @@
   border: solid 1px var(--q-secondary);
   background-color: var(--q-menu-bg);
   border-radius: 6px;
-  transition: all 0.1s ease-in-out;
+  transition: none !important;
 }
 
 .menu-list {
@@ -19,6 +19,11 @@
   padding-left: 10px !important;
   padding-right: 10px !important;
   font-size: 0.9em;
+  transition: none  !important;
+}
+
+.menu-list-item .q-focus-helper {
+  transition: none !important;
 }
 
 .menu-list hr {
@@ -30,3 +35,4 @@
   color: var(--q-menu-shortcut);
   text-align: right;
 }
+
