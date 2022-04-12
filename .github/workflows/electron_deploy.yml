@@ -51,7 +51,7 @@ jobs:
         with:
           files: |
             ./dist/electron/Packaged/paperlib-${{ env.VERSION }}.dmg
-          draft: false
+          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -120,7 +120,7 @@ jobs:
         with:
           files: |
             ./dist/electron/Packaged/paperlib Setup ${{ env.VERSION }}.exe
-          draft: false
+          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
