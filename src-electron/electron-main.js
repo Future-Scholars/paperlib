@@ -67,6 +67,14 @@ function createWindow() {
     mainWindow = null;
   });
 
+  mainWindow.on('blur', () => {
+    mainWindow.webContents.send('window-lost-focus');
+  });
+
+  mainWindow.on('focus', () => {
+    mainWindow.webContents.send('window-gained-focus');
+  });
+
   setMainMenu();
 }
 

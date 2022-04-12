@@ -1,5 +1,32 @@
 <template>
     <q-tab-panel name="cloud" class="preference-tab">
+        <div class="row setting-title" style="text-align: left !important">
+            <span style="font-weight: 500">
+                Cloud Backend
+            </span>
+        </div>
+        <div class="row setting-content q-mb-md">
+            <div class="col-2">
+                <q-radio v-model="syncCloudBackend" val="official" label="Official" size="xs" @update:model-value="(value) => onUpdate('syncCloudBackend', value)" />
+            </div>
+            <div class="col-4">
+                <q-radio class='q-ml-sm' v-model="syncCloudBackend" val="custom-atlas" label="Custom Mongodb Atlas" size="xs" @update:model-value="(value) => onUpdate('syncCloudBackend', value)" />
+            </div>
+            <div class="col-4 q-mt-xs" v-if="syncCloudBackend === 'custom-atlas'">
+                <div class="radius-border setting-content preference-input" >
+                    <q-input
+                        borderless
+                        v-model="syncAPPID"
+                        placeholder="Mongodb Atlas APP ID"
+                        dense
+                        style="max-height: 22px"
+                        @update:model-value="(value) => onUpdate('syncAPPID', value)"
+                    />
+                </div>
+            </div>
+        </div>
+
+
         <div class="row setting-title q-mb-xs" style="text-align: left !important">
             <span style="font-weight: 500">
                 Cloud Account
@@ -53,7 +80,7 @@
                     v-if="preference.useSync"
                 />
             </div>
-            <div class="col-1">
+            <div class="col-1" v-if="syncCloudBackend === 'official'">
               <q-btn
                   unelevated
                   no-caps
@@ -190,6 +217,8 @@ export default defineComponent({
     const syncEmail = ref(props.preference.syncEmail);
     const syncPassword = ref('');
     const syncFileStorage = ref(props.preference.syncFileStorage);
+    const syncCloudBackend = ref(props.preference.syncCloudBackend);
+    const syncAPPID = ref(props.preference.syncAPPID);
     const syncFileStorageAvaliable = ref(window.systemInteractor.getState('viewState.syncFileStorageAvaliable') as unknown as boolean);
     const webdavURL = ref(props.preference.webdavURL);
     const webdavUsername = ref(props.preference.webdavUsername);
@@ -245,6 +274,8 @@ export default defineComponent({
       syncEmail,
       syncPassword,
       syncFileStorage,
+      syncCloudBackend,
+      syncAPPID,
       syncFileStorageAvaliable,
       webdavURL,
       webdavUsername,

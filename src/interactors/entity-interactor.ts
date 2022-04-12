@@ -358,6 +358,27 @@ export class EntityInteractor {
     this.sharedState.set('viewState.realmReinited', new Date().getTime());
   }
 
+  pauseSync() {
+    this.scheduler.removeById('pauseSync');
+    const task = new Task('pauseSync', () => {
+      void this.dbRepository.pauseSync();
+      this.scheduler.removeById('pauseSync');
+    });
+
+    const job = new SimpleIntervalJob(
+      { seconds: 36, runImmediately: false },
+      task,
+      'pauseSync'
+    );
+
+    this.scheduler.addSimpleIntervalJob(job);
+  }
+
+  resumeSync() {
+    this.scheduler.removeById('pauseSync');
+    void this.dbRepository.resumeSync();
+  }
+
   // ============================================================
   initFileRepository() {
     if (this.preference.get('syncFileStorage') === 'webdav') {
