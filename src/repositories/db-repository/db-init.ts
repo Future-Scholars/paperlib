@@ -19,6 +19,7 @@ export async function initRealm(this: DBRepository, reinit = false) {
     this._realm = null;
     this.app = null;
     this.cloudConfig = null;
+    this.syncSession = null;
     this.localConfig = null;
     this.entitiesListenerInited = false;
     this.categorizersListenerInited = {
@@ -34,6 +35,7 @@ export async function initRealm(this: DBRepository, reinit = false) {
   if (this.cloudConfig) {
     try {
       this._realm = new Realm(this.cloudConfig);
+      this.syncSession = this._realm.syncSession;
     } catch (err) {
       this.sharedState.set(
         'viewState.alertInformation',
@@ -113,8 +115,15 @@ export async function loginCloud(
 ): Promise<Realm.User | null> {
   if (!this.app) {
     process.chdir(this.sharedState.dbState.defaultPath.value as string);
+
+    let id;
+    if (this.preference.get('syncCloudBackend') === 'official') {
+      id = 'paperlib-iadbj';
+    } else {
+      id = this.preference.get('syncAPPID') as string;
+    }
     this.app = new Realm.App({
-      id: 'paperlib-iadbj',
+      id: id,
     });
   }
 
@@ -159,4 +168,16 @@ export async function logoutCloud(this: DBRepository) {
   );
 
   await this.initRealm(true);
+}
+
+export function pauseSync(this: DBRepository) {
+  if (this.syncSession) {
+    this.syncSession.pause();
+  }
+}
+
+export function resumeSync(this: DBRepository) {
+  if (this.syncSession) {
+    this.syncSession.resume();
+  }
 }

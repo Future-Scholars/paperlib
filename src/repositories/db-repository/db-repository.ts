@@ -10,6 +10,8 @@ import {
   initRealm,
   loginCloud,
   logoutCloud,
+  pauseSync,
+  resumeSync,
 } from './db-init';
 import {
   categorizers,
@@ -35,6 +37,8 @@ export class DBRepository {
   app: Realm.App | null;
   cloudConfig: Realm.Configuration | null;
   localConfig: Realm.Configuration | null;
+
+  syncSession: Realm.App.Sync.Session | null = null;
 
   entitiesListenerInited: boolean;
   categorizersListenerInited: Record<string, boolean>;
@@ -72,6 +76,8 @@ export class DBRepository {
   loginCloud = loginCloud;
   logoutCloud = logoutCloud;
   migrateLocaltoCloud = migrateLocaltoCloud;
+  pauseSync = pauseSync;
+  resumeSync = resumeSync;
 
   // CRUD Func
   entitiesByIds = entitiesByIds;

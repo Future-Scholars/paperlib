@@ -177,6 +177,14 @@ export default defineComponent({
       void window.entityInteractor.addFromPlugin([message as string]);
     });
 
+    window.systemInteractor.registerSignal('window-lost-focus', (_event, _message) => {
+      void window.entityInteractor.pauseSync();
+    });
+
+    window.systemInteractor.registerSignal('window-gained-focus', (_event, _message) => {
+      void window.entityInteractor.resumeSync();
+    });
+
     window.systemInteractor.registerState('viewState.realmReinited', (_event, _message) => {
       void (async () => {
         await reloadEntities();

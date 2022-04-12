@@ -222,7 +222,7 @@ module.exports = configure(function (ctx) {
       builder: {
         // https://www.electron.build/configuration/configuration
         appId: 'dev.paperlib.app',
-        productName: 'paperlib',
+        productName: 'Paperlib',
         publish: [
           {
             provider: 'generic',

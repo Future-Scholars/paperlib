@@ -48,6 +48,8 @@ export const defaultPreferences: PreferenceType = {
   exportReplacement: [],
 
   useSync: false,
+  syncCloudBackend: 'official',
+  syncAPPID: '',
   syncAPIKey: '',
   syncEmail: '',
 
