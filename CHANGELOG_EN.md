@@ -1,3 +1,7 @@
+## v1.5.8 Apr 12 2022
+
+1. Support custom MongoDB atlas App ID.
+
 ## v1.5.7 Apr 11 2022
 
 1. Fix animations of the context menu.

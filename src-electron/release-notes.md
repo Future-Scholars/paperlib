@@ -1,1 +1,1 @@
-1. Fix animations of the context menu.
+1. Support custom MongoDB atlas App ID.
