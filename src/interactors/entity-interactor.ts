@@ -366,7 +366,7 @@ export class EntityInteractor {
     });
 
     const job = new SimpleIntervalJob(
-      { seconds: 36, runImmediately: false },
+      { seconds: 3600, runImmediately: false },
       task,
       'pauseSync'
     );
