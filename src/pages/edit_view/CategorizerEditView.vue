@@ -1,13 +1,13 @@
 <template>
     <q-dialog v-model="isViewShown" @before-show="onShow" @hide="onClose" transition-show="fade" transition-hide="fade" transition-duration="100" >
         <q-card flat style="width: 500px; height: 530px" class="edit-view">
-            <EditTextField :label="isTagViewShown ? 'Tags' : 'Folders'" :value="categorizerDraftStr" @update:model-value="(value) => categorizerDraftStr = value"/>
+            <EditTextField :label="isTagViewShown ? 'Tags' : 'Folders'" :value="categorizerDraftStr" @update:model-value="onUpdate"/>
             <q-scroll-area style="height: 420px" class="q-pa-sm">
                 <q-list dense>
                     <q-item
                         clickable
                         class="radius-border"
-                        v-for="categorizer in (isTagViewShown ? tags : folders)"
+                        v-for="categorizer in (isTagViewShown ? filteredTags : filteredFolders)"
                         @click="onCategorizerClicked(categorizer)"
                         :key="categorizer.id"
                     >
@@ -71,11 +71,16 @@ export default defineComponent({
     const isTagViewShown = ref(false);
     const isFolderViewShown = ref(false);
     const isViewShown = ref(false);
+    const isAutoSuggestion = ref(false)
 
     const categorizerDraftStr = ref('');
     const tagDraftStr = ref('');
     const folderDraftStr = ref('');
     const entityDraft = ref(new PaperEntityDraft());
+
+    const filteredTags = ref(props.tags);
+    const filteredFolders = ref(props.folders);
+    const filterCategorizer = ref('');
 
     window.systemInteractor.registerState(
         'viewState.isTagViewShown',
@@ -109,6 +114,11 @@ export default defineComponent({
       } else {
         categorizerDraftStr.value = folderDraftStr.value;
       }
+      isAutoSuggestion.value = false;
+
+      filteredTags.value = props.tags;
+      filteredFolders.value = props.folders;
+      filterCategorizer.value = '';
     };
 
     const onClose= () => {
@@ -128,6 +138,29 @@ export default defineComponent({
       window.systemInteractor.setState('viewState.isFolderViewShown', false);
     };
 
+    const onUpdate = (value: string) => {
+      if(categorizerDraftStr.value != value) {
+        isAutoSuggestion.value = true;
+        const oldCategorizerList = categorizerDraftStr.value.replace(/ /g, '').split(';').filter(x => x !== '');
+        const newCategorizerList = value.replace(/ /g, '').split(';').filter(x => x !== '');
+
+        filterCategorizer.value = '';
+        for (const newCategorizer of newCategorizerList) {
+          if (!oldCategorizerList.includes(newCategorizer)) {
+            filterCategorizer.value = newCategorizer;
+            break;
+          }
+        }
+
+        filterCategorizers()
+
+        categorizerDraftStr.value = value;
+      } else {
+        categorizerDraftStr.value = value;
+      }
+
+    };
+
     const onCategorizerClicked = (categorizer: PaperCategorizer) => {
       let existingCategorizers = categorizerDraftStr.value.replace(/ /g, '').split(';').filter(x => x !== '');
 
@@ -136,22 +169,62 @@ export default defineComponent({
       );
 
       if (duplicatedCategorizers.length == 0) {
+        if (filterCategorizer.value !== '') {
+          existingCategorizers = existingCategorizers.filter(
+              (f) => f !== filterCategorizer.value,
+          );
+        }
         existingCategorizers.push(categorizer.name);
         categorizerDraftStr.value = existingCategorizers.join('; ');
       }
     };
 
+    const filterCategorizers = () => {
+      if (isAutoSuggestion.value) {
+        if (filterCategorizer.value === '') {
+          if (isTagViewShown.value) {
+            filteredTags.value = props.tags
+          } else {
+            filteredFolders.value = props.folders
+          }
+        }
+        else {
+          const needle = filterCategorizer.value.toLowerCase()
+          if (isTagViewShown.value) {
+            filteredTags.value = props.tags.filter(
+              v => v.name.toLowerCase().indexOf(needle) > -1
+            )
+          } else {
+            filteredFolders.value = props.folders.filter(
+              v => v.name.toLowerCase().indexOf(needle) > -1
+            )
+          }
+        }
+      }
+      else {
+        if (isTagViewShown.value) {
+          filteredTags.value = props.tags
+        } else {
+          filteredFolders.value = props.folders
+        }
+      }
+    }
+
     return {
       categorizerDraftStr,
+      filteredTags,
+      filteredFolders,
+
       isViewShown,
       isTagViewShown,
       isFolderViewShown,
       entityDraft,
+      onUpdate,
       onCategorizerClicked,
+      filterCategorizers,
       onShow,
       onClose,
       onSave,
-      ...toRefs(props),
     };
   },
 });

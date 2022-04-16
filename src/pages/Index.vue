@@ -15,7 +15,7 @@
       </div>
 
       <!-- Edit Window -->
-      <EditView />
+      <EditView :tags="tags" :folders="folders" />
       <!-- Categorizer Add Window -->
       <CategorizerEditView :tags="tags" :folders="folders"/>
       <!-- Note Add Window -->

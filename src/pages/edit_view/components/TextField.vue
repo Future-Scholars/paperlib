@@ -4,7 +4,7 @@
         dense
         v-model="textFieldValue"
         class="q-mt-sm q-mb-sm q-ml-sm q-mr-sm edit-textfield"
-        standout="bg-accent text-secondary"
+        outlined
         :label="label"
         style="font-size: 0.85em"
         @update:model-value="onUpdate"
