@@ -1,6 +1,15 @@
 .edit-view {
   background-color: var(--q-bg-primary);
 }
+
+.edit-view .q-field--outlined ::before {
+    border: none !important;
+}
+
+.edit-view .q-field--outlined ::after {
+    border: none !important;   
+}
+
 .edit-textfield .q-field__control {
   background-color: var(--q-bg-secondary);
 }
@@ -13,8 +22,20 @@
   color: var(--q-text);
 }
 
-.edit-select-ield {
+.edit-select-field {
   min-width: 40px;
+}
+
+.edit-select-field .q-select__dropdown-icon {
+    color: var(--q-text-2);
+}
+
+.edit-select-field .q-field--outlined ::before {
+    border: none !important;
+}
+
+.edit-select-field .q-field--outlined ::after {
+    border: none !important;   
 }
 
 .edit-select-field .q-field__control {
@@ -30,6 +51,10 @@
 
 .edit-select-field .q-field__native {
   color: var(--q-text);
+}
+
+.edit-select-field input {
+  color: var(--q-text-2) !important;
 }
 
 .q-menu > .q-virtual-scroll__content > .q-item {
