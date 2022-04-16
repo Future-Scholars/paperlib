@@ -1,1 +1,1 @@
-1. Support custom MongoDB atlas App ID.
+1. Better tags and folders UI with suggestions.

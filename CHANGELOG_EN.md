@@ -1,3 +1,8 @@
+## v1.5.9 Apr 16 2022
+
+1. Better tags and folders UI with suggestions.
+
+
 ## v1.5.8 Apr 12 2022
 
 1. Support custom MongoDB atlas App ID.
