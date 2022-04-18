@@ -1,6 +1,6 @@
 <template>
   <q-virtual-scroll
-      class="no-shadow full-height"
+      class="no-shadow full-height list-view"
       :items="entities"
     >
       <template v-slot="{ item, index }">

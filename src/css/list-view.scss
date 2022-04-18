@@ -6,6 +6,31 @@
   padding-right: 10px;
 }
 
+.list-view {
+  overflow-y: auto !important;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--q-bg-secondary);
+  border-radius: 2px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 2px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
 .list-item {
   background-color: none;
   transition: none;
@@ -67,5 +92,5 @@
 }
 
 .list-item .q-focus-helper {
-    visibility: hidden;
+  visibility: hidden;
 }
