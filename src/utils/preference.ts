@@ -29,6 +29,7 @@ export type PreferenceType = {
   arXivScraper: boolean;
   doiScraper: boolean;
   dblpScraper: boolean;
+  openreviewScraper: boolean;
   cvfScraper: boolean;
   ieeeScraper: boolean;
   ieeeAPIKey: string;
@@ -66,6 +67,7 @@ export const defaultPreferences: PreferenceType = {
   arXivScraper: true,
   doiScraper: true,
   dblpScraper: true,
+  openreviewScraper: true,
   cvfScraper: true,
   ieeeScraper: true,
   ieeeAPIKey: '',

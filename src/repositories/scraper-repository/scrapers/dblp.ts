@@ -162,9 +162,7 @@ export class DBLPVenueScraper extends Scraper {
   }
 
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
-    const enable =
-      entityDraft.publication.startsWith('dblp://') &&
-      (this.preference.get('dblpScraper') as boolean);
+    const enable = entityDraft.publication.startsWith('dblp://');
 
     const scrapeURL =
       'https://dblp.org/search/venue/api?q=' +
