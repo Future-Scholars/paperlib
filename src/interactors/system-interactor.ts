@@ -70,6 +70,36 @@ export class SystemInteractor {
     return os.platform();
   }
 
+  setCustomScrollbar() {
+    if (this.platform() !== 'darwin') {
+      const window = BrowserWindow.getAllWindows()[0];
+      if (window) {
+        void window.webContents.insertCSS(`
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--q-bg-secondary);
+  border-radius: 2px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 2px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+`);
+      }
+    }
+  }
+
   // ============================================================
   // State
   getState(path: string) {

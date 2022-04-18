@@ -208,6 +208,11 @@ export default defineComponent({
       window.systemInteractor.setState('viewState.isPreferenceViewShown', JSON.stringify(true));
     });
 
+    window.systemInteractor.registerSignal('log', (_event, message) => {
+      console.log(message);
+    });
+
+    // Style ======================================
     window
       .matchMedia('(prefers-color-scheme: dark)')
       .addEventListener('change', function (e) {
@@ -220,9 +225,8 @@ export default defineComponent({
       window.systemInteractor.setTheme(theme);
     }
 
-    window.systemInteractor.registerSignal('log', (_event, message) => {
-      console.log(message);
-    });
+    window.systemInteractor.setCustomScrollbar();
+
 
     onMounted(async () => {
       reloadPreference();
