@@ -154,36 +154,55 @@ async function _renderPage(
   let secondLargestFontSize = 0;
   let largestTextList: string[] = [];
   let secondLargestTextList: string[] = [];
-  for (let item of textContent.items) {
-    item = item as TextItem;
 
-    if (item.height > largestFontSize) {
-      secondLargestFontSize = largestFontSize;
-      secondLargestTextList = largestTextList;
-      largestFontSize = item.height;
-      largestTextList = [item.str];
-    } else if (item.height === largestFontSize) {
-      largestTextList.push(item.str);
+  if ((textContent.items[0] as TextItem).str.slice(0, 100).includes('ICLR')) {
+    for (let item of textContent.items.slice(1)) {
+      item = item as TextItem;
+      if (item.height === 17.2154) {
+        largestText += item.str;
+      } else if (item.height === 13.7723 || item.height === 0) {
+        largestText += item.str.toLowerCase();
+      } else {
+        break;
+      }
+    }
+  } else {
+    for (let item of textContent.items) {
+      item = item as TextItem;
+
+      if (item.height > largestFontSize) {
+        secondLargestFontSize = largestFontSize;
+        secondLargestTextList = largestTextList;
+        largestFontSize = item.height;
+        largestTextList = [item.str];
+      } else if (item.height === largestFontSize) {
+        largestTextList.push(item.str);
+      } else if (item.height > secondLargestFontSize) {
+        secondLargestFontSize = item.height;
+        secondLargestTextList = [item.str];
+      } else if (item.height === secondLargestFontSize) {
+        secondLargestTextList.push(item.str);
+      }
+
+      if (lastY === item.transform[5] || !lastY) {
+        text += item.str;
+      } else {
+        text += '\n' + item.str;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      lastY = item.transform[5];
     }
 
-    if (lastY === item.transform[5] || !lastY) {
-      text += item.str;
-    } else {
-      text += '\n' + item.str;
+    largestTextList = largestTextList.filter((text) => text.length > 0);
+    largestText = largestTextList.join(' ');
+    secondLargestTextList = secondLargestTextList.filter(
+      (text) => text.length > 0
+    );
+    secondLargestText = secondLargestTextList.join(' ');
+
+    if (largestText.length === 1) {
+      largestText = secondLargestText;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    lastY = item.transform[5];
-  }
-
-  largestTextList = largestTextList.filter((text) => text.length > 0);
-  largestText = largestTextList.join(' ');
-  secondLargestTextList = secondLargestTextList.filter(
-    (text) => text.length > 0
-  );
-  secondLargestText = secondLargestTextList.join(' ');
-
-  if (largestText.length === 1) {
-    largestText = secondLargestText;
   }
 
   return { text: text, largestText: largestText };

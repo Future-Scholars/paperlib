@@ -12,6 +12,7 @@ import {
 import { IEEEScraper } from './scrapers/ieee';
 import { CVFScraper } from './scrapers/cvf';
 import { PwCScraper } from './scrapers/paperwithcode';
+import { OpenreviewScraper } from './scrapers/openreview';
 
 import { Preference } from '../../utils/preference';
 import { PaperEntityDraft } from '../../models/PaperEntityDraft';
@@ -33,6 +34,8 @@ export class ScraperRepository {
       new DBLPScraper(this.preference),
       new DBLPbyTimeScraper(this.preference, 0),
       new DBLPbyTimeScraper(this.preference, 1),
+      new DBLPVenueScraper(this.preference),
+      new OpenreviewScraper(this.preference),
       new DBLPVenueScraper(this.preference),
       new CVFScraper(this.preference),
       new IEEEScraper(this.preference),

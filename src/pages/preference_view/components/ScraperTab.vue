@@ -104,6 +104,21 @@
         </div>
 
         <div class="row justify-center">
+            <div class="col-4 setting-title q-pt-xs">Openreview</div>
+            <div class="col-1">
+                <q-checkbox
+                    dense
+                    keep-color
+                    size="xs"
+                    color="grey-5"
+                    v-model="openreviewScraper"
+                    @update:model-value="(value) => onUpdate('openreviewScraper', value)"
+                />
+            </div>
+            <div class="col-5"></div>
+        </div>
+
+        <div class="row justify-center">
             <div class="col-4 setting-title q-pt-xs">IEEE Xplorer</div>
             <div class="col-1">
                 <q-checkbox
@@ -192,6 +207,7 @@ export default defineComponent({
     const doiScraper = ref(props.preference.doiScraper);
     const dblpScraper = ref(props.preference.dblpScraper);
     const cvfScraper = ref(props.preference.cvfScraper);
+    const openreviewScraper = ref(props.preference.openreviewScraper);
     const ieeeScraper = ref(props.preference.ieeeScraper);
     const ieeeAPIKey = ref(props.preference.ieeeAPIKey);
     const pwcScraper = ref(props.preference.pwcScraper);
@@ -209,6 +225,7 @@ export default defineComponent({
       doiScraper,
       dblpScraper,
       cvfScraper,
+      openreviewScraper,
       ieeeScraper,
       ieeeAPIKey,
       pwcScraper,
