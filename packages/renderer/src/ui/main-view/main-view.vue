@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, Ref, createApp } from "vue";
+import { ref, Ref } from "vue";
 
 import { PaperEntity } from "../../../../preload/models/PaperEntity";
 import { PaperEntityDraft } from "../../../../preload/models/PaperEntityDraft";
 
 import WindowMenuBar from "./components/window-menu-bar.vue";
-import ListView from "./data-view/list-view.vue";
+import DataView from "./data-view/data-view.vue";
 import DetailView from "./detail-view/detail-view.vue";
 
 import { createModalView } from "../components/modal-view";
@@ -14,6 +14,8 @@ const props = defineProps({
   entities: Array as () => PaperEntity[],
 });
 
+const sortBy = ref("addTime");
+const sortOrder = ref("desc");
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedEntities: Ref<PaperEntity[]> = ref([]);
 
@@ -22,6 +24,15 @@ const reloadSelectedEntities = () => {
   selectedIndex.value.forEach((index) => {
     selectedEntities.value.push(props.entities![index]);
   });
+};
+
+const clearSelected = () => {
+  selectedIndex.value = [];
+  selectedEntities.value = [];
+  window.appInteractor.setState(
+    "selectionState.selectedIndex",
+    JSON.stringify(selectedIndex.value)
+  );
 };
 
 const scrapeSelectedEntities = () => {
@@ -75,43 +86,16 @@ const flagSelectedEntities = () => {
   void window.entityInteractor.update(JSON.stringify(entityDrafts));
 };
 
-const tagSelectedEntities = () => {
-  const entityDraft = new PaperEntityDraft();
-  entityDraft.initialize(selectedEntities.value[0]);
-  window.appInteractor.setState(
-    "sharedData.editEntityDraft",
-    JSON.stringify(entityDraft)
-  );
-  window.appInteractor.setState(
-    "viewState.isTagViewShown",
-    JSON.stringify(true)
-  );
+const switchViewType = (viewType: string) => {
+  window.appInteractor.setState("viewState.viewType", JSON.stringify(viewType));
 };
 
-const folderSelectedEntities = () => {
-  const entityDraft = new PaperEntityDraft();
-  entityDraft.initialize(selectedEntities.value[0]);
-  window.appInteractor.setState(
-    "sharedData.editEntityDraft",
-    JSON.stringify(entityDraft)
-  );
-  window.appInteractor.setState(
-    "viewState.isFolderViewShown",
-    JSON.stringify(true)
-  );
+const switchSortBy = (key: string) => {
+  window.appInteractor.setState("viewState.sortBy", JSON.stringify(key));
 };
 
-const noteSelectedEntities = () => {
-  const entityDraft = new PaperEntityDraft();
-  entityDraft.initialize(selectedEntities.value[0]);
-  window.appInteractor.setState(
-    "sharedData.editEntityDraft",
-    JSON.stringify(entityDraft)
-  );
-  window.appInteractor.setState(
-    "viewState.isNoteViewShown",
-    JSON.stringify(true)
-  );
+const switchSortOrder = (order: string) => {
+  window.appInteractor.setState("viewState.sortOrder", JSON.stringify(order));
 };
 
 const onMenuButtonClicked = (command: string) => {
@@ -128,14 +112,22 @@ const onMenuButtonClicked = (command: string) => {
     case "flag":
       flagSelectedEntities();
       break;
-    case "tag":
-      tagSelectedEntities();
+    case "list-view":
+      switchViewType("list");
       break;
-    case "folder":
-      folderSelectedEntities();
+    case "table-view":
+      switchViewType("table");
       break;
-    case "note":
-      noteSelectedEntities();
+    case "sort-by-title":
+    case "sort-by-authors":
+    case "sort-by-addTime":
+    case "sort-by-publication":
+    case "sort-by-pubTime":
+      switchSortBy(command.replaceAll("sort-by-", ""));
+      break;
+    case "sort-order-asce":
+    case "sort-order-desc":
+      switchSortOrder(command.replaceAll("sort-order-", ""));
       break;
   }
 };
@@ -150,14 +142,29 @@ window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
 window.appInteractor.registerState("dbState.entitiesUpdated", (value) => {
   reloadSelectedEntities();
 });
+
+window.appInteractor.registerState("viewState.sortBy", (value) => {
+  sortBy.value = JSON.parse(value as string) as string;
+  clearSelected();
+});
+
+window.appInteractor.registerState("viewState.sortOrder", (value) => {
+  sortOrder.value = JSON.parse(value as string) as string;
+  clearSelected();
+});
 </script>
 
 <template>
   <div class="grow flex flex-col h-screen bg-white">
-    <WindowMenuBar class="flex-none" @click="onMenuButtonClicked" />
+    <WindowMenuBar
+      class="flex-none"
+      @click="onMenuButtonClicked"
+      :sortBy="sortBy"
+      :sortOrder="sortOrder"
+    />
 
     <div class="grow flex divide-x">
-      <ListView :entities="entities" />
+      <DataView :entities="entities" :sortBy="sortBy" :sortOrder="sortOrder" />
       <DetailView
         :entity="selectedEntities[0]"
         v-if="selectedEntities.length === 1"

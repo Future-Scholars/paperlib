@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import "vue-select/dist/vue-select.css";
 
-defineProps({
+const props = defineProps({
   placeholder: {
     type: String,
     required: true,
@@ -10,27 +10,34 @@ defineProps({
     type: Array as () => String[],
     required: true,
   },
-  value: {
-    type: String,
+  values: {
+    type: Array as () => String[],
     required: true,
   },
 });
 
 const emit = defineEmits(["changed"]);
 
-const onChanged = (value: string) => {
+const onSelected = (value: string) => {
   emit("changed", value);
+};
+
+const onDeselected = (value: string) => {
+  emit(
+    "changed",
+    props.values.filter((v) => v !== value)
+  );
 };
 </script>
 
 <style>
-.vue-select .vs__dropdown-toggle {
+.vue-multiselect .vs__dropdown-toggle {
   border: none;
   padding: 0;
   padding-left: 0.7rem;
   padding-right: 0.7rem;
 }
-.vue-select .vs__search {
+.vue-multiselect .vs__search {
   padding: 0;
   margin: 0;
   border: 0;
@@ -38,7 +45,7 @@ const onChanged = (value: string) => {
   line-height: 1rem;
 }
 
-.vue-select .vs__actions {
+.vue-multiselect .vs__actions {
   padding: 0;
   margin: 0;
   border: 0;
@@ -47,22 +54,31 @@ const onChanged = (value: string) => {
   cursor: pointer;
 }
 
-.vue-select .vs__dropdown-menu {
+.vue-multiselect .vs__dropdown-menu {
   --tw-drop-shadow: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07))
     drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast)
     var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate)
     var(--tw-sepia) var(--tw-drop-shadow);
+
   border-bottom-left-radius: 0.375rem;
   border-bottom-right-radius: 0.375rem;
   background-color: rgb(229 229 229 / var(--tw-bg-opacity));
   border: 0;
 }
 
-.vue-select .vs__selected {
+.vue-multiselect .vs__selected {
   padding: 0;
   margin: 0;
-  max-height: 16px;
+  margin-top: 0.1rem;
+  margin-right: 0.2rem;
+  padding-left: 0.3rem;
+  border: none;
+  background-color: rgb(212 212 212 / var(--tw-text-opacity));
+}
+
+.vue-multiselect .vs__deselect {
+  margin-left: 0;
 }
 </style>
 
@@ -73,11 +89,13 @@ const onChanged = (value: string) => {
     </label>
     <v-select
       :options="options"
-      v-model="value"
-      class="vue-select text-xs"
+      v-model="values"
+      class="vue-multiselect text-xs drop"
       transition="none"
+      multiple
       :clearable="false"
-      @option:selected="onChanged"
+      @option:selected="onSelected"
+      @option:deselected="onDeselected"
     ></v-select>
   </div>
 </template>

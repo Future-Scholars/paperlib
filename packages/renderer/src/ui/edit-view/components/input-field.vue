@@ -1,5 +1,7 @@
 <script setup lang="ts">
-defineProps({
+import { ref } from "vue";
+
+const props = defineProps({
   placeholder: {
     type: String,
     required: true,
@@ -9,6 +11,13 @@ defineProps({
     required: false,
   },
 });
+const emit = defineEmits(["changed"]);
+
+const value = ref(props.value);
+
+const onInput = (payload: Event) => {
+  emit("changed", value.value);
+};
 </script>
 
 <template>
@@ -20,9 +29,10 @@ defineProps({
       class="text-xs bg-transparent focus:outline-none resize-none"
       type="text"
       placeholder=" "
-      :value="value"
+      v-model="value"
       :name="placeholder"
       rows="4"
+      @input="onInput"
     />
   </div>
 </template>

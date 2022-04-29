@@ -39,7 +39,7 @@ const props = defineProps({
       </div>
       <div v-if="flag">|</div>
       <div class="flex" v-if="flag">
-        <BIconFlagFill class="m-auto" />
+        <BIconFlagFill class="m-auto text-xxs" />
       </div>
     </div>
   </div>

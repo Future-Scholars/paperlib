@@ -45,9 +45,6 @@ export class SharedState {
 
       isModalShown: new State(false),
       isEditViewShown: new State(false),
-      isTagViewShown: new State(false),
-      isFolderViewShown: new State(false),
-      isNoteViewShown: new State(false),
       isPreferenceViewShown: new State(false),
 
       preferenceUpdated: new State(new Date().getTime()),

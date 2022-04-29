@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, Ref, ref } from "vue";
 
-import { PaperCategorizer } from "packages/preload/models/PaperCategorizer";
-import { PaperEntity } from "packages/preload/models/PaperEntity";
+import { PaperCategorizer } from "../../../preload/models/PaperCategorizer";
+import { PaperEntity } from "../../../preload/models/PaperEntity";
 
 import SidebarView from "./sidebar-view/sidebar-view.vue";
 import MainView from "./main-view/main-view.vue";
@@ -66,6 +66,16 @@ window.appInteractor.registerState("dbState.foldersUpdated", (value) => {
   void reloadFolders();
 });
 
+window.appInteractor.registerState("viewState.sortBy", (value) => {
+  sortBy.value = JSON.parse(value as string) as string;
+  void reloadEntities();
+});
+
+window.appInteractor.registerState("viewState.sortOrder", (value) => {
+  sortOrder.value = JSON.parse(value as string) as string;
+  void reloadEntities();
+});
+
 // =======================================
 onMounted(async () => {
   await reloadTags();
@@ -79,5 +89,5 @@ onMounted(async () => {
     <SidebarView :tags="tags" :folders="folders" />
     <MainView :entities="entities" />
   </div>
-  <EditView class="text-neutral-700" />
+  <EditView class="text-neutral-700" :tags="tags" :folders="folders" />
 </template>

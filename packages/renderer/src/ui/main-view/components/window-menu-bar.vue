@@ -4,9 +4,6 @@ import {
   BIconTrash,
   BIconPencilSquare,
   BIconFlag,
-  BIconTags,
-  BIconFolderPlus,
-  BIconCardText,
   BIconListUl,
   BIconGrid3x2,
   BIconGear,
@@ -18,9 +15,21 @@ import {
   BIconSortDown,
   BIconSortUp,
   BIconFilterRight,
+  BIconCheck2,
 } from "bootstrap-icons-vue";
 
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
+
+const props = defineProps({
+  sortBy: {
+    type: String,
+    required: true,
+  },
+  sortOrder: {
+    type: String,
+    required: true,
+  },
+});
 
 const emit = defineEmits(["click"]);
 </script>
@@ -55,24 +64,6 @@ const emit = defineEmits(["click"]);
       >
         <BIconFlag class="text-sm m-auto text-neutral-700" />
       </button>
-      <button
-        class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
-        @click="emit('click', 'tag')"
-      >
-        <BIconTags class="text-sm m-auto text-neutral-700" />
-      </button>
-      <button
-        class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
-        @click="emit('click', 'folder')"
-      >
-        <BIconFolderPlus class="text-sm m-auto text-neutral-700" />
-      </button>
-      <button
-        class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
-        @click="emit('click', 'note')"
-      >
-        <BIconCardText class="text-sm m-auto text-neutral-700" />
-      </button>
       <div class="flex px-2">
         <button
           class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
@@ -88,7 +79,7 @@ const emit = defineEmits(["click"]);
         </button>
       </div>
 
-      <Menu as="div" class="relative inline-block text-left">
+      <Menu as="div" class="relative inline-block text-left z-50">
         <div>
           <MenuButton
             class="inline-flex justify-center w-7 h-6 rounded-md hover:bg-neutral-200 cursor-default"
@@ -108,15 +99,18 @@ const emit = defineEmits(["click"]);
           <MenuItems
             class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg p-1 text-xs bg-white divide-y focus:outline-none"
           >
-            <div class="py-1">
+            <div class="pb-1">
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200"
                 @click="emit('click', 'sort-by-title')"
               >
-                <div class="flex space-x-2 px-2">
-                  <BIconFonts class="my-auto" />
-                  <span>Title</span>
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconFonts class="my-auto" />
+                    <span>Title</span>
+                  </div>
+                  <BIconCheck2 class="my-auto" v-if="sortBy === 'title'" />
                 </div>
               </MenuItem>
               <MenuItem
@@ -124,19 +118,25 @@ const emit = defineEmits(["click"]);
                 class="w-full rounded-md p-1 hover:bg-neutral-200"
                 @click="emit('click', 'sort-by-authors')"
               >
-                <div class="flex space-x-2 px-2">
-                  <BIconPerson class="my-auto" />
-                  <span>Authors</span>
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconPerson class="my-auto" />
+                    <span>Authors</span>
+                  </div>
+                  <BIconCheck2 class="my-auto" v-if="sortBy === 'authors'" />
                 </div>
               </MenuItem>
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200"
-                @click="emit('click', 'sort-by-year')"
+                @click="emit('click', 'sort-by-pubTime')"
               >
-                <div class="flex space-x-2 px-2">
-                  <BIconCalendar3 class="my-auto" />
-                  <span>Year</span>
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconCalendar3 class="my-auto" />
+                    <span>Year</span>
+                  </div>
+                  <BIconCheck2 class="my-auto" v-if="sortBy === 'pubTime'" />
                 </div>
               </MenuItem>
               <MenuItem
@@ -144,9 +144,15 @@ const emit = defineEmits(["click"]);
                 class="w-full rounded-md p-1 hover:bg-neutral-200"
                 @click="emit('click', 'sort-by-publication')"
               >
-                <div class="flex space-x-2 px-2">
-                  <BIconBook class="my-auto" />
-                  <span>Publication</span>
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconBook class="my-auto" />
+                    <span>Publication</span>
+                  </div>
+                  <BIconCheck2
+                    class="my-auto"
+                    v-if="sortBy === 'publication'"
+                  />
                 </div>
               </MenuItem>
               <MenuItem
@@ -154,31 +160,40 @@ const emit = defineEmits(["click"]);
                 class="w-full rounded-md p-1 hover:bg-neutral-200"
                 @click="emit('click', 'sort-by-addTime')"
               >
-                <div class="flex space-x-2 px-2">
-                  <BIconClock class="my-auto" />
-                  <span>Add Time</span>
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconClock class="my-auto" />
+                    <span>Add Time</span>
+                  </div>
+                  <BIconCheck2 class="my-auto" v-if="sortBy === 'addTime'" />
                 </div>
               </MenuItem>
             </div>
-            <div class="py-1">
+            <div class="pt-1">
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200"
-                @click="emit('click', 'sort-desc')"
+                @click="emit('click', 'sort-order-desc')"
               >
-                <div class="flex space-x-2 px-2">
-                  <BIconSortDown class="my-auto" />
-                  <span>Descending</span>
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconSortDown class="my-auto" />
+                    <span>Descending</span>
+                  </div>
+                  <BIconCheck2 class="my-auto" v-if="sortOrder === 'desc'" />
                 </div>
               </MenuItem>
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200"
-                @click="emit('click', 'sort-asce')"
+                @click="emit('click', 'sort-order-asce')"
               >
-                <div class="flex space-x-2 px-2">
-                  <BIconSortUp class="my-auto" />
-                  <span>Ascending</span>
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconSortUp class="my-auto" />
+                    <span>Ascending</span>
+                  </div>
+                  <BIconCheck2 class="my-auto" v-if="sortOrder === 'asce'" />
                 </div>
               </MenuItem>
             </div>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from "vue";
+
 import {
   BIconCollection,
   BIconFlag,
@@ -13,12 +15,26 @@ import CollopseGroup from "./components/collopse-group.vue";
 import {
   PaperTag,
   PaperFolder,
-} from "packages/preload/models/PaperCategorizer";
+} from "../../../../preload/models/PaperCategorizer";
 
 const props = defineProps({
   tags: Array as () => Array<PaperTag>,
   folders: Array as () => Array<PaperFolder>,
 });
+
+const isSpinnerShown = ref(false);
+
+window.appInteractor.registerState(
+  "viewState.processingQueueCount",
+  (value) => {
+    const processingQueueCount = JSON.parse(value as string) as number;
+    if (processingQueueCount > 0) {
+      isSpinnerShown.value = true;
+    } else {
+      isSpinnerShown.value = false;
+    }
+  }
+);
 </script>
 
 <template>
@@ -31,7 +47,7 @@ const props = defineProps({
         name="All Papers"
         :count="223"
         :with-counter="true"
-        :with-spinner="false"
+        :with-spinner="isSpinnerShown"
       >
         <BIconCollection class="text-sm my-auto text-blue-500" />
       </SectionItem>

@@ -21,7 +21,7 @@ const props = defineProps({
       </span>
     </div>
     <div class="my-auto flex space-x-2">
-      <Spinner class="m-auto" v-if="withSpinner" />
+      <Spinner class="m-auto" v-show="withSpinner" />
       <Counter class="m-auto" :value="count" v-if="withCounter" />
     </div>
   </div>
