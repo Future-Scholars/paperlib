@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .draggable-title {
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+  }
+  .nodraggable-item {
+    -webkit-app-region: no-drag;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .text-xxxs{
+    font-size: 0.55rem; /* 12px */
+    line-height: 1rem; /* 16px */
+  }
+  .text-xxs{
+    font-size: 0.65rem; /* 12px */
+    line-height: 1rem; /* 16px */
+  }
+}

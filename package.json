@@ -4,60 +4,54 @@
   "description": "A simple academic paper management tool for CSer.",
   "productName": "Paperlib",
   "author": "Geoffrey Chen <geoffreychen777@gmail.com>",
+  "license": "GPL-3.0",
   "private": true,
+  "main": "dist/main/index.cjs",
   "scripts": {
-    "lint": "eslint --fix --ext .js,.ts,.vue ./",
-    "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\" --ignore-path .gitignore",
-    "test": "echo \"No test specified\" && exit 0"
+    "dev": "node scripts/watch.mjs",
+    "prebuild": "vue-tsc --noEmit --p packages/renderer/tsconfig.json && node scripts/build.mjs",
+    "build": "electron-builder"
   },
-  "dependencies": {
-    "@electron/remote": "2.0.1",
-    "@quasar/extras": "1.12.2",
-    "drag-drop": "7.2.0",
-    "electron-store": "8.0.1",
-    "electron-updater": "4.6.1",
-    "fast-xml-parser": "4.0.6",
-    "got": "11.8.3",
-    "keytar": "7.9.0",
-    "pdfjs-dist": "2.10.377",
-    "quasar": "2.4.0",
-    "realm": "10.13.0",
-    "toad-scheduler": "1.6.0",
-    "vue": "3.2.31",
-    "vue-router": "4.0.13",
-    "webdav": "4.8.0"
+  "engines": {
+    "node": ">=14.17.0"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "7.13.14",
-    "@quasar/app": "3.3.3",
-    "@types/node": "12.20.21",
-    "@types/offscreencanvas": "2019.6.4",
-    "@types/uuid": "8.3.4",
-    "@typescript-eslint/eslint-plugin": "5.10.0",
-    "@typescript-eslint/parser": "5.10.0",
-    "electron": "16.0.4",
-    "electron-builder": "23.0.2",
-    "eslint": "^7.14.0",
-    "eslint-config-prettier": "8.1.0",
-    "eslint-loader": "4.0.2",
-    "eslint-plugin-vue": "7.0.0",
-    "prettier": "2.5.1",
-    "worker-plugin": "5.0.1"
+    "@types/vue-select": "^3.16.0",
+    "@vitejs/plugin-vue": "^2.1.0",
+    "autoprefixer": "^10.4.4",
+    "cssnano": "^5.1.7",
+    "electron": "18.0.3",
+    "electron-builder": "^23.0.3",
+    "postcss": "^8.4.12",
+    "simple-git-hooks": "^2.7.0",
+    "tailwindcss": "^3.0.24",
+    "typescript": "^4.6.3",
+    "vite": "^2.9.1",
+    "vite-plugin-electron": "^0.4.2",
+    "vite-plugin-resolve": "^2.0.1",
+    "vue": "^3.2.31",
+    "vue-tsc": "^0.31.1"
   },
-  "browserslist": [
-    "last 10 Chrome versions",
-    "last 10 Firefox versions",
-    "last 4 Edge versions",
-    "last 7 Safari versions",
-    "last 8 Android versions",
-    "last 8 ChromeAndroid versions",
-    "last 8 FirefoxAndroid versions",
-    "last 10 iOS versions",
-    "last 5 Opera versions"
+  "env": {
+    "VITE_DEV_SERVER_HOST": "127.0.0.1",
+    "VITE_DEV_SERVER_PORT": 3344
+  },
+  "keywords": [
+    "academic",
+    "paper",
+    "management"
   ],
-  "engines": {
-    "node": ">= 12.22.1",
-    "npm": ">= 6.13.4",
-    "yarn": ">= 1.21.1"
+  "dependencies": {
+    "@headlessui/vue": "^1.5.0",
+    "bootstrap-icons-vue": "^1.8.1",
+    "bson": "^4.6.3",
+    "electron-store": "^8.0.1",
+    "fast-xml-parser": "^4.0.6",
+    "got": "11.8.3",
+    "keytar": "^7.9.0",
+    "pdfjs-dist": "^2.13.216",
+    "realm": "^10.13.0",
+    "vue-select": "^4.0.0-beta.3",
+    "vue-virtual-scroller": "^2.0.0-alpha.1"
   }
 }

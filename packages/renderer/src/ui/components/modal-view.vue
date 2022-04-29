@@ -1,0 +1,45 @@
+<script setup lang="ts">
+const props = defineProps({
+  title: String,
+  info: String,
+});
+
+const emit = defineEmits(["confirm", "cancel"]);
+</script>
+
+<template>
+  <div
+    class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-800 bg-opacity-50"
+  >
+    <div class="flex flex-col justify-center items-center w-full h-full">
+      <div
+        class="m-auto flex flex-col justify-between px-3 pt-3 pb-4 border-[1px] bg-neutral-100 w-64 rounded-lg shadow-lg select-none space-y-5"
+      >
+        <div>
+          <img class="mx-auto mt-2 w-16 h-16" src="../../assets/icon.png" />
+          <div class="mt-1 text-center text-sm font-semibold">
+            {{ title }}
+          </div>
+          <div class="text-xxs mt-4 px-2 text-center">
+            {{ info }}
+          </div>
+        </div>
+
+        <div class="flex justify-between px-2">
+          <div
+            class="flex w-24 h-8 rounded-lg bg-neutral-300 hover:shadow-sm"
+            @click="emit('cancel')"
+          >
+            <span class="m-auto text-xs">Cancel</span>
+          </div>
+          <div
+            class="flex w-24 h-8 rounded-lg bg-accentlight hover:shadow-sm"
+            @click="emit('confirm')"
+          >
+            <span class="m-auto text-xs text-white">Yes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
