@@ -24,7 +24,7 @@ const viewType = ref("list");
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedLastSingleIndex = ref(-1);
 
-const onItemClick = (event: MouseEvent, index: number) => {
+const onItemClicked = (event: MouseEvent, index: number) => {
   if (event.shiftKey) {
     const minIndex = Math.min(selectedLastSingleIndex.value, index);
     const maxIndex = Math.max(selectedLastSingleIndex.value, index);
@@ -48,6 +48,25 @@ const onItemClick = (event: MouseEvent, index: number) => {
   );
 };
 
+const onItemRightClicked = (event: MouseEvent, index: number) => {
+  if (selectedIndex.value.indexOf(index) === -1) {
+    onItemClicked(event, index);
+  }
+  window.appInteractor.showContextMenu(
+    "show-data-context-menu",
+    JSON.stringify([selectedIndex.value.length === 1])
+  );
+};
+
+const onItemDoubleClicked = (event: MouseEvent, index: number, url: string) => {
+  selectedIndex.value = [index];
+  window.appInteractor.setState(
+    "selectionState.selectedIndex",
+    JSON.stringify(selectedIndex.value)
+  );
+  window.appInteractor.open(url);
+};
+
 window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
   const newSelectedIndex = JSON.parse(value as string) as number[];
   if (newSelectedIndex.length === 0) {
@@ -56,7 +75,7 @@ window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
 });
 
 window.appInteractor.registerState("viewState.viewType", (value) => {
-  viewType.value = JSON.parse(value as string);
+  viewType.value = value as string;
 });
 </script>
 
@@ -86,8 +105,10 @@ window.appInteractor.registerState("viewState.viewType", (value) => {
         :publication="item.publication"
         :flag="item.flag"
         :active="selectedIndex.indexOf(index) >= 0"
-        @click="(e: MouseEvent) => {onItemClick(e, index)}"
+        @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         v-if="viewType === 'list'"
+        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
+        @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
       />
       <TableItem
         :title="item.title"
@@ -96,9 +117,11 @@ window.appInteractor.registerState("viewState.viewType", (value) => {
         :publication="item.publication"
         :flag="item.flag"
         :active="selectedIndex.indexOf(index) >= 0"
-        @click="(e: MouseEvent) => {onItemClick(e, index)}"
+        @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         :class="index % 2 === 1 ? 'bg-neutral-100' : ''"
         v-if="viewType === 'table'"
+        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
+        @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
       />
     </RecycleScroller>
   </div>

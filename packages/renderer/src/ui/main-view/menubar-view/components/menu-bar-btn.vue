@@ -19,6 +19,10 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  withTooltip: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const emit = defineEmits(["click"]);
@@ -45,7 +49,10 @@ const btnIcons = {
       class="text-sm m-auto"
       :class="disabled ? 'text-neutral-300' : 'text-neutral-700'"
     />
-    <span class="tooltip top-10 bg-neutral-200 p-1 rounded-md">
+    <span
+      class="tooltip top-10 bg-neutral-200 p-1 rounded-md"
+      v-if="withTooltip"
+    >
       {{ btnName }}
     </span>
   </button>

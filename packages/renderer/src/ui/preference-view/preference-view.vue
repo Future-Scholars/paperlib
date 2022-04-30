@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PropType, ref } from "vue";
+import { ref } from "vue";
 
 import {
   BIconGearWideConnected,
@@ -11,6 +11,19 @@ import {
 
 import SectionItem from "./components/section-item.vue";
 import GeneralView from "./general-view.vue";
+import ScraperView from "./scraper-view.vue";
+import CloudView from "./cloud-view.vue";
+import AboutView from "./about-view.vue";
+import ExportView from "./export-view.vue";
+
+import { PreferenceStore } from "../../../../preload/utils/preference";
+
+defineProps({
+  preference: {
+    type: Object as () => PreferenceStore,
+    required: true,
+  },
+});
 
 const isPreferenceViewShown = ref(false);
 const preferenceTab = ref("general");
@@ -19,14 +32,10 @@ const onCloseClicked = () => {
   window.appInteractor.setState("viewState.isPreferenceViewShown", false);
 };
 
-const onSaveClicked = async () => {
-  window.appInteractor.setState("viewState.isPreferenceViewShown", false);
-};
-
 window.appInteractor.registerState(
   "viewState.isPreferenceViewShown",
   (value) => {
-    isPreferenceViewShown.value = JSON.parse(value as string) as boolean;
+    isPreferenceViewShown.value = value as boolean;
   }
 );
 </script>
@@ -46,10 +55,10 @@ window.appInteractor.registerState(
     >
       <div class="flex justify-center items-center w-full h-full">
         <div
-          class="m-auto flex bg-neutral-100 h-[550px] w-[700px] rounded-lg shadow-lg select-none space-y-2"
+          class="m-auto flex bg-neutral-100 h-[600px] w-[750px] rounded-lg shadow-lg select-none space-y-2"
         >
           <div
-            class="flex flex-col space-y-1 h-full w-36 rounded-l-lg px-2 py-14 bg-neutral-300"
+            class="flex flex-col space-y-1 h-full w-36 rounded-l-lg px-2 py-14 border-r-[1px]"
           >
             <SectionItem
               name="General"
@@ -88,19 +97,32 @@ window.appInteractor.registerState(
             </SectionItem>
           </div>
           <div class="flex flex-col w-full pt-11 pb-4 px-8 justify-between">
-            <GeneralView v-if="preferenceTab === 'general'" />
+            <GeneralView
+              :preference="preference"
+              v-if="preferenceTab === 'general'"
+            />
+            <ScraperView
+              :preference="preference"
+              v-if="preferenceTab === 'scraper'"
+            />
+            <CloudView
+              :preference="preference"
+              v-if="preferenceTab === 'cloud'"
+            />
+            <ExportView
+              :preference="preference"
+              v-if="preferenceTab === 'export'"
+            />
+            <AboutView
+              :preference="preference"
+              v-if="preferenceTab === 'about'"
+            />
             <div class="flex justify-end space-x-2">
               <div
                 class="flex w-24 h-8 rounded-lg bg-neutral-300 hover:shadow-sm"
                 @click="onCloseClicked"
               >
-                <span class="m-auto text-xs">Cancel</span>
-              </div>
-              <div
-                class="flex w-24 h-8 rounded-lg bg-accentlight hover:shadow-sm"
-                @click="onSaveClicked"
-              >
-                <span class="m-auto text-xs text-white">Save</span>
+                <span class="m-auto text-xs">Close</span>
               </div>
             </div>
           </div>

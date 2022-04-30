@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, dialog, BrowserWindow, ipcMain, shell } from "electron";
 import { release } from "os";
 import { join } from "path";
 import Store from "electron-store";
@@ -104,3 +104,15 @@ ipcMain.on("close", () => {
   win?.close();
   app.quit();
 });
+
+ipcMain.handle("version", () => {
+  return app.getVersion();
+});
+
+ipcMain.handle("show-folder-picker", () => {
+  return dialog.showOpenDialog({
+    properties: ["openDirectory"],
+  });
+});
+
+import "./menu.ts";

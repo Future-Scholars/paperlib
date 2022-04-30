@@ -1,13 +1,13 @@
 import { randomUUID } from "crypto";
 import { ipcRenderer } from "electron";
 
-export class State<T> {
-  value: T;
+export class State {
+  value: string | number | boolean;
   id: string;
   checkDuplicated: boolean;
   publishChannel: BroadcastChannel;
 
-  constructor(value: T, checkDuplicated = true) {
+  constructor(value: string | number | boolean, checkDuplicated = true) {
     this.value = value;
     this.id = randomUUID();
     this.checkDuplicated = checkDuplicated;
@@ -18,7 +18,7 @@ export class State<T> {
     return this.value;
   }
 
-  set(value: T) {
+  set(value: string | number | boolean) {
     if (value === this.value && this.checkDuplicated) {
       return;
     }
@@ -28,10 +28,10 @@ export class State<T> {
 }
 
 export class SharedState {
-  viewState: Record<string, State<number | string | boolean>>;
-  selectionState: Record<string, State<number | string | boolean>>;
-  sharedData: Record<string, State<number | string | boolean>>;
-  dbState: Record<string, State<number | string | boolean>>;
+  viewState: Record<string, State>;
+  selectionState: Record<string, State>;
+  sharedData: Record<string, State>;
+  dbState: Record<string, State>;
 
   constructor() {
     this.viewState = {
@@ -47,9 +47,9 @@ export class SharedState {
       isEditViewShown: new State(false),
       isPreferenceViewShown: new State(false),
 
-      preferenceUpdated: new State(new Date().getTime()),
-      themeUpdated: new State(new Date().getTime()),
-      realmReinited: new State(new Date().getTime()),
+      preferenceUpdated: new State(`${new Date().getTime()}`),
+      themeUpdated: new State(`${new Date().getTime()}`),
+      realmReinited: new State(`${new Date().getTime()}`),
 
       alertInformation: new State("", false),
 
@@ -71,25 +71,25 @@ export class SharedState {
 
     // DB State
     this.dbState = {
-      entitiesUpdated: new State(new Date().getTime()),
-      tagsUpdated: new State(new Date().getTime()),
-      foldersUpdated: new State(new Date().getTime()),
+      entitiesUpdated: new State(`${new Date().getTime()}`),
+      tagsUpdated: new State(`${new Date().getTime()}`),
+      foldersUpdated: new State(`${new Date().getTime()}`),
       defaultPath: new State(ipcRenderer.sendSync("userData")),
       selectedPath: new State(""),
     };
   }
 
   get(dest: string) {
-    const state = getObj(this, dest) as State<number | string | boolean>;
+    const state = getObj(this, dest) as State;
     return state;
   }
 
-  set(dest: string, value: number | string | boolean) {
-    const state = getObj(this, dest) as State<number | string | boolean>;
+  set(dest: string, value: any) {
+    const state = getObj(this, dest) as State;
     state.set(value);
   }
 
-  register(dest: string, callback: (value: number | string | boolean) => void) {
+  register(dest: string, callback: (value: any) => void) {
     const state = this.get(dest);
     const channel = new BroadcastChannel(state.id);
     channel.addEventListener("message", (event) => {

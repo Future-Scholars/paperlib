@@ -53,9 +53,9 @@ export class EntityInteractor {
       sortBy,
       sortOrder
     );
-    // if (this.sharedState.viewState.searchMode.value === "fulltext" && search) {
-    //   entities = await this.cacheRepository.fullTextFilter(search, entities);
-    // }
+    if (this.sharedState.viewState.searchMode.get() === "fulltext" && search) {
+      entities = await this.cacheRepository.fullTextFilter(search, entities);
+    }
 
     return entities;
   }
@@ -93,7 +93,7 @@ export class EntityInteractor {
 
     this.sharedState.set(
       "viewState.processingQueueCount",
-      (this.sharedState.viewState.processingQueueCount.value as number) +
+      (this.sharedState.viewState.processingQueueCount.get() as number) +
         entityDrafts.length
     );
 
@@ -107,7 +107,7 @@ export class EntityInteractor {
 
     this.sharedState.set(
       "viewState.processingQueueCount",
-      (this.sharedState.viewState.processingQueueCount.value as number) -
+      (this.sharedState.viewState.processingQueueCount.get() as number) -
         entityDrafts.length
     );
     await this.update(JSON.stringify(entityDrafts));
@@ -123,7 +123,7 @@ export class EntityInteractor {
 
     this.sharedState.set(
       "viewState.processingQueueCount",
-      (this.sharedState.viewState.processingQueueCount.value as number) +
+      (this.sharedState.viewState.processingQueueCount.get() as number) +
         entityDrafts.length
     );
 
@@ -147,8 +147,16 @@ export class EntityInteractor {
 
     this.sharedState.set(
       "viewState.processingQueueCount",
-      (this.sharedState.viewState.processingQueueCount.value as number) -
+      (this.sharedState.viewState.processingQueueCount.get() as number) -
         entityDrafts.length
     );
+  }
+
+  // ============================================================
+  async initDB() {
+    this.sharedState.set("selectionState.selectedIndex", "[]");
+    this.sharedState.set("selectionState.selectedCategorizer", "");
+    await this.dbRepository.initRealm(true);
+    this.sharedState.set("viewState.realmReinited", new Date().getTime());
   }
 }

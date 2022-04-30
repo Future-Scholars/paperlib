@@ -20,6 +20,7 @@ import {
 const props = defineProps({
   tags: Array as () => Array<PaperTag>,
   folders: Array as () => Array<PaperFolder>,
+  showSidebarCount: Boolean,
 });
 
 const entitiesCount = ref(0);
@@ -29,7 +30,7 @@ const isSpinnerShown = ref(false);
 const onSelectCategorizer = (categorizer: string) => {
   window.appInteractor.setState(
     "selectionState.selectedCategorizer",
-    JSON.stringify(categorizer)
+    categorizer
   );
 };
 
@@ -52,7 +53,7 @@ window.appInteractor.registerState("viewState.entitiesCount", (value) => {
 window.appInteractor.registerState(
   "selectionState.selectedCategorizer",
   (value) => {
-    selectedCategorizer.value = JSON.parse(value as string) as string;
+    selectedCategorizer.value = value as string;
   }
 );
 </script>
@@ -66,7 +67,7 @@ window.appInteractor.registerState(
       <SectionItem
         name="All Papers"
         :count="entitiesCount"
-        :with-counter="true"
+        :with-counter="showSidebarCount"
         :with-spinner="isSpinnerShown"
         :active="selectedCategorizer === 'lib-all'"
         @click="onSelectCategorizer('lib-all')"
@@ -87,7 +88,7 @@ window.appInteractor.registerState(
         <SectionItem
           :name="tag.name"
           :count="tag.count"
-          :with-counter="true"
+          :with-counter="showSidebarCount"
           :with-spinner="false"
           v-for="tag in tags"
           :active="selectedCategorizer === `tag-${tag.name}`"
@@ -101,7 +102,7 @@ window.appInteractor.registerState(
         <SectionItem
           :name="folder.name"
           :count="folder.count"
-          :with-counter="true"
+          :with-counter="showSidebarCount"
           :with-spinner="false"
           v-for="folder in folders"
           :active="selectedCategorizer === `folder-${folder.name}`"

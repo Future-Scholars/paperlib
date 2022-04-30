@@ -1,8 +1,8 @@
-import Realm from 'realm';
-import path from 'path';
+import Realm from "realm";
+import path from "path";
 
-import { PaperEntityCacheSchema } from '../../models/PaperEntityCache';
-import { CacheRepository } from './cache-repository';
+import { PaperEntityCacheSchema } from "../../models/PaperEntityCache";
+import { CacheRepository } from "./cache-repository";
 
 export function initCache(this: CacheRepository, reinit = false) {
   if (this._realm || reinit) {
@@ -19,7 +19,7 @@ export function initCache(this: CacheRepository, reinit = false) {
     this._realm = new Realm(this.config as Realm.Configuration);
   } catch (err) {
     this.sharedState.set(
-      'viewState.alertInformation',
+      "viewState.alertInformation",
       `Open cache database faild: ${err as string}`
     );
   }
@@ -30,8 +30,8 @@ export function getConfig(this: CacheRepository): Realm.Configuration {
     schema: [PaperEntityCacheSchema],
     schemaVersion: this._schemaVersion,
     path: path.join(
-      this.sharedState.dbState.defaultPath.value as string,
-      'cache.realm'
+      this.sharedState.dbState.defaultPath.get() as string,
+      "cache.realm"
     ),
   };
   this.config = config;

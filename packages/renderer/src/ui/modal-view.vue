@@ -4,7 +4,7 @@ import { ref } from "vue";
 const show = ref(false);
 
 window.appInteractor.registerState("viewState.isModalShown", (value) => {
-  show.value = JSON.parse(value as string) as boolean;
+  show.value = value as boolean;
 });
 </script>
 

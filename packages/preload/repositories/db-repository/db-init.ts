@@ -1,6 +1,6 @@
 import Realm from "realm";
 import path from "path";
-import { promises as fsPromise } from "fs";
+import { existsSync, promises as fsPromise } from "fs";
 import keytar from "keytar";
 
 import { PaperEntitySchema } from "../../models/PaperEntity";
@@ -31,6 +31,7 @@ export async function initRealm(this: DBRepository, reinit = false) {
   if (this._realm) {
     return this._realm;
   }
+
   await this.getConfig();
   if (this.cloudConfig) {
     try {
@@ -69,11 +70,14 @@ export async function getConfig(
     return await this.getCloudConfig();
   } else {
     this.cloudConfig = null;
-    return this.getLocalConfig();
+    return await this.getLocalConfig();
   }
 }
 
-export function getLocalConfig(this: DBRepository): Realm.Configuration {
+export async function getLocalConfig(
+  this: DBRepository
+): Promise<Realm.Configuration> {
+  await this.logoutCloud();
   const config = {
     schema: [PaperEntitySchema, PaperTagSchema, PaperFolderSchema],
     schemaVersion: this._schemaVersion,
@@ -162,15 +166,19 @@ export async function logoutCloud(this: DBRepository) {
       await this.app.removeUser(user);
     }
   }
-
-  await fsPromise.unlink(
-    path.join(
-      this.sharedState.dbState.defaultPath.value as string,
-      "synced.realm"
-    )
+  const syncDBPath = path.join(
+    this.sharedState.dbState.defaultPath.value as string,
+    "synced.realm"
   );
 
-  await this.initRealm(true);
+  if (existsSync(syncDBPath)) {
+    await fsPromise.unlink(
+      path.join(
+        this.sharedState.dbState.defaultPath.value as string,
+        "synced.realm"
+      )
+    );
+  }
 }
 
 export function pauseSync(this: DBRepository) {

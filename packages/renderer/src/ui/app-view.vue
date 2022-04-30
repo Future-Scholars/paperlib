@@ -8,6 +8,7 @@ import SidebarView from "./sidebar-view/sidebar-view.vue";
 import MainView from "./main-view/main-view.vue";
 import EditView from "./edit-view/edit-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
+import { PreferenceStore } from "../../../preload/utils/preference";
 
 const sortBy = ref("addTime");
 const sortOrder = ref("desc");
@@ -18,6 +19,12 @@ const folders: Ref<PaperCategorizer[]> = ref([]);
 
 const searchText = ref("");
 const selectedCategorizer = ref("lib-all");
+
+const preference: Ref<PreferenceStore> = ref(
+  window.appInteractor.loadPreferences()
+);
+const showSidebarCount = ref(false);
+
 // =======================================
 // Data
 const reloadEntities = async () => {
@@ -53,55 +60,80 @@ const reloadFolders = async () => {
 };
 
 // =======================================
+// Preferences
+const reloadPreference = () => {
+  preference.value = window.appInteractor.loadPreferences();
+  showSidebarCount.value = preference.value.showSidebarCount;
+};
+
+// =======================================
 // State Update
 window.appInteractor.registerState("dbState.entitiesUpdated", (value) => {
-  void reloadEntities();
+  reloadEntities();
 });
 
 window.appInteractor.registerState("dbState.tagsUpdated", (value) => {
-  void reloadTags();
+  reloadTags();
 });
 
 window.appInteractor.registerState("dbState.foldersUpdated", (value) => {
-  void reloadFolders();
+  reloadFolders();
 });
 
 window.appInteractor.registerState("viewState.sortBy", (value) => {
-  sortBy.value = JSON.parse(value as string) as string;
-  void reloadEntities();
+  sortBy.value = value as string;
+  reloadEntities();
 });
 
 window.appInteractor.registerState("viewState.sortOrder", (value) => {
-  sortOrder.value = JSON.parse(value as string) as string;
-  void reloadEntities();
+  sortOrder.value = value as string;
+  reloadEntities();
 });
 
 window.appInteractor.registerState("viewState.searchText", (value) => {
   searchText.value = JSON.parse(value as string) as string;
-  void reloadEntities();
+  reloadEntities();
 });
 
 window.appInteractor.registerState(
   "selectionState.selectedCategorizer",
   (value) => {
-    selectedCategorizer.value = JSON.parse(value as string) as string;
-    void reloadEntities();
+    selectedCategorizer.value = value as string;
+    reloadEntities();
   }
 );
+
+window.appInteractor.registerState("viewState.preferenceUpdated", (value) => {
+  reloadPreference();
+});
+
+window.appInteractor.registerState("viewState.realmReinited", (value) => {
+  (async () => {
+    await reloadEntities();
+    await reloadTags();
+    await reloadFolders();
+    reloadPreference();
+  })();
+});
 
 // =======================================
 onMounted(async () => {
   await reloadTags();
   await reloadFolders();
   await reloadEntities();
+  reloadPreference();
 });
 </script>
 
 <template>
   <div class="flex text-neutral-700">
-    <SidebarView :tags="tags" :folders="folders" />
+    <SidebarView
+      :tags="tags"
+      :folders="folders"
+      :showSidebarCount="showSidebarCount"
+    />
     <MainView :entities="entities" />
   </div>
   <EditView class="text-neutral-700" :tags="tags" :folders="folders" />
-  <PreferenceView />
+  <PreferenceView :preference="preference" />
 </template>

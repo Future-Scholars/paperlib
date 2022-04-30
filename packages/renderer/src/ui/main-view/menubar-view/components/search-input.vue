@@ -26,28 +26,19 @@ const onInput = (payload: Event) => {
 
 const onModeClicked = (payload: Event) => {
   if (searchMode.value === "general") {
-    window.appInteractor.setState(
-      "viewState.searchMode",
-      JSON.stringify("fulltext")
-    );
+    window.appInteractor.setState("viewState.searchMode", "fulltext");
     searchDebounce.value = 300;
   } else if (searchMode.value === "fulltext") {
-    window.appInteractor.setState(
-      "viewState.searchMode",
-      JSON.stringify("advanced")
-    );
-    searchDebounce.value = 1000;
+    window.appInteractor.setState("viewState.searchMode", "advanced");
+    searchDebounce.value = 800;
   } else if (searchMode.value === "advanced") {
-    window.appInteractor.setState(
-      "viewState.searchMode",
-      JSON.stringify("general")
-    );
+    window.appInteractor.setState("viewState.searchMode", "general");
     searchDebounce.value = 300;
   }
 };
 
 window.appInteractor.registerState("viewState.searchMode", (value) => {
-  searchMode.value = JSON.parse(value as string);
+  searchMode.value = value as string;
 });
 </script>
 

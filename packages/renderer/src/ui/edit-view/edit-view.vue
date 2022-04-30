@@ -30,7 +30,7 @@ const entityDraft = ref(new PaperEntityDraft());
 const pubTypes = ["Article", "Conference", "Others", "Book"];
 
 window.appInteractor.registerState("viewState.isEditViewShown", (value) => {
-  isEditViewShown.value = JSON.parse(value as string) as boolean;
+  isEditViewShown.value = value as boolean;
 });
 
 window.appInteractor.registerState("sharedData.editEntityDraft", (value) => {

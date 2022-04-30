@@ -38,10 +38,10 @@ const emit = defineEmits(["click"]);
 </script>
 
 <template>
-  <div class="flex h-12 w-full justify-between draggable-title">
-    <div class="grow my-auto pl-2 pr-1"><SearchInput /></div>
+  <div class="flex w-full h-12 justify-between draggable-title">
+    <div class="grow my-auto px-2"><SearchInput /></div>
 
-    <div class="flex flex-none justify-end space-x-1 my-auto w-80 pl-8 pr-4">
+    <div class="flex flex-none justify-end space-x-1 my-auto w-80 pl-8 pr-2">
       <MenuBarBtn
         btnName="Rescrape"
         @click="emit('click', 'rescrape')"
@@ -79,7 +79,7 @@ const emit = defineEmits(["click"]);
           </MenuButton>
         </div>
 
-        <transition
+        <Transition
           enter-active-class="transition ease-out duration-100"
           enter-from-class="transform opacity-0 scale-95"
           enter-to-class="transform opacity-100 scale-100"
@@ -189,10 +189,14 @@ const emit = defineEmits(["click"]);
               </MenuItem>
             </div>
           </MenuItems>
-        </transition>
+        </Transition>
       </Menu>
 
-      <MenuBarBtn btnName="Preference" @click="emit('click', 'preference')" />
+      <MenuBarBtn
+        btnName="Preference"
+        @click="emit('click', 'preference')"
+        :with-tooltip="false"
+      />
     </div>
   </div>
 </template>

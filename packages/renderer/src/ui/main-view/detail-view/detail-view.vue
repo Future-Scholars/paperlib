@@ -17,7 +17,6 @@ const props = defineProps({
 });
 
 const onRatingChanged = (value: number) => {
-  console.log(value);
   const entityDraft = new PaperEntityDraft();
   entityDraft.initialize(props.entity);
   entityDraft.rating = value;

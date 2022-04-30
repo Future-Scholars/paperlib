@@ -19,6 +19,12 @@ const sortOrder = ref("desc");
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedEntities: Ref<PaperEntity[]> = ref([]);
 
+const openSelectedEntities = () => {
+  selectedEntities.value.forEach((entity) => {
+    window.appInteractor.open(entity.mainURL);
+  });
+};
+
 const reloadSelectedEntities = () => {
   selectedEntities.value = [];
   selectedIndex.value.forEach((index) => {
@@ -55,10 +61,10 @@ const deleteSelectedEntities = () => {
         JSON.stringify([])
       );
       void window.entityInteractor.delete(ids);
-      window.appInteractor.setState("viewState.isModalShown", "false");
+      window.appInteractor.setState("viewState.isModalShown", false);
     },
     () => {
-      window.appInteractor.setState("viewState.isModalShown", "false");
+      window.appInteractor.setState("viewState.isModalShown", false);
     }
   );
 };
@@ -70,10 +76,7 @@ const editSelectedEntities = () => {
     "sharedData.editEntityDraft",
     JSON.stringify(entityDraft)
   );
-  window.appInteractor.setState(
-    "viewState.isEditViewShown",
-    JSON.stringify(true)
-  );
+  window.appInteractor.setState("viewState.isEditViewShown", true);
 };
 
 const flagSelectedEntities = () => {
@@ -87,15 +90,15 @@ const flagSelectedEntities = () => {
 };
 
 const switchViewType = (viewType: string) => {
-  window.appInteractor.setState("viewState.viewType", JSON.stringify(viewType));
+  window.appInteractor.setState("viewState.viewType", viewType);
 };
 
 const switchSortBy = (key: string) => {
-  window.appInteractor.setState("viewState.sortBy", JSON.stringify(key));
+  window.appInteractor.setState("viewState.sortBy", key);
 };
 
 const switchSortOrder = (order: string) => {
-  window.appInteractor.setState("viewState.sortOrder", JSON.stringify(order));
+  window.appInteractor.setState("viewState.sortOrder", order);
 };
 
 const onMenuButtonClicked = (command: string) => {
@@ -130,13 +133,57 @@ const onMenuButtonClicked = (command: string) => {
       switchSortOrder(command.replaceAll("sort-order-", ""));
       break;
     case "preference":
-      window.appInteractor.setState("viewState.isPreferenceViewShown", "true");
+      window.appInteractor.setState("viewState.isPreferenceViewShown", true);
       break;
   }
 };
 
+// ========================================================
+// Register Context Menu
+
+window.appInteractor.onContextMenuClicked(
+  "data-context-menu-command",
+  "edit",
+  () => {
+    editSelectedEntities();
+  }
+);
+
+window.appInteractor.onContextMenuClicked(
+  "data-context-menu-command",
+  "flag",
+  () => {
+    flagSelectedEntities();
+  }
+);
+
+window.appInteractor.onContextMenuClicked(
+  "data-context-menu-command",
+  "delete",
+  () => {
+    deleteSelectedEntities();
+  }
+);
+
+window.appInteractor.onContextMenuClicked(
+  "data-context-menu-command",
+  "scrape",
+  () => {
+    scrapeSelectedEntities();
+  }
+);
+
+window.appInteractor.onContextMenuClicked(
+  "data-context-menu-command",
+  "open",
+  () => {
+    openSelectedEntities();
+  }
+);
+
 // =======================================
 // Register state change
+
 window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
   selectedIndex.value = JSON.parse(value as string) as number[];
   reloadSelectedEntities();
@@ -147,12 +194,12 @@ window.appInteractor.registerState("dbState.entitiesUpdated", (value) => {
 });
 
 window.appInteractor.registerState("viewState.sortBy", (value) => {
-  sortBy.value = JSON.parse(value as string) as string;
+  sortBy.value = value as string;
   clearSelected();
 });
 
 window.appInteractor.registerState("viewState.sortOrder", (value) => {
-  sortOrder.value = JSON.parse(value as string) as string;
+  sortOrder.value = value as string;
   clearSelected();
 });
 
@@ -169,7 +216,7 @@ window.appInteractor.registerState(
 </script>
 
 <template>
-  <div class="grow flex flex-col w-full h-screen bg-white">
+  <div class="grow flex flex-col h-screen bg-white">
     <WindowMenuBar
       class="flex-none"
       @click="onMenuButtonClicked"
@@ -178,5 +225,13 @@ window.appInteractor.registerState(
       :disableSingleBtn="selectedEntities.length !== 1"
       :disableMultiBtn="selectedEntities.length === 0"
     />
+
+    <div class="grow flex divide-x">
+      <DataView :entities="entities" :sortBy="sortBy" :sortOrder="sortOrder" />
+      <DetailView
+        :entity="selectedEntities[0]"
+        v-if="selectedEntities.length === 1"
+      />
+    </div>
   </div>
 </template>

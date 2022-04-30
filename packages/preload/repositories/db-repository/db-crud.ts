@@ -47,9 +47,9 @@ export function createFilterPattern(
   });
 
   if (search) {
-    if (this.sharedState.viewState.searchMode.value === "general") {
+    if (this.sharedState.viewState.searchMode.get() === "general") {
       filterFormat += `(title contains[c] \"${formatedSearch}\" OR authors contains[c] \"${formatedSearch}\" OR publication contains[c] \"${formatedSearch}\" OR note contains[c] \"${formatedSearch}\") AND `;
-    } else if (this.sharedState.viewState.searchMode.value === "advanced") {
+    } else if (this.sharedState.viewState.searchMode.get() === "advanced") {
       filterFormat += `(${formatedSearch}) AND `;
     }
   }

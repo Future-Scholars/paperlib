@@ -1,35 +1,35 @@
-import path from 'path';
-import { createClient, WebDAVClient } from 'webdav';
-import keytar from 'keytar';
+import path from "path";
+import { createClient, WebDAVClient } from "webdav";
+import keytar from "keytar";
 
-import { FileRepository } from './file-repository';
+import { FileRepository } from "./file-repository";
 
-import { PaperEntityDraft } from '../../models/PaperEntityDraft';
-import { promises as fsPromise, readFileSync, existsSync, mkdirSync } from 'fs';
+import { PaperEntityDraft } from "../../models/PaperEntityDraft";
+import { promises as fsPromise, readFileSync, existsSync, mkdirSync } from "fs";
 
-import { Preference } from '../../utils/preference';
-import { SharedState } from '../../interactors/app-state';
-import { constructFileURL } from '../../utils/path';
+import { Preference } from "../../utils/preference";
+import { SharedState } from "../../interactors/app-state";
+import { constructFileURL } from "../../utils/path";
 
 export class WebDavFileRepository extends FileRepository {
   webdavClient: WebDAVClient | null;
 
   constructor(preference: Preference, sharedState: SharedState) {
-    super(preference, sharedState);
+    super(sharedState, preference);
     this.webdavClient = null;
 
     if (
       !existsSync(
         path.join(
-          this.sharedState.dbState.defaultPath.value as string,
-          'file_cache'
+          this.sharedState.dbState.defaultPath.get() as string,
+          "file_cache"
         )
       )
     ) {
       mkdirSync(
         path.join(
-          this.sharedState.dbState.defaultPath.value as string,
-          'file_cache'
+          this.sharedState.dbState.defaultPath.get() as string,
+          "file_cache"
         )
       );
     }
@@ -42,22 +42,22 @@ export class WebDavFileRepository extends FileRepository {
       return true;
     }
     this.webdavClient = createClient(
-      this.preference.get('webdavURL') as string,
+      this.preference.get("webdavURL") as string,
       {
-        username: this.preference.get('webdavUsername') as string,
-        password: (await keytar.getPassword('paperlib', 'webdav')) as string,
+        username: this.preference.get("webdavUsername") as string,
+        password: (await keytar.getPassword("paperlib", "webdav")) as string,
       }
     );
 
     try {
-      const content = await this.webdavClient.getDirectoryContents('/');
-      this.sharedState.set('viewState.syncFileStorageAvaliable', true);
+      const content = await this.webdavClient.getDirectoryContents("/");
+      this.sharedState.set("viewState.syncFileStorageAvaliable", true);
       return true;
     } catch (error) {
       console.log(error);
       this.sharedState.set(
-        'viewState.alertInformation',
-        'Could not connect to webdav, check your username, password and url.'
+        "viewState.alertInformation",
+        "Could not connect to webdav, check your username, password and url."
       );
       return false;
     }
@@ -67,8 +67,8 @@ export class WebDavFileRepository extends FileRepository {
     url,
     joined = false,
     withProtocol = true,
-    root = '',
-    protocol = 'file://',
+    root = "",
+    protocol = "file://",
     download = true,
   }: {
     url: string;
@@ -81,8 +81,8 @@ export class WebDavFileRepository extends FileRepository {
     await this.check();
     const basename = path.basename(url);
     const localURL = path.join(
-      this.sharedState.dbState.defaultPath.value as string,
-      'file_cache',
+      this.sharedState.dbState.defaultPath.get() as string,
+      "file_cache",
       basename
     );
     // Check if file exists on local temp disk.
@@ -92,19 +92,19 @@ export class WebDavFileRepository extends FileRepository {
       if (download) {
         try {
           await this._server2localMove(
-            constructFileURL(basename, false, true, '', 'webdav://'),
+            constructFileURL(basename, false, true, "", "webdav://"),
             localURL
           );
         } catch (error) {
           console.log(error);
           this.sharedState.set(
-            'viewState.alertInformation',
+            "viewState.alertInformation",
             `Could not download file from webdav: ${error as string}`
           );
-          return '';
+          return "";
         }
       } else {
-        return '';
+        return "";
       }
     }
 
@@ -117,8 +117,8 @@ export class WebDavFileRepository extends FileRepository {
     sourceURL: string,
     targetURL: string
   ): Promise<boolean> {
-    const _sourceURL = sourceURL.replace('webdav://', '/paperlib/');
-    const _targetURL = targetURL.replace('webdav://', '/paperlib/');
+    const _sourceURL = sourceURL.replace("webdav://", "/paperlib/");
+    const _targetURL = targetURL.replace("webdav://", "/paperlib/");
     await this.webdavClient?.moveFile(_sourceURL, _targetURL);
     return true;
   }
@@ -127,8 +127,8 @@ export class WebDavFileRepository extends FileRepository {
     sourceURL: string,
     targetURL: string
   ): Promise<boolean> {
-    const _sourceURL = sourceURL.replace('file://', '');
-    const _targetURL = targetURL.replace('webdav://', '/paperlib/');
+    const _sourceURL = sourceURL.replace("file://", "");
+    const _targetURL = targetURL.replace("webdav://", "/paperlib/");
 
     const buffer = readFileSync(_sourceURL);
     await this.webdavClient?.putFileContents(_targetURL, buffer, {
@@ -142,8 +142,8 @@ export class WebDavFileRepository extends FileRepository {
     sourceURL: string,
     targetURL: string
   ): Promise<boolean> {
-    const _sourceURL = sourceURL.replace('webdav://', '/paperlib/');
-    const _targetURL = targetURL.replace('file://', '/');
+    const _sourceURL = sourceURL.replace("webdav://", "/paperlib/");
+    const _targetURL = targetURL.replace("file://", "/");
 
     const buffer: Buffer = (await this.webdavClient?.getFileContents(
       _sourceURL
@@ -157,25 +157,25 @@ export class WebDavFileRepository extends FileRepository {
   async _move(sourceURL: string, targetURL: string): Promise<boolean> {
     try {
       let success;
-      if (sourceURL.startsWith('file://')) {
+      if (sourceURL.startsWith("file://")) {
         success = await this._local2serverMove(sourceURL, targetURL);
-        if (this.preference.get('deleteSourceFile') as boolean) {
+        if (this.preference.get("deleteSourceFile") as boolean) {
           await fsPromise.unlink(sourceURL);
         }
-      } else if (sourceURL.startsWith('webdav://')) {
+      } else if (sourceURL.startsWith("webdav://")) {
         success = await this._server2serverMove(sourceURL, targetURL);
-        if (this.preference.get('deleteSourceFile') as boolean) {
+        if (this.preference.get("deleteSourceFile") as boolean) {
           await this.webdavClient?.deleteFile(
-            sourceURL.replace('webdav://', '/paperlib/')
+            sourceURL.replace("webdav://", "/paperlib/")
           );
         }
       } else {
-        throw new Error('Invalid source URL:' + sourceURL);
+        throw new Error("Invalid source URL:" + sourceURL);
       }
       return success;
     } catch (error) {
       this.sharedState.set(
-        'viewState.alertInformation',
+        "viewState.alertInformation",
         `Could not upload to webdav: ${error as string}`
       );
       return false;
@@ -185,29 +185,29 @@ export class WebDavFileRepository extends FileRepository {
   async move(entity: PaperEntityDraft): Promise<PaperEntityDraft | null> {
     await this.check();
     const targetFileName =
-      entity.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s/g, '_') +
-      '_' +
+      entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") +
+      "_" +
       entity._id.toString();
 
     // 1. Move main file.
     let sourceMainURL;
-    if (!entity.mainURL.startsWith('file://')) {
+    if (!entity.mainURL.startsWith("file://")) {
       sourceMainURL = constructFileURL(
         entity.mainURL,
         false,
         true,
-        '',
-        'webdav://'
+        "",
+        "webdav://"
       );
     } else {
       sourceMainURL = entity.mainURL;
     }
     const targetMainURL = constructFileURL(
-      targetFileName + '_main' + path.extname(sourceMainURL),
+      targetFileName + "_main" + path.extname(sourceMainURL),
       false,
       true,
-      '',
-      'webdav://'
+      "",
+      "webdav://"
     );
     const mainSuccess = await this._move(sourceMainURL, targetMainURL);
     if (mainSuccess) {
@@ -219,7 +219,7 @@ export class WebDavFileRepository extends FileRepository {
 
     // 2. Move supplementary files.
     const sourceSupURLs = entity.supURLs.map((url) =>
-      constructFileURL(url, false, true, '', 'webdav://')
+      constructFileURL(url, false, true, "", "webdav://")
     );
 
     const SupMovePromise = async (
@@ -240,8 +240,8 @@ export class WebDavFileRepository extends FileRepository {
         targetFileName + `_sup${i}` + path.extname(sourceSupURL),
         false,
         true,
-        '',
-        'webdav://'
+        "",
+        "webdav://"
       );
       const supMovePromise = SupMovePromise(sourceSupURL, targetSupURL);
       supMovePromiseList.push(supMovePromise);
@@ -259,12 +259,12 @@ export class WebDavFileRepository extends FileRepository {
   async _remove(sourceURL: string) {
     try {
       await this._removeFileCache(sourceURL);
-      const _sourceURL = sourceURL.replace('webdav://', '/paperlib/');
+      const _sourceURL = sourceURL.replace("webdav://", "/paperlib/");
       await this.webdavClient?.deleteFile(_sourceURL);
       return true;
     } catch (error) {
       this.sharedState.set(
-        'viewState.alertInformation',
+        "viewState.alertInformation",
         `Could not remove file on webdav: ${error as string}`
       );
       return false;
@@ -274,8 +274,8 @@ export class WebDavFileRepository extends FileRepository {
   async _removeFileCache(url: string) {
     const basename = path.basename(url);
     const localURL = path.join(
-      this.sharedState.dbState.defaultPath.value as string,
-      'file_cache',
+      this.sharedState.dbState.defaultPath.get() as string,
+      "file_cache",
       basename
     );
     await fsPromise.unlink(localURL);
@@ -285,10 +285,10 @@ export class WebDavFileRepository extends FileRepository {
     await this.check();
     const sourceUrls = [];
     for (const url of entity.supURLs) {
-      sourceUrls.push(constructFileURL(url, false, true, '', 'webdav://'));
+      sourceUrls.push(constructFileURL(url, false, true, "", "webdav://"));
     }
     sourceUrls.push(
-      constructFileURL(entity.mainURL, false, true, '', 'webdav://')
+      constructFileURL(entity.mainURL, false, true, "", "webdav://")
     );
 
     const successes = await Promise.all(
@@ -301,12 +301,12 @@ export class WebDavFileRepository extends FileRepository {
   async removeFile(url: string) {
     await this.check();
     try {
-      const fileURL = constructFileURL(url, false, true, '', 'webdav://');
+      const fileURL = constructFileURL(url, false, true, "", "webdav://");
       return await this._remove(fileURL);
       return true;
     } catch (error) {
       this.sharedState.set(
-        'viewState.alertInformation',
+        "viewState.alertInformation",
         `Could not remove file: ${error as string}`
       );
       return false;

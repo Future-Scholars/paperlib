@@ -16,5 +16,5 @@ export function createModalView(
     onCancel: onCancel,
   });
   dialog.mount(div);
-  window.appInteractor.setState("viewState.isModalShown", "true");
+  window.appInteractor.setState("viewState.isModalShown", true);
 }

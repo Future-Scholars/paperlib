@@ -2,7 +2,7 @@ import path from "path";
 import os from "os";
 import Store from "electron-store";
 
-interface PreferenceStore {
+export interface PreferenceStore {
   appLibFolder: string;
   deleteSourceFile: boolean;
   showSidebarCount: boolean;
@@ -13,6 +13,8 @@ interface PreferenceStore {
   exportReplacement: Array<{ from: string; to: string }>;
 
   useSync: boolean;
+  syncCloudBackend: string;
+  syncAPPID: "";
   syncAPIKey: string;
   syncEmail: string;
 

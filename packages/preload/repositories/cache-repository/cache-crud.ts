@@ -55,7 +55,7 @@ export async function update(this: CacheRepository, entities: PaperEntity[]) {
 
   this.sharedState.set(
     "viewState.processingQueueCount",
-    (this.sharedState.viewState.processingQueueCount.value as number) -
+    (this.sharedState.viewState.processingQueueCount.get() as number) -
       newObjs.length
   );
 }
