@@ -1,12 +1,5 @@
 <script setup lang="ts">
 import {
-  BIconArrowCounterclockwise,
-  BIconTrash,
-  BIconPencilSquare,
-  BIconFlag,
-  BIconListUl,
-  BIconGrid3x2,
-  BIconGear,
   BIconFonts,
   BIconPerson,
   BIconCalendar3,
@@ -19,6 +12,8 @@ import {
 } from "bootstrap-icons-vue";
 
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
+import SearchInput from "./components/search-input.vue";
+import MenuBarBtn from "./components/menu-bar-btn.vue";
 
 const props = defineProps({
   sortBy: {
@@ -29,54 +24,50 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  disableSingleBtn: {
+    type: Boolean,
+    default: true,
+  },
+  disableMultiBtn: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const emit = defineEmits(["click"]);
 </script>
 
 <template>
-  <div class="flex w-full h-12 px-4 justify-between space-x-2 draggable-title">
-    <div class="w-3 h-3 my-auto">
-      <BIconGear class="text-sm text-gray-700" />
-    </div>
-    <div class="flex space-x-1 my-auto">
-      <button
-        class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
+  <div class="flex h-12 w-full justify-between draggable-title">
+    <div class="grow my-auto pl-2 pr-1"><SearchInput /></div>
+
+    <div class="flex flex-none justify-end space-x-1 my-auto w-80 pl-8 pr-4">
+      <MenuBarBtn
+        btnName="Rescrape"
         @click="emit('click', 'rescrape')"
-      >
-        <BIconArrowCounterclockwise class="text-sm m-auto text-neutral-700" />
-      </button>
-      <button
-        class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
+        :disabled="disableMultiBtn"
+      />
+      <MenuBarBtn
+        btnName="Delete"
         @click="emit('click', 'delete')"
-      >
-        <BIconTrash class="text-sm m-auto text-neutral-700" />
-      </button>
-      <button
-        class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
+        :disabled="disableMultiBtn"
+      />
+      <MenuBarBtn
+        btnName="Edit"
         @click="emit('click', 'edit')"
-      >
-        <BIconPencilSquare class="text-sm m-auto text-neutral-700" />
-      </button>
-      <button
-        class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
+        :disabled="disableSingleBtn"
+      />
+      <MenuBarBtn
+        btnName="Flag"
         @click="emit('click', 'flag')"
+        :disabled="disableMultiBtn"
+      />
+      <div
+        class="flex rounded-md hover:bg-neutral-100"
+        style="margin-left: 0.5rem !important; margin-right: 0.5rem !important"
       >
-        <BIconFlag class="text-sm m-auto text-neutral-700" />
-      </button>
-      <div class="flex px-2">
-        <button
-          class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
-          @click="emit('click', 'list-view')"
-        >
-          <BIconListUl class="text-sm m-auto text-neutral-700" />
-        </button>
-        <button
-          class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
-          @click="emit('click', 'table-view')"
-        >
-          <BIconGrid3x2 class="text-sm m-auto text-neutral-700" />
-        </button>
+        <MenuBarBtn btnName="ListView" @click="emit('click', 'list-view')" />
+        <MenuBarBtn btnName="TableView" @click="emit('click', 'table-view')" />
       </div>
 
       <Menu as="div" class="relative inline-block text-left z-50">
@@ -201,12 +192,7 @@ const emit = defineEmits(["click"]);
         </transition>
       </Menu>
 
-      <div
-        class="flex w-7 h-6 rounded-md hover:bg-neutral-200"
-        @click="emit('click', 'preference')"
-      >
-        <BIconGear class="text-xs m-auto text-neutral-700" />
-      </div>
+      <MenuBarBtn btnName="Preference" @click="emit('click', 'preference')" />
     </div>
   </div>
 </template>

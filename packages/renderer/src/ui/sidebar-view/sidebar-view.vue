@@ -22,7 +22,16 @@ const props = defineProps({
   folders: Array as () => Array<PaperFolder>,
 });
 
+const entitiesCount = ref(0);
+const selectedCategorizer = ref("lib-all");
 const isSpinnerShown = ref(false);
+
+const onSelectCategorizer = (categorizer: string) => {
+  window.appInteractor.setState(
+    "selectionState.selectedCategorizer",
+    JSON.stringify(categorizer)
+  );
+};
 
 window.appInteractor.registerState(
   "viewState.processingQueueCount",
@@ -35,6 +44,17 @@ window.appInteractor.registerState(
     }
   }
 );
+
+window.appInteractor.registerState("viewState.entitiesCount", (value) => {
+  entitiesCount.value = JSON.parse(value as string) as number;
+});
+
+window.appInteractor.registerState(
+  "selectionState.selectedCategorizer",
+  (value) => {
+    selectedCategorizer.value = JSON.parse(value as string) as string;
+  }
+);
 </script>
 
 <template>
@@ -45,13 +65,21 @@ window.appInteractor.registerState(
       <SectionTitle class="w-full h-7" title="Library" />
       <SectionItem
         name="All Papers"
-        :count="223"
+        :count="entitiesCount"
         :with-counter="true"
         :with-spinner="isSpinnerShown"
+        :active="selectedCategorizer === 'lib-all'"
+        @click="onSelectCategorizer('lib-all')"
       >
         <BIconCollection class="text-sm my-auto text-blue-500" />
       </SectionItem>
-      <SectionItem name="Flags" :with-counter="false" :with-spinner="false">
+      <SectionItem
+        name="Flags"
+        :with-counter="false"
+        :with-spinner="false"
+        :active="selectedCategorizer === 'lib-flaged'"
+        @click="onSelectCategorizer('lib-flaged')"
+      >
         <BIconFlag class="text-sm my-auto text-blue-500" />
       </SectionItem>
 
@@ -62,6 +90,8 @@ window.appInteractor.registerState(
           :with-counter="true"
           :with-spinner="false"
           v-for="tag in tags"
+          :active="selectedCategorizer === `tag-${tag.name}`"
+          @click="onSelectCategorizer(`tag-${tag.name}`)"
         >
           <BIconTag class="text-sm my-auto text-blue-500" />
         </SectionItem>
@@ -74,6 +104,8 @@ window.appInteractor.registerState(
           :with-counter="true"
           :with-spinner="false"
           v-for="folder in folders"
+          :active="selectedCategorizer === `folder-${folder.name}`"
+          @click="onSelectCategorizer(`folder-${folder.name}`)"
         >
           <BIconFolder class="text-sm my-auto text-blue-500" />
         </SectionItem>

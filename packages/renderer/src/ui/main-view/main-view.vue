@@ -4,7 +4,7 @@ import { ref, Ref } from "vue";
 import { PaperEntity } from "../../../../preload/models/PaperEntity";
 import { PaperEntityDraft } from "../../../../preload/models/PaperEntityDraft";
 
-import WindowMenuBar from "./components/window-menu-bar.vue";
+import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 import DataView from "./data-view/data-view.vue";
 import DetailView from "./detail-view/detail-view.vue";
 
@@ -129,6 +129,9 @@ const onMenuButtonClicked = (command: string) => {
     case "sort-order-desc":
       switchSortOrder(command.replaceAll("sort-order-", ""));
       break;
+    case "preference":
+      window.appInteractor.setState("viewState.isPreferenceViewShown", "true");
+      break;
   }
 };
 
@@ -152,23 +155,28 @@ window.appInteractor.registerState("viewState.sortOrder", (value) => {
   sortOrder.value = JSON.parse(value as string) as string;
   clearSelected();
 });
+
+window.appInteractor.registerState("viewState.searchText", (value) => {
+  clearSelected();
+});
+
+window.appInteractor.registerState(
+  "selectionState.selectedCategorizer",
+  (value) => {
+    clearSelected();
+  }
+);
 </script>
 
 <template>
-  <div class="grow flex flex-col h-screen bg-white">
+  <div class="grow flex flex-col w-full h-screen bg-white">
     <WindowMenuBar
       class="flex-none"
       @click="onMenuButtonClicked"
       :sortBy="sortBy"
       :sortOrder="sortOrder"
+      :disableSingleBtn="selectedEntities.length !== 1"
+      :disableMultiBtn="selectedEntities.length === 0"
     />
-
-    <div class="grow flex divide-x">
-      <DataView :entities="entities" :sortBy="sortBy" :sortOrder="sortOrder" />
-      <DetailView
-        :entity="selectedEntities[0]"
-        v-if="selectedEntities.length === 1"
-      />
-    </div>
   </div>
 </template>

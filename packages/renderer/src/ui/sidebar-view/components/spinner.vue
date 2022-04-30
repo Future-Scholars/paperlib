@@ -3,7 +3,7 @@
 <template>
   <svg
     role="status"
-    class="animate-spin w-4 h-4 text-gray-400 fill-gray-700"
+    class="animate-spin w-3.5 h-3.5 text-neutral-400 fill-neutral-700"
     viewBox="0 0 100 101"
     fill="none"
   >

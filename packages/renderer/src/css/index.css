@@ -21,4 +21,21 @@
     font-size: 0.65rem; /* 12px */
     line-height: 1rem; /* 16px */
   }
+
+  .translate-x-5\.5 {
+    --tw-translate-x: 1.375rem;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+  }
+
+  .tooltip {
+    @apply invisible absolute;
+    font-size: 0.65rem; /* 12px */
+    line-height: 1rem; /* 16px */
+  }
+  
+  .has-tooltip:hover .tooltip {
+    @apply visible z-50;
+    transition-delay: 1.5s;
+  }
+
 }

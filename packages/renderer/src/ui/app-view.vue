@@ -7,6 +7,7 @@ import { PaperEntity } from "../../../preload/models/PaperEntity";
 import SidebarView from "./sidebar-view/sidebar-view.vue";
 import MainView from "./main-view/main-view.vue";
 import EditView from "./edit-view/edit-view.vue";
+import PreferenceView from "./preference-view/preference-view.vue";
 
 const sortBy = ref("addTime");
 const sortOrder = ref("desc");
@@ -30,7 +31,6 @@ const reloadEntities = async () => {
   } else if (selectedCategorizer.value === "lib-flaged") {
     flaged = true;
   }
-
   const results = await window.entityInteractor.loadEntities(
     searchText.value,
     flaged,
@@ -76,6 +76,19 @@ window.appInteractor.registerState("viewState.sortOrder", (value) => {
   void reloadEntities();
 });
 
+window.appInteractor.registerState("viewState.searchText", (value) => {
+  searchText.value = JSON.parse(value as string) as string;
+  void reloadEntities();
+});
+
+window.appInteractor.registerState(
+  "selectionState.selectedCategorizer",
+  (value) => {
+    selectedCategorizer.value = JSON.parse(value as string) as string;
+    void reloadEntities();
+  }
+);
+
 // =======================================
 onMounted(async () => {
   await reloadTags();
@@ -90,4 +103,5 @@ onMounted(async () => {
     <MainView :entities="entities" />
   </div>
   <EditView class="text-neutral-700" :tags="tags" :folders="folders" />
+  <PreferenceView />
 </template>
