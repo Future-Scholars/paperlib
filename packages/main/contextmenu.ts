@@ -81,4 +81,19 @@ ipcMain.on("show-sidebar-context-menu", (event, args) => {
   menu.popup(BrowserWindow.fromWebContents(event.sender));
 });
 
+ipcMain.on("show-sup-context-menu", (event, args) => {
+  const template = [
+    {
+      label: "Delete",
+      click: () => {
+        event.sender.send("sup-context-menu-delete", args);
+      },
+    },
+  ];
+  // @ts-ignore
+  const menu = Menu.buildFromTemplate(template);
+  // @ts-ignore
+  menu.popup(BrowserWindow.fromWebContents(event.sender));
+});
+
 export default {};

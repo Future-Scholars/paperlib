@@ -8,12 +8,16 @@ const getExtension = (sup: string) => {
     return "HTTP";
   } else {
     const ext = sup.split(".").pop();
-    return ext?.toUpperCase ?? "SUP";
+    return ext?.toUpperCase() ?? "SUP";
   }
 };
 
 const onClick = (url: string) => {
   window.appInteractor.open(url);
+};
+
+const onRightClicked = (event: MouseEvent, url: string) => {
+  window.appInteractor.showContextMenu("show-sup-context-menu", url);
 };
 </script>
 
@@ -23,6 +27,7 @@ const onClick = (url: string) => {
       class="flex space-x-1 bg-neutral-200 rounded-md p-1 hover:bg-neutral-300 hover:shadow-sm select-none cursor-pointer"
       v-for="sup in sups"
       @click="onClick(sup)"
+      @contextmenu="(e: MouseEvent) => onRightClicked(e, sup)"
     >
       <div class="text-xxs my-auto">
         {{ getExtension(sup) }}

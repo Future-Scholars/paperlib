@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// @ts-ignore
+import dragDrop from "drag-drop";
+
 import { PaperEntity } from "../../../../../preload/models/PaperEntity";
 import { PaperEntityDraft } from "../../../../../preload/models/PaperEntityDraft";
 
@@ -8,6 +11,7 @@ import Code from "./components/code.vue";
 import Authors from "./components/authors.vue";
 import Thumbnail from "./components/thumbnail.vue";
 import Supplementary from "./components/supplementary.vue";
+import { onMounted } from "vue";
 
 const props = defineProps({
   entity: {
@@ -22,10 +26,49 @@ const onRatingChanged = (value: number) => {
   entityDraft.rating = value;
   void window.entityInteractor.update(JSON.stringify([entityDraft]));
 };
+
+const addSups = (urls: string[]) => {
+  const entityDraft = new PaperEntityDraft();
+  entityDraft.initialize(props.entity);
+  entityDraft.supURLs = [...entityDraft.supURLs, ...urls];
+  void window.entityInteractor.update(JSON.stringify([entityDraft]));
+};
+
+const onDeleteSup = (url: string) => {
+  const entityDraft = new PaperEntityDraft();
+  entityDraft.initialize(props.entity);
+  window.entityInteractor.deleteSup(JSON.stringify(entityDraft), url);
+};
+
+window.appInteractor.registerMainSignal("sup-context-menu-delete", (args) => {
+  onDeleteSup(args);
+});
+
+const registerDropHandler = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  dragDrop("#detail-view", {
+    // @ts-ignore
+    onDrop: (files, pos, fileList, directories) => {
+      const filePaths: string[] = [];
+      // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      files.forEach((file) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        filePaths.push(file.path);
+      });
+      addSups(filePaths);
+    },
+  });
+};
+
+onMounted(() => {
+  registerDropHandler();
+});
 </script>
 
 <template>
   <div
+    id="detail-view"
     class="flex-none flex flex-col w-80 max-h-[calc(100vh-3rem)] px-4 pb-4 overflow-auto"
   >
     <div class="text-md font-bold">

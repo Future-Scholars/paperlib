@@ -1,4 +1,5 @@
 import { clipboard } from "electron";
+import path from "path";
 
 import { SharedState } from "../utils/appstate";
 import { Preference } from "../utils/preference";
@@ -71,6 +72,60 @@ export class EntityInteractor {
   }
 
   // ============================================================
+  // Create
+  async add(urlList: string[]) {
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.value as number) +
+        urlList.length
+    );
+
+    try {
+      // 1. Metadata scraping.
+      const scrapingPromise = async (url: string) => {
+        let entityDraft = new PaperEntityDraft(true);
+        entityDraft.setValue("mainURL", url);
+        entityDraft = await this.scraperRepository.scrape(entityDraft);
+        return entityDraft;
+      };
+
+      let entityDrafts = await Promise.all(
+        urlList.map((url) => scrapingPromise(url))
+      );
+
+      // 2. File moving.
+      entityDrafts = (await Promise.all(
+        entityDrafts.map((entityDraft) => this.fileRepository.move(entityDraft))
+      )) as PaperEntityDraft[];
+      entityDrafts = entityDrafts.filter((entityDraft) => entityDraft !== null);
+
+      // 3. DB insertion.
+      const dbSuccesses = await this.dbRepository.update(entityDrafts);
+      // - find unsuccessful entities.
+      const unsuccessfulEntityDrafts = entityDrafts.filter(
+        (_entityDraft, index) => !dbSuccesses[index]
+      );
+      // - remove files of unsuccessful entities.
+      await Promise.all(
+        unsuccessfulEntityDrafts.map((entityDraft) =>
+          this.fileRepository.remove(entityDraft)
+        )
+      );
+    } catch (error) {
+      this.sharedState.set(
+        "viewState.alertInformation",
+        `Add failed: ${error as string}`
+      );
+    }
+
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.value as number) -
+        urlList.length
+    );
+  }
+
+  // ============================================================
   // Delete
   async delete(ids: string[]) {
     try {
@@ -89,6 +144,23 @@ export class EntityInteractor {
 
   deleteCategorizer(categorizerName: string, categorizerType: Categorizers) {
     void this.dbRepository.deleteCategorizers(categorizerName, categorizerType);
+  }
+
+  deleteSup(entityStr: string, url: string) {
+    const entity = JSON.parse(entityStr) as PaperEntityDraft;
+
+    try {
+      void this.fileRepository.removeFile(url);
+      entity.supURLs = entity.supURLs.filter(
+        (supUrl) => supUrl !== path.basename(url)
+      );
+      void this.dbRepository.update([entity]);
+    } catch (error) {
+      this.sharedState.set(
+        "viewState.alertInformation",
+        `Delete failed: ${error as string}`
+      );
+    }
   }
 
   // ============================================================

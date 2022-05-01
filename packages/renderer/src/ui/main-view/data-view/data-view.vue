@@ -1,6 +1,8 @@
 <script setup lang="ts">
+// @ts-ignore
+import dragDrop from "drag-drop";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
-import { ref, Ref } from "vue";
+import { onMounted, ref, Ref } from "vue";
 
 import { PaperEntity } from "../../../../../preload/models/PaperEntity";
 import ListItem from "./components/list-item.vue";
@@ -67,6 +69,23 @@ const onItemDoubleClicked = (event: MouseEvent, index: number, url: string) => {
   window.appInteractor.open(url);
 };
 
+const registerDropHandler = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  dragDrop("#data-view", {
+    // @ts-ignore
+    onDrop: async (files, pos, fileList, directories) => {
+      const filePaths: string[] = [];
+      // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      files.forEach((file) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        filePaths.push(`file://${file.path as string}`);
+      });
+      await window.entityInteractor.add(filePaths);
+    },
+  });
+};
+
 window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
   const newSelectedIndex = JSON.parse(value as string) as number[];
   if (newSelectedIndex.length === 0) {
@@ -77,10 +96,14 @@ window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
 window.appInteractor.registerState("viewState.viewType", (value) => {
   viewType.value = value as string;
 });
+
+onMounted(() => {
+  registerDropHandler();
+});
 </script>
 
 <template>
-  <div class="grow pl-2">
+  <div id="data-view" class="grow pl-2">
     <TableTitle
       :sortBy="sortBy"
       :sortOrder="sortOrder"
