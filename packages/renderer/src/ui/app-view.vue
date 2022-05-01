@@ -9,6 +9,7 @@ import MainView from "./main-view/main-view.vue";
 import EditView from "./edit-view/edit-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import { PreferenceStore } from "../../../preload/utils/preference";
+import { createModalView } from "./components/modal-view";
 
 const sortBy = ref("addTime");
 const sortOrder = ref("desc");
@@ -68,6 +69,20 @@ const reloadPreference = () => {
 
 // =======================================
 // State Update
+
+window.appInteractor.registerState("viewState.alertInformation", (value) => {
+  createModalView(
+    "Warning",
+    value as string,
+    () => {
+      window.appInteractor.setState("viewState.isModalShown", false);
+    },
+    () => {
+      window.appInteractor.setState("viewState.isModalShown", false);
+    }
+  );
+});
+
 window.appInteractor.registerState("dbState.entitiesUpdated", (value) => {
   reloadEntities();
 });

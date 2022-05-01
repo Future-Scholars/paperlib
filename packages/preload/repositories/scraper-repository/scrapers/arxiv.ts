@@ -1,10 +1,10 @@
-import { XMLParser } from 'fast-xml-parser';
-import { Response } from 'got';
+import { XMLParser } from "fast-xml-parser";
+import { Response } from "got";
 
-import { Scraper, ScraperRequestType } from './scraper';
-import { formatString } from '../../../utils/string';
-import { Preference } from '../../../utils/preference';
-import { PaperEntityDraft } from '../../../models/PaperEntityDraft';
+import { Scraper, ScraperRequestType } from "./scraper";
+import { formatString } from "../../../utils/string";
+import { Preference } from "../../../utils/preference";
+import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class ArXivScraper extends Scraper {
   xmlParser: XMLParser;
@@ -16,17 +16,17 @@ export class ArXivScraper extends Scraper {
 
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
     const enable =
-      entityDraft.arxiv !== '' &&
-      (this.preference.get('arXivScraper') as boolean);
+      entityDraft.arxiv !== "" &&
+      (this.preference.get("arXivScraper") as boolean);
 
     const arxivID = formatString({
       str: entityDraft.arxiv,
-      removeStr: 'arXiv:',
+      removeStr: "arXiv:",
     });
     const scrapeURL = `https://export.arxiv.org/api/query?id_list=${arxivID}`;
 
     const headers = {
-      'accept-encoding': 'UTF-32BE',
+      "accept-encoding": "UTF-32BE",
     };
 
     return { scrapeURL, headers, enable };
@@ -52,14 +52,14 @@ export class ArXivScraper extends Scraper {
       .map((author) => {
         return author.name.trim();
       })
-      .join(', ');
+      .join(", ");
 
     const pubTime = arxivResponse.published.substring(0, 4);
-    entityDraft.setValue('title', title);
-    entityDraft.setValue('authors', authors);
-    entityDraft.setValue('pubTime', pubTime);
-    entityDraft.setValue('pubType', 0);
-    entityDraft.setValue('publication', 'arXiv');
+    entityDraft.setValue("title", title);
+    entityDraft.setValue("authors", authors);
+    entityDraft.setValue("pubTime", pubTime);
+    entityDraft.setValue("pubType", 0);
+    entityDraft.setValue("publication", "arXiv");
 
     return entityDraft;
   }

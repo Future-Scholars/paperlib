@@ -22,38 +22,38 @@ export class ScraperRepository {
   sharedState: SharedState;
   preference: Preference;
 
-  scraperList: ScraperType[];
+  scraperList: Record<string, ScraperType>;
 
   constructor(sharedState: SharedState, preference: Preference) {
     this.sharedState = sharedState;
     this.preference = preference;
 
-    this.scraperList = [
-      new PDFScraper(this.preference),
-      new ArXivScraper(this.preference),
-      new DOIScraper(this.preference),
-      new DBLPScraper(this.preference),
-      new DBLPbyTimeScraper(this.preference, 0),
-      new DBLPbyTimeScraper(this.preference, 1),
-      new DBLPVenueScraper(this.preference),
-      new OpenreviewScraper(this.preference),
-      new DBLPVenueScraper(this.preference),
-      new CVFScraper(this.preference),
-      new IEEEScraper(this.preference),
-      new PwCScraper(this.preference),
-    ];
+    this.scraperList = {
+      PDFScraper: new PDFScraper(this.preference),
+      ArXivScraper: new ArXivScraper(this.preference),
+      DOIScraper: new DOIScraper(this.preference),
+      DBLPScraper: new DBLPScraper(this.preference),
+      DBLPbyTimeScraper0: new DBLPbyTimeScraper(this.preference, 0),
+      DBLPbyTimeScraper1: new DBLPbyTimeScraper(this.preference, 1),
+      DBLPVenueScraper: new DBLPVenueScraper(this.preference),
+      OpenreviewScraper: new OpenreviewScraper(this.preference),
+      OpenreviewVenueScraper: new DBLPVenueScraper(this.preference),
+      CVFScraper: new CVFScraper(this.preference),
+      IEEEScraper: new IEEEScraper(this.preference),
+      PwCScraper: new PwCScraper(this.preference),
+    };
 
     void got("https://paperlib.app/api/version");
   }
 
   async scrape(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft> {
-    for (const scraper of this.scraperList) {
+    for (const [name, scraper] of Object.entries(this.scraperList)) {
       try {
         entityDraft = await scraper.scrape(entityDraft);
       } catch (error) {
         this.sharedState.set(
           "viewState.alertInformation",
-          `Scraper ${scraper.constructor.name} error: ${error as string}`
+          `${name} error: ${error as string}`
         );
       }
     }

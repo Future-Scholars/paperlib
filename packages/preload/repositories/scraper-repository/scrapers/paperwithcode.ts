@@ -1,9 +1,9 @@
-import { Response } from 'got';
+import { Response } from "got";
 
-import { Scraper, ScraperRequestType } from './scraper';
-import { formatString } from '../../../utils/string';
-import { Preference } from '../../../utils/preference';
-import { PaperEntityDraft } from '../../../models/PaperEntityDraft';
+import { Scraper, ScraperRequestType } from "./scraper";
+import { formatString } from "../../../utils/string";
+import { Preference } from "../../../utils/preference";
+import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class PwCScraper extends Scraper {
   constructor(preference: Preference) {
@@ -12,21 +12,21 @@ export class PwCScraper extends Scraper {
 
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
     const enable =
-      entityDraft.title !== '' &&
-      (this.preference.get('pwcScraper') as boolean);
+      entityDraft.title !== "" &&
+      (this.preference.get("pwcScraper") as boolean);
 
     const connectedTitle = formatString({
       str: entityDraft.title,
-      removeStr: '&amp',
+      removeStr: "&amp",
       lowercased: true,
       trimWhite: true,
     })
-      .replace(/ /g, '-')
-      .replace(/\./g, '');
+      .replace(/ /g, "-")
+      .replace(/\./g, "");
     const scrapeURL = `https://paperswithcode.com/api/v1/search/?q=${connectedTitle}`;
 
     const headers = {
-      Accept: 'application/json',
+      Accept: "application/json",
     };
     return { scrapeURL, headers, enable };
   }
@@ -49,7 +49,7 @@ export class PwCScraper extends Scraper {
     };
     const targetTitle = formatString({
       str: entityDraft.title,
-      removeStr: '&amp',
+      removeStr: "&amp",
       removeSymbol: true,
       lowercased: true,
     });
@@ -59,7 +59,7 @@ export class PwCScraper extends Scraper {
       for (const result of response.results) {
         const hitTitle = formatString({
           str: result.paper.title,
-          removeStr: '&amp',
+          removeStr: "&amp",
           removeSymbol: true,
           lowercased: true,
         });
@@ -73,7 +73,7 @@ export class PwCScraper extends Scraper {
           );
         }
       }
-      entityDraft.setValue('codes', codeList);
+      entityDraft.setValue("codes", codeList);
     }
     return entityDraft;
   }
