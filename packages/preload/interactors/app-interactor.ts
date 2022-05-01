@@ -92,6 +92,11 @@ export class AppInteractor {
     });
   }
 
+  async preview(url: string) {
+    const fileURL = await this.access(url, true);
+    ipcRenderer.send("preview", fileURL);
+  }
+
   async showFolderPicker() {
     return await ipcRenderer.invoke("show-folder-picker");
   }
@@ -110,11 +115,8 @@ export class AppInteractor {
     ipcRenderer.send(key, JSON.parse(args));
   }
 
-  onContextMenuClicked(key: string, command: string, callback: () => void) {
-    ipcRenderer.on(key, (_, args) => {
-      if (args === command) {
-        callback();
-      }
-    });
+  // ============================================================
+  registerMainSignal(signal: string, callback: (args: any) => void) {
+    ipcRenderer.on(signal, (_, args) => callback(args));
   }
 }

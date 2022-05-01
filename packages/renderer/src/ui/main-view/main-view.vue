@@ -25,6 +25,10 @@ const openSelectedEntities = () => {
   });
 };
 
+const previewSelectedEntities = () => {
+  window.appInteractor.preview(selectedEntities.value[0].mainURL);
+};
+
 const reloadSelectedEntities = () => {
   selectedEntities.value = [];
   selectedIndex.value.forEach((index) => {
@@ -141,45 +145,71 @@ const onMenuButtonClicked = (command: string) => {
 // ========================================================
 // Register Context Menu
 
-window.appInteractor.onContextMenuClicked(
-  "data-context-menu-command",
-  "edit",
-  () => {
-    editSelectedEntities();
-  }
-);
+window.appInteractor.registerMainSignal("data-context-menu-edit", () => {
+  editSelectedEntities();
+});
 
-window.appInteractor.onContextMenuClicked(
-  "data-context-menu-command",
-  "flag",
-  () => {
-    flagSelectedEntities();
-  }
-);
+window.appInteractor.registerMainSignal("data-context-menu-flag", () => {
+  flagSelectedEntities();
+});
 
-window.appInteractor.onContextMenuClicked(
-  "data-context-menu-command",
-  "delete",
-  () => {
-    deleteSelectedEntities();
-  }
-);
+window.appInteractor.registerMainSignal("data-context-menu-delete", () => {
+  deleteSelectedEntities();
+});
 
-window.appInteractor.onContextMenuClicked(
-  "data-context-menu-command",
-  "scrape",
-  () => {
-    scrapeSelectedEntities();
-  }
-);
+window.appInteractor.registerMainSignal("data-context-menu-scrape", () => {
+  scrapeSelectedEntities();
+});
 
-window.appInteractor.onContextMenuClicked(
-  "data-context-menu-command",
-  "open",
-  () => {
+window.appInteractor.registerMainSignal("data-context-menu-open", () => {
+  openSelectedEntities();
+});
+
+// ========================================================
+// Register Shortcut
+window.appInteractor.registerMainSignal("shortcut-Enter", () => {
+  if (selectedEntities.value.length >= 1) {
     openSelectedEntities();
   }
-);
+});
+
+window.appInteractor.registerMainSignal("shortcut-Space", () => {
+  if (selectedEntities.value.length >= 1) {
+    previewSelectedEntities();
+  }
+});
+function preventSpaceScrollEvent(event: KeyboardEvent) {
+  if (event.code === "Space") {
+    if (event.target instanceof HTMLInputElement) {
+      return true;
+    }
+    event.preventDefault();
+    if (selectedEntities.value.length >= 1) {
+      previewSelectedEntities();
+    }
+  }
+}
+window.addEventListener("keydown", preventSpaceScrollEvent, true);
+
+window.appInteractor.registerMainSignal("shortcut-cmd-shift-c", () => {});
+
+window.appInteractor.registerMainSignal("shortcut-cmd-e", () => {
+  if (selectedEntities.value.length == 1) {
+    editSelectedEntities();
+  }
+});
+
+window.appInteractor.registerMainSignal("shortcut-cmd-f", () => {
+  if (selectedEntities.value.length >= 1) {
+    flagSelectedEntities();
+  }
+});
+
+window.appInteractor.registerMainSignal("shortcut-cmd-r", () => {
+  if (selectedEntities.value.length >= 1) {
+    scrapeSelectedEntities();
+  }
+});
 
 // =======================================
 // Register state change

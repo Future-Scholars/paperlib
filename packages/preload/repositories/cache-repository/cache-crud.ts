@@ -38,7 +38,7 @@ export async function update(this: CacheRepository, entities: PaperEntity[]) {
   }
 
   // 2. Update the cache
-  const pdfWorker = new Worker("pdf.worker.js");
+  const pdfWorker = new Worker("/src/workers/pdf.worker.min.js");
   pdfjsLib.GlobalWorkerOptions.workerPort = pdfWorker;
 
   for (const obj of newObjs) {

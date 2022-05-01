@@ -2,6 +2,9 @@ import { app, dialog, BrowserWindow, ipcMain, shell } from "electron";
 import { release } from "os";
 import { join } from "path";
 import Store from "electron-store";
+import { setMainMenu } from "./menu";
+import "./contextmenu.ts";
+import "./files.ts";
 
 Store.initRenderer();
 
@@ -58,6 +61,8 @@ async function createWindow() {
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
+
+  setMainMenu(win);
 }
 
 app.whenReady().then(createWindow);
@@ -108,11 +113,3 @@ ipcMain.on("close", () => {
 ipcMain.handle("version", () => {
   return app.getVersion();
 });
-
-ipcMain.handle("show-folder-picker", () => {
-  return dialog.showOpenDialog({
-    properties: ["openDirectory"],
-  });
-});
-
-import "./menu.ts";

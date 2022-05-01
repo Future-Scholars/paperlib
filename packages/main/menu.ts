@@ -1,69 +1,173 @@
-import { ipcMain, Menu, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
+import { autoUpdater } from "electron-updater";
 
-const isMac = process.platform === "darwin";
+export function setMainMenu(mainWindow: BrowserWindow) {
+  const isMac = process.platform === "darwin";
 
-// main
-ipcMain.on("show-data-context-menu", (event, args) => {
   const template = [
+    ...(isMac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: "about" },
+              {
+                label: "Preference",
+                accelerator: "Cmd+,",
+                click: () => {
+                  mainWindow.webContents.send("preferenceshortcut");
+                },
+              },
+              {
+                label: "Check for Updates",
+                click: () => {
+                  autoUpdater
+                    .checkForUpdates()
+                    .then((results) => {
+                      BrowserWindow.getFocusedWindow()?.webContents.send(
+                        "log",
+                        results
+                      );
+                    })
+                    .catch((err) => {
+                      BrowserWindow.getFocusedWindow()?.webContents.send(
+                        "log",
+                        err
+                      );
+                    });
+                },
+              },
+              { type: "separator" },
+              { role: "services" },
+              { type: "separator" },
+              { role: "hide" },
+              { role: "hideOthers" },
+              { role: "unhide" },
+              { type: "separator" },
+              { role: "quit" },
+            ],
+          },
+        ]
+      : []),
+    // { role: 'fileMenu' }
     {
-      label: "Open",
-      accelerator: "Enter",
-      click: () => {
-        event.sender.send("data-context-menu-command", "open");
-      },
-    },
-    {
-      label: "Edit",
-      enabled: args[0],
-      accelerator: isMac ? "cmd+e" : "ctrl+e",
-      click: () => {
-        event.sender.send("data-context-menu-command", "edit");
-      },
-    },
-    {
-      label: "Scrape",
-      accelerator: isMac ? "cmd+r" : "ctrl+r",
-      click: () => {
-        event.sender.send("data-context-menu-command", "scrape");
-      },
-    },
-    {
-      label: "Delete",
-      click: () => {
-        event.sender.send("data-context-menu-command", "delete");
-      },
-    },
-    {
-      label: "Toggle Flag",
-      accelerator: isMac ? "cmd+f" : "ctrl+f",
-      click: () => {
-        event.sender.send("data-context-menu-command", "flag");
-      },
-    },
-    { type: "separator" },
-    {
-      label: "Export",
+      label: "File",
       submenu: [
         {
-          label: "BibTex",
-          accelerator: isMac ? "cmd+shift+c" : "ctrl+shift+f",
+          label: "Open",
+          accelerator: "Enter",
           click: () => {
-            event.sender.send("data-context-menu-command", "export-bibtex");
+            mainWindow.webContents.send("shortcut-Enter");
+          },
+        },
+        { type: "separator" },
+        {
+          label: "Copy Bibtex",
+          accelerator: isMac ? "cmd+shift+c" : "ctrl+shift+c",
+          click: () => {
+            mainWindow.webContents.send("shortcut-cmd-shift-c");
+          },
+        },
+        isMac ? { role: "close" } : { role: "quit" },
+      ],
+    },
+    // { role: 'editMenu' }
+    {
+      label: "Edit",
+      submenu: [
+        {
+          label: "Scrape",
+          accelerator: isMac ? "cmd+r" : "ctrl+r",
+          click: () => {
+            mainWindow.webContents.send("shortcut-cmd-r");
           },
         },
         {
-          label: "Plain Text",
+          label: "Edit Metadata",
+          accelerator: isMac ? "cmd+e" : "ctrl+e",
           click: () => {
-            event.sender.send("data-context-menu-command", "export-plain");
+            mainWindow.webContents.send("shortcut-cmd-e");
+          },
+        },
+        {
+          label: "Flag",
+          accelerator: isMac ? "cmd+f" : "ctrl+f",
+          click: () => {
+            mainWindow.webContents.send("shortcut-cmd-f");
+          },
+        },
+        { type: "separator" },
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+        ...(isMac
+          ? [
+              { role: "pasteAndMatchStyle" },
+              { role: "delete" },
+              { role: "selectAll" },
+              { type: "separator" },
+              {
+                label: "Speech",
+                submenu: [{ role: "startSpeaking" }, { role: "stopSpeaking" }],
+              },
+            ]
+          : [{ role: "delete" }, { type: "separator" }, { role: "selectAll" }]),
+      ],
+    },
+    // { role: 'viewMenu' }
+    {
+      label: "View",
+      submenu: [
+        {
+          label: "Preview",
+          accelerator: "Space",
+          click: () => {
+            mainWindow.webContents.send("shortcut-Space");
+          },
+        },
+        { type: "separator" },
+        { role: "resetZoom" },
+        { role: "zoomIn" },
+        { role: "zoomOut" },
+        { type: "separator" },
+        { role: "togglefullscreen" },
+        { role: "toggleDevTools" },
+      ],
+    },
+    // { role: 'windowMenu' }
+    {
+      label: "Window",
+      submenu: [
+        { role: "minimize" },
+        { role: "zoom" },
+        ...(isMac
+          ? [
+              { type: "separator" },
+              { role: "front" },
+              { type: "separator" },
+              { role: "window" },
+            ]
+          : [{ role: "close" }]),
+      ],
+    },
+    {
+      role: "help",
+      submenu: [
+        {
+          label: "Learn More",
+          click: async () => {
+            const { shell } = require("electron");
+            await shell.openExternal("https://paperlib.app/en/blog/intro/");
           },
         },
       ],
     },
   ];
+
   // @ts-ignore
   const menu = Menu.buildFromTemplate(template);
-  // @ts-ignore
-  menu.popup(BrowserWindow.fromWebContents(event.sender));
-});
-
-export default {};
+  Menu.setApplicationMenu(menu);
+}

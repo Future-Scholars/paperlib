@@ -15,9 +15,7 @@ const props = defineProps({
 const isRendering = ref(true);
 
 const setWorker = () => {
-  const worker = new Worker(
-    "/src/ui/main-view/detail-view/components/pdf.worker.min.js"
-  );
+  const worker = new Worker("/src/workers/pdf.worker.min.js");
   GlobalWorkerOptions.workerPort = worker;
 };
 
