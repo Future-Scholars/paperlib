@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, Ref } from "vue";
 
-import { PaperEntity } from "../../../../preload/models/PaperEntity";
+import {
+  PaperEntity,
+  PaperEntityPlaceholder,
+} from "../../../../preload/models/PaperEntity";
 import { PaperEntityDraft } from "../../../../preload/models/PaperEntityDraft";
 
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
@@ -284,8 +287,12 @@ window.appInteractor.registerState(
     <div class="grow flex divide-x">
       <DataView :entities="entities" :sortBy="sortBy" :sortOrder="sortOrder" />
       <DetailView
-        :entity="selectedEntities[0]"
-        v-if="selectedEntities.length === 1"
+        :entity="
+          selectedEntities.length === 1
+            ? selectedEntities[0]
+            : PaperEntityPlaceholder
+        "
+        v-show="selectedEntities.length === 1"
       />
     </div>
   </div>

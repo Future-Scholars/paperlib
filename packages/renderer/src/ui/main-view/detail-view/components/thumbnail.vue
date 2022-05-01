@@ -3,7 +3,7 @@ import { debounce } from "../../../../utils/debounce";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 
 import { RenderParameters } from "pdfjs-dist/types/src/display/api";
-import { onMounted, watch, ref } from "vue";
+import { onMounted, watch, ref, onDeactivated, onBeforeUnmount } from "vue";
 
 const props = defineProps({
   url: {
@@ -14,9 +14,13 @@ const props = defineProps({
 
 const isRendering = ref(true);
 
+let worker: Worker;
 const setWorker = () => {
-  const worker = new Worker("/src/workers/pdf.worker.min.js");
+  worker = new Worker("/src/workers/pdf.worker.min.js");
   GlobalWorkerOptions.workerPort = worker;
+};
+const destroyWorker = () => {
+  worker.terminate();
 };
 
 const render = async () => {
@@ -54,6 +58,10 @@ const onClick = async (e: MouseEvent) => {
 onMounted(() => {
   setWorker();
   render();
+});
+
+onBeforeUnmount(() => {
+  destroyWorker();
 });
 
 watch(props, (props, prevProps) => {

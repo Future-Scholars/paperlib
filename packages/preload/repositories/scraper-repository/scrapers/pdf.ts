@@ -1,46 +1,44 @@
-import fs from 'fs';
-import * as pdfjs from 'pdfjs-dist';
+import fs from "fs";
+import * as pdfjs from "pdfjs-dist";
 
-import { Scraper, ScraperRequestType, ScraperType } from './scraper';
-import { Preference } from '../../../utils/preference';
-import { PaperEntityDraft } from '../../../models/PaperEntityDraft';
-import { constructFileURL } from '../../../utils/path';
-import { formatString } from '../../../utils/string';
+import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { Preference } from "../../../utils/preference";
+import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
+import { constructFileURL } from "../../../utils/path";
+import { formatString } from "../../../utils/string";
 import {
   PDFDocumentProxy,
   PDFPageProxy,
   TextItem,
-} from 'pdfjs-dist/types/src/display/api';
+} from "pdfjs-dist/types/src/display/api";
 
 export class PDFScraper extends Scraper {
   constructor(preference: Preference) {
     super(preference);
 
-    // @ts-ignore
-    const pdfjsWorker = import('pdfjs-dist/build/pdf.worker.entry');
-    // @ts-ignore
-    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+    const worker = new Worker("/src/workers/pdf.worker.min.js");
+    pdfjs.GlobalWorkerOptions.workerPort = worker;
   }
 
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
     const enable =
-      entityDraft.mainURL !== '' &&
+      entityDraft.mainURL !== "" &&
       fs.existsSync(
         constructFileURL(
           entityDraft.mainURL,
           true,
           false,
-          this.preference.get('appLibFolder') as string
+          this.preference.get("appLibFolder") as string
         )
       ) &&
-      entityDraft.mainURL.endsWith('.pdf') &&
-      (this.preference.get('pdfBuiltinScraper') as boolean);
+      entityDraft.mainURL.endsWith(".pdf") &&
+      (this.preference.get("pdfBuiltinScraper") as boolean);
 
     const scrapeURL = constructFileURL(
       entityDraft.mainURL,
       true,
       true,
-      this.preference.get('appLibFolder') as string
+      this.preference.get("appLibFolder") as string
     );
 
     const headers = {};
@@ -61,35 +59,35 @@ export class PDFScraper extends Scraper {
     };
     const firstPageText = rawResponse.firstPageText;
 
-    entityDraft.setValue('title', metaData.info.Title);
-    entityDraft.setValue('authors', metaData.info.Author);
+    entityDraft.setValue("title", metaData.info.Title);
+    entityDraft.setValue("authors", metaData.info.Author);
 
     // Extract arXiv ID
     const arxivIds = firstPageText.match(
       new RegExp(
-        'arXiv:(\\d{4}.\\d{4,5}|[a-z\\-] (\\.[A-Z]{2})?\\/\\d{7})(v\\d )?',
-        'g'
+        "arXiv:(\\d{4}.\\d{4,5}|[a-z\\-] (\\.[A-Z]{2})?\\/\\d{7})(v\\d )?",
+        "g"
       )
     );
     if (arxivIds) {
       const arxivId = formatString({ str: arxivIds[0], removeWhite: true });
-      entityDraft.setValue('arxiv', arxivId);
+      entityDraft.setValue("arxiv", arxivId);
     }
 
     // Extract DOI
     const dois = firstPageText.match(
       new RegExp(
-        '(?:' + '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' + ')',
-        'g'
+        "(?:" + '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' + ")",
+        "g"
       )
     );
     if (dois) {
       const doi = formatString({ str: dois[0], removeWhite: true });
-      entityDraft.setValue('doi', doi);
+      entityDraft.setValue("doi", doi);
     }
 
     if (!arxivIds && !dois) {
-      entityDraft.setValue('title', rawResponse.largestText);
+      entityDraft.setValue("title", rawResponse.largestText);
     }
 
     return entityDraft;
@@ -147,15 +145,15 @@ async function _renderPage(
   const textContent = await pageData.getTextContent(renderOptions);
 
   let lastY;
-  let text = '';
-  let largestText = '';
-  let secondLargestText = '';
+  let text = "";
+  let largestText = "";
+  let secondLargestText = "";
   let largestFontSize = 0;
   let secondLargestFontSize = 0;
   let largestTextList: string[] = [];
   let secondLargestTextList: string[] = [];
 
-  if ((textContent.items[0] as TextItem).str.slice(0, 100).includes('ICLR')) {
+  if ((textContent.items[0] as TextItem).str.slice(0, 100).includes("ICLR")) {
     for (let item of textContent.items.slice(1)) {
       item = item as TextItem;
       if (item.height === 17.2154) {
@@ -187,18 +185,18 @@ async function _renderPage(
       if (lastY === item.transform[5] || !lastY) {
         text += item.str;
       } else {
-        text += '\n' + item.str;
+        text += "\n" + item.str;
       }
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       lastY = item.transform[5];
     }
 
     largestTextList = largestTextList.filter((text) => text.length > 0);
-    largestText = largestTextList.join(' ');
+    largestText = largestTextList.join(" ");
     secondLargestTextList = secondLargestTextList.filter(
       (text) => text.length > 0
     );
-    secondLargestText = secondLargestTextList.join(' ');
+    secondLargestText = secondLargestTextList.join(" ");
 
     if (largestText.length === 1) {
       largestText = secondLargestText;
