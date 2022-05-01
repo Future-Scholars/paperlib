@@ -54,7 +54,7 @@ const onItemRightClicked = (event: MouseEvent, index: number) => {
   }
   window.appInteractor.showContextMenu(
     "show-data-context-menu",
-    JSON.stringify([selectedIndex.value.length === 1])
+    JSON.stringify(selectedIndex.value.length === 1)
   );
 };
 

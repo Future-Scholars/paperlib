@@ -14,7 +14,7 @@ ipcMain.on("show-data-context-menu", (event, args) => {
     },
     {
       label: "Edit",
-      enabled: args[0],
+      enabled: JSON.parse(args),
       accelerator: isMac ? "cmd+e" : "ctrl+e",
       click: () => {
         event.sender.send("data-context-menu-edit");
@@ -58,6 +58,21 @@ ipcMain.on("show-data-context-menu", (event, args) => {
           },
         },
       ],
+    },
+  ];
+  // @ts-ignore
+  const menu = Menu.buildFromTemplate(template);
+  // @ts-ignore
+  menu.popup(BrowserWindow.fromWebContents(event.sender));
+});
+
+ipcMain.on("show-sidebar-context-menu", (event, args) => {
+  const template = [
+    {
+      label: "Delete",
+      click: () => {
+        event.sender.send("sidebar-context-menu-delete", args);
+      },
     },
   ];
   // @ts-ignore

@@ -1,3 +1,5 @@
+import { clipboard } from "electron";
+
 import { SharedState } from "../utils/appstate";
 import { Preference } from "../utils/preference";
 
@@ -5,6 +7,7 @@ import { DBRepository } from "../repositories/db-repository/db-repository";
 import { ScraperRepository } from "../repositories/scraper-repository/scraper-repository";
 import { FileRepository } from "../repositories/file-repository/file-repository";
 import { CacheRepository } from "../repositories/cache-repository/cache-repository";
+import { ExporterRepository } from "../repositories/exporter-repository/exporter-repository";
 
 import { Categorizers } from "../models/PaperCategorizer";
 import { PaperEntityDraft } from "../models/PaperEntityDraft";
@@ -17,6 +20,7 @@ export class EntityInteractor {
   fileRepository: FileRepository;
   scraperRepository: ScraperRepository;
   cacheRepository: CacheRepository;
+  exporterRepository: ExporterRepository;
 
   constructor(
     sharedState: SharedState,
@@ -24,7 +28,8 @@ export class EntityInteractor {
     dbRepository: DBRepository,
     fileRepository: FileRepository,
     scraperRepository: ScraperRepository,
-    cacheRepository: CacheRepository
+    cacheRepository: CacheRepository,
+    exporterRepository: ExporterRepository
   ) {
     this.sharedState = sharedState;
     this.preference = preference;
@@ -33,6 +38,7 @@ export class EntityInteractor {
     this.fileRepository = fileRepository;
     this.scraperRepository = scraperRepository;
     this.cacheRepository = cacheRepository;
+    this.exporterRepository = exporterRepository;
   }
 
   // ============================================================
@@ -79,6 +85,10 @@ export class EntityInteractor {
         `Delete failed: ${error as string}`
       );
     }
+  }
+
+  deleteCategorizer(categorizerName: string, categorizerType: Categorizers) {
+    void this.dbRepository.deleteCategorizers(categorizerName, categorizerType);
   }
 
   // ============================================================
@@ -150,6 +160,20 @@ export class EntityInteractor {
       (this.sharedState.viewState.processingQueueCount.get() as number) -
         entityDrafts.length
     );
+  }
+
+  // ============================================================
+
+  export(entitiesStr: string, format: string) {
+    let entityDrafts = JSON.parse(entitiesStr) as PaperEntityDraft[];
+    entityDrafts = entityDrafts.map((entityDraft) => {
+      const draft = new PaperEntityDraft();
+      draft.initialize(entityDraft);
+      return draft;
+    });
+
+    const text = this.exporterRepository.export(entityDrafts, format);
+    clipboard.writeText(text);
   }
 
   // ============================================================

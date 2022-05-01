@@ -10,6 +10,7 @@ import { CacheRepository } from "./repositories/cache-repository/cache-repositor
 import { createInteractorProxy } from "./utils/misc";
 import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
+import { ExporterRepository } from "./repositories/exporter-repository/exporter-repository";
 
 // ============================================================
 // State and Preference
@@ -22,6 +23,7 @@ const dbRepository = new DBRepository(sharedState, preference);
 const fileRepository = new FileRepository(sharedState, preference);
 const scraperRepository = new ScraperRepository(sharedState, preference);
 const cacheRepository = new CacheRepository(sharedState, preference);
+const exporterRepository = new ExporterRepository(sharedState, preference);
 
 const appInteractor = new AppInteractor(
   sharedState,
@@ -34,7 +36,8 @@ const entityInteractor = new EntityInteractor(
   dbRepository,
   fileRepository,
   scraperRepository,
-  cacheRepository
+  cacheRepository,
+  exporterRepository
 );
 
 const appInteractorProxy = createInteractorProxy(appInteractor);

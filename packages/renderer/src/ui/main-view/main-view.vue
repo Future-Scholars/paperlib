@@ -93,6 +93,13 @@ const flagSelectedEntities = () => {
   void window.entityInteractor.update(JSON.stringify(entityDrafts));
 };
 
+const exportSelectedEntities = (format: string) => {
+  window.entityInteractor.export(
+    JSON.stringify(selectedEntities.value),
+    format
+  );
+};
+
 const switchViewType = (viewType: string) => {
   window.appInteractor.setState("viewState.viewType", viewType);
 };
@@ -165,6 +172,20 @@ window.appInteractor.registerMainSignal("data-context-menu-open", () => {
   openSelectedEntities();
 });
 
+window.appInteractor.registerMainSignal(
+  "data-context-menu-export-bibtex",
+  () => {
+    exportSelectedEntities("bibtex");
+  }
+);
+
+window.appInteractor.registerMainSignal(
+  "data-context-menu-export-plain",
+  () => {
+    exportSelectedEntities("plain");
+  }
+);
+
 // ========================================================
 // Register Shortcut
 window.appInteractor.registerMainSignal("shortcut-Enter", () => {
@@ -191,7 +212,11 @@ function preventSpaceScrollEvent(event: KeyboardEvent) {
 }
 window.addEventListener("keydown", preventSpaceScrollEvent, true);
 
-window.appInteractor.registerMainSignal("shortcut-cmd-shift-c", () => {});
+window.appInteractor.registerMainSignal("shortcut-cmd-shift-c", () => {
+  if (selectedEntities.value.length >= 1) {
+    exportSelectedEntities("bibtex");
+  }
+});
 
 window.appInteractor.registerMainSignal("shortcut-cmd-e", () => {
   if (selectedEntities.value.length == 1) {

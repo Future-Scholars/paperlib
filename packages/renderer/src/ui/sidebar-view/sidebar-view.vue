@@ -34,6 +34,35 @@ const onSelectCategorizer = (categorizer: string) => {
   );
 };
 
+const deleteCategorizer = (categorizer: string) => {
+  if (categorizer.startsWith("tag-")) {
+    window.entityInteractor.deleteCategorizer(
+      categorizer.replaceAll("tag-", ""),
+      "PaperTag"
+    );
+  } else {
+    window.entityInteractor.deleteCategorizer(
+      categorizer.replaceAll("folder-", ""),
+      "PaperFolder"
+    );
+  }
+};
+
+const onItemRightClicked = (event: MouseEvent, categorizer: string) => {
+  console.log(categorizer);
+  window.appInteractor.showContextMenu(
+    "show-sidebar-context-menu",
+    categorizer
+  );
+};
+
+window.appInteractor.registerMainSignal(
+  "sidebar-context-menu-delete",
+  (args) => {
+    deleteCategorizer(args);
+  }
+);
+
 window.appInteractor.registerState(
   "viewState.processingQueueCount",
   (value) => {
@@ -93,6 +122,7 @@ window.appInteractor.registerState(
           v-for="tag in tags"
           :active="selectedCategorizer === `tag-${tag.name}`"
           @click="onSelectCategorizer(`tag-${tag.name}`)"
+          @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `tag-${tag.name}`)}"
         >
           <BIconTag class="text-sm my-auto text-blue-500" />
         </SectionItem>
@@ -107,6 +137,7 @@ window.appInteractor.registerState(
           v-for="folder in folders"
           :active="selectedCategorizer === `folder-${folder.name}`"
           @click="onSelectCategorizer(`folder-${folder.name}`)"
+          @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `folder-${folder.name}`)}"
         >
           <BIconFolder class="text-sm my-auto text-blue-500" />
         </SectionItem>

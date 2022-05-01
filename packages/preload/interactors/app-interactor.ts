@@ -112,7 +112,7 @@ export class AppInteractor {
 
   // ============================================================
   showContextMenu(key: string, args: string) {
-    ipcRenderer.send(key, JSON.parse(args));
+    ipcRenderer.send(key, args);
   }
 
   // ============================================================
