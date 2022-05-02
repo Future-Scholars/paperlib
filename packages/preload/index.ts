@@ -12,6 +12,11 @@ import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
 import { ExporterRepository } from "./repositories/exporter-repository/exporter-repository";
 
+import { appendLoading } from "./loading";
+import { domReady } from "./utils";
+
+domReady().then(appendLoading);
+
 // ============================================================
 // State and Preference
 const sharedState = new SharedState();

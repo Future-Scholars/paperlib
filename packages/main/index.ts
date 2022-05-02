@@ -111,7 +111,7 @@ ipcMain.on("maximize", () => {
 
 ipcMain.on("close", () => {
   win?.close();
-  app.quit();
+  // app.quit();
 });
 
 ipcMain.handle("version", () => {
