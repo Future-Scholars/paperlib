@@ -106,7 +106,7 @@ window.appInteractor.registerState("viewState.sortOrder", (value) => {
 });
 
 window.appInteractor.registerState("viewState.searchText", (value) => {
-  searchText.value = JSON.parse(value as string) as string;
+  searchText.value = value as string;
   reloadEntities();
 });
 
@@ -129,6 +129,14 @@ window.appInteractor.registerState("viewState.realmReinited", (value) => {
     await reloadFolders();
     reloadPreference();
   })();
+});
+
+window.appInteractor.registerMainSignal("window-lost-focus", (_: any) => {
+  void window.appInteractor.pauseSync();
+});
+
+window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
+  void window.appInteractor.resumeSync();
 });
 
 // =======================================

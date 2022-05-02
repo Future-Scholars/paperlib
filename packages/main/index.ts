@@ -63,6 +63,14 @@ async function createWindow() {
   });
 
   setMainMenu(win);
+
+  win.on("blur", () => {
+    win?.webContents.send("window-lost-focus");
+  });
+
+  win.on("focus", () => {
+    win?.webContents.send("window-gained-focus");
+  });
 }
 
 app.whenReady().then(createWindow);

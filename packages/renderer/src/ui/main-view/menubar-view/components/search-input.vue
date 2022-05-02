@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { BIconSearch } from "bootstrap-icons-vue";
+import { BIconSearch, BIconQuestionCircle } from "bootstrap-icons-vue";
 import { debounce } from "../../../../utils/debounce";
 
 const searchText = ref("");
@@ -14,13 +14,20 @@ const searchModeLabel = {
 const searchDebounce = ref(300);
 
 const onSearchTextChanged = debounce(() => {
-  window.appInteractor.setState(
-    "viewState.searchText",
-    JSON.stringify(searchText.value)
-  );
+  window.appInteractor.setState("viewState.searchText", `${searchText.value}`);
 }, searchDebounce.value);
 
 const onInput = (payload: Event) => {
+  if (searchMode.value === "advanced") {
+    return;
+  }
+  onSearchTextChanged();
+};
+
+const onSubmit = (payload: Event) => {
+  if (searchMode.value !== "advanced") {
+    return;
+  }
   onSearchTextChanged();
 };
 
@@ -40,6 +47,10 @@ const onModeClicked = (payload: Event) => {
 window.appInteractor.registerState("viewState.searchMode", (value) => {
   searchMode.value = value as string;
 });
+
+window.appInteractor.registerState("viewState.searchText", (value) => {
+  searchText.value = value as string;
+});
 </script>
 
 <template>
@@ -53,7 +64,37 @@ window.appInteractor.registerState("viewState.searchMode", (value) => {
       placeholder="Search..."
       v-model="searchText"
       @input="onInput"
+      @change="onSubmit"
     />
+    <div class="my-auto invisible peer-focus:visible">
+      <BIconQuestionCircle
+        class="text-neutral-400 hover:text-neutral-800 cursor-pointer peer"
+        v-if="searchMode === 'advanced'"
+      />
+      <div
+        class="absolute text-xxs p-4 bg-neutral-100 rounded-md shadow-lg z-50 invisible peer-hover:visible"
+      >
+        <p class="font-semibold">Operators:</p>
+        <p class="font-mono mb-2">
+          ==, &lt;, &gt;, &lt;=, &gt;=, !=, in, contains, and, or
+        </p>
+        <p class="font-semibold">Queryable fields:</p>
+        <p class="font-mono mb-2">
+          title, authors, publication, pubTime, rating, note
+        </p>
+        <p class="font-semibold">Examples:</p>
+        <p class="italic">1) Query the paper whos title is 'Test title':</p>
+        <p class="font-mono mb-1">&nbsp; title == 'Test title'</p>
+        <p class="italic">
+          2) Query the paper whos title contains 'Test title':
+        </p>
+        <p class="font-mono mb-1">&nbsp; title contains 'Test title'</p>
+        <p class="italic">3) Query the paper whos publication year are 2008:</p>
+        <p class="font-mono mb-1">&nbsp; pubTime == '2008'</p>
+        <p class="italic">4) Query the paper whos rating are > 3:</p>
+        <p class="font-mono">&nbsp; rating > 3</p>
+      </div>
+    </div>
     <button
       class="flex-none my-auto p-2 w-[100px] text-xxs bg-neutral-200 text-neutral-500 rounded-r-md invisible peer-focus:visible hover:visible hover:bg-neutral-300"
       @click="onModeClicked"

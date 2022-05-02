@@ -3,6 +3,16 @@ const props = defineProps({
   authors: String,
 });
 
+const onClick = (e: MouseEvent, author: string) => {
+  e.preventDefault();
+  e.stopPropagation();
+  window.appInteractor.setState("viewState.searchMode", "advanced");
+  window.appInteractor.setState(
+    "viewState.searchText",
+    `authors contains '${author}'`
+  );
+};
+
 const onRightClick = (e: MouseEvent, author: string) => {
   e.preventDefault();
   e.stopPropagation();
@@ -20,6 +30,7 @@ const onRightClick = (e: MouseEvent, author: string) => {
     >
       <div
         class="text-xxs hover:underline"
+        @click="onClick($event, author)"
         @contextmenu="(e: MouseEvent) => onRightClick(e, author)"
       >
         {{ author }}
