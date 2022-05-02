@@ -1,6 +1,8 @@
 import { ipcRenderer, shell } from "electron";
 import keytar from "keytar";
+import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
 
+import { DBRepository } from "../repositories/db-repository/db-repository";
 import { FileRepository } from "../repositories/file-repository/file-repository";
 
 import { SharedState } from "../utils/appstate";
@@ -10,16 +12,24 @@ export class AppInteractor {
   sharedState: SharedState;
   preference: Preference;
 
+  dbRepository: DBRepository;
   fileRepository: FileRepository;
+
+  scheduler: ToadScheduler;
 
   constructor(
     sharedState: SharedState,
     preference: Preference,
+    dbRepository: DBRepository,
     fileRepository: FileRepository
   ) {
     this.sharedState = sharedState;
     this.preference = preference;
+
+    this.dbRepository = dbRepository;
     this.fileRepository = fileRepository;
+
+    this.scheduler = new ToadScheduler();
   }
 
   async version() {
@@ -118,5 +128,27 @@ export class AppInteractor {
   // ============================================================
   registerMainSignal(signal: string, callback: (args: any) => void) {
     ipcRenderer.on(signal, (_, args) => callback(args));
+  }
+
+  // ============================================================
+  pauseSync() {
+    this.scheduler.removeById("pauseSync");
+    const task = new Task("pauseSync", () => {
+      void this.dbRepository.pauseSync();
+      this.scheduler.removeById("pauseSync");
+    });
+
+    const job = new SimpleIntervalJob(
+      { seconds: 3600, runImmediately: false },
+      task,
+      "pauseSync"
+    );
+
+    this.scheduler.addSimpleIntervalJob(job);
+  }
+
+  resumeSync() {
+    this.scheduler.removeById("pauseSync");
+    void this.dbRepository.resumeSync();
   }
 }

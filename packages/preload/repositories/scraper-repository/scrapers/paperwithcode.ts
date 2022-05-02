@@ -2,14 +2,9 @@ import { Response } from "got";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 import { formatString } from "../../../utils/string";
-import { Preference } from "../../../utils/preference";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class PwCScraper extends Scraper {
-  constructor(preference: Preference) {
-    super(preference);
-  }
-
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
     const enable =
       entityDraft.title !== "" &&
@@ -28,6 +23,14 @@ export class PwCScraper extends Scraper {
     const headers = {
       Accept: "application/json",
     };
+
+    if (enable) {
+      this.sharedState.set(
+        "viewState.processInformation",
+        `Scraping code from paperswithcode.com ...`
+      );
+    }
+
     return { scrapeURL, headers, enable };
   }
 

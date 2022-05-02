@@ -28,6 +28,7 @@ const exporterRepository = new ExporterRepository(sharedState, preference);
 const appInteractor = new AppInteractor(
   sharedState,
   preference,
+  dbRepository,
   fileRepository
 );
 const entityInteractor = new EntityInteractor(

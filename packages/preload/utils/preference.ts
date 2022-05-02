@@ -25,7 +25,6 @@ export interface PreferenceStore {
 
   allowRoutineMatch: boolean;
   lastRematchTime: number;
-  rematchInterval: number;
 
   pdfBuiltinScraper: boolean;
   arXivScraper: boolean;
@@ -63,7 +62,6 @@ const defaultPreferences: PreferenceStore = {
 
   allowRoutineMatch: true,
   lastRematchTime: Math.round(Date.now() / 1000),
-  rematchInterval: 7,
 
   pdfBuiltinScraper: true,
   arXivScraper: true,

@@ -1,8 +1,9 @@
-import got, { Response } from 'got';
+import got, { Response } from "got";
 
-import { PDFFileResponseType } from './pdf';
-import { PaperEntityDraft } from '../../../models/PaperEntityDraft';
-import { Preference } from '../../../utils/preference';
+import { PDFFileResponseType } from "./pdf";
+import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
+import { Preference } from "../../../utils/preference";
+import { SharedState } from "../../../utils/appstate";
 
 export interface ScraperRequestType {
   scrapeURL: string;
@@ -22,9 +23,11 @@ export interface ScraperType {
 }
 
 export class Scraper implements ScraperType {
+  sharedState: SharedState;
   preference: Preference;
 
-  constructor(preference: Preference) {
+  constructor(sharedState: SharedState, preference: Preference) {
+    this.sharedState = sharedState;
     this.preference = preference;
   }
 
@@ -33,14 +36,14 @@ export class Scraper implements ScraperType {
   }
 
   preProcess(_entityDraft: PaperEntityDraft): ScraperRequestType | void {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   parsingProcess(
     _rawResponse: Response<string>,
     _entityDraft: PaperEntityDraft
   ): PaperEntityDraft | void {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   scrapeImpl = scrapeImpl;

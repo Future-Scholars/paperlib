@@ -48,13 +48,14 @@ export class SharedState {
       isPreferenceViewShown: new State(false),
 
       preferenceUpdated: new State(`${new Date().getTime()}`),
-      themeUpdated: new State(`${new Date().getTime()}`),
       realmReinited: new State(`${new Date().getTime()}`),
 
       alertInformation: new State("", false),
+      processInformation: new State("", false),
 
       viewType: new State("list"),
       theme: new State("light"),
+
       syncFileStorageAvaliable: new State(false),
     };
 
@@ -75,7 +76,6 @@ export class SharedState {
       tagsUpdated: new State(`${new Date().getTime()}`),
       foldersUpdated: new State(`${new Date().getTime()}`),
       defaultPath: new State(ipcRenderer.sendSync("userData")),
-      selectedPath: new State(""),
     };
   }
 

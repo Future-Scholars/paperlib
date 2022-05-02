@@ -1,5 +1,6 @@
 import { clipboard } from "electron";
 import path from "path";
+import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
 
 import { SharedState } from "../utils/appstate";
 import { Preference } from "../utils/preference";
@@ -23,6 +24,8 @@ export class EntityInteractor {
   cacheRepository: CacheRepository;
   exporterRepository: ExporterRepository;
 
+  scheduler: ToadScheduler;
+
   constructor(
     sharedState: SharedState,
     preference: Preference,
@@ -40,6 +43,9 @@ export class EntityInteractor {
     this.scraperRepository = scraperRepository;
     this.cacheRepository = cacheRepository;
     this.exporterRepository = exporterRepository;
+
+    this.scheduler = new ToadScheduler();
+    this.setupRoutineScrapeScheduler();
   }
 
   // ============================================================
@@ -232,6 +238,48 @@ export class EntityInteractor {
       (this.sharedState.viewState.processingQueueCount.get() as number) -
         entityDrafts.length
     );
+  }
+
+  async routineScrape() {
+    const allowRoutineMatch = this.preference.get(
+      "allowRoutineMatch"
+    ) as boolean;
+    if (allowRoutineMatch) {
+      this.sharedState.set(
+        "viewState.processInformation",
+        "Start routine scraping..."
+      );
+      this.preference.set("lastRematchTime", Math.round(Date.now() / 1000));
+      const entities = await this.dbRepository.preprintEntities();
+      void this.scrape(JSON.stringify(entities));
+    }
+  }
+
+  setupRoutineScrapeScheduler() {
+    const lastRematchTime = this.preference.get("lastRematchTime") as number;
+
+    if (Math.round(Date.now() / 1000) - lastRematchTime > 86400 * 7) {
+      void this.routineScrape();
+    }
+
+    if (this.scheduler == null) {
+      this.scheduler = new ToadScheduler();
+    } else {
+      this.scheduler.stop();
+      this.scheduler.removeById("routineScrape");
+    }
+
+    const task = new Task("routineScrape", () => {
+      void this.routineScrape();
+    });
+
+    const job = new SimpleIntervalJob(
+      { seconds: 7 * 86400, runImmediately: false },
+      task,
+      "routineScrape"
+    );
+
+    this.scheduler.addSimpleIntervalJob(job);
   }
 
   // ============================================================

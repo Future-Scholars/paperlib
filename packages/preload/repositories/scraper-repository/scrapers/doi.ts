@@ -1,13 +1,13 @@
-import { Response } from 'got';
+import { Response } from "got";
 
-import { Scraper, ScraperRequestType } from './scraper';
-import { PaperEntityDraft } from '../../../models/PaperEntityDraft';
-import { formatString } from '../../../utils/string';
+import { Scraper, ScraperRequestType } from "./scraper";
+import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
+import { formatString } from "../../../utils/string";
 
 export class DOIScraper extends Scraper {
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
     const enable =
-      entityDraft.doi !== '' && (this.preference.get('doiScraper') as boolean);
+      entityDraft.doi !== "" && (this.preference.get("doiScraper") as boolean);
     const doiID = formatString({
       str: entityDraft.doi,
       removeNewline: true,
@@ -15,8 +15,15 @@ export class DOIScraper extends Scraper {
     });
     const scrapeURL = `https://dx.doi.org/${doiID}`;
     const headers = {
-      Accept: 'application/json',
+      Accept: "application/json",
     };
+
+    if (enable) {
+      this.sharedState.set(
+        "viewState.processInformation",
+        "Scraping metadata by DOI..."
+      );
+    }
 
     return { scrapeURL, headers, enable };
   }
@@ -29,33 +36,33 @@ export class DOIScraper extends Scraper {
       title: string;
       author: { given: string; family: string }[];
       published: {
-        'date-parts': { '0': string[] };
+        "date-parts": { "0": string[] };
       };
       type: string;
-      'container-title': string;
+      "container-title": string;
     };
     const title = response.title;
     const authors = response.author
       .map((author) => {
-        return author.given.trim() + ' ' + author.family.trim();
+        return author.given.trim() + " " + author.family.trim();
       })
-      .join(', ');
-    const pubTime = response.published['date-parts']['0'][0];
+      .join(", ");
+    const pubTime = response.published["date-parts"]["0"][0];
     let pubType;
-    if (response.type == 'proceedings-article') {
+    if (response.type == "proceedings-article") {
       pubType = 1;
-    } else if (response.type == 'journal-article') {
+    } else if (response.type == "journal-article") {
       pubType = 0;
     } else {
       pubType = 2;
     }
-    const publication = response['container-title'];
+    const publication = response["container-title"];
 
-    entityDraft.setValue('title', title);
-    entityDraft.setValue('authors', authors);
-    entityDraft.setValue('pubTime', `${pubTime}`);
-    entityDraft.setValue('pubType', pubType);
-    entityDraft.setValue('publication', publication);
+    entityDraft.setValue("title", title);
+    entityDraft.setValue("authors", authors);
+    entityDraft.setValue("pubTime", `${pubTime}`);
+    entityDraft.setValue("pubType", pubType);
+    entityDraft.setValue("publication", publication);
 
     return entityDraft;
   }

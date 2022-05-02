@@ -29,18 +29,32 @@ export class ScraperRepository {
     this.preference = preference;
 
     this.scraperList = {
-      PDFScraper: new PDFScraper(this.preference),
-      ArXivScraper: new ArXivScraper(this.preference),
-      DOIScraper: new DOIScraper(this.preference),
-      DBLPScraper: new DBLPScraper(this.preference),
-      DBLPbyTimeScraper0: new DBLPbyTimeScraper(this.preference, 0),
-      DBLPbyTimeScraper1: new DBLPbyTimeScraper(this.preference, 1),
-      DBLPVenueScraper: new DBLPVenueScraper(this.preference),
-      OpenreviewScraper: new OpenreviewScraper(this.preference),
-      OpenreviewVenueScraper: new DBLPVenueScraper(this.preference),
-      CVFScraper: new CVFScraper(this.preference),
-      IEEEScraper: new IEEEScraper(this.preference),
-      PwCScraper: new PwCScraper(this.preference),
+      PDFScraper: new PDFScraper(this.sharedState, this.preference),
+      ArXivScraper: new ArXivScraper(this.sharedState, this.preference),
+      DOIScraper: new DOIScraper(this.sharedState, this.preference),
+      DBLPScraper: new DBLPScraper(this.sharedState, this.preference),
+      DBLPbyTimeScraper0: new DBLPbyTimeScraper(
+        this.sharedState,
+        this.preference,
+        0
+      ),
+      DBLPbyTimeScraper1: new DBLPbyTimeScraper(
+        this.sharedState,
+        this.preference,
+        1
+      ),
+      DBLPVenueScraper: new DBLPVenueScraper(this.sharedState, this.preference),
+      OpenreviewScraper: new OpenreviewScraper(
+        this.sharedState,
+        this.preference
+      ),
+      OpenreviewVenueScraper: new DBLPVenueScraper(
+        this.sharedState,
+        this.preference
+      ),
+      CVFScraper: new CVFScraper(this.sharedState, this.preference),
+      IEEEScraper: new IEEEScraper(this.sharedState, this.preference),
+      PwCScraper: new PwCScraper(this.sharedState, this.preference),
     };
 
     void got("https://paperlib.app/api/version");

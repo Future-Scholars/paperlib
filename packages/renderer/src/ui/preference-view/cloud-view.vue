@@ -23,12 +23,6 @@ const onUpdate = (key: string, value: unknown) => {
   window.appInteractor.updatePreference(key, value);
 };
 
-const onSyncCloudBackend = (value: string) => {
-  window.appInteractor.updatePreference("useSync", false);
-  window.entityInteractor.initDB();
-  onUpdate("syncCloudBackend", value);
-};
-
 const onLoginClicked = async () => {
   window.appInteractor.updatePreference("useSync", true);
   window.appInteractor.updatePreference("syncEmail", syncEmail.value);
@@ -39,10 +33,6 @@ const onLoginClicked = async () => {
 const onLogoutClicked = () => {
   window.appInteractor.updatePreference("useSync", false);
   window.entityInteractor.initDB();
-};
-
-const onSignupClicked = () => {
-  window.appInteractor.open("https://paperlib.app/en/signup");
 };
 
 window.appInteractor.getPassword("realmSync").then((password) => {
@@ -83,26 +73,22 @@ const onWebdavDisconnectClicked = () => {
 
 <template>
   <div class="flex flex-col w-full text-neutral-800">
-    <div class="text-base font-semibold mb-4">Sync Metadata</div>
-    <Options
-      class="mb-2"
-      title="Cloud Backend"
-      info="Choose a MongoDB Atlas Database to sync metadata."
-      :selected="preference.syncCloudBackend"
-      :options="{ official: 'Official', custom: 'Custom' }"
-      @update="(value) => onSyncCloudBackend(value)"
-    />
+    <div class="text-base font-semibold mb-1">Sync Metadata</div>
+    <div class="text-xxs mb-3">
+      <span class="underline hover:text-accentlight cursor-pointer">
+        Learn How to Use
+      </span>
+    </div>
     <input
       class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none mb-2"
       type="text"
       placeholder="Realm APP ID of the custom MongoDB Atlas"
       v-model="syncAPPID"
-      v-if="preference.syncCloudBackend === 'custom'"
     />
 
     <div class="flex space-x-2 justify-between mb-5">
       <input
-        class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-44"
+        class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-56"
         type="text"
         placeholder="Usearname"
         v-model="syncEmail"
@@ -110,33 +96,39 @@ const onWebdavDisconnectClicked = () => {
         :class="preference.useSync ? 'text-neutral-400' : ''"
       />
       <input
-        class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-40"
+        class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-56"
         type="password"
         placeholder="Password"
         v-model="syncPassword"
         :disabled="preference.useSync"
         :class="preference.useSync ? 'text-neutral-400' : ''"
       />
-      <div class="flex justify-between w-40 text-xs">
+      <div class="flex justify-between text-xs">
         <button
-          class="flex h-full w-[4.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
+          class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200"
           v-if="!preference.useSync"
           @click="onLoginClicked"
+          :disabled="
+            syncAPPID.length !== 0 &&
+            syncEmail.length !== 0 &&
+            syncPassword.length !== 0
+          "
+          :class="
+            syncAPPID.length !== 0 &&
+            syncEmail.length !== 0 &&
+            syncPassword.length !== 0
+              ? 'hover:bg-neutral-300'
+              : 'text-neutral-400 '
+          "
         >
           <span class="m-auto">Login</span>
         </button>
         <button
-          class="flex h-full w-[4.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
+          class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
           v-if="preference.useSync"
           @click="onLogoutClicked"
         >
           <span class="m-auto">Logout</span>
-        </button>
-        <button
-          class="flex h-full w-[4.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
-          @click="onSignupClicked"
-        >
-          <span class="m-auto">Sign Up</span>
         </button>
       </div>
     </div>

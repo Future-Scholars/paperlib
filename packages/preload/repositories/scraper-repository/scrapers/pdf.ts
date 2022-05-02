@@ -3,6 +3,7 @@ import * as pdfjs from "pdfjs-dist";
 
 import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 import { Preference } from "../../../utils/preference";
+import { SharedState } from "../../../utils/appstate";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 import { constructFileURL } from "../../../utils/path";
 import { formatString } from "../../../utils/string";
@@ -13,8 +14,8 @@ import {
 } from "pdfjs-dist/types/src/display/api";
 
 export class PDFScraper extends Scraper {
-  constructor(preference: Preference) {
-    super(preference);
+  constructor(sharedState: SharedState, preference: Preference) {
+    super(sharedState, preference);
 
     const worker = new Worker("/src/workers/pdf.worker.min.js");
     pdfjs.GlobalWorkerOptions.workerPort = worker;
@@ -42,6 +43,13 @@ export class PDFScraper extends Scraper {
     );
 
     const headers = {};
+
+    if (enable) {
+      this.sharedState.set(
+        "viewState.processInformation",
+        "Scraping metadata from PDF builtin info..."
+      );
+    }
 
     return { scrapeURL, headers, enable };
   }

@@ -1,4 +1,8 @@
-import { ipcMain, BrowserWindow, dialog } from "electron";
+import { app, ipcMain, BrowserWindow, dialog } from "electron";
+
+ipcMain.on("userData", (event, arg) => {
+  event.returnValue = app.getPath("userData");
+});
 
 ipcMain.handle("show-folder-picker", () => {
   return dialog.showOpenDialog({

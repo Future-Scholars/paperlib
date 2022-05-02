@@ -89,10 +89,6 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.on("userData", (event, arg) => {
-  event.returnValue = app.getPath("userData");
-});
-
 ipcMain.on("minimize", () => {
   win?.minimize();
 });
