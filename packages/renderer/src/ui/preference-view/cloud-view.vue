@@ -14,6 +14,7 @@ const props = defineProps({
 const syncAPPID = ref(props.preference.syncAPPID);
 const syncEmail = ref(props.preference.syncEmail);
 const syncPassword = ref("");
+const syncFileStorage = ref(props.preference.syncFileStorage);
 
 const webdavURL = ref(props.preference.webdavURL);
 const webdavUsername = ref(props.preference.webdavUsername);
@@ -61,13 +62,21 @@ const onWebdavConnectClicked = async () => {
   window.appInteractor.updatePreference("webdavURL", webdavURL.value);
   window.appInteractor.updatePreference("webdavUsername", webdavUsername.value);
   await window.appInteractor.setPassword("webdav", webdavPassword.value);
+  window.appInteractor.updatePreference("syncFileStorage", "webdav");
 
-  window.entityInteractor.initFileRepository();
+  window.appInteractor.setState(
+    "viewState.storageBackendReinited",
+    `${Date.now()}`
+  );
 };
 
 const onWebdavDisconnectClicked = () => {
   window.appInteractor.updatePreference("syncFileStorage", "local");
-  window.entityInteractor.initFileRepository();
+
+  window.appInteractor.setState(
+    "viewState.storageBackendReinited",
+    `${Date.now()}`
+  );
 };
 </script>
 
@@ -137,15 +146,20 @@ const onWebdavDisconnectClicked = () => {
 
     <div class="text-base font-semibold mb-4">File Storage</div>
     <Options
-      class="mb-2"
-      title="File Backend"
+      class="mb-4"
+      title="Storage Backend"
       info="Choose a backend to store the paper files such as PDF files."
-      :selected="preference.syncFileStorage"
+      :selected="syncFileStorage"
       :options="{ local: 'Local', webdav: 'WebDAV' }"
-      @update="(value) => onUpdate('syncFileStorage', value)"
+      @update="
+        (value) => {
+          syncFileStorage = value;
+          onUpdate('syncFileStorage', value);
+        }
+      "
     />
 
-    <div class="flex flex-col" v-if="preference.syncFileStorage === 'webdav'">
+    <div class="flex flex-col" v-if="syncFileStorage === 'webdav'">
       <input
         class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none mb-2"
         type="text"
@@ -157,7 +171,7 @@ const onWebdavDisconnectClicked = () => {
 
       <div class="flex space-x-2 justify-between">
         <input
-          class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-44"
+          class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-56"
           type="text"
           placeholder="Usearname"
           v-model="webdavUsername"
@@ -165,23 +179,23 @@ const onWebdavDisconnectClicked = () => {
           :class="syncFileStorageAvaliable ? 'text-neutral-400' : ''"
         />
         <input
-          class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-40"
+          class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-56"
           type="password"
           placeholder="Password"
           v-model="webdavPassword"
           :disabled="syncFileStorageAvaliable"
           :class="syncFileStorageAvaliable ? 'text-neutral-400' : ''"
         />
-        <div class="flex justify-between w-40 text-xs">
+        <div class="flex text-xs">
           <div
-            class="flex h-full w-[4.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
+            class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
             v-if="!syncFileStorageAvaliable"
             @click="onWebdavConnectClicked"
           >
             <span class="m-auto">Connect</span>
           </div>
           <div
-            class="flex h-full w-[4.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
+            class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
             v-if="syncFileStorageAvaliable"
             @click="onWebdavDisconnectClicked"
           >

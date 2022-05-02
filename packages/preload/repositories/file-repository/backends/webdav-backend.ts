@@ -1,21 +1,26 @@
-import path from "path";
+import path, { isAbsolute } from "path";
 import { createClient, WebDAVClient } from "webdav";
 import keytar from "keytar";
 
-import { FileRepository } from "./file-repository";
+import { FileBackend } from "./backend";
 
-import { PaperEntityDraft } from "../../models/PaperEntityDraft";
+import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 import { promises as fsPromise, readFileSync, existsSync, mkdirSync } from "fs";
 
-import { Preference } from "../../utils/preference";
-import { SharedState } from "../../interactors/app-state";
-import { constructFileURL } from "../../utils/path";
+import { Preference } from "../../../utils/preference";
+import { SharedState } from "../../../utils/appstate";
+import { constructFileURL } from "../../../utils/path";
 
-export class WebDavFileRepository extends FileRepository {
+export class WebDavFileBackend implements FileBackend {
+  sharedState: SharedState;
+  preference: Preference;
+
   webdavClient: WebDAVClient | null;
 
-  constructor(preference: Preference, sharedState: SharedState) {
-    super(sharedState, preference);
+  constructor(sharedState: SharedState, preference: Preference) {
+    this.sharedState = sharedState;
+    this.preference = preference;
+
     this.webdavClient = null;
 
     if (
@@ -63,21 +68,7 @@ export class WebDavFileRepository extends FileRepository {
     }
   }
 
-  async access({
-    url,
-    joined = false,
-    withProtocol = true,
-    root = "",
-    protocol = "file://",
-    download = true,
-  }: {
-    url: string;
-    joined?: boolean;
-    withProtocol?: boolean;
-    root?: string;
-    protocol?: string;
-    download?: boolean;
-  }): Promise<string> {
+  async access(url: string, download = true): Promise<string> {
     await this.check();
     const basename = path.basename(url);
     const localURL = path.join(
@@ -104,13 +95,27 @@ export class WebDavFileRepository extends FileRepository {
           return "";
         }
       } else {
-        return "";
+        if (
+          await this._serverExists(
+            constructFileURL(basename, false, true, "", "webdav://")
+          )
+        ) {
+          return "donwloadRequired://";
+        } else {
+          return "";
+        }
       }
     }
 
     return Promise.resolve(
-      constructFileURL(localURL, joined, withProtocol, root, protocol)
+      constructFileURL(localURL, false, true, "", "file://")
     );
+  }
+
+  async _serverExists(url: string): Promise<boolean> {
+    const _URL = url.replace("webdav://", "/paperlib/");
+
+    return (await this.webdavClient?.exists(_URL)) === true;
   }
 
   async _server2serverMove(
@@ -191,7 +196,7 @@ export class WebDavFileRepository extends FileRepository {
 
     // 1. Move main file.
     let sourceMainURL;
-    if (!entity.mainURL.startsWith("file://")) {
+    if (!isAbsolute(entity.mainURL.replace("file://", ""))) {
       sourceMainURL = constructFileURL(
         entity.mainURL,
         false,
@@ -200,7 +205,7 @@ export class WebDavFileRepository extends FileRepository {
         "webdav://"
       );
     } else {
-      sourceMainURL = entity.mainURL;
+      sourceMainURL = constructFileURL(entity.mainURL, false, true, "file://");
     }
     const targetMainURL = constructFileURL(
       targetFileName + "_main" + path.extname(sourceMainURL),
@@ -218,9 +223,15 @@ export class WebDavFileRepository extends FileRepository {
     }
 
     // 2. Move supplementary files.
-    const sourceSupURLs = entity.supURLs.map((url) =>
-      constructFileURL(url, false, true, "", "webdav://")
-    );
+    const sourceSupURLs = entity.supURLs.map((url) => {
+      let sourceSupURL;
+      if (!isAbsolute(url.replace("file://", ""))) {
+        sourceSupURL = constructFileURL(url, false, true, "", "webdav://");
+      } else {
+        sourceSupURL = constructFileURL(url, false, true, "file://");
+      }
+      return sourceSupURL;
+    });
 
     const SupMovePromise = async (
       sourceSupURL: string,

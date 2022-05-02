@@ -55,6 +55,7 @@
     "realm": "^10.13.0",
     "toad-scheduler": "^1.6.0",
     "vue-select": "^4.0.0-beta.3",
-    "vue-virtual-scroller": "^2.0.0-alpha.1"
+    "vue-virtual-scroller": "^2.0.0-alpha.1",
+    "webdav": "^4.9.0"
   }
 }

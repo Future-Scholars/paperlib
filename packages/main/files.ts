@@ -4,6 +4,12 @@ ipcMain.on("userData", (event, arg) => {
   event.returnValue = app.getPath("userData");
 });
 
+ipcMain.handle("show-file-picker", () => {
+  return dialog.showOpenDialog({
+    properties: ["openFile"],
+  });
+});
+
 ipcMain.handle("show-folder-picker", () => {
   return dialog.showOpenDialog({
     properties: ["openDirectory"],

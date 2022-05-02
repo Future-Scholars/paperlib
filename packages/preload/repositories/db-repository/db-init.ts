@@ -112,7 +112,7 @@ export async function getCloudConfig(
     return config;
   } else {
     this.preference.set("useSync", false);
-    this.sharedState.set("viewState.preferenceUpdated", new Date().getTime());
+    this.sharedState.set("viewState.preferenceUpdated", Date.now());
     return this.getLocalConfig();
   }
 }
@@ -150,7 +150,7 @@ export async function loginCloud(
     return this.app.currentUser;
   } catch (error) {
     this.preference.set("useSync", false);
-    this.sharedState.set("viewState.preferenceUpdated", new Date().getTime());
+    this.sharedState.set("viewState.preferenceUpdated", Date.now());
     this.sharedState.set(
       "viewState.alertInformation",
       `Login failed, ${error as string}`

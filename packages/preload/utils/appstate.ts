@@ -47,8 +47,9 @@ export class SharedState {
       isEditViewShown: new State(false),
       isPreferenceViewShown: new State(false),
 
-      preferenceUpdated: new State(`${new Date().getTime()}`),
-      realmReinited: new State(`${new Date().getTime()}`),
+      preferenceUpdated: new State(`${Date.now()}`),
+      realmReinited: new State(`${Date.now()}`),
+      storageBackendReinited: new State(`${Date.now()}`),
 
       alertInformation: new State("", false),
       processInformation: new State("", false),
@@ -72,9 +73,9 @@ export class SharedState {
 
     // DB State
     this.dbState = {
-      entitiesUpdated: new State(`${new Date().getTime()}`),
-      tagsUpdated: new State(`${new Date().getTime()}`),
-      foldersUpdated: new State(`${new Date().getTime()}`),
+      entitiesUpdated: new State(`${Date.now()}`),
+      tagsUpdated: new State(`${Date.now()}`),
+      foldersUpdated: new State(`${Date.now()}`),
       defaultPath: new State(ipcRenderer.sendSync("userData")),
     };
   }

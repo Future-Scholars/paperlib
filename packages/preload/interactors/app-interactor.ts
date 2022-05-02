@@ -78,7 +78,7 @@ export class AppInteractor {
       value = JSON.parse(value as string);
     }
     this.preference.set(name, value);
-    this.sharedState.set("viewState.preferenceUpdated", new Date().getTime());
+    this.sharedState.set("viewState.preferenceUpdated", Date.now());
   }
 
   getPreference(name: string) {
@@ -96,15 +96,16 @@ export class AppInteractor {
   }
 
   async access(url: string, download: boolean) {
-    return await this.fileRepository.access({
-      url: url,
-      download: download,
-    });
+    return await this.fileRepository.access(url, download);
   }
 
   async preview(url: string) {
     const fileURL = await this.access(url, true);
     ipcRenderer.send("preview", fileURL);
+  }
+
+  async showFilePicker() {
+    return await ipcRenderer.invoke("show-file-picker");
   }
 
   async showFolderPicker() {

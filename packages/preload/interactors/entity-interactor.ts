@@ -301,6 +301,6 @@ export class EntityInteractor {
     this.sharedState.set("selectionState.selectedIndex", "[]");
     this.sharedState.set("selectionState.selectedCategorizer", "");
     await this.dbRepository.initRealm(true);
-    this.sharedState.set("viewState.realmReinited", new Date().getTime());
+    this.sharedState.set("viewState.realmReinited", Date.now());
   }
 }

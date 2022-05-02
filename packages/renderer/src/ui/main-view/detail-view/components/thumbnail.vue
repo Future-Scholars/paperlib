@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { debounce } from "../../../../utils/debounce";
+import {
+  BIconCloudArrowDown,
+  BIconExclamationTriangle,
+} from "bootstrap-icons-vue";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 
 import { RenderParameters } from "pdfjs-dist/types/src/display/api";
-import { onMounted, watch, ref, onDeactivated, onBeforeUnmount } from "vue";
+import { onMounted, watch, ref, onBeforeUnmount } from "vue";
 
 const props = defineProps({
   url: {
@@ -12,7 +15,10 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(["modifyMainFile"]);
+
 const isRendering = ref(true);
+const fileExistingStatus = ref(0);
 
 let worker: Worker;
 const setWorker = () => {
@@ -26,6 +32,18 @@ const destroyWorker = () => {
 const render = async () => {
   isRendering.value = true;
   const fileURL = await window.appInteractor.access(props.url, false);
+  if (fileURL.length === 0) {
+    isRendering.value = false;
+    fileExistingStatus.value = 1;
+    return;
+  } else if (fileURL.startsWith("donwloadRequired://")) {
+    isRendering.value = false;
+    fileExistingStatus.value = 2;
+    return;
+  } else {
+    fileExistingStatus.value = 0;
+  }
+
   const pdf = await getDocument(fileURL).promise;
   const page = await pdf.getPage(1);
   var scale = 0.25;
@@ -55,6 +73,28 @@ const onClick = async (e: MouseEvent) => {
   window.appInteractor.open(fileURL);
 };
 
+const onPickerClicked = async () => {
+  const pickedFile = (await window.appInteractor.showFilePicker()).filePaths[0];
+  if (pickedFile) {
+    emit("modifyMainFile", pickedFile);
+  }
+};
+
+const onCloudDownloadClicked = async () => {
+  isRendering.value = true;
+  const fileURL = await window.appInteractor.access(props.url, true);
+  isRendering.value = false;
+  if (fileURL === "") {
+    window.appInteractor.setState(
+      "viewState.alertInformation",
+      `File ${props.url} download faield.`
+    );
+    return;
+  } else {
+    render();
+  }
+};
+
 onMounted(() => {
   setWorker();
   render();
@@ -70,11 +110,35 @@ watch(props, (props, prevProps) => {
 </script>
 
 <template>
-  <div class="relative w-40 h-52 mt-1">
+  <div
+    class="relative mt-1"
+    :class="fileExistingStatus !== 0 ? 'w-fit h-fit' : 'w-40 h-52'"
+  >
+    <BIconCloudArrowDown
+      class="text-md"
+      v-show="fileExistingStatus === 2"
+      @click="onCloudDownloadClicked"
+    />
+    <div class="flex space-x-2" v-show="fileExistingStatus === 1">
+      <BIconExclamationTriangle class="text-md my-auto cursor-pointer" />
+      <span class="text-xxs my-auto select-none">Not Found,</span>
+      <span
+        class="text-xxs my-auto select-none underline cursor-pointer hover:text-accentlight"
+        @click="onPickerClicked"
+      >
+        add?
+      </span>
+      <span
+        class="text-xxs my-auto select-none underline cursor-pointer hover:text-accentlight"
+        @click="render"
+        >refresh?</span
+      >
+    </div>
     <canvas
       id="thumbnail"
       class="absolute top-0 left-0 w-40 h-52 border-[1px] rounded-md hover:shadow-sm cursor-pointer"
       @click="onClick"
+      v-show="fileExistingStatus === 0"
     />
 
     <Transition

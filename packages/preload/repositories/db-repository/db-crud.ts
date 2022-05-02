@@ -96,7 +96,7 @@ export async function entities(
         changes.newModifications.length + changes.oldModifications.length;
 
       if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
-        this.sharedState.set("dbState.entitiesUpdated", new Date().getTime());
+        this.sharedState.set("dbState.entitiesUpdated", Date.now());
       }
     });
     this.entitiesListenerInited = true;
@@ -156,7 +156,7 @@ export async function categorizers(
         );
       }
       if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
-        this.sharedState.set(statePath, new Date().getTime());
+        this.sharedState.set(statePath, Date.now());
       }
     });
     this.categorizersListenerInited[categorizerType] = true;

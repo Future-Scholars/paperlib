@@ -27,6 +27,13 @@ const onRatingChanged = (value: number) => {
   void window.entityInteractor.update(JSON.stringify([entityDraft]));
 };
 
+const modifyMainFile = (url: string) => {
+  const entityDraft = new PaperEntityDraft();
+  entityDraft.initialize(props.entity);
+  entityDraft.mainURL = url;
+  void window.entityInteractor.update(JSON.stringify([entityDraft]));
+};
+
 const addSups = (urls: string[]) => {
   const entityDraft = new PaperEntityDraft();
   entityDraft.initialize(props.entity);
@@ -106,7 +113,10 @@ onMounted(() => {
       <Rating :rating="entity.rating" @changed="onRatingChanged" />
     </Section>
     <Section title="Preview" v-if="entity.mainURL">
-      <Thumbnail :url="entity.mainURL" />
+      <Thumbnail
+        :url="entity.mainURL"
+        @modify-main-file="(value) => modifyMainFile(value)"
+      />
     </Section>
     <Section title="Note" v-if="entity.note.length > 0">
       <div class="text-xxs">

@@ -15,10 +15,7 @@ const props = defineProps({
 const onTitleClicked = (key: string) => {
   window.appInteractor.setState("viewState.sortBy", key);
   const sortOrder = props.sortOrder === "asce" ? "desc" : "asce";
-  window.appInteractor.setState(
-    "viewState.sortOrder",
-    JSON.stringify(sortOrder)
-  );
+  window.appInteractor.setState("viewState.sortOrder", sortOrder);
 };
 </script>
 
