@@ -26,8 +26,11 @@ const onUpdate = (key: string, value: unknown) => {
 
 const onLoginClicked = async () => {
   window.appInteractor.updatePreference("useSync", true);
+  window.appInteractor.updatePreference("syncAPPID", syncAPPID.value);
   window.appInteractor.updatePreference("syncEmail", syncEmail.value);
   await window.appInteractor.setPassword("realmSync", syncPassword.value);
+
+  console.log(syncAPPID.value);
   window.entityInteractor.initDB();
 };
 
@@ -118,9 +121,9 @@ const onWebdavDisconnectClicked = () => {
           v-if="!preference.useSync"
           @click="onLoginClicked"
           :disabled="
-            syncAPPID.length !== 0 &&
-            syncEmail.length !== 0 &&
-            syncPassword.length !== 0
+            syncAPPID.length === 0 &&
+            syncEmail.length === 0 &&
+            syncPassword.length === 0
           "
           :class="
             syncAPPID.length !== 0 &&

@@ -30,7 +30,8 @@
     "vite-plugin-electron": "^0.4.2",
     "vite-plugin-resolve": "^2.0.1",
     "vue": "^3.2.31",
-    "vue-tsc": "^0.31.1"
+    "vue-tsc": "^0.31.1",
+    "pdfjs-dist": "^2.13.216"
   },
   "env": {
     "VITE_DEV_SERVER_HOST": "127.0.0.1",
@@ -51,7 +52,6 @@
     "fast-xml-parser": "^4.0.6",
     "got": "11.8.3",
     "keytar": "^7.9.0",
-    "pdfjs-dist": "^2.13.216",
     "realm": "^10.13.0",
     "toad-scheduler": "^1.6.0",
     "vue-select": "^4.0.0-beta.3",

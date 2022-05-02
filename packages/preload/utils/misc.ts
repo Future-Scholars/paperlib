@@ -1,8 +1,9 @@
 import { AppInteractor } from "../interactors/app-interactor";
 import { EntityInteractor } from "../interactors/entity-interactor";
+import { RenderInteractor } from "../interactors/render-interactor";
 
 export function createInteractorProxy(
-  interactor: AppInteractor | EntityInteractor
+  interactor: AppInteractor | EntityInteractor | RenderInteractor
 ) {
   const interactorFuncs = Object.getOwnPropertyNames(
     Object.getPrototypeOf(interactor)

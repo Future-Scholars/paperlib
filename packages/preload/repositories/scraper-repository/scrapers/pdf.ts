@@ -1,5 +1,6 @@
+// @ts-nocheck
 import fs from "fs";
-import * as pdfjs from "pdfjs-dist";
+import * as pdfjs from "pdfjs-dist/build/pdf";
 
 import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 import { Preference } from "../../../utils/preference";
@@ -17,7 +18,7 @@ export class PDFScraper extends Scraper {
   constructor(sharedState: SharedState, preference: Preference) {
     super(sharedState, preference);
 
-    const worker = new Worker("/src/workers/pdf.worker.min.js");
+    const worker = new Worker("./pdf.worker.min.js");
     pdfjs.GlobalWorkerOptions.workerPort = worker;
   }
 

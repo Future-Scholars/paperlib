@@ -27,7 +27,7 @@ defineProps({
 
 const emit = defineEmits(["click"]);
 
-const btnIcons = {
+const btnIcons: Record<string, any> = {
   Rescrape: BIconArrowCounterclockwise,
   Delete: BIconTrash,
   Edit: BIconPencilSquare,
@@ -45,7 +45,7 @@ const btnIcons = {
     @click="emit('click')"
   >
     <component
-      :is="btnIcons[btnName]"
+      :is="btnIcons[btnName as string]"
       class="text-sm m-auto"
       :class="disabled ? 'text-neutral-300' : 'text-neutral-700'"
     />

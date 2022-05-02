@@ -1,4 +1,5 @@
-import * as pdfjsLib from "pdfjs-dist";
+// @ts-ignore
+import * as pdfjs from "pdfjs-dist/build/pdf";
 import { ObjectId } from "bson";
 
 import { PaperEntity } from "../../models/PaperEntity";
@@ -39,7 +40,7 @@ export async function update(this: CacheRepository, entities: PaperEntity[]) {
 
   // 2. Update the cache
   const pdfWorker = new Worker("/src/workers/pdf.worker.min.js");
-  pdfjsLib.GlobalWorkerOptions.workerPort = pdfWorker;
+  pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
 
   for (const obj of newObjs) {
     const fulltext = await this.getPDFText(obj.mainURL);
@@ -65,7 +66,7 @@ export async function getPDFText(
   url: string
 ): Promise<string> {
   try {
-    const pdf = await pdfjsLib.getDocument(
+    const pdf = await pdfjs.getDocument(
       constructFileURL(
         url,
         true,

@@ -6,7 +6,7 @@ import { debounce } from "../../../../utils/debounce";
 
 const searchText = ref("");
 const searchMode = ref("general");
-const searchModeLabel = {
+const searchModeLabel: Record<string, string> = {
   general: "General Mode",
   advanced: "Advanced Mode",
   fulltext: "Fulltext Mode",

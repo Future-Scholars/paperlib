@@ -16,8 +16,8 @@ export function appendLoading() {
 .lds-ripple {
   display: inline-block;
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
 }
 .lds-ripple div {
   position: absolute;
@@ -68,7 +68,7 @@ export function appendLoading() {
   oStyle.innerHTML = styleContent;
   oDiv.id = "app-loading-wrap";
   oDiv.className = "app-loading-wrap";
-  oDiv.innerHTML = `<div><img src="/src/assets/logo.png" style="width: 150px; margin-right: 5px"></img><div class="lds-ripple"><div></div><div></div></div></div>`;
+  oDiv.innerHTML = `<div><div class="lds-ripple"><div></div><div></div></div> <span style="width: 150px; margin-left: 15px; font-size: 2rem; font-family: sans-serif; font-weight: 100">PAPERLIB</span> </div>`;
 
   document.head.appendChild(oStyle);
   document.body.appendChild(oDiv);

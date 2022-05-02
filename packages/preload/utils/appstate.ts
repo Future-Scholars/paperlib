@@ -52,6 +52,7 @@ export class SharedState {
       storageBackendReinited: new State(`${Date.now()}`),
 
       alertInformation: new State("", false),
+      infoInformation: new State("", false),
       processInformation: new State("", false),
 
       viewType: new State("list"),

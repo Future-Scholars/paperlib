@@ -6,11 +6,12 @@ import { DBRepository } from "./repositories/db-repository/db-repository";
 import { FileRepository } from "./repositories/file-repository/file-repository";
 import { ScraperRepository } from "./repositories/scraper-repository/scraper-repository";
 import { CacheRepository } from "./repositories/cache-repository/cache-repository";
+import { ExporterRepository } from "./repositories/exporter-repository/exporter-repository";
 
 import { createInteractorProxy } from "./utils/misc";
 import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
-import { ExporterRepository } from "./repositories/exporter-repository/exporter-repository";
+import { RenderInteractor } from "./interactors/render-interactor";
 
 import { appendLoading } from "./loading";
 import { domReady } from "./utils";
@@ -45,9 +46,12 @@ const entityInteractor = new EntityInteractor(
   cacheRepository,
   exporterRepository
 );
+const renderInteractor = new RenderInteractor();
 
 const appInteractorProxy = createInteractorProxy(appInteractor);
 const entityInteractorProxy = createInteractorProxy(entityInteractor);
+const renderInteractorProxy = createInteractorProxy(renderInteractor);
 
 contextBridge.exposeInMainWorld("appInteractor", appInteractorProxy);
 contextBridge.exposeInMainWorld("entityInteractor", entityInteractorProxy);
+contextBridge.exposeInMainWorld("renderInteractor", renderInteractorProxy);

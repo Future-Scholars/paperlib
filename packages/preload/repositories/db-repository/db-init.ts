@@ -12,6 +12,15 @@ import { migrate } from "./db-migration";
 import { DBRepository } from "./db-repository";
 
 export async function initRealm(this: DBRepository, reinit = false) {
+  this.sharedState.set(
+    "viewState.processingQueueCount",
+    (this.sharedState.viewState.processingQueueCount.value as number) + 1
+  );
+  this.sharedState.set(
+    "viewState.processInformation",
+    "Initialize database..."
+  );
+
   if (this._realm || reinit) {
     if (this._realm) {
       this._realm.close();
@@ -55,6 +64,11 @@ export async function initRealm(this: DBRepository, reinit = false) {
       );
     }
   }
+  this.sharedState.set(
+    "viewState.processingQueueCount",
+    (this.sharedState.viewState.processingQueueCount.value as number) - 1
+  );
+
   return this._realm;
 }
 
@@ -123,12 +137,7 @@ export async function loginCloud(
   if (!this.app) {
     process.chdir(this.sharedState.dbState.defaultPath.value as string);
 
-    let id;
-    if (this.preference.get("syncCloudBackend") === "official") {
-      id = "paperlib-iadbj";
-    } else {
-      id = this.preference.get("syncAPPID") as string;
-    }
+    const id = this.preference.get("syncAPPID") as string;
     this.app = new Realm.App({
       id: id,
     });
@@ -143,8 +152,8 @@ export async function loginCloud(
 
     const loginedUser = await this.app.logIn(credentials);
     this.sharedState.set(
-      "viewState.alertInformation",
-      "Successfully logged in!"
+      "viewState.processInformation",
+      "Successfully logged in! Data is syncing..."
     );
     this.app.switchUser(loginedUser);
     return this.app.currentUser;

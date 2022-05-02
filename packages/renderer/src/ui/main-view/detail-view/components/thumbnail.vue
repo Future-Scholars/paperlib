@@ -1,12 +1,11 @@
 <script setup lang="ts">
+// @ts-nocheck
 import {
   BIconCloudArrowDown,
   BIconExclamationTriangle,
 } from "bootstrap-icons-vue";
-import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 
-import { RenderParameters } from "pdfjs-dist/types/src/display/api";
-import { onMounted, watch, ref, onBeforeUnmount } from "vue";
+import { onMounted, watch, ref } from "vue";
 
 const props = defineProps({
   url: {
@@ -19,15 +18,6 @@ const emit = defineEmits(["modifyMainFile"]);
 
 const isRendering = ref(true);
 const fileExistingStatus = ref(0);
-
-let worker: Worker;
-const setWorker = () => {
-  worker = new Worker("/src/workers/pdf.worker.min.js");
-  GlobalWorkerOptions.workerPort = worker;
-};
-const destroyWorker = () => {
-  worker.terminate();
-};
 
 const render = async () => {
   isRendering.value = true;
@@ -43,26 +33,8 @@ const render = async () => {
   } else {
     fileExistingStatus.value = 0;
   }
-
-  const pdf = await getDocument(fileURL).promise;
-  const page = await pdf.getPage(1);
-  var scale = 0.25;
-  var viewport = page.getViewport({ scale: scale });
-  var outputScale = window.devicePixelRatio || 1;
-  var canvas = document.getElementById("thumbnail") as HTMLCanvasElement;
-  var context = canvas.getContext("2d");
-  canvas.width = Math.floor(viewport.width * outputScale);
-  canvas.height = Math.floor(viewport.height * outputScale);
-  var transform =
-    outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
-  var renderContext = {
-    canvasContext: context,
-    transform: transform,
-    viewport: viewport,
-  } as RenderParameters;
-  page.render(renderContext).promise.then(() => {
-    isRendering.value = false;
-  });
+  await window.renderInteractor.render(fileURL);
+  isRendering.value = false;
 };
 
 const onClick = async (e: MouseEvent) => {
@@ -96,12 +68,7 @@ const onCloudDownloadClicked = async () => {
 };
 
 onMounted(() => {
-  setWorker();
   render();
-});
-
-onBeforeUnmount(() => {
-  destroyWorker();
 });
 
 watch(props, (props, prevProps) => {
@@ -135,7 +102,7 @@ watch(props, (props, prevProps) => {
       >
     </div>
     <canvas
-      id="thumbnail"
+      id="preview-canvas"
       class="absolute top-0 left-0 w-40 h-52 border-[1px] rounded-md hover:shadow-sm cursor-pointer"
       @click="onClick"
       v-show="fileExistingStatus === 0"
