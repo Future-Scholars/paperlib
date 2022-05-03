@@ -19,14 +19,20 @@ const props = defineProps({
 const emit = defineEmits(["changed"]);
 
 const onSelected = (value: string) => {
+  console.log("selected", value);
   emit("changed", value);
 };
 
 const onDeselected = (value: string) => {
+  console.log("deselected", value);
   emit(
     "changed",
     props.values.filter((v) => v !== value)
   );
+};
+
+const onCreated = (value: string) => {
+  console.log("onCreated", value);
 };
 </script>
 
@@ -85,6 +91,15 @@ const onDeselected = (value: string) => {
   .vue-multiselect .vs__selected {
     --tw-text-opacity: 1;
     color: rgb(212 212 212 / var(--tw-text-opacity));
+    background-color: rgb(115 115 115 / var(--tw-text-opacity));
+  }
+
+  .vue-multiselect .vs__open-indicator {
+    fill: rgb(212 212 212 / var(--tw-text-opacity));
+  }
+
+  .vue-multiselect .vs__dropdown-menu {
+    background-color: rgb(64 64 64 / var(--tw-bg-opacity));
   }
 }
 </style>
@@ -103,9 +118,11 @@ const onDeselected = (value: string) => {
       class="vue-multiselect text-xs drop dark:text-neutral-300"
       transition="none"
       multiple
+      taggable
       :clearable="false"
       @option:selected="onSelected"
       @option:deselected="onDeselected"
+      @option:created="onCreated"
     ></v-select>
   </div>
 </template>

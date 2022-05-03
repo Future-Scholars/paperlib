@@ -42,6 +42,7 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
+  console.log(entityDraft.value);
   window.entityInteractor.update(JSON.stringify([entityDraft.value]));
   window.appInteractor.setState("viewState.isEditViewShown", false);
 };

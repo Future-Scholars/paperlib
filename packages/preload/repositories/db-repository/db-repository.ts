@@ -19,10 +19,9 @@ import {
   deleteCategorizers,
   entities,
   entitiesByIds,
-  linkCategorizers,
   preprintEntities,
   remove,
-  unlinkCategorizers,
+  updateCategorizers,
   update,
 } from "./db-crud";
 import { migrateLocaltoCloud } from "./db-migration";
@@ -87,7 +86,6 @@ export class DBRepository {
   preprintEntities = preprintEntities;
   remove = remove;
   deleteCategorizers = deleteCategorizers;
-  unlinkCategorizers = unlinkCategorizers;
-  linkCategorizers = linkCategorizers;
+  updateCategorizers = updateCategorizers;
   update = update;
 }

@@ -69,6 +69,15 @@ export async function initRealm(this: DBRepository, reinit = false) {
     (this.sharedState.viewState.processingQueueCount.value as number) - 1
   );
 
+  // @ts-ignore
+  this._realm.safeWrite = (callback) => {
+    if (this._realm?.isInTransaction) {
+      callback();
+    } else {
+      this._realm?.write(callback);
+    }
+  };
+
   return this._realm;
 }
 

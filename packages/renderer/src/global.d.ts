@@ -10,4 +10,8 @@ declare global {
     entityInteractor: EntityInteractor;
     renderInteractor: RenderInteractor;
   }
+
+  interface Realm {
+    safeWrite: (callback: () => void) => void;
+  }
 }

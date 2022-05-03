@@ -1,4 +1,4 @@
-import Realm from "realm";
+import Realm, { Results } from "realm";
 import { ObjectId } from "bson";
 
 import { PaperEntity } from "../../models/PaperEntity";
@@ -188,13 +188,23 @@ export async function remove(this: DBRepository, ids: string[]) {
     .filtered(`(${idsQuery})`);
   const removeFileURLs: string[] = [];
   try {
-    realm.write(() => {
+    realm.safeWrite(() => {
       for (const entity of entities) {
         removeFileURLs.push(entity.mainURL);
         removeFileURLs.push(...entity.supURLs);
 
-        this.unlinkCategorizers(entity.tags, realm);
-        this.unlinkCategorizers(entity.folders, realm);
+        this.deleteCategorizers(
+          entity.tags.map((tag) => tag.name).join(";"),
+          "PaperTag",
+          false,
+          realm
+        );
+        this.deleteCategorizers(
+          entity.folders.map((folder) => folder.name).join(";"),
+          "PaperFolder",
+          false,
+          realm
+        );
       }
       realm.delete(entities);
     });
@@ -210,74 +220,100 @@ export async function remove(this: DBRepository, ids: string[]) {
 
 export async function deleteCategorizers(
   this: DBRepository,
-  categorizerName: string,
-  categorizerType: Categorizers
+  categorizerNameStr: string,
+  categorizerType: Categorizers,
+  deleteAll = true,
+  realm: Realm | null = null
 ) {
-  const realm = await this.realm();
+  if (!realm) {
+    realm = await this.realm();
+  }
 
-  realm.write(() => {
-    const objects = realm
-      .objects(categorizerType)
-      .filtered(`name == "${categorizerName}"`);
-    realm.delete(objects);
+  realm.safeWrite(() => {
+    categorizerNameStr.split(";").forEach((categorizerName) => {
+      const objects = realm!
+        .objects<PaperCategorizer>(categorizerType)
+        .filtered(`name == "${categorizerName}"`) as Results<PaperCategorizer>;
+      if (deleteAll) {
+        realm!.delete(objects);
+      } else {
+        for (const object of objects) {
+          object.count -= 1;
+          if (object.count <= 0) {
+            realm!.delete(object);
+          }
+        }
+      }
+    });
   });
 }
 
-export function unlinkCategorizers(
+export function updateCategorizers(
   this: DBRepository,
-  categorizers: PaperCategorizer[],
+  existCategorizers: PaperCategorizer[],
+  updatedCategorizersStr: string,
+  categorizerType: Categorizers,
   realm: Realm
 ) {
-  categorizers.forEach((categorizer) => {
-    categorizer.count -= 1;
-    if (categorizer.count <= 0) {
-      realm.delete(categorizer);
-    }
-  });
-}
-
-export function linkCategorizers(
-  this: DBRepository,
-  categorizerStrs: string,
-  realm: Realm,
-  categorizerType: Categorizers
-): PaperCategorizer[] {
-  const categorizers = [];
-  const categorizerNameList = new Set(categorizerStrs.split(";"));
-  for (const _categorizerName of categorizerNameList) {
-    const categorizerName = formatString({
-      str: _categorizerName,
-      removeWhite: true,
-      trimWhite: true,
+  let updateCategorizerNameList = updatedCategorizersStr.split(";");
+  updateCategorizerNameList = updateCategorizerNameList
+    .map((categorizerName) => {
+      return formatString({
+        str: categorizerName,
+        removeWhite: true,
+        trimWhite: true,
+      });
+    })
+    .filter((categorizerName) => {
+      return categorizerName !== "";
     });
-    if (categorizerName === "") {
-      continue;
-    }
 
-    const existCategorizers = realm
-      .objects(categorizerType)
-      .filtered(`name == "${categorizerName}"`)
-      .toJSON() as PaperCategorizer[];
+  const existCategorizerNameList = existCategorizers.map((categorizer) => {
+    return categorizer.name;
+  });
 
-    if (existCategorizers.length > 0) {
-      const categorizer = existCategorizers[0];
-      categorizer.count += 1;
-      categorizers.push(categorizer);
-    } else {
-      const categorizer = {
-        _id: new ObjectId(),
-        name: categorizerName,
-        count: 1,
-        _partition: "",
-      };
-      if (this.cloudConfig && this.app && this.app.currentUser) {
-        categorizer["_partition"] = this.app.currentUser.id.toString();
+  // Remove categorizer that is not in updated categorizers
+  for (const existCategorizer of existCategorizers) {
+    if (!updateCategorizerNameList.includes(existCategorizer.name)) {
+      existCategorizer.count -= 1;
+      if (existCategorizer.count <= 0) {
+        realm.delete(existCategorizer);
       }
-      realm.create(categorizerType, categorizer);
-      categorizers.push(categorizer);
     }
   }
-  return categorizers;
+
+  let updatedCategorizers = [];
+  // Add categorizer that is not in exist categorizers
+  for (const updateCategorizerName of updateCategorizerNameList) {
+    const dbExistCategorizers = realm
+      .objects(categorizerType)
+      .filtered(`name == "${updateCategorizerName}"`)
+      .toJSON() as PaperCategorizer[];
+
+    if (!existCategorizerNameList.includes(updateCategorizerName)) {
+      if (dbExistCategorizers.length > 0) {
+        const categorizer = dbExistCategorizers[0];
+        categorizer.count += 1;
+        updatedCategorizers.push(categorizer);
+      } else {
+        const categorizer = {
+          _id: new ObjectId(),
+          name: updateCategorizerName,
+          count: 1,
+          _partition: "",
+        };
+        if (this.cloudConfig && this.app && this.app.currentUser) {
+          categorizer["_partition"] = this.app.currentUser.id.toString();
+        }
+        realm.create(categorizerType, categorizer);
+        updatedCategorizers.push(categorizer);
+      }
+    } else {
+      updatedCategorizers.push(dbExistCategorizers[0]);
+    }
+  }
+
+  return updatedCategorizers;
 }
 
 // ============================================================
@@ -290,7 +326,7 @@ export async function update(
 
   const successes: boolean[] = [];
 
-  realm.write(() => {
+  realm.safeWrite(() => {
     for (const entity of entities) {
       let existingObj: PaperEntity | null;
       if (entity._id) {
@@ -317,18 +353,17 @@ export async function update(
         updateObj.flag = entity.flag;
         updateObj.note = entity.note;
         updateObj.codes = entity.codes;
-
-        // remove old tags
-        this.unlinkCategorizers(updateObj.tags as PaperCategorizer[], realm);
-        // add new tags
-        updateObj.tags = this.linkCategorizers(entity.tags, realm, "PaperTag");
-        // remove old folders
-        this.unlinkCategorizers(updateObj.folders, realm);
-        // add new folders
-        updateObj.folders = this.linkCategorizers(
+        updateObj.tags = this.updateCategorizers(
+          updateObj.tags,
+          entity.tags,
+          "PaperTag",
+          realm
+        );
+        updateObj.folders = this.updateCategorizers(
+          updateObj.folders,
           entity.folders,
-          realm,
-          "PaperFolder"
+          "PaperFolder",
+          realm
         );
         successes.push(true);
       } else {
@@ -346,17 +381,6 @@ export async function update(
           entity._partition = this.app.currentUser.id.toString();
         }
         const newObj = entity.create();
-        if (entity.tags) {
-          newObj.tags = this.linkCategorizers(entity.tags, realm, "PaperTag");
-        }
-        if (entity.folders) {
-          newObj.folders = this.linkCategorizers(
-            entity.folders,
-            realm,
-            "PaperFolder"
-          );
-        }
-
         realm.create("PaperEntity", newObj);
         successes.push(true);
       }
