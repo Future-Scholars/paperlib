@@ -16,8 +16,9 @@ export function appendLoading() {
 .lds-ripple {
   display: inline-block;
   position: relative;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
+  top: 4px;
 }
 .lds-ripple div {
   position: absolute;
@@ -31,22 +32,22 @@ export function appendLoading() {
 }
 @keyframes lds-ripple {
   0% {
-    top: 18px;
-    left: 18px;
+    top: 19px;
+    left: 19px;
     width: 0;
     height: 0;
     opacity: 0;
   }
   4.9% {
-    top: 18px;
-    left: 18px;
+    top: 19px;
+    left: 19px;
     width: 0;
     height: 0;
     opacity: 0;
   }
   5% {
-    top: 18px;
-    left: 18px;
+    top: 19px;
+    left: 19px;
     width: 0;
     height: 0;
     opacity: 1;
@@ -54,11 +55,25 @@ export function appendLoading() {
   100% {
     top: 0px;
     left: 0px;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     opacity: 0;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .app-loading-wrap {
+    background-color: rgba(26, 26, 26);
+    color: rgba(210, 210, 210);
+  }
+
+  .lds-ripple div {
+    border: 4px solid rgba(200, 200, 200);
+  }
+
+}
+
+
 
     `;
   const oStyle = document.createElement("style");

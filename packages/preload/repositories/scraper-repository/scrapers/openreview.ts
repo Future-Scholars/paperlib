@@ -40,6 +40,7 @@ export class OpenreviewScraper extends Scraper {
             authors: string[];
             venueid: string;
             venue: string;
+            _bibtex: string;
           };
         }[];
       }
@@ -66,19 +67,35 @@ export class OpenreviewScraper extends Scraper {
     const title = response.content.title;
     const authors = response.content.authors.join(", ");
 
-    if (!response.content.venue.includes("Submitted")) {
-      const type = response.content.venueid.includes("Conference")
-        ? "conf"
-        : "journals";
-      const publication = `dblp://${type}/${response.content.venueid
-        .split("/")[0]
-        .split(".")[0]
-        .toLowerCase()}`;
-      const pubTimeReg = response.content.venueid.match(/\d{4}/g);
-      const pubTime = pubTimeReg ? pubTimeReg[0] : "";
+    if (response.content.venue) {
+      console.log(response.content);
+      if (
+        !response.content.venue.includes("Submitted") &&
+        !response.content.venue.includes("CoRR")
+      ) {
+        const type = response.content.venueid.includes("Conference")
+          ? "conf"
+          : "journals";
+        const publication = `dblp://${type}/${response.content.venueid
+          .split("/")[0]
+          .split(".")[0]
+          .toLowerCase()}`;
+        const pubTimeReg = response.content.venueid.match(/\d{4}/g);
+        const pubTime = pubTimeReg ? pubTimeReg[0] : "";
 
-      entityDraft.setValue("pubTime", `${pubTime}`);
-      entityDraft.setValue("publication", publication);
+        entityDraft.setValue("pubTime", `${pubTime}`);
+        entityDraft.setValue("publication", publication);
+      }
+    } else {
+      if (
+        response.content._bibtex &&
+        response.content._bibtex.includes("year={")
+      ) {
+        const pubTimeReg = response.content._bibtex.match(/year={(\d{4})/);
+        const pubTime = pubTimeReg ? pubTimeReg[1] : "";
+        entityDraft.setValue("pubTime", `${pubTime}`);
+      }
+      entityDraft.setValue("publication", "openreview.net");
     }
 
     entityDraft.setValue("title", title);

@@ -169,7 +169,8 @@ export async function preprintEntities(
 ): Promise<PaperEntity[]> {
   const realm = await this.realm();
 
-  const filterFormat = 'publication contains[c] "arXiv"';
+  const filterFormat =
+    'publication contains[c] "arXiv" OR publication contains[c] "openreview"';
   return realm
     .objects("PaperEntity")
     .filtered(filterFormat)

@@ -1,5 +1,6 @@
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
+import { ipcRenderer } from "electron";
 import { RenderParameters } from "pdfjs-dist/types/src/display/api";
 import { Preference } from "../utils/preference";
 
@@ -31,7 +32,10 @@ export class RenderInteractor {
       viewport: viewport,
     } as RenderParameters;
     await page.render(renderContext).promise;
-    if (this.preference.get("invertColor")) {
+    if (
+      this.preference.get("invertColor") &&
+      (await ipcRenderer.invoke("getTheme")) === "dark"
+    ) {
       context.filter = "invert(0.9)";
       context.drawImage(canvas, 0, 0);
     }

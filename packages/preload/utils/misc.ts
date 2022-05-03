@@ -1,9 +1,14 @@
 import { AppInteractor } from "../interactors/app-interactor";
+import { BrowserExtensionInteractor } from "../interactors/browser-extension-interactor";
 import { EntityInteractor } from "../interactors/entity-interactor";
 import { RenderInteractor } from "../interactors/render-interactor";
 
 export function createInteractorProxy(
-  interactor: AppInteractor | EntityInteractor | RenderInteractor
+  interactor:
+    | AppInteractor
+    | EntityInteractor
+    | RenderInteractor
+    | BrowserExtensionInteractor
 ) {
   const interactorFuncs = Object.getOwnPropertyNames(
     Object.getPrototypeOf(interactor)

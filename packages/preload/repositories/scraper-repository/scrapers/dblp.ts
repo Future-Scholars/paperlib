@@ -206,8 +206,12 @@ export class DBLPVenueScraper extends Scraper {
           const venue = venueInfo["venue"];
           entityDraft.setValue("publication", venue);
           break;
+        } else {
+          entityDraft.setValue("publication", "");
         }
       }
+    } else {
+      entityDraft.setValue("publication", "");
     }
     return entityDraft;
   }
