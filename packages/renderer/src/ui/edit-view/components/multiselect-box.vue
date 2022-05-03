@@ -116,7 +116,6 @@ const onDeselected = (value: string) => {
       :clearable="false"
       @option:selected="onSelected"
       @option:deselected="onDeselected"
-      @option:created="onCreated"
     ></v-select>
   </div>
 </template>

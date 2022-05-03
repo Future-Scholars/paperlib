@@ -92,7 +92,9 @@ window.appInteractor.registerState(
     <div>
       <WindowControlBar class="flex-none" />
 
-      <div class="w-full px-3 overflow-y-auto no-scrollbar">
+      <div
+        class="w-full h-[calc(100vh-5rem)] px-3 overflow-y-auto no-scrollbar"
+      >
         <SectionTitle class="w-full h-7" title="Library" />
         <SectionItem
           name="All Papers"

@@ -34,7 +34,7 @@ export class RenderInteractor {
     await page.render(renderContext).promise;
     if (
       this.preference.get("invertColor") &&
-      (await ipcRenderer.invoke("getTheme")) === "dark"
+      (await ipcRenderer.invoke("getTheme"))
     ) {
       context.filter = "invert(0.9)";
       context.drawImage(canvas, 0, 0);

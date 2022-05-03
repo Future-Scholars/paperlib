@@ -5,5 +5,5 @@ ipcMain.on("themeChanged", (event, arg) => {
 });
 
 ipcMain.handle("getTheme", () => {
-  return nativeTheme.themeSource;
+  return nativeTheme.shouldUseDarkColors;
 });
