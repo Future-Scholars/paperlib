@@ -19,12 +19,14 @@ export class EmbedWebImporter extends WebImporter {
     let entityDraft: PaperEntityDraft | boolean = false;
     if (metaTags.length > 0) {
       entityDraft = new PaperEntityDraft(true);
+      let matched = false;
 
       const authors = [];
 
       for (const meta of metaTags) {
         if (meta.name === "citation_title") {
           entityDraft.setValue("title", meta.content);
+          matched = true;
         }
         if (meta.name === "citation_author") {
           authors.push(meta.content);
@@ -46,6 +48,9 @@ export class EmbedWebImporter extends WebImporter {
             })
             .join(", ")
         );
+      }
+      if (!matched) {
+        entityDraft = false;
       }
     }
 

@@ -1,4 +1,4 @@
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 
 import { DBRepository } from "../repositories/db-repository/db-repository";
 import { FileRepository } from "../repositories/file-repository/file-repository";
@@ -20,6 +20,8 @@ export class BrowserExtensionInteractor {
   entityInteractor: EntityInteractor;
 
   socketServer: WebSocketServer;
+  // @ts-ignore
+  ws: WebSocket;
 
   constructor(
     sharedState: SharedState,
@@ -40,6 +42,7 @@ export class BrowserExtensionInteractor {
 
     this.socketServer = new WebSocketServer({ port: 21992 });
     this.socketServer.on("connection", (ws) => {
+      this.ws = ws;
       ws.on("message", this.add.bind(this));
     });
   }
@@ -54,7 +57,10 @@ export class BrowserExtensionInteractor {
     );
 
     if (entityDraft) {
-      this.entityInteractor.scrape(JSON.stringify([entityDraft]));
+      await this.entityInteractor.scrape(JSON.stringify([entityDraft]));
+      this.ws.send(JSON.stringify({ response: "successful" }));
+    } else {
+      this.ws.send(JSON.stringify({ response: "no-avaliable-importer" }));
     }
 
     this.sharedState.set(
