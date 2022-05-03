@@ -46,7 +46,7 @@ const entityInteractor = new EntityInteractor(
   cacheRepository,
   exporterRepository
 );
-const renderInteractor = new RenderInteractor();
+const renderInteractor = new RenderInteractor(preference);
 
 const appInteractorProxy = createInteractorProxy(appInteractor);
 const entityInteractorProxy = createInteractorProxy(entityInteractor);

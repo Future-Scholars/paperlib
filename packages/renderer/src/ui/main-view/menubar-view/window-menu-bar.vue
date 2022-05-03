@@ -63,7 +63,7 @@ const emit = defineEmits(["click"]);
         :disabled="disableMultiBtn"
       />
       <div
-        class="flex rounded-md hover:bg-neutral-100"
+        class="flex rounded-md hover:bg-neutral-100 hover:dark:bg-neutral-600"
         style="margin-left: 0.5rem !important; margin-right: 0.5rem !important"
       >
         <MenuBarBtn btnName="ListView" @click="emit('click', 'list-view')" />
@@ -73,9 +73,11 @@ const emit = defineEmits(["click"]);
       <Menu as="div" class="relative inline-block text-left z-50">
         <div>
           <MenuButton
-            class="inline-flex justify-center w-7 h-6 rounded-md hover:bg-neutral-200 cursor-default"
+            class="inline-flex justify-center w-7 h-6 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700 cursor-default"
           >
-            <BIconFilterRight class="text-sm m-auto text-neutral-700" />
+            <BIconFilterRight
+              class="text-sm m-auto text-neutral-700 dark:text-neutral-300"
+            />
           </MenuButton>
         </div>
 
@@ -88,12 +90,12 @@ const emit = defineEmits(["click"]);
           leave-to-class="transform opacity-0 scale-95"
         >
           <MenuItems
-            class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg p-1 text-xs bg-white divide-y focus:outline-none"
+            class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg p-1 text-xs bg-white dark:bg-neutral-800 dark:drop-shadow-xl divide-y dark:divide-neutral-700 focus:outline-none"
           >
             <div class="pb-1">
               <MenuItem
                 v-slot="{ active }"
-                class="w-full rounded-md p-1 hover:bg-neutral-200"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-by-title')"
               >
                 <div class="flex justify-between px-2">
@@ -106,7 +108,7 @@ const emit = defineEmits(["click"]);
               </MenuItem>
               <MenuItem
                 v-slot="{ active }"
-                class="w-full rounded-md p-1 hover:bg-neutral-200"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-by-authors')"
               >
                 <div class="flex justify-between px-2">
@@ -119,7 +121,7 @@ const emit = defineEmits(["click"]);
               </MenuItem>
               <MenuItem
                 v-slot="{ active }"
-                class="w-full rounded-md p-1 hover:bg-neutral-200"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-by-pubTime')"
               >
                 <div class="flex justify-between px-2">
@@ -132,7 +134,7 @@ const emit = defineEmits(["click"]);
               </MenuItem>
               <MenuItem
                 v-slot="{ active }"
-                class="w-full rounded-md p-1 hover:bg-neutral-200"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-by-publication')"
               >
                 <div class="flex justify-between px-2">
@@ -148,7 +150,7 @@ const emit = defineEmits(["click"]);
               </MenuItem>
               <MenuItem
                 v-slot="{ active }"
-                class="w-full rounded-md p-1 hover:bg-neutral-200"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-by-addTime')"
               >
                 <div class="flex justify-between px-2">
@@ -163,7 +165,7 @@ const emit = defineEmits(["click"]);
             <div class="pt-1">
               <MenuItem
                 v-slot="{ active }"
-                class="w-full rounded-md p-1 hover:bg-neutral-200"
+                class="w-full rounded-md p-1 hover:bg-neutral-200hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-order-desc')"
               >
                 <div class="flex justify-between px-2">
@@ -176,7 +178,7 @@ const emit = defineEmits(["click"]);
               </MenuItem>
               <MenuItem
                 v-slot="{ active }"
-                class="w-full rounded-md p-1 hover:bg-neutral-200"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-order-asce')"
               >
                 <div class="flex justify-between px-2">

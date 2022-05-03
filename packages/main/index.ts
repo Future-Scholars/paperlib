@@ -5,6 +5,7 @@ import Store from "electron-store";
 import { setMainMenu } from "./menu";
 import "./contextmenu.ts";
 import "./files.ts";
+import "./theme.ts";
 
 Store.initRenderer();
 

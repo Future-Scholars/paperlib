@@ -64,17 +64,35 @@ const onChanged = (value: string) => {
   margin: 0;
   max-height: 16px;
 }
+
+@media (prefers-color-scheme: dark) {
+  .vue-select .vs__selected {
+    --tw-text-opacity: 1;
+    color: rgb(212 212 212 / var(--tw-text-opacity));
+  }
+
+  .vue-select .vs__open-indicator {
+    fill: rgb(212 212 212 / var(--tw-text-opacity));
+  }
+
+  .vue-select .vs__dropdown-menu {
+    background-color: rgb(64 64 64 / var(--tw-bg-opacity));
+  }
+}
 </style>
 
 <template>
-  <div class="flex flex-col rounded-md py-1 bg-neutral-200">
-    <label :for="placeholder" class="mx-3 text-xxs text-neutral-500">
+  <div class="flex flex-col rounded-md py-1 bg-neutral-200 dark:bg-neutral-700">
+    <label
+      :for="placeholder"
+      class="mx-3 text-xxs text-neutral-500 dark:text-neutral-400"
+    >
       {{ placeholder }}
     </label>
     <v-select
       :options="options"
       v-model="value"
-      class="vue-select text-xs"
+      class="vue-select text-xs dark:text-neutral-300"
       transition="none"
       :clearable="false"
       @option:selected="onChanged"

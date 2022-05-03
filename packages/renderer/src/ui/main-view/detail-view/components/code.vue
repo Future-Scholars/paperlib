@@ -26,7 +26,7 @@ const onClick = (codeJSONstr: string) => {
 <template>
   <div class="flex flex-wrap mt-1 text-xs space-x-1">
     <div
-      class="flex space-x-1 bg-neutral-200 rounded-md p-1 hover:bg-neutral-300 hover:shadow-sm select-none cursor-pointer"
+      class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer"
       v-for="code in codes"
       @click="onClick(code)"
     >

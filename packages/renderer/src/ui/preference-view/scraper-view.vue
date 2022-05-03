@@ -47,7 +47,7 @@ const onUpdate = (key: string, value: unknown) => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800">
+  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
     <div class="text-base font-semibold mb-4">Metadata Scrapers</div>
     <Toggle
       class="mb-2"
@@ -58,7 +58,7 @@ const onUpdate = (key: string, value: unknown) => {
       @update="(value) => onUpdate(scraper.key, value)"
     />
 
-    <hr class="mt-5 mb-5" />
+    <hr class="mt-5 mb-5 dark:border-neutral-600" />
     <div class="text-base font-semibold mb-4">Routine Scrape</div>
     <Toggle
       class="mb-3"

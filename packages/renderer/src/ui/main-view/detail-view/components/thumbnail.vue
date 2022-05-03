@@ -90,20 +90,20 @@ watch(props, (props, prevProps) => {
       <BIconExclamationTriangle class="text-md my-auto cursor-pointer" />
       <span class="text-xxs my-auto select-none">Not Found,</span>
       <span
-        class="text-xxs my-auto select-none underline cursor-pointer hover:text-accentlight"
+        class="text-xxs my-auto select-none underline cursor-pointer hover:text-accentlight hover:dark:text-accentdark"
         @click="onPickerClicked"
       >
         add?
       </span>
       <span
-        class="text-xxs my-auto select-none underline cursor-pointer hover:text-accentlight"
+        class="text-xxs my-auto select-none underline cursor-pointer hover:text-accentlight hover:dark:text-accentdark"
         @click="render"
         >refresh?</span
       >
     </div>
     <canvas
       id="preview-canvas"
-      class="absolute top-0 left-0 w-40 h-52 border-[1px] rounded-md hover:shadow-sm cursor-pointer"
+      class="absolute top-0 left-0 w-40 h-52 border-[1px] dark:border-neutral-800 rounded-md hover:shadow-sm cursor-pointer"
       @click="onClick"
       v-show="fileExistingStatus === 0"
     />
@@ -117,13 +117,13 @@ watch(props, (props, prevProps) => {
       leave-to-class="transform opacity-0"
     >
       <div
-        class="absolute top-0 left-0 rounded-md w-40 h-52 border-[1px] p-4 bg-white"
+        class="absolute top-0 left-0 rounded-md w-40 h-52 border-[1px] dark:border-neutral-700 p-4 bg-white dark:bg-neutral-800"
         v-if="isRendering"
       >
         <div class="flex h-full">
           <svg
             role="status"
-            class="animate-spin w-5 h-5 text-neutral-200 fill-neutral-500 m-auto"
+            class="animate-spin w-5 h-5 text-neutral-200 fill-neutral-500 dark:text-neutral-700 dark:fill-neutral-500 m-auto"
             viewBox="0 0 100 101"
             fill="none"
           >

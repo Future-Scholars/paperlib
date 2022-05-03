@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { BIconArrowRight } from "bootstrap-icons-vue";
+import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 
 import Toggle from "./components/toggle.vue";
 import Replacement from "./components/replacement.vue";
@@ -57,7 +57,7 @@ const onReplacementDelete = (replacement: { from: string; to: string }) => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800">
+  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
     <div class="text-base font-semibold mb-4">Export</div>
 
     <Toggle
@@ -72,28 +72,28 @@ const onReplacementDelete = (replacement: { from: string; to: string }) => {
 
     <div class="flex space-x-1 mb-2">
       <input
-        class="p-2 w-full rounded-md text-xs bg-neutral-200 focus:outline-none my-auto"
+        class="p-2 w-full rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none my-auto"
         type="text"
         placeholder="Source Publication"
         v-model="newReplacementFrom"
       />
       <BIconArrowRight class="my-auto w-6" />
       <input
-        class="p-2 w-full rounded-md text-xs bg-neutral-200 focus:outline-none my-auto"
+        class="p-2 w-full rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none my-auto"
         type="text"
         placeholder="Target Publication"
         v-model="newReplacementTo"
       />
       <div
-        class="flex h-full w-20 my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 text-xs"
+        class="flex h-full w-20 my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500 text-xs cursor-pointer"
         @click="onReplacementAdd"
       >
-        <span class="m-auto">Add</span>
+        <BIconPlus class="m-auto text-lg" />
       </div>
     </div>
 
     <div
-      class="flex flex-col bg-neutral-200 rounded-md h-[22rem] overflow-auto"
+      class="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md h-[22rem] overflow-auto"
     >
       <Replacement
         :from="replacement.from"

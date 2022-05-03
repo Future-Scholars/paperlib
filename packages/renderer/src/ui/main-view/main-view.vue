@@ -274,7 +274,7 @@ window.appInteractor.registerState(
 </script>
 
 <template>
-  <div class="grow flex flex-col h-screen bg-white">
+  <div class="grow flex flex-col h-screen bg-white dark:bg-neutral-800">
     <WindowMenuBar
       class="flex-none"
       @click="onMenuButtonClicked"
@@ -284,7 +284,7 @@ window.appInteractor.registerState(
       :disableMultiBtn="selectedEntities.length === 0"
     />
 
-    <div class="grow flex divide-x">
+    <div class="grow flex divide-x dark:divide-neutral-700">
       <DataView :entities="entities" :sortBy="sortBy" :sortOrder="sortOrder" />
       <DetailView
         :entity="

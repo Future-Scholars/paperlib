@@ -14,7 +14,7 @@ const props = defineProps({
 <template>
   <div
     class="flex w-full h-7 py-1 px-2 space-x-2 text-xs rounded-md select-none cursor-pointer"
-    :class="active ? 'bg-accentlight' : ''"
+    :class="active ? 'bg-accentlight dark:bg-accentdark' : ''"
   >
     <div
       class="truncate overflow-hidden w-[45%] m-auto"

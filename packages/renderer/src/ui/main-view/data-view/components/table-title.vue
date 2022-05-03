@@ -24,7 +24,7 @@ const onTitleClicked = (key: string) => {
     class="flex w-full font-semibold text-xs rounded-md select-none cursor-pointer"
   >
     <div
-      class="flex h-6 px-2 truncate overflow-hidden w-[calc(45%-1rem)] my-auto rounded-md hover:bg-neutral-200"
+      class="flex h-6 px-2 truncate overflow-hidden w-[calc(45%-1rem)] my-auto rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700"
       @click="onTitleClicked('title')"
     >
       <span class="my-auto"> Title </span>
@@ -38,7 +38,7 @@ const onTitleClicked = (key: string) => {
       />
     </div>
     <div
-      class="flex h-6 px-2 truncate overflow-hidden w-[calc(15%)] my-auto rounded-md hover:bg-neutral-200"
+      class="flex h-6 px-2 truncate overflow-hidden w-[calc(15%)] my-auto rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700"
       @click="onTitleClicked('authors')"
     >
       <span class="my-auto"> Authors </span>
@@ -52,7 +52,7 @@ const onTitleClicked = (key: string) => {
       />
     </div>
     <div
-      class="flex h-6 px-2 truncate overflow-hidden w-[calc(33%-0.5rem)] my-auto rounded-md hover:bg-neutral-200"
+      class="flex h-6 px-2 truncate overflow-hidden w-[calc(33%-0.5rem)] my-auto rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700"
       @click="onTitleClicked('publication')"
     >
       <span class="my-auto"> Publication </span>
@@ -66,7 +66,7 @@ const onTitleClicked = (key: string) => {
       />
     </div>
     <div
-      class="flex h-6 px-2 w-[calc(7%)] my-auto rounded-md hover:bg-neutral-200"
+      class="flex h-6 px-2 w-[calc(7%)] my-auto rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700"
       @click="onTitleClicked('pubTime')"
     >
       <span class="my-auto">Year</span>

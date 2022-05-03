@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, Ref, ref } from "vue";
+import { onBeforeMount, onMounted, Ref, ref } from "vue";
 
 import { PaperCategorizer } from "../../../preload/models/PaperCategorizer";
 import { PaperEntity } from "../../../preload/models/PaperEntity";
@@ -65,6 +65,10 @@ const reloadFolders = async () => {
 const reloadPreference = () => {
   preference.value = window.appInteractor.loadPreferences();
   showSidebarCount.value = preference.value.showSidebarCount;
+};
+
+const setupTheme = () => {
+  window.appInteractor.changeTheme(preference.value.preferedTheme);
 };
 
 // =======================================
@@ -149,16 +153,19 @@ window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
 });
 
 // =======================================
+onBeforeMount(async () => {
+  reloadPreference();
+  setupTheme();
+});
 onMounted(async () => {
   await reloadTags();
   await reloadFolders();
   await reloadEntities();
-  reloadPreference();
 });
 </script>
 
 <template>
-  <div class="flex text-neutral-700">
+  <div class="flex text-neutral-700 dark:text-neutral-200">
     <SidebarView
       :tags="tags"
       :folders="folders"

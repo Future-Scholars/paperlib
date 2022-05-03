@@ -84,15 +84,17 @@ const onWebdavDisconnectClicked = () => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800">
+  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
     <div class="text-base font-semibold mb-1">Sync Metadata</div>
     <div class="text-xxs mb-3">
-      <span class="underline hover:text-accentlight cursor-pointer">
+      <span
+        class="underline hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
+      >
         Learn How to Use
       </span>
     </div>
     <input
-      class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none mb-2"
+      class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none mb-2"
       type="text"
       placeholder="Realm APP ID of the custom MongoDB Atlas"
       v-model="syncAPPID"
@@ -100,7 +102,7 @@ const onWebdavDisconnectClicked = () => {
 
     <div class="flex space-x-2 justify-between mb-5">
       <input
-        class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-56"
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
         type="text"
         placeholder="Usearname"
         v-model="syncEmail"
@@ -108,7 +110,7 @@ const onWebdavDisconnectClicked = () => {
         :class="preference.useSync ? 'text-neutral-400' : ''"
       />
       <input
-        class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-56"
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
         type="password"
         placeholder="Password"
         v-model="syncPassword"
@@ -117,7 +119,7 @@ const onWebdavDisconnectClicked = () => {
       />
       <div class="flex justify-between text-xs">
         <button
-          class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200"
+          class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
           v-if="!preference.useSync"
           @click="onLoginClicked"
           :disabled="
@@ -129,14 +131,14 @@ const onWebdavDisconnectClicked = () => {
             syncAPPID.length !== 0 &&
             syncEmail.length !== 0 &&
             syncPassword.length !== 0
-              ? 'hover:bg-neutral-300'
+              ? 'hover:bg-neutral-300 hover:dark:bg-neutral-500'
               : 'text-neutral-400 '
           "
         >
           <span class="m-auto">Login</span>
         </button>
         <button
-          class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
+          class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
           v-if="preference.useSync"
           @click="onLogoutClicked"
         >
@@ -145,7 +147,7 @@ const onWebdavDisconnectClicked = () => {
       </div>
     </div>
 
-    <hr class="mb-5" />
+    <hr class="mb-5 dark:border-neutral-600" />
 
     <div class="text-base font-semibold mb-4">File Storage</div>
     <Options
@@ -164,7 +166,7 @@ const onWebdavDisconnectClicked = () => {
 
     <div class="flex flex-col" v-if="syncFileStorage === 'webdav'">
       <input
-        class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none mb-2"
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none mb-2"
         type="text"
         placeholder="WebDAV URL"
         v-model="webdavURL"
@@ -174,7 +176,7 @@ const onWebdavDisconnectClicked = () => {
 
       <div class="flex space-x-2 justify-between">
         <input
-          class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-56"
+          class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
           type="text"
           placeholder="Usearname"
           v-model="webdavUsername"
@@ -182,7 +184,7 @@ const onWebdavDisconnectClicked = () => {
           :class="syncFileStorageAvaliable ? 'text-neutral-400' : ''"
         />
         <input
-          class="p-2 rounded-md text-xs bg-neutral-200 focus:outline-none w-56"
+          class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
           type="password"
           placeholder="Password"
           v-model="webdavPassword"
@@ -191,14 +193,14 @@ const onWebdavDisconnectClicked = () => {
         />
         <div class="flex text-xs">
           <div
-            class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
+            class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500"
             v-if="!syncFileStorageAvaliable"
             @click="onWebdavConnectClicked"
           >
             <span class="m-auto">Connect</span>
           </div>
           <div
-            class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300"
+            class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500"
             v-if="syncFileStorageAvaliable"
             @click="onWebdavDisconnectClicked"
           >

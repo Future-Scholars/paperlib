@@ -37,7 +37,7 @@ const emit = defineEmits(["confirm", "cancel"]);
             <span class="m-auto text-xs">Cancel</span>
           </div>
           <div
-            class="flex h-8 rounded-lg bg-accentlight hover:shadow-sm"
+            class="flex h-8 rounded-lg bg-accentlight dark:bg-accentdark hover:shadow-sm"
             :class="calcelBtn ? 'w-24' : 'w-full'"
             @click="emit('confirm')"
             v-if="okBtn"

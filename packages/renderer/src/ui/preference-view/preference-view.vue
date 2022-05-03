@@ -50,15 +50,15 @@ window.appInteractor.registerState(
     leave-to-class="transform opacity-0"
   >
     <div
-      class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-800 bg-opacity-50"
+      class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-800 dark:bg-neutral-900 bg-opacity-50 dark:bg-opacity-80"
       v-if="isPreferenceViewShown"
     >
       <div class="flex justify-center items-center w-full h-full">
         <div
-          class="m-auto flex bg-neutral-100 h-[600px] w-[750px] rounded-lg shadow-lg select-none space-y-2"
+          class="m-auto flex bg-neutral-100 dark:bg-neutral-800 h-[600px] w-[750px] rounded-lg shadow-lg select-none space-y-2"
         >
           <div
-            class="flex flex-col space-y-1 h-full w-36 rounded-l-lg px-2 py-14 border-r-[1px]"
+            class="flex flex-col space-y-1 h-full w-36 rounded-l-lg px-2 py-14 border-r-[1px] dark:border-r-neutral-700"
           >
             <SectionItem
               name="General"
@@ -119,7 +119,7 @@ window.appInteractor.registerState(
             />
             <div class="flex justify-end space-x-2">
               <div
-                class="flex w-24 h-8 rounded-lg bg-neutral-300 hover:shadow-sm"
+                class="flex w-24 h-8 rounded-lg bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm"
                 @click="onCloseClicked"
               >
                 <span class="m-auto text-xs">Close</span>

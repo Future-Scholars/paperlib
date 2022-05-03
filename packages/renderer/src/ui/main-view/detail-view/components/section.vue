@@ -6,7 +6,7 @@ const props = defineProps({
 
 <template>
   <div class="pt-3">
-    <div class="text-xxs text-neutral-400 select-none">
+    <div class="text-xxs text-neutral-400 dark:text-neutral-500 select-none">
       {{ title }}
     </div>
     <slot></slot>

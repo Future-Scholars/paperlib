@@ -51,6 +51,11 @@ export class AppInteractor {
   }
 
   // ============================================================
+  changeTheme(theme: string) {
+    ipcRenderer.send("themeChanged", theme);
+  }
+
+  // ============================================================
   // State Operation
   getState(dest: string) {
     return this.sharedState.get(dest).get();

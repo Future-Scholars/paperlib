@@ -80,17 +80,27 @@ const onDeselected = (value: string) => {
 .vue-multiselect .vs__deselect {
   margin-left: 0;
 }
+
+@media (prefers-color-scheme: dark) {
+  .vue-multiselect .vs__selected {
+    --tw-text-opacity: 1;
+    color: rgb(212 212 212 / var(--tw-text-opacity));
+  }
+}
 </style>
 
 <template>
-  <div class="flex flex-col rounded-md py-1 bg-neutral-200">
-    <label :for="placeholder" class="mx-3 text-xxs text-neutral-500">
+  <div class="flex flex-col rounded-md py-1 bg-neutral-200 dark:bg-neutral-700">
+    <label
+      :for="placeholder"
+      class="mx-3 text-xxs text-neutral-500 dark:text-neutral-400"
+    >
       {{ placeholder }}
     </label>
     <v-select
       :options="options"
       v-model="values"
-      class="vue-multiselect text-xs drop"
+      class="vue-multiselect text-xs drop dark:text-neutral-300"
       transition="none"
       multiple
       :clearable="false"

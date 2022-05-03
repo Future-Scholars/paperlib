@@ -40,14 +40,18 @@ const btnIcons: Record<string, any> = {
 
 <template>
   <button
-    class="flex w-7 h-6 rounded-md hover:bg-neutral-200 has-tooltip"
+    class="flex w-7 h-6 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700 has-tooltip"
     :disabled="disabled"
     @click="emit('click')"
   >
     <component
       :is="btnIcons[btnName as string]"
       class="text-sm m-auto"
-      :class="disabled ? 'text-neutral-300' : 'text-neutral-700'"
+      :class="
+        disabled
+          ? 'text-neutral-300 dark:text-neutral-600'
+          : 'text-neutral-700 dark:text-neutral-300'
+      "
     />
     <span
       class="tooltip top-10 bg-neutral-200 p-1 rounded-md"

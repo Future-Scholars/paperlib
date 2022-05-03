@@ -1,9 +1,14 @@
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
 import { RenderParameters } from "pdfjs-dist/types/src/display/api";
+import { Preference } from "../utils/preference";
 
 export class RenderInteractor {
-  constructor() {
+  preference: Preference;
+
+  constructor(preference: Preference) {
+    this.preference = preference;
+
     pdfjs.GlobalWorkerOptions.workerPort = new Worker("./pdf.worker.min.js");
   }
 
@@ -15,7 +20,7 @@ export class RenderInteractor {
     var viewport = page.getViewport({ scale: scale });
     var outputScale = window.devicePixelRatio || 1;
     var canvas = document.getElementById("preview-canvas") as HTMLCanvasElement;
-    var context = canvas.getContext("2d");
+    var context = canvas.getContext("2d") as CanvasRenderingContext2D;
     canvas.width = Math.floor(viewport.width * outputScale);
     canvas.height = Math.floor(viewport.height * outputScale);
     var transform =
@@ -26,6 +31,10 @@ export class RenderInteractor {
       viewport: viewport,
     } as RenderParameters;
     await page.render(renderContext).promise;
+    if (this.preference.get("invertColor")) {
+      context.filter = "invert(0.9)";
+      context.drawImage(canvas, 0, 0);
+    }
     return true;
   }
 }

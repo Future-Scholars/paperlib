@@ -55,7 +55,7 @@ window.appInteractor.registerState("viewState.searchText", (value) => {
 
 <template>
   <div
-    class="flex transition ease-in-out duration-75 w-full rounded-md pl-2 space-x-2 justify-between focus-within:bg-neutral-100 hover:bg-neutral-100"
+    class="flex transition ease-in-out duration-75 w-full rounded-md pl-2 space-x-2 justify-between focus-within:bg-neutral-100 focus-within:dark:bg-neutral-700 hover:bg-neutral-100 hover:dark:bg-neutral-700"
   >
     <BIconSearch class="flex-none my-auto inline-block text-xs" />
     <input
@@ -68,11 +68,11 @@ window.appInteractor.registerState("viewState.searchText", (value) => {
     />
     <div class="my-auto invisible peer-focus:visible">
       <BIconQuestionCircle
-        class="text-neutral-400 hover:text-neutral-800 cursor-pointer peer"
+        class="text-neutral-400 dark:text-neutral-500 hover:text-neutral-800 hover:dark:text-neutral-300 cursor-pointer peer"
         v-if="searchMode === 'advanced'"
       />
       <div
-        class="absolute text-xxs p-4 bg-neutral-100 rounded-md shadow-lg z-50 invisible peer-hover:visible"
+        class="absolute text-xxs p-4 bg-neutral-100 dark:bg-neutral-800 rounded-md shadow-lg z-50 invisible peer-hover:visible"
       >
         <p class="font-semibold">Operators:</p>
         <p class="font-mono mb-2">
@@ -96,7 +96,7 @@ window.appInteractor.registerState("viewState.searchText", (value) => {
       </div>
     </div>
     <button
-      class="flex-none my-auto p-2 w-[100px] text-xxs bg-neutral-200 text-neutral-500 rounded-r-md invisible peer-focus:visible hover:visible hover:bg-neutral-300"
+      class="flex-none my-auto p-2 w-[100px] text-xxs bg-neutral-200 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-200 rounded-r-md invisible peer-focus:visible hover:visible hover:bg-neutral-300 hover:dark:bg-neutral-500"
       @click="onModeClicked"
     >
       {{ searchModeLabel[searchMode] }}

@@ -21,12 +21,17 @@ const onInput = (payload: Event) => {
 </script>
 
 <template>
-  <div class="flex flex-col rounded-md px-3 py-1 bg-neutral-200">
-    <label :for="placeholder" class="text-xxs text-neutral-500">
+  <div
+    class="flex flex-col rounded-md px-3 py-1 bg-neutral-200 dark:bg-neutral-700"
+  >
+    <label
+      :for="placeholder"
+      class="text-xxs text-neutral-500 dark:text-neutral-400"
+    >
       {{ placeholder }}
     </label>
     <textarea
-      class="text-xs bg-transparent focus:outline-none resize-none"
+      class="text-xs bg-transparent focus:outline-none resize-none dark:text-neutral-300"
       type="text"
       placeholder=" "
       v-model="value"
