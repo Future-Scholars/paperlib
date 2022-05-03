@@ -68,7 +68,6 @@ export class OpenreviewScraper extends Scraper {
     const authors = response.content.authors.join(", ");
 
     if (response.content.venue) {
-      console.log(response.content);
       if (
         !response.content.venue.includes("Submitted") &&
         !response.content.venue.includes("CoRR")

@@ -13,18 +13,20 @@ export class ArXivWebImporter extends WebImporter {
   async parsingProcess(
     webContent: WebContentType
   ): Promise<PaperEntityDraft | boolean> {
-    const entityDraft = new PaperEntityDraft(true);
+    let entityDraft: PaperEntityDraft | boolean = false;
     const arXivID = webContent.url.split("/")[4].replace(".pdf", "");
-    const downloadURL = `https://arxiv.org/pdf/${arXivID}.pdf`;
-
-    const downloadedFilePath = await this.downloadProcess([downloadURL]);
 
     if (arXivID) {
+      entityDraft = new PaperEntityDraft(true);
+      const downloadURL = `https://arxiv.org/pdf/${arXivID}.pdf`;
+
+      const downloadedFilePath = await this.downloadProcess([downloadURL]);
+
       entityDraft.setValue("arxiv", arXivID);
+      entityDraft.setValue("pubType", 0);
+      entityDraft.setValue("publication", "arXiv");
+      entityDraft.setValue("mainURL", downloadedFilePath[0]);
     }
-    entityDraft.setValue("pubType", 0);
-    entityDraft.setValue("publication", "arXiv");
-    entityDraft.setValue("mainURL", downloadedFilePath[0]);
 
     return entityDraft;
   }

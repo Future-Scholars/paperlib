@@ -50,7 +50,6 @@ const deleteCategorizer = (categorizer: string) => {
 };
 
 const onItemRightClicked = (event: MouseEvent, categorizer: string) => {
-  console.log(categorizer);
   window.appInteractor.showContextMenu(
     "show-sidebar-context-menu",
     categorizer

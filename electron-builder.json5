@@ -16,8 +16,12 @@
   },
   files: ["dist"],
   mac: {
+    icon: "./icons/icon.icns",
     artifactName: "${productName}_${version}.${ext}",
     target: ["dmg"],
+    releaseInfo: {
+      releaseNotesFile: "./release-notes.md",
+    },
   },
   win: {
     target: [

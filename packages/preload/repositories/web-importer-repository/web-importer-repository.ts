@@ -35,6 +35,9 @@ export class WebImporterRepository {
           `Web importer ${name} error: ${error as string}`
         );
       }
+      if (parsed) {
+        break;
+      }
     }
     return parsed;
   }

@@ -1,4 +1,4 @@
-import { app, dialog, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { release } from "os";
 import { join } from "path";
 import Store from "electron-store";
@@ -6,6 +6,7 @@ import { setMainMenu } from "./menu";
 import "./contextmenu.ts";
 import "./files.ts";
 import "./theme.ts";
+import "./update.ts";
 
 Store.initRenderer();
 

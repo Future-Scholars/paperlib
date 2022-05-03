@@ -30,7 +30,6 @@ const onLoginClicked = async () => {
   window.appInteractor.updatePreference("syncEmail", syncEmail.value);
   await window.appInteractor.setPassword("realmSync", syncPassword.value);
 
-  console.log(syncAPPID.value);
   window.entityInteractor.initDB();
 };
 

@@ -19,20 +19,14 @@ const props = defineProps({
 const emit = defineEmits(["changed"]);
 
 const onSelected = (value: string) => {
-  console.log("selected", value);
   emit("changed", value);
 };
 
 const onDeselected = (value: string) => {
-  console.log("deselected", value);
   emit(
     "changed",
     props.values.filter((v) => v !== value)
   );
-};
-
-const onCreated = (value: string) => {
-  console.log("onCreated", value);
 };
 </script>
 

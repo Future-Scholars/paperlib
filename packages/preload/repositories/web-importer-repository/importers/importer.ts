@@ -60,7 +60,7 @@ export class WebImporter implements WebImporterType {
       const filename = url.split("/").pop() as string;
       const targetUrl = path.join(os.homedir(), "Downloads", filename);
       const pipeline = promisify(stream.pipeline);
-
+      console.log(targetUrl);
       await pipeline(
         got.stream(url),
         createWriteStream(constructFileURL(targetUrl, false, false))
@@ -68,6 +68,7 @@ export class WebImporter implements WebImporterType {
       return targetUrl;
     };
 
+    console.log(urlList);
     const downloadedUrls = (await Promise.all(urlList.map(_download))).filter(
       (url) => url !== ""
     );

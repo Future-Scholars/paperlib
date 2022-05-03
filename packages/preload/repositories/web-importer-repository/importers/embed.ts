@@ -23,6 +23,7 @@ export class EmbedWebImporter extends WebImporter {
 
       const authors = [];
 
+      // @ts-ignore
       for (const meta of metaTags) {
         if (meta.name === "citation_title") {
           entityDraft.setValue("title", meta.content);
@@ -35,7 +36,13 @@ export class EmbedWebImporter extends WebImporter {
           entityDraft.setValue("pubTime", meta.content.split("/")[0]);
         }
         if (meta.name === "citation_pdf_url") {
-          const downloadedFilePath = await this.downloadProcess([meta.content]);
+          let downloadURL;
+          if (meta.content.endsWith(".pdf")) {
+            downloadURL = meta.content;
+          } else {
+            downloadURL = meta.content + ".pdf";
+          }
+          const downloadedFilePath = await this.downloadProcess([downloadURL]);
           entityDraft.setValue("mainURL", downloadedFilePath[0]);
         }
       }
