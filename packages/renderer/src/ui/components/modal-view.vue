@@ -22,7 +22,7 @@ const emit = defineEmits(["confirm", "cancel"]);
           <div class="mt-1 text-center text-sm font-semibold">
             {{ title }}
           </div>
-          <div class="text-xxs mt-4 px-2 text-center">
+          <div class="text-xxs mt-4 px-2 text-center overflow-hidden">
             {{ info }}
           </div>
         </div>

@@ -12,13 +12,9 @@ export class LocalFileBackend implements FileBackend {
   sharedState: SharedState;
   preference: Preference;
 
-  root: string;
-
   constructor(sharedState: SharedState, preference: Preference) {
     this.sharedState = sharedState;
     this.preference = preference;
-
-    this.root = this.preference.get("appLibFolder") as string;
 
     void this.check();
   }
@@ -29,7 +25,13 @@ export class LocalFileBackend implements FileBackend {
   }
 
   async access(url: string, download = false): Promise<string> {
-    const fileURL = constructFileURL(url, true, true, this.root, "file://");
+    const fileURL = constructFileURL(
+      url,
+      true,
+      true,
+      this.preference.get("appLibFolder") as string,
+      "file://"
+    );
     if (existsSync(fileURL.replace("file://", ""))) {
       return Promise.resolve(fileURL);
     } else {
