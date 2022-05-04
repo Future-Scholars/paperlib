@@ -116,8 +116,8 @@ async function createWindow() {
   });
 
   winPlugin.on("blur", () => {
-    // winPlugin?.hide();
-    // winPlugin?.setSize(600, 48);
+    winPlugin?.hide();
+    winPlugin?.setSize(600, 48);
   });
 
   const ret = globalShortcut.register("CommandOrControl+Shift+I", () => {

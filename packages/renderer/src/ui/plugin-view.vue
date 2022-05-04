@@ -24,6 +24,19 @@ const onInput = (payload: Event) => {
   onSearchTextChanged();
 };
 
+const exportSelectedEntity = () => {
+  window.pluginInteractor.export(
+    JSON.stringify([entities.value[selectedIndex.value]])
+  );
+  isNotificationShown.value = true;
+  debounce(() => {
+    isNotificationShown.value = false;
+    searchText.value = "";
+    entities.value = [];
+    window.pluginInteractor.hide();
+  }, 300)();
+};
+
 function shortcutHandler(event: KeyboardEvent) {
   if (event.code === "ArrowDown") {
     event.preventDefault();
@@ -36,21 +49,20 @@ function shortcutHandler(event: KeyboardEvent) {
     selectedIndex.value = Math.max(0, selectedIndex.value - 1);
   } else if (event.code === "Enter") {
     event.preventDefault();
-    window.pluginInteractor.export(
-      JSON.stringify([entities.value[selectedIndex.value]])
-    );
-    isNotificationShown.value = true;
-    debounce(() => {
-      isNotificationShown.value = false;
-      window.pluginInteractor.hide();
-    }, 300)();
+    exportSelectedEntity();
+  } else if (event.code === "Escape") {
+    event.preventDefault();
+    isNotificationShown.value = false;
+    searchText.value = "";
+    entities.value = [];
+    window.pluginInteractor.hide();
   }
 }
 window.addEventListener("keydown", shortcutHandler, true);
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full text-neutral-700 dark:text-neutral-200">
     <input
       class="w-full h-12 text-sm px-3 bg-transparent focus:outline-none"
       type="text"
@@ -59,7 +71,7 @@ window.addEventListener("keydown", shortcutHandler, true);
       v-model="searchText"
       @input="onInput"
     />
-    <div class="w-full p-2">
+    <div class="w-full p-2 dark:bg-neutral-800">
       <RecycleScroller
         class="scroller"
         :class="'max-h-[calc(100vh-4rem)]'"
@@ -74,12 +86,18 @@ window.addEventListener("keydown", shortcutHandler, true);
           :year="item.pubTime"
           :publication="item.publication"
           :active="selectedIndex == index"
+          @click="
+            () => {
+              selectedIndex = index;
+              exportSelectedEntity();
+            }
+          "
         />
       </RecycleScroller>
     </div>
 
     <div
-      class="fixed right-2 bottom-2 rounded-md drop-shadow-lg bg-neutral-50 p-2 text-xs"
+      class="fixed right-2 bottom-2 rounded-md drop-shadow-lg bg-neutral-50 dark:bg-neutral-700 p-2 text-xs"
       v-show="isNotificationShown"
     >
       BibTex copied!
