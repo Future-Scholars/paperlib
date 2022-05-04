@@ -38,6 +38,10 @@ const onLogoutClicked = () => {
   window.entityInteractor.initDB();
 };
 
+const onClickGuide = () => {
+  window.appInteractor.open("https://paperlib.app/en/blog/sync/");
+};
+
 window.appInteractor.getPassword("realmSync").then((password) => {
   syncPassword.value = password as string;
 });
@@ -85,7 +89,7 @@ const onWebdavDisconnectClicked = () => {
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
     <div class="text-base font-semibold mb-1">Sync Metadata</div>
-    <div class="text-xxs mb-3">
+    <div class="text-xxs mb-3" @click="onClickGuide">
       <span
         class="underline hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
       >
