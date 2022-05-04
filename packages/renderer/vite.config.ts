@@ -1,3 +1,4 @@
+import { resolve } from "path";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import electron from "vite-plugin-electron/renderer";
@@ -27,6 +28,18 @@ export default defineConfig({
     outDir: "../../dist/renderer",
     emptyOutDir: true,
     sourcemap: true,
+    rollupOptions: {
+      input: {
+        // multiple entry
+        index: resolve(__dirname, "index.html"),
+        index_plugin: resolve(__dirname, "index_plugin.html"),
+      },
+      output: {
+        format: "es",
+        entryFileNames: "[name].js",
+        manualChunks: {},
+      },
+    },
   },
   server: {
     host: pkg.env.VITE_DEV_SERVER_HOST,

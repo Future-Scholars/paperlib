@@ -121,15 +121,13 @@ async function createWindow() {
   });
 
   const ret = globalShortcut.register("CommandOrControl+Shift+I", () => {
+    win?.blur();
     winPlugin?.show();
   });
 
   if (!ret) {
     console.log("registration failed");
   }
-
-  // Check whether a shortcut is registered.
-  console.log(globalShortcut.isRegistered("CommandOrControl+Shift+I"));
 }
 
 app.whenReady().then(createWindow);
@@ -197,5 +195,7 @@ ipcMain.on("resize-plugin", (event, height) => {
 });
 
 ipcMain.on("hide-plugin", (event) => {
+  win?.blur();
+  app.hide();
   winPlugin?.hide();
 });

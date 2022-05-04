@@ -1,9 +1,6 @@
-import { clipboard, ipcRenderer } from "electron";
+import { ipcRenderer } from "electron";
 
 import { PaperEntity } from "../models/PaperEntity";
-import { PaperEntityDraft } from "../models/PaperEntityDraft";
-
-import { ExporterRepository } from "../repositories/exporter-repository/exporter-repository";
 
 export class PluginInteractor {
   // @ts-ignore
