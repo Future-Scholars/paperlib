@@ -1,4 +1,11 @@
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  shell,
+  globalShortcut,
+  MessageChannelMain,
+} from "electron";
 import { release } from "os";
 import { join } from "path";
 import Store from "electron-store";
@@ -23,6 +30,7 @@ if (!app.requestSingleInstanceLock()) {
 process.env["ELECTRON_DISABLE_SECURITY_WARNINGS"] = "true";
 
 let win: BrowserWindow | null = null;
+let winPlugin: BrowserWindow | null = null;
 
 async function createWindow() {
   win = new BrowserWindow({
@@ -53,11 +61,6 @@ async function createWindow() {
     win.webContents.openDevTools();
   }
 
-  // Test active push message to Renderer-process
-  win.webContents.on("did-finish-load", () => {
-    win?.webContents.send("main-process-message", new Date().toLocaleString());
-  });
-
   // Make all links open with the browser, not with the application
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https:")) shell.openExternal(url);
@@ -73,6 +76,60 @@ async function createWindow() {
   win.on("focus", () => {
     win?.webContents.send("window-gained-focus");
   });
+
+  // =====================================
+  // Plugin Window
+  winPlugin = new BrowserWindow({
+    title: "Plugin window",
+    width: 600,
+    height: 48,
+    minWidth: 600,
+    minHeight: 48,
+    maxWidth: 600,
+    maxHeight: 394,
+    useContentSize: true,
+    webPreferences: {
+      preload: join(__dirname, "../preload/index_plugin.cjs"),
+      webSecurity: false,
+      nodeIntegration: true,
+      contextIsolation: true,
+    },
+    frame: false,
+    visualEffectState: "active",
+    show: false,
+  });
+
+  if (app.isPackaged) {
+    winPlugin.loadFile(join(__dirname, "../renderer/index_plugin.html"));
+  } else {
+    // 🚧 Use ['ENV_NAME'] avoid vite:define plugin
+    const url = `http://${process.env["VITE_DEV_SERVER_HOST"]}:${process.env["VITE_DEV_SERVER_PORT"]}/index_plugin.html`;
+
+    winPlugin.loadURL(url);
+    winPlugin.webContents.openDevTools();
+  }
+
+  // Make all links open with the browser, not with the application
+  winPlugin.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("https:")) shell.openExternal(url);
+    return { action: "deny" };
+  });
+
+  winPlugin.on("blur", () => {
+    // winPlugin?.hide();
+    // winPlugin?.setSize(600, 48);
+  });
+
+  const ret = globalShortcut.register("CommandOrControl+Shift+I", () => {
+    winPlugin?.show();
+  });
+
+  if (!ret) {
+    console.log("registration failed");
+  }
+
+  // Check whether a shortcut is registered.
+  console.log(globalShortcut.isRegistered("CommandOrControl+Shift+I"));
 }
 
 app.whenReady().then(createWindow);
@@ -118,4 +175,27 @@ ipcMain.on("close", () => {
 
 ipcMain.handle("version", () => {
   return app.getVersion();
+});
+
+ipcMain.on("request-plugin-channel", (event) => {
+  // For security reasons, let's make sure only the frames we expect can
+  // access the worker.
+  if (event.senderFrame === win?.webContents.mainFrame) {
+    // Create a new channel ...
+    const { port1, port2 } = new MessageChannelMain();
+    // ... send one end to the worker ...
+    winPlugin?.webContents.postMessage("new-client", null, [port1]);
+    // ... and the other end to the main window.
+    event.senderFrame.postMessage("provide-plugin-channel", null, [port2]);
+    // Now the main window and the worker can communicate with each other
+    // without going through the main process!
+  }
+});
+
+ipcMain.on("resize-plugin", (event, height) => {
+  winPlugin?.setSize(600, height);
+});
+
+ipcMain.on("hide-plugin", (event) => {
+  winPlugin?.hide();
 });

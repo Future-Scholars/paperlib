@@ -1,4 +1,4 @@
-import { clipboard } from "electron";
+import { clipboard, ipcRenderer } from "electron";
 import path from "path";
 import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
 
@@ -46,6 +46,30 @@ export class EntityInteractor {
 
     this.scheduler = new ToadScheduler();
     this.setupRoutineScrapeScheduler();
+
+    // Communicate with plugin
+    ipcRenderer.send("request-plugin-channel");
+    ipcRenderer.once("provide-plugin-channel", (event) => {
+      // Once we receive the reply, we can take the port...
+      const [port] = event.ports;
+      // ... register a handler to receive results ...
+      port.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        if (data.op === "search") {
+          const entities = await this.loadEntities(
+            data.value,
+            false,
+            "",
+            "",
+            "addTime",
+            "desc"
+          );
+          port.postMessage(entities);
+        } else if (data.op === "export") {
+          this.export(data.value, "bibtex");
+        }
+      };
+    });
   }
 
   // ============================================================
