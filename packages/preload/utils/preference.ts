@@ -36,6 +36,8 @@ export interface PreferenceStore {
   ieeeAPIKey: string;
   pwcScraper: boolean;
 
+  lastVersion: string;
+
   [Key: string]: unknown;
 }
 
@@ -72,6 +74,8 @@ const defaultPreferences: PreferenceStore = {
   ieeeScraper: true,
   ieeeAPIKey: "",
   pwcScraper: true,
+
+  lastVersion: "",
 };
 
 export class Preference {

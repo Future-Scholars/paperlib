@@ -157,4 +157,14 @@ export class AppInteractor {
     this.scheduler.removeById("pauseSync");
     void this.dbRepository.resumeSync();
   }
+
+  // ============================================================
+  async shouldShowWhatsNew() {
+    const lastVersion = this.getPreference("lastVersion");
+    return lastVersion !== (await this.version());
+  }
+
+  async hideWhatsNew() {
+    this.preference.set("lastVersion", await this.version());
+  }
 }
