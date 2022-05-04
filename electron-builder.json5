@@ -15,13 +15,19 @@
     output: "release/${version}",
   },
   files: ["dist"],
-  mac: {
-    icon: "./build/icon.icns",
+  win: {
+    target: [
+      {
+        target: "nsis",
+        arch: ["x64"],
+      },
+    ],
     artifactName: "${productName}_${version}.${ext}",
-    target: ["dmg", "zip"],
-    releaseInfo: {
-      releaseNotesFile: "./release-notes.md",
-    },
+  },
+  nsis: {
+    oneClick: false,
+    createDesktopShortcut: "always",
+    allowToChangeInstallationDirectory: true,
   },
   files: [
     "!node_modules/realm/react-native${/*}",

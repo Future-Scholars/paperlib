@@ -39,9 +39,11 @@ const emit = defineEmits(["click"]);
 
 <template>
   <div class="flex w-full h-12 justify-between draggable-title">
-    <div class="grow my-auto px-2"><SearchInput /></div>
+    <div class="grow my-auto px-2 nodraggable-item"><SearchInput /></div>
 
-    <div class="flex flex-none justify-end space-x-1 my-auto w-80 pl-8 pr-2 nodraggable-item">
+    <div
+      class="flex flex-none justify-end space-x-1 my-auto w-80 pl-8 pr-2 nodraggable-item"
+    >
       <MenuBarBtn
         btnName="Rescrape"
         @click="emit('click', 'rescrape')"

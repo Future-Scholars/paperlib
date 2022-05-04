@@ -56,6 +56,7 @@ export class EntityInteractor {
       port.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         if (data.op === "search") {
+          this.sharedState.set("viewState.searchMode", "general");
           const entities = await this.loadEntities(
             data.value,
             false,
