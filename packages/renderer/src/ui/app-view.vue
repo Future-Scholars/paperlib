@@ -167,6 +167,7 @@ onMounted(async () => {
 <template>
   <div class="flex text-neutral-700 dark:text-neutral-200">
     <SidebarView
+      class="sidebar-windows-bg"
       :tags="tags"
       :folders="folders"
       :showSidebarCount="showSidebarCount"

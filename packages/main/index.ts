@@ -6,7 +6,7 @@ import {
   globalShortcut,
   MessageChannelMain,
 } from "electron";
-import { release } from "os";
+import { release, platform } from "os";
 import { join } from "path";
 import Store from "electron-store";
 import { setMainMenu } from "./menu";
@@ -14,6 +14,10 @@ import "./contextmenu.ts";
 import "./files.ts";
 import "./theme.ts";
 import "./update.ts";
+import {
+  setupWindowsSpecificStyle,
+  setupWindowsSpecificStyleForPlugin,
+} from "./style";
 
 Store.initRenderer();
 
@@ -128,6 +132,9 @@ async function createWindow() {
   if (!ret) {
     console.log("registration failed");
   }
+
+  setupWindowsSpecificStyle(win);
+  setupWindowsSpecificStyleForPlugin(winPlugin);
 }
 
 app.whenReady().then(createWindow);
@@ -196,6 +203,8 @@ ipcMain.on("resize-plugin", (event, height) => {
 
 ipcMain.on("hide-plugin", (event) => {
   win?.blur();
-  app.hide();
+  if (platform() === "darwin") {
+    app.hide();
+  }
   winPlugin?.hide();
 });
