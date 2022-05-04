@@ -102,7 +102,7 @@ jobs:
           export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
-          cp ./quasar.conf.win.js ./quasar.conf.js
+          cp ./electron-builder.win.json5 ./electron-builder.json5
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
