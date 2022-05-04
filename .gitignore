@@ -2,8 +2,6 @@
 .thumbs.db
 node_modules
 
-# Quasar core related directories
-.quasar
 /dist
 
 # Cordova related directories and files
@@ -34,3 +32,4 @@ yarn-error.log*
 .vscode
 package-lock.json
 yarn.lock
+release/
