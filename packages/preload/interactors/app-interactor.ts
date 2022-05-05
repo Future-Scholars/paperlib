@@ -158,6 +158,10 @@ export class AppInteractor {
     void this.dbRepository.resumeSync();
   }
 
+  migrateLocaltoCloud() {
+    void this.dbRepository.migrateLocaltoCloud();
+  }
+
   // ============================================================
   async shouldShowWhatsNew() {
     const lastVersion = this.getPreference("lastVersion");

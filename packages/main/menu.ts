@@ -15,7 +15,7 @@ export function setMainMenu(mainWindow: BrowserWindow) {
                 label: "Preference",
                 accelerator: "Cmd+,",
                 click: () => {
-                  mainWindow.webContents.send("preferenceshortcut");
+                  mainWindow.webContents.send("shortcut-Preference");
                 },
               },
               {

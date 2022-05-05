@@ -42,6 +42,10 @@ const onClickGuide = () => {
   window.appInteractor.open("https://paperlib.app/en/blog/sync/");
 };
 
+const onMigrateClicked = () => {
+  window.appInteractor.migrateLocaltoCloud();
+};
+
 window.appInteractor.getPassword("realmSync").then((password) => {
   syncPassword.value = password as string;
 });
@@ -148,6 +152,21 @@ const onWebdavDisconnectClicked = () => {
           <span class="m-auto">Logout</span>
         </button>
       </div>
+    </div>
+
+    <div class="flex justify-between mb-5">
+      <div class="flex flex-col">
+        <div class="text-xs font-semibold">Migrate local database to cloud</div>
+        <div class="text-xxs text-neutral-600 dark:text-neutral-500">
+          Migrate local database to cloud
+        </div>
+      </div>
+      <button
+        class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
+        @click="onMigrateClicked"
+      >
+        <span class="m-auto text-xs">Migrate</span>
+      </button>
     </div>
 
     <hr class="mb-5 dark:border-neutral-600" />

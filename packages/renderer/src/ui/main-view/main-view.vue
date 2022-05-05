@@ -191,6 +191,10 @@ window.appInteractor.registerMainSignal(
 
 // ========================================================
 // Register Shortcut
+window.appInteractor.registerMainSignal("shortcut-Preference", () => {
+  window.appInteractor.setState("viewState.isPreferenceViewShown", true);
+});
+
 window.appInteractor.registerMainSignal("shortcut-Enter", () => {
   if (selectedEntities.value.length >= 1) {
     openSelectedEntities();
