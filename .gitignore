@@ -2,8 +2,6 @@
 .thumbs.db
 node_modules
 
-# Quasar core related directories
-.quasar
 /dist
 
 # Cordova related directories and files
@@ -31,7 +29,7 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+.vscode
 package-lock.json
 yarn.lock
-
-mongodb-realm
+release/

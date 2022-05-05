@@ -5,7 +5,7 @@
 <img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
 <img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />
 <h2><a href="https://paperlib.app/" > Paperlib </a></h2>
-A simple academic paper management tool for CSer.
+An open-source simple academic paper management tool for CSer.
 </div>
 
 ![](./assets/ui.png)
@@ -22,13 +22,14 @@ A simple academic paper management tool for CSer.
 
 ## Highlights
 
--   Scrape paper’s metadata and code repository from arXiv, doi.org, DBLP, IEEE, and PaperwithCode. Tailored for CSer.
--   Rate, flag, or note your papers.
+-   Scrape paper’s metadata and code repository from arXiv, doi.org, DBLP, openreview.net, IEEE, and PaperwithCode etc. Tailored for CSer.
 -   Fulltext and advanced search.
+-   Rate, flag, or note your papers.
 -   Create tags and folders to make your library clean and tidy.
 -   Access your data from everywhere supported by MongoDB atlas.
 -   Export papers to BibTex or plain text.
--   Paperlib support macOS and Windows.
+-   Fast BibTex copy-paste bar.
+-   Supports macOS and Windows.
 
 ## Quick Start
 
