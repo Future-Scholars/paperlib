@@ -1,3 +1,8 @@
+## v1.6.1 May 5 2022
+
+1. Bug fix.
+
+
 ## v1.6.0 May 5 2022
 
 1. Paperlib plugin for fast BibTex copy-paste.
