@@ -16,6 +16,7 @@ export default defineConfig({
         // multiple entry
         index: join(__dirname, "index.ts"),
         index_plugin: join(__dirname, "index_plugin.ts"),
+        index_preview: join(__dirname, "index_preview.ts"),
       },
       output: {
         format: "cjs",

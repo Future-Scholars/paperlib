@@ -33,6 +33,7 @@ export default defineConfig({
         // multiple entry
         index: resolve(__dirname, "index.html"),
         index_plugin: resolve(__dirname, "index_plugin.html"),
+        index_preview: resolve(__dirname, "index_preview.html"),
       },
       output: {
         format: "es",

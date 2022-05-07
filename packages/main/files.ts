@@ -36,6 +36,7 @@ ipcMain.on("preview", (event, fileURL) => {
         minHeight: height,
         useContentSize: true,
         webPreferences: {
+          preload: join(__dirname, "../preload/index_preview.cjs"),
           webSecurity: false,
           nodeIntegration: true,
           contextIsolation: true,
