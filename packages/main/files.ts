@@ -30,11 +30,10 @@ ipcMain.on("preview", (event, fileURL) => {
     if (!previewWin) {
       previewWin = new BrowserWindow({
         title: "Preview window",
-        width: height * 0.707,
-        height: height,
-        minWidth: height * 0.707,
-        minHeight: height,
-        useContentSize: true,
+        width: Math.floor(height * 0.8 * 0.75),
+        height: Math.floor(height * 0.8),
+        minWidth: Math.floor(height * 0.8 * 0.75),
+        minHeight: Math.floor(height * 0.8),
         webPreferences: {
           preload: join(__dirname, "../preload/index_preview.cjs"),
           webSecurity: false,
@@ -62,4 +61,5 @@ ipcMain.on("preview", (event, fileURL) => {
 
 ipcMain.on("close-preview", () => {
   previewWin?.close();
+  previewWin = null;
 });

@@ -13,6 +13,7 @@ declare global {
     renderInteractor: RenderInteractor;
     browserExtensionInteractor: BrowserExtensionInteractor;
     pluginInteractor: PluginInteractor;
+    quicklookInteractor: { preview: () => void; closePreview: () => void };
   }
 
   interface Realm {

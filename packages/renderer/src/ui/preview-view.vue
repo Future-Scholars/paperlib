@@ -1,7 +1,13 @@
 <script setup lang="ts">
-const render = async (fileURL: string) => {
-  await window.renderInteractor.render(fileURL);
-};
+window.quicklookInteractor.preview();
+
+function shortcutHandler(event: KeyboardEvent) {
+  if (event.code === "Escape") {
+    event.preventDefault();
+    window.quicklookInteractor.closePreview();
+  }
+}
+window.addEventListener("keydown", shortcutHandler, true);
 </script>
 
 <template>
