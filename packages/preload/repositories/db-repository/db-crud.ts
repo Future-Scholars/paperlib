@@ -354,6 +354,10 @@ export async function update(
         updateObj.flag = entity.flag;
         updateObj.note = entity.note;
         updateObj.codes = entity.codes;
+        updateObj.volume = entity.volume;
+        updateObj.number = entity.number;
+        updateObj.pages = entity.pages;
+        updateObj.publisher = entity.publisher;
         updateObj.tags = this.updateCategorizers(
           updateObj.tags,
           entity.tags,

@@ -12,6 +12,7 @@ import Authors from "./components/authors.vue";
 import Thumbnail from "./components/thumbnail.vue";
 import Supplementary from "./components/supplementary.vue";
 import { onMounted } from "vue";
+import PubDetails from "./components/pub-details.vue";
 
 const props = defineProps({
   entity: {
@@ -76,7 +77,7 @@ onMounted(() => {
 <template>
   <div
     id="detail-view"
-    class="flex-none flex flex-col w-80 max-h-[calc(100vh-3rem)] px-4 pb-4 overflow-auto"
+    class="flex-none flex flex-col w-80 max-h-[calc(100vh-3rem)] pl-4 pr-1 pb-4 overflow-auto"
   >
     <div class="text-md font-bold">
       {{ entity.title }}
@@ -84,11 +85,13 @@ onMounted(() => {
     <Section title="Authors">
       <Authors :authors="entity.authors" />
     </Section>
-    <Section title="Publication">
-      <div class="text-xxs">
-        {{ entity.publication }}
-      </div>
-    </Section>
+    <PubDetails
+      :publication="entity.publication"
+      :volume="entity.volume"
+      :pages="entity.pages"
+      :number="entity.number"
+      :publisher="entity.publisher"
+    />
     <Section title="Publication Year">
       <div class="text-xxs">
         {{ entity.pubTime }}

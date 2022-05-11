@@ -40,6 +40,9 @@ export class DOIScraper extends Scraper {
       };
       type: string;
       "container-title": string;
+      publisher: string;
+      page: string;
+      volume: string;
     };
     const title = response.title;
     const authors = response.author
@@ -63,7 +66,21 @@ export class DOIScraper extends Scraper {
     entityDraft.setValue("pubTime", `${pubTime}`);
     entityDraft.setValue("pubType", pubType);
     entityDraft.setValue("publication", publication);
-
+    if (response.volume) {
+      entityDraft.setValue("volume", response.volume);
+    }
+    if (response.page) {
+      entityDraft.setValue("pages", response.page);
+    }
+    if (response.publisher) {
+      entityDraft.setValue(
+        "publisher",
+        response.publisher ===
+          "Institute of Electrical and Electronics Engineers (IEEE)"
+          ? "IEEE"
+          : response.publisher
+      );
+    }
     return entityDraft;
   }
 }

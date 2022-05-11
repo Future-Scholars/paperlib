@@ -5,8 +5,9 @@ import { PaperEntity } from "../../models/PaperEntity";
 
 /* eslint-disable */
 export function migrate(oldRealm, newRealm) {
+  const oldVersion = oldRealm.schemaVersion;
   // only apply this change if upgrading to schemaVersion 2
-  if (oldRealm.schemaVersion == 1) {
+  if (oldVersion <= 1) {
     const oldObjects = oldRealm.objects("PaperEntity");
     const newObjects = newRealm.objects("PaperEntity");
     // loop through all objects and set the fullName property in the new schema
@@ -25,37 +26,10 @@ export function migrate(oldRealm, newRealm) {
       newObject["arxiv"] = oldObject["arxiv"] ? oldObject["arxiv"] : "";
       newObject["rating"] = oldObject["rating"] ? oldObject["rating"] : 0;
       newObject["flag"] = oldObject["flag"] ? oldObject["flag"] : false;
-      newObject["mainURL"] = path.basename(
-        oldObject["mainURL"] ? oldObject["mainURL"] : ""
-      );
-      const newObjectSupURLs = [];
-      for (const supURL of newObject["supURLs"]) {
-        newObjectSupURLs.push(path.basename(supURL));
-      }
-      newObject["supURLs"] = newObjectSupURLs;
-      newObject["_id"] = oldObject["id"];
-    }
-
-    const oldTags = oldRealm.objects("PaperTag");
-    const newTags = newRealm.objects("PaperTag");
-    // loop through all objects and set the fullName property in the new schema
-    for (const objectIndex in oldTags) {
-      const oldTag = oldTags[objectIndex];
-      const newTag = newTags[objectIndex];
-      newTag["_id"] = new ObjectId();
-    }
-
-    const oldFolders = oldRealm.objects("PaperFolder");
-    const newFolders = newRealm.objects("PaperFolder");
-    // loop through all objects and set the fullName property in the new schema
-    for (const objectIndex in oldFolders) {
-      const oldFolder = oldFolders[objectIndex];
-      const newFolder = newFolders[objectIndex];
-      newFolder["_id"] = new ObjectId();
     }
   }
 
-  if (oldRealm.schemaVersion == 2) {
+  if (oldVersion <= 2) {
     const newObjects = newRealm.objects("PaperEntity");
     // loop through all objects and set the fullName property in the new schema
     for (const objectIndex in newObjects) {
@@ -67,29 +41,10 @@ export function migrate(oldRealm, newRealm) {
         newObjectSupURLs.push(path.basename(supURL));
       }
       newObject["supURLs"] = newObjectSupURLs;
-      newObject["_id"] = oldObject["id"];
-    }
-
-    const oldTags = oldRealm.objects("PaperTag");
-    const newTags = newRealm.objects("PaperTag");
-    // loop through all objects and set the fullName property in the new schema
-    for (const objectIndex in oldTags) {
-      const oldTag = oldTags[objectIndex];
-      const newTag = newTags[objectIndex];
-      newTag["_id"] = new ObjectId();
-    }
-
-    const oldFolders = oldRealm.objects("PaperFolder");
-    const newFolders = newRealm.objects("PaperFolder");
-    // loop through all objects and set the fullName property in the new schema
-    for (const objectIndex in oldFolders) {
-      const oldFolder = oldFolders[objectIndex];
-      const newFolder = newFolders[objectIndex];
-      newFolder["_id"] = new ObjectId();
     }
   }
 
-  if (oldRealm.schemaVersion == 3) {
+  if (oldVersion <= 3) {
     const oldObjects = oldRealm.objects("PaperEntity");
     const newObjects = newRealm.objects("PaperEntity");
     // loop through all objects and set the fullName property in the new schema
@@ -98,27 +53,9 @@ export function migrate(oldRealm, newRealm) {
       const newObject = newObjects[objectIndex];
       newObject["_id"] = oldObject["id"];
     }
-
-    const oldTags = oldRealm.objects("PaperTag");
-    const newTags = newRealm.objects("PaperTag");
-    // loop through all objects and set the fullName property in the new schema
-    for (const objectIndex in oldTags) {
-      const oldTag = oldTags[objectIndex];
-      const newTag = newTags[objectIndex];
-      newTag["_id"] = new ObjectId();
-    }
-
-    const oldFolders = oldRealm.objects("PaperFolder");
-    const newFolders = newRealm.objects("PaperFolder");
-    // loop through all objects and set the fullName property in the new schema
-    for (const objectIndex in oldFolders) {
-      const oldFolder = oldFolders[objectIndex];
-      const newFolder = newFolders[objectIndex];
-      newFolder["_id"] = new ObjectId();
-    }
   }
 
-  if (oldRealm.schemaVersion == 4) {
+  if (oldVersion <= 4) {
     const oldTags = oldRealm.objects("PaperTag");
     const newTags = newRealm.objects("PaperTag");
     for (const objectIndex in oldTags) {
@@ -134,11 +71,22 @@ export function migrate(oldRealm, newRealm) {
     }
   }
 
-  if (oldRealm.schemaVersion == 5) {
+  if (oldVersion <= 5) {
     const newEntities = newRealm.objects("PaperEntity");
     for (const objectIndex in newEntities) {
       const newEntity = newEntities[objectIndex];
       newEntity["codes"] = [];
+    }
+  }
+
+  if (oldVersion <= 6) {
+    const newEntities = newRealm.objects("PaperEntity");
+    for (const objectIndex in newEntities) {
+      const newEntity = newEntities[objectIndex];
+      newEntity["pages"] = "";
+      newEntity["volume"] = "";
+      newEntity["number"] = "";
+      newEntity["publisher"] = "";
     }
   }
 }

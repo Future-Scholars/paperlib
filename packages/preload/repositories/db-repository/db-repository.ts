@@ -47,7 +47,7 @@ export class DBRepository {
     this.preference = preference;
 
     this._realm = null;
-    this._schemaVersion = 6;
+    this._schemaVersion = 7;
 
     this.app = null;
     this.cloudConfig = null;

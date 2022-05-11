@@ -10,7 +10,9 @@ export class IEEEScraper extends Scraper {
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
     const enable =
       entityDraft.title !== "" &&
-      (entityDraft.publication === "arXiv" || entityDraft.publication === "") &&
+      (entityDraft.publication === "arXiv" ||
+        entityDraft.publication === "openreview.net" ||
+        entityDraft.publication === "") &&
       (this.preference.get("ieeeScraper") as boolean) &&
       (this.preference.get("ieeeAPIKey") as string) !== "";
 
@@ -55,6 +57,10 @@ export class IEEEScraper extends Scraper {
         publication_year: string;
         content_type: string;
         publication_title: string;
+        volume: string;
+        publisher: string;
+        start_page: string;
+        end_page: string;
       }[];
     };
     if (response.total_records > 0) {
@@ -105,7 +111,21 @@ export class IEEEScraper extends Scraper {
           entityDraft.setValue("pubTime", `${pubTime}`);
           entityDraft.setValue("pubType", pubType);
           entityDraft.setValue("publication", publication);
-
+          if (article.volume) {
+            entityDraft.setValue("volume", article.volume);
+          }
+          if (article.start_page) {
+            entityDraft.setValue("pages", article.start_page);
+          }
+          if (article.end_page) {
+            entityDraft.setValue(
+              "pages",
+              entityDraft.pages + "-" + article.end_page
+            );
+          }
+          if (article.publisher) {
+            entityDraft.setValue("publisher", article.publisher);
+          }
           break;
         }
       }
