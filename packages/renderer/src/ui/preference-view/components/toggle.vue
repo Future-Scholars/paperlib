@@ -30,6 +30,9 @@ const enabled = ref(props.enable);
         {{ info }}
       </div>
     </div>
+    <div>
+      <slot></slot>
+    </div>
     <Switch
       v-model="enabled"
       :class="

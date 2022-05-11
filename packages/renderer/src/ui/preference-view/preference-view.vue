@@ -55,7 +55,7 @@ window.appInteractor.registerState(
     >
       <div class="flex justify-center items-center w-full h-full">
         <div
-          class="m-auto flex bg-neutral-100 dark:bg-neutral-800 h-[600px] w-[750px] rounded-lg shadow-lg select-none space-y-2"
+          class="m-auto flex bg-neutral-100 dark:bg-neutral-800 min-h-[600px] w-[750px] rounded-lg shadow-lg select-none space-y-2"
         >
           <div
             class="flex flex-col space-y-1 h-full w-36 rounded-l-lg px-2 py-14 border-r-[1px] dark:border-r-neutral-700"
