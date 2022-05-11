@@ -2,7 +2,7 @@
   "name": "paperlib",
   "version": "1.6.1",
   "description": "A simple academic paper management tool for CSer.",
-  "productName": "PaperlibDev",
+  "productName": "Paperlib",
   "author": "Geoffrey Chen <geoffreychen777@gmail.com>",
   "license": "GPL-3.0",
   "private": true,
