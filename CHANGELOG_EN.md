@@ -1,3 +1,8 @@
+## v1.6.2 May 11 2022
+
+1. Scrape publication details such as volume, pages etc..
+2. Fixed some bugs.
+
 ## v1.6.1 May 5 2022
 
 1. Bug fix.
