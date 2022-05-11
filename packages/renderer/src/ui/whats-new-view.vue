@@ -8,7 +8,6 @@ const checkShouldShow = async () => {
 };
 
 const hide = () => {
-  console.log("hide");
   show.value = false;
   window.appInteractor.hideWhatsNew();
 };
