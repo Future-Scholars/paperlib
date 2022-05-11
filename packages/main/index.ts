@@ -5,6 +5,7 @@ import {
   shell,
   globalShortcut,
   MessageChannelMain,
+  screen,
 } from "electron";
 import { release, platform } from "os";
 import { join } from "path";
@@ -79,6 +80,7 @@ async function createWindow() {
 
   win.on("focus", () => {
     win?.webContents.send("window-gained-focus");
+    winPlugin?.hide();
   });
 
   // =====================================
@@ -102,6 +104,9 @@ async function createWindow() {
     visualEffectState: "active",
     show: false,
   });
+  if (platform() === "darwin") {
+    winPlugin?.setVisibleOnAllWorkspaces(true);
+  }
 
   if (app.isPackaged) {
     winPlugin.loadFile(join(__dirname, "../renderer/index_plugin.html"));
@@ -126,6 +131,14 @@ async function createWindow() {
 
   const ret = globalShortcut.register("CommandOrControl+Shift+I", () => {
     win?.blur();
+
+    const { x, y } = screen.getCursorScreenPoint();
+    const currentDisplay = screen.getDisplayNearestPoint({ x, y });
+    const bounds = currentDisplay.bounds;
+    const centerx = bounds.x + (bounds.width - 600) / 2;
+    const centery = bounds.y + (bounds.height - 48) / 2;
+    winPlugin?.setPosition(centerx, centery);
+
     winPlugin?.show();
   });
 
@@ -203,9 +216,5 @@ ipcMain.on("resize-plugin", (event, height) => {
 });
 
 ipcMain.on("hide-plugin", (event) => {
-  win?.blur();
-  if (platform() === "darwin") {
-    app.hide();
-  }
-  winPlugin?.hide();
+  winPlugin?.blur();
 });

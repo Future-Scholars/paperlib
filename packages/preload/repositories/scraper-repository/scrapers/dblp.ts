@@ -28,6 +28,10 @@ function parsingProcess(
             year: string;
             type: string;
             key: string;
+            volume: string;
+            pages: string;
+            number: string;
+            publisher: string;
           };
         }[];
       };
@@ -87,6 +91,19 @@ function parsingProcess(
           entityDraft.setValue("pubTime", `${pubTime}`);
           entityDraft.setValue("pubType", pubType);
           entityDraft.setValue("publication", "dblp://" + pubKey);
+
+          if (article.volume) {
+            entityDraft.setValue("volume", article.volume);
+          }
+          if (article.pages) {
+            entityDraft.setValue("pages", article.pages);
+          }
+          if (article.number) {
+            entityDraft.setValue("number", article.number);
+          }
+          if (article.publisher) {
+            entityDraft.setValue("publisher", article.publisher);
+          }
         }
         break;
       }

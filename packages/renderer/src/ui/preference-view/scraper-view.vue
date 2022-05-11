@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import Toggle from "./components/toggle.vue";
 
 import { PreferenceStore } from "../../../../preload/utils/preference";
@@ -41,6 +42,12 @@ const props = defineProps({
   },
 });
 
+const ieeeAPIKey = ref(props.preference.ieeeAPIKey);
+
+const onClickGuide = () => {
+  window.appInteractor.open("https://developer.ieee.org/");
+};
+
 const onUpdate = (key: string, value: unknown) => {
   window.appInteractor.updatePreference(key, value);
 };
@@ -57,6 +64,28 @@ const onUpdate = (key: string, value: unknown) => {
       v-for="scraper in scrapers"
       @update="(value) => onUpdate(scraper.key, value)"
     />
+
+    <div class="flex justify-between">
+      <div class="flex flex-col max-w-[90%]">
+        <div class="text-xs font-semibold">IEEE API Key</div>
+        <div class="text-xxs text-neutral-600 dark:text-neutral-500">
+          Apply
+          <span
+            class="underline cursor-pointer text-accentlight dark:text-accentdark"
+            @click="onClickGuide"
+          >
+            here </span
+          >.
+        </div>
+      </div>
+      <input
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
+        type="text"
+        placeholder="IEEE API Key"
+        v-model="ieeeAPIKey"
+        @input="(event) => onUpdate('ieeeAPIKey', ieeeAPIKey)"
+      />
+    </div>
 
     <hr class="mt-5 mb-5 dark:border-neutral-600" />
     <div class="text-base font-semibold mb-4">Routine Scrape</div>

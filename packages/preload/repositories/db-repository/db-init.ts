@@ -47,11 +47,27 @@ export async function initRealm(this: DBRepository, reinit = false) {
       this._realm = new Realm(this.cloudConfig);
       this.syncSession = this._realm.syncSession;
     } catch (err) {
-      console.log(err);
-      this.sharedState.set(
-        "viewState.alertInformation",
-        `Open cloud database faild: ${err as string}`
-      );
+      // @ts-ignore
+      if (err.message.includes("Unexpected future history schema")) {
+        if (existsSync(this.cloudConfig.path ? this.cloudConfig.path : "")) {
+          await fsPromise.unlink(this.cloudConfig.path!);
+          try {
+            this._realm = new Realm(this.cloudConfig);
+            this.syncSession = this._realm.syncSession;
+          } catch (err) {
+            console.log(err);
+            this.sharedState.set(
+              "viewState.alertInformation",
+              `Open cloud database faild: ${err as string}`
+            );
+          }
+        }
+      } else {
+        this.sharedState.set(
+          "viewState.alertInformation",
+          `Open cloud database faild: ${err as string}`
+        );
+      }
     }
   } else {
     try {

@@ -21,6 +21,10 @@ export class PaperEntityDraft {
   flag = false;
   note = "";
   codes: string[] = [];
+  pages: string = "";
+  volume: string = "";
+  number: string = "";
+  publisher: string = "";
 
   [Key: string]: unknown;
 
@@ -59,6 +63,10 @@ export class PaperEntityDraft {
     this.flag = entity.flag;
     this.note = entity.note;
     this.codes = entity.codes;
+    this.pages = entity.pages;
+    this.volume = entity.volume;
+    this.number = entity.number;
+    this.publisher = entity.publisher;
   }
 
   create(): PaperEntity {
@@ -86,6 +94,10 @@ export class PaperEntityDraft {
       flag: this.flag,
       note: this.note,
       codes: this.codes,
+      pages: this.pages,
+      volume: this.volume,
+      number: this.number,
+      publisher: this.publisher,
     };
     return entity;
   }

@@ -38,6 +38,10 @@ export const PaperEntitySchema = {
       type: "list",
       objectType: "string",
     },
+    pages: "string",
+    volume: "string",
+    number: "string",
+    publisher: "string",
   },
 };
 
@@ -61,6 +65,10 @@ export interface PaperEntity {
   flag: boolean;
   note: string;
   codes: string[];
+  pages: string;
+  volume: string;
+  number: string;
+  publisher: string;
 
   [Key: string]: unknown;
 }
@@ -85,4 +93,8 @@ export const PaperEntityPlaceholder = {
   flag: false,
   note: "",
   codes: [],
+  pages: "",
+  volume: "",
+  number: "",
+  publisher: "",
 };
