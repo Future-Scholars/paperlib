@@ -1,3 +1,8 @@
+## v1.6.3 May 30 2022
+
+1. Add context menu to thubmnail to replace the main paper PDF file.
+2. Show in Finder/Explorer.
+
 ## v1.6.2 May 11 2022
 
 1. Scrape publication details such as volume, pages etc..
