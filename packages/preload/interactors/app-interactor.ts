@@ -100,6 +100,11 @@ export class AppInteractor {
     }
   }
 
+  async showInFinder(url: string) {
+    const accessedURL = (await this.access(url, true)).replace("file://", "");
+    shell.showItemInFolder(accessedURL);
+  }
+
   async access(url: string, download: boolean) {
     return await this.fileRepository.access(url, download);
   }

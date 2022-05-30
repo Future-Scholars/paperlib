@@ -28,6 +28,12 @@ const openSelectedEntities = () => {
   });
 };
 
+const showInFinderSelectedEntities = () => {
+  selectedEntities.value.forEach((entity) => {
+    window.appInteractor.showInFinder(entity.mainURL);
+  });
+};
+
 const previewSelectedEntities = () => {
   window.appInteractor.preview(selectedEntities.value[0].mainURL);
 };
@@ -174,6 +180,13 @@ window.appInteractor.registerMainSignal("data-context-menu-scrape", () => {
 window.appInteractor.registerMainSignal("data-context-menu-open", () => {
   openSelectedEntities();
 });
+
+window.appInteractor.registerMainSignal(
+  "data-context-menu-showinfinder",
+  () => {
+    showInFinderSelectedEntities();
+  }
+);
 
 window.appInteractor.registerMainSignal(
   "data-context-menu-export-bibtex",

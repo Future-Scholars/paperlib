@@ -49,6 +49,7 @@ const onPickerClicked = async () => {
   const pickedFile = (await window.appInteractor.showFilePicker()).filePaths[0];
   if (pickedFile) {
     emit("modifyMainFile", pickedFile);
+    render();
   }
 };
 
@@ -66,6 +67,20 @@ const onCloudDownloadClicked = async () => {
     render();
   }
 };
+
+const onRightClicked = (event: MouseEvent) => {
+  window.appInteractor.showContextMenu(
+    "show-thumbnail-context-menu",
+    props.url
+  );
+};
+
+window.appInteractor.registerMainSignal(
+  "thumbnail-context-menu-replace",
+  (args) => {
+    onPickerClicked();
+  }
+);
 
 onMounted(() => {
   render();
@@ -105,6 +120,7 @@ watch(props, (props, prevProps) => {
       id="preview-canvas"
       class="absolute top-0 left-0 w-40 h-52 border-[1px] dark:border-neutral-800 rounded-md hover:shadow-sm cursor-pointer"
       @click="onClick"
+      @contextmenu="(e: MouseEvent) => onRightClicked(e)"
       v-show="fileExistingStatus === 0"
     />
 
