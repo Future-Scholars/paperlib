@@ -1,3 +1,7 @@
+## v1.6.4 Jun 5 2022
+
+1. Fix some background color bugs in dark mode.
+
 ## v1.6.3 May 30 2022
 
 1. Add context menu to thubmnail to replace the main paper PDF file.
