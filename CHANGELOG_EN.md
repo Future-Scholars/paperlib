@@ -1,3 +1,8 @@
+## v1.6.5 Jun 5 2022
+
+1. Fix the window control bugs on Windows.
+
+
 ## v1.6.4 Jun 5 2022
 
 1. Fix some background color bugs in dark mode.

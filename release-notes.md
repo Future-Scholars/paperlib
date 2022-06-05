@@ -1,1 +1,1 @@
-1. Fix some background color bugs in dark mode.
+1. Fix the window control bugs on Windows.
