@@ -101,6 +101,7 @@ async function createWindow() {
       contextIsolation: true,
     },
     frame: false,
+    vibrancy: "sidebar",
     visualEffectState: "active",
     show: false,
   });
@@ -126,6 +127,18 @@ async function createWindow() {
 
   winPlugin.on("blur", () => {
     winPlugin?.hide();
+    winPlugin?.setSize(600, 48);
+  });
+
+  winPlugin.on("focus", () => {
+    winPlugin?.setSize(600, 48);
+  });
+
+  winPlugin.on("show", () => {
+    winPlugin?.setSize(600, 48);
+  });
+
+  winPlugin.on("hide", () => {
     winPlugin?.setSize(600, 48);
   });
 

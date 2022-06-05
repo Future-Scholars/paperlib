@@ -62,7 +62,9 @@ window.addEventListener("keydown", shortcutHandler, true);
 </script>
 
 <template>
-  <div class="w-full text-neutral-700 dark:text-neutral-200">
+  <div
+    class="w-full text-neutral-700 dark:text-neutral-200 dark:bg-neutral-800"
+  >
     <input
       class="w-full h-12 text-sm px-3 bg-transparent focus:outline-none"
       type="text"
