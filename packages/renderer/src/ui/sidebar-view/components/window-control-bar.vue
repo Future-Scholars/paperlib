@@ -16,17 +16,20 @@ const onMaximizeClicked = () => {
 
 <template>
   <div class="flex w-full h-12 p-5 space-x-2 draggable-title">
-    <div class="group w-3 h-3 rounded-md bg-red-400" @click="onCloseClicked">
+    <div
+      class="group w-3 h-3 rounded-md bg-red-400 nodraggable-item"
+      @click="onCloseClicked"
+    >
       <BIconX class="group-hover:visible invisible w-3 h-3 text-gray-700" />
     </div>
     <div
-      class="group w-3 h-3 rounded-md bg-yellow-500"
+      class="group w-3 h-3 rounded-md bg-yellow-500 nodraggable-item"
       @click="onMinimizeClicked"
     >
       <BIconDash class="group-hover:visible invisible w-3 h-3 text-gray-700" />
     </div>
     <div
-      class="group w-3 h-3 rounded-md bg-green-500"
+      class="group w-3 h-3 rounded-md bg-green-500 nodraggable-item"
       @click="onMaximizeClicked"
     >
       <BIconPlus class="group-hover:visible invisible w-3 h-3 text-gray-700" />
