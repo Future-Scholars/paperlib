@@ -1,3 +1,8 @@
+## v1.7.0 Jun 13 2022
+
+1. Colorizable tags and folders.
+2. Compact view for sidebar.
+
 ## v1.6.5 Jun 5 2022
 
 1. Fix the window control bugs on Windows.

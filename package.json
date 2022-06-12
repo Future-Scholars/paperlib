@@ -1,6 +1,6 @@
 {
   "name": "paperlib",
-  "version": "1.6.5",
+  "version": "1.7.0",
   "description": "A simple academic paper management tool for CSer.",
   "productName": "Paperlib",
   "author": "Geoffrey Chen <geoffreychen777@gmail.com>",

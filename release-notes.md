@@ -1,1 +1,2 @@
-1. Fix the window control bugs on Windows.
+1. Colorizable tags and folders.
+2. Compact view for sidebar.
