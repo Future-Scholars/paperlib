@@ -22,6 +22,7 @@ const props = defineProps({
   tags: Array as () => Array<PaperTag>,
   folders: Array as () => Array<PaperFolder>,
   showSidebarCount: Boolean,
+  compact: Boolean,
 });
 
 const entitiesCount = ref(0);
@@ -49,6 +50,22 @@ const deleteCategorizer = (categorizer: string) => {
   }
 };
 
+const colorizeCategorizer = (categorizer: string, color: string) => {
+  if (categorizer.startsWith("tag-")) {
+    window.entityInteractor.colorizeCategorizers(
+      categorizer.replaceAll("tag-", ""),
+      "PaperTag",
+      color
+    );
+  } else {
+    window.entityInteractor.colorizeCategorizers(
+      categorizer.replaceAll("folder-", ""),
+      "PaperFolder",
+      color
+    );
+  }
+};
+
 const onItemRightClicked = (event: MouseEvent, categorizer: string) => {
   window.appInteractor.showContextMenu(
     "show-sidebar-context-menu",
@@ -60,6 +77,13 @@ window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
     deleteCategorizer(args);
+  }
+);
+
+window.appInteractor.registerMainSignal(
+  "sidebar-context-menu-color",
+  (args) => {
+    colorizeCategorizer(args[0], args[1]);
   }
 );
 
@@ -101,6 +125,7 @@ window.appInteractor.registerState(
           :count="entitiesCount"
           :with-counter="showSidebarCount"
           :with-spinner="isSpinnerShown"
+          :compact="compact"
           :active="selectedCategorizer === 'lib-all'"
           @click="onSelectCategorizer('lib-all')"
         >
@@ -110,6 +135,7 @@ window.appInteractor.registerState(
           name="Flags"
           :with-counter="false"
           :with-spinner="false"
+          :compact="compact"
           :active="selectedCategorizer === 'lib-flaged'"
           @click="onSelectCategorizer('lib-flaged')"
         >
@@ -122,12 +148,21 @@ window.appInteractor.registerState(
             :count="tag.count"
             :with-counter="showSidebarCount"
             :with-spinner="false"
+            :compact="compact"
             v-for="tag in tags"
             :active="selectedCategorizer === `tag-${tag.name}`"
             @click="onSelectCategorizer(`tag-${tag.name}`)"
             @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `tag-${tag.name}`)}"
           >
-            <BIconTag class="text-sm my-auto text-blue-500" />
+            <BIconTag
+              class="text-sm my-auto"
+              :class="{
+                'text-blue-500': tag.color === 'blue' || tag.color === null,
+                'text-red-500': tag.color === 'red',
+                'text-green-500': tag.color === 'green',
+                'text-yellow-500': tag.color === 'yellow',
+              }"
+            />
           </SectionItem>
         </CollopseGroup>
 
@@ -137,12 +172,22 @@ window.appInteractor.registerState(
             :count="folder.count"
             :with-counter="showSidebarCount"
             :with-spinner="false"
+            :compact="compact"
             v-for="folder in folders"
             :active="selectedCategorizer === `folder-${folder.name}`"
             @click="onSelectCategorizer(`folder-${folder.name}`)"
             @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `folder-${folder.name}`)}"
           >
-            <BIconFolder class="text-sm my-auto text-blue-500" />
+            <BIconFolder
+              class="text-sm my-auto"
+              :class="{
+                'text-blue-500':
+                  folder.color === 'blue' || folder.color === null,
+                'text-red-500': folder.color === 'red',
+                'text-green-500': folder.color === 'green',
+                'text-yellow-500': folder.color === 'yellow',
+              }"
+            />
           </SectionItem>
         </CollopseGroup>
       </div>

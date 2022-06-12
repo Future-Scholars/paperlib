@@ -1,6 +1,25 @@
-import { ipcMain, Menu, BrowserWindow } from "electron";
+import { ipcMain, Menu, BrowserWindow, nativeImage } from "electron";
 
 const isMac = process.platform === "darwin";
+
+const blueBuf = Buffer.from([246, 130, 59, 0]);
+let blueIcon = nativeImage.createFromBuffer(blueBuf, { width: 1, height: 1 });
+blueIcon = blueIcon.resize({ width: 3, height: 10 });
+
+const redBuf = Buffer.from([68, 68, 239, 0]);
+let redIcon = nativeImage.createFromBuffer(redBuf, { width: 1, height: 1 });
+redIcon = redIcon.resize({ width: 3, height: 10 });
+
+const yellowBuf = Buffer.from([8, 179, 234, 0]);
+let yellowIcon = nativeImage.createFromBuffer(yellowBuf, {
+  width: 1,
+  height: 1,
+});
+yellowIcon = yellowIcon.resize({ width: 3, height: 10 });
+
+const greenBuf = Buffer.from([94, 197, 34, 0]);
+let greenIcon = nativeImage.createFromBuffer(greenBuf, { width: 1, height: 1 });
+greenIcon = greenIcon.resize({ width: 3, height: 10 });
 
 // main
 ipcMain.on("show-data-context-menu", (event, args) => {
@@ -75,6 +94,35 @@ ipcMain.on("show-data-context-menu", (event, args) => {
 
 ipcMain.on("show-sidebar-context-menu", (event, args) => {
   const template = [
+    {
+      label: "Blue",
+      click: () => {
+        event.sender.send("sidebar-context-menu-color", [args, "blue"]);
+      },
+      icon: blueIcon,
+    },
+    {
+      label: "Red",
+      click: () => {
+        event.sender.send("sidebar-context-menu-color", [args, "red"]);
+      },
+      icon: redIcon,
+    },
+    {
+      label: "Yellow",
+      click: () => {
+        event.sender.send("sidebar-context-menu-color", [args, "yellow"]);
+      },
+      icon: yellowIcon,
+    },
+    {
+      label: "Green",
+      click: () => {
+        event.sender.send("sidebar-context-menu-color", [args, "green"]);
+      },
+      icon: greenIcon,
+    },
+    { type: "separator" },
     {
       label: "Delete",
       click: () => {

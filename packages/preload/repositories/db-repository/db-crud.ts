@@ -133,10 +133,14 @@ export async function entities(
 
 export async function categorizers(
   this: DBRepository,
-  categorizerType: Categorizers
+  categorizerType: Categorizers,
+  sortBy: string,
+  sortOrder: string
 ): Promise<PaperCategorizer[]> {
   const realm = await this.realm();
-  const objects = realm.objects(categorizerType).sorted("name");
+  const objects = realm
+    .objects(categorizerType)
+    .sorted(sortBy, sortOrder == "desc");
 
   if (!this.categorizersListenerInited[categorizerType]) {
     objects.addListener((objs, changes) => {
@@ -249,6 +253,29 @@ export async function deleteCategorizers(
   });
 }
 
+export async function colorizeCategorizers(
+  this: DBRepository,
+  categorizerNameStr: string,
+  categorizerType: Categorizers,
+  color: string,
+  realm: Realm | null = null
+) {
+  if (!realm) {
+    realm = await this.realm();
+  }
+
+  realm.safeWrite(() => {
+    categorizerNameStr.split(";").forEach((categorizerName) => {
+      const objects = realm!
+        .objects<PaperCategorizer>(categorizerType)
+        .filtered(`name == "${categorizerName}"`) as Results<PaperCategorizer>;
+      for (const object of objects) {
+        object.color = color;
+      }
+    });
+  });
+}
+
 export function updateCategorizers(
   this: DBRepository,
   existCategorizers: PaperCategorizer[],
@@ -302,6 +329,7 @@ export function updateCategorizers(
           name: updateCategorizerName,
           count: 1,
           _partition: "",
+          color: "blue",
         };
         if (this.cloudConfig && this.app && this.app.currentUser) {
           categorizer["_partition"] = this.app.currentUser.id.toString();

@@ -6,8 +6,11 @@ export interface PreferenceStore {
   appLibFolder: string;
   deleteSourceFile: boolean;
   showSidebarCount: boolean;
+  isSidebarCompact: boolean;
   preferedTheme: "light" | "dark" | "system";
   invertColor: boolean;
+  sidebarSortBy: "name" | "count" | "color";
+  sidebarSortOrder: "asce" | "desc";
 
   enableExportReplacement: boolean;
   exportReplacement: Array<{ from: string; to: string }>;
@@ -45,8 +48,11 @@ const defaultPreferences: PreferenceStore = {
   appLibFolder: path.join(os.homedir(), "Documents", "paperlib"),
   deleteSourceFile: false,
   showSidebarCount: true,
+  isSidebarCompact: false,
   preferedTheme: "light",
   invertColor: true,
+  sidebarSortBy: "name",
+  sidebarSortOrder: "asce",
 
   enableExportReplacement: true,
   exportReplacement: [],

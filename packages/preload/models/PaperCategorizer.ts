@@ -5,6 +5,7 @@ export interface PaperCategorizer {
   _partition: string;
   name: string;
   count: number;
+  color: string;
 }
 
 export interface PaperTag extends PaperCategorizer {
@@ -12,6 +13,7 @@ export interface PaperTag extends PaperCategorizer {
   _partition: string;
   name: string;
   count: number;
+  color: string;
 }
 
 export interface PaperFolder extends PaperCategorizer {
@@ -19,6 +21,7 @@ export interface PaperFolder extends PaperCategorizer {
   _partition: string;
   name: string;
   count: number;
+  color: string;
 }
 
 export type Categorizers = "PaperTag" | "PaperFolder";
@@ -31,6 +34,7 @@ export const PaperTagSchema = {
     _partition: "string?",
     name: "string",
     count: "int",
+    color: "string?",
   },
 };
 
@@ -42,5 +46,6 @@ export const PaperFolderSchema = {
     _partition: "string?",
     name: "string",
     count: "int",
+    color: "string?",
   },
 };

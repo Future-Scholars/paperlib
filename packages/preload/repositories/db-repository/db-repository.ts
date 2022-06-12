@@ -22,6 +22,7 @@ import {
   preprintEntities,
   remove,
   updateCategorizers,
+  colorizeCategorizers,
   update,
 } from "./db-crud";
 import { migrateLocaltoCloud } from "./db-migration";
@@ -47,7 +48,7 @@ export class DBRepository {
     this.preference = preference;
 
     this._realm = null;
-    this._schemaVersion = 7;
+    this._schemaVersion = 8;
 
     this.app = null;
     this.cloudConfig = null;
@@ -87,5 +88,6 @@ export class DBRepository {
   remove = remove;
   deleteCategorizers = deleteCategorizers;
   updateCategorizers = updateCategorizers;
+  colorizeCategorizers = colorizeCategorizers;
   update = update;
 }

@@ -8,13 +8,18 @@ const props = defineProps({
   active: Boolean,
   withSpinner: Boolean,
   withCounter: Boolean,
+  compact: Boolean,
 });
 </script>
 
 <template>
   <div
-    class="w-full h-7 flex justify-between rounded-md pl-2 pr-1 cursor-pointer"
-    :class="active ? 'bg-neutral-400 bg-opacity-30' : ''"
+    class="w-full flex justify-between rounded-md pl-2 pr-1 cursor-pointer"
+    :class="{
+      'bg-neutral-400 bg-opacity-30': active,
+      'h-6': compact,
+      'h-7': !compact,
+    }"
   >
     <div class="my-auto flex space-x-2">
       <slot></slot>

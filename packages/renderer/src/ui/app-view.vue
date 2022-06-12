@@ -25,6 +25,10 @@ const preference: Ref<PreferenceStore> = ref(
   window.appInteractor.loadPreferences()
 );
 const showSidebarCount = ref(false);
+const isSidebarCompact = ref(false);
+
+const sidebarSortBy = ref("name");
+const sidebarSortOrder = ref("asce");
 
 // =======================================
 // Data
@@ -51,12 +55,20 @@ const reloadEntities = async () => {
 };
 
 const reloadTags = async () => {
-  const results = await window.entityInteractor.loadCategorizers("PaperTag");
+  const results = await window.entityInteractor.loadCategorizers(
+    "PaperTag",
+    sidebarSortBy.value,
+    sidebarSortOrder.value
+  );
   tags.value = results;
 };
 
 const reloadFolders = async () => {
-  const results = await window.entityInteractor.loadCategorizers("PaperFolder");
+  const results = await window.entityInteractor.loadCategorizers(
+    "PaperFolder",
+    sidebarSortBy.value,
+    sidebarSortOrder.value
+  );
   folders.value = results;
 };
 
@@ -65,6 +77,17 @@ const reloadFolders = async () => {
 const reloadPreference = () => {
   preference.value = window.appInteractor.loadPreferences();
   showSidebarCount.value = preference.value.showSidebarCount;
+  isSidebarCompact.value = preference.value.isSidebarCompact;
+
+  if (
+    sidebarSortBy.value !== preference.value.sidebarSortBy ||
+    sidebarSortOrder.value !== preference.value.sidebarSortOrder
+  ) {
+    sidebarSortBy.value = preference.value.sidebarSortBy;
+    sidebarSortOrder.value = preference.value.sidebarSortOrder;
+    reloadTags();
+    reloadFolders();
+  }
 };
 
 const setupTheme = () => {
@@ -171,6 +194,7 @@ onMounted(async () => {
       :tags="tags"
       :folders="folders"
       :showSidebarCount="showSidebarCount"
+      :compact="isSidebarCompact"
     />
     <MainView :entities="entities" />
   </div>

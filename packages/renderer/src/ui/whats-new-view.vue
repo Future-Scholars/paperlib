@@ -34,33 +34,18 @@ onMounted(() => {
       <div class="w-[40rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.6.0
+          What's New in Paperlib 1.7.0
         </p>
-        <li>
-          Paperlib plugin for fast BibTex copy-paste. Try it with
-          <span class="font-mono text-sm bg-neutral-200 rounded-md p-1"
-            >cmd/ctrl + shift + I</span
-          >.
-        </li>
+        <li>Colorize your tags and folders.</li>
         <img
           class="w-96 mx-auto mt-5 mb-8 rounded-md shadow-neutral-400 shadow-lg"
-          src="../assets/plugin.png"
+          src="../assets/color.png"
         />
-        <li>
-          Clickable author tag. Left click to search papers of the author. Right
-          click to open Google Scholar.
-        </li>
+        <li>Compact list and sorting options of sidebar.</li>
         <img
-          class="mx-auto w-56 mt-5 mb-8 rounded-md shadow-lg"
-          src="../assets/author.png"
+          class="mx-auto w-96 mt-5 mb-8 rounded-md shadow-lg"
+          src="../assets/setting.png"
         />
-        <li>Add openreview.net scraper.</li>
-        <li>Support new Chrome extension.</li>
-        <li>
-          A lot of UI improvements such as better search bar, edit and
-          preference UI.
-        </li>
-        <li>Redeveloped with tailwindcss.</li>
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
           @click="hide"

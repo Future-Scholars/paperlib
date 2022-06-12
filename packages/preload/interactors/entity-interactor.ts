@@ -98,8 +98,16 @@ export class EntityInteractor {
     return entities;
   }
 
-  async loadCategorizers(categorizerType: Categorizers) {
-    return await this.dbRepository.categorizers(categorizerType);
+  async loadCategorizers(
+    categorizerType: Categorizers,
+    sortBy: string,
+    sortOrder: string
+  ) {
+    return await this.dbRepository.categorizers(
+      categorizerType,
+      sortBy,
+      sortOrder
+    );
   }
 
   // ============================================================
@@ -262,6 +270,18 @@ export class EntityInteractor {
       "viewState.processingQueueCount",
       (this.sharedState.viewState.processingQueueCount.get() as number) -
         entityDrafts.length
+    );
+  }
+
+  colorizeCategorizers(
+    categorizerName: string,
+    categorizerType: Categorizers,
+    color: string
+  ) {
+    void this.dbRepository.colorizeCategorizers(
+      categorizerName,
+      categorizerType,
+      color
     );
   }
 
