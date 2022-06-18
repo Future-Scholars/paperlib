@@ -16,7 +16,7 @@ export interface ScraperType {
   scrape(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft>;
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType | void;
   parsingProcess(
-    rawResponse: Response<string> | PDFFileResponseType,
+    rawResponse: Response<string> | PDFFileResponseType | string,
     entityDraft: PaperEntityDraft
   ): PaperEntityDraft | void;
   scrapeImpl: (_: PaperEntityDraft) => Promise<PaperEntityDraft>;
@@ -40,7 +40,7 @@ export class Scraper implements ScraperType {
   }
 
   parsingProcess(
-    _rawResponse: Response<string>,
+    _rawResponse: Response<string> | PDFFileResponseType | string,
     _entityDraft: PaperEntityDraft
   ): PaperEntityDraft | void {
     throw new Error("Method not implemented.");
@@ -60,6 +60,7 @@ async function scrapeImpl(
   if (enable) {
     const options = {
       headers: headers,
+      retry: 0,
       timeout: 5000,
     };
     const response = await got(scrapeURL, options);

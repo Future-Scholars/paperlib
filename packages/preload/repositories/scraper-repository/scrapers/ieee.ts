@@ -2,8 +2,6 @@ import { Response } from "got";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 import { formatString } from "../../../utils/string";
-import { Preference } from "../../../utils/preference";
-import { SharedState } from "../../../utils/appstate";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class IEEEScraper extends Scraper {

@@ -13,6 +13,7 @@ import { IEEEScraper } from "./scrapers/ieee";
 import { CVFScraper } from "./scrapers/cvf";
 import { PwCScraper } from "./scrapers/paperwithcode";
 import { OpenreviewScraper } from "./scrapers/openreview";
+import { GoogleScholarScraper } from "./scrapers/google-scholar";
 
 import { Preference } from "../../utils/preference";
 import { PaperEntityDraft } from "../../models/PaperEntityDraft";
@@ -54,6 +55,10 @@ export class ScraperRepository {
       ),
       CVFScraper: new CVFScraper(this.sharedState, this.preference),
       IEEEScraper: new IEEEScraper(this.sharedState, this.preference),
+      GoogleScholarScraper: new GoogleScholarScraper(
+        this.sharedState,
+        this.preference
+      ),
       PwCScraper: new PwCScraper(this.sharedState, this.preference),
     };
 
@@ -65,6 +70,7 @@ export class ScraperRepository {
       try {
         entityDraft = await scraper.scrape(entityDraft);
       } catch (error) {
+        console.log(error);
         this.sharedState.set(
           "viewState.alertInformation",
           `${name} error: ${error as string}`

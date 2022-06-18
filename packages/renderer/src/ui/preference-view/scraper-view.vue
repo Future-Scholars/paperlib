@@ -33,6 +33,11 @@ const scrapers = [
     info: "Query from IEEE xplore",
     key: "ieeeScraper",
   },
+  {
+    title: "Google Scholar",
+    info: "Query from Google Scholar",
+    key: "googlescholarScraper",
+  },
 ];
 
 const props = defineProps({

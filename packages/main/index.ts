@@ -231,3 +231,47 @@ ipcMain.on("resize-plugin", (event, height) => {
 ipcMain.on("hide-plugin", (event) => {
   winPlugin?.blur();
 });
+
+let winCheck: BrowserWindow | null = null;
+let winCheckDom: string | null = null;
+ipcMain.handle("robot-check", async (event, url) => {
+  if (winCheck === null) {
+    winCheck = new BrowserWindow({
+      title: "Robot check window",
+      width: 600,
+      height: 600,
+      useContentSize: true,
+      webPreferences: {
+        webSecurity: false,
+        nodeIntegration: true,
+        contextIsolation: true,
+      },
+      frame: true,
+      show: false,
+    });
+  }
+  winCheck.loadURL(url);
+
+  winCheck.on("closed", () => {
+    winCheck = null;
+  });
+
+  const promise = new Promise((resolve, reject) => {
+    winCheck?.on("close", async () => {
+      resolve(winCheckDom);
+    });
+  });
+
+  winCheck.webContents.on("dom-ready", async () => {
+    winCheckDom = await winCheck?.webContents.executeJavaScript(
+      "document.body.innerHTML"
+    );
+    if (winCheckDom?.includes("Please show you're not a robot")) {
+      winCheck?.show();
+    } else {
+      winCheck?.close();
+    }
+  });
+
+  return await promise;
+});
