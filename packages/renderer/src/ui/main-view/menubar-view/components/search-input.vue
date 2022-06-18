@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { BIconSearch, BIconQuestionCircle } from "bootstrap-icons-vue";
+import { BIconSearch, BIconQuestionCircle, BIconX } from "bootstrap-icons-vue";
 import { debounce } from "../../../../utils/debounce";
 
 const searchText = ref("");
@@ -42,6 +42,12 @@ const onModeClicked = (payload: Event) => {
     window.appInteractor.setState("viewState.searchMode", "general");
     searchDebounce.value = 300;
   }
+};
+
+const onClearClicked = (payload: Event) => {
+  console.log("onClearClicked");
+  searchText.value = "";
+  onSearchTextChanged();
 };
 
 window.appInteractor.registerState("viewState.searchMode", (value) => {
@@ -95,6 +101,10 @@ window.appInteractor.registerState("viewState.searchText", (value) => {
         <p class="font-mono">&nbsp; rating > 3</p>
       </div>
     </div>
+    <BIconX
+      class="my-auto text-neutral-400 invisible dark:text-neutral-500 hover:text-neutral-800 hover:dark:text-neutral-300 cursor-pointer peer-focus:visible hover:visible"
+      @click="onClearClicked"
+    />
     <button
       class="flex-none my-auto p-2 w-[100px] text-xxs bg-neutral-200 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-200 rounded-r-md invisible peer-focus:visible hover:visible hover:bg-neutral-300 hover:dark:bg-neutral-500"
       @click="onModeClicked"
