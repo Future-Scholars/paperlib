@@ -1,5 +1,3 @@
-import got, { HTTPError } from "got";
-
 import { parse } from "node-html-parser";
 import { BibtexParser } from "bibtex-js-parser";
 
@@ -7,45 +5,8 @@ import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 import { formatString } from "../../../utils/string";
 import { Preference } from "../../../utils/preference";
 import { SharedState } from "../../../utils/appstate";
+import { safeGot } from "../../../utils/got";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
-import { ipcRenderer } from "electron";
-
-async function safeGot(url: string, headers: Record<string, string>) {
-  const options = {
-    headers: headers,
-    retry: 0,
-    timeout: {
-      request: 5000,
-    },
-  };
-
-  let response;
-  try {
-    response = await got(url, options);
-  } catch (error) {
-    if (error instanceof HTTPError) {
-      if (
-        error.response.statusCode === 429 ||
-        error.response.statusCode === 403
-      ) {
-        const robot_checked_body = await ipcRenderer.invoke("robot-check", url);
-        response = {
-          body: robot_checked_body,
-        };
-      }
-    }
-  }
-  if (
-    response?.body.includes("Please show you're not a robot") ||
-    response?.body.includes("Please show you&#39;re not a robot")
-  ) {
-    const robot_checked_body = await ipcRenderer.invoke("robot-check", url);
-    response = {
-      body: robot_checked_body,
-    };
-  }
-  return response;
-}
 
 async function scrapeImpl(
   this: ScraperType,

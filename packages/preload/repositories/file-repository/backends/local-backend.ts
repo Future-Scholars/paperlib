@@ -42,7 +42,10 @@ export class LocalFileBackend implements FileBackend {
   async _move(sourceURL: string, targetURL: string): Promise<boolean> {
     const _sourceURL = sourceURL.replace("file://", "");
     const _targetURL = targetURL.replace("file://", "");
-
+    const stat = await fsPromise.lstat(_sourceURL);
+    if (stat.isDirectory()) {
+      return false;
+    }
     try {
       await fsPromise.copyFile(_sourceURL, _targetURL);
       if (
@@ -134,6 +137,10 @@ export class LocalFileBackend implements FileBackend {
   async _remove(sourceURL: string) {
     try {
       const _sourceURL = sourceURL.replace("file://", "");
+      const stat = await fsPromise.lstat(_sourceURL);
+      if (stat.isDirectory()) {
+        return false;
+      }
       await fsPromise.unlink(_sourceURL);
       return true;
     } catch (error) {

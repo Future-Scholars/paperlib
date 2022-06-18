@@ -2,11 +2,12 @@ import got from "got";
 
 import { WebImporterType, WebContentType } from "./importers/importer";
 import { ArXivWebImporter } from "./importers/arxiv";
+import { GoogleScholarWebImporter } from "./importers/google-scholar";
+import { EmbedWebImporter } from "./importers/embed";
 
 import { Preference } from "../../utils/preference";
 import { SharedState } from "../../utils/appstate";
 import { PaperEntityDraft } from "../../models/PaperEntityDraft";
-import { EmbedWebImporter } from "./importers/embed";
 
 export class WebImporterRepository {
   sharedState: SharedState;
@@ -20,6 +21,7 @@ export class WebImporterRepository {
 
     this.importerList = {
       arxiv: new ArXivWebImporter(this.preference),
+      googlescholar: new GoogleScholarWebImporter(this.preference),
       embed: new EmbedWebImporter(this.preference),
     };
   }

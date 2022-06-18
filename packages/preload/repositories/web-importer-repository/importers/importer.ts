@@ -57,14 +57,26 @@ export class WebImporter implements WebImporterType {
 
   async downloadProcess(urlList: string[]): Promise<string[]> {
     const _download = async (url: string): Promise<string> => {
-      const filename = url.split("/").pop() as string;
-      const targetUrl = path.join(os.homedir(), "Downloads", filename);
-      const pipeline = promisify(stream.pipeline);
-      await pipeline(
-        got.stream(url),
-        createWriteStream(constructFileURL(targetUrl, false, false))
-      );
-      return targetUrl;
+      try {
+        let filename = url.split("/").pop() as string;
+        if (!filename.endsWith(".pdf")) {
+          filename += ".pdf";
+        }
+        const targetUrl = path.join(os.homedir(), "Downloads", filename);
+        const pipeline = promisify(stream.pipeline);
+        const headers = {
+          "user-agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
+        };
+        await pipeline(
+          got.stream(url, { headers: headers, rejectUnauthorized: false }),
+          createWriteStream(constructFileURL(targetUrl, false, false))
+        );
+        return targetUrl;
+      } catch (e) {
+        console.log(e);
+        return "";
+      }
     };
 
     const downloadedUrls = (await Promise.all(urlList.map(_download))).filter(
