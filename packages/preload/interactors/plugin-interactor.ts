@@ -1,4 +1,4 @@
-import { ipcRenderer } from "electron";
+import { ipcRenderer, shell } from "electron";
 
 import { PaperEntity } from "../models/PaperEntity";
 
@@ -20,7 +20,7 @@ export class PluginInteractor {
       this.port.onmessage = (event) => {
         ipcRenderer.send(
           "resize-plugin",
-          Math.min(28 * event.data.length + 64, 394)
+          Math.min(28 * (event.data.length + 1) + 64, 394)
         );
         resolve(event.data);
       };
@@ -33,5 +33,11 @@ export class PluginInteractor {
 
   hide() {
     ipcRenderer.send("hide-plugin");
+  }
+
+  async open(url: string) {
+    if (url.startsWith("http")) {
+      shell.openExternal(url);
+    }
   }
 }

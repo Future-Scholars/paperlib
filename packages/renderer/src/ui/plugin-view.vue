@@ -18,6 +18,11 @@ const entities: Ref<PaperEntity[]> = ref([]);
 const onSearchTextChanged = debounce(async () => {
   const results = await window.pluginInteractor.search(searchText.value);
   entities.value = results;
+  // @ts-ignore
+  entities.value.push({
+    id: "search-in-google-scholar",
+    title: "Search in Google Scholar...",
+  });
 }, searchDebounce.value);
 
 const onInput = (payload: Event) => {
@@ -25,10 +30,16 @@ const onInput = (payload: Event) => {
 };
 
 const exportSelectedEntity = () => {
-  window.pluginInteractor.export(
-    JSON.stringify([entities.value[selectedIndex.value]])
-  );
-  isNotificationShown.value = true;
+  const selectedEntity = entities.value[selectedIndex.value];
+  console.log(selectedEntity);
+  if (selectedEntity.id === "search-in-google-scholar") {
+    window.pluginInteractor.open(
+      `https://scholar.google.com/scholar?q=${searchText.value}`
+    );
+  } else {
+    window.pluginInteractor.export(JSON.stringify(selectedEntity));
+    isNotificationShown.value = true;
+  }
   debounce(() => {
     isNotificationShown.value = false;
     searchText.value = "";
