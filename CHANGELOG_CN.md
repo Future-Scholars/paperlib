@@ -1,3 +1,9 @@
+## v1.7.1 13/06 2022
+
+1. 支持 Google Scholar 搜刮器。
+2. 清楚搜索按钮。
+3. Chrome Extension 的 IEEE 和 Google Scholar 支持。
+
 ## v1.7.0 13/06 2022
 
 1. 支持彩色标签。

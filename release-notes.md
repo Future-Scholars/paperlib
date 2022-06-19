@@ -1,2 +1,3 @@
-1. Colorizable tags and folders.
-2. Compact view for sidebar.
+1. Support Google Scholar scraper.
+2. Clear search input button.
+3. Chrome Extension supports IEEE and Google Scholar.

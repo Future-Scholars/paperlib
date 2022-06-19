@@ -1,3 +1,10 @@
+## v1.7.1 Jun 19 2022
+
+1. Support Google Scholar scraper.
+2. Clear search input button.
+3. Chrome Extension supports IEEE and Google Scholar.
+
+
 ## v1.7.0 Jun 13 2022
 
 1. Colorizable tags and folders.
