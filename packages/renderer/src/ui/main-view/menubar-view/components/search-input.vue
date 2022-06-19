@@ -45,7 +45,6 @@ const onModeClicked = (payload: Event) => {
 };
 
 const onClearClicked = (payload: Event) => {
-  console.log("onClearClicked");
   searchText.value = "";
   onSearchTextChanged();
 };

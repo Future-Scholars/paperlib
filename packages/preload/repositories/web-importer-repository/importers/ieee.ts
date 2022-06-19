@@ -74,7 +74,6 @@ export class IEEEWebImporter extends WebImporter {
           "iel7",
           "ielx7"
         )}`;
-        console.log(url);
 
         for (const cookie of webContent.cookies) {
           if (cookie) {

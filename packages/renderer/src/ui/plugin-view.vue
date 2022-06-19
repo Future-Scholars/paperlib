@@ -37,7 +37,7 @@ const exportSelectedEntity = () => {
       `https://scholar.google.com/scholar?q=${searchText.value}`
     );
   } else {
-    window.pluginInteractor.export(JSON.stringify(selectedEntity));
+    window.pluginInteractor.export(JSON.stringify([selectedEntity]));
     isNotificationShown.value = true;
   }
   debounce(() => {

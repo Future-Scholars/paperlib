@@ -117,8 +117,6 @@ export class GoogleScholarWebImporter extends WebImporter {
         }
       }
     }
-
-    console.log(entityDraft);
     return entityDraft;
   }
 }
