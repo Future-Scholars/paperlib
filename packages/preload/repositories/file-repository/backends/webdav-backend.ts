@@ -77,6 +77,10 @@ export class WebDavFileBackend implements FileBackend {
       basename
     );
     // Check if file exists on local temp disk.
+    const pathStat = await fsPromise.lstat(localURL.replace("file://", ""));
+    if (!pathStat.isFile()) {
+      return "";
+    }
     const isExist = existsSync(localURL);
 
     if (!isExist) {

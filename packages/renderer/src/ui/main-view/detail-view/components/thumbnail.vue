@@ -22,6 +22,7 @@ const fileExistingStatus = ref(0);
 const render = async () => {
   isRendering.value = true;
   const fileURL = await window.appInteractor.access(props.url, false);
+  console.log(fileURL);
   if (fileURL.length === 0) {
     isRendering.value = false;
     fileExistingStatus.value = 1;

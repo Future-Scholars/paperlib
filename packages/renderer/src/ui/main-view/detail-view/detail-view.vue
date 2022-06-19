@@ -115,7 +115,7 @@ onMounted(() => {
     <Section title="Rating">
       <Rating :rating="entity.rating" @changed="onRatingChanged" />
     </Section>
-    <Section title="Preview" v-if="entity.mainURL">
+    <Section title="Preview">
       <Thumbnail
         :url="entity.mainURL"
         @modify-main-file="(value) => modifyMainFile(value)"
