@@ -12,6 +12,7 @@ import { constructFileURL } from "../../../utils/path";
 export interface WebContentType {
   url: string;
   document: string;
+  cookies: string;
 }
 
 export interface WebImporterType {

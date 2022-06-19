@@ -3,6 +3,7 @@ import got from "got";
 import { WebImporterType, WebContentType } from "./importers/importer";
 import { ArXivWebImporter } from "./importers/arxiv";
 import { GoogleScholarWebImporter } from "./importers/google-scholar";
+import { IEEEWebImporter } from "./importers/ieee";
 import { EmbedWebImporter } from "./importers/embed";
 
 import { Preference } from "../../utils/preference";
@@ -22,6 +23,7 @@ export class WebImporterRepository {
     this.importerList = {
       arxiv: new ArXivWebImporter(this.preference),
       googlescholar: new GoogleScholarWebImporter(this.preference),
+      ieee: new IEEEWebImporter(this.preference),
       embed: new EmbedWebImporter(this.preference),
     };
   }
