@@ -1,3 +1,7 @@
+## v1.7.2 Jun 19 2022
+
+1. Fix bugs.
+
 ## v1.7.1 Jun 19 2022
 
 1. Support Google Scholar scraper.
