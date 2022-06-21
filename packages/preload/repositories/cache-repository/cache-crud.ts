@@ -33,16 +33,25 @@ export async function update(this: CacheRepository, entities: PaperEntity[]) {
   if (newObjs.length > 3) {
     this.sharedState.set("viewState.processingQueueCount", newObjs.length);
     this.sharedState.set(
-      "viewState.alertInformation",
-      `${newObjs.length} new papers are indexing, please wait for a while...`
+      "viewState.processInformation",
+      `indexing ${newObjs.length} papers, please wait for a while...`
     );
   }
 
   // 2. Update the cache
-  const pdfWorker = new Worker("/src/workers/pdf.worker.min.js");
-  pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
+  if (pdfjs.GlobalWorkerOptions.workerPort === null) {
+    const pdfWorker = new Worker("./pdf.worker.min.js");
+    pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
+  }
 
+  let i = 0;
   for (const obj of newObjs) {
+    this.sharedState.set(
+      "viewState.processInformation",
+      `indexing ${newObjs.length - i} papers, please wait for a while...`
+    );
+    i++;
+
     const fulltext = await this.getPDFText(obj.mainURL);
     cache.write(() => {
       cache.create<PaperEntityCache>("PaperEntityCache", {
@@ -52,7 +61,6 @@ export async function update(this: CacheRepository, entities: PaperEntity[]) {
       });
     });
   }
-  pdfWorker.terminate();
 
   this.sharedState.set(
     "viewState.processingQueueCount",
