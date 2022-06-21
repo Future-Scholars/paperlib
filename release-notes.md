@@ -1,1 +1,1 @@
-1. Fix bugs.
+1. Fix fulltext search bug.

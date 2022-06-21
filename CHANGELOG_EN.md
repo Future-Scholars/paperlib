@@ -1,3 +1,8 @@
+## v1.7.3 Jun 21 2022
+
+1. Fix fulltext search bug.
+
+
 ## v1.7.2 Jun 19 2022
 
 1. Fix bugs.
