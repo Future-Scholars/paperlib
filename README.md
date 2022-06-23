@@ -20,9 +20,7 @@ An open-source simple academic paper management tool for computer science.
 
 ---
 
-## Why Paperlib?
-
-You may noticed that conference papers are in major in our research community, which is different from other subjects. Without DOI, ISBN, metadata of a lot of conference papers are hard to lookup (e.g., NIPS, ICLR etc.). When we cite a publication in our draft paper, we need to manually search the publication information of it in Google Scholar or DBLP.
+You may notice that conference papers are in major in our research community, which is different from other subjects. Without DOI, ISBN, metadata of a lot of conference papers are hard to lookup (e.g., NIPS, ICLR etc.). When we cite a publication in our draft paper, we need to manually search the publication information of it in Google Scholar or DBLP.
 
 What we need may be: import a paper from a PDF file, scrape the metadata of it as accurately as possible, simply organise the library, and export it to BibTex when we are writing our own paper.
 
@@ -30,12 +28,11 @@ That is Paperlib.
 
 *Why not Zotero, Mendely?*
 
-They are both great tools. But, compatibility with all subjects means a compromise especially the accurate metadata scraping. A modern UI. No extra useless features.
-
+They are both great tools. But, compatibility with all subjects means a compromise, especially the accurate metadata scraping. A modern UI. No extra useless features.
 
 ## Highlights
 
--   Scrape paper’s metadata and **code repository** from arXiv, doi.org, DBLP, openreview.net, IEEE, and PaperwithCode etc. Tailored for computer science.
+-   Scrape paper’s metadata and **code repository** from arXiv, doi.org, DBLP, openreview.net, IEEE, Google Scholar, and PaperwithCode etc. Tailored for computer science.
 -   Fulltext and advanced search.
 -   Rating, flag, tag, folder and note.
 -   Cloud sync, supports macOS and Windows.
