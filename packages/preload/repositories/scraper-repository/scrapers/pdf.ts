@@ -69,7 +69,17 @@ export class PDFScraper extends Scraper {
     const firstPageText = rawResponse.firstPageText;
 
     entityDraft.setValue("title", metaData.info.Title);
-    entityDraft.setValue("authors", metaData.info.Author);
+    let authors;
+    if (metaData.info.Author.includes(";")) {
+      authors = metaData.info.Author.split(";")
+        .map((author) => {
+          return author.trim();
+        })
+        .join(", ");
+    } else {
+      authors = metaData.info.Author;
+    }
+    entityDraft.setValue("authors", authors);
 
     // Extract arXiv ID
     const arxivIds = firstPageText.match(

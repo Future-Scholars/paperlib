@@ -189,19 +189,26 @@ export class WebDavFileBackend implements FileBackend {
   async _move(
     sourceURL: string,
     targetURL: string,
-    targetCacheURL: string
+    targetCacheURL: string,
+    forceDelete: boolean = false
   ): Promise<boolean> {
     try {
       let success;
       if (sourceURL.startsWith("file://")) {
         success = await this._local2localMove(sourceURL, targetCacheURL);
         success = await this._local2serverMove(sourceURL, targetURL);
-        if (this.preference.get("deleteSourceFile") as boolean) {
+        if (
+          (this.preference.get("deleteSourceFile") as boolean) ||
+          forceDelete
+        ) {
           await fsPromise.unlink(sourceURL);
         }
       } else if (sourceURL.startsWith("webdav://")) {
         success = await this._server2serverMove(sourceURL, targetURL);
-        if (this.preference.get("deleteSourceFile") as boolean) {
+        if (
+          (this.preference.get("deleteSourceFile") as boolean) ||
+          forceDelete
+        ) {
           await this.webdavClient?.deleteFile(
             sourceURL.replace("webdav://", "/paperlib/")
           );
@@ -219,9 +226,13 @@ export class WebDavFileBackend implements FileBackend {
     }
   }
 
-  async move(entity: PaperEntityDraft): Promise<PaperEntityDraft | null> {
+  async move(
+    entity: PaperEntityDraft,
+    forceDelete: boolean = false
+  ): Promise<PaperEntityDraft | null> {
     await this.check();
     let title = entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_");
+    let id = entity._id.toString();
     if (this.preference.get("renamingFormat") === "short") {
       title = title
         .split("_")
@@ -234,9 +245,16 @@ export class WebDavFileBackend implements FileBackend {
         })
         .filter((c: string) => c && c === c.toUpperCase())
         .join("");
+    } else if (this.preference.get("renamingFormat") === "authortitle") {
+      let author = entity.authors.split(",")[0];
+      if (author !== entity.authors) {
+        author = `${author} et al`;
+      }
+      title = `${author} - ${title.slice(0, 20)}`;
+      id = id.slice(-5, -1);
     }
 
-    const targetFileName = title + "_" + entity._id.toString();
+    const targetFileName = title + "_" + id;
 
     // 1. Move main file.
     let sourceMainURL;
@@ -268,7 +286,8 @@ export class WebDavFileBackend implements FileBackend {
     const mainSuccess = await this._move(
       sourceMainURL,
       targetMainURL,
-      targetMainCacheURL
+      targetMainCacheURL,
+      forceDelete
     );
     if (mainSuccess) {
       entity.mainURL = path.basename(targetMainURL);
@@ -296,7 +315,8 @@ export class WebDavFileBackend implements FileBackend {
       const supSuccess = await this._move(
         sourceSupURL,
         targetSupURL,
-        targetSupCacheURL
+        targetSupCacheURL,
+        forceDelete
       );
       if (supSuccess) {
         return path.basename(targetSupURL);

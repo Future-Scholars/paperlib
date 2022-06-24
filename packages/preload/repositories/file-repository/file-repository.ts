@@ -31,8 +31,11 @@ export class FileRepository {
   async access(url: string, download: boolean): Promise<string> {
     return await this.backend.access(url, download);
   }
-  async move(entity: PaperEntityDraft): Promise<PaperEntityDraft | null> {
-    return await this.backend.move(entity);
+  async move(
+    entity: PaperEntityDraft,
+    fourceDelete = false
+  ): Promise<PaperEntityDraft | null> {
+    return await this.backend.move(entity, fourceDelete);
   }
   async remove(entity: PaperEntityDraft): Promise<boolean> {
     return await this.backend.remove(entity);

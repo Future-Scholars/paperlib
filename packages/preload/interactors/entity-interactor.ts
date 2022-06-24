@@ -267,7 +267,7 @@ export class EntityInteractor {
     const updatePromise = async (entityDrafts: PaperEntityDraft[]) => {
       const movedEntityDrafts = await Promise.all(
         entityDrafts.map((entityDraft: PaperEntityDraft) =>
-          this.fileRepository.move(entityDraft)
+          this.fileRepository.move(entityDraft, true)
         )
       );
 

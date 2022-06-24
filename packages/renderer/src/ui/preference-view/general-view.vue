@@ -56,9 +56,9 @@ const onThemeUpdate = (value: string) => {
     <Options
       class="mb-5"
       title="Renaming Format"
-      info="Full: FullTitle_id.pdf; Short: FirstCharTitle_id.pdf"
+      info="Full: FullTitle_id.pdf; Short: FirstCharTitle_id.pdf; A-T: Author-Title_id.pdf"
       :selected="preference.renamingFormat"
-      :options="{ short: 'Short', full: 'Full' }"
+      :options="{ short: 'Short', full: 'Full', authortitle: 'A-T' }"
       @update="
         (value) => {
           onUpdate('renamingFormat', value);
