@@ -1,3 +1,8 @@
+## v1.7.4 Jun 24 2022
+
+1. Fix a bug in cloud preference.
+
+
 ## v1.7.3 Jun 21 2022
 
 1. Fix fulltext search bug.
