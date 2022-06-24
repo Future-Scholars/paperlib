@@ -119,7 +119,7 @@ export class GoogleScholarScraper extends Scraper {
       const bibtexs = BibtexParser.parseToJSON(rawResponse);
       for (const bibtex of bibtexs) {
         if (bibtex.year) {
-          entityDraft.year = bibtex.year;
+          entityDraft.pubTime = `${bibtex.year}`;
         }
         if (bibtex.author) {
           const authors = bibtex.author
