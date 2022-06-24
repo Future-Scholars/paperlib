@@ -58,9 +58,8 @@ export class LocalFileBackend implements FileBackend {
     try {
       await fsPromise.copyFile(_sourceURL, _targetURL);
       if (
-        ((this.preference.get("deleteSourceFile") as boolean) &&
-          _sourceURL !== _targetURL) ||
-        forceDelete
+        ((this.preference.get("deleteSourceFile") as boolean) || forceDelete) &&
+        _sourceURL !== _targetURL
       ) {
         await fsPromise.unlink(sourceURL);
       }

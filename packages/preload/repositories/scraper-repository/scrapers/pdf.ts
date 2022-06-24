@@ -68,16 +68,16 @@ export class PDFScraper extends Scraper {
     };
     const firstPageText = rawResponse.firstPageText;
 
-    entityDraft.setValue("title", metaData.info.Title);
+    entityDraft.setValue("title", metaData.info.Title || "");
     let authors;
-    if (metaData.info.Author.includes(";")) {
+    if (metaData.info.Author?.includes(";")) {
       authors = metaData.info.Author.split(";")
         .map((author) => {
           return author.trim();
         })
         .join(", ");
     } else {
-      authors = metaData.info.Author;
+      authors = metaData.info.Author || "";
     }
     entityDraft.setValue("authors", authors);
 

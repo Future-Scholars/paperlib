@@ -197,17 +197,15 @@ export class WebDavFileBackend implements FileBackend {
       if (sourceURL.startsWith("file://")) {
         success = await this._local2localMove(sourceURL, targetCacheURL);
         success = await this._local2serverMove(sourceURL, targetURL);
-        if (
-          (this.preference.get("deleteSourceFile") as boolean) ||
-          forceDelete
-        ) {
+        if (this.preference.get("deleteSourceFile") as boolean) {
           await fsPromise.unlink(sourceURL);
         }
       } else if (sourceURL.startsWith("webdav://")) {
         success = await this._server2serverMove(sourceURL, targetURL);
         if (
-          (this.preference.get("deleteSourceFile") as boolean) ||
-          forceDelete
+          ((this.preference.get("deleteSourceFile") as boolean) ||
+            forceDelete) &&
+          sourceURL !== targetURL
         ) {
           await this.webdavClient?.deleteFile(
             sourceURL.replace("webdav://", "/paperlib/")
