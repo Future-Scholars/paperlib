@@ -115,7 +115,7 @@ const onSaveClicked = async () => {
           <MultiselectBox
             placeholder="Tags"
             :options="tags.map((tag) => tag.name)"
-            :values="
+            :existValues="
               entityDraft.tags
                 .split(';')
                 .map((tag) => tag.replaceAll(' ', ''))
@@ -130,7 +130,7 @@ const onSaveClicked = async () => {
           <MultiselectBox
             placeholder="Folders"
             :options="folders.map((folder) => folder.name)"
-            :values="
+            :existValues="
               entityDraft.folders
                 .split(';')
                 .map((folder) => folder.replaceAll(' ', ''))

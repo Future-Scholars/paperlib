@@ -53,7 +53,7 @@ async function scrapeImpl(
 
                   if (dataid) {
                     const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
-                    const citeResponse = await safeGot(citeUrl, headers);
+                    const citeResponse = await safeGot(citeUrl, headers, agent);
                     const citeRoot = parse(citeResponse?.body);
                     const citeBibtexNode = citeRoot.lastChild
                       .childNodes[0] as any as HTMLElement;

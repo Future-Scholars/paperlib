@@ -38,14 +38,23 @@ export class CVFScraper extends Scraper {
       year: string;
       booktitle: string;
       type: string;
+      ENTRYTYPE: string;
+      pages: string;
     };
+    console.log(response);
     if (typeof response.year !== "undefined") {
       const pubTime = response.year;
       const publication = response.booktitle;
       let pubType;
-      if (response.type === "inproceedings") {
+      if (
+        response.type === "inproceedings" ||
+        response.ENTRYTYPE === "inproceedings"
+      ) {
         pubType = 1;
-      } else if (response.type === "article") {
+      } else if (
+        response.type === "article" ||
+        response.ENTRYTYPE === "article"
+      ) {
         pubType = 0;
       } else {
         pubType = 2;
@@ -53,6 +62,7 @@ export class CVFScraper extends Scraper {
       entityDraft.setValue("pubTime", `${pubTime}`);
       entityDraft.setValue("pubType", pubType);
       entityDraft.setValue("publication", publication);
+      entityDraft.setValue("pages", response.pages || "");
     }
     return entityDraft;
   }
