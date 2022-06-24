@@ -1,3 +1,11 @@
+## v1.7.5 Jun 25 2022
+
+1. Fix bugs.
+2. Support proxy.
+3. Support 3 renaming formats.
+4. Support import from a folder or a Zotero CSV file.
+
+
 ## v1.7.4 Jun 24 2022
 
 1. Fix a bug in cloud preference.
