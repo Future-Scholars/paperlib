@@ -47,7 +47,7 @@ const onMigrateClicked = () => {
 };
 
 window.appInteractor.getPassword("realmSync").then((password) => {
-  syncPassword.value = password as string;
+  syncPassword.value = password ? (password as string) : "";
 });
 
 // =============================================================================
