@@ -36,7 +36,7 @@ export class BibExporter extends Exporter {
 
       const pubDetails = {
         volume: entity.volume,
-        number: entity.number,
+        issue: entity.number,
         pages: entity.pages,
         publisher: entity.publisher,
       };
