@@ -1,1 +1,1 @@
-1. Fix fulltext search bug.
+1. Fix a bug in cloud preference.
