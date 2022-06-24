@@ -3,6 +3,7 @@ import os from "os";
 import stream from "stream";
 import { promisify } from "util";
 import got from "got";
+import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import { createWriteStream } from "fs";
 
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
@@ -24,6 +25,8 @@ export interface WebImporterType {
   parsingProcess(
     webContent: WebContentType
   ): Promise<PaperEntityDraft | boolean>;
+
+  getProxyAgent(): Record<string, any>;
 }
 
 export class WebImporter implements WebImporterType {
@@ -47,6 +50,47 @@ export class WebImporter implements WebImporterType {
 
   preProcess(webContent: WebContentType): boolean {
     return this.urlRegExp.test(webContent.url);
+  }
+
+  getProxyAgent() {
+    const httpproxyUrl = this.preference.get("httpproxy") as string;
+    const httpsproxyUrl = this.preference.get("httpsproxy") as string;
+
+    let agnets = {};
+    if (httpproxyUrl || httpsproxyUrl) {
+      let validHttpproxyUrl, validHttpsproxyUrl;
+      if (httpproxyUrl) {
+        validHttpproxyUrl = httpproxyUrl;
+      } else {
+        validHttpproxyUrl = httpsproxyUrl;
+      }
+      if (httpsproxyUrl) {
+        validHttpsproxyUrl = httpsproxyUrl;
+      } else {
+        validHttpsproxyUrl = httpproxyUrl;
+      }
+      // @ts-ignore
+      agnets["http"] = new HttpProxyAgent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 256,
+        maxFreeSockets: 256,
+        scheduling: "lifo",
+        proxy: validHttpproxyUrl,
+      });
+
+      // @ts-ignore
+      agnets["https"] = new HttpsProxyAgent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 256,
+        maxFreeSockets: 256,
+        scheduling: "lifo",
+        proxy: validHttpsproxyUrl,
+      });
+    }
+
+    return agnets;
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await

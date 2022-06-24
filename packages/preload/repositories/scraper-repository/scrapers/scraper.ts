@@ -1,4 +1,5 @@
 import got, { Response } from "got";
+import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 
 import { PDFFileResponseType } from "./pdf";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
@@ -20,6 +21,7 @@ export interface ScraperType {
     entityDraft: PaperEntityDraft
   ): PaperEntityDraft | void;
   scrapeImpl: (_: PaperEntityDraft) => Promise<PaperEntityDraft>;
+  getProxyAgent(): Record<string, HttpProxyAgent | HttpsProxyAgent | void>;
 }
 
 export class Scraper implements ScraperType {
@@ -33,6 +35,47 @@ export class Scraper implements ScraperType {
 
   scrape(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft> {
     return this.scrapeImpl(entityDraft);
+  }
+
+  getProxyAgent() {
+    const httpproxyUrl = this.preference.get("httpproxy") as string;
+    const httpsproxyUrl = this.preference.get("httpsproxy") as string;
+
+    let agnets = {};
+    if (httpproxyUrl || httpsproxyUrl) {
+      let validHttpproxyUrl, validHttpsproxyUrl;
+      if (httpproxyUrl) {
+        validHttpproxyUrl = httpproxyUrl;
+      } else {
+        validHttpproxyUrl = httpsproxyUrl;
+      }
+      if (httpsproxyUrl) {
+        validHttpsproxyUrl = httpsproxyUrl;
+      } else {
+        validHttpsproxyUrl = httpproxyUrl;
+      }
+      // @ts-ignore
+      agnets["http"] = new HttpProxyAgent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 256,
+        maxFreeSockets: 256,
+        scheduling: "lifo",
+        proxy: validHttpproxyUrl,
+      });
+
+      // @ts-ignore
+      agnets["https"] = new HttpsProxyAgent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 256,
+        maxFreeSockets: 256,
+        scheduling: "lifo",
+        proxy: validHttpsproxyUrl,
+      });
+    }
+
+    return agnets;
   }
 
   preProcess(_entityDraft: PaperEntityDraft): ScraperRequestType | void {
@@ -58,10 +101,12 @@ async function scrapeImpl(
   ) as ScraperRequestType;
 
   if (enable) {
-    const options = {
+    const agent = this.getProxyAgent();
+    let options = {
       headers: headers,
       retry: 0,
       timeout: 5000,
+      agent: agent,
     };
     const response = await got(scrapeURL, options);
     return this.parsingProcess(response, entityDraft) as PaperEntityDraft;

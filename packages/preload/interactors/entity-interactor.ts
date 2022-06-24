@@ -164,6 +164,22 @@ export class EntityInteractor {
     );
   }
 
+  async addWholeFolder(folder: string) {
+    const files = await this.fileRepository.listPDFs(folder);
+    const PDFfiles = files.filter((file) => path.extname(file) === ".pdf");
+
+    this.add(PDFfiles);
+  }
+
+  async addFromZoteroCSV(csvFile: string) {
+    if (path.extname(csvFile) === ".csv") {
+      const paperEntityDrafts = await this.fileRepository.parseZoteroCSV(
+        csvFile
+      );
+      this.update(JSON.stringify(paperEntityDrafts));
+    }
+  }
+
   // ============================================================
   // Delete
   async delete(ids: string[]) {
@@ -251,7 +267,7 @@ export class EntityInteractor {
     const updatePromise = async (entityDrafts: PaperEntityDraft[]) => {
       const movedEntityDrafts = await Promise.all(
         entityDrafts.map((entityDraft: PaperEntityDraft) =>
-          this.fileRepository.move(entityDraft)
+          this.fileRepository.move(entityDraft, true)
         )
       );
 

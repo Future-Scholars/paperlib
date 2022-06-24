@@ -11,6 +11,7 @@ export interface PreferenceStore {
   invertColor: boolean;
   sidebarSortBy: "name" | "count" | "color";
   sidebarSortOrder: "asce" | "desc";
+  renamingFormat: "full" | "short" | "authortitle";
 
   enableExportReplacement: boolean;
   exportReplacement: Array<{ from: string; to: string }>;
@@ -40,6 +41,9 @@ export interface PreferenceStore {
   pwcScraper: boolean;
   googlescholarScraper: boolean;
 
+  httpproxy: string;
+  httpsproxy: string;
+
   lastVersion: string;
 
   [Key: string]: unknown;
@@ -54,6 +58,7 @@ const defaultPreferences: PreferenceStore = {
   invertColor: true,
   sidebarSortBy: "name",
   sidebarSortOrder: "asce",
+  renamingFormat: "full",
 
   enableExportReplacement: true,
   exportReplacement: [],
@@ -82,6 +87,9 @@ const defaultPreferences: PreferenceStore = {
   ieeeAPIKey: "",
   pwcScraper: true,
   googlescholarScraper: true,
+
+  httpproxy: "",
+  httpsproxy: "",
 
   lastVersion: "",
 };

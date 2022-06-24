@@ -1,13 +1,18 @@
 import got, { HTTPError } from "got";
 import { ipcRenderer } from "electron";
 
-export async function safeGot(url: string, headers: Record<string, string>) {
+export async function safeGot(
+  url: string,
+  headers: Record<string, string>,
+  agent: any
+) {
   const options = {
     headers: headers,
     retry: 0,
     timeout: {
       request: 5000,
     },
+    agent: agent,
   };
 
   let response;

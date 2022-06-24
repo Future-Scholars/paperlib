@@ -32,15 +32,23 @@ export class LocalFileBackend implements FileBackend {
       this.preference.get("appLibFolder") as string,
       "file://"
     );
-    const pathStat = await fsPromise.lstat(fileURL.replace("file://", ""));
-    if (existsSync(fileURL.replace("file://", "")) && pathStat.isFile()) {
-      return Promise.resolve(fileURL);
+    if (existsSync(fileURL.replace("file://", ""))) {
+      const pathStat = await fsPromise.lstat(fileURL.replace("file://", ""));
+      if (pathStat.isFile()) {
+        return Promise.resolve(fileURL);
+      } else {
+        return Promise.resolve("");
+      }
     } else {
       return Promise.resolve("");
     }
   }
 
-  async _move(sourceURL: string, targetURL: string): Promise<boolean> {
+  async _move(
+    sourceURL: string,
+    targetURL: string,
+    forceDelete: boolean = false
+  ): Promise<boolean> {
     const _sourceURL = sourceURL.replace("file://", "");
     const _targetURL = targetURL.replace("file://", "");
     const stat = await fsPromise.lstat(_sourceURL);
@@ -50,7 +58,7 @@ export class LocalFileBackend implements FileBackend {
     try {
       await fsPromise.copyFile(_sourceURL, _targetURL);
       if (
-        (this.preference.get("deleteSourceFile") as boolean) &&
+        ((this.preference.get("deleteSourceFile") as boolean) || forceDelete) &&
         _sourceURL !== _targetURL
       ) {
         await fsPromise.unlink(sourceURL);
@@ -65,11 +73,34 @@ export class LocalFileBackend implements FileBackend {
     }
   }
 
-  async move(entity: PaperEntityDraft): Promise<PaperEntityDraft | null> {
-    const targetFileName =
-      entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") +
-      "_" +
-      entity._id.toString();
+  async move(
+    entity: PaperEntityDraft,
+    forceDelete: boolean = false
+  ): Promise<PaperEntityDraft | null> {
+    let title = entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_");
+    let id = entity._id.toString();
+    if (this.preference.get("renamingFormat") === "short") {
+      title = title
+        .split("_")
+        .map((word: string) => {
+          if (word) {
+            return word.slice(0, 1);
+          } else {
+            return "";
+          }
+        })
+        .filter((c: string) => c && c === c.toUpperCase())
+        .join("");
+    } else if (this.preference.get("renamingFormat") === "authortitle") {
+      let author = entity.authors.split(",")[0];
+      if (author !== entity.authors) {
+        author = `${author} et al`;
+      }
+      title = `${author} - ${title.slice(0, 20)}`;
+      id = id.slice(-5, -1);
+    }
+
+    const targetFileName = title + "_" + id;
 
     // 1. Move main file.
     const sourceMainURL = constructFileURL(
@@ -84,7 +115,11 @@ export class LocalFileBackend implements FileBackend {
       false,
       this.preference.get("appLibFolder") as string
     );
-    const mainSuccess = await this._move(sourceMainURL, targetMainURL);
+    const mainSuccess = await this._move(
+      sourceMainURL,
+      targetMainURL,
+      forceDelete
+    );
     if (mainSuccess) {
       entity.mainURL = path.basename(targetMainURL);
     } else {
@@ -106,7 +141,11 @@ export class LocalFileBackend implements FileBackend {
       sourceSupURL: string,
       targetSupURL: string
     ) => {
-      const supSuccess = await this._move(sourceSupURL, targetSupURL);
+      const supSuccess = await this._move(
+        sourceSupURL,
+        targetSupURL,
+        forceDelete
+      );
       if (supSuccess) {
         return path.basename(targetSupURL);
       } else {

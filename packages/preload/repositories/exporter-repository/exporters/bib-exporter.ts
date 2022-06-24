@@ -13,7 +13,12 @@ export class BibExporter extends Exporter {
 
     for (const entity of entityDrafts) {
       let citeKey = "";
-      const nameArray = entity.authors.split(", ")[0].split(" ");
+      let nameArray;
+      if (entity.authors.includes(";")) {
+        nameArray = entity.authors.split(";")[0].split(" ");
+      } else {
+        nameArray = entity.authors.split(", ")[0].split(" ");
+      }
       const lastName = nameArray[nameArray.length - 1];
       citeKey += lastName.toLowerCase();
       citeKey += entity.pubTime;
@@ -36,7 +41,7 @@ export class BibExporter extends Exporter {
 
       const pubDetails = {
         volume: entity.volume,
-        number: entity.number,
+        issue: entity.number,
         pages: entity.pages,
         publisher: entity.publisher,
       };

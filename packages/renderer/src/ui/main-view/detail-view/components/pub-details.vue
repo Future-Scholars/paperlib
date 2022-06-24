@@ -41,7 +41,7 @@ const isExpanded = ref(false);
     >
       <span v-if="volume">volume: {{ volume }}</span>
       <span v-if="pages">pages: {{ pages }}</span>
-      <span v-if="number">number: {{ number }}</span>
+      <span v-if="number">issue/number: {{ number }}</span>
       <span v-if="publisher">publisher: {{ publisher }}</span>
       <span class="invisible group-hover:visible">«</span>
     </div>

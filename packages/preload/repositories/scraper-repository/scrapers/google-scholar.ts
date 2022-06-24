@@ -17,7 +17,8 @@ async function scrapeImpl(
   ) as ScraperRequestType;
 
   if (enable) {
-    const response = await safeGot(scrapeURL, headers);
+    const agent = this.getProxyAgent();
+    const response = await safeGot(scrapeURL, headers, agent);
 
     const root = parse(response?.body);
     const results = root.querySelector("#gs_res_ccl_mid");
@@ -52,7 +53,7 @@ async function scrapeImpl(
 
                   if (dataid) {
                     const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
-                    const citeResponse = await safeGot(citeUrl, headers);
+                    const citeResponse = await safeGot(citeUrl, headers, agent);
                     const citeRoot = parse(citeResponse?.body);
                     const citeBibtexNode = citeRoot.lastChild
                       .childNodes[0] as any as HTMLElement;
@@ -62,7 +63,8 @@ async function scrapeImpl(
                       if (citeBibtexUrl) {
                         const citeBibtexResponse = await safeGot(
                           citeBibtexUrl,
-                          headers
+                          headers,
+                          agent
                         );
                         bibtex = citeBibtexResponse?.body;
                       }
@@ -119,7 +121,7 @@ export class GoogleScholarScraper extends Scraper {
       const bibtexs = BibtexParser.parseToJSON(rawResponse);
       for (const bibtex of bibtexs) {
         if (bibtex.year) {
-          entityDraft.year = bibtex.year;
+          entityDraft.pubTime = `${bibtex.year}`;
         }
         if (bibtex.author) {
           const authors = bibtex.author

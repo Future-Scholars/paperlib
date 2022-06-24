@@ -54,6 +54,7 @@
     "electron-updater": "^5.0.1",
     "fast-xml-parser": "^4.0.6",
     "got": "11.8.3",
+    "hpagent": "^1.0.0",
     "keytar": "^7.9.0",
     "node-html-parser": "^5.3.3",
     "realm": "^10.13.0",

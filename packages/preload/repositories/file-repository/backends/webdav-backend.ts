@@ -71,18 +71,14 @@ export class WebDavFileBackend implements FileBackend {
   async access(url: string, download = true): Promise<string> {
     await this.check();
     const basename = path.basename(url);
-    const localURL = path.join(
-      this.sharedState.dbState.defaultPath.get() as string,
-      "file_cache",
-      basename
+    const localURL = constructFileURL(
+      basename,
+      true,
+      false,
+      this.preference.get("appLibFolder") as string
     );
     // Check if file exists on local temp disk.
-    const pathStat = await fsPromise.lstat(localURL.replace("file://", ""));
-    if (!pathStat.isFile()) {
-      return "";
-    }
     const isExist = existsSync(localURL);
-
     if (!isExist) {
       if (download) {
         try {
@@ -109,6 +105,11 @@ export class WebDavFileBackend implements FileBackend {
           return "";
         }
       }
+    } else {
+      const pathStat = await fsPromise.lstat(localURL.replace("file://", ""));
+      if (!pathStat.isFile()) {
+        return "";
+      }
     }
 
     return Promise.resolve(
@@ -130,6 +131,28 @@ export class WebDavFileBackend implements FileBackend {
     const _targetURL = targetURL.replace("webdav://", "/paperlib/");
     await this.webdavClient?.moveFile(_sourceURL, _targetURL);
     return true;
+  }
+
+  async _local2localMove(
+    sourceURL: string,
+    targetURL: string
+  ): Promise<boolean> {
+    const _sourceURL = sourceURL.replace("file://", "");
+    const _targetURL = targetURL.replace("file://", "");
+    const stat = await fsPromise.lstat(_sourceURL);
+    if (stat.isDirectory()) {
+      return false;
+    }
+    try {
+      await fsPromise.copyFile(_sourceURL, _targetURL);
+      return true;
+    } catch (error) {
+      this.sharedState.set(
+        "viewState.alertInformation",
+        `Could not copy file: ${error as string}`
+      );
+      return false;
+    }
   }
 
   async _local2serverMove(
@@ -163,17 +186,27 @@ export class WebDavFileBackend implements FileBackend {
     return true;
   }
 
-  async _move(sourceURL: string, targetURL: string): Promise<boolean> {
+  async _move(
+    sourceURL: string,
+    targetURL: string,
+    targetCacheURL: string,
+    forceDelete: boolean = false
+  ): Promise<boolean> {
     try {
       let success;
       if (sourceURL.startsWith("file://")) {
+        success = await this._local2localMove(sourceURL, targetCacheURL);
         success = await this._local2serverMove(sourceURL, targetURL);
         if (this.preference.get("deleteSourceFile") as boolean) {
           await fsPromise.unlink(sourceURL);
         }
       } else if (sourceURL.startsWith("webdav://")) {
         success = await this._server2serverMove(sourceURL, targetURL);
-        if (this.preference.get("deleteSourceFile") as boolean) {
+        if (
+          ((this.preference.get("deleteSourceFile") as boolean) ||
+            forceDelete) &&
+          sourceURL !== targetURL
+        ) {
           await this.webdavClient?.deleteFile(
             sourceURL.replace("webdav://", "/paperlib/")
           );
@@ -191,12 +224,35 @@ export class WebDavFileBackend implements FileBackend {
     }
   }
 
-  async move(entity: PaperEntityDraft): Promise<PaperEntityDraft | null> {
+  async move(
+    entity: PaperEntityDraft,
+    forceDelete: boolean = false
+  ): Promise<PaperEntityDraft | null> {
     await this.check();
-    const targetFileName =
-      entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") +
-      "_" +
-      entity._id.toString();
+    let title = entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_");
+    let id = entity._id.toString();
+    if (this.preference.get("renamingFormat") === "short") {
+      title = title
+        .split("_")
+        .map((word: string) => {
+          if (word) {
+            return word.slice(0, 1);
+          } else {
+            return "";
+          }
+        })
+        .filter((c: string) => c && c === c.toUpperCase())
+        .join("");
+    } else if (this.preference.get("renamingFormat") === "authortitle") {
+      let author = entity.authors.split(",")[0];
+      if (author !== entity.authors) {
+        author = `${author} et al`;
+      }
+      title = `${author} - ${title.slice(0, 20)}`;
+      id = id.slice(-5, -1);
+    }
+
+    const targetFileName = title + "_" + id;
 
     // 1. Move main file.
     let sourceMainURL;
@@ -218,7 +274,19 @@ export class WebDavFileBackend implements FileBackend {
       "",
       "webdav://"
     );
-    const mainSuccess = await this._move(sourceMainURL, targetMainURL);
+    const targetMainCacheURL = constructFileURL(
+      targetFileName + "_main" + path.extname(sourceMainURL),
+      true,
+      false,
+      this.preference.get("appLibFolder") as string
+    );
+
+    const mainSuccess = await this._move(
+      sourceMainURL,
+      targetMainURL,
+      targetMainCacheURL,
+      forceDelete
+    );
     if (mainSuccess) {
       entity.mainURL = path.basename(targetMainURL);
     } else {
@@ -239,9 +307,15 @@ export class WebDavFileBackend implements FileBackend {
 
     const SupMovePromise = async (
       sourceSupURL: string,
-      targetSupURL: string
+      targetSupURL: string,
+      targetSupCacheURL: string
     ) => {
-      const supSuccess = await this._move(sourceSupURL, targetSupURL);
+      const supSuccess = await this._move(
+        sourceSupURL,
+        targetSupURL,
+        targetSupCacheURL,
+        forceDelete
+      );
       if (supSuccess) {
         return path.basename(targetSupURL);
       } else {
@@ -258,7 +332,18 @@ export class WebDavFileBackend implements FileBackend {
         "",
         "webdav://"
       );
-      const supMovePromise = SupMovePromise(sourceSupURL, targetSupURL);
+      const targetSupCacheURL = constructFileURL(
+        targetFileName + `_sup${i}` + path.extname(sourceSupURL),
+        true,
+        false,
+        this.preference.get("appLibFolder") as string
+      );
+
+      const supMovePromise = SupMovePromise(
+        sourceSupURL,
+        targetSupURL,
+        targetSupCacheURL
+      );
       supMovePromiseList.push(supMovePromise);
     }
 
@@ -288,10 +373,11 @@ export class WebDavFileBackend implements FileBackend {
 
   async _removeFileCache(url: string) {
     const basename = path.basename(url);
-    const localURL = path.join(
-      this.sharedState.dbState.defaultPath.get() as string,
-      "file_cache",
-      basename
+    const localURL = constructFileURL(
+      basename,
+      true,
+      false,
+      this.preference.get("appLibFolder") as string
     );
     await fsPromise.unlink(localURL);
   }

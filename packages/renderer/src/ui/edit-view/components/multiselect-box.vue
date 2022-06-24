@@ -10,9 +10,10 @@ const props = defineProps({
     type: Array as () => String[],
     required: true,
   },
-  values: {
+  existValues: {
     type: Array as () => String[],
     required: true,
+    default: () => [],
   },
 });
 
@@ -25,7 +26,7 @@ const onSelected = (value: string) => {
 const onDeselected = (value: string) => {
   emit(
     "changed",
-    props.values.filter((v) => v !== value)
+    props.existValues.filter((v) => v !== value)
   );
 };
 </script>
@@ -108,7 +109,7 @@ const onDeselected = (value: string) => {
     </label>
     <v-select
       :options="options"
-      v-model="values"
+      v-model="props.existValues"
       class="vue-multiselect text-xs drop dark:text-neutral-300"
       transition="none"
       multiple

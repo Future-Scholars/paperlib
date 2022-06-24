@@ -42,8 +42,8 @@ async function createWindow() {
     title: "Main window",
     width: 1440,
     height: 860,
-    minWidth: 1440,
-    minHeight: 860,
+    minWidth: 800,
+    minHeight: 600,
     useContentSize: true,
     webPreferences: {
       preload: join(__dirname, "../preload/index.cjs"),

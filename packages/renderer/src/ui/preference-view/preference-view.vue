@@ -6,6 +6,8 @@ import {
   BIconBinoculars,
   BIconCloudArrowUp,
   BIconBoxArrowDown,
+  BIconBoxArrowInDown,
+  BIconGlobe,
   BIconInfoCircle,
 } from "bootstrap-icons-vue";
 
@@ -15,6 +17,8 @@ import ScraperView from "./scraper-view.vue";
 import CloudView from "./cloud-view.vue";
 import AboutView from "./about-view.vue";
 import ExportView from "./export-view.vue";
+import ProxyView from "./proxy-view.vue";
+import ImportView from "./import-view.vue";
 
 import { PreferenceStore } from "../../../../preload/utils/preference";
 
@@ -75,11 +79,25 @@ window.appInteractor.registerState(
               <BIconBinoculars class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
+              name="Proxy"
+              :active="preferenceTab === 'proxy'"
+              @click="preferenceTab = 'proxy'"
+            >
+              <BIconGlobe class="my-auto text-xs" />
+            </SectionItem>
+            <SectionItem
               name="Cloud"
               :active="preferenceTab === 'cloud'"
               @click="preferenceTab = 'cloud'"
             >
               <BIconCloudArrowUp class="my-auto text-xs" />
+            </SectionItem>
+            <SectionItem
+              name="Import"
+              :active="preferenceTab === 'import'"
+              @click="preferenceTab = 'import'"
+            >
+              <BIconBoxArrowInDown class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
               name="Export"
@@ -105,9 +123,17 @@ window.appInteractor.registerState(
               :preference="preference"
               v-if="preferenceTab === 'scraper'"
             />
+            <ProxyView
+              :preference="preference"
+              v-if="preferenceTab === 'proxy'"
+            />
             <CloudView
               :preference="preference"
               v-if="preferenceTab === 'cloud'"
+            />
+            <ImportView
+              :preference="preference"
+              v-if="preferenceTab === 'import'"
             />
             <ExportView
               :preference="preference"

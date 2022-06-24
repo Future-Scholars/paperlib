@@ -8,7 +8,10 @@ export interface FileBackend {
 
   check(): void;
   access(url: string, download: boolean): Promise<string>;
-  move(entity: PaperEntityDraft): Promise<PaperEntityDraft | null>;
+  move(
+    entity: PaperEntityDraft,
+    fourceDelete: boolean
+  ): Promise<PaperEntityDraft | null>;
   remove(entity: PaperEntityDraft): Promise<boolean>;
   removeFile(url: string): Promise<boolean>;
 }
