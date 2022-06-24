@@ -173,6 +173,15 @@ export class EntityInteractor {
     this.add(PDFfiles);
   }
 
+  async addFromZoteroCSV(csvFile: string) {
+    if (path.extname(csvFile) === ".csv") {
+      const paperEntityDrafts = await this.fileRepository.parseZoteroCSV(
+        csvFile
+      );
+      this.update(JSON.stringify(paperEntityDrafts));
+    }
+  }
+
   // ============================================================
   // Delete
   async delete(ids: string[]) {
