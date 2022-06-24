@@ -19,6 +19,7 @@ export class GoogleScholarWebImporter extends WebImporter {
     const paper = parse(webContent.document);
 
     if (paper) {
+      const agent = this.getProxyAgent();
       entityDraft = new PaperEntityDraft(true);
       const fileUrlNode = paper.querySelector(".gs_or_ggsm")?.firstChild;
       // @ts-ignore
@@ -44,13 +45,13 @@ export class GoogleScholarWebImporter extends WebImporter {
           " ",
           "+"
         )}`;
-        await safeGot(scrapeUrl, headers);
+        await safeGot(scrapeUrl, headers, agent);
 
         if (titleStr) {
           const dataid = title.parentNode.parentNode.attributes["data-aid"];
           if (dataid) {
             const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
-            const citeResponse = await safeGot(citeUrl, headers);
+            const citeResponse = await safeGot(citeUrl, headers, agent);
             const citeRoot = parse(citeResponse?.body);
             const citeBibtexNode = citeRoot.lastChild
               .childNodes[0] as any as HTMLElement;
@@ -60,7 +61,8 @@ export class GoogleScholarWebImporter extends WebImporter {
               if (citeBibtexUrl) {
                 const citeBibtexResponse = await safeGot(
                   citeBibtexUrl,
-                  headers
+                  headers,
+                  agent
                 );
                 const bibtexStr = citeBibtexResponse?.body;
                 if (bibtexStr) {

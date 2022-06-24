@@ -40,6 +40,9 @@ export interface PreferenceStore {
   pwcScraper: boolean;
   googlescholarScraper: boolean;
 
+  httpproxy: string;
+  httpsproxy: string;
+
   lastVersion: string;
 
   [Key: string]: unknown;
@@ -82,6 +85,9 @@ const defaultPreferences: PreferenceStore = {
   ieeeAPIKey: "",
   pwcScraper: true,
   googlescholarScraper: true,
+
+  httpproxy: "",
+  httpsproxy: "",
 
   lastVersion: "",
 };

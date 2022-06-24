@@ -102,8 +102,8 @@ export class PaperEntityDraft {
     return entity;
   }
 
-  setValue(key: string, value: unknown) {
-    if (value && value !== "undefined") {
+  setValue(key: string, value: unknown, allowEmpty = false) {
+    if ((value || allowEmpty) && value !== "undefined") {
       this[key] = value;
     }
   }

@@ -224,11 +224,11 @@ export class DBLPVenueScraper extends Scraper {
           entityDraft.setValue("publication", venue);
           break;
         } else {
-          entityDraft.setValue("publication", "");
+          entityDraft.setValue("publication", "", true);
         }
       }
     } else {
-      entityDraft.setValue("publication", "");
+      entityDraft.setValue("publication", "", true);
     }
     return entityDraft;
   }

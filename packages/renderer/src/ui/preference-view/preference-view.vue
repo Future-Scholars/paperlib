@@ -6,6 +6,7 @@ import {
   BIconBinoculars,
   BIconCloudArrowUp,
   BIconBoxArrowDown,
+  BIconGlobe,
   BIconInfoCircle,
 } from "bootstrap-icons-vue";
 
@@ -15,6 +16,7 @@ import ScraperView from "./scraper-view.vue";
 import CloudView from "./cloud-view.vue";
 import AboutView from "./about-view.vue";
 import ExportView from "./export-view.vue";
+import ProxyView from "./proxy-view.vue";
 
 import { PreferenceStore } from "../../../../preload/utils/preference";
 
@@ -75,6 +77,13 @@ window.appInteractor.registerState(
               <BIconBinoculars class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
+              name="Proxy"
+              :active="preferenceTab === 'proxy'"
+              @click="preferenceTab = 'proxy'"
+            >
+              <BIconGlobe class="my-auto text-xs" />
+            </SectionItem>
+            <SectionItem
               name="Cloud"
               :active="preferenceTab === 'cloud'"
               @click="preferenceTab = 'cloud'"
@@ -104,6 +113,10 @@ window.appInteractor.registerState(
             <ScraperView
               :preference="preference"
               v-if="preferenceTab === 'scraper'"
+            />
+            <ProxyView
+              :preference="preference"
+              v-if="preferenceTab === 'proxy'"
             />
             <CloudView
               :preference="preference"

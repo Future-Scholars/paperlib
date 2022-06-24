@@ -17,7 +17,8 @@ async function scrapeImpl(
   ) as ScraperRequestType;
 
   if (enable) {
-    const response = await safeGot(scrapeURL, headers);
+    const agent = this.getProxyAgent();
+    const response = await safeGot(scrapeURL, headers, agent);
 
     const root = parse(response?.body);
     const results = root.querySelector("#gs_res_ccl_mid");
@@ -62,7 +63,8 @@ async function scrapeImpl(
                       if (citeBibtexUrl) {
                         const citeBibtexResponse = await safeGot(
                           citeBibtexUrl,
-                          headers
+                          headers,
+                          agent
                         );
                         bibtex = citeBibtexResponse?.body;
                       }
