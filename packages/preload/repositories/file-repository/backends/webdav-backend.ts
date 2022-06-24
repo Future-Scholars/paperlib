@@ -193,10 +193,22 @@ export class WebDavFileBackend implements FileBackend {
 
   async move(entity: PaperEntityDraft): Promise<PaperEntityDraft | null> {
     await this.check();
-    const targetFileName =
-      entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") +
-      "_" +
-      entity._id.toString();
+    let title = entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_");
+    if (this.preference.get("renamingFormat") === "short") {
+      title = title
+        .split("_")
+        .map((word: string) => {
+          if (word) {
+            return word.slice(0, 1);
+          } else {
+            return "";
+          }
+        })
+        .filter((c: string) => c && c === c.toUpperCase())
+        .join("");
+    }
+
+    const targetFileName = title + "_" + entity._id.toString();
 
     // 1. Move main file.
     let sourceMainURL;

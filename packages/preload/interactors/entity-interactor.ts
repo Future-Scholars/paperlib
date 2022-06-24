@@ -13,7 +13,6 @@ import { ExporterRepository } from "../repositories/exporter-repository/exporter
 
 import { Categorizers } from "../models/PaperCategorizer";
 import { PaperEntityDraft } from "../models/PaperEntityDraft";
-import { file } from "@babel/types";
 
 export class EntityInteractor {
   sharedState: SharedState;
@@ -114,7 +113,6 @@ export class EntityInteractor {
   // ============================================================
   // Create
   async add(urlList: string[]) {
-    console.log(urlList);
     this.sharedState.set(
       "viewState.processingQueueCount",
       (this.sharedState.viewState.processingQueueCount.value as number) +

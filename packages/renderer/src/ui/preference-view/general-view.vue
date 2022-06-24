@@ -46,10 +46,24 @@ const onThemeUpdate = (value: string) => {
     </div>
 
     <Toggle
+      class="mb-5"
       title="Delete Source File"
       info="Automatically delete the source file of the imported papers."
       :enable="preference.deleteSourceFile"
       @update="(value) => onUpdate('deleteSourceFile', value)"
+    />
+
+    <Options
+      class="mb-5"
+      title="Renaming Format"
+      info="Full: FullTitle_id.pdf; Short: FirstCharTitle_id.pdf"
+      :selected="preference.renamingFormat"
+      :options="{ short: 'Short', full: 'Full' }"
+      @update="
+        (value) => {
+          onUpdate('renamingFormat', value);
+        }
+      "
     />
 
     <hr class="mt-5 mb-5 dark:border-neutral-600" />

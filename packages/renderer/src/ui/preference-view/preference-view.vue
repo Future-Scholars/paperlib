@@ -6,6 +6,7 @@ import {
   BIconBinoculars,
   BIconCloudArrowUp,
   BIconBoxArrowDown,
+  BIconBoxArrowInDown,
   BIconGlobe,
   BIconInfoCircle,
 } from "bootstrap-icons-vue";
@@ -96,7 +97,7 @@ window.appInteractor.registerState(
               :active="preferenceTab === 'import'"
               @click="preferenceTab = 'import'"
             >
-              <BIconBoxArrowDown class="my-auto text-xs" />
+              <BIconBoxArrowInDown class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
               name="Export"
