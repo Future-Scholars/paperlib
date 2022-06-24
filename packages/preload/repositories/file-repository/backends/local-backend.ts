@@ -32,9 +32,13 @@ export class LocalFileBackend implements FileBackend {
       this.preference.get("appLibFolder") as string,
       "file://"
     );
-    const pathStat = await fsPromise.lstat(fileURL.replace("file://", ""));
-    if (existsSync(fileURL.replace("file://", "")) && pathStat.isFile()) {
-      return Promise.resolve(fileURL);
+    if (existsSync(fileURL.replace("file://", ""))) {
+      const pathStat = await fsPromise.lstat(fileURL.replace("file://", ""));
+      if (pathStat.isFile()) {
+        return Promise.resolve(fileURL);
+      } else {
+        return Promise.resolve("");
+      }
     } else {
       return Promise.resolve("");
     }

@@ -41,7 +41,6 @@ export class CVFScraper extends Scraper {
       ENTRYTYPE: string;
       pages: string;
     };
-    console.log(response);
     if (typeof response.year !== "undefined") {
       const pubTime = response.year;
       const publication = response.booktitle;
