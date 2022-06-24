@@ -17,6 +17,7 @@ import CloudView from "./cloud-view.vue";
 import AboutView from "./about-view.vue";
 import ExportView from "./export-view.vue";
 import ProxyView from "./proxy-view.vue";
+import ImportView from "./import-view.vue";
 
 import { PreferenceStore } from "../../../../preload/utils/preference";
 
@@ -91,6 +92,13 @@ window.appInteractor.registerState(
               <BIconCloudArrowUp class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
+              name="Import"
+              :active="preferenceTab === 'import'"
+              @click="preferenceTab = 'import'"
+            >
+              <BIconBoxArrowDown class="my-auto text-xs" />
+            </SectionItem>
+            <SectionItem
               name="Export"
               :active="preferenceTab === 'export'"
               @click="preferenceTab = 'export'"
@@ -121,6 +129,10 @@ window.appInteractor.registerState(
             <CloudView
               :preference="preference"
               v-if="preferenceTab === 'cloud'"
+            />
+            <ImportView
+              :preference="preference"
+              v-if="preferenceTab === 'import'"
             />
             <ExportView
               :preference="preference"

@@ -1,0 +1,51 @@
+<script setup lang="ts">
+import { ref } from "vue";
+
+import { PreferenceStore } from "../../../../preload/utils/preference";
+
+const props = defineProps({
+  preference: {
+    type: Object as () => PreferenceStore,
+    required: true,
+  },
+});
+
+const pickedFolderPath = ref("");
+
+const onPickerClicked = async () => {
+  const pickedFolder = (await window.appInteractor.showFolderPicker())
+    .filePaths[0];
+  if (pickedFolder) {
+    pickedFolderPath.value = pickedFolder;
+  }
+};
+
+const importFromFolderClicked = async () => {
+  window.entityInteractor.addWholeFolder(pickedFolderPath.value);
+};
+</script>
+
+<template>
+  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+    <div class="text-base font-semibold mb-4">Import from a Folder</div>
+    <div class="text-xxs text-neutral-600 dark:text-neutral-500">
+      Choose a folder to import all PDF paper files inside there.
+    </div>
+    <div class="flex justify-between">
+      <div
+        class="bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 hover:dark:bg-neutral-600 cursor-pointer rounded-md px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 mb-5 grow mr-3"
+        @click="onPickerClicked"
+      >
+        <span class="truncate">
+          {{ pickedFolderPath ? pickedFolderPath : "Choose..." }}
+        </span>
+      </div>
+      <button
+        class="flex h-8 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-600"
+        @click="importFromFolderClicked"
+      >
+        <span class="m-auto text-xs">Import</span>
+      </button>
+    </div>
+  </div>
+</template>

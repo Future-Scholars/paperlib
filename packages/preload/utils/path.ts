@@ -1,5 +1,6 @@
 import path from "path";
 import os from "os";
+import fs from "fs";
 
 export const constructFileURL = (
   url: string,
@@ -39,4 +40,24 @@ export const constructFileURL = (
       return outURL.replace(protocol, "");
     }
   }
+};
+
+export const getAllFiles = function (
+  dirPath: string,
+  arrayOfFiles: string[] | null = null
+): string[] {
+  let files = fs.readdirSync(dirPath);
+
+  arrayOfFiles = (arrayOfFiles || []) as string[];
+
+  files.forEach(function (file) {
+    if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+      arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles);
+    } else {
+      arrayOfFiles = arrayOfFiles as string[];
+      arrayOfFiles.push(path.join(dirPath, "/", file));
+    }
+  });
+
+  return arrayOfFiles;
 };

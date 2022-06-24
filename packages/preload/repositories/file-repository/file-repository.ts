@@ -1,6 +1,7 @@
 import { PaperEntityDraft } from "../..//models/PaperEntityDraft";
 import { SharedState } from "../../utils/appstate";
 import { Preference } from "../../utils/preference";
+import { getAllFiles } from "../../utils/path";
 import { FileBackend } from "./backends/backend";
 import { LocalFileBackend } from "./backends/local-backend";
 import { WebDavFileBackend } from "./backends/webdav-backend";
@@ -37,6 +38,18 @@ export class FileRepository {
   }
   async removeFile(url: string): Promise<boolean> {
     return await this.backend.removeFile(url);
+  }
+
+  async listPDFs(folderUrl: string): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      try {
+        const files = getAllFiles(folderUrl);
+        resolve(files);
+      } catch (e) {
+        console.error(e);
+        reject([]);
+      }
+    });
   }
 
   initBackend(): FileBackend {
