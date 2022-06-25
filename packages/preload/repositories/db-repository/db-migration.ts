@@ -94,7 +94,7 @@ export function migrate(oldRealm, newRealm) {
 
 export async function migrateLocaltoCloud(this: DBRepository) {
   try {
-    const localConfig = this.getLocalConfig();
+    const localConfig = await this.getLocalConfig();
     const localRealm = new Realm(localConfig);
 
     const entities = localRealm
@@ -117,6 +117,8 @@ export async function migrateLocaltoCloud(this: DBRepository) {
       draft.folders = "";
       return draft;
     });
+
+    await this.initRealm(true);
 
     await this.update(entityDraftsWithoutCategorizer);
     await this.update(entityDraftsWithCategorizer);
