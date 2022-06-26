@@ -34,18 +34,23 @@ onMounted(() => {
       <div class="w-[40rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.7.0
+          What's New in Paperlib 1.7.6
         </p>
-        <li>Colorize your tags and folders.</li>
+        <p><b>New features</b></p>
+        <li>Customize hotkeys.</li>
+        <p class="ml-5">自定义快捷键</p>
         <img
           class="w-96 mx-auto mt-5 mb-8 rounded-md shadow-neutral-400 shadow-lg"
-          src="../assets/color.png"
+          src="../assets/1.png"
         />
-        <li>Compact list and sorting options of sidebar.</li>
-        <img
-          class="mx-auto w-96 mt-5 mb-8 rounded-md shadow-lg"
-          src="../assets/setting.png"
-        />
+        <li>Arrow up and down to select the previous or next paper.</li>
+        <p class="ml-5">方向键切换选择论文</p>
+        <p><b>Fixed bugs</b></p>
+        <li>Local to cloud migration bug.</li>
+        <p class="ml-5">迁移本地数据到云端时的错误</p>
+        <li>'Space' and 'Enter' key bug in the edit view.</li>
+        <p class="ml-5">在编辑界面按空格回车的问题</p>
+
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
           @click="hide"

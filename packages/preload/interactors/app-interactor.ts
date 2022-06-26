@@ -170,8 +170,7 @@ export class AppInteractor {
   // ============================================================
   async shouldShowWhatsNew() {
     const lastVersion = this.getPreference("lastVersion");
-    // return lastVersion !== (await this.version());
-    return false;
+    return lastVersion !== (await this.version());
   }
 
   async hideWhatsNew() {
