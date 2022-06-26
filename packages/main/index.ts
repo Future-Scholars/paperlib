@@ -22,6 +22,8 @@ import {
 
 Store.initRenderer();
 
+const preference = new Store({});
+
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith("6.1")) app.disableHardwareAcceleration();
 
@@ -72,7 +74,7 @@ async function createWindow() {
     return { action: "deny" };
   });
 
-  setMainMenu(win);
+  setMainMenu(win, preference);
 
   win.on("blur", () => {
     win?.webContents.send("window-lost-focus");
@@ -142,18 +144,21 @@ async function createWindow() {
     winPlugin?.setSize(600, 48);
   });
 
-  const ret = globalShortcut.register("CommandOrControl+Shift+I", () => {
-    win?.blur();
+  const ret = globalShortcut.register(
+    (preference.get("shortcutPlugin") as string) || "CommandOrControl+Shift+I",
+    () => {
+      win?.blur();
 
-    const { x, y } = screen.getCursorScreenPoint();
-    const currentDisplay = screen.getDisplayNearestPoint({ x, y });
-    const bounds = currentDisplay.bounds;
-    const centerx = bounds.x + (bounds.width - 600) / 2;
-    const centery = bounds.y + (bounds.height - 48) / 2;
-    winPlugin?.setPosition(centerx, centery);
+      const { x, y } = screen.getCursorScreenPoint();
+      const currentDisplay = screen.getDisplayNearestPoint({ x, y });
+      const bounds = currentDisplay.bounds;
+      const centerx = bounds.x + (bounds.width - 600) / 2;
+      const centery = bounds.y + (bounds.height - 48) / 2;
+      winPlugin?.setPosition(centerx, centery);
 
-    winPlugin?.show();
-  });
+      winPlugin?.show();
+    }
+  );
 
   if (!ret) {
     console.log("registration failed");

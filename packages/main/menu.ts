@@ -1,7 +1,8 @@
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { autoUpdater } from "electron-updater";
+import Store from "electron-store";
 
-export function setMainMenu(mainWindow: BrowserWindow) {
+export function setMainMenu(mainWindow: BrowserWindow, preference: Store) {
   const isMac = process.platform === "darwin";
 
   const template = [
@@ -55,7 +56,7 @@ export function setMainMenu(mainWindow: BrowserWindow) {
       submenu: [
         {
           label: "Open",
-          accelerator: "Enter",
+          accelerator: preference.get("shortcutOpen") || "Enter",
           click: () => {
             mainWindow.webContents.send("shortcut-Enter");
           },
@@ -63,7 +64,8 @@ export function setMainMenu(mainWindow: BrowserWindow) {
         { type: "separator" },
         {
           label: "Copy Bibtex",
-          accelerator: isMac ? "cmd+shift+c" : "ctrl+shift+c",
+          accelerator:
+            preference.get("shortcutCopy") || "CommandOrControl+Shift+C",
           click: () => {
             mainWindow.webContents.send("shortcut-cmd-shift-c");
           },
@@ -77,21 +79,21 @@ export function setMainMenu(mainWindow: BrowserWindow) {
       submenu: [
         {
           label: "Scrape",
-          accelerator: isMac ? "cmd+r" : "ctrl+r",
+          accelerator: preference.get("shortcutScrape") || "CommandOrControl+R",
           click: () => {
             mainWindow.webContents.send("shortcut-cmd-r");
           },
         },
         {
           label: "Edit Metadata",
-          accelerator: isMac ? "cmd+e" : "ctrl+e",
+          accelerator: preference.get("shortcutEdit") || "CommandOrControl+E",
           click: () => {
             mainWindow.webContents.send("shortcut-cmd-e");
           },
         },
         {
           label: "Flag",
-          accelerator: isMac ? "cmd+f" : "ctrl+f",
+          accelerator: preference.get("shortcutFlag") || "CommandOrControl+F",
           click: () => {
             mainWindow.webContents.send("shortcut-cmd-f");
           },
@@ -123,7 +125,7 @@ export function setMainMenu(mainWindow: BrowserWindow) {
       submenu: [
         {
           label: "Preview",
-          accelerator: "Space",
+          accelerator: preference.get("shortcutPreview") || "Space",
           click: () => {
             mainWindow.webContents.send("shortcut-Space");
           },

@@ -8,6 +8,7 @@ import {
   BIconBoxArrowDown,
   BIconBoxArrowInDown,
   BIconGlobe,
+  BIconKeyboard,
   BIconInfoCircle,
 } from "bootstrap-icons-vue";
 
@@ -19,6 +20,7 @@ import AboutView from "./about-view.vue";
 import ExportView from "./export-view.vue";
 import ProxyView from "./proxy-view.vue";
 import ImportView from "./import-view.vue";
+import HotkeyView from "./hotkey-view.vue";
 
 import { PreferenceStore } from "../../../../preload/utils/preference";
 
@@ -107,6 +109,13 @@ window.appInteractor.registerState(
               <BIconBoxArrowDown class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
+              name="Hotkeys"
+              :active="preferenceTab === 'hotkey'"
+              @click="preferenceTab = 'hotkey'"
+            >
+              <BIconKeyboard class="my-auto text-xs" />
+            </SectionItem>
+            <SectionItem
               name="About"
               :active="preferenceTab === 'about'"
               @click="preferenceTab = 'about'"
@@ -138,6 +147,10 @@ window.appInteractor.registerState(
             <ExportView
               :preference="preference"
               v-if="preferenceTab === 'export'"
+            />
+            <HotkeyView
+              :preference="preference"
+              v-if="preferenceTab === 'hotkey'"
             />
             <AboutView
               :preference="preference"

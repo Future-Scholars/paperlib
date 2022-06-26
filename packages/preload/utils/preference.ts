@@ -46,6 +46,14 @@ export interface PreferenceStore {
 
   lastVersion: string;
 
+  shortcutPlugin: string;
+  shortcutPreview: string;
+  shortcutOpen: string;
+  shortcutCopy: string;
+  shortcutScrape: string;
+  shortcutEdit: string;
+  shortcutFlag: string;
+
   [Key: string]: unknown;
 }
 
@@ -92,6 +100,14 @@ const defaultPreferences: PreferenceStore = {
   httpsproxy: "",
 
   lastVersion: "",
+
+  shortcutPlugin: "CommandOrControl+Shift+I",
+  shortcutPreview: "Space",
+  shortcutOpen: "Enter",
+  shortcutCopy: "CommandOrControl+Shift+C",
+  shortcutScrape: "CommandOrControl+R",
+  shortcutEdit: "CommandOrControl+E",
+  shortcutFlag: "CommandOrControl+F",
 };
 
 export class Preference {

@@ -233,21 +233,17 @@ function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
     event.code === "ArrowDown" ||
     event.code === "ArrowUp"
   ) {
-    if (event.target instanceof HTMLInputElement) {
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
       return true;
     }
-    if (
-      !window.appInteractor.getState("viewState.isEditViewShown") &&
-      !window.appInteractor.getState("viewState.isPreferenceViewShown")
-    ) {
+    if (event.target == document.body) {
       event.preventDefault();
     }
 
-    if (
-      event.code === "ArrowDown" &&
-      !window.appInteractor.getState("viewState.isEditViewShown") &&
-      !window.appInteractor.getState("viewState.isPreferenceViewShown")
-    ) {
+    if (event.code === "ArrowDown") {
       const currentIndex = selectedIndex.value[0] || 0;
       const newIndex =
         currentIndex + 1 >
@@ -260,11 +256,7 @@ function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
       );
     }
 
-    if (
-      event.code === "ArrowUp" &&
-      !window.appInteractor.getState("viewState.isEditViewShown") &&
-      !window.appInteractor.getState("viewState.isPreferenceViewShown")
-    ) {
+    if (event.code === "ArrowUp") {
       const currentIndex = selectedIndex.value[0] || 0;
       const newIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1;
       window.appInteractor.setState(
@@ -273,12 +265,7 @@ function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
       );
     }
 
-    if (
-      event.code === "Space" &&
-      selectedEntities.value.length >= 1 &&
-      !window.appInteractor.getState("viewState.isEditViewShown") &&
-      !window.appInteractor.getState("viewState.isPreferenceViewShown")
-    ) {
+    if (event.code === "Space" && selectedEntities.value.length >= 1) {
       previewSelectedEntities();
     }
   }
