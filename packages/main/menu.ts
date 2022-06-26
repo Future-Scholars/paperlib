@@ -128,6 +128,20 @@ export function setMainMenu(mainWindow: BrowserWindow) {
             mainWindow.webContents.send("shortcut-Space");
           },
         },
+        {
+          label: "Next",
+          accelerator: "Down",
+          click: () => {
+            mainWindow.webContents.send("shortcut-arrow-down");
+          },
+        },
+        {
+          label: "Previous",
+          accelerator: "Up",
+          click: () => {
+            mainWindow.webContents.send("shortcut-arrow-up");
+          },
+        },
         { type: "separator" },
         { role: "resetZoom" },
         { role: "zoomIn" },

@@ -227,8 +227,12 @@ window.appInteractor.registerMainSignal("shortcut-Space", () => {
     previewSelectedEntities();
   }
 });
-function preventSpaceScrollEvent(event: KeyboardEvent) {
-  if (event.code === "Space") {
+function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
+  if (
+    event.code === "Space" ||
+    event.code === "ArrowDown" ||
+    event.code === "ArrowUp"
+  ) {
     if (event.target instanceof HTMLInputElement) {
       return true;
     }
@@ -238,15 +242,48 @@ function preventSpaceScrollEvent(event: KeyboardEvent) {
     ) {
       event.preventDefault();
     }
+
     if (
+      event.code === "ArrowDown" &&
+      !window.appInteractor.getState("viewState.isEditViewShown") &&
+      !window.appInteractor.getState("viewState.isPreferenceViewShown")
+    ) {
+      const currentIndex = selectedIndex.value[0] || 0;
+      const newIndex =
+        currentIndex + 1 >
+        (window.appInteractor.getState("viewState.entitiesCount") as number) - 1
+          ? currentIndex
+          : currentIndex + 1;
+      window.appInteractor.setState(
+        "selectionState.selectedIndex",
+        JSON.stringify([newIndex])
+      );
+    }
+
+    if (
+      event.code === "ArrowUp" &&
+      !window.appInteractor.getState("viewState.isEditViewShown") &&
+      !window.appInteractor.getState("viewState.isPreferenceViewShown")
+    ) {
+      const currentIndex = selectedIndex.value[0] || 0;
+      const newIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1;
+      window.appInteractor.setState(
+        "selectionState.selectedIndex",
+        JSON.stringify([newIndex])
+      );
+    }
+
+    if (
+      event.code === "Space" &&
       selectedEntities.value.length >= 1 &&
-      !window.appInteractor.getState("viewState.isEditViewShown")
+      !window.appInteractor.getState("viewState.isEditViewShown") &&
+      !window.appInteractor.getState("viewState.isPreferenceViewShown")
     ) {
       previewSelectedEntities();
     }
   }
 }
-window.addEventListener("keydown", preventSpaceScrollEvent, true);
+window.addEventListener("keydown", preventSpaceArrowScrollEvent, true);
 
 window.appInteractor.registerMainSignal("shortcut-cmd-shift-c", () => {
   if (selectedEntities.value.length >= 1) {
@@ -269,6 +306,38 @@ window.appInteractor.registerMainSignal("shortcut-cmd-f", () => {
 window.appInteractor.registerMainSignal("shortcut-cmd-r", () => {
   if (selectedEntities.value.length >= 1) {
     scrapeSelectedEntities();
+  }
+});
+
+window.appInteractor.registerMainSignal("shortcut-arrow-up", () => {
+  const currentIndex = selectedIndex.value[0] || 0;
+  const newIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1;
+  if (
+    !window.appInteractor.getState("viewState.isEditViewShown") &&
+    !window.appInteractor.getState("viewState.isPreferenceViewShown")
+  ) {
+    window.appInteractor.setState(
+      "selectionState.selectedIndex",
+      JSON.stringify([newIndex])
+    );
+  }
+});
+
+window.appInteractor.registerMainSignal("shortcut-arrow-down", () => {
+  const currentIndex = selectedIndex.value[0] || 0;
+  const newIndex =
+    currentIndex + 1 >
+    (window.appInteractor.getState("viewState.entitiesCount") as number) - 1
+      ? currentIndex
+      : currentIndex + 1;
+  if (
+    !window.appInteractor.getState("viewState.isEditViewShown") &&
+    !window.appInteractor.getState("viewState.isPreferenceViewShown")
+  ) {
+    window.appInteractor.setState(
+      "selectionState.selectedIndex",
+      JSON.stringify([newIndex])
+    );
   }
 });
 

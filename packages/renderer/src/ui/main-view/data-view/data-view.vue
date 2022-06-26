@@ -88,6 +88,13 @@ const registerDropHandler = () => {
 
 window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
   const newSelectedIndex = JSON.parse(value as string) as number[];
+
+  if (newSelectedIndex.length === 1 && selectedIndex.value.length === 1) {
+    selectedLastSingleIndex.value = newSelectedIndex[0];
+  }
+
+  selectedIndex.value = newSelectedIndex;
+
   if (newSelectedIndex.length === 0) {
     selectedIndex.value = [];
   }
