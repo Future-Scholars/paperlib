@@ -209,13 +209,21 @@ window.appInteractor.registerMainSignal("shortcut-Preference", () => {
 });
 
 window.appInteractor.registerMainSignal("shortcut-Enter", () => {
-  if (selectedEntities.value.length >= 1) {
+  if (
+    selectedEntities.value.length >= 1 &&
+    !window.appInteractor.getState("viewState.isEditViewShown") &&
+    !window.appInteractor.getState("viewState.isPreferenceViewShown")
+  ) {
     openSelectedEntities();
   }
 });
 
 window.appInteractor.registerMainSignal("shortcut-Space", () => {
-  if (selectedEntities.value.length >= 1) {
+  if (
+    selectedEntities.value.length >= 1 &&
+    !window.appInteractor.getState("viewState.isEditViewShown") &&
+    !window.appInteractor.getState("viewState.isPreferenceViewShown")
+  ) {
     previewSelectedEntities();
   }
 });
@@ -224,8 +232,16 @@ function preventSpaceScrollEvent(event: KeyboardEvent) {
     if (event.target instanceof HTMLInputElement) {
       return true;
     }
-    event.preventDefault();
-    if (selectedEntities.value.length >= 1) {
+    if (
+      !window.appInteractor.getState("viewState.isEditViewShown") &&
+      !window.appInteractor.getState("viewState.isPreferenceViewShown")
+    ) {
+      event.preventDefault();
+    }
+    if (
+      selectedEntities.value.length >= 1 &&
+      !window.appInteractor.getState("viewState.isEditViewShown")
+    ) {
       previewSelectedEntities();
     }
   }
