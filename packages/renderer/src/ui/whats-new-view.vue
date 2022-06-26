@@ -37,7 +37,7 @@ onMounted(() => {
           What's New in Paperlib 1.7.6
         </p>
         <p><b>New features</b></p>
-        <li>Customize hotkeys.</li>
+        <li>Configurable hotkeys.</li>
         <p class="ml-5">自定义快捷键</p>
         <img
           class="w-96 mx-auto mt-5 mb-8 rounded-md shadow-neutral-400 shadow-lg"

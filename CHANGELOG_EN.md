@@ -1,3 +1,9 @@
+## v1.7.6 Jun 26 2022
+
+1. Configurable hotkeys.
+2. Arrow up and down to select the previous or next paper.
+3. Fix bugs.
+
 ## v1.7.5 Jun 25 2022
 
 1. Fix bugs.
