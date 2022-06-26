@@ -12,8 +12,6 @@ An open-source simple academic paper management tool for computer science.
 
 <div align="center">
 
-<a href="https://paperlib.app/en/download/" style="font-size: 16px"> » Download Here « </a>
-
 <a href="https://github.com/users/GeoffreyChen777/projects/1/views/1" style="font-size: 16px"> » Roadmap « </a>
 
 </div>
@@ -36,6 +34,18 @@ They are both great tools. But, compatibility with all subjects means a compromi
 -   Fulltext and advanced search.
 -   Rating, flag, tag, folder and note.
 -   Cloud sync, supports macOS and Windows.
+
+## Download and Install
+
+<a href="https://paperlib.app/en/download/" style="font-size: 16px"> » Download Here « </a>
+
+### Windows
+
+You may notice that a warnning is shown when you download and install Paperlib on Windows. The reason is that the code signing certificate is so expensive. The source code of Paperlib can be found in the electron branch. It won't hurt your PC and will never collect any personal information. Just click 'show more' and keep the 'latest.exe'. When you are installing 'latest.exe', in the Windows protected your PC window, please click 'More info' and 'Run anyway'.
+
+### macOS
+
+You may need to click the 'preference - Security & Privacy - run anyway'.
 
 ## Quick Start
 
