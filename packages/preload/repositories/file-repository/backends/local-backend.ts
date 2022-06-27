@@ -98,6 +98,8 @@ export class LocalFileBackend implements FileBackend {
       }
       title = `${author} - ${title.slice(0, 20)}`;
       id = id.slice(-5, -1);
+    } else {
+      title = title.slice(0, 200);
     }
 
     const targetFileName = title + "_" + id;
