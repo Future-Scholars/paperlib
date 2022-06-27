@@ -42,7 +42,11 @@ const onThemeUpdate = (value: string) => {
       class="bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 hover:dark:bg-neutral-600 cursor-pointer rounded-md px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 mb-5"
       @click="onPickerClicked"
     >
-      <span class="truncate"> {{ preference.appLibFolder }} </span>
+      <span class="w-full">
+        {{
+          `${preference.appLibFolder}${preference.appLibFolder}${preference.appLibFolder}${preference.appLibFolder}`
+        }}
+      </span>
     </div>
 
     <Toggle
