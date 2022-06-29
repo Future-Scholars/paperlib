@@ -154,7 +154,7 @@ async function createWindow() {
       const bounds = currentDisplay.bounds;
       const centerx = bounds.x + (bounds.width - 600) / 2;
       const centery = bounds.y + (bounds.height - 48) / 2;
-      winPlugin?.setPosition(centerx, centery);
+      winPlugin?.setPosition(parseInt(`${centerx}`), parseInt(`${centery}`));
 
       winPlugin?.show();
     }
