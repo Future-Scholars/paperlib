@@ -207,6 +207,7 @@ ipcMain.on("maximize", () => {
 ipcMain.on("close", () => {
   win?.close();
   winPlugin?.close();
+  winCheck?.close();
   // app.quit();
 });
 

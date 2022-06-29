@@ -282,7 +282,13 @@ export class WebDavFileBackend implements FileBackend {
         "webdav://"
       );
     } else {
-      sourceMainURL = constructFileURL(entity.mainURL, false, true, "file://");
+      sourceMainURL = constructFileURL(
+        entity.mainURL,
+        false,
+        true,
+        "",
+        "file://"
+      );
     }
     const targetMainURL = constructFileURL(
       targetFileName + "_main" + path.extname(sourceMainURL),

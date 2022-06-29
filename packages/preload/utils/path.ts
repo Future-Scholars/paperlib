@@ -27,18 +27,14 @@ export const constructFileURL = (
     }
   }
 
-  if (os.platform().startsWith("win")) {
-    return outURL;
-  } else {
-    if (withProtocol) {
-      if (outURL.startsWith(protocol)) {
-        return outURL;
-      } else {
-        return protocol + outURL;
-      }
+  if (withProtocol) {
+    if (outURL.startsWith(protocol)) {
+      return outURL;
     } else {
-      return outURL.replace(protocol, "");
+      return protocol + outURL;
     }
+  } else {
+    return outURL.replace(protocol, "");
   }
 };
 
