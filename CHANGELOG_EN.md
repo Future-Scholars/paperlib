@@ -1,3 +1,7 @@
+## v1.7.7 Jun 29 2022
+
+1. Fix bugs.
+
 ## v1.7.6 Jun 26 2022
 
 1. Configurable hotkeys.
