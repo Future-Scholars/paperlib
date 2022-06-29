@@ -1,6 +1,7 @@
 import path, { isAbsolute } from "path";
 import { createClient, WebDAVClient } from "webdav";
 import keytar from "keytar";
+import chokidar from "chokidar";
 
 import { FileBackend } from "./backend";
 
@@ -23,22 +24,36 @@ export class WebDavFileBackend implements FileBackend {
 
     this.webdavClient = null;
 
-    if (
-      !existsSync(
-        path.join(
-          this.sharedState.dbState.defaultPath.get() as string,
-          "file_cache"
-        )
-      )
-    ) {
-      mkdirSync(
-        path.join(
-          this.sharedState.dbState.defaultPath.get() as string,
-          "file_cache"
-        )
-      );
-    }
-
+    chokidar
+      .watch(this.preference.get("appLibFolder") as string)
+      .on("change", async (filePath) => {
+        if (
+          filePath &&
+          !filePath.endsWith(".realm") &&
+          !filePath.endsWith(".realm.lock") &&
+          !filePath.endsWith(".write.mx") &&
+          !filePath.endsWith(".control.mx")
+        ) {
+          try {
+            await this._local2serverMove(
+              filePath,
+              constructFileURL(
+                path.basename(filePath),
+                false,
+                true,
+                "",
+                "webdav://"
+              )
+            );
+          } catch (error) {
+            console.log(error);
+            this.sharedState.set(
+              "viewState.alertInformation",
+              `Could not upload file to webdav: ${error as string}`
+            );
+          }
+        }
+      });
     void this.check();
   }
 

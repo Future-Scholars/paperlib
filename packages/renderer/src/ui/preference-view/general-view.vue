@@ -43,9 +43,7 @@ const onThemeUpdate = (value: string) => {
       @click="onPickerClicked"
     >
       <span class="w-full">
-        {{
-          `${preference.appLibFolder}${preference.appLibFolder}${preference.appLibFolder}${preference.appLibFolder}`
-        }}
+        {{ preference.appLibFolder }}
       </span>
     </div>
 
