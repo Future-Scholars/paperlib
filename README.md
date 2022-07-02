@@ -8,6 +8,8 @@
 An open-source simple academic paper management tool for computer science.
 </div>
 
+
+
 ![](./assets/ui.png)
 
 <div align="center">
@@ -17,6 +19,13 @@ An open-source simple academic paper management tool for computer science.
 </div>
 
 ---
+
+
+⚠️ **I'm looking for someone who can help me:** ⚠️
+- Test Paperlib on Apple Silicon
+- Continue to develop the native SwiftUI version if you like Paperlib and are familiar with SwiftUI.
+
+## Introduction
 
 You may notice that conference papers are in major in our research community, which is different from other subjects. Without DOI, ISBN, metadata of a lot of conference papers are hard to lookup (e.g., NIPS, ICLR etc.). When we cite a publication in our draft paper, we need to manually search the publication information of it in Google Scholar or DBLP.
 
