@@ -23,6 +23,8 @@ jobs:
           VERSION=$(cat package.json | jq .version)
           export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
           export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./electron-builder.mac.dev.json5 ./electron-builder.json5
 
       - name: 'Import Certificates'
@@ -33,6 +35,7 @@ jobs:
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
           security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
