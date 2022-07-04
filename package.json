@@ -23,7 +23,7 @@
     "autoprefixer": "^10.4.4",
     "cssnano": "^5.1.7",
     "electron": "18.0.3",
-    "electron-builder": "^23.0.3",
+    "electron-builder": "^23.1.0",
     "pdfjs-dist": "2.13.216",
     "postcss": "^8.4.12",
     "simple-git-hooks": "^2.7.0",
