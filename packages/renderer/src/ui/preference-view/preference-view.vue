@@ -3,6 +3,7 @@ import { ref } from "vue";
 
 import {
   BIconGearWideConnected,
+  BIconLayoutSidebar,
   BIconBinoculars,
   BIconCloudArrowUp,
   BIconBoxArrowDown,
@@ -14,6 +15,7 @@ import {
 
 import SectionItem from "./components/section-item.vue";
 import GeneralView from "./general-view.vue";
+import SidebarView from "./sidebar-view.vue";
 import ScraperView from "./scraper-view.vue";
 import CloudView from "./cloud-view.vue";
 import AboutView from "./about-view.vue";
@@ -74,6 +76,13 @@ window.appInteractor.registerState(
               <BIconGearWideConnected class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
+              name="Sidebar"
+              :active="preferenceTab === 'sidebar'"
+              @click="preferenceTab = 'sidebar'"
+            >
+              <BIconLayoutSidebar class="my-auto text-xs" />
+            </SectionItem>
+            <SectionItem
               name="Scraper"
               :active="preferenceTab === 'scraper'"
               @click="preferenceTab = 'scraper'"
@@ -127,6 +136,10 @@ window.appInteractor.registerState(
             <GeneralView
               :preference="preference"
               v-if="preferenceTab === 'general'"
+            />
+            <SidebarView
+              :preference="preference"
+              v-if="preferenceTab === 'sidebar'"
             />
             <ScraperView
               :preference="preference"

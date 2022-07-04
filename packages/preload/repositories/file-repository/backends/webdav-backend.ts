@@ -244,10 +244,12 @@ export class WebDavFileBackend implements FileBackend {
     forceDelete: boolean = false
   ): Promise<PaperEntityDraft | null> {
     await this.check();
-    let title = entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_");
-    let id = entity._id.toString();
-    if (this.preference.get("renamingFormat") === "short") {
-      title = title
+
+    let title =
+      entity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") ||
+      "untitled";
+    const firstCharTitle =
+      title
         .split("_")
         .map((word: string) => {
           if (word) {
@@ -257,19 +259,46 @@ export class WebDavFileBackend implements FileBackend {
           }
         })
         .filter((c: string) => c && c === c.toUpperCase())
-        .join("");
+        .join("") || "untitled";
+    let author =
+      entity.authors.split(",").map((author) => author.trim())[0] ||
+      "anonymous";
+    const firstName = author.split(" ")[0] || "anonymous";
+    const lastName =
+      author.split(" ")[author.split(" ").length - 1] || "anonymous";
+    const year = entity.pubTime || "0000";
+    const publication = entity.publication || "unknown";
+    let id = entity._id.toString();
+
+    let formatedFileName = "";
+    if (this.preference.get("renamingFormat") === "short") {
+      formatedFileName = `${firstCharTitle}_${id}`;
     } else if (this.preference.get("renamingFormat") === "authortitle") {
-      let author = entity.authors.split(",")[0];
-      if (author !== entity.authors) {
+      if (author !== entity.authors && author !== "anonymous") {
         author = `${author} et al`;
       }
-      title = `${author} - ${title.slice(0, 20)}`;
       id = id.slice(-5, -1);
+      formatedFileName = `${author} - ${title.slice(0, 20)}_${id}`;
+    } else if (this.preference.get("renamingFormat") === "custom") {
+      formatedFileName = (this.preference.get("customRenamingFormat") as string)
+        .replaceAll("{title}", title.slice(0, 150))
+        .replaceAll("{firstchartitle}", firstCharTitle)
+        .replaceAll("{author}", author)
+        .replaceAll("{year}", year)
+        .replaceAll("{lastname}", lastName)
+        .replaceAll("{firstname}", firstName)
+        .replaceAll("{publication}", publication.slice(0, 100))
+        .slice(0, 250);
+      if (formatedFileName) {
+        formatedFileName = `${formatedFileName}_${id}`;
+      } else {
+        formatedFileName = `${id}`;
+      }
     } else {
-      title = title.slice(0, 200);
+      formatedFileName = `${title.slice(0, 200)}_${id}`;
     }
 
-    const targetFileName = title + "_" + id;
+    const targetFileName = formatedFileName;
 
     // 1. Move main file.
     let sourceMainURL;

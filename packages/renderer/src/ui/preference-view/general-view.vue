@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
 
@@ -11,6 +12,7 @@ const props = defineProps({
   },
 });
 
+const customRenamingFormat = ref(props.preference.customRenamingFormat);
 const onPickerClicked = async () => {
   const pickedFolder = (await window.appInteractor.showFolderPicker())
     .filePaths[0];
@@ -27,6 +29,51 @@ const onUpdate = (key: string, value: unknown) => {
 const onThemeUpdate = (value: string) => {
   window.appInteractor.changeTheme(value);
   onUpdate("preferedTheme", value);
+};
+
+const getCustomRenamingFormatPreview = (customRenamingFormat: string) => {
+  const title = "Masked Autoencoders Are Scalable Vision Learners";
+  const firstchartitle = "MAASVL";
+  const author = "Kaiming He";
+  const year = "2022";
+  const lastname = "He";
+  const firstname = "Kaiming";
+  const publication = "CVPR";
+
+  return customRenamingFormat
+    .replaceAll("{title}", title)
+    .replaceAll("{firstchartitle}", firstchartitle)
+    .replaceAll("{author}", author)
+    .replaceAll("{year}", year)
+    .replaceAll("{lastname}", lastname)
+    .replaceAll("{firstname}", firstname)
+    .replaceAll("{publication}", publication);
+};
+
+const customRenamingFormatPreview = ref(
+  getCustomRenamingFormatPreview(customRenamingFormat.value)
+);
+
+const onCustomRenamingFormatUpdate = (payload: Event) => {
+  let formatedFileName = "";
+  try {
+    formatedFileName = getCustomRenamingFormatPreview(
+      customRenamingFormat.value
+    );
+    window.appInteractor.updatePreference(
+      "customRenamingFormat",
+      customRenamingFormat.value
+    );
+  } catch (e) {
+    console.error(e);
+  }
+  customRenamingFormatPreview.value = formatedFileName
+    ? formatedFileName + "_"
+    : "";
+};
+
+const onRenameAllClicked = () => {
+  window.entityInteractor.renameAll();
 };
 </script>
 
@@ -60,13 +107,53 @@ const onThemeUpdate = (value: string) => {
       title="Renaming Format"
       info="Full: FullTitle_id.pdf; Short: FirstCharTitle_id.pdf; A-T: Author-Title_id.pdf"
       :selected="preference.renamingFormat"
-      :options="{ short: 'Short', full: 'Full', authortitle: 'A-T' }"
+      :options="{
+        short: 'Short',
+        full: 'Full',
+        authortitle: 'A-T',
+        custom: 'Custom',
+      }"
       @update="
         (value) => {
           onUpdate('renamingFormat', value);
         }
       "
     />
+
+    <div
+      class="flex space-x-2 justify-between mb-1"
+      v-if="preference.renamingFormat === 'custom'"
+    >
+      <input
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow text-neutral-700 dark:text-neutral-300"
+        type="text"
+        placeholder="Custom Format"
+        v-model="customRenamingFormat"
+        @input="onCustomRenamingFormatUpdate"
+      />
+      <button
+        class="flex h-full text-xs px-2 my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
+        @click="onRenameAllClicked"
+      >
+        <span class="m-auto">Rename All files</span>
+      </button>
+    </div>
+    <div
+      class="text-xxs text-neutral-600 dark:text-neutral-500"
+      v-if="preference.renamingFormat === 'custom'"
+    >
+      ⓘ <b>Avaliable components:</b> title, firstchartitle, author, firstname,
+      lastname, year, publication <br />
+      &nbsp;&nbsp;&nbsp; <b>Example:</b> {lastname}{year}-{firstchartitle} -->
+      he2022-MAE_id.pdf
+    </div>
+    <div
+      class="text-xxs text-neutral-600 dark:text-neutral-500 w-[550px] flex pl-3"
+      v-if="preference.renamingFormat === 'custom'"
+    >
+      <div><b>Preview:</b> &nbsp;</div>
+      <div class="grow">{{ customRenamingFormatPreview }}id.pdf</div>
+    </div>
 
     <hr class="mt-5 mb-5 dark:border-neutral-600" />
     <div class="text-base font-semibold mb-4">General Options</div>
@@ -90,48 +177,6 @@ const onThemeUpdate = (value: string) => {
       info="Invert PDF preview colors in the detail panel if the current theme is Dark."
       :enable="preference.invertColor"
       @update="(value) => onUpdate('invertColor', value)"
-    />
-
-    <hr class="mt-5 mb-5 dark:border-neutral-600" />
-    <div class="text-base font-semibold mb-4">Sidebar Options</div>
-
-    <Toggle
-      class="mb-5"
-      title="Display Count Number"
-      info="Show the count badges in the sidebar."
-      :enable="preference.showSidebarCount"
-      @update="(value) => onUpdate('showSidebarCount', value)"
-    />
-    <Toggle
-      class="mb-5"
-      title="Compact Sidebar"
-      info="Reduce the line height of the sidebar item."
-      :enable="preference.isSidebarCompact"
-      @update="(value) => onUpdate('isSidebarCompact', value)"
-    />
-    <Options
-      class="mb-5"
-      title="Sort By"
-      info="Sort tags and folders in the sidebar by."
-      :selected="preference.sidebarSortBy"
-      :options="{ name: 'Name', count: 'Count', color: 'Color' }"
-      @update="
-        (value) => {
-          onUpdate('sidebarSortBy', value);
-        }
-      "
-    />
-    <Options
-      class="mb-8"
-      title="Sort Order"
-      info="The order of sorting tags and folders in the sidebar."
-      :selected="preference.sidebarSortOrder"
-      :options="{ asce: 'Ascending', desc: 'Descending' }"
-      @update="
-        (value) => {
-          onUpdate('sidebarSortOrder', value);
-        }
-      "
     />
   </div>
 </template>

@@ -289,6 +289,52 @@ export class EntityInteractor {
     );
   }
 
+  async renameAll() {
+    let entities = await this.dbRepository.entities(
+      null,
+      false,
+      "",
+      "",
+      "title",
+      "desc"
+    );
+    const entityDrafts = entities.map((entityDraft) => {
+      const draft = new PaperEntityDraft();
+      draft.initialize(entityDraft);
+      return draft;
+    });
+
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.get() as number) +
+        entityDrafts.length
+    );
+
+    const updatePromise = async (entityDrafts: PaperEntityDraft[]) => {
+      const movedEntityDrafts = await Promise.all(
+        entityDrafts.map((entityDraft: PaperEntityDraft) =>
+          this.fileRepository.move(entityDraft, true)
+        )
+      );
+
+      for (let i = 0; i < movedEntityDrafts.length; i++) {
+        if (movedEntityDrafts[i] === null) {
+          movedEntityDrafts[i] = entityDrafts[i];
+        }
+      }
+
+      await this.dbRepository.update(movedEntityDrafts as PaperEntityDraft[]);
+    };
+
+    await updatePromise(entityDrafts);
+
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.get() as number) -
+        entityDrafts.length
+    );
+  }
+
   colorizeCategorizers(
     categorizerName: string,
     categorizerType: Categorizers,

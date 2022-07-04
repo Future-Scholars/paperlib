@@ -11,7 +11,8 @@ export interface PreferenceStore {
   invertColor: boolean;
   sidebarSortBy: "name" | "count" | "color";
   sidebarSortOrder: "asce" | "desc";
-  renamingFormat: "full" | "short" | "authortitle";
+  renamingFormat: "full" | "short" | "authortitle" | "custom";
+  customRenamingFormat: string;
 
   enableExportReplacement: boolean;
   exportReplacement: Array<{ from: string; to: string }>;
@@ -69,6 +70,7 @@ const defaultPreferences: PreferenceStore = {
   sidebarSortBy: "name",
   sidebarSortOrder: "asce",
   renamingFormat: "full",
+  customRenamingFormat: "",
 
   enableExportReplacement: true,
   exportReplacement: [],

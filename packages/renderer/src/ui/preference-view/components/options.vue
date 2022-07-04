@@ -29,7 +29,10 @@ const emit = defineEmits(["update"]);
         {{ info }}
       </div>
     </div>
-    <div class="flex bg-neutral-200 dark:bg-neutral-700 rounded-md w-40">
+    <div
+      class="flex bg-neutral-200 dark:bg-neutral-700 rounded-md"
+      :class="Object.entries(options).length < 4 ? 'w-40' : 'w-48'"
+    >
       <div
         class="flex h-full w-full my-auto text-center text-xs rounded-md cursor-pointer"
         :class="
