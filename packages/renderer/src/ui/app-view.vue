@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "splitpanes/dist/splitpanes.css";
 import { onBeforeMount, onMounted, Ref, ref } from "vue";
 
 import { PaperCategorizer } from "../../../preload/models/PaperCategorizer";
@@ -29,6 +30,13 @@ const isSidebarCompact = ref(false);
 
 const sidebarSortBy = ref("name");
 const sidebarSortOrder = ref("asce");
+
+const sidebarWidth = ref(20);
+
+const onSidebarResized = (event: any) => {
+  const width = event[0].size ? event[0].size : 20;
+  window.appInteractor.updatePreference("sidebarWidth", width);
+};
 
 // =======================================
 // Data
@@ -179,6 +187,9 @@ window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
 onBeforeMount(async () => {
   reloadPreference();
   setupTheme();
+  sidebarWidth.value = window.appInteractor.getPreference(
+    "sidebarWidth"
+  ) as number;
 });
 onMounted(async () => {
   await reloadTags();
@@ -187,16 +198,27 @@ onMounted(async () => {
 });
 </script>
 
+<style>
+.splitpanes--vertical > .splitpanes__splitter {
+  min-width: 2px;
+}
+</style>
+
 <template>
   <div class="flex text-neutral-700 dark:text-neutral-200">
-    <SidebarView
-      class="sidebar-windows-bg"
-      :tags="tags"
-      :folders="folders"
-      :showSidebarCount="showSidebarCount"
-      :compact="isSidebarCompact"
-    />
-    <MainView :entities="entities" />
+    <splitpanes @resized="onSidebarResized($event)">
+      <pane :key="1" min-size="12" :size="sidebarWidth">
+        <SidebarView
+          class="sidebar-windows-bg"
+          :tags="tags"
+          :folders="folders"
+          :showSidebarCount="showSidebarCount"
+          :compact="isSidebarCompact"
+      /></pane>
+      <pane :key="2">
+        <MainView :entities="entities" />
+      </pane>
+    </splitpanes>
   </div>
   <EditView class="text-neutral-700" :tags="tags" :folders="folders" />
   <PreferenceView :preference="preference" />

@@ -5,6 +5,7 @@ import "./css/index.css";
 import { RecycleScroller } from "vue-virtual-scroller";
 import vSelect from "vue-select";
 import { BIconChevronUp, BIconX } from "bootstrap-icons-vue";
+import { Splitpanes, Pane } from "splitpanes";
 
 // @ts-ignore
 vSelect.props.components.default = () => ({
@@ -16,6 +17,8 @@ const app = createApp(App);
 
 app.component("RecycleScroller", RecycleScroller);
 app.component("v-select", vSelect);
+app.component("Splitpanes", Splitpanes);
+app.component("Pane", Pane);
 
 app.mount("#app").$nextTick(() => {
   console.log("Remove loading...");

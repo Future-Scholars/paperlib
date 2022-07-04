@@ -54,6 +54,8 @@ export interface PreferenceStore {
   shortcutEdit: string;
   shortcutFlag: string;
 
+  sidebarWidth: number;
+
   [Key: string]: unknown;
 }
 
@@ -108,6 +110,8 @@ const defaultPreferences: PreferenceStore = {
   shortcutScrape: "CommandOrControl+R",
   shortcutEdit: "CommandOrControl+E",
   shortcutFlag: "CommandOrControl+F",
+
+  sidebarWidth: 20,
 };
 
 export class Preference {

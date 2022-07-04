@@ -112,7 +112,7 @@ window.appInteractor.registerState(
 </script>
 
 <template>
-  <div class="flex-none flex flex-col w-80 h-screen justify-between">
+  <div class="flex-none flex flex-col w-full h-screen justify-between">
     <div>
       <WindowControlBar class="flex-none" />
 
@@ -129,7 +129,7 @@ window.appInteractor.registerState(
           :active="selectedCategorizer === 'lib-all'"
           @click="onSelectCategorizer('lib-all')"
         >
-          <BIconCollection class="text-sm my-auto text-blue-500" />
+          <BIconCollection class="text-sm my-auto text-blue-500 min-w-[1em]" />
         </SectionItem>
         <SectionItem
           name="Flags"
@@ -139,7 +139,7 @@ window.appInteractor.registerState(
           :active="selectedCategorizer === 'lib-flaged'"
           @click="onSelectCategorizer('lib-flaged')"
         >
-          <BIconFlag class="text-sm my-auto text-blue-500" />
+          <BIconFlag class="text-sm my-auto text-blue-500 min-w-[1em]" />
         </SectionItem>
 
         <CollopseGroup title="Tags">
@@ -155,7 +155,7 @@ window.appInteractor.registerState(
             @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `tag-${tag.name}`)}"
           >
             <BIconTag
-              class="text-sm my-auto"
+              class="text-sm my-auto min-w-[1em]"
               :class="{
                 'text-blue-500': tag.color === 'blue' || tag.color === null,
                 'text-red-500': tag.color === 'red',
@@ -179,7 +179,7 @@ window.appInteractor.registerState(
             @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `folder-${folder.name}`)}"
           >
             <BIconFolder
-              class="text-sm my-auto"
+              class="text-sm my-auto min-w-[1em]"
               :class="{
                 'text-blue-500':
                   folder.color === 'blue' || folder.color === null,
