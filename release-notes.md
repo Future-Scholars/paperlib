@@ -1,1 +1,2 @@
-1. Fix bugs.
+1. Resizable sidebar.
+2. Custom renaming format.

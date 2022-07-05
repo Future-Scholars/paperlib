@@ -1,3 +1,8 @@
+## v1.7.8 Jul 05 2022
+
+1. Resizable sidebar.
+2. Custom renaming format.
+
 ## v1.7.7 Jun 29 2022
 
 1. Fix bugs.
