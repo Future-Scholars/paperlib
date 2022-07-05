@@ -20,13 +20,4 @@ app.component("v-select", vSelect);
 app.component("Splitpanes", Splitpanes);
 app.component("Pane", Pane);
 
-app.mount("#app").$nextTick(() => {
-  console.log("Remove loading...");
-  const oStyle = document.getElementById(
-    "app-loading-style"
-  ) as HTMLStyleElement;
-  const oDiv = document.getElementById("app-loading-wrap") as HTMLDivElement;
-
-  document.head.appendChild(oStyle);
-  document.body.removeChild(oDiv);
-});
+app.mount("#app");

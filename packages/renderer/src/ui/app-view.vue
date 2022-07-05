@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import "splitpanes/dist/splitpanes.css";
-import { onBeforeMount, onMounted, Ref, ref } from "vue";
+import { nextTick, onBeforeMount, onMounted, Ref, ref } from "vue";
 
 import { PaperCategorizer } from "../../../preload/models/PaperCategorizer";
 import { PaperEntity } from "../../../preload/models/PaperEntity";
@@ -195,6 +195,17 @@ onMounted(async () => {
   await reloadTags();
   await reloadFolders();
   await reloadEntities();
+
+  nextTick(() => {
+    console.log("Remove loading...");
+    const oStyle = document.getElementById(
+      "app-loading-style"
+    ) as HTMLStyleElement;
+    const oDiv = document.getElementById("app-loading-wrap") as HTMLDivElement;
+
+    document.head.appendChild(oStyle);
+    document.body.removeChild(oDiv);
+  });
 });
 </script>
 
