@@ -6,8 +6,7 @@ import { formatString } from "../../../utils/string";
 
 export class DOIScraper extends Scraper {
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
-    const enable =
-      entityDraft.doi !== "" && (this.preference.get("doiScraper") as boolean);
+    const enable = entityDraft.doi !== "" && this.getEnable("doi");
     const doiID = formatString({
       str: entityDraft.doi,
       removeNewline: true,

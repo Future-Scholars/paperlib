@@ -14,8 +14,9 @@ import { CVFScraper } from "./scrapers/cvf";
 import { PwCScraper } from "./scrapers/paperwithcode";
 import { OpenreviewScraper } from "./scrapers/openreview";
 import { GoogleScholarScraper } from "./scrapers/google-scholar";
+import { CustomScraper } from "./scrapers/custom";
 
-import { Preference } from "../../utils/preference";
+import { Preference, ScraperPreference } from "../../utils/preference";
 import { PaperEntityDraft } from "../../models/PaperEntityDraft";
 import { SharedState } from "../../utils/appstate";
 
@@ -23,57 +24,119 @@ export class ScraperRepository {
   sharedState: SharedState;
   preference: Preference;
 
-  scraperList: Record<string, ScraperType>;
+  scraperList: Array<{ name: string; scraper: ScraperType }>;
 
   constructor(sharedState: SharedState, preference: Preference) {
     this.sharedState = sharedState;
     this.preference = preference;
 
-    this.scraperList = {
-      PDFScraper: new PDFScraper(this.sharedState, this.preference),
-      ArXivScraper: new ArXivScraper(this.sharedState, this.preference),
-      DOIScraper: new DOIScraper(this.sharedState, this.preference),
-      DBLPScraper: new DBLPScraper(this.sharedState, this.preference),
-      DBLPbyTimeScraper0: new DBLPbyTimeScraper(
-        this.sharedState,
-        this.preference,
-        0
-      ),
-      DBLPbyTimeScraper1: new DBLPbyTimeScraper(
-        this.sharedState,
-        this.preference,
-        1
-      ),
-      DBLPVenueScraper: new DBLPVenueScraper(this.sharedState, this.preference),
-      OpenreviewScraper: new OpenreviewScraper(
-        this.sharedState,
-        this.preference
-      ),
-      OpenreviewVenueScraper: new DBLPVenueScraper(
-        this.sharedState,
-        this.preference
-      ),
-      CVFScraper: new CVFScraper(this.sharedState, this.preference),
-      IEEEScraper: new IEEEScraper(this.sharedState, this.preference),
-      GoogleScholarScraper: new GoogleScholarScraper(
-        this.sharedState,
-        this.preference
-      ),
-      PwCScraper: new PwCScraper(this.sharedState, this.preference),
-    };
+    this.scraperList = [];
+
+    const scraperPrefs = (
+      this.preference.get("scrapers") as Array<ScraperPreference>
+    ).sort((a, b) => b.priority - a.priority);
+
+    for (const scraper of scraperPrefs) {
+      if (scraper.name === "dblp") {
+        const dblpScraper = new DBLPScraper(this.sharedState, this.preference);
+        const dblpByTimeScraper0 = new DBLPbyTimeScraper(
+          this.sharedState,
+          this.preference,
+          0
+        );
+        const dblpbyTimeScraper1 = new DBLPbyTimeScraper(
+          this.sharedState,
+          this.preference,
+          1
+        );
+        const dblpVenueScraper = new DBLPVenueScraper(
+          this.sharedState,
+          this.preference
+        );
+        this.scraperList.push({
+          name: "dblp",
+          scraper: dblpScraper,
+        });
+        this.scraperList.push({
+          name: "dblp-by-time-0",
+          scraper: dblpByTimeScraper0,
+        });
+        this.scraperList.push({
+          name: "dblp-by-time-1",
+          scraper: dblpbyTimeScraper1,
+        });
+        this.scraperList.push({
+          name: "dblp-venue",
+          scraper: dblpVenueScraper,
+        });
+      } else {
+        let scraperInstance: ScraperType | undefined;
+        switch (scraper.name) {
+          case "pdf":
+            scraperInstance = new PDFScraper(this.sharedState, this.preference);
+            break;
+          case "doi":
+            scraperInstance = new DOIScraper(this.sharedState, this.preference);
+            break;
+          case "arxiv":
+            scraperInstance = new ArXivScraper(
+              this.sharedState,
+              this.preference
+            );
+            break;
+          case "ieee":
+            scraperInstance = new IEEEScraper(
+              this.sharedState,
+              this.preference
+            );
+            break;
+          case "cvf":
+            scraperInstance = new CVFScraper(this.sharedState, this.preference);
+            break;
+          case "pwc":
+            scraperInstance = new PwCScraper(this.sharedState, this.preference);
+            break;
+          case "openreview":
+            scraperInstance = new OpenreviewScraper(
+              this.sharedState,
+              this.preference
+            );
+            break;
+          case "googlescholar":
+            scraperInstance = new GoogleScholarScraper(
+              this.sharedState,
+              this.preference
+            );
+            break;
+          default:
+            scraperInstance = new CustomScraper(
+              this.sharedState,
+              this.preference,
+              scraper.name
+            );
+        }
+        if (scraperInstance !== undefined) {
+          this.scraperList.push({
+            name: scraper.name,
+            scraper: scraperInstance,
+          });
+        }
+      }
+    }
+    console.log(this.scraperList);
 
     void got("https://paperlib.app/api/version");
   }
 
   async scrape(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft> {
-    for (const [name, scraper] of Object.entries(this.scraperList)) {
+    for (const scraper of this.scraperList) {
       try {
-        entityDraft = await scraper.scrape(entityDraft);
+        entityDraft = await scraper.scraper.scrape(entityDraft);
       } catch (error) {
         console.log(error);
         this.sharedState.set(
           "viewState.alertInformation",
-          `${name} error: ${error as string}`
+          `${scraper.name} error: ${error as string}`
         );
       }
     }

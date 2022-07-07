@@ -9,7 +9,7 @@ export class OpenreviewScraper extends Scraper {
     const enable =
       entityDraft.title !== "" &&
       (entityDraft.publication === "arXiv" || entityDraft.publication === "") &&
-      (this.preference.get("openreviewScraper") as boolean);
+      this.getEnable("openreview");
 
     const scrapeURL = `https://api.openreview.net/notes/search?term=${entityDraft.title}`;
 

@@ -34,7 +34,7 @@ export class PDFScraper extends Scraper {
         )
       ) &&
       entityDraft.mainURL.endsWith(".pdf") &&
-      (this.preference.get("pdfBuiltinScraper") as boolean);
+      this.getEnable("pdf");
 
     const scrapeURL = constructFileURL(
       entityDraft.mainURL,
@@ -90,19 +90,45 @@ export class PDFScraper extends Scraper {
     );
     if (arxivIds) {
       const arxivId = formatString({ str: arxivIds[0], removeWhite: true });
-      entityDraft.setValue("arxiv", arxivId);
+      if (entityDraft.arxiv === "") {
+        entityDraft.setValue("arxiv", arxivId);
+      }
     }
 
-    // Extract DOI
-    const dois = firstPageText.match(
-      new RegExp(
-        "(?:" + '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' + ")",
-        "g"
-      )
-    );
-    if (dois) {
+    // Extract DOI fron urls
+    const dois = rawResponse.urls
+      .map((url) => {
+        const doi = url.match(
+          new RegExp(
+            "(?:" + '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' + ")",
+            "g"
+          )
+        );
+        if (doi) {
+          return doi[0];
+        }
+        return "";
+      })
+      .filter((doi) => doi !== "");
+    if (dois.length > 0) {
       const doi = formatString({ str: dois[0], removeWhite: true });
-      entityDraft.setValue("doi", doi);
+      if (entityDraft.doi === "") {
+        entityDraft.setValue("doi", doi);
+      }
+    } else {
+      // Extract DOI from first page
+      const dois = firstPageText.match(
+        new RegExp(
+          "(?:" + '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' + ")",
+          "g"
+        )
+      );
+      if (dois) {
+        const doi = formatString({ str: dois[0], removeWhite: true });
+        if (entityDraft.doi === "") {
+          entityDraft.setValue("doi", doi);
+        }
+      }
     }
 
     if (!arxivIds && !dois) {
@@ -128,12 +154,14 @@ async function scrapeImpl(
         constructFileURL(scrapeURL, false, true)
       ).promise;
       const metaData = await pdf.getMetadata();
+      const urls = await _getPDFURL(pdf);
       const pageText = await _getPDFText(pdf);
 
       const response = {
         metaData: metaData,
         firstPageText: pageText.text,
         largestText: pageText.largestText,
+        urls: urls,
       };
 
       // @ts-ignore
@@ -144,6 +172,16 @@ async function scrapeImpl(
   } else {
     return entityDraft;
   }
+}
+
+async function _getPDFURL(pdfData: PDFDocumentProxy): Promise<[string]> {
+  const pageData = await pdfData.getPage(1);
+  const annos = await pageData.getAnnotations();
+  let urls = [];
+  for (const anno of annos) {
+    urls.push(anno.url);
+  }
+  return urls;
 }
 
 async function _getPDFText(
@@ -234,4 +272,5 @@ export interface PDFFileResponseType {
   };
   firstPageText: string;
   largestText: string;
+  urls: string[];
 }

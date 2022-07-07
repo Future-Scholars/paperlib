@@ -92,7 +92,7 @@ export class GoogleScholarScraper extends Scraper {
     const enable =
       entityDraft.title !== "" &&
       entityDraft.publication === "" &&
-      (this.preference.get("googlescholarScraper") as boolean);
+      this.getEnable("googlescholar");
 
     const query = entityDraft.title.replace(/ /g, "+");
 

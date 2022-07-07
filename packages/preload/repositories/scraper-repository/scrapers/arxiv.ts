@@ -3,7 +3,7 @@ import { Response } from "got";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 import { formatString } from "../../../utils/string";
-import { Preference } from "../../../utils/preference";
+import { Preference, ScraperPreference } from "../../../utils/preference";
 import { SharedState } from "../../../utils/appstate";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
@@ -16,9 +16,7 @@ export class ArXivScraper extends Scraper {
   }
 
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
-    const enable =
-      entityDraft.arxiv !== "" &&
-      (this.preference.get("arXivScraper") as boolean);
+    let enable = this.getEnable("arxiv") && entityDraft.arxiv !== "";
 
     const arxivID = formatString({
       str: entityDraft.arxiv,

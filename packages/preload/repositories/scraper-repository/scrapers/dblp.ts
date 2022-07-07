@@ -2,7 +2,7 @@ import { Response } from "got";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 import { formatString } from "../../../utils/string";
-import { Preference } from "../../../utils/preference";
+import { Preference, ScraperPreference } from "../../../utils/preference";
 import { SharedState } from "../../../utils/appstate";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
@@ -124,8 +124,7 @@ export class DBLPScraper extends Scraper {
       removeStr: "&",
     }).replace("—", "-");
 
-    const enable =
-      dblpQuery !== "" && (this.preference.get("dblpScraper") as boolean);
+    const enable = dblpQuery !== "" && this.getEnable("dblp");
     const scrapeURL =
       "https://dblp.org/search/publ/api?q=" + dblpQuery + "&format=json";
     const headers = {};
@@ -168,8 +167,7 @@ export class DBLPbyTimeScraper extends Scraper {
     }).replace("—", "-");
     dblpQuery += " " + `year:${year + this.offset}`;
 
-    const enable =
-      dblpQuery !== "" && (this.preference.get("dblpScraper") as boolean);
+    const enable = dblpQuery !== "" && this.getEnable("dblp");
     const scrapeURL =
       "https://dblp.org/search/publ/api?q=" + dblpQuery + "&format=json";
 

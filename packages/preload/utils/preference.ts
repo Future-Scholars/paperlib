@@ -2,6 +2,18 @@ import path from "path";
 import os from "os";
 import Store from "electron-store";
 
+export interface ScraperPreference {
+  name: string;
+  description: string;
+  enable: boolean;
+  custom: boolean;
+  args: string;
+  priority: number;
+  preProcessCode: string;
+  parsingProcessCode: string;
+  scrapeImplCode: string;
+}
+
 export interface PreferenceStore {
   appLibFolder: string;
   deleteSourceFile: boolean;
@@ -41,6 +53,8 @@ export interface PreferenceStore {
   ieeeAPIKey: string;
   pwcScraper: boolean;
   googlescholarScraper: boolean;
+
+  scrapers: Array<ScraperPreference>;
 
   httpproxy: string;
   httpsproxy: string;
@@ -114,6 +128,109 @@ const defaultPreferences: PreferenceStore = {
   shortcutFlag: "CommandOrControl+F",
 
   sidebarWidth: 20,
+
+  scrapers: [
+    {
+      name: "pdf",
+      description: "PDF builtin scraper",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 10,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
+      name: "arxiv",
+      description: "arXiv.org",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 9,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
+      name: "doi",
+      description: "DOI.org",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 8,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
+      name: "dblp",
+      description: "DBLP.org",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 7,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
+      name: "openreview",
+      description: "OpenReview.net",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 6,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
+      name: "cvf",
+      description: "The Computer Vision Foundation",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 5,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
+      name: "ieee",
+      description:
+        "IEEE xplore, args: IEEE API Key. https://developer.ieee.org/",
+      enable: false,
+      custom: false,
+      args: "",
+      priority: 4,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
+      name: "pwc",
+      description: "paperwithcode.com",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 3,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
+      name: "googlescholar",
+      description: "Google Scholar",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 2,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+  ],
 };
 
 export class Preference {

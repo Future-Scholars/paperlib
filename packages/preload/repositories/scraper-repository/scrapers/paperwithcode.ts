@@ -6,9 +6,7 @@ import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class PwCScraper extends Scraper {
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
-    const enable =
-      entityDraft.title !== "" &&
-      (this.preference.get("pwcScraper") as boolean);
+    const enable = entityDraft.title !== "" && this.getEnable("pwc");
 
     const connectedTitle = formatString({
       str: entityDraft.title,

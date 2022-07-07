@@ -3,7 +3,7 @@ import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 
 import { PDFFileResponseType } from "./pdf";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
-import { Preference } from "../../../utils/preference";
+import { Preference, ScraperPreference } from "../../../utils/preference";
 import { SharedState } from "../../../utils/appstate";
 
 export interface ScraperRequestType {
@@ -22,6 +22,7 @@ export interface ScraperType {
   ): PaperEntityDraft | void;
   scrapeImpl: (_: PaperEntityDraft) => Promise<PaperEntityDraft>;
   getProxyAgent(): Record<string, HttpProxyAgent | HttpsProxyAgent | void>;
+  getEnable(name: string): boolean;
 }
 
 export class Scraper implements ScraperType {
@@ -90,6 +91,14 @@ export class Scraper implements ScraperType {
   }
 
   scrapeImpl = scrapeImpl;
+
+  getEnable(name: string) {
+    return (
+      (this.preference.get("scrapers") as Array<ScraperPreference>).find(
+        (scraperPref) => scraperPref.name === name
+      )?.enable ?? false
+    );
+  }
 }
 
 async function scrapeImpl(
