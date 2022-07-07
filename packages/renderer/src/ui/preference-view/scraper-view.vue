@@ -51,7 +51,6 @@ const onDeleteScraper = (name: string) => {
 };
 
 const onUpdateScraper = (name: string, scraperPref: ScraperPreference) => {
-  console.log(scraperPref);
   let scraperPrefs = props.preference.scrapers;
   scraperPrefs = scraperPrefs.map((item) => {
     if (item.name === name) {

@@ -24,7 +24,6 @@ let existingShortcuts = {
 const info = ref("");
 
 const onUpdate = (key: string, value: string) => {
-  console.log(key, value);
   const keyParts = value.split("+");
   const modifier1 = keyParts[0];
   const modifier2 = keyParts[1];

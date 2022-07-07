@@ -123,8 +123,6 @@ export class ScraperRepository {
         }
       }
     }
-    console.log(this.scraperList);
-
     void got("https://paperlib.app/api/version");
   }
 

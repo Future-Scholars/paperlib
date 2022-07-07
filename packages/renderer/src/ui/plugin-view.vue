@@ -31,7 +31,6 @@ const onInput = (payload: Event) => {
 
 const exportSelectedEntity = () => {
   const selectedEntity = entities.value[selectedIndex.value];
-  console.log(selectedEntity);
   if (selectedEntity.id === "search-in-google-scholar") {
     window.pluginInteractor.open(
       `https://scholar.google.com/scholar?q=${searchText.value}`

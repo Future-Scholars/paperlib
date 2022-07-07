@@ -46,7 +46,6 @@ export class CustomScraper extends Scraper {
       );
     }
 
-    console.log({ scrapeURL, headers, enable });
     return { scrapeURL, headers, enable };
   }
 

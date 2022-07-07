@@ -16,7 +16,7 @@ export class IEEEScraper extends Scraper {
       (entityDraft.publication === "arXiv" ||
         entityDraft.publication === "openreview.net" ||
         entityDraft.publication === "") &&
-      ieeeAPIKey &&
+      ieeeAPIKey !== "" &&
       this.getEnable("ieee");
 
     let requestTitle = formatString({
