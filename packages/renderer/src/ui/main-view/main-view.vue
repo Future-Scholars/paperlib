@@ -211,6 +211,7 @@ window.appInteractor.registerMainSignal("shortcut-Preference", () => {
 window.appInteractor.registerMainSignal("shortcut-Enter", () => {
   if (
     selectedEntities.value.length >= 1 &&
+    !window.appInteractor.getState("viewState.isModalShown") &&
     !window.appInteractor.getState("viewState.isEditViewShown") &&
     !window.appInteractor.getState("viewState.isPreferenceViewShown")
   ) {

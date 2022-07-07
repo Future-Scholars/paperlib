@@ -7,6 +7,25 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["confirm", "cancel"]);
+
+const keyDownListener = (e: KeyboardEvent) => {
+  e.preventDefault();
+  if (e.key === "Enter") {
+    onConfirm();
+  } else if (e.key === "Escape") {
+    onCancel();
+  }
+};
+
+document.addEventListener("keydown", keyDownListener, { once: true });
+
+const onCancel = () => {
+  emit("cancel");
+};
+
+const onConfirm = () => {
+  emit("confirm");
+};
 </script>
 
 <template>
@@ -31,7 +50,7 @@ const emit = defineEmits(["confirm", "cancel"]);
           <div
             class="flex h-8 rounded-lg bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm"
             :class="okBtn ? 'w-24' : 'w-full'"
-            @click="emit('cancel')"
+            @click="onCancel"
             v-if="cancelBtn"
           >
             <span class="m-auto text-xs">Cancel</span>
@@ -39,7 +58,7 @@ const emit = defineEmits(["confirm", "cancel"]);
           <div
             class="flex h-8 rounded-lg bg-accentlight dark:bg-accentdark hover:shadow-sm"
             :class="cancelBtn ? 'w-24' : 'w-full'"
-            @click="emit('confirm')"
+            @click="onConfirm"
             v-if="okBtn"
           >
             <span class="m-auto text-xs text-white">OK</span>

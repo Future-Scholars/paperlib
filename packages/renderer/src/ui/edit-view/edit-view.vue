@@ -29,8 +29,18 @@ const entityDraft = ref(new PaperEntityDraft());
 
 const pubTypes = ["Article", "Conference", "Others", "Book"];
 
+const keyDownListener = (e: KeyboardEvent) => {
+  e.preventDefault();
+  if (e.key === "Escape") {
+    onCloseClicked();
+  }
+};
+
 window.appInteractor.registerState("viewState.isEditViewShown", (value) => {
   isEditViewShown.value = value as boolean;
+  if (isEditViewShown) {
+    window.addEventListener("keydown", keyDownListener, { once: true });
+  }
 });
 
 window.appInteractor.registerState("sharedData.editEntityDraft", (value) => {

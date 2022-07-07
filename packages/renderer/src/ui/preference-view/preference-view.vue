@@ -40,10 +40,20 @@ const onCloseClicked = () => {
   window.appInteractor.setState("viewState.isPreferenceViewShown", false);
 };
 
+const keyDownListener = (e: KeyboardEvent) => {
+  e.preventDefault();
+  if (e.key === "Escape") {
+    onCloseClicked();
+  }
+};
+
 window.appInteractor.registerState(
   "viewState.isPreferenceViewShown",
   (value) => {
     isPreferenceViewShown.value = value as boolean;
+    if (isPreferenceViewShown) {
+      document.addEventListener("keydown", keyDownListener, { once: true });
+    }
   }
 );
 </script>
