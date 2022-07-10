@@ -34,36 +34,42 @@ onMounted(() => {
       <div class="w-[40rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.7.8
+          What's New in Paperlib 1.8.0
         </p>
         <p class="mt-10"><b>News</b></p>
         <li>
-          <b
-            >Apple Silicon (M1/M2) BETA is ready. Download it from Paperlib
-            webpage.</b
-          >
+          <b>FireFox add-on is ready.</b>
         </li>
-        <p class="ml-5">
-          Apple Silicon (M1/M2) Beta
-          测试版本可以下载了，不再需要转译运行，如果您想要尝试，请前往
-          https://paperlib.app/en/download/ 下载对应版本。如果遇到任何 Bug
-          请前往 Github 上提 Issue。
-        </p>
+        <p class="ml-5">FireFox 插件可以下载了。</p>
+        <p class="mt-10"><b>Thanks</b></p>
+        <li>The first donation from @ji***qing</li>
+        <li>supports from my friends @xh**05, and @1412**de, and @lqx**ok</li>
+        <li>suggestions from all users.</li>
 
         <p class="mt-10"><b>New Features</b></p>
-        <li>Custom file renaming format #102</li>
-        <p class="ml-5">设置中可设置自定义导入文件重命名格式。</p>
+        <li>Setup your custom scraper #44, scrapers' priority.</li>
+        <p class="ml-5">
+          设置自定义的 metadata 搜刮器。现有搜刮器也可设置优先级。使用指南请参考
+          https://github.com/GeoffreyChen777/paperlib/wiki
+        </p>
         <img
           class="mx-auto mt-5 mb-8 rounded-md shadow-lg"
           src="../assets/1.png"
         />
 
-        <li>Adjustable left panel width. #103</li>
-        <p class="ml-5">可以拖拽调整左侧边栏的宽度。</p>
-        <img
-          class="mx-auto w-96 mt-5 mb-8 rounded-md shadow-lg"
-          src="../assets/2.png"
-        />
+        <li>Dialog window hotkey #108</li>
+        <p class="ml-5">一些对话框可以使用 Esc 和回车快捷键了。</p>
+
+        <p class="mt-10"><b>Fixed Bugs</b></p>
+        <li>DOI scraper / Google Scholar importer error #106</li>
+        <p class="ml-5">
+          一些 PDF 提取 DOI 不完整和 Google Scholar 插件的错误已修复。
+        </p>
+        <li>
+          The what's new window cannot be closed after updating on small screen.
+          #109
+        </li>
+        <p class="ml-5">在小屏幕上无法点击到更新详情关闭按钮。</p>
 
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
@@ -71,6 +77,8 @@ onMounted(() => {
         >
           <span class="m-auto">Close</span>
         </div>
+
+        <div class="w-full h-20"></div>
       </div>
       <div
         class="fixed bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white dark:from-neutral-800"

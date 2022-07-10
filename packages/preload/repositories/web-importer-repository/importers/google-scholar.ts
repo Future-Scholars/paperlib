@@ -26,8 +26,10 @@ export class GoogleScholarWebImporter extends WebImporter {
       const downloadURL = fileUrlNode?.attributes["href"];
       if (downloadURL) {
         const downloadedFilePath = await this.downloadProcess([downloadURL]);
-        if (downloadedFilePath && downloadedFilePath.length > 0) {
-          entityDraft.mainURL = downloadedFilePath[0];
+        if (downloadedFilePath) {
+          if (downloadedFilePath.length > 0) {
+            entityDraft.mainURL = downloadedFilePath[0];
+          }
         }
       }
 
