@@ -1,3 +1,11 @@
+## v1.8.0 Jul 10 2022
+
+1. FireFox add-on is ready.
+2. Custom scraper, scrapers' priority.
+3. Dialog window hotkey.
+4. Bug fix.
+
+
 ## v1.7.8 Jul 05 2022
 
 1. Resizable sidebar.
