@@ -1,4 +1,4 @@
-## v1.8.0 Jul 10 2022
+## v1.8.1 Jul 10 2022
 
 1. FireFox add-on is ready.
 2. Custom scraper, scrapers' priority.

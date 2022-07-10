@@ -34,7 +34,7 @@ onMounted(() => {
       <div class="w-[40rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.8.0
+          What's New in Paperlib 1.8.1
         </p>
         <p class="mt-10"><b>News</b></p>
         <li>
