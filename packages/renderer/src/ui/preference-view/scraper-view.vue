@@ -78,13 +78,13 @@ const onUpdate = (key: string, value: unknown) => {
       <div>Priority</div>
       <div class="pl-2">Description</div>
     </div>
-    <hr class="mx-2 mb-1" />
+    <hr class="mx-2 mb-1 dark:border-neutral-600" />
     <div class="flex flex-col px-2 rounded-md max-h-[450px] overflow-scroll">
       <ScraperItem
         v-for="(scraperPref, index) in preference.scrapers"
         :key="index"
         :scraperPref="scraperPref"
-        class="even:bg-neutral-200"
+        class="even:bg-neutral-200 even:dark:bg-neutral-700"
         @delete="onDeleteScraper(scraperPref.name)"
         @update="
           (name, scraperPref) => {

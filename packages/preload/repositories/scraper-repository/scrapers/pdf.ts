@@ -98,14 +98,18 @@ export class PDFScraper extends Scraper {
     // Extract DOI fron urls
     const dois = rawResponse.urls
       .map((url) => {
-        const doi = url.match(
-          new RegExp(
-            "(?:" + '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' + ")",
-            "g"
-          )
-        );
-        if (doi) {
-          return doi[0];
+        if (url) {
+          const doi = url.match(
+            new RegExp(
+              "(?:" +
+                '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' +
+                ")",
+              "g"
+            )
+          );
+          if (doi) {
+            return doi[0];
+          }
         }
         return "";
       })
