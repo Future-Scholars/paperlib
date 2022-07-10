@@ -198,8 +198,7 @@ const defaultPreferences: PreferenceStore = {
     },
     {
       name: "ieee",
-      description:
-        "IEEE xplore, args: IEEE API Key. https://developer.ieee.org/",
+      description: "args: IEEE API Key. https://developer.ieee.org/",
       enable: false,
       custom: false,
       args: "",

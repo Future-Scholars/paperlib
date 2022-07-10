@@ -68,6 +68,12 @@ const onUpdateScraper = (name: string, scraperPref: ScraperPreference) => {
 const onUpdate = (key: string, value: unknown) => {
   window.appInteractor.updatePreference(key, value);
 };
+
+const onClickGuide = () => {
+  window.appInteractor.open(
+    "https://github.com/GeoffreyChen777/paperlib/wiki/"
+  );
+};
 </script>
 
 <template>
@@ -96,8 +102,9 @@ const onUpdate = (key: string, value: unknown) => {
     <div class="flex justify-end mt-2 px-2 space-x-2">
       <div
         class="text-xxs my-auto underline hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
+        @click="onClickGuide"
       >
-        Guidance: Custom Scraper
+        Guide: Custom Scraper
       </div>
       <div
         class="flex w-8 h-6 my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500 text-xs cursor-pointer"
