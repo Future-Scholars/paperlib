@@ -238,10 +238,50 @@ export class Preference {
 
   constructor() {
     this.store = new Store<PreferenceStore>({});
+
+    let migrationRequired = false;
+    if (!this.store.has("scrapers")) {
+      console.log("Migrate scrapers preference to new format");
+      migrationRequired = true;
+    }
+
     for (const key in defaultPreferences) {
       if (!this.store.has(key)) {
         this.store.set(key, defaultPreferences[key]);
       }
+    }
+
+    if (migrationRequired) {
+      let defaultScraperPrefs = defaultPreferences.scrapers;
+      if (!this.store.get("pdfBuiltinScraper")) {
+        defaultScraperPrefs[0].enable = false;
+      }
+      if (!this.store.get("arXivScraper")) {
+        defaultScraperPrefs[1].enable = false;
+      }
+      if (!this.store.get("doiScraper")) {
+        defaultScraperPrefs[2].enable = false;
+      }
+      if (!this.store.get("dblpScraper")) {
+        defaultScraperPrefs[3].enable = false;
+      }
+      if (!this.store.get("openreviewScraper")) {
+        defaultScraperPrefs[4].enable = false;
+      }
+      if (!this.store.get("cvfScraper")) {
+        defaultScraperPrefs[5].enable = false;
+      }
+      if (!this.store.get("ieeeScraper")) {
+        defaultScraperPrefs[6].enable = false;
+      }
+      defaultScraperPrefs[6].args = this.store.get("ieeeAPIKey");
+      if (!this.store.get("pwcScraper")) {
+        defaultScraperPrefs[7].enable = false;
+      }
+      if (!this.store.get("googlescholarScraper")) {
+        defaultScraperPrefs[8].enable = false;
+      }
+      this.store.set("scrapers", defaultScraperPrefs);
     }
   }
 

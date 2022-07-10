@@ -220,7 +220,7 @@ export class WebDavFileBackend implements FileBackend {
         if (
           ((this.preference.get("deleteSourceFile") as boolean) ||
             forceDelete) &&
-          sourceURL !== targetURL
+          sourceURL.toLowerCase() !== targetURL.toLowerCase()
         ) {
           await this.webdavClient?.deleteFile(
             sourceURL.replace("webdav://", "/paperlib/")

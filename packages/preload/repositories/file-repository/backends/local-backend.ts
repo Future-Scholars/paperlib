@@ -59,7 +59,7 @@ export class LocalFileBackend implements FileBackend {
       await fsPromise.copyFile(_sourceURL, _targetURL);
       if (
         ((this.preference.get("deleteSourceFile") as boolean) || forceDelete) &&
-        _sourceURL !== _targetURL
+        _sourceURL.toLowerCase() !== _targetURL.toLowerCase()
       ) {
         await fsPromise.unlink(sourceURL);
       }
@@ -145,6 +145,7 @@ export class LocalFileBackend implements FileBackend {
       false,
       this.preference.get("appLibFolder") as string
     );
+
     const mainSuccess = await this._move(
       sourceMainURL,
       targetMainURL,
