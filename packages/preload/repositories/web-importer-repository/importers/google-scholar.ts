@@ -26,6 +26,7 @@ export class GoogleScholarWebImporter extends WebImporter {
       const downloadURL = fileUrlNode?.attributes["href"];
       if (downloadURL) {
         const downloadedFilePath = await this.downloadProcess([downloadURL]);
+        console.log(downloadedFilePath);
         if (downloadedFilePath && downloadedFilePath.length > 0) {
           entityDraft.mainURL = downloadedFilePath[0];
         }
@@ -37,17 +38,17 @@ export class GoogleScholarWebImporter extends WebImporter {
       if (title) {
         let titleStr = title.childNodes.pop()?.rawText;
 
-        const headers = {
-          "user-agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-        };
-        const scrapeUrl = `https://scholar.google.com/scholar?q=${titleStr.replaceAll(
-          " ",
-          "+"
-        )}`;
-        await safeGot(scrapeUrl, headers, agent);
-
         if (titleStr) {
+          const headers = {
+            "user-agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
+          };
+          const scrapeUrl = `https://scholar.google.com/scholar?q=${titleStr.replaceAll(
+            " ",
+            "+"
+          )}`;
+          await safeGot(scrapeUrl, headers, agent);
+
           const dataid = title.parentNode.parentNode.attributes["data-aid"];
           if (dataid) {
             const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
@@ -72,7 +73,7 @@ export class GoogleScholarWebImporter extends WebImporter {
                       entityDraft.title = bibtex.title;
                     }
                     if (bibtex.year) {
-                      entityDraft.year = bibtex.year;
+                      entityDraft.pubTime = `${bibtex.year}`;
                     }
                     if (bibtex.author) {
                       const authors = bibtex.author

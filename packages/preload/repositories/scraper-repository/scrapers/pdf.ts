@@ -135,9 +135,7 @@ export class PDFScraper extends Scraper {
       }
     }
 
-    if (!arxivIds && !dois) {
-      entityDraft.setValue("title", rawResponse.largestText.slice(0, 400));
-    }
+    entityDraft.setValue("title", rawResponse.largestText.slice(0, 400));
 
     return entityDraft;
   }
