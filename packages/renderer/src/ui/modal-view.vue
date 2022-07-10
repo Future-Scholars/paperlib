@@ -6,6 +6,10 @@ const show = ref(false);
 window.appInteractor.registerState("viewState.isModalShown", (value) => {
   show.value = value as boolean;
 });
+
+const onClick = () => {
+  window.appInteractor.setState("viewState.isModalShown", false);
+};
 </script>
 
 <template>
@@ -21,6 +25,7 @@ window.appInteractor.registerState("viewState.isModalShown", (value) => {
       id="modal-view"
       class="absolute w-full h-full top-0 left-0"
       v-show="show"
+      @click="onClick"
     ></div>
   </Transition>
 </template>
