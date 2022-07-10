@@ -110,7 +110,7 @@ const onApplyUpdate = () => {
         />
       </div>
       <div class="flex">
-        <div class="w-[30%]">Priority: (restart needed)</div>
+        <div class="w-[30%]">Priority: (restart required)</div>
         <input
           class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm"
           type="number"
@@ -134,7 +134,7 @@ const onApplyUpdate = () => {
         />
       </div>
       <div class="flex mb-2" v-if="scraperPref.custom">
-        <div class="w-[30%]">ScrapeImpl: (restart needed)</div>
+        <div class="w-[30%]">ScrapeImpl: (restart required)</div>
         <textarea
           class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm min-h-[100px]"
           type="text"

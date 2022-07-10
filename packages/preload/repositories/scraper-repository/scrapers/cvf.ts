@@ -3,7 +3,6 @@ import { Response } from "got";
 import { Scraper, ScraperRequestType } from "./scraper";
 import { formatString } from "../../../utils/string";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
-import { ScraperPreference } from "../../../utils/preference";
 
 export class CVFScraper extends Scraper {
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
