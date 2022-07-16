@@ -15,6 +15,7 @@ import CollopseGroup from "./components/collopse-group.vue";
 import {
   PaperTag,
   PaperFolder,
+  Categorizers,
 } from "../../../../preload/models/PaperCategorizer";
 import NotificationBar from "./components/notification-bar.vue";
 
@@ -70,6 +71,18 @@ const onItemRightClicked = (event: MouseEvent, categorizer: string) => {
   window.appInteractor.showContextMenu(
     "show-sidebar-context-menu",
     categorizer
+  );
+};
+
+const onItemDroped = (
+  categorizerName: string,
+  categorizerType: Categorizers,
+  filePaths: string[]
+) => {
+  window.entityInteractor.addToCategorizer(
+    filePaths,
+    categorizerName,
+    categorizerType
   );
 };
 
@@ -153,6 +166,11 @@ window.appInteractor.registerState(
             :active="selectedCategorizer === `tag-${tag.name}`"
             @click="onSelectCategorizer(`tag-${tag.name}`)"
             @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `tag-${tag.name}`)}"
+            @droped="
+              (filePaths) => {
+                onItemDroped(tag.name, 'PaperTag', filePaths);
+              }
+            "
           >
             <BIconTag
               class="text-sm my-auto min-w-[1em]"
@@ -177,6 +195,11 @@ window.appInteractor.registerState(
             :active="selectedCategorizer === `folder-${folder.name}`"
             @click="onSelectCategorizer(`folder-${folder.name}`)"
             @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `folder-${folder.name}`)}"
+            @droped="
+              (filePaths) => {
+                onItemDroped(folder.name, 'PaperFolder', filePaths);
+              }
+            "
           >
             <BIconFolder
               class="text-sm my-auto min-w-[1em]"

@@ -164,6 +164,78 @@ export class EntityInteractor {
     );
   }
 
+  async addToCategorizer(
+    urlList: string[],
+    categorizerName: string,
+    categorizerType: Categorizers
+  ) {
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.value as number) +
+        urlList.length
+    );
+
+    try {
+      // 1. Metadata scraping.
+      const scrapingPromise = async (url: string) => {
+        let entityDraft = new PaperEntityDraft(true);
+        entityDraft.setValue("mainURL", url);
+
+        entityDraft = await this.scraperRepository.scrape(entityDraft);
+        return entityDraft;
+      };
+
+      let entityDrafts = await Promise.all(
+        urlList.map((url) => scrapingPromise(url))
+      );
+
+      // 2. File moving.
+      entityDrafts = (await Promise.all(
+        entityDrafts.map((entityDraft) => this.fileRepository.move(entityDraft))
+      )) as PaperEntityDraft[];
+      entityDrafts = entityDrafts.filter((entityDraft) => entityDraft !== null);
+
+      // 3. DB insertion.
+      const dbSuccesses = await this.dbRepository.update(entityDrafts);
+      // - find unsuccessful entities.
+      const unsuccessfulEntityDrafts = entityDrafts.filter(
+        (_entityDraft, index) => !dbSuccesses[index]
+      );
+      // - remove files of unsuccessful entities.
+      await Promise.all(
+        unsuccessfulEntityDrafts.map((entityDraft) =>
+          this.fileRepository.remove(entityDraft)
+        )
+      );
+
+      // 4. DB update.
+      const successfulEntityDrafts = entityDrafts
+        .filter((_entityDraft, index) => dbSuccesses[index])
+        .map((entityDraft) => {
+          if (categorizerType === "PaperTag") {
+            entityDraft.setValue("tags", categorizerName);
+          }
+          if (categorizerType === "PaperFolder") {
+            entityDraft.setValue("folders", categorizerName);
+          }
+          return entityDraft;
+        });
+
+      await this.dbRepository.update(successfulEntityDrafts);
+    } catch (error) {
+      this.sharedState.set(
+        "viewState.alertInformation",
+        `Add failed: ${error as string}`
+      );
+    }
+
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.value as number) -
+        urlList.length
+    );
+  }
+
   async addWholeFolder(folder: string) {
     const files = await this.fileRepository.listPDFs(folder);
     const PDFfiles = files.filter((file) => path.extname(file) === ".pdf");

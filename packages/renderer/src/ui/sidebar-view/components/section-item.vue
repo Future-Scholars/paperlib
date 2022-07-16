@@ -1,4 +1,8 @@
 <script setup lang="ts">
+// @ts-ignore
+import dragDrop from "drag-drop";
+import { onMounted, ref } from "vue";
+
 import Spinner from "./spinner.vue";
 import Counter from "./counter.vue";
 
@@ -10,10 +14,35 @@ const props = defineProps({
   withCounter: Boolean,
   compact: Boolean,
 });
+
+const item = ref(null);
+const emit = defineEmits(["droped"]);
+
+const registerDropHandler = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  dragDrop(item.value, {
+    // @ts-ignore
+    onDrop: async (files, pos, fileList, directories) => {
+      const filePaths: string[] = [];
+      // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      files.forEach((file) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        filePaths.push(file.path);
+      });
+      emit("droped", filePaths);
+    },
+  });
+};
+
+onMounted(() => {
+  registerDropHandler();
+});
 </script>
 
 <template>
   <div
+    ref="item"
     class="w-full flex justify-between rounded-md pl-2 pr-1 cursor-pointer space-x-2"
     :class="{
       'bg-neutral-400 bg-opacity-30': active,
