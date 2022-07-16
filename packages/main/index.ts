@@ -186,7 +186,8 @@ app.on("second-instance", () => {
 app.on("activate", () => {
   const allWindows = BrowserWindow.getAllWindows();
   if (allWindows.length) {
-    allWindows[0].focus();
+    win?.show();
+    win?.focus();
   } else {
     createWindow();
   }
@@ -204,11 +205,18 @@ ipcMain.on("maximize", () => {
   }
 });
 
-ipcMain.on("close", () => {
-  win?.close();
-  winPlugin?.close();
-  winCheck?.close();
-  // app.quit();
+ipcMain.on("close", (e) => {
+  if (platform() === "darwin") {
+    e.preventDefault();
+    win?.hide();
+    winPlugin?.hide();
+    winCheck?.hide();
+  } else {
+    win?.close();
+    winPlugin?.close();
+    winCheck?.close();
+    app.quit();
+  }
 });
 
 ipcMain.handle("version", () => {
