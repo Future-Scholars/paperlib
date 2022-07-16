@@ -67,6 +67,12 @@ You may need to click the 'preference - Security & Privacy - run anyway'.
 
 <a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="./assets/wechat.png" alt="Buy Me A Coffee" height="174" width="174"></a>
 
+## Sponsors
+
+### Apple Silicon Build
+<img src="https://user-images.githubusercontent.com/14183213/179353324-42ee9831-68a8-4816-97f5-cc7be7189ce8.png" style="width: 160px"/>
+
+
 ## Contribute to Paperlib
 
 ### Metadata Scrapers
