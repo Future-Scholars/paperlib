@@ -38,6 +38,7 @@ const onAddNewScraperClicked = () => {
     JSON.stringify(scraperPrefs),
     true
   );
+  window.appInteractor.recreateScrapers();
 };
 
 const onDeleteScraper = (name: string) => {
@@ -48,6 +49,7 @@ const onDeleteScraper = (name: string) => {
     JSON.stringify(scraperPrefs),
     true
   );
+  window.appInteractor.recreateScrapers();
 };
 
 const onUpdateScraper = (name: string, scraperPref: ScraperPreference) => {

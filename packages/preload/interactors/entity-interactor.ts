@@ -250,6 +250,36 @@ export class EntityInteractor {
     await this.update(JSON.stringify(entityDrafts));
   }
 
+  async scrapeFrom(entitiesStr: string, scraperName: string) {
+    let entityDrafts = JSON.parse(entitiesStr) as PaperEntityDraft[];
+    entityDrafts = entityDrafts.map((entityDraft) => {
+      const draft = new PaperEntityDraft();
+      draft.initialize(entityDraft);
+      return draft;
+    });
+
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.get() as number) +
+        entityDrafts.length
+    );
+
+    const scrapePromise = async (entityDraft: PaperEntityDraft) => {
+      return await this.scraperRepository.scrapeFrom(entityDraft, scraperName);
+    };
+
+    entityDrafts = await Promise.all(
+      entityDrafts.map((entityDraft) => scrapePromise(entityDraft))
+    );
+
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.get() as number) -
+        entityDrafts.length
+    );
+    await this.update(JSON.stringify(entityDrafts));
+  }
+
   async update(entitiesStr: string) {
     let entityDrafts = JSON.parse(entitiesStr) as PaperEntityDraft[];
     entityDrafts = entityDrafts.map((entityDraft) => {

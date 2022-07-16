@@ -63,6 +63,18 @@ const scrapeSelectedEntities = () => {
   void window.entityInteractor.scrape(JSON.stringify(entityDrafts));
 };
 
+const scrapeSelectedEntitiesFrom = (scraperName: string) => {
+  const entityDrafts = selectedEntities.value.map((entity) => {
+    const entityDraft = new PaperEntityDraft();
+    entityDraft.initialize(entity);
+    return entityDraft;
+  });
+  void window.entityInteractor.scrapeFrom(
+    JSON.stringify(entityDrafts),
+    scraperName
+  );
+};
+
 const deleteSelectedEntities = () => {
   createModalView(
     "Delete",
@@ -176,6 +188,13 @@ window.appInteractor.registerMainSignal("data-context-menu-delete", () => {
 window.appInteractor.registerMainSignal("data-context-menu-scrape", () => {
   scrapeSelectedEntities();
 });
+
+window.appInteractor.registerMainSignal(
+  "data-context-menu-scrape-from",
+  (args) => {
+    scrapeSelectedEntitiesFrom(args[0]);
+  }
+);
 
 window.appInteractor.registerMainSignal("data-context-menu-open", () => {
   openSelectedEntities();

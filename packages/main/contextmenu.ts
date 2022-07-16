@@ -1,4 +1,7 @@
 import { ipcMain, Menu, BrowserWindow, nativeImage } from "electron";
+import Store from "electron-store";
+
+import { ScraperPreference } from "../preload/utils/preference";
 
 const isMac = process.platform === "darwin";
 
@@ -21,8 +24,26 @@ const greenBuf = Buffer.from([94, 197, 34, 0]);
 let greenIcon = nativeImage.createFromBuffer(greenBuf, { width: 1, height: 1 });
 greenIcon = greenIcon.resize({ width: 3, height: 10 });
 
+const preference = new Store({});
+
 // main
 ipcMain.on("show-data-context-menu", (event, args) => {
+  const scraperPrefs = preference.get("scrapers") as Array<ScraperPreference>;
+
+  let scraperMenuTemplate = [];
+  for (const scraperPref of scraperPrefs) {
+    if (scraperPref.enable) {
+      scraperMenuTemplate.push({
+        label: scraperPref.name,
+        click: () => {
+          event.sender.send("data-context-menu-scrape-from", [
+            scraperPref.name,
+          ]);
+        },
+      });
+    }
+  }
+
   const template = [
     {
       label: "Open",
@@ -53,6 +74,12 @@ ipcMain.on("show-data-context-menu", (event, args) => {
         event.sender.send("data-context-menu-scrape");
       },
     },
+
+    {
+      label: "Scrape from",
+      submenu: scraperMenuTemplate,
+    },
+
     {
       label: "Delete",
       click: () => {

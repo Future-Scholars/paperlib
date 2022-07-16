@@ -32,6 +32,14 @@ export class ScraperRepository {
 
     this.scraperList = [];
 
+    this.createScrapers();
+
+    void got("https://paperlib.app/api/version");
+  }
+
+  async createScrapers() {
+    this.scraperList = [];
+
     const scraperPrefs = (
       this.preference.get("scrapers") as Array<ScraperPreference>
     ).sort((a, b) => b.priority - a.priority);
@@ -123,7 +131,6 @@ export class ScraperRepository {
         }
       }
     }
-    void got("https://paperlib.app/api/version");
   }
 
   async scrape(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft> {
@@ -136,6 +143,26 @@ export class ScraperRepository {
           "viewState.alertInformation",
           `${scraper.name} error: ${error as string}`
         );
+      }
+    }
+    return entityDraft;
+  }
+
+  async scrapeFrom(
+    entityDraft: PaperEntityDraft,
+    scraperName: string
+  ): Promise<PaperEntityDraft> {
+    for (const scraper of this.scraperList) {
+      if (scraper.name === scraperName) {
+        try {
+          entityDraft = await scraper.scraper.scrape(entityDraft);
+        } catch (error) {
+          console.log(error);
+          this.sharedState.set(
+            "viewState.alertInformation",
+            `${scraper.name} error: ${error as string}`
+          );
+        }
       }
     }
     return entityDraft;

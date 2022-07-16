@@ -41,7 +41,8 @@ const appInteractor = new AppInteractor(
   sharedState,
   preference,
   dbRepository,
-  fileRepository
+  fileRepository,
+  scraperRepository
 );
 const entityInteractor = new EntityInteractor(
   sharedState,

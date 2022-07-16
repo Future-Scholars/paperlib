@@ -4,6 +4,7 @@ import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
 
 import { DBRepository } from "../repositories/db-repository/db-repository";
 import { FileRepository } from "../repositories/file-repository/file-repository";
+import { ScraperRepository } from "../repositories/scraper-repository/scraper-repository";
 
 import { SharedState } from "../utils/appstate";
 import { Preference } from "../utils/preference";
@@ -14,6 +15,7 @@ export class AppInteractor {
 
   dbRepository: DBRepository;
   fileRepository: FileRepository;
+  scraperRepository: ScraperRepository;
 
   scheduler: ToadScheduler;
 
@@ -21,13 +23,15 @@ export class AppInteractor {
     sharedState: SharedState,
     preference: Preference,
     dbRepository: DBRepository,
-    fileRepository: FileRepository
+    fileRepository: FileRepository,
+    scraperRepository: ScraperRepository
   ) {
     this.sharedState = sharedState;
     this.preference = preference;
 
     this.dbRepository = dbRepository;
     this.fileRepository = fileRepository;
+    this.scraperRepository = scraperRepository;
 
     this.scheduler = new ToadScheduler();
   }
@@ -175,5 +179,9 @@ export class AppInteractor {
 
   async hideWhatsNew() {
     this.preference.set("lastVersion", await this.version());
+  }
+
+  recreateScrapers() {
+    this.scraperRepository.createScrapers();
   }
 }
