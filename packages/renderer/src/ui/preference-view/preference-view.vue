@@ -4,6 +4,7 @@ import { ref } from "vue";
 import {
   BIconGearWideConnected,
   BIconLayoutSidebar,
+  BIconViewList,
   BIconBinoculars,
   BIconCloudArrowUp,
   BIconBoxArrowDown,
@@ -16,6 +17,7 @@ import {
 import SectionItem from "./components/section-item.vue";
 import GeneralView from "./general-view.vue";
 import SidebarView from "./sidebar-view.vue";
+import MainviewView from "./mainview-view.vue";
 import ScraperView from "./scraper-view.vue";
 import CloudView from "./cloud-view.vue";
 import AboutView from "./about-view.vue";
@@ -73,7 +75,7 @@ window.appInteractor.registerState(
     >
       <div class="flex justify-center items-center w-full h-full">
         <div
-          class="m-auto flex bg-neutral-100 dark:bg-neutral-800 min-h-[600px] w-[750px] rounded-lg shadow-lg select-none space-y-2"
+          class="m-auto flex bg-neutral-100 dark:bg-neutral-800 min-h-[600px] min-w-[750px] rounded-lg shadow-lg select-none space-y-2"
         >
           <div
             class="flex flex-col space-y-1 h-full w-36 rounded-l-lg px-2 py-14 border-r-[1px] dark:border-r-neutral-700"
@@ -91,6 +93,13 @@ window.appInteractor.registerState(
               @click="preferenceTab = 'sidebar'"
             >
               <BIconLayoutSidebar class="my-auto text-xs" />
+            </SectionItem>
+            <SectionItem
+              name="Mainview"
+              :active="preferenceTab === 'mainview'"
+              @click="preferenceTab = 'mainview'"
+            >
+              <BIconViewList class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
               name="Scraper"
@@ -150,6 +159,10 @@ window.appInteractor.registerState(
             <SidebarView
               :preference="preference"
               v-if="preferenceTab === 'sidebar'"
+            />
+            <MainviewView
+              :preference="preference"
+              v-if="preferenceTab === 'mainview'"
             />
             <ScraperView
               :preference="preference"

@@ -28,6 +28,15 @@ const preference: Ref<PreferenceStore> = ref(
 const showSidebarCount = ref(false);
 const isSidebarCompact = ref(false);
 
+const showMainYear = ref(true);
+const showMainPublication = ref(true);
+const showMainPubType = ref(false);
+const showMainRating = ref(false);
+const showMainFlag = ref(true);
+const showMainTags = ref(false);
+const showMainFolders = ref(false);
+const showMainNote = ref(false);
+
 const sidebarSortBy = ref("name");
 const sidebarSortOrder = ref("asce");
 
@@ -86,6 +95,15 @@ const reloadPreference = () => {
   preference.value = window.appInteractor.loadPreferences();
   showSidebarCount.value = preference.value.showSidebarCount;
   isSidebarCompact.value = preference.value.isSidebarCompact;
+
+  showMainYear.value = preference.value.showMainYear;
+  showMainPublication.value = preference.value.showMainPublication;
+  showMainPubType.value = preference.value.showMainPubType;
+  showMainRating.value = preference.value.showMainRating;
+  showMainFlag.value = preference.value.showMainFlag;
+  showMainTags.value = preference.value.showMainTags;
+  showMainFolders.value = preference.value.showMainFolders;
+  showMainNote.value = preference.value.showMainNote;
 
   if (
     sidebarSortBy.value !== preference.value.sidebarSortBy ||
@@ -227,7 +245,17 @@ onMounted(async () => {
           :compact="isSidebarCompact"
       /></pane>
       <pane :key="2">
-        <MainView :entities="entities" />
+        <MainView
+          :entities="entities"
+          :show-main-year="showMainYear"
+          :show-main-publication="showMainPublication"
+          :show-main-pub-type="showMainPubType"
+          :show-main-flag="showMainFlag"
+          :show-main-tags="showMainTags"
+          :show-main-folders="showMainFolders"
+          :show-main-rating="showMainRating"
+          :show-main-note="showMainNote"
+        />
       </pane>
     </splitpanes>
   </div>

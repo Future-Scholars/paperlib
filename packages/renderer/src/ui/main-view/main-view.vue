@@ -15,6 +15,14 @@ import { createModalView } from "../components/modal-view";
 
 const props = defineProps({
   entities: Array as () => PaperEntity[],
+  showMainYear: Boolean,
+  showMainPublication: Boolean,
+  showMainPubType: Boolean,
+  showMainRating: Boolean,
+  showMainFlag: Boolean,
+  showMainTags: Boolean,
+  showMainFolders: Boolean,
+  showMainNote: Boolean,
 });
 
 const sortBy = ref("addTime");
@@ -395,7 +403,19 @@ window.appInteractor.registerState(
     />
 
     <div class="grow flex divide-x dark:divide-neutral-700">
-      <DataView :entities="entities" :sortBy="sortBy" :sortOrder="sortOrder" />
+      <DataView
+        :entities="entities"
+        :sortBy="sortBy"
+        :sortOrder="sortOrder"
+        :show-main-year="showMainYear"
+        :show-main-publication="showMainPublication"
+        :show-main-pub-type="showMainPubType"
+        :show-main-flag="showMainFlag"
+        :show-main-tags="showMainTags"
+        :show-main-folders="showMainFolders"
+        :show-main-rating="showMainRating"
+        :show-main-note="showMainNote"
+      />
       <DetailView
         :entity="
           selectedEntities.length === 1

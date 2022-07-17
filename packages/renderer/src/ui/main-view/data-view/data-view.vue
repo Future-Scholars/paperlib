@@ -19,6 +19,14 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  showMainYear: Boolean,
+  showMainPublication: Boolean,
+  showMainPubType: Boolean,
+  showMainRating: Boolean,
+  showMainFlag: Boolean,
+  showMainTags: Boolean,
+  showMainFolders: Boolean,
+  showMainNote: Boolean,
 });
 
 const viewType = ref("list");
@@ -131,9 +139,14 @@ onMounted(() => {
       <ListItem
         :title="item.title"
         :authors="item.authors"
-        :year="item.pubTime"
-        :publication="item.publication"
-        :flag="item.flag"
+        :year="showMainYear ? item.pubTime : ''"
+        :publication="showMainPublication ? item.publication : ''"
+        :pubType="showMainPubType ? item.pubType : -1"
+        :flag="showMainFlag ? item.flag : false"
+        :rating="showMainRating ? item.rating : 0"
+        :tags="showMainTags ? item.tags : []"
+        :folders="showMainFolders ? item.folders : []"
+        :note="showMainNote ? item.note : ''"
         :active="selectedIndex.indexOf(index) >= 0"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         v-if="viewType === 'list'"

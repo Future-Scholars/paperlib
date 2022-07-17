@@ -17,8 +17,19 @@ export interface ScraperPreference {
 export interface PreferenceStore {
   appLibFolder: string;
   deleteSourceFile: boolean;
+
   showSidebarCount: boolean;
   isSidebarCompact: boolean;
+
+  showMainYear: boolean;
+  showMainPublication: boolean;
+  showMainPubType: boolean;
+  showMainRating: boolean;
+  showMainFlag: boolean;
+  showMainTags: boolean;
+  showMainFolders: boolean;
+  showMainNote: boolean;
+
   preferedTheme: "light" | "dark" | "system";
   invertColor: boolean;
   sidebarSortBy: "name" | "count" | "color";
@@ -77,8 +88,19 @@ export interface PreferenceStore {
 const defaultPreferences: PreferenceStore = {
   appLibFolder: path.join(os.homedir(), "Documents", "paperlib"),
   deleteSourceFile: false,
+
   showSidebarCount: true,
   isSidebarCompact: false,
+
+  showMainYear: true,
+  showMainPublication: true,
+  showMainPubType: false,
+  showMainRating: false,
+  showMainFlag: true,
+  showMainTags: false,
+  showMainFolders: false,
+  showMainNote: false,
+
   preferedTheme: "light",
   invertColor: true,
   sidebarSortBy: "name",
