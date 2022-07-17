@@ -26,8 +26,15 @@ export function setupWindowsSpecificStyle(win: Electron.BrowserWindow) {
   background-color: #efefef;
 }
 
+.splitpanes__splitter {
+  background-color: #efefef;
+}
+
 @media (prefers-color-scheme: dark) {
   .sidebar-windows-bg {
+    background-color: rgb(50, 50, 50);
+  }
+  .splitpanes__splitter {
     background-color: rgb(50, 50, 50);
   }
 }
