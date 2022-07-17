@@ -16,7 +16,7 @@ const props = defineProps({
 });
 
 const item = ref(null);
-const emit = defineEmits(["droped"]);
+const emit = defineEmits(["droped", "item-droped"]);
 
 const registerDropHandler = () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -31,6 +31,12 @@ const registerDropHandler = () => {
         filePaths.push(file.path);
       });
       emit("droped", filePaths);
+    },
+    // @ts-ignore
+    onDropText: async (text, pos) => {
+      if (text === "paperlibEvent-drag-main-item") {
+        emit("item-droped");
+      }
     },
   });
 };
@@ -49,6 +55,7 @@ onMounted(() => {
       'h-6': compact,
       'h-7': !compact,
     }"
+    v-on:drop="dropHandler"
   >
     <slot></slot>
     <div

@@ -8,7 +8,9 @@ export class OpenreviewScraper extends Scraper {
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
     const enable =
       entityDraft.title !== "" &&
-      (entityDraft.publication === "arXiv" || entityDraft.publication === "") &&
+      (entityDraft.publication === "" ||
+        entityDraft.publication.toLowerCase().includes("arxiv") ||
+        entityDraft.publication.toLowerCase().includes("openreview")) &&
       this.getEnable("openreview");
 
     const scrapeURL = `https://api.openreview.net/notes/search?term=${entityDraft.title}`;

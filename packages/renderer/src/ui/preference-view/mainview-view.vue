@@ -45,7 +45,7 @@ const onUpdate = (key: string, value: unknown) => {
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
     <div class="text-base font-semibold mb-4">Mainview Preview</div>
     <ListItem
-      class="bg-neutral-200 dark:bg-neutral-700 w-[800px]"
+      class="bg-neutral-200 dark:bg-neutral-700 w-[800px] cursor-default"
       :title="item.title"
       :authors="item.authors"
       :year="preference.showMainYear ? item.pubTime : ''"

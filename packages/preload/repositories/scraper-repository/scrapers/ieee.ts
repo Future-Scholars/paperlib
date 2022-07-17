@@ -13,9 +13,9 @@ export class IEEEScraper extends Scraper {
       )?.args ?? "";
     const enable =
       entityDraft.title !== "" &&
-      (entityDraft.publication === "arXiv" ||
-        entityDraft.publication === "openreview.net" ||
-        entityDraft.publication === "") &&
+      (entityDraft.publication === "" ||
+        entityDraft.publication.toLowerCase().includes("arxiv") ||
+        entityDraft.publication.toLowerCase().includes("openreview")) &&
       ieeeAPIKey !== "" &&
       this.getEnable("ieee");
 

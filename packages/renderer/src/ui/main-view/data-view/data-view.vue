@@ -94,6 +94,17 @@ const registerDropHandler = () => {
   });
 };
 
+const dragHandler = (event: DragEvent) => {
+  const el = event.target as HTMLElement;
+  event.dataTransfer?.setDragImage(el, 0, 0);
+  event.dataTransfer?.setData("text/plain", "paperlibEvent-drag-main-item");
+
+  window.appInteractor.setState(
+    "selectionState.dragedIds",
+    JSON.stringify([el.id])
+  );
+};
+
 window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
   const newSelectedIndex = JSON.parse(value as string) as number[];
 
@@ -137,6 +148,7 @@ onMounted(() => {
       v-slot="{ item, index }"
     >
       <ListItem
+        :id="item.id"
         :title="item.title"
         :authors="item.authors"
         :year="showMainYear ? item.pubTime : ''"
@@ -152,8 +164,11 @@ onMounted(() => {
         v-if="viewType === 'list'"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
+        draggable="true"
+        v-on:dragstart="dragHandler"
       />
       <TableItem
+        :id="item.id"
         :title="item.title"
         :authors="item.authors"
         :year="item.pubTime"

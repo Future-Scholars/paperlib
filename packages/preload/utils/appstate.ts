@@ -64,7 +64,9 @@ export class SharedState {
     // Selection State
     this.selectionState = {
       selectedIndex: new State(""),
+      selectedIds: new State(""),
       selectedCategorizer: new State(""),
+      dragedIds: new State(""),
     };
 
     // Shared Data

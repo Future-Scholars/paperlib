@@ -74,13 +74,44 @@ const onItemRightClicked = (event: MouseEvent, categorizer: string) => {
   );
 };
 
-const onItemDroped = (
+const onFileDroped = (
   categorizerName: string,
   categorizerType: Categorizers,
   filePaths: string[]
 ) => {
   window.entityInteractor.addToCategorizer(
     filePaths,
+    categorizerName,
+    categorizerType
+  );
+};
+
+const onItemDroped = (
+  categorizerName: string,
+  categorizerType: Categorizers
+) => {
+  const dragedIdsState = window.appInteractor.getState(
+    "selectionState.dragedIds"
+  ) as string;
+  let dragedIds: Array<string> = [];
+  if (dragedIdsState) {
+    dragedIds = JSON.parse(dragedIdsState) as Array<string>;
+  }
+
+  const selectedIdsState = window.appInteractor.getState(
+    "selectionState.selectedIds"
+  ) as string;
+  let selectedIds: Array<string> = [];
+  if (selectedIdsState) {
+    selectedIds = JSON.parse(selectedIdsState) as Array<string>;
+  }
+
+  if (selectedIds.includes(dragedIds[0])) {
+    dragedIds = selectedIds;
+  }
+
+  window.entityInteractor.updateWithCategorizer(
+    dragedIds,
     categorizerName,
     categorizerType
   );
@@ -168,7 +199,12 @@ window.appInteractor.registerState(
             @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `tag-${tag.name}`)}"
             @droped="
               (filePaths) => {
-                onItemDroped(tag.name, 'PaperTag', filePaths);
+                onFileDroped(tag.name, 'PaperTag', filePaths);
+              }
+            "
+            @item-droped="
+              () => {
+                onItemDroped(tag.name, 'PaperTag');
               }
             "
           >
@@ -197,7 +233,12 @@ window.appInteractor.registerState(
             @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `folder-${folder.name}`)}"
             @droped="
               (filePaths) => {
-                onItemDroped(folder.name, 'PaperFolder', filePaths);
+                onFileDroped(folder.name, 'PaperFolder', filePaths);
+              }
+            "
+            @item-droped="
+              () => {
+                onItemDroped(folder.name, 'PaperFolder');
               }
             "
           >

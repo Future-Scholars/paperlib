@@ -391,6 +391,61 @@ export class EntityInteractor {
     );
   }
 
+  async updateWithCategorizer(
+    ids: string[],
+    categorizerName: string,
+    categorizerType: Categorizers
+  ) {
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.get() as number) +
+        ids.length
+    );
+
+    try {
+      // 1. Get Entities by IDs.
+      const entities = await this.dbRepository.entitiesByIds(ids);
+
+      let entityDrafts = entities.map((entity) => {
+        const draft = new PaperEntityDraft();
+        draft.initialize(entity);
+        return draft;
+      });
+
+      entityDrafts = entityDrafts.map((entityDraft) => {
+        if (categorizerType === "PaperTag") {
+          let tags = entityDraft.tags.split(";").map((tag) => tag.trim());
+          if (!tags.includes(categorizerName)) {
+            tags.push(categorizerName);
+          }
+          entityDraft.setValue("tags", tags.join("; "));
+        }
+        if (categorizerType === "PaperFolder") {
+          let folders = entityDraft.folders
+            .split(";")
+            .map((folder) => folder.trim());
+          if (!folders.includes(categorizerName)) {
+            folders.push(categorizerName);
+          }
+          entityDraft.setValue("folders", folders.join("; "));
+        }
+        return entityDraft;
+      });
+      await this.dbRepository.update(entityDrafts);
+    } catch (error) {
+      this.sharedState.set(
+        "viewState.alertInformation",
+        `Update failed: ${error as string}`
+      );
+    }
+
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.value as number) -
+        ids.length
+    );
+  }
+
   async renameAll() {
     let entities = await this.dbRepository.entities(
       null,

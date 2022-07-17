@@ -51,6 +51,11 @@ const reloadSelectedEntities = () => {
   selectedIndex.value.forEach((index) => {
     selectedEntities.value.push(props.entities![index]);
   });
+  const selectedIds = selectedEntities.value.map((entity) => entity.id);
+  window.appInteractor.setState(
+    "selectionState.selectedIds",
+    JSON.stringify(selectedIds)
+  );
 };
 
 const clearSelected = () => {

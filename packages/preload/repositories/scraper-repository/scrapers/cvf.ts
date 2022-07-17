@@ -8,7 +8,9 @@ export class CVFScraper extends Scraper {
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
     const enable =
       entityDraft.title !== "" &&
-      (entityDraft.publication === "arXiv" || entityDraft.publication === "") &&
+      (entityDraft.publication.toLowerCase().includes("arxiv") ||
+        entityDraft.publication.toLowerCase().includes("openreview") ||
+        entityDraft.publication === "") &&
       this.getEnable("cvf");
 
     const shortTitle = formatString({

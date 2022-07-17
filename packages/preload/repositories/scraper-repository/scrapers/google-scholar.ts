@@ -57,16 +57,19 @@ async function scrapeImpl(
                     const citeRoot = parse(citeResponse?.body);
                     const citeBibtexNode = citeRoot.lastChild
                       .childNodes[0] as any as HTMLElement;
-                    if (citeBibtexNode) {
+                    if (citeBibtexNode && citeBibtexNode.attributes) {
                       // @ts-ignore
-                      const citeBibtexUrl = citeBibtexNode.attributes["href"];
-                      if (citeBibtexUrl) {
-                        const citeBibtexResponse = await safeGot(
-                          citeBibtexUrl,
-                          headers,
-                          agent
-                        );
-                        bibtex = citeBibtexResponse?.body;
+                      if (citeBibtexNode.attributes["href"]) {
+                        // @ts-ignore
+                        const citeBibtexUrl = citeBibtexNode.attributes["href"];
+                        if (citeBibtexUrl) {
+                          const citeBibtexResponse = await safeGot(
+                            citeBibtexUrl,
+                            headers,
+                            agent
+                          );
+                          bibtex = citeBibtexResponse?.body;
+                        }
                       }
                     }
                   }
@@ -91,8 +94,10 @@ export class GoogleScholarScraper extends Scraper {
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
     const enable =
       entityDraft.title !== "" &&
-      entityDraft.publication === "" &&
-      this.getEnable("googlescholar");
+      (entityDraft.publication === "" ||
+        entityDraft.publication.toLowerCase().includes("arxiv") ||
+        entityDraft.publication.toLowerCase().includes("openreview"));
+    this.getEnable("googlescholar");
 
     const query = entityDraft.title.replace(/ /g, "+");
 
@@ -137,7 +142,10 @@ export class GoogleScholarScraper extends Scraper {
           entityDraft.authors = authors;
         }
         if (bibtex.type === "article") {
-          if (bibtex.journal) {
+          if (
+            bibtex.journal &&
+            !bibtex.journal.toLowerCase().includes("arxiv")
+          ) {
             entityDraft.publication = bibtex.journal;
           }
           entityDraft.pubType = 0;
@@ -145,17 +153,26 @@ export class GoogleScholarScraper extends Scraper {
           bibtex.type === "inproceedings" ||
           bibtex.type === "incollection"
         ) {
-          if (bibtex.booktitle) {
+          if (
+            bibtex.booktitle &&
+            !bibtex.booktitle.toLowerCase().includes("arxiv")
+          ) {
             entityDraft.publication = bibtex.booktitle;
           }
           entityDraft.pubType = 1;
         } else if (bibtex.type === "book") {
-          if (bibtex.publisher) {
+          if (
+            bibtex.publisher &&
+            !bibtex.publisher.toLowerCase().includes("arxiv")
+          ) {
             entityDraft.publication = bibtex.publisher;
           }
           entityDraft.pubType = 3;
         } else {
-          if (bibtex.journal) {
+          if (
+            bibtex.journal &&
+            !bibtex.journal.toLowerCase().includes("arxiv")
+          ) {
             entityDraft.publication = bibtex.journal;
           }
           entityDraft.pubType = 2;
