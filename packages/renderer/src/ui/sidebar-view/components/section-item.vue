@@ -55,7 +55,6 @@ onMounted(() => {
       'h-6': compact,
       'h-7': !compact,
     }"
-    v-on:drop="dropHandler"
   >
     <slot></slot>
     <div
