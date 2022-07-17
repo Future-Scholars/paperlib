@@ -132,7 +132,7 @@ onMounted(() => {
     <Section title="Supplementaries" v-if="entity.supURLs.length > 0">
       <Supplementary :sups="entity.supURLs" />
     </Section>
-    <div class="w-80 h-10">&nbsp;</div>
+    <div class="w-40 h-10">&nbsp;</div>
     <div
       class="fixed bottom-0 w-80 h-10 bg-gradient-to-t from-white dark:from-neutral-800"
     ></div>
