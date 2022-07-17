@@ -34,42 +34,41 @@ onMounted(() => {
       <div class="w-[40rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.8.1
+          What's New in Paperlib 1.8.2
         </p>
-        <p class="mt-10"><b>News</b></p>
-        <li>
-          <b>FireFox add-on is ready.</b>
-        </li>
-        <p class="ml-5">FireFox 插件可以下载了。</p>
-        <p class="mt-10"><b>Thanks</b></p>
-        <li>The first donation from @ji***qing</li>
-        <li>supports from my friends @xh**05, and @1412**de, and @lqx**ok</li>
-        <li>suggestions from all users.</li>
-
         <p class="mt-10"><b>New Features</b></p>
-        <li>Setup your custom scraper #44, scrapers' priority.</li>
+        <li>Configurable paper detail information in the mainview. #112</li>
         <p class="ml-5">
-          设置自定义的 metadata 搜刮器。现有搜刮器也可设置优先级。使用指南请参考
-          https://github.com/GeoffreyChen777/paperlib/wiki
+          支持在主列表展示自定义的详情信息。在这里你可以选择展示发表相关信息，标签文件夹，打分和笔记等。
         </p>
         <img
           class="mx-auto mt-5 mb-8 rounded-md shadow-lg"
           src="../assets/1.png"
         />
 
-        <li>Dialog window hotkey #108</li>
-        <p class="ml-5">一些对话框可以使用 Esc 和回车快捷键了。</p>
-
-        <p class="mt-10"><b>Fixed Bugs</b></p>
-        <li>DOI scraper / Google Scholar importer error #106</li>
+        <li>Directly import files or paper items to a folder or tag. #93</li>
         <p class="ml-5">
-          一些 PDF 提取 DOI 不完整和 Google Scholar 插件的错误已修复。
+          直接拖动 PDF
+          文件或者已有的论文条目到侧边栏直接添加到对应标签或文件夹。
         </p>
+
+        <img
+          class="mx-auto mt-5 mb-8 rounded-md shadow-lg"
+          src="../assets/2.png"
+        />
+
+        <li>Contextmenu: Scrape by using a specific scraper. #110</li>
+        <p class="ml-5">右键菜单添加了从某一特定搜刮器搜刮 metadata 的选项。</p>
+
+        <p class="mt-10"><b>Improvements and Fixed Bugs</b></p>
         <li>
-          The what's new window cannot be closed after updating on small screen.
-          #109
+          Better experience when restoring a closed but not killed Paperlib on
+          macOS #106
         </li>
-        <p class="ml-5">在小屏幕上无法点击到更新详情关闭按钮。</p>
+        <p class="ml-5">
+          在macOS上，当关闭主窗口后但未完全退出时，优化恢复之前的窗口时的速度。
+        </p>
+        <li>Fix some bugs in the scrapers.</li>
 
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
