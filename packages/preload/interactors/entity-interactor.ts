@@ -302,8 +302,7 @@ export class EntityInteractor {
 
     this.sharedState.set(
       "viewState.processingQueueCount",
-      (this.sharedState.viewState.processingQueueCount.get() as number) +
-        entityDrafts.length
+      (this.sharedState.viewState.processingQueueCount.get() as number) + 1
     );
 
     const scrapePromise = async (entityDraft: PaperEntityDraft) => {
@@ -316,8 +315,7 @@ export class EntityInteractor {
 
     this.sharedState.set(
       "viewState.processingQueueCount",
-      (this.sharedState.viewState.processingQueueCount.get() as number) -
-        entityDrafts.length
+      (this.sharedState.viewState.processingQueueCount.get() as number) - 1
     );
     await this.update(JSON.stringify(entityDrafts));
   }

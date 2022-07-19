@@ -25,6 +25,14 @@ import {
   colorizeCategorizers,
   update,
 } from "./db-crud";
+import {
+  createFeedFilterPattern,
+  feeds,
+  feedEntities,
+  deleteFeeds,
+  updateFeeds,
+  updateFeedEntities,
+} from "./db-feeds-crud";
 import { migrateLocaltoCloud } from "./db-migration";
 
 export class DBRepository {
@@ -42,6 +50,8 @@ export class DBRepository {
 
   entitiesListenerInited: boolean;
   categorizersListenerInited: Record<string, boolean>;
+  feedsListenerInited: boolean;
+  feedEntitiesListenerInited: boolean;
 
   constructor(sharedState: SharedState, preference: Preference) {
     this.sharedState = sharedState;
@@ -59,6 +69,8 @@ export class DBRepository {
       PaperTag: false,
       PaperFolder: false,
     };
+    this.feedsListenerInited = false;
+    this.feedEntitiesListenerInited = false;
   }
 
   async realm(): Promise<Realm> {
@@ -90,4 +102,12 @@ export class DBRepository {
   updateCategorizers = updateCategorizers;
   colorizeCategorizers = colorizeCategorizers;
   update = update;
+
+  // Feeds CURD Func
+  createFeedFilterPattern = createFeedFilterPattern;
+  feeds = feeds;
+  feedEntities = feedEntities;
+  deleteFeeds = deleteFeeds;
+  updateFeeds = updateFeeds;
+  updateFeedEntities = updateFeedEntities;
 }

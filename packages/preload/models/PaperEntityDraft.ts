@@ -1,4 +1,6 @@
 import { ObjectId } from "bson";
+import { FeedEntity } from "./FeedEntity";
+import { FeedEntityDraft } from "./FeedEntityDraft";
 import { PaperEntity } from "./PaperEntity";
 
 export class PaperEntityDraft {
@@ -106,5 +108,20 @@ export class PaperEntityDraft {
     if ((value || allowEmpty) && value !== "undefined") {
       this[key] = value;
     }
+  }
+
+  fromFeed(feed: FeedEntity | FeedEntityDraft) {
+    this.title = feed.title;
+    this.authors = feed.authors;
+    this.publication = feed.publication;
+    this.pubTime = feed.pubTime;
+    this.pubType = feed.pubType;
+    this.doi = feed.doi;
+    this.arxiv = feed.arxiv;
+    this.mainURL = feed.mainURL;
+    this.pages = feed.pages;
+    this.volume = feed.volume;
+    this.number = feed.number;
+    this.publisher = feed.publisher;
   }
 }

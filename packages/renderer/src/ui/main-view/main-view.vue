@@ -5,16 +5,24 @@ import {
   PaperEntity,
   PaperEntityPlaceholder,
 } from "../../../../preload/models/PaperEntity";
+import {
+  FeedEntity,
+  FeedEntityPlaceholder,
+} from "../../../../preload/models/FeedEntity";
 import { PaperEntityDraft } from "../../../../preload/models/PaperEntityDraft";
+import { FeedEntityDraft } from "../../../../preload/models/FeedEntityDraft";
 
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
-import DataView from "./data-view/data-view.vue";
-import DetailView from "./detail-view/detail-view.vue";
+import PaperDataView from "./data-view/paper-data-view.vue";
+import FeedDataView from "./data-view/feed-data-view.vue";
+import PaperDetailView from "./detail-view/paper-detail-view.vue";
+import FeedDetailView from "./detail-view/feed-detail-view.vue";
 
 import { createModalView } from "../components/modal-view";
 
 const props = defineProps({
   entities: Array as () => PaperEntity[],
+  feedEntities: Array as () => FeedEntity[],
   showMainYear: Boolean,
   showMainPublication: Boolean,
   showMainPubType: Boolean,
@@ -25,10 +33,16 @@ const props = defineProps({
   showMainNote: Boolean,
 });
 
+const contentType = ref("library");
+
 const sortBy = ref("addTime");
 const sortOrder = ref("desc");
+
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedEntities: Ref<PaperEntity[]> = ref([]);
+const selectedFeedEntities: Ref<FeedEntity[]> = ref([]);
+
+const feedEntityAddingStatus = ref(0); // 0: not adding, 1: adding, 2: added
 
 const openSelectedEntities = () => {
   selectedEntities.value.forEach((entity) => {
@@ -37,21 +51,35 @@ const openSelectedEntities = () => {
 };
 
 const showInFinderSelectedEntities = () => {
-  selectedEntities.value.forEach((entity) => {
-    window.appInteractor.showInFinder(entity.mainURL);
-  });
+  if (contentType.value === "library") {
+    selectedEntities.value.forEach((entity) => {
+      window.appInteractor.showInFinder(entity.mainURL);
+    });
+  }
 };
 
 const previewSelectedEntities = () => {
-  window.appInteractor.preview(selectedEntities.value[0].mainURL);
+  if (contentType.value === "library") {
+    window.appInteractor.preview(selectedEntities.value[0].mainURL);
+  }
 };
 
 const reloadSelectedEntities = () => {
-  selectedEntities.value = [];
-  selectedIndex.value.forEach((index) => {
-    selectedEntities.value.push(props.entities![index]);
-  });
-  const selectedIds = selectedEntities.value.map((entity) => entity.id);
+  let selectedIds;
+  if (contentType.value === "library") {
+    selectedEntities.value = [];
+    selectedIndex.value.forEach((index) => {
+      selectedEntities.value.push(props.entities![index]);
+    });
+    selectedIds = selectedEntities.value.map((entity) => entity.id);
+  } else {
+    feedEntityAddingStatus.value = 0;
+    selectedFeedEntities.value = [];
+    selectedIndex.value.forEach((index) => {
+      selectedFeedEntities.value.push(props.feedEntities![index]);
+    });
+    selectedIds = selectedFeedEntities.value.map((entity) => entity.id);
+  }
   window.appInteractor.setState(
     "selectionState.selectedIds",
     JSON.stringify(selectedIds)
@@ -68,70 +96,119 @@ const clearSelected = () => {
 };
 
 const scrapeSelectedEntities = () => {
-  const entityDrafts = selectedEntities.value.map((entity) => {
-    const entityDraft = new PaperEntityDraft();
-    entityDraft.initialize(entity);
-    return entityDraft;
-  });
-  void window.entityInteractor.scrape(JSON.stringify(entityDrafts));
+  if (contentType.value === "library") {
+    const entityDrafts = selectedEntities.value.map((entity) => {
+      const entityDraft = new PaperEntityDraft();
+      entityDraft.initialize(entity);
+      return entityDraft;
+    });
+    void window.entityInteractor.scrape(JSON.stringify(entityDrafts));
+  }
 };
 
 const scrapeSelectedEntitiesFrom = (scraperName: string) => {
-  const entityDrafts = selectedEntities.value.map((entity) => {
-    const entityDraft = new PaperEntityDraft();
-    entityDraft.initialize(entity);
-    return entityDraft;
-  });
-  void window.entityInteractor.scrapeFrom(
-    JSON.stringify(entityDrafts),
-    scraperName
-  );
+  if (contentType.value === "library") {
+    const entityDrafts = selectedEntities.value.map((entity) => {
+      const entityDraft = new PaperEntityDraft();
+      entityDraft.initialize(entity);
+      return entityDraft;
+    });
+    void window.entityInteractor.scrapeFrom(
+      JSON.stringify(entityDrafts),
+      scraperName
+    );
+  }
 };
 
 const deleteSelectedEntities = () => {
-  createModalView(
-    "Delete",
-    `Are you sure to delete ${selectedEntities.value.length} paper(s)?`,
-    () => {
-      const ids = selectedEntities.value.map((entity) => entity._id as string);
-      window.appInteractor.setState(
-        "selectionState.selectedIndex",
-        JSON.stringify([])
-      );
-      void window.entityInteractor.delete(ids);
-      window.appInteractor.setState("viewState.isModalShown", false);
-    },
-    () => {
-      window.appInteractor.setState("viewState.isModalShown", false);
-    }
-  );
+  if (contentType.value === "library") {
+    createModalView(
+      "Delete",
+      `Are you sure to delete ${selectedEntities.value.length} paper(s)?`,
+      () => {
+        const ids = selectedEntities.value.map(
+          (entity) => entity._id as string
+        );
+        window.appInteractor.setState(
+          "selectionState.selectedIndex",
+          JSON.stringify([])
+        );
+        void window.entityInteractor.delete(ids);
+        window.appInteractor.setState("viewState.isModalShown", false);
+      },
+      () => {
+        window.appInteractor.setState("viewState.isModalShown", false);
+      }
+    );
+  }
 };
 
 const editSelectedEntities = () => {
-  const entityDraft = new PaperEntityDraft();
-  entityDraft.initialize(selectedEntities.value[0]);
-  window.appInteractor.setState(
-    "sharedData.editEntityDraft",
-    JSON.stringify(entityDraft)
-  );
-  window.appInteractor.setState("viewState.isEditViewShown", true);
+  if (contentType.value === "library") {
+    const entityDraft = new PaperEntityDraft();
+    entityDraft.initialize(selectedEntities.value[0]);
+    window.appInteractor.setState(
+      "sharedData.editEntityDraft",
+      JSON.stringify(entityDraft)
+    );
+    window.appInteractor.setState("viewState.isEditViewShown", true);
+  }
 };
 
 const flagSelectedEntities = () => {
-  const entityDrafts = selectedEntities.value.map((entity) => {
-    const entityDraft = new PaperEntityDraft();
-    entityDraft.initialize(entity);
-    entityDraft.flag = !entityDraft.flag;
-    return entityDraft;
-  });
-  void window.entityInteractor.update(JSON.stringify(entityDrafts));
+  if (contentType.value === "library") {
+    const entityDrafts = selectedEntities.value.map((entity) => {
+      const entityDraft = new PaperEntityDraft();
+      entityDraft.initialize(entity);
+      entityDraft.flag = !entityDraft.flag;
+      return entityDraft;
+    });
+    void window.entityInteractor.update(JSON.stringify(entityDrafts));
+  }
 };
 
 const exportSelectedEntities = (format: string) => {
-  window.entityInteractor.export(
-    JSON.stringify(selectedEntities.value),
-    format
-  );
+  if (contentType.value === "library") {
+    window.entityInteractor.export(
+      JSON.stringify(selectedEntities.value),
+      format
+    );
+  }
+};
+
+const addSelectedFeedEntities = async () => {
+  if (contentType.value === "feed") {
+    feedEntityAddingStatus.value = 1;
+    const feedEntityDrafts = selectedFeedEntities.value.map((entity) => {
+      const feedEntityDraft = new FeedEntityDraft();
+      feedEntityDraft.initialize(entity);
+      return feedEntityDraft;
+    });
+    await window.feedInteractor.addFeedEntities(
+      JSON.stringify(feedEntityDrafts)
+    );
+    feedEntityAddingStatus.value = 2;
+  }
+};
+
+const readSelectedFeedEntities = (read: boolean | null) => {
+  if (contentType.value === "feed") {
+    const feedEntityDrafts = selectedFeedEntities.value
+      .map((feedEntity) => {
+        const feedEntityDraft = new FeedEntityDraft();
+        feedEntityDraft.initialize(feedEntity);
+        if (feedEntityDraft.read !== read) {
+          feedEntityDraft.read = !feedEntityDraft.read;
+          return feedEntityDraft;
+        } else {
+          return null;
+        }
+      })
+      .filter((feedEntityDraft) => feedEntityDraft !== null);
+    void window.feedInteractor.updateFeedEntities(
+      JSON.stringify(feedEntityDrafts)
+    );
+  }
 };
 
 const switchViewType = (viewType: string) => {
@@ -234,6 +311,14 @@ window.appInteractor.registerMainSignal(
   }
 );
 
+window.appInteractor.registerMainSignal("feed-data-context-menu-add", () => {
+  addSelectedFeedEntities();
+});
+
+window.appInteractor.registerMainSignal("feed-data-context-menu-read", () => {
+  readSelectedFeedEntities(null);
+});
+
 // ========================================================
 // Register Shortcut
 window.appInteractor.registerMainSignal("shortcut-Preference", () => {
@@ -281,7 +366,12 @@ function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
       const currentIndex = selectedIndex.value[0] || 0;
       const newIndex =
         currentIndex + 1 >
-        (window.appInteractor.getState("viewState.entitiesCount") as number) - 1
+        ((contentType.value === "library"
+          ? window.appInteractor.getState("viewState.entitiesCount")
+          : window.appInteractor.getState(
+              "viewState.feedEntitiesCount"
+            )) as number) -
+          1
           ? currentIndex
           : currentIndex + 1;
       window.appInteractor.setState(
@@ -348,7 +438,12 @@ window.appInteractor.registerMainSignal("shortcut-arrow-down", () => {
   const currentIndex = selectedIndex.value[0] || 0;
   const newIndex =
     currentIndex + 1 >
-    (window.appInteractor.getState("viewState.entitiesCount") as number) - 1
+    ((contentType.value === "library"
+      ? window.appInteractor.getState("viewState.entitiesCount")
+      : window.appInteractor.getState(
+          "viewState.feedEntitiesCount"
+        )) as number) -
+      1
       ? currentIndex
       : currentIndex + 1;
   if (
@@ -364,6 +459,10 @@ window.appInteractor.registerMainSignal("shortcut-arrow-down", () => {
 
 // =======================================
 // Register state change
+window.appInteractor.registerState("viewState.contentType", (value) => {
+  contentType.value = value as string;
+  clearSelected();
+});
 
 window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
   selectedIndex.value = JSON.parse(value as string) as number[];
@@ -371,6 +470,10 @@ window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
 });
 
 window.appInteractor.registerState("dbState.entitiesUpdated", (value) => {
+  reloadSelectedEntities();
+});
+
+window.appInteractor.registerState("dbState.feedEntitiesUpdated", (value) => {
   reloadSelectedEntities();
 });
 
@@ -394,6 +497,10 @@ window.appInteractor.registerState(
     clearSelected();
   }
 );
+
+window.appInteractor.registerState("selectionState.selectedFeed", (value) => {
+  clearSelected();
+});
 </script>
 
 <template>
@@ -408,7 +515,7 @@ window.appInteractor.registerState(
     />
 
     <div class="grow flex divide-x dark:divide-neutral-700">
-      <DataView
+      <PaperDataView
         :entities="entities"
         :sortBy="sortBy"
         :sortOrder="sortOrder"
@@ -420,14 +527,35 @@ window.appInteractor.registerState(
         :show-main-folders="showMainFolders"
         :show-main-rating="showMainRating"
         :show-main-note="showMainNote"
+        v-if="contentType === 'library'"
       />
-      <DetailView
+      <FeedDataView
+        :entities="feedEntities"
+        :sortBy="sortBy"
+        :sortOrder="sortOrder"
+        :show-main-year="showMainYear"
+        :show-main-publication="showMainPublication"
+        :show-main-pub-type="showMainPubType"
+        v-if="contentType === 'feed'"
+      />
+      <PaperDetailView
         :entity="
           selectedEntities.length === 1
             ? selectedEntities[0]
             : PaperEntityPlaceholder
         "
         v-show="selectedEntities.length === 1"
+        v-if="contentType === 'library'"
+      />
+      <FeedDetailView
+        :feedEntity="
+          selectedFeedEntities.length === 1 ? selectedFeedEntities[0] : null
+        "
+        :feedEntityAddingStatus="feedEntityAddingStatus"
+        v-show="selectedFeedEntities.length === 1"
+        v-if="contentType === 'feed'"
+        @add-clicked="addSelectedFeedEntities"
+        @read-timeout="readSelectedFeedEntities(true)"
       />
     </div>
   </div>

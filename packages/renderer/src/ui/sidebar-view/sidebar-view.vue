@@ -1,261 +1,66 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import {
-  BIconCollection,
-  BIconFlag,
-  BIconTag,
-  BIconFolder,
-} from "bootstrap-icons-vue";
-
 import WindowControlBar from "./components/window-control-bar.vue";
-import SectionTitle from "./components/section-title.vue";
-import SectionItem from "./components/section-item.vue";
-import CollopseGroup from "./components/collopse-group.vue";
+import SwitcherTitle from "./components/switcher-title.vue";
 import {
   PaperTag,
   PaperFolder,
-  Categorizers,
 } from "../../../../preload/models/PaperCategorizer";
+import { Feed } from "../../../../preload/models/Feed";
 import NotificationBar from "./components/notification-bar.vue";
+
+import SidebarLibraryView from "./sidebar-library-view.vue";
+import SidebarFeedsView from "./sidebar-feeds-view.vue";
 
 const props = defineProps({
   tags: Array as () => Array<PaperTag>,
   folders: Array as () => Array<PaperFolder>,
+  feeds: Array as () => Array<Feed>,
   showSidebarCount: Boolean,
   compact: Boolean,
 });
 
-const entitiesCount = ref(0);
-const selectedCategorizer = ref("lib-all");
-const isSpinnerShown = ref(false);
+const selectedView = ref(0);
 
-const onSelectCategorizer = (categorizer: string) => {
+const onViewSwitch = (view: number) => {
+  selectedView.value = view;
   window.appInteractor.setState(
-    "selectionState.selectedCategorizer",
-    categorizer
+    "viewState.contentType",
+    ["library", "feed"][view]
   );
-};
-
-const deleteCategorizer = (categorizer: string) => {
-  if (categorizer.startsWith("tag-")) {
-    window.entityInteractor.deleteCategorizer(
-      categorizer.replaceAll("tag-", ""),
-      "PaperTag"
-    );
+  if (view === 0) {
+    window.appInteractor.setState("viewState.selectedCategorizer", "lib-all");
   } else {
-    window.entityInteractor.deleteCategorizer(
-      categorizer.replaceAll("folder-", ""),
-      "PaperFolder"
-    );
+    window.appInteractor.setState("viewState.selectedFeed", "feed-all");
   }
 };
-
-const colorizeCategorizer = (categorizer: string, color: string) => {
-  if (categorizer.startsWith("tag-")) {
-    window.entityInteractor.colorizeCategorizers(
-      categorizer.replaceAll("tag-", ""),
-      "PaperTag",
-      color
-    );
-  } else {
-    window.entityInteractor.colorizeCategorizers(
-      categorizer.replaceAll("folder-", ""),
-      "PaperFolder",
-      color
-    );
-  }
-};
-
-const onItemRightClicked = (event: MouseEvent, categorizer: string) => {
-  window.appInteractor.showContextMenu(
-    "show-sidebar-context-menu",
-    categorizer
-  );
-};
-
-const onFileDroped = (
-  categorizerName: string,
-  categorizerType: Categorizers,
-  filePaths: string[]
-) => {
-  window.entityInteractor.addToCategorizer(
-    filePaths,
-    categorizerName,
-    categorizerType
-  );
-};
-
-const onItemDroped = (
-  categorizerName: string,
-  categorizerType: Categorizers
-) => {
-  const dragedIdsState = window.appInteractor.getState(
-    "selectionState.dragedIds"
-  ) as string;
-  let dragedIds: Array<string> = [];
-  if (dragedIdsState) {
-    dragedIds = JSON.parse(dragedIdsState) as Array<string>;
-  }
-
-  const selectedIdsState = window.appInteractor.getState(
-    "selectionState.selectedIds"
-  ) as string;
-  let selectedIds: Array<string> = [];
-  if (selectedIdsState) {
-    selectedIds = JSON.parse(selectedIdsState) as Array<string>;
-  }
-
-  if (selectedIds.includes(dragedIds[0])) {
-    dragedIds = selectedIds;
-  }
-
-  window.entityInteractor.updateWithCategorizer(
-    dragedIds,
-    categorizerName,
-    categorizerType
-  );
-};
-
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-delete",
-  (args) => {
-    deleteCategorizer(args);
-  }
-);
-
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-color",
-  (args) => {
-    colorizeCategorizer(args[0], args[1]);
-  }
-);
-
-window.appInteractor.registerState(
-  "viewState.processingQueueCount",
-  (value) => {
-    const processingQueueCount = JSON.parse(value as string) as number;
-    if (processingQueueCount > 0) {
-      isSpinnerShown.value = true;
-    } else {
-      isSpinnerShown.value = false;
-    }
-  }
-);
-
-window.appInteractor.registerState("viewState.entitiesCount", (value) => {
-  entitiesCount.value = JSON.parse(value as string) as number;
-});
-
-window.appInteractor.registerState(
-  "selectionState.selectedCategorizer",
-  (value) => {
-    selectedCategorizer.value = value as string;
-  }
-);
 </script>
 
 <template>
   <div class="flex-none flex flex-col w-full h-screen justify-between">
-    <div>
-      <WindowControlBar class="flex-none" />
+    <WindowControlBar class="flex-none" />
 
-      <div
-        class="w-full h-[calc(100vh-5rem)] px-3 overflow-y-auto no-scrollbar"
-      >
-        <SectionTitle class="w-full h-7" title="Library" />
-        <SectionItem
-          name="All Papers"
-          :count="entitiesCount"
-          :with-counter="showSidebarCount"
-          :with-spinner="isSpinnerShown"
-          :compact="compact"
-          :active="selectedCategorizer === 'lib-all'"
-          @click="onSelectCategorizer('lib-all')"
-        >
-          <BIconCollection class="text-sm my-auto text-blue-500 min-w-[1em]" />
-        </SectionItem>
-        <SectionItem
-          name="Flags"
-          :with-counter="false"
-          :with-spinner="false"
-          :compact="compact"
-          :active="selectedCategorizer === 'lib-flaged'"
-          @click="onSelectCategorizer('lib-flaged')"
-        >
-          <BIconFlag class="text-sm my-auto text-blue-500 min-w-[1em]" />
-        </SectionItem>
-
-        <CollopseGroup title="Tags">
-          <SectionItem
-            :name="tag.name"
-            :count="tag.count"
-            :with-counter="showSidebarCount"
-            :with-spinner="false"
-            :compact="compact"
-            v-for="tag in tags"
-            :active="selectedCategorizer === `tag-${tag.name}`"
-            @click="onSelectCategorizer(`tag-${tag.name}`)"
-            @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `tag-${tag.name}`)}"
-            @droped="
-              (filePaths) => {
-                onFileDroped(tag.name, 'PaperTag', filePaths);
-              }
-            "
-            @item-droped="
-              () => {
-                onItemDroped(tag.name, 'PaperTag');
-              }
-            "
-          >
-            <BIconTag
-              class="text-sm my-auto min-w-[1em]"
-              :class="{
-                'text-blue-500': tag.color === 'blue' || tag.color === null,
-                'text-red-500': tag.color === 'red',
-                'text-green-500': tag.color === 'green',
-                'text-yellow-500': tag.color === 'yellow',
-              }"
-            />
-          </SectionItem>
-        </CollopseGroup>
-
-        <CollopseGroup title="Folders">
-          <SectionItem
-            :name="folder.name"
-            :count="folder.count"
-            :with-counter="showSidebarCount"
-            :with-spinner="false"
-            :compact="compact"
-            v-for="folder in folders"
-            :active="selectedCategorizer === `folder-${folder.name}`"
-            @click="onSelectCategorizer(`folder-${folder.name}`)"
-            @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `folder-${folder.name}`)}"
-            @droped="
-              (filePaths) => {
-                onFileDroped(folder.name, 'PaperFolder', filePaths);
-              }
-            "
-            @item-droped="
-              () => {
-                onItemDroped(folder.name, 'PaperFolder');
-              }
-            "
-          >
-            <BIconFolder
-              class="text-sm my-auto min-w-[1em]"
-              :class="{
-                'text-blue-500':
-                  folder.color === 'blue' || folder.color === null,
-                'text-red-500': folder.color === 'red',
-                'text-green-500': folder.color === 'green',
-                'text-yellow-500': folder.color === 'yellow',
-              }"
-            />
-          </SectionItem>
-        </CollopseGroup>
-      </div>
-    </div>
+    <SwitcherTitle
+      class="h-7"
+      :titles="['Library', 'Feeds']"
+      @changed="onViewSwitch"
+    />
+    <SidebarLibraryView
+      class="w-full h-[calc(100vh-5rem)] px-3 overflow-y-auto no-scrollbar"
+      :tags="tags"
+      :folders="folders"
+      :showSidebarCount="showSidebarCount"
+      :compact="compact"
+      v-if="selectedView === 0"
+    />
+    <SidebarFeedsView
+      class="w-full h-[calc(100vh-5rem)] px-3 overflow-y-auto no-scrollbar"
+      :feeds="feeds"
+      :showSidebarCount="showSidebarCount"
+      :compact="compact"
+      v-if="selectedView === 1"
+    />
     <NotificationBar class="flex-none" />
   </div>
 </template>

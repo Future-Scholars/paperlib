@@ -160,6 +160,7 @@ onMounted(() => {
         :folders="showMainFolders ? item.folders : []"
         :note="showMainNote ? item.note : ''"
         :active="selectedIndex.indexOf(index) >= 0"
+        :read="true"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         v-if="viewType === 'list'"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"

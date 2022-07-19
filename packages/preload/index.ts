@@ -8,12 +8,14 @@ import { ScraperRepository } from "./repositories/scraper-repository/scraper-rep
 import { CacheRepository } from "./repositories/cache-repository/cache-repository";
 import { ExporterRepository } from "./repositories/exporter-repository/exporter-repository";
 import { WebImporterRepository } from "./repositories/web-importer-repository/web-importer-repository";
+import { RSSRepository } from "./repositories/rss-repository/rss-repository";
 
 import { createInteractorProxy } from "./utils/misc";
 import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
 import { BrowserExtensionInteractor } from "./interactors/browser-extension-interactor";
+import { FeedInteractor } from "./interactors/feed-interactor";
 
 import { appendLoading } from "./loading";
 import { domReady } from "./utils";
@@ -36,6 +38,7 @@ const webImporterRepository = new WebImporterRepository(
   sharedState,
   preference
 );
+const rssRepository = new RSSRepository(sharedState, preference);
 
 const appInteractor = new AppInteractor(
   sharedState,
@@ -62,6 +65,15 @@ const browserExtensionInteractor = new BrowserExtensionInteractor(
   webImporterRepository,
   entityInteractor
 );
+const feedInteractor = new FeedInteractor(
+  sharedState,
+  preference,
+  dbRepository,
+  scraperRepository,
+  rssRepository,
+  webImporterRepository,
+  entityInteractor
+);
 
 const appInteractorProxy = createInteractorProxy(appInteractor);
 const entityInteractorProxy = createInteractorProxy(entityInteractor);
@@ -69,6 +81,7 @@ const renderInteractorProxy = createInteractorProxy(renderInteractor);
 const browserExtensionInteractorProxy = createInteractorProxy(
   browserExtensionInteractor
 );
+const feedInteractorProxy = createInteractorProxy(feedInteractor);
 
 contextBridge.exposeInMainWorld("appInteractor", appInteractorProxy);
 contextBridge.exposeInMainWorld("entityInteractor", entityInteractorProxy);
@@ -77,3 +90,4 @@ contextBridge.exposeInMainWorld(
   "browserExtensionInteractor",
   browserExtensionInteractorProxy
 );
+contextBridge.exposeInMainWorld("feedInteractor", feedInteractorProxy);

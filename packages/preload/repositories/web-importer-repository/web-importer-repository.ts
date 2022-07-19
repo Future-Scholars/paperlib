@@ -1,4 +1,5 @@
 import got from "got";
+import { JSDOM } from "jsdom";
 
 import { WebImporterType, WebContentType } from "./importers/importer";
 import { ArXivWebImporter } from "./importers/arxiv";
@@ -44,5 +45,18 @@ export class WebImporterRepository {
       }
     }
     return parsed;
+  }
+
+  async getWebContent(url: string): Promise<WebContentType> {
+    let webContent: WebContentType = {
+      url: url,
+      document: "",
+      cookies: "",
+    };
+    let response = await got(url);
+    const jsdom = new JSDOM(response.body);
+
+    webContent.document = jsdom.window.document;
+    return webContent;
   }
 }

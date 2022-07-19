@@ -133,8 +133,14 @@ export class ScraperRepository {
     }
   }
 
-  async scrape(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft> {
+  async scrape(
+    entityDraft: PaperEntityDraft,
+    excludes: string[] = []
+  ): Promise<PaperEntityDraft> {
     for (const scraper of this.scraperList) {
+      if (excludes.includes(scraper.name)) {
+        continue;
+      }
       try {
         entityDraft = await scraper.scraper.scrape(entityDraft);
       } catch (error) {

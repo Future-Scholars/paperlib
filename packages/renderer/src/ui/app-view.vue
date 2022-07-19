@@ -4,23 +4,31 @@ import { nextTick, onBeforeMount, onMounted, Ref, ref } from "vue";
 
 import { PaperCategorizer } from "../../../preload/models/PaperCategorizer";
 import { PaperEntity } from "../../../preload/models/PaperEntity";
+import { Feed } from "../../../preload/models/Feed";
+import { FeedEntity } from "../../../preload/models/FeedEntity";
 
 import SidebarView from "./sidebar-view/sidebar-view.vue";
 import MainView from "./main-view/main-view.vue";
 import EditView from "./edit-view/edit-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
+import FeedEditView from "./edit-view/feed-edit-view.vue";
+
 import { PreferenceStore } from "../../../preload/utils/preference";
 import { createModalView } from "./components/modal-view";
 
 const sortBy = ref("addTime");
 const sortOrder = ref("desc");
+const contentType = ref("library");
 
 const entities: Ref<PaperEntity[]> = ref([]);
 const tags: Ref<PaperCategorizer[]> = ref([]);
 const folders: Ref<PaperCategorizer[]> = ref([]);
+const feeds: Ref<Feed[]> = ref([]);
+const feedEntities: Ref<FeedEntity[]> = ref([]);
 
 const searchText = ref("");
 const selectedCategorizer = ref("lib-all");
+const selectedFeed = ref("feed-all");
 
 const preference: Ref<PreferenceStore> = ref(
   window.appInteractor.loadPreferences()
@@ -89,6 +97,35 @@ const reloadFolders = async () => {
   folders.value = results;
 };
 
+const reloadFeeds = async () => {
+  const results = await window.feedInteractor.loadFeeds(
+    sidebarSortBy.value,
+    sidebarSortOrder.value
+  );
+  feeds.value = results;
+};
+
+const reloadFeedEntities = async () => {
+  let selectedFeedName;
+  let unread = false;
+  if (selectedFeed.value === "feed-all") {
+    selectedFeedName = "";
+  } else if (selectedFeed.value === "feed-unread") {
+    unread = true;
+    selectedFeedName = "";
+  } else {
+    selectedFeedName = selectedFeed.value.replace("feed-", "");
+  }
+  const results = await window.feedInteractor.loadFeedEntities(
+    searchText.value,
+    selectedFeedName,
+    unread,
+    sortBy.value,
+    sortOrder.value
+  );
+  feedEntities.value = results;
+};
+
 // =======================================
 // Preferences
 const reloadPreference = () => {
@@ -113,6 +150,7 @@ const reloadPreference = () => {
     sidebarSortOrder.value = preference.value.sidebarSortOrder;
     reloadTags();
     reloadFolders();
+    reloadFeeds();
   }
 };
 
@@ -157,19 +195,49 @@ window.appInteractor.registerState("dbState.foldersUpdated", (value) => {
   reloadFolders();
 });
 
+window.appInteractor.registerState("dbState.feedsUpdated", (value) => {
+  reloadFeeds();
+});
+
+window.appInteractor.registerState("dbState.feedEntitiesUpdated", (value) => {
+  reloadFeedEntities();
+});
+
 window.appInteractor.registerState("viewState.sortBy", (value) => {
   sortBy.value = value as string;
-  reloadEntities();
+  if (contentType.value === "library") {
+    reloadEntities();
+  } else if (contentType.value === "feed") {
+    reloadFeedEntities();
+  }
 });
 
 window.appInteractor.registerState("viewState.sortOrder", (value) => {
   sortOrder.value = value as string;
-  reloadEntities();
+  if (contentType.value === "library") {
+    reloadEntities();
+  } else if (contentType.value === "feed") {
+    reloadFeedEntities();
+  }
+});
+
+window.appInteractor.registerState("viewState.contentType", (value) => {
+  contentType.value = value as string;
+
+  if (contentType.value === "library") {
+    reloadEntities();
+  } else if (contentType.value === "feed") {
+    reloadFeedEntities();
+  }
 });
 
 window.appInteractor.registerState("viewState.searchText", (value) => {
   searchText.value = value as string;
-  reloadEntities();
+  if (contentType.value === "library") {
+    reloadEntities();
+  } else if (contentType.value === "feed") {
+    reloadFeedEntities();
+  }
 });
 
 window.appInteractor.registerState(
@@ -180,15 +248,25 @@ window.appInteractor.registerState(
   }
 );
 
+window.appInteractor.registerState("selectionState.selectedFeed", (value) => {
+  selectedFeed.value = value as string;
+  reloadFeedEntities();
+});
+
 window.appInteractor.registerState("viewState.preferenceUpdated", (value) => {
   reloadPreference();
 });
 
 window.appInteractor.registerState("viewState.realmReinited", (value) => {
   (async () => {
-    await reloadEntities();
+    if (contentType.value === "library") {
+      reloadEntities();
+    } else if (contentType.value === "feed") {
+      reloadFeedEntities();
+    }
     await reloadTags();
     await reloadFolders();
+    await reloadFeeds();
     reloadPreference();
   })();
 });
@@ -213,6 +291,7 @@ onMounted(async () => {
   await reloadTags();
   await reloadFolders();
   await reloadEntities();
+  await reloadFeeds();
 
   nextTick(() => {
     console.log("Remove loading...");
@@ -241,12 +320,14 @@ onMounted(async () => {
           class="sidebar-windows-bg"
           :tags="tags"
           :folders="folders"
+          :feeds="feeds"
           :showSidebarCount="showSidebarCount"
           :compact="isSidebarCompact"
       /></pane>
       <pane :key="2">
         <MainView
           :entities="entities"
+          :feedEntities="feedEntities"
           :show-main-year="showMainYear"
           :show-main-publication="showMainPublication"
           :show-main-pub-type="showMainPubType"
@@ -260,5 +341,6 @@ onMounted(async () => {
     </splitpanes>
   </div>
   <EditView class="text-neutral-700" :tags="tags" :folders="folders" />
+  <FeedEditView class="text-neutral-700" />
   <PreferenceView :preference="preference" />
 </template>

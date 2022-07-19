@@ -119,6 +119,35 @@ ipcMain.on("show-data-context-menu", (event, args) => {
   menu.popup(BrowserWindow.fromWebContents(event.sender));
 });
 
+ipcMain.on("show-feed-data-context-menu", (event, args) => {
+  const template = [
+    {
+      label: "Open",
+      accelerator: "Enter",
+      click: () => {
+        event.sender.send("data-context-menu-open");
+      },
+    },
+    { type: "separator" },
+    {
+      label: "Add to Library",
+      click: () => {
+        event.sender.send("feed-data-context-menu-add");
+      },
+    },
+    {
+      label: "Toggle Read / Unread",
+      click: () => {
+        event.sender.send("feed-data-context-menu-read");
+      },
+    },
+  ];
+  // @ts-ignore
+  const menu = Menu.buildFromTemplate(template);
+  // @ts-ignore
+  menu.popup(BrowserWindow.fromWebContents(event.sender));
+});
+
 ipcMain.on("show-sidebar-context-menu", (event, args) => {
   const template = [
     {
@@ -157,6 +186,14 @@ ipcMain.on("show-sidebar-context-menu", (event, args) => {
       },
     },
   ];
+  if ((args as string).startsWith("feed-")) {
+    template.push({
+      label: "Refresh",
+      click: () => {
+        event.sender.send("sidebar-context-menu-feed-refresh", args);
+      },
+    });
+  }
   // @ts-ignore
   const menu = Menu.buildFromTemplate(template);
   // @ts-ignore

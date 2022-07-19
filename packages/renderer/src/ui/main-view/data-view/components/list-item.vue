@@ -4,6 +4,7 @@ import {
   BIconStarFill,
   BIconTag,
   BIconFolder,
+  BIconCircleFill
 } from "bootstrap-icons-vue";
 
 const props = defineProps({
@@ -24,6 +25,7 @@ const props = defineProps({
   folders: Array,
   note: String,
   active: Boolean,
+  read: Boolean,
 });
 
 const getPubTypeString = (pubType: any) => {
@@ -48,11 +50,14 @@ const getPubTypeString = (pubType: any) => {
     class="flex flex-col h-[4rem] w-full p-2 rounded-md select-none cursor-pointer"
     :class="active ? 'bg-accentlight dark:bg-accentdark' : ''"
   >
-    <div
-      class="text-[0.84rem] leading-[1.1rem] font-semibold truncate overflow-hidden"
-      :class="active ? 'text-white' : ''"
-    >
-      {{ title }}
+    <div class="flex space-x-2">
+        <div class="my-auto h-1.5 w-1.5 rounded-md" :class="active ? 'bg-red-400' : 'bg-red-500 '" v-if="!read" />
+        <div
+        class="text-[0.84rem] leading-[1.1rem] font-semibold truncate overflow-hidden"
+        :class="active ? 'text-white' : ''"
+        >
+        {{ title }} {{`${read}`}}
+        </div>
     </div>
     <div
       class="text-[0.7rem] leading-[0.9rem] truncate overflow-hidden"

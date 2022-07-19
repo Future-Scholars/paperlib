@@ -3,6 +3,7 @@ import { BrowserExtensionInteractor } from "../interactors/browser-extension-int
 import { EntityInteractor } from "../interactors/entity-interactor";
 import { RenderInteractor } from "../interactors/render-interactor";
 import { PluginInteractor } from "../interactors/plugin-interactor";
+import { FeedInteractor } from "../interactors/feed-interactor";
 
 export function createInteractorProxy(
   interactor:
@@ -11,6 +12,7 @@ export function createInteractorProxy(
     | RenderInteractor
     | BrowserExtensionInteractor
     | PluginInteractor
+    | FeedInteractor
 ) {
   const interactorFuncs = Object.getOwnPropertyNames(
     Object.getPrototypeOf(interactor)

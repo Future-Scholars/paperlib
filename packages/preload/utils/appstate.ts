@@ -37,6 +37,7 @@ export class SharedState {
     this.viewState = {
       processingQueueCount: new State(0, false),
       entitiesCount: new State(0),
+      feedEntitiesCount: new State(0),
 
       sortBy: new State("addTime"),
       sortOrder: new State("desc"),
@@ -46,6 +47,7 @@ export class SharedState {
       isModalShown: new State(false),
       isEditViewShown: new State(false),
       isPreferenceViewShown: new State(false),
+      isFeedEditViewShown: new State(false),
 
       preferenceUpdated: new State(`${Date.now()}`),
       realmReinited: new State(`${Date.now()}`),
@@ -56,6 +58,7 @@ export class SharedState {
       processInformation: new State("", false),
 
       viewType: new State("list"),
+      contentType: new State("library"),
       theme: new State("light"),
 
       syncFileStorageAvaliable: new State(false),
@@ -66,12 +69,14 @@ export class SharedState {
       selectedIndex: new State(""),
       selectedIds: new State(""),
       selectedCategorizer: new State(""),
+      selectedFeed: new State("feed-all"),
       dragedIds: new State(""),
     };
 
     // Shared Data
     this.sharedData = {
       editEntityDraft: new State(""),
+      editFeedDraft: new State(""),
     };
 
     // DB State
@@ -79,6 +84,8 @@ export class SharedState {
       entitiesUpdated: new State(`${Date.now()}`),
       tagsUpdated: new State(`${Date.now()}`),
       foldersUpdated: new State(`${Date.now()}`),
+      feedsUpdated: new State(`${Date.now()}`),
+      feedEntitiesUpdated: new State(`${Date.now()}`),
       defaultPath: new State(ipcRenderer.sendSync("userData")),
     };
   }

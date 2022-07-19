@@ -8,6 +8,9 @@ import {
   PaperFolderSchema,
   PaperTagSchema,
 } from "../../models/PaperCategorizer";
+import { FeedSchema } from "../../models/Feed";
+import { FeedEntitySchema } from "../../models/FeedEntity";
+
 import { migrate } from "./db-migration";
 import { DBRepository } from "./db-repository";
 
@@ -35,6 +38,8 @@ export async function initRealm(this: DBRepository, reinit = false) {
       PaperTag: false,
       PaperFolder: false,
     };
+    this.feedsListenerInited = false;
+    this.feedEntitiesListenerInited = false;
   }
 
   if (this._realm) {
@@ -118,7 +123,13 @@ export async function getLocalConfig(
 ): Promise<Realm.Configuration> {
   await this.logoutCloud();
   const config = {
-    schema: [PaperEntitySchema, PaperTagSchema, PaperFolderSchema],
+    schema: [
+      PaperEntitySchema,
+      PaperTagSchema,
+      PaperFolderSchema,
+      FeedSchema,
+      FeedEntitySchema,
+    ],
     schemaVersion: this._schemaVersion,
     path: path.join(
       this.preference.get("appLibFolder") as string,
@@ -136,7 +147,13 @@ export async function getCloudConfig(
   const cloudUser = await this.loginCloud();
   if (cloudUser) {
     const config = {
-      schema: [PaperEntitySchema, PaperTagSchema, PaperFolderSchema],
+      schema: [
+        PaperEntitySchema,
+        PaperTagSchema,
+        PaperFolderSchema,
+        FeedSchema,
+        FeedEntitySchema,
+      ],
       schemaVersion: this._schemaVersion,
       sync: {
         user: cloudUser,
