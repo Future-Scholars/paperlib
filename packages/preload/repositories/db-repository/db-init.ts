@@ -81,7 +81,7 @@ export async function initRealm(this: DBRepository, reinit = false) {
       console.log(err);
       this.sharedState.set(
         "viewState.alertInformation",
-        `Open cloud database faild: ${err as string}`
+        `Open local database faild: ${err as string}`
       );
     }
   }

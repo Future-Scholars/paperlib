@@ -112,7 +112,7 @@ export async function feedEntities(
       console.log(error);
       this.sharedState.set(
         "viewState.alertInformation",
-        `Filter pattern is invalid: ${error as string}`
+        `Feed filter pattern is invalid: ${error as string}`
       );
       feeds = objects.toJSON() as FeedEntity[];
     }

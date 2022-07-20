@@ -153,7 +153,7 @@ export class EntityInteractor {
     } catch (error) {
       this.sharedState.set(
         "viewState.alertInformation",
-        `Add failed: ${error as string}`
+        `Add paper to library failed: ${error as string}`
       );
     }
 
@@ -225,7 +225,7 @@ export class EntityInteractor {
     } catch (error) {
       this.sharedState.set(
         "viewState.alertInformation",
-        `Add failed: ${error as string}`
+        `Add categorizer failed: ${error as string}`
       );
     }
 
@@ -264,7 +264,7 @@ export class EntityInteractor {
     } catch (error) {
       this.sharedState.set(
         "viewState.alertInformation",
-        `Delete failed: ${error as string}`
+        `Delete paper failed: ${error as string}`
       );
     }
   }
@@ -285,7 +285,7 @@ export class EntityInteractor {
     } catch (error) {
       this.sharedState.set(
         "viewState.alertInformation",
-        `Delete failed: ${error as string}`
+        `Delete supplementary failed: ${error as string}`
       );
     }
   }
@@ -433,7 +433,7 @@ export class EntityInteractor {
     } catch (error) {
       this.sharedState.set(
         "viewState.alertInformation",
-        `Update failed: ${error as string}`
+        `Update paper failed: ${error as string}`
       );
     }
 

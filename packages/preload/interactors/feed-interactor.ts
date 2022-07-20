@@ -65,7 +65,7 @@ export class FeedInteractor {
     if (this.sharedState.viewState.searchMode.get() === "fulltext" && search) {
       this.sharedState.set(
         "viewState.alertInformation",
-        `Fulltext searching is not supported in the Feeds view.`
+        `Fulltext searching is not supported in the feeds view.`
       );
       search = "";
     }
@@ -146,7 +146,7 @@ export class FeedInteractor {
     } catch (error) {
       this.sharedState.set(
         "viewState.alertInformation",
-        `Add failed: ${error as string}`
+        `Add paper from feed failed: ${error as string}`
       );
     }
 
@@ -169,7 +169,7 @@ export class FeedInteractor {
     } catch (error) {
       this.sharedState.set(
         "viewState.alertInformation",
-        `Add failed: ${error as string}`
+        `Update feed failed: ${error as string}`
       );
     }
 

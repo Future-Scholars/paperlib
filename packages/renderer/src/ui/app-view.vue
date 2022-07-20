@@ -161,28 +161,6 @@ const setupTheme = () => {
 // =======================================
 // State Update
 
-window.appInteractor.registerState("viewState.alertInformation", (value) => {
-  createModalView(
-    "Warning",
-    value as string,
-    () => {
-      window.appInteractor.setState("viewState.isModalShown", false);
-    },
-    null
-  );
-});
-
-window.appInteractor.registerState("viewState.infoInformation", (value) => {
-  createModalView(
-    "Paperlib",
-    value as string,
-    () => {
-      window.appInteractor.setState("viewState.isModalShown", false);
-    },
-    null
-  );
-});
-
 window.appInteractor.registerState("dbState.entitiesUpdated", (value) => {
   reloadEntities();
 });

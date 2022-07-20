@@ -22,7 +22,7 @@ export class ArXivScraper extends Scraper {
       str: entityDraft.arxiv,
       removeStr: "arXiv:",
     });
-    const scrapeURL = `https://export.arxiv.org/api/query?id_list=${arxivID}`;
+    const scrapeURL = `https://export123.arxiv.org/api/query?id_list=${arxivID}`;
 
     const headers = {
       "accept-encoding": "UTF-32BE",

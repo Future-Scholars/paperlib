@@ -96,8 +96,8 @@ export class GoogleScholarScraper extends Scraper {
       entityDraft.title !== "" &&
       (entityDraft.publication === "" ||
         entityDraft.publication.toLowerCase().includes("arxiv") ||
-        entityDraft.publication.toLowerCase().includes("openreview"));
-    this.getEnable("googlescholar");
+        entityDraft.publication.toLowerCase().includes("openreview")) &&
+      this.getEnable("googlescholar");
 
     const query = entityDraft.title.replace(/ /g, "+");
 
