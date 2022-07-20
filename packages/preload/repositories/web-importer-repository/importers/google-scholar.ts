@@ -2,14 +2,15 @@ import { parse } from "node-html-parser";
 import { BibtexParser } from "bibtex-js-parser";
 
 import { WebContentType, WebImporter } from "./importer";
+import { SharedState } from "../../../utils/appstate";
 import { Preference } from "../../../utils/preference";
 import { safeGot } from "../../../utils/got";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class GoogleScholarWebImporter extends WebImporter {
-  constructor(preference: Preference) {
+  constructor(sharedState: SharedState, preference: Preference) {
     const urlRegExp = new RegExp("^https?://scholar.google.com");
-    super(preference, urlRegExp);
+    super(sharedState, preference, urlRegExp);
   }
 
   async parsingProcess(

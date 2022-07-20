@@ -22,10 +22,13 @@ export class WebImporterRepository {
     this.preference = preference;
 
     this.importerList = {
-      arxiv: new ArXivWebImporter(this.preference),
-      googlescholar: new GoogleScholarWebImporter(this.preference),
-      ieee: new IEEEWebImporter(this.preference),
-      embed: new EmbedWebImporter(this.preference),
+      arxiv: new ArXivWebImporter(this.sharedState, this.preference),
+      googlescholar: new GoogleScholarWebImporter(
+        this.sharedState,
+        this.preference
+      ),
+      ieee: new IEEEWebImporter(this.sharedState, this.preference),
+      embed: new EmbedWebImporter(this.sharedState, this.preference),
     };
   }
 

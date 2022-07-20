@@ -44,10 +44,18 @@ const selectedFeedEntities: Ref<FeedEntity[]> = ref([]);
 
 const feedEntityAddingStatus = ref(0); // 0: not adding, 1: adding, 2: added
 
+const searchInputFocus = ref(false);
+
 const openSelectedEntities = () => {
-  selectedEntities.value.forEach((entity) => {
-    window.appInteractor.open(entity.mainURL);
-  });
+  if (contentType.value === "library") {
+    selectedEntities.value.forEach((entity) => {
+      window.appInteractor.open(entity.mainURL);
+    });
+  } else {
+    selectedFeedEntities.value.forEach((entity) => {
+      window.appInteractor.open(entity.mainURL);
+    });
+  }
 };
 
 const showInFinderSelectedEntities = () => {
@@ -193,7 +201,7 @@ const addSelectedFeedEntities = async () => {
   }
 };
 
-const readSelectedFeedEntities = (read: boolean | null) => {
+const readSelectedFeedEntities = (read: boolean | null, clear = false) => {
   if (contentType.value === "feed") {
     const feedEntityDrafts = selectedFeedEntities.value
       .map((feedEntity) => {
@@ -207,6 +215,9 @@ const readSelectedFeedEntities = (read: boolean | null) => {
         }
       })
       .filter((feedEntityDraft) => feedEntityDraft !== null);
+    if (clear) {
+      clearSelected();
+    }
     void window.feedInteractor.updateFeedEntities(
       JSON.stringify(feedEntityDrafts)
     );
@@ -329,7 +340,9 @@ window.appInteractor.registerMainSignal("shortcut-Preference", () => {
 
 window.appInteractor.registerMainSignal("shortcut-Enter", () => {
   if (
-    selectedEntities.value.length >= 1 &&
+    !searchInputFocus.value &&
+    (selectedEntities.value.length >= 1 ||
+      selectedFeedEntities.value.length >= 1) &&
     !window.appInteractor.getState("viewState.isModalShown") &&
     !window.appInteractor.getState("viewState.isEditViewShown") &&
     !window.appInteractor.getState("viewState.isPreferenceViewShown")
@@ -340,11 +353,13 @@ window.appInteractor.registerMainSignal("shortcut-Enter", () => {
 
 window.appInteractor.registerMainSignal("shortcut-Space", () => {
   if (
+    !searchInputFocus.value &&
     selectedEntities.value.length >= 1 &&
     !window.appInteractor.getState("viewState.isModalShown") &&
     !window.appInteractor.getState("viewState.isEditViewShown") &&
     !window.appInteractor.getState("viewState.isPreferenceViewShown")
   ) {
+    console.log(searchInputFocus);
     previewSelectedEntities();
   }
 });
@@ -514,6 +529,8 @@ window.appInteractor.registerState("selectionState.selectedFeed", (value) => {
       :sortOrder="sortOrder"
       :disableSingleBtn="selectedEntities.length !== 1"
       :disableMultiBtn="selectedEntities.length === 0"
+      @input-focus="searchInputFocus = true"
+      @input-unfocus="searchInputFocus = false"
     />
 
     <div class="grow flex divide-x dark:divide-neutral-700">
@@ -558,6 +575,7 @@ window.appInteractor.registerState("selectionState.selectedFeed", (value) => {
         v-if="contentType === 'feed'"
         @add-clicked="addSelectedFeedEntities"
         @read-timeout="readSelectedFeedEntities(true)"
+        @read-timeout-in-unread="readSelectedFeedEntities(true, true)"
       />
     </div>
   </div>

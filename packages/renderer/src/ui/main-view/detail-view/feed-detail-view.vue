@@ -21,7 +21,11 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(["add-clicked", "read-timeout"]);
+const emits = defineEmits([
+  "add-clicked",
+  "read-timeout",
+  "read-timeout-in-unread",
+]);
 
 const onAddClicked = () => {
   if (props.feedEntityAddingStatus === 0) {
@@ -54,6 +58,10 @@ const onReadTimeout = () => {
     debounce(() => {
       emits("read-timeout");
     }, 2000)();
+  } else {
+    debounce(() => {
+      emits("read-timeout-in-unread");
+    }, 10000)();
   }
 };
 

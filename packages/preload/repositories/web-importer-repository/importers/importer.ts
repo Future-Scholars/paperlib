@@ -7,6 +7,7 @@ import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import { createWriteStream } from "fs";
 
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
+import { SharedState } from "../../../utils/appstate";
 import { Preference } from "../../../utils/preference";
 import { constructFileURL } from "../../../utils/path";
 
@@ -30,10 +31,16 @@ export interface WebImporterType {
 }
 
 export class WebImporter implements WebImporterType {
+  sharedState: SharedState;
   preference: Preference;
   urlRegExp: RegExp;
 
-  constructor(preference: Preference, urlRegExp: RegExp) {
+  constructor(
+    sharedState: SharedState,
+    preference: Preference,
+    urlRegExp: RegExp
+  ) {
+    this.sharedState = sharedState;
     this.preference = preference;
     this.urlRegExp = urlRegExp;
   }
@@ -123,6 +130,8 @@ export class WebImporter implements WebImporterType {
         return "";
       }
     };
+
+    this.sharedState.set("viewState.processInformation", `Downloading...`);
 
     const downloadedUrls = (await Promise.all(urlList.map(_download))).filter(
       (url) => url !== ""

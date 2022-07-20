@@ -1,11 +1,12 @@
 import { WebContentType, WebImporter } from "./importer";
+import { SharedState } from "../../../utils/appstate";
 import { Preference } from "../../../utils/preference";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class EmbedWebImporter extends WebImporter {
-  constructor(preference: Preference) {
+  constructor(sharedState: SharedState, preference: Preference) {
     const urlRegExp = new RegExp("^https?://");
-    super(preference, urlRegExp);
+    super(sharedState, preference, urlRegExp);
   }
 
   async parsingProcess(

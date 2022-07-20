@@ -81,10 +81,6 @@ window.appInteractor.registerState("viewState.feedEntitiesCount", (value) => {
 window.appInteractor.registerState("selectionState.selectedFeed", (value) => {
   selectedFeed.value = value as string;
 });
-
-const onDbClicked = () => {
-  window.feedInteractor.deleteOutdatedFeedEntities();
-};
 </script>
 
 <template>
@@ -121,7 +117,6 @@ const onDbClicked = () => {
         :active="selectedFeed === `feed-${feed.name}`"
         @click="onSelectFeed(`feed-${feed.name}`)"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `feed-${feed.name}`)}"
-        @dblclick="onDbClicked"
       >
         <BIconBroadcast
           class="text-sm my-auto min-w-[1em]"

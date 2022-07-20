@@ -113,7 +113,7 @@ async function scrapeImpl(
     const agent = this.getProxyAgent();
     let options = {
       headers: headers,
-      retry: 0,
+      retry: 1,
       timeout: 5000,
       agent: agent,
     };

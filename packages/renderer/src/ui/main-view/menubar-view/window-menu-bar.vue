@@ -34,12 +34,17 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["click"]);
+const emit = defineEmits(["click", "input-focus", "input-unfocus"]);
 </script>
 
 <template>
   <div class="flex w-full h-12 justify-between draggable-title">
-    <div class="grow my-auto px-2 nodraggable-item"><SearchInput /></div>
+    <div class="grow my-auto px-2 nodraggable-item">
+      <SearchInput
+        @focusin="emit('input-focus')"
+        @focusout="emit('input-unfocus')"
+      />
+    </div>
 
     <div
       class="flex flex-none justify-end space-x-1 my-auto w-80 pl-8 pr-2 nodraggable-item"
@@ -167,7 +172,7 @@ const emit = defineEmits(["click"]);
             <div class="pt-1">
               <MenuItem
                 v-slot="{ active }"
-                class="w-full rounded-md p-1 hover:bg-neutral-200hover:dark:bg-neutral-700"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-order-desc')"
               >
                 <div class="flex justify-between px-2">
