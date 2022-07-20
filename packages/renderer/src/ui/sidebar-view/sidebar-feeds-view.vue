@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { BIconRss, BIconEnvelope, BIconBroadcast } from "bootstrap-icons-vue";
+import {
+  BIconRss,
+  BIconAppIndicator,
+  BIconBroadcast,
+} from "bootstrap-icons-vue";
 
 import SectionItem from "./components/section-item.vue";
 import CollopseGroup from "./components/collopse-group.vue";
@@ -77,6 +81,10 @@ window.appInteractor.registerState("viewState.feedEntitiesCount", (value) => {
 window.appInteractor.registerState("selectionState.selectedFeed", (value) => {
   selectedFeed.value = value as string;
 });
+
+const onDbClicked = () => {
+  window.feedInteractor.deleteOutdatedFeedEntities();
+};
 </script>
 
 <template>
@@ -100,7 +108,7 @@ window.appInteractor.registerState("selectionState.selectedFeed", (value) => {
       :active="selectedFeed === 'feed-unread'"
       @click="onSelectFeed('feed-unread')"
     >
-      <BIconEnvelope class="text-sm my-auto text-blue-500 min-w-[1em]" />
+      <BIconAppIndicator class="text-sm my-auto text-blue-500 min-w-[1em]" />
     </SectionItem>
     <CollopseGroup title="Feeds" :with-add="true" @add="onAddNewFeedClicked">
       <SectionItem
@@ -113,6 +121,7 @@ window.appInteractor.registerState("selectionState.selectedFeed", (value) => {
         :active="selectedFeed === `feed-${feed.name}`"
         @click="onSelectFeed(`feed-${feed.name}`)"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, `feed-${feed.name}`)}"
+        @dblclick="onDbClicked"
       >
         <BIconBroadcast
           class="text-sm my-auto min-w-[1em]"

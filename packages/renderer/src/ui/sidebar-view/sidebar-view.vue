@@ -30,9 +30,12 @@ const onViewSwitch = (view: number) => {
     ["library", "feed"][view]
   );
   if (view === 0) {
-    window.appInteractor.setState("viewState.selectedCategorizer", "lib-all");
+    window.appInteractor.setState(
+      "selectionState.selectedCategorizer",
+      "lib-all"
+    );
   } else {
-    window.appInteractor.setState("viewState.selectedFeed", "feed-all");
+    window.appInteractor.setState("selectionState.selectedFeed", "feed-all");
   }
 };
 </script>

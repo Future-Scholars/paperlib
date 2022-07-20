@@ -135,21 +135,72 @@ export async function feedEntities(
 
 // ============================================================
 // Delete
-export async function deleteFeeds(this: DBRepository, feedNames: string[]) {
-  const realm = await this.realm();
-
+export async function deleteFeeds(
+  this: DBRepository,
+  feedNames: string[],
+  deleteAll = true,
+  realm: Realm | null = null
+) {
+  if (!realm) {
+    realm = await this.realm();
+  }
   realm.safeWrite(() => {
     feedNames.forEach((feedName) => {
-      const objects = realm!
-        .objects<FeedEntity>("FeedEntity")
-        .filtered(`feed.name == "${feedName}"`) as Results<FeedEntity>;
-      realm!.delete(objects);
       const feeds = realm!
         .objects<Feed>("Feed")
         .filtered(`name == "${feedName}"`);
-      realm!.delete(feeds);
+
+      if (deleteAll) {
+        const objects = realm!
+          .objects<FeedEntity>("FeedEntity")
+          .filtered(`feed.name == "${feedName}"`) as Results<FeedEntity>;
+        realm!.delete(objects);
+        realm!.delete(feeds);
+      } else {
+        for (const feed of feeds) {
+          feed.count -= 1;
+          if (feed.count <= 0) {
+            realm!.delete(feed);
+          }
+        }
+      }
     });
   });
+}
+
+export async function deleteOutdatedFeedEntities(this: DBRepository) {
+  const realm = await this.realm();
+
+  const readObjects = realm
+    .objects<FeedEntity>("FeedEntity")
+    .filtered(
+      "(addTime < $0) AND (read == true)",
+      new Date(Date.now() - 86400000 * 1)
+    );
+  const unreadObjects = realm
+    .objects<FeedEntity>("FeedEntity")
+    .filtered(
+      "(addTime < $0) AND (read == false)",
+      new Date(Date.now() - 86400000 * 2)
+    );
+
+  try {
+    realm.safeWrite(() => {
+      for (const object of readObjects) {
+        this.deleteFeeds([object.feed.name], false, realm);
+      }
+      for (const object of unreadObjects) {
+        this.deleteFeeds([object.feed.name], false, realm);
+      }
+      realm.delete(readObjects);
+      realm.delete(unreadObjects);
+    });
+  } catch (error) {
+    this.sharedState.set(
+      "viewState.alertInformation",
+      `Error deleting feed entities: ${error as string}`
+    );
+  }
 }
 
 // ============================================================

@@ -30,6 +30,7 @@ import {
   feeds,
   feedEntities,
   deleteFeeds,
+  deleteOutdatedFeedEntities,
   updateFeeds,
   updateFeedEntities,
 } from "./db-feeds-crud";
@@ -108,6 +109,7 @@ export class DBRepository {
   feeds = feeds;
   feedEntities = feedEntities;
   deleteFeeds = deleteFeeds;
+  deleteOutdatedFeedEntities = deleteOutdatedFeedEntities;
   updateFeeds = updateFeeds;
   updateFeedEntities = updateFeedEntities;
 }

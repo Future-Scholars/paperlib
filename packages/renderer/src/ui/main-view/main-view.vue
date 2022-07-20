@@ -89,10 +89,12 @@ const reloadSelectedEntities = () => {
 const clearSelected = () => {
   selectedIndex.value = [];
   selectedEntities.value = [];
+  selectedFeedEntities.value = [];
   window.appInteractor.setState(
     "selectionState.selectedIndex",
     JSON.stringify(selectedIndex.value)
   );
+  window.appInteractor.setState("selectionState.selectedIds", "");
 };
 
 const scrapeSelectedEntities = () => {
