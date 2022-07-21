@@ -160,7 +160,7 @@ export async function deleteFeeds(
         for (const feed of feeds) {
           feed.count -= 1;
           if (feed.count <= 0) {
-            realm!.delete(feed);
+            feed.count = 0;
           }
         }
       }
@@ -175,13 +175,13 @@ export async function deleteOutdatedFeedEntities(this: DBRepository) {
     .objects<FeedEntity>("FeedEntity")
     .filtered(
       "(addTime < $0) AND (read == true)",
-      new Date(Date.now() - 86400000 * 1)
+      new Date(Date.now() - 86400000 * 3)
     );
   const unreadObjects = realm
     .objects<FeedEntity>("FeedEntity")
     .filtered(
       "(addTime < $0) AND (read == false)",
-      new Date(Date.now() - 86400000 * 2)
+      new Date(Date.now() - 86400000 * 30)
     );
 
   try {
@@ -305,7 +305,11 @@ export async function updateFeedEntities(
         const reduplicatedFeeds = realm
           .objects("FeedEntity")
           .filtered(
-            `title == \"${feedEntity.title}\" and authors == \"${feedEntity.authors}\"`
+            `title == \"${
+              feedEntity.title
+            }\" and authors contains[c] \"${feedEntity.authors
+              .split(";")
+              .map((author) => author.trim())}\"`
           );
         if (reduplicatedFeeds.length > 0) {
           continue;

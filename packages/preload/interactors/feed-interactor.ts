@@ -46,6 +46,7 @@ export class FeedInteractor {
     this.entityInteractor = entityInteractor;
 
     this.scheduler = new ToadScheduler();
+    this.setupRoutineScrapeScheduler();
   }
 
   // ============================================================
@@ -228,17 +229,36 @@ export class FeedInteractor {
 
       const scrapePromise = async (entityDraft: PaperEntityDraft) => {
         return await this.scraperRepository.scrape(entityDraft, [
+          "cvf",
+          "dblp",
+          "ieee",
+          "openreview",
           "pwc",
           "googlescholar",
           "pdf",
         ]);
       };
-      paperEntityDrafts = await Promise.all(
-        paperEntityDrafts.map((entityDraft) => scrapePromise(entityDraft))
-      );
 
-      for (const i in paperEntityDrafts) {
-        feedEntityDrafts[i].fromPaper(paperEntityDrafts[i]);
+      // Scrape every 5 papers
+      const n = paperEntityDrafts.length;
+
+      let scrapedPaperEntityDrafts: PaperEntityDraft[] = [];
+      for (let i = 0; i < n; i += 5) {
+        const paperEntityDraftsChunk = paperEntityDrafts.slice(i, i + 5);
+        const scrapedPaperEntityChunk = await Promise.all(
+          paperEntityDraftsChunk.map((paperEntityDraft) =>
+            scrapePromise(paperEntityDraft)
+          )
+        );
+        scrapedPaperEntityDrafts = scrapedPaperEntityDrafts.concat(
+          scrapedPaperEntityChunk
+        );
+      }
+
+      for (const i in feedEntityDrafts) {
+        if (scrapedPaperEntityDrafts[i]) {
+          feedEntityDrafts[i].fromPaper(scrapedPaperEntityDrafts[i]);
+        }
       }
 
       await this.dbRepository.updateFeedEntities(feedEntityDrafts);

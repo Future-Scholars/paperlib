@@ -52,6 +52,7 @@ window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
     deleteFeed(args);
+    onSelectFeed("feed-all");
   }
 );
 

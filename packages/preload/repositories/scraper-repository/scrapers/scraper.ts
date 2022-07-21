@@ -114,7 +114,7 @@ async function scrapeImpl(
     let options = {
       headers: headers,
       retry: 1,
-      timeout: 5000,
+      timeout: 10000,
       agent: agent,
     };
     const response = await got(scrapeURL, options);
