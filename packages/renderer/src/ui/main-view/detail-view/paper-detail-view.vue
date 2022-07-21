@@ -11,6 +11,7 @@ import Code from "./components/code.vue";
 import Authors from "./components/authors.vue";
 import Thumbnail from "./components/thumbnail.vue";
 import Supplementary from "./components/supplementary.vue";
+import Markdown from "./components/markdown.vue";
 import { onMounted } from "vue";
 import PubDetails from "./components/pub-details.vue";
 
@@ -121,17 +122,26 @@ onMounted(() => {
         @modify-main-file="(value) => modifyMainFile(value)"
       />
     </Section>
-    <Section title="Note" v-if="entity.note.length > 0">
+    <Section
+      title="Note"
+      v-if="entity.note.length > 0 && !entity.note.startsWith('<md>')"
+    >
       <div class="text-xxs">
         {{ entity.note }}
       </div>
     </Section>
+    <Markdown
+      :title="'Note'"
+      v-if="entity.note.length > 0 && entity.note.startsWith('<md>')"
+      :content="entity.note"
+    />
     <Section title="Codes" v-if="entity.codes.length > 0">
       <Code :codes="entity.codes" />
     </Section>
     <Section title="Supplementaries" v-if="entity.supURLs.length > 0">
       <Supplementary :sups="entity.supURLs" />
     </Section>
+    <Markdown :title="'Markdown'" :sups="entity.supURLs" />
     <div class="w-40 h-10">&nbsp;</div>
     <div
       class="fixed bottom-0 w-80 h-10 bg-gradient-to-t from-white dark:from-neutral-800"

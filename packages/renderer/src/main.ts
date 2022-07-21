@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import "./css/index.css";
+import "./css/katex.min.css";
 // @ts-ignore
 import { RecycleScroller } from "vue-virtual-scroller";
 import vSelect from "vue-select";

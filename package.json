@@ -16,6 +16,7 @@
     "node": ">=14.17.0"
   },
   "devDependencies": {
+    "@types/markdown-it": "^12.2.3",
     "@types/splitpanes": "^2.2.1",
     "@types/tough-cookie": "^4.0.2",
     "@types/vue-select": "^3.16.0",
@@ -58,7 +59,10 @@
     "got": "11.8.3",
     "hpagent": "1.0.0",
     "jsdom": "^20.0.0",
+    "katex": "^0.16.0",
     "keytar": "7.9.0",
+    "markdown-it": "^13.0.1",
+    "markdown-it-texmath": "^1.0.0",
     "node-html-parser": "5.3.3",
     "realm": "10.13.0",
     "rss-parser": "^3.12.0",
