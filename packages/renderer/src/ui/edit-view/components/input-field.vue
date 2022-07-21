@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+import {
+  BIconArrowsAngleExpand,
+  BIconArrowsAngleContract,
+} from "bootstrap-icons-vue";
+
 const props = defineProps({
   placeholder: {
     type: String,
@@ -10,8 +15,13 @@ const props = defineProps({
     type: String,
     required: false,
   },
+  isExpanded: {
+    type: Boolean,
+    required: false,
+  },
 });
-const emit = defineEmits(["changed"]);
+const isExpanded = ref(props.isExpanded);
+const emit = defineEmits(["changed", "expand"]);
 
 const value = ref(props.value);
 
@@ -24,19 +34,40 @@ const onInput = (payload: Event) => {
   <div
     class="flex flex-col rounded-md px-3 py-1 bg-neutral-200 dark:bg-neutral-700"
   >
-    <label
-      :for="placeholder"
-      class="text-xxs text-neutral-500 dark:text-neutral-400"
-    >
-      {{ placeholder }}
-    </label>
+    <div class="flex justify-between">
+      <label
+        :for="placeholder"
+        class="text-xxs text-neutral-500 dark:text-neutral-400"
+      >
+        {{ placeholder }}
+      </label>
+      <BIconArrowsAngleContract
+        class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 cursor-pointer"
+        v-if="isExpanded"
+        @click="
+          () => {
+            isExpanded = false;
+            emit('expand', false);
+          }
+        "
+      />
+      <BIconArrowsAngleExpand
+        class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 cursor-pointer"
+        v-if="!isExpanded"
+        @click="
+          () => {
+            isExpanded = true;
+            emit('expand', true);
+          }
+        "
+      />
+    </div>
     <textarea
-      class="text-xs bg-transparent focus:outline-none resize-none dark:text-neutral-300"
+      class="text-xs bg-transparent focus:outline-none resize-none dark:text-neutral-300 h-full"
       type="text"
       placeholder=" "
       v-model="value"
       :name="placeholder"
-      rows="4"
       @input="onInput"
     />
   </div>
