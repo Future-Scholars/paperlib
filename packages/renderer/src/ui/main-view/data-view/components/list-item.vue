@@ -56,7 +56,7 @@ const getPubTypeString = (pubType: any) => {
         class="text-[0.84rem] leading-[1.1rem] font-semibold truncate overflow-hidden"
         :class="active ? 'text-white' : ''"
         >
-        {{ title }} {{`${read}`}}
+        {{ title }}
         </div>
     </div>
     <div

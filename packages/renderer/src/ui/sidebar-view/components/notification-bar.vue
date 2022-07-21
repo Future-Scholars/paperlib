@@ -111,7 +111,7 @@ const onLeave = () => {
         v-show="isHistoryShown"
       >
         <div
-          class="flex text-xxs p-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 backdrop-blur-xl space-x-2 pointer-events-auto"
+          class="flex text-xxs p-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto"
           v-for="historyMsg of historyMsgs"
           v-show="historyMsg.forceShow"
           @mouseleave="onLeave"

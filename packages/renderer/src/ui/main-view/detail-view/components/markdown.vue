@@ -78,7 +78,7 @@ watch(props, (props, prevProps) => {
       </div>
 
       <div
-        class="invisible group-hover:visible hover:bg-neutral-300 hover:drop-shadow-sm rounded-md p-1 cursor-pointer my-auto"
+        class="invisible group-hover:visible hover:bg-neutral-300 hover:dark:bg-neutral-700 hover:drop-shadow-sm rounded-md p-1 cursor-pointer my-auto"
         @click="
           () => {
             isExpanded = !isExpanded;
