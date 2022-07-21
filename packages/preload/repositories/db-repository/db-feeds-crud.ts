@@ -256,6 +256,26 @@ export async function updateFeeds(
   return successes;
 }
 
+export async function colorizeFeed(
+  this: DBRepository,
+  feedName: string,
+  color: string,
+  realm: Realm | null = null
+) {
+  if (!realm) {
+    realm = await this.realm();
+  }
+
+  realm.safeWrite(() => {
+    const objects = realm!
+      .objects<Feed>("Feed")
+      .filtered(`name == "${feedName}"`) as Results<Feed>;
+    for (const object of objects) {
+      object.color = color;
+    }
+  });
+}
+
 export async function updateFeedEntities(
   this: DBRepository,
   feedEntities: FeedEntityDraft[]

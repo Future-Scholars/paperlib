@@ -44,6 +44,10 @@ const refreshFeed = (feed: string) => {
   window.feedInteractor.refresh(feed);
 };
 
+const colorizeFeed = (feed: string, color: string) => {
+  window.feedInteractor.colorizeFeed(feed.replaceAll("feed-", ""), color);
+};
+
 const onItemRightClicked = (event: MouseEvent, feed: string) => {
   window.appInteractor.showContextMenu("show-sidebar-context-menu", feed);
 };
@@ -60,6 +64,13 @@ window.appInteractor.registerMainSignal(
   "sidebar-context-menu-feed-refresh",
   (args) => {
     refreshFeed(args.replaceAll("feed-", ""));
+  }
+);
+
+window.appInteractor.registerMainSignal(
+  "sidebar-context-menu-color",
+  (args) => {
+    colorizeFeed(args[0], args[1]);
   }
 );
 

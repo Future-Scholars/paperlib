@@ -113,6 +113,10 @@ export class FeedInteractor {
     );
   }
 
+  colorizeFeed(feedName: string, color: string) {
+    void this.dbRepository.colorizeFeed(feedName, color);
+  }
+
   async addFeedEntities(feedEntities: string) {
     this.sharedState.set(
       "viewState.processingQueueCount",

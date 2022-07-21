@@ -32,6 +32,7 @@ import {
   deleteFeeds,
   deleteOutdatedFeedEntities,
   updateFeeds,
+  colorizeFeed,
   updateFeedEntities,
 } from "./db-feeds-crud";
 import { migrateLocaltoCloud } from "./db-migration";
@@ -111,5 +112,6 @@ export class DBRepository {
   deleteFeeds = deleteFeeds;
   deleteOutdatedFeedEntities = deleteOutdatedFeedEntities;
   updateFeeds = updateFeeds;
+  colorizeFeed = colorizeFeed;
   updateFeedEntities = updateFeedEntities;
 }
