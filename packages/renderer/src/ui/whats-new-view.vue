@@ -4,7 +4,8 @@ import { onMounted, ref } from "vue";
 const show = ref(false);
 
 const checkShouldShow = async () => {
-  show.value = await window.appInteractor.shouldShowWhatsNew();
+  //   show.value = await window.appInteractor.shouldShowWhatsNew();
+  show.value = true;
 };
 
 const hide = () => {
@@ -34,41 +35,50 @@ onMounted(() => {
       <div class="w-[40rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.8.2
+          What's New in Paperlib 1.9.0
         </p>
         <p class="mt-10"><b>New Features</b></p>
-        <li>Configurable paper detail information in the mainview. #112</li>
-        <p class="ml-5">
-          支持在主列表展示自定义的详情信息。在这里你可以选择展示发表相关信息，标签文件夹，打分和笔记等。
+        <li>RSS subscription. #50</li>
+        <p class="ml-5">支持从 arXiv 等处 RSS 订阅论文。使用方法见下图。</p>
+        <p class="ml-5 text-red-500">
+          ⚠️ If you are using the Atlas database sync, please make sure you have
+          turned on the dev mode of your cloud database to upload the modified
+          table scheme.
+        </p>
+        <p class="ml-5 text-red-500">
+          ⚠️ 如果您使用 Atlas 云同步数据库功能，请确保在使用此功能前打开数据库
+          scheme 的 dev mode
+          保证数据库表结构的修改能够上传到云端。本地数据库无需操作。详情参阅如何使用云同步的教程。
         </p>
         <img
           class="mx-auto mt-5 mb-8 rounded-md shadow-lg"
-          src="../assets/1.png"
+          src="../assets/1.jpg"
         />
 
-        <li>Directly import files or paper items to a folder or tag. #93</li>
+        <li>Support markdown notes #94</li>
         <p class="ml-5">
-          直接拖动 PDF
-          文件或者已有的论文条目到侧边栏直接添加到对应标签或文件夹。
+          支持 markdown 格式的笔记。只需在编辑的时候输入 &lt;md&gt; 作为开头。
         </p>
 
         <img
           class="mx-auto mt-5 mb-8 rounded-md shadow-lg"
-          src="../assets/2.png"
+          src="../assets/2.jpg"
         />
 
-        <li>Contextmenu: Scrape by using a specific scraper. #110</li>
-        <p class="ml-5">右键菜单添加了从某一特定搜刮器搜刮 metadata 的选项。</p>
+        <li>A new notification center.</li>
+        <p class="ml-5">
+          添加了一个通知中心。在这里显示 Paperlib 的一些处理信息以及报错。
+        </p>
+
+        <img
+          class="mx-auto mt-5 mb-8 rounded-md shadow-lg w-96"
+          src="../assets/3.jpg"
+        />
 
         <p class="mt-10"><b>Improvements and Fixed Bugs</b></p>
-        <li>
-          Better experience when restoring a closed but not killed Paperlib on
-          macOS #106
-        </li>
-        <p class="ml-5">
-          在macOS上，当关闭主窗口后但未完全退出时，优化恢复之前的窗口时的速度。
-        </p>
-        <li>Fix some bugs in the scrapers.</li>
+        <li>More editable information #113</li>
+        <p class="ml-5">更多的可编辑信息。</p>
+        <li>Fix some bugs.</li>
 
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
