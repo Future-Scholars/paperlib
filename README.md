@@ -22,7 +22,6 @@ An open-source simple academic paper management tool for computer science.
 
 
 ⚠️ **I'm looking for someone who can help me:** ⚠️
-- Test Paperlib on Apple Silicon
 - Continue to develop the native SwiftUI version if you like Paperlib and are familiar with SwiftUI.
 
 ## Introduction
