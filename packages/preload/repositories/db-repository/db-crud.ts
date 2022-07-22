@@ -404,7 +404,9 @@ export async function update(
         const reduplicatedEntities = realm
           .objects("PaperEntity")
           .filtered(
-            `title == \"${entity.title}\" and authors == \"${entity.authors}\"`
+            "title == $0 and authors == $1",
+            entity.title,
+            entity.authors
           );
         if (reduplicatedEntities.length > 0) {
           continue;

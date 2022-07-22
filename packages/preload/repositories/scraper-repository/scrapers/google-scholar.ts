@@ -20,55 +20,66 @@ async function scrapeImpl(
     const agent = this.getProxyAgent();
     const response = await safeGot(scrapeURL, headers, agent);
 
-    const root = parse(response?.body);
-    const results = root.querySelector("#gs_res_ccl_mid");
-
     let bibtex = "";
-    if (results) {
-      for (let node of results.childNodes) {
-        if (node.nodeType === 1) {
-          const paper = node.childNodes[1];
-          if (paper) {
-            let title = paper.childNodes[0];
-            if (title) {
-              let titleStr = title.childNodes.pop()?.rawText;
-              if (titleStr) {
-                const plainHitTitle = formatString({
-                  str: titleStr,
-                  removeStr: "&amp",
-                  removeSymbol: true,
-                  lowercased: true,
-                });
 
-                const existTitle = formatString({
-                  str: entityDraft.title,
-                  removeStr: "&amp",
-                  removeSymbol: true,
-                  lowercased: true,
-                });
+    if (response?.body) {
+      const root = parse(response?.body);
+      const results = root.querySelector("#gs_res_ccl_mid");
 
-                if (plainHitTitle === existTitle) {
-                  const dataid =
-                    title.parentNode.parentNode.attributes["data-aid"];
+      if (results) {
+        for (let node of results.childNodes) {
+          if (node.nodeType === 1) {
+            const paper = node.childNodes[1];
+            if (paper) {
+              let title = paper.childNodes[0];
+              if (title) {
+                let titleStr = title.childNodes.pop()?.rawText;
+                if (titleStr) {
+                  const plainHitTitle = formatString({
+                    str: titleStr,
+                    removeStr: "&amp",
+                    removeSymbol: true,
+                    lowercased: true,
+                  });
 
-                  if (dataid) {
-                    const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
-                    const citeResponse = await safeGot(citeUrl, headers, agent);
-                    const citeRoot = parse(citeResponse?.body);
-                    const citeBibtexNode = citeRoot.lastChild
-                      .childNodes[0] as any as HTMLElement;
-                    if (citeBibtexNode && citeBibtexNode.attributes) {
-                      // @ts-ignore
-                      if (citeBibtexNode.attributes["href"]) {
-                        // @ts-ignore
-                        const citeBibtexUrl = citeBibtexNode.attributes["href"];
-                        if (citeBibtexUrl) {
-                          const citeBibtexResponse = await safeGot(
-                            citeBibtexUrl,
-                            headers,
-                            agent
-                          );
-                          bibtex = citeBibtexResponse?.body;
+                  const existTitle = formatString({
+                    str: entityDraft.title,
+                    removeStr: "&amp",
+                    removeSymbol: true,
+                    lowercased: true,
+                  });
+
+                  if (plainHitTitle === existTitle) {
+                    const dataid =
+                      title.parentNode.parentNode.attributes["data-aid"];
+
+                    if (dataid) {
+                      const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
+                      const citeResponse = await safeGot(
+                        citeUrl,
+                        headers,
+                        agent
+                      );
+                      if (citeResponse?.body) {
+                        const citeRoot = parse(citeResponse?.body);
+                        const citeBibtexNode = citeRoot.lastChild
+                          .childNodes[0] as any as HTMLElement;
+                        if (citeBibtexNode && citeBibtexNode.attributes) {
+                          // @ts-ignore
+                          if (citeBibtexNode.attributes["href"]) {
+                            // @ts-ignore
+                            const citeBibtexUrl =
+                              // @ts-ignore
+                              citeBibtexNode.attributes["href"];
+                            if (citeBibtexUrl) {
+                              const citeBibtexResponse = await safeGot(
+                                citeBibtexUrl,
+                                headers,
+                                agent
+                              );
+                              bibtex = citeBibtexResponse?.body;
+                            }
+                          }
                         }
                       }
                     }
@@ -144,7 +155,8 @@ export class GoogleScholarScraper extends Scraper {
         if (bibtex.type === "article") {
           if (
             bibtex.journal &&
-            !bibtex.journal.toLowerCase().includes("arxiv")
+            (entityDraft.publication === "" ||
+              !bibtex.journal.toLowerCase().includes("arxiv"))
           ) {
             entityDraft.publication = bibtex.journal;
           }
@@ -155,7 +167,8 @@ export class GoogleScholarScraper extends Scraper {
         ) {
           if (
             bibtex.booktitle &&
-            !bibtex.booktitle.toLowerCase().includes("arxiv")
+            (entityDraft.publication === "" ||
+              !bibtex.booktitle.toLowerCase().includes("arxiv"))
           ) {
             entityDraft.publication = bibtex.booktitle;
           }
@@ -163,7 +176,8 @@ export class GoogleScholarScraper extends Scraper {
         } else if (bibtex.type === "book") {
           if (
             bibtex.publisher &&
-            !bibtex.publisher.toLowerCase().includes("arxiv")
+            (entityDraft.publication === "" ||
+              !bibtex.publisher.toLowerCase().includes("arxiv"))
           ) {
             entityDraft.publication = bibtex.publisher;
           }
@@ -171,11 +185,25 @@ export class GoogleScholarScraper extends Scraper {
         } else {
           if (
             bibtex.journal &&
-            !bibtex.journal.toLowerCase().includes("arxiv")
+            (entityDraft.publication === "" ||
+              !bibtex.journal.toLowerCase().includes("arxiv"))
           ) {
             entityDraft.publication = bibtex.journal;
           }
           entityDraft.pubType = 2;
+        }
+
+        if (bibtex.pages) {
+          entityDraft.pages = bibtex.pages;
+        }
+        if (bibtex.volume) {
+          entityDraft.volume = bibtex.volume;
+        }
+        if (bibtex.number) {
+          entityDraft.setValue("number", `${bibtex.number}`);
+        }
+        if (bibtex.publisher) {
+          entityDraft.setValue("publisher", `${bibtex.publisher}`);
         }
       }
     }

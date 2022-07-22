@@ -68,7 +68,10 @@ export class PDFScraper extends Scraper {
     };
     const firstPageText = rawResponse.firstPageText;
 
-    entityDraft.setValue("title", metaData.info.Title || "");
+    if (entityDraft.title === "") {
+      entityDraft.setValue("title", metaData.info.Title || "");
+    }
+
     let authors;
     if (metaData.info.Author?.includes(";")) {
       authors = metaData.info.Author.split(";")
@@ -79,7 +82,9 @@ export class PDFScraper extends Scraper {
     } else {
       authors = metaData.info.Author || "";
     }
-    entityDraft.setValue("authors", authors);
+    if (entityDraft.authors === "") {
+      entityDraft.setValue("authors", authors);
+    }
 
     // Extract arXiv ID
     const arxivIds = firstPageText.match(
@@ -135,7 +140,9 @@ export class PDFScraper extends Scraper {
       }
     }
 
-    entityDraft.setValue("title", rawResponse.largestText.slice(0, 400));
+    if (entityDraft.title === "" || entityDraft.title === "untitled") {
+      entityDraft.setValue("title", rawResponse.largestText.slice(0, 400));
+    }
 
     return entityDraft;
   }

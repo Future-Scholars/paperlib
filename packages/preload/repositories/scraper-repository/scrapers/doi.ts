@@ -42,6 +42,7 @@ export class DOIScraper extends Scraper {
       publisher: string;
       page: string;
       volume: string;
+      issue: string;
     };
     const title = response.title;
     const authors = response.author
@@ -67,6 +68,9 @@ export class DOIScraper extends Scraper {
     entityDraft.setValue("publication", publication);
     if (response.volume) {
       entityDraft.setValue("volume", response.volume);
+    }
+    if (response.issue) {
+      entityDraft.setValue("number", response.issue);
     }
     if (response.page) {
       entityDraft.setValue("pages", response.page);

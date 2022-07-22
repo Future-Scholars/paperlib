@@ -68,7 +68,7 @@ export async function feeds(
   }
 
   if (feedName) {
-    return objects.filtered(`name == "${feedName}"`).toJSON() as Feed[];
+    return objects.filtered(`name == $0`, feedName).toJSON() as Feed[];
   }
   return objects.toJSON() as Feed[];
 }
@@ -148,12 +148,12 @@ export async function deleteFeeds(
     feedNames.forEach((feedName) => {
       const feeds = realm!
         .objects<Feed>("Feed")
-        .filtered(`name == "${feedName}"`);
+        .filtered(`name == $0`, feedName);
 
       if (deleteAll) {
         const objects = realm!
           .objects<FeedEntity>("FeedEntity")
-          .filtered(`feed.name == "${feedName}"`) as Results<FeedEntity>;
+          .filtered(`feed.name == $0`, feedName) as Results<FeedEntity>;
         realm!.delete(objects);
         realm!.delete(feeds);
       } else {
@@ -239,7 +239,7 @@ export async function updateFeeds(
         // Add
         const reduplicatedFeeds = realm
           .objects("Feed")
-          .filtered(`name == \"${feed.name}\"`);
+          .filtered(`name == $0`, feed.name);
         if (reduplicatedFeeds.length > 0) {
           continue;
         }
@@ -269,7 +269,7 @@ export async function colorizeFeed(
   realm.safeWrite(() => {
     const objects = realm!
       .objects<Feed>("Feed")
-      .filtered(`name == "${feedName}"`) as Results<Feed>;
+      .filtered(`name == $0`, feedName) as Results<Feed>;
     for (const object of objects) {
       object.color = color;
     }
@@ -322,15 +322,11 @@ export async function updateFeedEntities(
         successes.push(true);
       } else {
         // Add
-        const reduplicatedFeeds = realm
-          .objects("FeedEntity")
-          .filtered(
-            `title == \"${
-              feedEntity.title
-            }\" and authors contains[c] \"${feedEntity.authors
-              .split(";")
-              .map((author) => author.trim())}\"`
-          );
+        const reduplicatedFeeds = realm.objects("FeedEntity").filtered(
+          `title == $0 and authors contains[c] $1`,
+          feedEntity.title,
+          feedEntity.authors.split(";").map((author) => author.trim())
+        );
         if (reduplicatedFeeds.length > 0) {
           continue;
         }
@@ -349,7 +345,7 @@ export async function updateFeedEntities(
         } else {
           const existingFeeds = realm
             .objects("Feed")
-            .filtered(`name == \"${feedEntity.feed.name}\"`);
+            .filtered(`name == $0`, feedEntity.feed.name);
           if (existingFeeds.length > 0) {
             existingFeed = existingFeeds[0] as unknown as Feed;
           } else {
