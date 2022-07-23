@@ -85,7 +85,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ['16.14.0']
+        node-versions: ['16.14.2']
 
     steps:
       - name: 'Checkout Project'
@@ -99,16 +99,6 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./electron-builder.mac.arm.json5 ./electron-builder.json5
-
-      - name: 'Import Certificates'
-        run: |
-          echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output certificate.p12
-          export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
-          security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
-          security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
@@ -157,6 +147,9 @@ jobs:
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/Paperlib_${{ env.VERSION }}.dmg.blockmap
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/latest-mac.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/latest-mac.yml
 
+      - name: Clean Up
+        run: |
+          rm -rf ./*
 
 
   win_deploy:
