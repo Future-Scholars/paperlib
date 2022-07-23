@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ['16.14.0']
+        node-versions: ['16.14.2']
 
     steps:
       - name: 'Checkout Project'
@@ -72,7 +72,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ['16.14.0']
+        node-versions: ['16.14.2']
 
     steps:
       - name: 'Checkout Project'
