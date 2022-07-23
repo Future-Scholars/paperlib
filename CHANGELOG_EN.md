@@ -1,3 +1,9 @@
+## v1.9.0 Jul 23 2022
+
+1. RSS subscription.
+2. Markdown Notes.
+3. Bug fix.
+
 ## v1.8.2 Jul 17 2022
 
 1. Configurable paper detail information in the mainview.
