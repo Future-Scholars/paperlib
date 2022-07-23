@@ -322,11 +322,14 @@ export async function updateFeedEntities(
         successes.push(true);
       } else {
         // Add
-        const reduplicatedFeeds = realm.objects("FeedEntity").filtered(
-          `title == $0 and authors contains[c] $1`,
-          feedEntity.title,
-          feedEntity.authors.split(";").map((author) => author.trim())
-        );
+        const reduplicatedFeeds = realm
+          .objects("FeedEntity")
+          .filtered(
+            `title == $0 and authors contains[c] $1`,
+            feedEntity.title,
+            feedEntity.authors.split(";").map((author) => author.trim())[0] ??
+              ""
+          );
         if (reduplicatedFeeds.length > 0) {
           continue;
         }

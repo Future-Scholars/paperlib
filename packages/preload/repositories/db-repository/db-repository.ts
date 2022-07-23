@@ -43,6 +43,7 @@ export class DBRepository {
 
   _realm: Realm | null;
   _schemaVersion: number;
+  _DBVersion: string;
 
   app: Realm.App | null;
   cloudConfig: Realm.Configuration | null;
@@ -61,6 +62,7 @@ export class DBRepository {
 
     this._realm = null;
     this._schemaVersion = 8;
+    this._DBVersion = "1.9.0";
 
     this.app = null;
     this.cloudConfig = null;

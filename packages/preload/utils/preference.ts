@@ -73,6 +73,7 @@ export interface PreferenceStore {
   httpsproxy: string;
 
   lastVersion: string;
+  lastDBVersion: string;
 
   shortcutPlugin: string;
   shortcutPreview: string;
@@ -144,6 +145,7 @@ const defaultPreferences: PreferenceStore = {
   httpsproxy: "",
 
   lastVersion: "",
+  lastDBVersion: "",
 
   shortcutPlugin: "CommandOrControl+Shift+I",
   shortcutPreview: "Space",

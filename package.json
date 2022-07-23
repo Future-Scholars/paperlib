@@ -1,6 +1,6 @@
 {
   "name": "paperlib",
-  "version": "1.9.0-dev.rc1",
+  "version": "1.9.0-dev.rc2",
   "description": "A simple academic paper management tool for CSer.",
   "productName": "Paperlib",
   "author": "Geoffrey Chen <geoffreychen777@gmail.com>",
@@ -48,7 +48,7 @@
   ],
   "dependencies": {
     "@headlessui/vue": "1.5.0",
-    "bibtex-js-parser": "1.1.5",
+    "bibtex-js-parser": "1.1.6",
     "bootstrap-icons-vue": "1.8.1",
     "bson": "4.6.3",
     "chokidar": "3.5.3",

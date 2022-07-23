@@ -134,7 +134,9 @@ export class GoogleScholarScraper extends Scraper {
     entityDraft: PaperEntityDraft
   ): PaperEntityDraft {
     if (rawResponse) {
-      const bibtexs = BibtexParser.parseToJSON(rawResponse);
+      const bibtexs = BibtexParser.parseToJSON(
+        rawResponse.replace("\\'", "").replace('\\"', "")
+      );
       for (const bibtex of bibtexs) {
         if (bibtex.year) {
           entityDraft.pubTime = `${bibtex.year}`;

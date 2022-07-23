@@ -4,8 +4,7 @@ import { onMounted, ref } from "vue";
 const show = ref(false);
 
 const checkShouldShow = async () => {
-  //   show.value = await window.appInteractor.shouldShowWhatsNew();
-  show.value = true;
+  show.value = await window.appInteractor.shouldShowWhatsNew();
 };
 
 const hide = () => {
