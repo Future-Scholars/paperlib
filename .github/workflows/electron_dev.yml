@@ -97,8 +97,8 @@ jobs:
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
           security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security add-trusted-cert -d -r trustRoot -k $RUNNER_TEMP/build.keychain ./AppleWWDRCAG3.cer
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security add-trusted-cert -d -r trustRoot -k $RUNNER_TEMP/build.keychain ./AppleWWDRCAG3.cer
           security list-keychain -d user -s $KEYCHAIN_PATH
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
