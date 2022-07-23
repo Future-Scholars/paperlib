@@ -59,7 +59,7 @@ export class WebImporterRepository {
     let response = await got(url);
     const jsdom = new JSDOM(response.body);
 
-    webContent.document = jsdom.window.document;
+    webContent.document = `${jsdom.window.document}`;
     return webContent;
   }
 }

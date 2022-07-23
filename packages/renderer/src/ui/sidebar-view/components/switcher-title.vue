@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-
+import { ref } from "vue";
 
 const props = defineProps({
   titles: {
-    type: Array<String>,
-    required: true
+    type: Object as () => Array<String>,
+    required: true,
   },
 });
 
-const emit = defineEmits(['changed']);
+const emit = defineEmits(["changed"]);
 
 const selected = ref(0);
 </script>

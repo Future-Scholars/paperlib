@@ -184,7 +184,10 @@ export class AppInteractor {
   async shouldShowDBUpdateRequire() {
     const lastDBVersion = this.getPreference("lastDBVersion");
     const currentVersion = this.dbRepository._DBVersion;
-    return lastDBVersion !== currentVersion && this.getPreference("useSync");
+    return (
+      lastDBVersion !== currentVersion &&
+      (this.getPreference("useSync") as boolean)
+    );
   }
 
   async hideDBUpdateRequire() {
