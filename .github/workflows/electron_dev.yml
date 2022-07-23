@@ -90,7 +90,6 @@ jobs:
 
       - name: 'Import Certificates'
         run: |
-          wget https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
           echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output ./certificate.p12
           export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
           security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
@@ -98,7 +97,6 @@ jobs:
           security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
           security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
-          security add-trusted-cert -d -r trustRoot -k $RUNNER_TEMP/build.keychain ./AppleWWDRCAG3.cer
           security list-keychain -d user -s $KEYCHAIN_PATH
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
