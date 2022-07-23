@@ -183,7 +183,7 @@ export class AppInteractor {
 
   async shouldShowDBUpdateRequire() {
     const lastDBVersion = this.getPreference("lastDBVersion");
-    const currentVersion = this.dbRepository._DBVersion;
+    const currentVersion = this.dbRepository._schemaVersion;
     return (
       lastDBVersion !== currentVersion &&
       (this.getPreference("useSync") as boolean)
@@ -191,7 +191,7 @@ export class AppInteractor {
   }
 
   async hideDBUpdateRequire() {
-    this.preference.set("lastDBVersion", this.dbRepository._DBVersion);
+    this.preference.set("lastDBVersion", this.dbRepository._schemaVersion);
   }
 
   recreateScrapers() {
