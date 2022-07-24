@@ -40,7 +40,8 @@ They are both great tools. But, compatibility with all subjects means a compromi
 
 -   Scrape paper’s metadata and **code repository** from arXiv, doi.org, DBLP, openreview.net, IEEE, Google Scholar, and PaperwithCode etc. Tailored for computer science.
 -   Fulltext and advanced search.
--   Rating, flag, tag, folder and note.
+-   Rating, flag, tag, folder and markdown and plain text note.
+-   RSS feed subscription.
 -   Cloud sync, supports macOS and Windows.
 
 ## Download and Install
