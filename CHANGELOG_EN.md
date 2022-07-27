@@ -1,3 +1,10 @@
+## v1.9.1 Jul 27 2022
+
+1. Support more arxiv RSS formats.
+2. Bug fix: Cannot reopen window on macOS.
+3. Bug fix: Windows database initialization bug.
+4. Bug fix: Tooltip text missing under dark mode.
+
 ## v1.9.0 Jul 23 2022
 
 1. RSS subscription.
