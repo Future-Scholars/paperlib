@@ -171,7 +171,7 @@ async function createWindow() {
   await createMainWindow();
   await createPluginWindow();
 
-  const shortcutRegister = globalShortcut.register(
+  globalShortcut.register(
     (preference.get("shortcutPlugin") as string) || "CommandOrControl+Shift+I",
     () => {
       win?.blur();
@@ -186,6 +186,11 @@ async function createWindow() {
       winPlugin?.show();
     }
   );
+  globalShortcut.register("Command+W", () => {
+    win?.hide();
+    winPlugin?.hide();
+    winCheck?.hide();
+  });
 }
 
 app.whenReady().then(createWindow);
