@@ -56,6 +56,7 @@ const onUpdate = (key: string, value: unknown) => {
       :tags="preference.showMainTags ? item.tags : []"
       :folders="preference.showMainFolders ? item.folders : []"
       :note="preference.showMainNote ? item.note : ''"
+      :read="true"
     />
 
     <div class="flex mt-6 flex-wrap">

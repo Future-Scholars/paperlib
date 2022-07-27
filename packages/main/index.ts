@@ -38,8 +38,14 @@ process.env["ELECTRON_DISABLE_SECURITY_WARNINGS"] = "true";
 
 let win: BrowserWindow | null = null;
 let winPlugin: BrowserWindow | null = null;
+let winCheck: BrowserWindow | null = null;
 
-async function createWindow() {
+async function createMainWindow() {
+  if (win) {
+    win.destroy();
+    win = null;
+  }
+
   win = new BrowserWindow({
     title: "Main window",
     width: 1440,
@@ -84,9 +90,14 @@ async function createWindow() {
     win?.webContents.send("window-gained-focus");
     winPlugin?.hide();
   });
+  setupWindowsSpecificStyle(win);
+}
 
-  // =====================================
-  // Plugin Window
+async function createPluginWindow() {
+  if (winPlugin) {
+    winPlugin.destroy();
+    winPlugin = null;
+  }
   winPlugin = new BrowserWindow({
     title: "Plugin window",
     width: 600,
@@ -144,7 +155,14 @@ async function createWindow() {
     winPlugin?.setSize(600, 48);
   });
 
-  const ret = globalShortcut.register(
+  setupWindowsSpecificStyleForPlugin(winPlugin);
+}
+
+async function createWindow() {
+  await createMainWindow();
+  await createPluginWindow();
+
+  const shortcutRegister = globalShortcut.register(
     (preference.get("shortcutPlugin") as string) || "CommandOrControl+Shift+I",
     () => {
       win?.blur();
@@ -159,35 +177,29 @@ async function createWindow() {
       winPlugin?.show();
     }
   );
-
-  if (!ret) {
-    console.log("registration failed");
-  }
-
-  setupWindowsSpecificStyle(win);
-  setupWindowsSpecificStyleForPlugin(winPlugin);
 }
 
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
   win = null;
+  winPlugin = null;
+  winCheck = null;
+
   if (process.platform !== "darwin") app.quit();
 });
 
 app.on("second-instance", () => {
   if (win) {
-    // Focus on the main window if the user tried to open another
     if (win.isMinimized()) win.restore();
     win.focus();
   }
 });
 
 app.on("activate", () => {
-  const allWindows = BrowserWindow.getAllWindows();
-  if (allWindows.length) {
-    win?.show();
-    win?.focus();
+  if (win && !win?.isDestroyed()) {
+    win.show();
+    win.focus();
   } else {
     createWindow();
   }
@@ -195,6 +207,8 @@ app.on("activate", () => {
 
 ipcMain.on("minimize", () => {
   win?.minimize();
+  winPlugin?.hide();
+  winCheck?.close();
 });
 
 ipcMain.on("maximize", () => {
@@ -246,7 +260,6 @@ ipcMain.on("hide-plugin", (event) => {
   winPlugin?.blur();
 });
 
-let winCheck: BrowserWindow | null = null;
 let winCheckDom: string | null = null;
 ipcMain.handle("robot-check", async (event, url) => {
   if (winCheck === null) {

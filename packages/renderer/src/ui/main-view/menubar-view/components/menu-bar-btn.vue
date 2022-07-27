@@ -54,7 +54,7 @@ const btnIcons: Record<string, any> = {
       "
     />
     <span
-      class="tooltip top-10 bg-neutral-200 p-1 rounded-md"
+      class="tooltip top-10 bg-neutral-200 dark:bg-neutral-700 p-1 rounded-md"
       v-if="withTooltip"
     >
       {{ btnName }}

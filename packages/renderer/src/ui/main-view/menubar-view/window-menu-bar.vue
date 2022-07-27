@@ -73,8 +73,16 @@ const emit = defineEmits(["click", "input-focus", "input-unfocus"]);
         class="flex rounded-md hover:bg-neutral-100 hover:dark:bg-neutral-600"
         style="margin-left: 0.5rem !important; margin-right: 0.5rem !important"
       >
-        <MenuBarBtn btnName="ListView" @click="emit('click', 'list-view')" />
-        <MenuBarBtn btnName="TableView" @click="emit('click', 'table-view')" />
+        <MenuBarBtn
+          class="my-auto"
+          btnName="ListView"
+          @click="emit('click', 'list-view')"
+        />
+        <MenuBarBtn
+          class="my-auto"
+          btnName="TableView"
+          @click="emit('click', 'table-view')"
+        />
       </div>
 
       <Menu as="div" class="relative inline-block text-left z-50">
