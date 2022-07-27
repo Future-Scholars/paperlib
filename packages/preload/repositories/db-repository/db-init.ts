@@ -122,6 +122,13 @@ export async function getLocalConfig(
   this: DBRepository
 ): Promise<Realm.Configuration> {
   await this.logoutCloud();
+
+  if (!existsSync(this.preference.get("appLibFolder") as string)) {
+    await fsPromise.mkdir(this.preference.get("appLibFolder") as string, {
+      recursive: true,
+    });
+  }
+
   const config = {
     schema: [
       PaperEntitySchema,
