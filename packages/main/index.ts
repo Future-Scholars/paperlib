@@ -90,6 +90,12 @@ async function createMainWindow() {
     win?.webContents.send("window-gained-focus");
     winPlugin?.hide();
   });
+
+  win.on("close", () => {
+    winPlugin?.close();
+    winCheck?.close();
+    app.quit();
+  });
   setupWindowsSpecificStyle(win);
 }
 
