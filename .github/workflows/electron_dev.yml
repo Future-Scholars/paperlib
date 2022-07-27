@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ['16.14.2']
+        node-versions: ['16.16.0']
 
     steps:
       - name: 'Checkout Project'
@@ -72,7 +72,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ['16.14.2']
+        node-versions: ['16.16.0']
 
     steps:
       - name: 'Checkout Project'
@@ -91,7 +91,7 @@ jobs:
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ matrix.node-versions }}
 
       - name: 'Install Node Module'
         run: |
