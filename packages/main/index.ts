@@ -94,7 +94,10 @@ async function createMainWindow() {
   win.on("close", () => {
     winPlugin?.close();
     winCheck?.close();
-    app.quit();
+    win = null;
+    winPlugin = null;
+    winCheck = null;
+    if (process.platform !== "darwin") app.quit();
   });
   setupWindowsSpecificStyle(win);
 }
