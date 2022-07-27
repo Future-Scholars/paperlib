@@ -46,7 +46,7 @@ export class ArXivScraper extends Scraper {
       feed: {
         entry: {
           title: string;
-          author: { name: string }[];
+          author: { name: string }[] | { name: string };
           published: string;
         };
       };
@@ -54,11 +54,16 @@ export class ArXivScraper extends Scraper {
     const arxivResponse = parsedResponse.feed.entry;
     const title = arxivResponse.title;
     const authorList = arxivResponse.author;
-    const authors = authorList
-      .map((author) => {
-        return author.name.trim();
-      })
-      .join(", ");
+    let authors;
+    if (Array.isArray(authorList)) {
+      authors = authorList
+        .map((author) => {
+          return author.name.trim();
+        })
+        .join(", ");
+    } else {
+      authors = authorList.name.trim();
+    }
 
     const pubTime = arxivResponse.published.substring(0, 4);
     entityDraft.setValue("title", title);

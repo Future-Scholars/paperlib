@@ -24,17 +24,35 @@ export class RSSRepository {
     const items = (await this.parser.parseURL(feed.url)).items;
     let feedEntityDrafts = [];
     for (const item of items) {
+      console.log(item);
       const feedEntityDraft = new FeedEntityDraft();
       feedEntityDraft.feed = new FeedDraft();
       feedEntityDraft.feed.initialize(feed);
       feedEntityDraft.setValue("title", item.title);
       feedEntityDraft.setValue("mainURL", item.link);
       feedEntityDraft.setValue("authors", item.author);
-      feedEntityDraft.setValue("abstract", item.summary);
+      if (item.summary) {
+        feedEntityDraft.setValue("abstract", item.summary);
+      }
+      if (item.contentSnippet) {
+        feedEntityDraft.setValue("abstract", item.contentSnippet);
+      }
       feedEntityDraft.setValue(
         "feedTime",
         new Date(item.isoDate ? item.isoDate : new Date())
       );
+
+      if (item.link && item.link.includes("arxiv")) {
+        const arxivIds = item.link.match(
+          new RegExp(
+            "(\\d{4}.\\d{4,5}|[a-z\\-] (\\.[A-Z]{2})?\\/\\d{7})(v\\d )?",
+            "g"
+          )
+        );
+        if (arxivIds) {
+          feedEntityDraft.setValue("arxiv", arxivIds[0]);
+        }
+      }
 
       if (item.id && item.id.includes("arxiv")) {
         const arxivIds = item.id.match(
