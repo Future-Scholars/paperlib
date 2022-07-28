@@ -186,11 +186,6 @@ async function createWindow() {
       winPlugin?.show();
     }
   );
-  globalShortcut.register("Command+W", () => {
-    win?.hide();
-    winPlugin?.hide();
-    winCheck?.hide();
-  });
 }
 
 app.whenReady().then(createWindow);

@@ -34,18 +34,12 @@ onMounted(() => {
       <div class="w-[40rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.9.1
+          What's New in Paperlib 1.9.2
         </p>
 
         <p class="mt-10"><b>Improvements and Fixed Bugs</b></p>
-        <li>Support more RSS subscription formats. #50</li>
-        <p class="ml-5">支持更多的 RSS 返回格式。</p>
         <li>Fix: Cannot reopen window on macOS #118</li>
         <p class="ml-5">修复 macOS 快捷键关闭之后无法打开的 Bug。</p>
-        <li>Fix: Text missing under dark mode #117</li>
-        <p class="ml-5">修复 Tooltip 文字 Bug。</p>
-        <li>Fix: Database initialisation bug on Windows.</li>
-        <p class="ml-5">修复 Windows 下数据库初始化 Bug。</p>
 
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

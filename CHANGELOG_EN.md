@@ -1,3 +1,7 @@
+## v1.9.2 Jul 28 2022
+
+1. Bug fix: Cannot reopen window on macOS.
+
 ## v1.9.1 Jul 27 2022
 
 1. Support more arxiv RSS formats.
