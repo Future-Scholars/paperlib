@@ -12,11 +12,13 @@ import { Preference } from "../utils/preference";
 export class RenderInteractor {
   preference: Preference;
   markdownIt: MarkdownIt;
+  pdfWorker: Worker | null;
 
   constructor(preference: Preference) {
     this.preference = preference;
 
-    pdfjs.GlobalWorkerOptions.workerPort = new Worker("./pdf.worker.min.js");
+    this.pdfWorker = null;
+    this.createPDFWorker();
 
     this.markdownIt = new MarkdownIt().use(tm, {
       engine: require("katex"),
@@ -25,7 +27,16 @@ export class RenderInteractor {
     });
   }
 
+  async createPDFWorker() {
+    if (this.pdfWorker) {
+      this.pdfWorker.terminate();
+    }
+    this.pdfWorker = new Worker("./pdf.worker.min.js");
+    pdfjs.GlobalWorkerOptions.workerPort = this.pdfWorker;
+  }
+
   async render(fileURL: string) {
+    this.createPDFWorker();
     // @ts-ignore
     const pdf = await pdfjs.getDocument(fileURL).promise;
     const page = await pdf.getPage(1);
@@ -51,6 +62,7 @@ export class RenderInteractor {
       context.filter = "invert(0.9)";
       context.drawImage(canvas, 0, 0);
     }
+    pdf.destroy();
     return true;
   }
 

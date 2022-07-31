@@ -34,12 +34,25 @@ onMounted(() => {
       <div class="w-[40rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.9.2
+          What's New in Paperlib 1.9.3
         </p>
 
-        <p class="mt-10"><b>Improvements and Fixed Bugs</b></p>
-        <li>Fix: Cannot reopen window on macOS #118</li>
-        <p class="ml-5">修复 macOS 快捷键关闭之后无法打开的 Bug。</p>
+        <p class="mt-10"><b>News</b></p>
+        <p>
+          🎉 Leave your comments about Paperlib 📣. You can leave your comments
+          about Paperlib at
+          https://github.com/GeoffreyChen777/paperlib/issues/119, I will select
+          some of them, and show them on the webpage to introduce Paperlib to
+          new users.
+        </p>
+        <p class="mt-2">
+          🎉 留下您对 Paperlib 的评价
+          📣，https://github.com/GeoffreyChen777/paperlib/issues/119，开发者会将其展示在主页上以帮助将
+          Paperlib 推荐给更多的新用户。
+        </p>
+
+        <p class="mt-10"><b>Fixed Bugs</b></p>
+        <li>Fixed: a bug in metadata updating.</li>
 
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
