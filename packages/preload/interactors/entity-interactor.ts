@@ -364,23 +364,30 @@ export class EntityInteractor {
         entityDrafts.length
     );
 
-    const updatePromise = async (entityDrafts: PaperEntityDraft[]) => {
-      const movedEntityDrafts = await Promise.all(
-        entityDrafts.map((entityDraft: PaperEntityDraft) =>
-          this.fileRepository.move(entityDraft, true)
-        )
-      );
+    try {
+      const updatePromise = async (entityDrafts: PaperEntityDraft[]) => {
+        const movedEntityDrafts = await Promise.all(
+          entityDrafts.map((entityDraft: PaperEntityDraft) =>
+            this.fileRepository.move(entityDraft, true)
+          )
+        );
 
-      for (let i = 0; i < movedEntityDrafts.length; i++) {
-        if (movedEntityDrafts[i] === null) {
-          movedEntityDrafts[i] = entityDrafts[i];
+        for (let i = 0; i < movedEntityDrafts.length; i++) {
+          if (movedEntityDrafts[i] === null) {
+            movedEntityDrafts[i] = entityDrafts[i];
+          }
         }
-      }
 
-      await this.dbRepository.update(movedEntityDrafts as PaperEntityDraft[]);
-    };
+        await this.dbRepository.update(movedEntityDrafts as PaperEntityDraft[]);
+      };
 
-    await updatePromise(entityDrafts);
+      await updatePromise(entityDrafts);
+    } catch (error) {
+      this.sharedState.set(
+        "viewState.alertInformation",
+        `Update paper failed: ${error as string}`
+      );
+    }
 
     this.sharedState.set(
       "viewState.processingQueueCount",

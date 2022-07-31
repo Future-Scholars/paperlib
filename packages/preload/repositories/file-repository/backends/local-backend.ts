@@ -51,8 +51,12 @@ export class LocalFileBackend implements FileBackend {
   ): Promise<boolean> {
     const _sourceURL = sourceURL.replace("file://", "");
     const _targetURL = targetURL.replace("file://", "");
-    const stat = await fsPromise.lstat(_sourceURL);
-    if (stat.isDirectory()) {
+    if (existsSync(_sourceURL)) {
+      const stat = await fsPromise.lstat(_sourceURL);
+      if (stat.isDirectory()) {
+        return false;
+      }
+    } else {
       return false;
     }
     try {
