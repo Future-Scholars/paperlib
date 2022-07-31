@@ -48,7 +48,6 @@ export class EntityInteractor {
     this.setupRoutineScrapeScheduler();
 
     // Communicate with plugin
-    ipcRenderer.send("request-plugin-channel");
     ipcRenderer.once("provide-plugin-channel", (event) => {
       // Once we receive the reply, we can take the port...
       const [port] = event.ports;

@@ -257,6 +257,10 @@ window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
   void window.appInteractor.resumeSync();
 });
 
+window.appInteractor.registerMainSignal("plugin-window-comm-request", (_) => {
+  window.appInteractor.sendMainSignal("request-plugin-channel", null);
+});
+
 // =======================================
 onBeforeMount(async () => {
   reloadPreference();

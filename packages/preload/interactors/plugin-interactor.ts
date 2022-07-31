@@ -15,6 +15,7 @@ export class PluginInteractor {
 
   search(search: string): Promise<PaperEntity[]> {
     return new Promise((resolve, reject) => {
+      console.log(this.port);
       this.port.postMessage(JSON.stringify({ op: "search", value: search }));
 
       this.port.onmessage = (event) => {

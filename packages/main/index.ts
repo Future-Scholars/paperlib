@@ -164,18 +164,24 @@ async function createPluginWindow() {
     winPlugin?.setSize(600, 48);
   });
 
+  winPlugin.on("ready-to-show", () => {
+    win?.webContents.send("plugin-window-comm-request");
+  });
+
   setupWindowsSpecificStyleForPlugin(winPlugin);
 }
 
 async function createWindow() {
   await createMainWindow();
-  await createPluginWindow();
 
   globalShortcut.register(
     (preference.get("shortcutPlugin") as string) || "CommandOrControl+Shift+I",
-    () => {
+    async () => {
       win?.blur();
 
+      if (winPlugin === null) {
+        await createPluginWindow();
+      }
       const { x, y } = screen.getCursorScreenPoint();
       const currentDisplay = screen.getDisplayNearestPoint({ x, y });
       const bounds = currentDisplay.bounds;

@@ -141,6 +141,11 @@ export class AppInteractor {
   }
 
   // ============================================================
+
+  sendMainSignal(signal: string, args: any) {
+    ipcRenderer.send(signal, args);
+  }
+
   registerMainSignal(signal: string, callback: (args: any) => void) {
     ipcRenderer.on(signal, (_, args) => callback(args));
   }
