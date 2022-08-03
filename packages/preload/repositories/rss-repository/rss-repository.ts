@@ -24,7 +24,6 @@ export class RSSRepository {
     const items = (await this.parser.parseURL(feed.url)).items;
     let feedEntityDrafts = [];
     for (const item of items) {
-      console.log(item);
       const feedEntityDraft = new FeedEntityDraft();
       feedEntityDraft.feed = new FeedDraft();
       feedEntityDraft.feed.initialize(feed);

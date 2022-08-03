@@ -2,7 +2,10 @@
 import * as pdfjs from "pdfjs-dist/build/pdf";
 import { ipcRenderer } from "electron";
 import { promises as fsPromise } from "fs";
-import { RenderParameters } from "pdfjs-dist/types/src/display/api";
+import {
+  PDFPageProxy,
+  RenderParameters,
+} from "pdfjs-dist/types/src/display/api";
 import MarkdownIt from "markdown-it";
 // @ts-ignore
 import tm from "markdown-it-texmath";
@@ -13,11 +16,13 @@ export class RenderInteractor {
   preference: Preference;
   markdownIt: MarkdownIt;
   pdfWorker: Worker | null;
+  renderingPage: PDFPageProxy | null;
 
   constructor(preference: Preference) {
     this.preference = preference;
 
     this.pdfWorker = null;
+    this.renderingPage = null;
     this.createPDFWorker();
 
     this.markdownIt = new MarkdownIt().use(tm, {
@@ -33,6 +38,10 @@ export class RenderInteractor {
     }
     this.pdfWorker = new Worker("./pdf.worker.min.js");
     pdfjs.GlobalWorkerOptions.workerPort = this.pdfWorker;
+
+    if (this.renderingPage) {
+      this.renderingPage.cleanup();
+    }
   }
 
   async render(fileURL: string) {
@@ -40,11 +49,14 @@ export class RenderInteractor {
     // @ts-ignore
     const pdf = await pdfjs.getDocument(fileURL).promise;
     const page = await pdf.getPage(1);
+    this.renderingPage = page;
     var scale = 0.25;
     var viewport = page.getViewport({ scale: scale });
     var outputScale = window.devicePixelRatio || 1;
     var canvas = document.getElementById("preview-canvas") as HTMLCanvasElement;
     var context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
     canvas.width = Math.floor(viewport.width * outputScale);
     canvas.height = Math.floor(viewport.height * outputScale);
     var transform =

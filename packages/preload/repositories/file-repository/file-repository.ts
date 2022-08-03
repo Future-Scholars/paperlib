@@ -102,7 +102,6 @@ export class FileRepository {
             "book",
           ].indexOf(value["Item Type"]);
           entityDraft.setValue("pubType", pubType > -1 ? pubType : 2);
-          console.log(value["File Attachments"]);
           const attachments = value["File Attachments"].split(";");
           const mainURL = attachments[0];
           const supURLs = attachments.slice(1).map((url: string) => url.trim());

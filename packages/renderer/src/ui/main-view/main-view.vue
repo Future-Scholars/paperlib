@@ -359,7 +359,6 @@ window.appInteractor.registerMainSignal("shortcut-Space", () => {
     !window.appInteractor.getState("viewState.isEditViewShown") &&
     !window.appInteractor.getState("viewState.isPreferenceViewShown")
   ) {
-    console.log(searchInputFocus);
     previewSelectedEntities();
   }
 });
