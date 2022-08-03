@@ -39,11 +39,10 @@ onMounted(() => {
 
         <p class="mt-10"><b>News</b></p>
         <p>
-          🎉 Leave your comments about Paperlib 📣. You can leave your comments
-          about Paperlib at
-          https://github.com/GeoffreyChen777/paperlib/issues/119, I will select
-          some of them, and show them on the webpage to introduce Paperlib to
-          new users.
+          🎉 Leave your comments to Paperlib 📣. You can leave your comments to
+          Paperlib at https://github.com/GeoffreyChen777/paperlib/issues/119, I
+          will select some of them, and show them on the webpage to introduce
+          Paperlib to new users.
         </p>
         <p class="mt-2">
           🎉 留下您对 Paperlib 的评价
@@ -51,8 +50,10 @@ onMounted(() => {
           Paperlib 推荐给更多的新用户。
         </p>
 
-        <p class="mt-10"><b>Fixed Bugs</b></p>
+        <p class="mt-10"><b>Improvements and fixed Bugs</b></p>
+        <li>Reduce memory usage.</li>
         <li>Fixed: a bug in metadata updating.</li>
+        <li>Fixed: a bug in preview rendering.</li>
 
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
