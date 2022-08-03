@@ -1,3 +1,11 @@
+
+## v1.9.3 Aug 03 2022
+
+1. Reduce memory usage.
+2. Fixed: a bug in the metadata updating.
+3. Fixed: a bug in the preview rendering.
+
+
 ## v1.9.2 Jul 28 2022
 
 1. Bug fix: Cannot reopen window on macOS.
