@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { ipcRenderer } from "electron";
+import { Preference } from "./preference";
 
 export class State {
   value: string | number | boolean;
@@ -18,12 +19,14 @@ export class State {
     return this.value;
   }
 
-  set(value: string | number | boolean) {
+  set(value: string | number | boolean, publish = true) {
     if (value === this.value && this.checkDuplicated) {
       return;
     }
     this.value = value;
-    this.publishChannel.postMessage(value);
+    if (publish) {
+      this.publishChannel.postMessage(value);
+    }
   }
 }
 
@@ -33,14 +36,14 @@ export class SharedState {
   sharedData: Record<string, State>;
   dbState: Record<string, State>;
 
-  constructor() {
+  constructor(preference: Preference) {
     this.viewState = {
       processingQueueCount: new State(0, false),
       entitiesCount: new State(0),
       feedEntitiesCount: new State(0),
 
-      sortBy: new State("addTime"),
-      sortOrder: new State("desc"),
+      sortBy: new State(preference.get("mainviewSortBy") as string),
+      sortOrder: new State(preference.get("mainviewSortOrder") as string),
       searchText: new State(""),
       searchMode: new State("general"),
 
@@ -57,7 +60,7 @@ export class SharedState {
       infoInformation: new State("", false),
       processInformation: new State("", false),
 
-      viewType: new State("list"),
+      viewType: new State(preference.get("mainviewType") as string),
       contentType: new State("library"),
       theme: new State("light"),
 
@@ -95,9 +98,9 @@ export class SharedState {
     return state;
   }
 
-  set(dest: string, value: any) {
+  set(dest: string, value: any, publish = true) {
     const state = getObj(this, dest) as State;
-    state.set(value);
+    state.set(value, publish);
   }
 
   register(dest: string, callback: (value: any) => void) {

@@ -65,8 +65,8 @@ export class AppInteractor {
     return this.sharedState.get(dest).get();
   }
 
-  setState(dest: string, value: number | string | boolean) {
-    this.sharedState.set(dest, value);
+  setState(dest: string, value: number | string | boolean, publish = true) {
+    this.sharedState.set(dest, value, publish);
   }
 
   registerState(

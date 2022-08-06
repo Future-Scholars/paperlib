@@ -35,8 +35,10 @@ const props = defineProps({
 
 const contentType = ref("library");
 
-const sortBy = ref("addTime");
-const sortOrder = ref("desc");
+const sortBy = ref(window.appInteractor.getState("viewState.sortBy") as string);
+const sortOrder = ref(
+  window.appInteractor.getState("viewState.sortOrder") as string
+);
 
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedEntities: Ref<PaperEntity[]> = ref([]);
@@ -226,14 +228,17 @@ const readSelectedFeedEntities = (read: boolean | null, clear = false) => {
 
 const switchViewType = (viewType: string) => {
   window.appInteractor.setState("viewState.viewType", viewType);
+  window.appInteractor.updatePreference("mainviewType", viewType);
 };
 
 const switchSortBy = (key: string) => {
   window.appInteractor.setState("viewState.sortBy", key);
+  window.appInteractor.updatePreference("mainviewSortBy", key);
 };
 
 const switchSortOrder = (order: string) => {
   window.appInteractor.setState("viewState.sortOrder", order);
+  window.appInteractor.updatePreference("mainviewSortOrder", order);
 };
 
 const onMenuButtonClicked = (command: string) => {

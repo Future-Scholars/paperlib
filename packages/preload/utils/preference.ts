@@ -84,6 +84,9 @@ export interface PreferenceStore {
   shortcutFlag: string;
 
   sidebarWidth: number;
+  mainviewSortBy: string;
+  mainviewSortOrder: string;
+  mainviewType: string;
 
   [Key: string]: unknown;
 }
@@ -156,6 +159,9 @@ const defaultPreferences: PreferenceStore = {
   shortcutFlag: "CommandOrControl+F",
 
   sidebarWidth: 20,
+  mainviewSortBy: "addTime",
+  mainviewSortOrder: "desc",
+  mainviewType: "list",
 
   scrapers: [
     {

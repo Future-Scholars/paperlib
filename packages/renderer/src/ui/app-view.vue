@@ -15,8 +15,10 @@ import FeedEditView from "./edit-view/feed-edit-view.vue";
 
 import { PreferenceStore } from "../../../preload/utils/preference";
 
-const sortBy = ref("addTime");
-const sortOrder = ref("desc");
+const sortBy = ref(window.appInteractor.getState("viewState.sortBy") as string);
+const sortOrder = ref(
+  window.appInteractor.getState("viewState.sortOrder") as string
+);
 const contentType = ref("library");
 
 const entities: Ref<PaperEntity[]> = ref([]);
@@ -267,8 +269,22 @@ onBeforeMount(async () => {
   sidebarWidth.value = window.appInteractor.getPreference(
     "sidebarWidth"
   ) as number;
+
+  //   window.appInteractor.setState(
+  //     "viewState.sortBy",
+  //     window.appInteractor.getPreference("mainviewSortBy") as string
+  //   );
+  //   window.appInteractor.setState(
+  //     "viewState.sortOrder",
+  //     window.appInteractor.getPreference("mainviewSortOrder") as string
+  //   );
 });
 onMounted(async () => {
+  //   window.appInteractor.setState(
+  //     "viewState.viewType",
+  //     window.appInteractor.getPreference("mainviewType") as string
+  //   );
+
   await reloadTags();
   await reloadFolders();
   await reloadEntities();

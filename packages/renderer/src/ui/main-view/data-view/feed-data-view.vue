@@ -23,7 +23,7 @@ const props = defineProps({
   showMainPubType: Boolean,
 });
 
-const viewType = ref("list");
+const viewType = ref(window.appInteractor.getState("viewState.viewType"));
 
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedLastSingleIndex = ref(-1);

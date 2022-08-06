@@ -24,8 +24,8 @@ domReady().then(appendLoading);
 
 // ============================================================
 // State and Preference
-const sharedState = new SharedState();
 const preference = new Preference();
+const sharedState = new SharedState(preference);
 
 // ============================================================
 // Repositories
