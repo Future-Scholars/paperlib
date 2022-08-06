@@ -1,6 +1,7 @@
-import { Response } from "got";
+import got, { Response } from "got";
+import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 
-import { Scraper, ScraperRequestType } from "./scraper";
+import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 import { formatString } from "../../../utils/string";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
@@ -39,7 +40,62 @@ export class PwCScraper extends Scraper {
     const response = JSON.parse(rawResponse.body) as {
       count?: number;
       results: {
+        url: string;
+        is_official: boolean;
+      }[];
+    };
+    if (response.count) {
+      let codeList: string[] = [];
+      for (const result of response.results) {
+        codeList.push(
+          JSON.stringify({
+            url: result.url,
+            isOfficial: result.is_official,
+          })
+        );
+      }
+      codeList = codeList.sort((a, b) => {
+        const aIsOfficial = JSON.parse(a).isOfficial;
+        const bIsOfficial = JSON.parse(b).isOfficial;
+        if (aIsOfficial && !bIsOfficial) {
+          return -1;
+        } else if (!aIsOfficial && bIsOfficial) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+      entityDraft.setValue("codes", codeList);
+    }
+    return entityDraft;
+  }
+
+  scrapeImpl = scrapeImpl;
+}
+
+async function scrapeImpl(
+  this: ScraperType,
+  entityDraft: PaperEntityDraft
+): Promise<PaperEntityDraft> {
+  const { scrapeURL, headers, enable } = this.preProcess(
+    entityDraft
+  ) as ScraperRequestType;
+
+  if (enable) {
+    const agent = this.getProxyAgent();
+    let options = {
+      headers: headers,
+      retry: 1,
+      timeout: 10000,
+      agent: agent,
+    };
+    const rawSearchResponse = await got(scrapeURL, options);
+
+    const searchResponse = JSON.parse(rawSearchResponse.body) as {
+      count?: number;
+      results: {
         paper: {
+          id: string;
           title: string;
         };
         repository: {
@@ -55,9 +111,10 @@ export class PwCScraper extends Scraper {
       lowercased: true,
     });
 
-    if (response.count) {
+    let id = "";
+    if (searchResponse.count) {
       const codeList: string[] = [];
-      for (const result of response.results) {
+      for (const result of searchResponse.results) {
         const hitTitle = formatString({
           str: result.paper.title,
           removeStr: "&amp",
@@ -66,16 +123,26 @@ export class PwCScraper extends Scraper {
         });
 
         if (hitTitle === targetTitle && result.repository) {
-          codeList.push(
-            JSON.stringify({
-              url: result.repository.url,
-              isOfficial: result.is_official,
-            })
-          );
+          id = result.paper.id;
+          break;
         }
       }
-      entityDraft.setValue("codes", codeList);
     }
+
+    if (id) {
+      const rawRepoResponse = await got(
+        `https://paperswithcode.com/api/v1/papers/${id}/repositories/`,
+        options
+      );
+
+      return this.parsingProcess(
+        rawRepoResponse,
+        entityDraft
+      ) as PaperEntityDraft;
+    } else {
+      return entityDraft;
+    }
+  } else {
     return entityDraft;
   }
 }

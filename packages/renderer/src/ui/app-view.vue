@@ -14,7 +14,6 @@ import PreferenceView from "./preference-view/preference-view.vue";
 import FeedEditView from "./edit-view/feed-edit-view.vue";
 
 import { PreferenceStore } from "../../../preload/utils/preference";
-import { createModalView } from "./components/modal-view";
 
 const sortBy = ref("addTime");
 const sortOrder = ref("desc");

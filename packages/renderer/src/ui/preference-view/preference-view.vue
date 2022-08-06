@@ -43,6 +43,16 @@ const onCloseClicked = () => {
 };
 
 const keyDownListener = (e: KeyboardEvent) => {
+  if (
+    e.target instanceof HTMLInputElement ||
+    e.target instanceof HTMLTextAreaElement
+  ) {
+    if (e.key === "Escape") {
+      onCloseClicked();
+    }
+    return true;
+  }
+
   e.preventDefault();
   if (e.key === "Escape") {
     onCloseClicked();
