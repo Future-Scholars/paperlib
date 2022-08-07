@@ -42,11 +42,16 @@ export class PwCScraper extends Scraper {
       results: {
         url: string;
         is_official: boolean;
+        stars: number;
       }[];
     };
+
     if (response.count) {
       let codeList: string[] = [];
-      for (const result of response.results) {
+
+      const sortedResults = response.results.sort((a, b) => b.stars - a.stars);
+
+      for (const result of sortedResults.slice(0, 3)) {
         codeList.push(
           JSON.stringify({
             url: result.url,
