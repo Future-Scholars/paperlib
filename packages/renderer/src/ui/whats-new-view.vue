@@ -31,10 +31,10 @@ onMounted(() => {
       class="absolute w-full h-full top-0 left-0 bg-white dark:bg-neutral-800 z-50 pt-20 pb-48 overflow-auto dark:text-neutral-200"
       v-if="show"
     >
-      <div class="w-[40rem] h-screen px-3 mx-auto">
+      <div class="w-[45rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.9.3
+          What's New in Paperlib 1.9.4
         </p>
 
         <p class="mt-10"><b>News</b></p>
@@ -50,9 +50,14 @@ onMounted(() => {
         </p>
 
         <p class="mt-10"><b>Improvements and fixed Bugs</b></p>
-        <li>Reduce memory usage.</li>
-        <li>Fixed: a bug in the metadata updating.</li>
-        <li>Fixed: a bug in the preview rendering.</li>
+        <li>Save mainview and sorting preference. #124</li>
+        <p class="ml-5">保存主视图类型和排序等设置。 #124</p>
+        <li>Better code repos scraper. #125</li>
+        <p class="ml-5">
+          优化代码仓库抓取器。现在抓取 star 前三名的仓库并显示。 #125
+        </p>
+        <li>Fixed: Keyboard pressing bug in input fields #123</li>
+        <p class="ml-5">修复部分输入框按键 Bug。 #123</p>
 
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
