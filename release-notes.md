@@ -1,3 +1,3 @@
-1. Reduce memory usage.
-2. Fixed: a bug in the metadata updating.
-3. Fixed: a bug in the preview rendering.
+1. Save mainview and sorting preference.
+2. Better code repos scraper.
+3. Fixed: Keyboard pressing bug in input fields.

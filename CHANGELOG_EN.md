@@ -1,3 +1,8 @@
+## v1.9.4 Aug 08 2022
+
+1. Save mainview and sorting preference. #124
+2. Better code repos scraper. #125
+3. Fixed: Keyboard pressing bug in input fields #123
 
 ## v1.9.3 Aug 03 2022
 
