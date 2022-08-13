@@ -9,6 +9,7 @@ import Section from "./components/section.vue";
 import Rating from "./components/rating.vue";
 import Code from "./components/code.vue";
 import Authors from "./components/authors.vue";
+import Categorizers from "./components/categorizers.vue";
 import Thumbnail from "./components/thumbnail.vue";
 import Supplementary from "./components/supplementary.vue";
 import Markdown from "./components/markdown.vue";
@@ -26,6 +27,28 @@ const onRatingChanged = (value: number) => {
   const entityDraft = new PaperEntityDraft();
   entityDraft.initialize(props.entity);
   entityDraft.rating = value;
+  void window.entityInteractor.update(JSON.stringify([entityDraft]));
+};
+
+const onDeleteCategorizers = (categorizer: String, categorizerType: String) => {
+  const entityDraft = new PaperEntityDraft();
+  entityDraft.initialize(props.entity);
+  if (categorizerType === "PaperTag") {
+    entityDraft.tags = entityDraft.tags
+      .split(";")
+      .filter((tag) => {
+        return tag.trim() !== categorizer;
+      })
+      .join("; ");
+  } else {
+    entityDraft.folders = entityDraft.folders
+      .split(";")
+      .filter((folder) => {
+        return folder.trim() !== categorizer;
+      })
+      .join("; ");
+  }
+
   void window.entityInteractor.update(JSON.stringify([entityDraft]));
 };
 
@@ -99,14 +122,22 @@ onMounted(() => {
       </div>
     </Section>
     <Section title="Tags" v-if="entity.tags.length > 0">
-      <div class="text-xxs">
-        {{ entity.tags.map((tag) => tag.name).join("; ") }}
-      </div>
+      <Categorizers
+        :categorizers="entity.tags"
+        categorizerType="PaperTag"
+        @delete-categorizer="
+          (categorizer) => onDeleteCategorizers(categorizer, 'PaperTag')
+        "
+      />
     </Section>
     <Section title="Folders" v-if="entity.folders.length > 0">
-      <div class="text-xxs">
-        {{ entity.folders.map((folder) => folder.name).join("; ") }}
-      </div>
+      <Categorizers
+        :categorizers="entity.folders"
+        categorizerType="PaperFolder"
+        @delete-categorizer="
+          (categorizer) => onDeleteCategorizers(categorizer, 'PaperFolder')
+        "
+      />
     </Section>
     <Section title="Add Time">
       <div class="text-xxs">
