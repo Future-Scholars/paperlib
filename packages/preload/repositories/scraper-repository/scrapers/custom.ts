@@ -2,7 +2,7 @@ import got, { Response } from "got";
 
 import { Preference, ScraperPreference } from "../../../utils/preference";
 import { SharedState } from "../../../utils/appstate";
-import { Scraper, ScraperRequestType } from "./scraper";
+import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class CustomScraper extends Scraper {
@@ -58,17 +58,22 @@ export class CustomScraper extends Scraper {
 
     return entityDraft;
   }
-  // @ts-ignore
   scrapeImpl = scrapeImpl;
 }
 
-async function scrapeImpl(this: CustomScraper, entityDraft: PaperEntityDraft) {
+async function scrapeImpl(
+  this: ScraperType,
+  entityDraft: PaperEntityDraft
+): Promise<PaperEntityDraft> {
   const { scrapeURL, headers, enable } = this.preProcess(
     entityDraft
   ) as ScraperRequestType;
 
+  // @ts-ignore
   if (this.scrapeImplCode) {
+    // @ts-ignore
     eval(this.scrapeImplCode);
+    return entityDraft;
   } else {
     if (enable) {
       const agent = this.getProxyAgent();
