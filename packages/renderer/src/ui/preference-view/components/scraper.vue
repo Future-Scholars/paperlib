@@ -120,7 +120,7 @@ const onApplyUpdate = () => {
       <div class="flex" v-if="scraperPref.custom">
         <div class="w-[30%]">Preprocess:</div>
         <textarea
-          class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm min-h-[100px]"
+          class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm min-h-[100px] font-mono text-xxs"
           type="text"
           v-model="scraperPrefDraft.preProcessCode"
         />
@@ -128,15 +128,15 @@ const onApplyUpdate = () => {
       <div class="flex" v-if="scraperPref.custom">
         <div class="w-[30%]">Parsing process:</div>
         <textarea
-          class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm min-h-[100px]"
+          class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm min-h-[100px] font-mono text-xxs"
           type="text"
           v-model="scraperPrefDraft.parsingProcessCode"
         />
       </div>
       <div class="flex mb-2" v-if="scraperPref.custom">
-        <div class="w-[30%]">ScrapeImpl: (restart required)</div>
+        <div class="w-[30%]">ScrapeImpl:</div>
         <textarea
-          class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm min-h-[100px]"
+          class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm min-h-[100px] font-mono text-xxs"
           type="text"
           v-model="scraperPrefDraft.scrapeImplCode"
         />

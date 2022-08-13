@@ -417,6 +417,24 @@ export async function update(
         }
         const newObj = entity.create();
         realm.create("PaperEntity", newObj);
+
+        existingObj = realm.objectForPrimaryKey(
+          "PaperEntity",
+          new Realm.BSON.ObjectId(newObj._id)
+        ) as PaperEntity;
+        existingObj.tags = this.updateCategorizers(
+          existingObj.tags,
+          entity.tags,
+          "PaperTag",
+          realm
+        );
+        existingObj.folders = this.updateCategorizers(
+          existingObj.folders,
+          entity.folders,
+          "PaperFolder",
+          realm
+        );
+
         successes.push(true);
       }
     }

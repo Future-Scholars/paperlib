@@ -1,9 +1,8 @@
-import { Response } from "got";
+import got, { Response } from "got";
 
 import { Preference, ScraperPreference } from "../../../utils/preference";
 import { SharedState } from "../../../utils/appstate";
-import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
-import { formatString } from "../../../utils/string";
+import { Scraper, ScraperRequestType } from "./scraper";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class CustomScraper extends Scraper {
@@ -19,10 +18,6 @@ export class CustomScraper extends Scraper {
       )?.scrapeImplCode || "";
 
     this.name = name;
-
-    if (this.scrapeImplCode) {
-      this.scrapeImpl = eval(this.scrapeImplCode);
-    }
   }
 
   preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
@@ -62,5 +57,31 @@ export class CustomScraper extends Scraper {
     }
 
     return entityDraft;
+  }
+  // @ts-ignore
+  scrapeImpl = scrapeImpl;
+}
+
+async function scrapeImpl(this: CustomScraper, entityDraft: PaperEntityDraft) {
+  const { scrapeURL, headers, enable } = this.preProcess(
+    entityDraft
+  ) as ScraperRequestType;
+
+  if (this.scrapeImplCode) {
+    eval(this.scrapeImplCode);
+  } else {
+    if (enable) {
+      const agent = this.getProxyAgent();
+      let options = {
+        headers: headers,
+        retry: 1,
+        timeout: 10000,
+        agent: agent,
+      };
+      const response = await got(scrapeURL, options);
+      return this.parsingProcess(response, entityDraft) as PaperEntityDraft;
+    } else {
+      return entityDraft;
+    }
   }
 }
