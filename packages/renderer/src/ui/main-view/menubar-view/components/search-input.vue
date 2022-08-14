@@ -81,23 +81,32 @@ window.appInteractor.registerState("viewState.searchText", (value) => {
       >
         <p class="font-semibold">Operators:</p>
         <p class="font-mono mb-2">
-          ==, &lt;, &gt;, &lt;=, &gt;=, !=, in, contains, and, or
+          ==, &lt;, &gt;, &lt;=, &gt;=, !=, in, contains, and, or, any, all
         </p>
         <p class="font-semibold">Queryable fields:</p>
         <p class="font-mono mb-2">
-          title, authors, publication, pubTime, rating, note
+          title, authors, publication, pubTime, rating, note, tags.name,
+          tags.count, folders.name, folders.count
         </p>
         <p class="font-semibold">Examples:</p>
-        <p class="italic">1) Query the paper whos title is 'Test title':</p>
+        <p class="italic">1) Query the paper whose title is 'Test title':</p>
         <p class="font-mono mb-1">&nbsp; title == 'Test title'</p>
         <p class="italic">
-          2) Query the paper whos title contains 'Test title':
+          2) Query the paper whose title contains 'Test title':
         </p>
         <p class="font-mono mb-1">&nbsp; title contains 'Test title'</p>
-        <p class="italic">3) Query the paper whos publication year are 2008:</p>
+        <p class="italic">
+          3) Query the paper whose publication year are 2008:
+        </p>
         <p class="font-mono mb-1">&nbsp; pubTime == '2008'</p>
-        <p class="italic">4) Query the paper whos rating are > 3:</p>
+        <p class="italic">4) Query the paper whose rating are > 3:</p>
         <p class="font-mono">&nbsp; rating > 3</p>
+        <p class="italic">
+          5) Query the paper whose tags contains 'a' and 'b':
+        </p>
+        <p class="font-mono">
+          &nbsp; any(tags.name contains 'a' and tags.name contains 'b')
+        </p>
       </div>
     </div>
     <BIconX

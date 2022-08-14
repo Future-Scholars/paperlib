@@ -34,31 +34,35 @@ onMounted(() => {
       <div class="w-[45rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.9.4
+          What's New in Paperlib 1.9.5
         </p>
 
-        <p class="mt-10"><b>News</b></p>
+        <p class="mt-10"><b>Tips&#128161;</b></p>
         <p>
-          🎉 Leave your comments to Paperlib 📣 at
-          https://github.com/GeoffreyChen777/paperlib/issues/119 to introduce
-          Paperlib to new users.
+          Use the custom scraper to automatically tag your newly imported
+          papers.
         </p>
-        <p class="mt-2">
-          🎉 留下您对 Paperlib 的评价
-          📣，https://github.com/GeoffreyChen777/paperlib/issues/119，开发者会将其展示在主页上以帮助将
-          Paperlib 推荐给更多的新用户。
+        <p>利用自定义搜刮器来实现给新导入论文自动添加标签的功能。</p>
+        <p>
+          ttps://github.com/GeoffreyChen777/paperlib/wiki/Custom-Scraper#use-custom-scraper-to-implement-auto-tagger
         </p>
 
         <p class="mt-10"><b>Improvements and fixed Bugs</b></p>
-        <li>Save mainview and sorting preference. #124</li>
-        <p class="ml-5">保存主视图类型和排序等设置。 #124</p>
-        <li>Better code repos scraper. #125</li>
+        <li>Now you can remove a tag/folder in the details panel.</li>
+        <p class="ml-5">可以在详情界面删除标签/文件夹了。</p>
+        <img
+          class="mx-auto mt-5 mb-8 rounded-md shadow-lg w-96"
+          src="../assets/1.png"
+        />
+        <li>
+          Copy plain text or BibTex using the plugin with two modes. Press Tab
+          or click it to switch between two modes
+        </li>
         <p class="ml-5">
-          优化代码仓库抓取器。现在抓取 star 前三名的仓库并显示。 #125
+          快速复制插件支持两种模式，按下 Tab 键或者点击来切换。
         </p>
-        <li>Fixed: Keyboard pressing bug in input fields #123</li>
-        <p class="ml-5">修复部分输入框按键 Bug。 #123</p>
-
+        <img class="mx-auto mt-5" src="../assets/2.png" />
+        <img class="mx-auto mb-8" src="../assets/3.png" />
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
           @click="hide"

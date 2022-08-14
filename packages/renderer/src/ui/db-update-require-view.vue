@@ -66,7 +66,7 @@ onMounted(() => {
         <li><b>Restart Paperlib</b></li>
         <img
           class="mx-auto mt-5 mb-8 rounded-md shadow-lg"
-          src="../assets/4.jpg"
+          src="../assets/db.jpg"
         />
 
         <div
