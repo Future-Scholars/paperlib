@@ -79,7 +79,7 @@ window.addEventListener("keydown", shortcutHandler, true);
 </script>
 
 <template>
-  <div class="w-full text-neutral-700 dark:text-neutral-200">
+  <div class="w-full text-neutral-700 dark:text-neutral-200 plugin-windows-bg">
     <div class="flex">
       <input
         class="w-full h-12 text-sm px-3 bg-transparent focus:outline-none grow"
@@ -96,7 +96,7 @@ window.addEventListener("keydown", shortcutHandler, true);
         {{ exportMode }}
       </div>
     </div>
-    <div class="w-full p-2">
+    <div class="w-full p-2 plugin-windows-bg">
       <RecycleScroller
         class="scroller"
         :class="'max-h-[calc(100vh-4rem)]'"

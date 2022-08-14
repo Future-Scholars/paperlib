@@ -37,6 +37,9 @@ export function setupWindowsSpecificStyle(win: Electron.BrowserWindow) {
   .splitpanes__splitter {
     background-color: rgb(50, 50, 50);
   }
+  .plugin-windows-bg {
+    background-color: rgb(50, 50, 50);
+  }
 }
 
 `);
@@ -54,6 +57,17 @@ export function setupWindowsSpecificStyleForPlugin(
 ::-webkit-scrollbar {
   width: 0px;
 }
+
+.plugin-windows-bg {
+  background-color: #efefef;
+}
+
+@media (prefers-color-scheme: dark) {
+  .plugin-windows-bg {
+    background-color: rgb(50, 50, 50);
+  }
+}
+
 `);
     }
   }
