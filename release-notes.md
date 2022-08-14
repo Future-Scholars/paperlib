@@ -1,3 +1,2 @@
-1. Save mainview and sorting preference.
-2. Better code repos scraper.
-3. Fixed: Keyboard pressing bug in input fields.
+1. Now you can remove a tag/folder in the details panel.
+2. Copy plain text or BibTex using the plugin with two modes. Press Tab or click it to switch between two modes.

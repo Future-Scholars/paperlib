@@ -1,3 +1,8 @@
+## v1.9.5 Aug 14 2022
+
+1. Now you can remove a tag/folder in the details panel.
+2. Copy plain text or BibTex using the plugin with two modes. Press Tab or click it to switch between two modes.
+
 ## v1.9.4 Aug 08 2022
 
 1. Save mainview and sorting preference. #124
