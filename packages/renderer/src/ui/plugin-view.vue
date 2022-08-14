@@ -7,6 +7,7 @@ import PluginTableItem from "./main-view/data-view/components/plugin-table-item.
 import { debounce } from "../utils/debounce";
 import { PaperEntity } from "../../../preload/models/PaperEntity";
 
+const exportMode = ref("BibTex");
 const searchText = ref("");
 const searchDebounce = ref(300);
 const selectedIndex: Ref<number> = ref(0);
@@ -36,7 +37,10 @@ const exportSelectedEntity = () => {
       `https://scholar.google.com/scholar?q=${searchText.value}`
     );
   } else {
-    window.pluginInteractor.export(JSON.stringify([selectedEntity]));
+    window.pluginInteractor.export(
+      JSON.stringify([selectedEntity]),
+      exportMode.value
+    );
     isNotificationShown.value = true;
   }
   debounce(() => {
@@ -66,24 +70,33 @@ function shortcutHandler(event: KeyboardEvent) {
     searchText.value = "";
     entities.value = [];
     window.pluginInteractor.hide();
+  } else if (event.code === "Tab") {
+    event.preventDefault();
+    exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
   }
 }
 window.addEventListener("keydown", shortcutHandler, true);
 </script>
 
 <template>
-  <div
-    class="w-full text-neutral-700 dark:text-neutral-200 dark:bg-neutral-800"
-  >
-    <input
-      class="w-full h-12 text-sm px-3 bg-transparent focus:outline-none"
-      type="text"
-      autofocus
-      placeholder="Search in Paperlib..."
-      v-model="searchText"
-      @input="onInput"
-    />
-    <div class="w-full p-2 dark:bg-neutral-800">
+  <div class="w-full text-neutral-700 dark:text-neutral-200">
+    <div class="flex">
+      <input
+        class="w-full h-12 text-sm px-3 bg-transparent focus:outline-none grow"
+        type="text"
+        autofocus
+        placeholder="Search in Paperlib..."
+        v-model="searchText"
+        @input="onInput"
+      />
+      <div
+        class="flex space-x-2 mr-2 text-xxs my-auto cursor-pointer select-none text-neutral-400 border-[1px] border-neutral-400 dark:border-neutral-500 rounded-md px-2 py-1 hover:dark:border-neutral-200 hover:dark:text-neutral-200 hover:border-neutral-600 hover:text-neutral-600 transition-colors"
+        @click="exportMode = exportMode === 'BibTex' ? 'PlainText' : 'BibTex'"
+      >
+        {{ exportMode }}
+      </div>
+    </div>
+    <div class="w-full p-2">
       <RecycleScroller
         class="scroller"
         :class="'max-h-[calc(100vh-4rem)]'"

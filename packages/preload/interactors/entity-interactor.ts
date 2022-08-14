@@ -66,7 +66,7 @@ export class EntityInteractor {
           );
           port.postMessage(entities);
         } else if (data.op === "export") {
-          this.export(data.value, "bibtex");
+          this.export(data.value, data.args === "BibTex" ? "bibtex" : "plain");
         }
       };
     });

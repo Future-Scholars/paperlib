@@ -27,8 +27,10 @@ export class PluginInteractor {
     });
   }
 
-  export(entitiesStr: string) {
-    this.port.postMessage(JSON.stringify({ op: "export", value: entitiesStr }));
+  export(entitiesStr: string, format: string) {
+    this.port.postMessage(
+      JSON.stringify({ op: "export", value: entitiesStr, args: format })
+    );
   }
 
   hide() {
