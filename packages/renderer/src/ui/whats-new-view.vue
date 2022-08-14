@@ -44,7 +44,7 @@ onMounted(() => {
         </p>
         <p>利用自定义搜刮器来实现给新导入论文自动添加标签的功能。</p>
         <p>
-          ttps://github.com/GeoffreyChen777/paperlib/wiki/Custom-Scraper#use-custom-scraper-to-implement-auto-tagger
+          https://github.com/GeoffreyChen777/paperlib/wiki/Custom-Scraper#use-custom-scraper-to-implement-auto-tagger
         </p>
 
         <p class="mt-10"><b>Improvements and fixed Bugs</b></p>
