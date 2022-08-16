@@ -26,23 +26,28 @@ An open-source academic paper management tool.
 
 ## Introduction
 
-You may notice that conference papers are in major in our research community, which is different from other subjects. Without DOI, ISBN, metadata of a lot of conference papers are hard to lookup (e.g., NIPS, ICLR etc.). When we cite a publication in our draft paper, we need to manually search the publication information of it in Google Scholar or DBLP.
+I'm a computer science PhD student. Conference papers are in major in my research community, which is different from other subjects. Without DOI, ISBN, metadata of a lot of conference papers are hard to lookup (e.g., NIPS, ICLR etc.). When I cite a publication in a draft paper, I need to manually search the publication information of it in Google Scholar or DBLP.
 
-What we need may be: import a paper from a PDF file, scrape the metadata of it as accurately as possible, simply organise the library, and export it to BibTex when we are writing our own paper.
+**Why not Zotero, Mendely?**
+
+A good metadata scraping capability is one of the core function of a paper management tool. Unfortunately, there is no software in this world that does this well, not even commercial software.
+
+A modern UI. No extra useless features.
+
+What we need may be: import a paper, scrape the metadata of it as accurately as possible, simply organise the library, and export it to BibTex when we are writing our own papers.
 
 That is Paperlib.
 
-*Why not Zotero, Mendely?*
-
-They are both great tools. But, compatibility with all subjects means a compromise, especially the accurate metadata scraping. A modern UI. No extra useless features.
 
 ## Highlights
 
--   Scrape paper’s metadata and **code repository** from arXiv, doi.org, DBLP, openreview.net, IEEE, Google Scholar, and PaperwithCode etc. Tailored for computer science.
+-   Scrape paper’s metadata and **code repository** from arXiv, doi.org, DBLP, openreview.net, IEEE, Google Scholar, and PaperwithCode etc. Especially tailored for computer science. Support write your own metadata scrapers.
 -   Fulltext and advanced search.
--   Rating, flag, tag, folder and markdown and plain text note.
+-   Rating, flag, tag, folder and markdown/plain text note.
 -   RSS feed subscription.
+-   Plugin like macOS spotlight to copy paste BibTex easily.
 -   Cloud sync, supports macOS and Windows.
+-   Beautiful and clean UI.
 
 ## Download and Install
 
