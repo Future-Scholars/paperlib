@@ -5,7 +5,7 @@
 <img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
 <img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />
 <h2><a href="https://paperlib.app/" > Paperlib </a></h2>
-An open-source simple academic paper management tool for computer science.
+An open-source academic paper management tool.
 </div>
 
 
