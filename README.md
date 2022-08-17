@@ -55,7 +55,7 @@ That is Paperlib.
 
 ### Windows
 
-You may notice that a warnning is shown when you download and install Paperlib on Windows. The reason is that the code signing certificate is so expensive. The source code of Paperlib can be found in the electron branch. It won't hurt your PC and will never collect any personal information. Just click 'show more' and keep the 'latest.exe'. When you are installing 'latest.exe', in the Windows protected your PC window, please click 'More info' and 'Run anyway'.
+You may notice that a warnning is shown when you install Paperlib on Windows. The reason is that there is no code signing in Paperlib because it is so expensive. The source code of Paperlib can be found in the electron branch. It won't hurt your PC and will never collect any personal information. When you are installing 'latest.exe', in the Windows protected your PC window, please click 'More info' and 'Run anyway'.
 
 ### macOS
 
