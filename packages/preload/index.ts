@@ -9,6 +9,7 @@ import { CacheRepository } from "./repositories/cache-repository/cache-repositor
 import { ExporterRepository } from "./repositories/exporter-repository/exporter-repository";
 import { WebImporterRepository } from "./repositories/web-importer-repository/web-importer-repository";
 import { RSSRepository } from "./repositories/rss-repository/rss-repository";
+import { DownloaderRepository } from "./repositories/downloader-repository/downloader-repository";
 
 import { createInteractorProxy } from "./utils/misc";
 import { AppInteractor } from "./interactors/app-interactor";
@@ -39,13 +40,15 @@ const webImporterRepository = new WebImporterRepository(
   preference
 );
 const rssRepository = new RSSRepository(sharedState, preference);
+const downloaderRepository = new DownloaderRepository(sharedState, preference);
 
 const appInteractor = new AppInteractor(
   sharedState,
   preference,
   dbRepository,
   fileRepository,
-  scraperRepository
+  scraperRepository,
+  downloaderRepository
 );
 const entityInteractor = new EntityInteractor(
   sharedState,
@@ -54,7 +57,8 @@ const entityInteractor = new EntityInteractor(
   fileRepository,
   scraperRepository,
   cacheRepository,
-  exporterRepository
+  exporterRepository,
+  downloaderRepository
 );
 const renderInteractor = new RenderInteractor(preference);
 const browserExtensionInteractor = new BrowserExtensionInteractor(

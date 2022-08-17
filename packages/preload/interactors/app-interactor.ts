@@ -3,6 +3,7 @@ import keytar from "keytar";
 import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
 
 import { DBRepository } from "../repositories/db-repository/db-repository";
+import { DownloaderRepository } from "../repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "../repositories/file-repository/file-repository";
 import { ScraperRepository } from "../repositories/scraper-repository/scraper-repository";
 
@@ -16,6 +17,7 @@ export class AppInteractor {
   dbRepository: DBRepository;
   fileRepository: FileRepository;
   scraperRepository: ScraperRepository;
+  downloaderRepository: DownloaderRepository;
 
   scheduler: ToadScheduler;
 
@@ -24,7 +26,8 @@ export class AppInteractor {
     preference: Preference,
     dbRepository: DBRepository,
     fileRepository: FileRepository,
-    scraperRepository: ScraperRepository
+    scraperRepository: ScraperRepository,
+    downloaderRepository: DownloaderRepository
   ) {
     this.sharedState = sharedState;
     this.preference = preference;
@@ -32,6 +35,7 @@ export class AppInteractor {
     this.dbRepository = dbRepository;
     this.fileRepository = fileRepository;
     this.scraperRepository = scraperRepository;
+    this.downloaderRepository = downloaderRepository;
 
     this.scheduler = new ToadScheduler();
   }
@@ -201,5 +205,13 @@ export class AppInteractor {
 
   recreateScrapers() {
     this.scraperRepository.createScrapers();
+  }
+
+  recreateDownloaders() {
+    this.downloaderRepository.createDownloaders();
+  }
+
+  async requestXHub(url: string) {
+    return await ipcRenderer.invoke("xhub-request", url);
   }
 }

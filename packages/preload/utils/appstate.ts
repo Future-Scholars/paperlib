@@ -64,6 +64,8 @@ export class SharedState {
       contentType: new State("library"),
       theme: new State("light"),
 
+      renderRequired: new State(`${Date.now()}`),
+
       syncFileStorageAvaliable: new State(false),
     };
 

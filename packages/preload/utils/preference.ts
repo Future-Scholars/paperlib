@@ -14,6 +14,18 @@ export interface ScraperPreference {
   scrapeImplCode: string;
 }
 
+export interface DownloaderPreference {
+  name: string;
+  description: string;
+  enable: boolean;
+  custom: boolean;
+  args: string;
+  priority: number;
+  preProcessCode: string;
+  downloadProcessCode: string;
+  downloadImplCode: string;
+}
+
 export interface PreferenceStore {
   appLibFolder: string;
   deleteSourceFile: boolean;
@@ -68,6 +80,7 @@ export interface PreferenceStore {
   googlescholarScraper: boolean;
 
   scrapers: Array<ScraperPreference>;
+  downloaders: Array<DownloaderPreference>;
 
   httpproxy: string;
   httpsproxy: string;
@@ -262,6 +275,20 @@ const defaultPreferences: PreferenceStore = {
       preProcessCode: "",
       parsingProcessCode: "",
       scrapeImplCode: "",
+    },
+  ],
+
+  downloaders: [
+    {
+      name: "x-hub",
+      description: "XXX-hub, fill the url in args.",
+      enable: false,
+      custom: false,
+      args: "",
+      priority: 10,
+      preProcessCode: "",
+      downloadProcessCode: "",
+      downloadImplCode: "",
     },
   ],
 };

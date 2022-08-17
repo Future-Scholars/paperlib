@@ -12,6 +12,7 @@ import {
   BIconGlobe,
   BIconKeyboard,
   BIconInfoCircle,
+  BIconDownload,
 } from "bootstrap-icons-vue";
 
 import SectionItem from "./components/section-item.vue";
@@ -25,6 +26,7 @@ import ExportView from "./export-view.vue";
 import ProxyView from "./proxy-view.vue";
 import ImportView from "./import-view.vue";
 import HotkeyView from "./hotkey-view.vue";
+import DownloaderView from "./downloader-view.vue";
 
 import { PreferenceStore } from "../../../../preload/utils/preference";
 
@@ -119,6 +121,13 @@ window.appInteractor.registerState(
               <BIconBinoculars class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
+              name="Downloader"
+              :active="preferenceTab === 'downloader'"
+              @click="preferenceTab = 'downloader'"
+            >
+              <BIconDownload class="my-auto text-xs" />
+            </SectionItem>
+            <SectionItem
               name="Proxy"
               :active="preferenceTab === 'proxy'"
               @click="preferenceTab = 'proxy'"
@@ -177,6 +186,10 @@ window.appInteractor.registerState(
             <ScraperView
               :preference="preference"
               v-if="preferenceTab === 'scraper'"
+            />
+            <DownloaderView
+              :preference="preference"
+              v-if="preferenceTab === 'downloader'"
             />
             <ProxyView
               :preference="preference"

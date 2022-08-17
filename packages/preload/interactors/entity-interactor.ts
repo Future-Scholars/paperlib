@@ -10,6 +10,7 @@ import { ScraperRepository } from "../repositories/scraper-repository/scraper-re
 import { FileRepository } from "../repositories/file-repository/file-repository";
 import { CacheRepository } from "../repositories/cache-repository/cache-repository";
 import { ExporterRepository } from "../repositories/exporter-repository/exporter-repository";
+import { DownloaderRepository } from "../repositories/downloader-repository/downloader-repository";
 
 import { Categorizers } from "../models/PaperCategorizer";
 import { PaperEntityDraft } from "../models/PaperEntityDraft";
@@ -23,6 +24,7 @@ export class EntityInteractor {
   scraperRepository: ScraperRepository;
   cacheRepository: CacheRepository;
   exporterRepository: ExporterRepository;
+  downloaderRepository: DownloaderRepository;
 
   scheduler: ToadScheduler;
 
@@ -33,7 +35,8 @@ export class EntityInteractor {
     fileRepository: FileRepository,
     scraperRepository: ScraperRepository,
     cacheRepository: CacheRepository,
-    exporterRepository: ExporterRepository
+    exporterRepository: ExporterRepository,
+    downloaderRepository: DownloaderRepository
   ) {
     this.sharedState = sharedState;
     this.preference = preference;
@@ -43,6 +46,7 @@ export class EntityInteractor {
     this.scraperRepository = scraperRepository;
     this.cacheRepository = cacheRepository;
     this.exporterRepository = exporterRepository;
+    this.downloaderRepository = downloaderRepository;
 
     this.scheduler = new ToadScheduler();
     this.setupRoutineScrapeScheduler();
@@ -548,6 +552,40 @@ export class EntityInteractor {
     );
 
     this.scheduler.addSimpleIntervalJob(job);
+  }
+
+  // ============================================================
+  async locateMainFile(entitiesStr: string) {
+    let entityDrafts = JSON.parse(entitiesStr) as PaperEntityDraft[];
+
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.get() as number) +
+        entityDrafts.length
+    );
+
+    try {
+      const downloadPromise = async (entityDraft: PaperEntityDraft) => {
+        return await this.downloaderRepository.download(entityDraft);
+      };
+
+      entityDrafts = await Promise.all(
+        entityDrafts.map((entityDraft) => downloadPromise(entityDraft))
+      );
+
+      this.update(JSON.stringify(entityDrafts));
+    } catch (error) {
+      this.sharedState.set(
+        "viewState.alertInformation",
+        `Download paper failed: ${error as string}`
+      );
+    }
+
+    this.sharedState.set(
+      "viewState.processingQueueCount",
+      (this.sharedState.viewState.processingQueueCount.get() as number) -
+        entityDrafts.length
+    );
   }
 
   // ============================================================

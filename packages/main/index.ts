@@ -20,6 +20,9 @@ import {
   setupWindowsSpecificStyleForPlugin,
 } from "./style";
 
+import path from "path";
+import os from "os";
+
 Store.initRenderer();
 
 const preference = new Store({});
@@ -313,6 +316,79 @@ ipcMain.handle("robot-check", async (event, url) => {
     } else {
       winCheck?.close();
     }
+  });
+
+  return await promise;
+});
+
+let winXHubDom: string | null = null;
+ipcMain.handle("xhub-request", async (event, url) => {
+  if (winCheck === null) {
+    winCheck = new BrowserWindow({
+      title: "XHub window",
+      width: 600,
+      height: 600,
+      useContentSize: true,
+      webPreferences: {
+        webSecurity: false,
+        nodeIntegration: true,
+        contextIsolation: true,
+      },
+      frame: true,
+      show: false,
+    });
+  }
+  winCheck.loadURL(url);
+
+  winCheck.on("closed", () => {
+    winCheck = null;
+  });
+
+  const promise = new Promise((resolve, reject) => {
+    winCheck?.webContents.on("dom-ready", async () => {
+      winXHubDom = await winCheck?.webContents.executeJavaScript(
+        "document.body.innerHTML"
+      );
+
+      if (winXHubDom?.includes("This process is automatic.")) {
+        // Close after 20 sec.
+        setTimeout(() => {
+          winCheck?.close();
+          resolve("");
+        }, 20000);
+      } else {
+        resolve(winXHubDom);
+      }
+    });
+
+    winCheck?.webContents.session.on(
+      "will-download",
+      (event, item, webContents) => {
+        let filename = url.split("/").pop() as string;
+        filename = filename.slice(0, 100);
+        if (!filename.endsWith(".pdf")) {
+          filename += ".pdf";
+        }
+        const targetUrl = path.join(os.homedir(), "Downloads", filename);
+        item.setSavePath(targetUrl);
+
+        item.on("updated", (event, state) => {
+          if (state === "interrupted") {
+            winCheck?.close();
+            resolve("");
+          }
+        });
+        item.once("done", (event, state) => {
+          if (state === "completed") {
+            winCheck?.close();
+            resolve(targetUrl);
+          } else {
+            winCheck?.close();
+            resolve("");
+          }
+        });
+      }
+    );
   });
 
   return await promise;

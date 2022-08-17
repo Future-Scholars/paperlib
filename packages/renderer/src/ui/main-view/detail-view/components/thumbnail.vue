@@ -2,7 +2,9 @@
 // @ts-nocheck
 import {
   BIconCloudArrowDown,
-  BIconExclamationTriangle,
+  BIconPlus,
+  BIconArrowClockwise,
+  BIconSearch,
 } from "bootstrap-icons-vue";
 
 import { onMounted, watch, ref } from "vue";
@@ -14,7 +16,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["modifyMainFile"]);
+const emit = defineEmits(["modifyMainFile", "locateMainFile"]);
 
 const isRendering = ref(true);
 const fileExistingStatus = ref(0);
@@ -45,12 +47,15 @@ const onClick = async (e: MouseEvent) => {
   window.appInteractor.open(fileURL);
 };
 
-const onPickerClicked = async () => {
+const showFilePicker = async () => {
   const pickedFile = (await window.appInteractor.showFilePicker()).filePaths[0];
   if (pickedFile) {
     emit("modifyMainFile", pickedFile);
-    render();
   }
+};
+
+const locatePDF = async () => {
+  emit("locateMainFile");
 };
 
 const onCloudDownloadClicked = async () => {
@@ -78,9 +83,13 @@ const onRightClicked = (event: MouseEvent) => {
 window.appInteractor.registerMainSignal(
   "thumbnail-context-menu-replace",
   (args) => {
-    onPickerClicked();
+    showFilePicker();
   }
 );
+
+window.appInteractor.registerState("viewState.renderRequired", () => {
+  render();
+});
 
 onMounted(() => {
   render();
@@ -102,19 +111,27 @@ watch(props, (props, prevProps) => {
       @click="onCloudDownloadClicked"
     />
     <div class="flex space-x-2" v-show="fileExistingStatus === 1">
-      <BIconExclamationTriangle class="text-md my-auto cursor-pointer" />
-      <span class="text-xxs my-auto select-none">Not Found,</span>
-      <span
-        class="text-xxs my-auto select-none underline cursor-pointer hover:text-accentlight hover:dark:text-accentdark"
-        @click="onPickerClicked"
+      <div
+        class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer"
+        @click="showFilePicker"
       >
-        add?
-      </span>
-      <span
-        class="text-xxs my-auto select-none underline cursor-pointer hover:text-accentlight hover:dark:text-accentdark"
+        <BIconPlus class="text-xs my-auto" />
+        <div class="text-xxs my-auto">Choose</div>
+      </div>
+      <div
+        class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer"
         @click="render"
-        >refresh?</span
       >
+        <BIconArrowClockwise class="text-xs my-auto" />
+        <div class="text-xxs my-auto">Refresh</div>
+      </div>
+      <div
+        class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer"
+        @click="locatePDF"
+      >
+        <BIconSearch class="text-xs my-auto" />
+        <div class="text-xxs my-auto">Locate</div>
+      </div>
     </div>
     <canvas
       id="preview-canvas"

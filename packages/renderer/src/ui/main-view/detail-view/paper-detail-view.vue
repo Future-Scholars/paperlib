@@ -52,11 +52,19 @@ const onDeleteCategorizers = (categorizer: String, categorizerType: String) => {
   void window.entityInteractor.update(JSON.stringify([entityDraft]));
 };
 
-const modifyMainFile = (url: string) => {
+const modifyMainFile = async (url: string) => {
   const entityDraft = new PaperEntityDraft();
   entityDraft.initialize(props.entity);
   entityDraft.mainURL = url;
-  void window.entityInteractor.update(JSON.stringify([entityDraft]));
+  await window.entityInteractor.update(JSON.stringify([entityDraft]));
+  window.appInteractor.setState("viewState.renderRequired", `${Date.now()}`);
+};
+
+const locateMainFile = async () => {
+  const entityDraft = new PaperEntityDraft();
+  entityDraft.initialize(props.entity);
+  await window.entityInteractor.locateMainFile(JSON.stringify([entityDraft]));
+  window.appInteractor.setState("viewState.renderRequired", `${Date.now()}`);
 };
 
 const addSups = (urls: string[]) => {
@@ -151,6 +159,7 @@ onMounted(() => {
       <Thumbnail
         :url="entity.mainURL"
         @modify-main-file="(value) => modifyMainFile(value)"
+        @locate-main-file="locateMainFile"
       />
     </Section>
     <Section
