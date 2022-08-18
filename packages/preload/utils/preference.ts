@@ -22,7 +22,7 @@ export interface DownloaderPreference {
   args: string;
   priority: number;
   preProcessCode: string;
-  downloadProcessCode: string;
+  queryProcessCode: string;
   downloadImplCode: string;
 }
 
@@ -287,7 +287,19 @@ const defaultPreferences: PreferenceStore = {
       args: "",
       priority: 10,
       preProcessCode: "",
-      downloadProcessCode: "",
+      queryProcessCode: "",
+      downloadImplCode: "",
+    },
+    {
+      name: "unpaywall",
+      description:
+        "Unpaywall, fill your email in args to remove the rate limits.",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 9,
+      preProcessCode: "",
+      queryProcessCode: "",
       downloadImplCode: "",
     },
   ],

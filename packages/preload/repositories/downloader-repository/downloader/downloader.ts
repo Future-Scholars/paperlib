@@ -1,28 +1,27 @@
-import path from "path";
-import os from "os";
-import stream from "stream";
-import { promisify } from "util";
-import got from "got";
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
-import { createWriteStream } from "fs";
 
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 import { Preference, DownloaderPreference } from "../../../utils/preference";
 import { SharedState } from "../../../utils/appstate";
-import { constructFileURL } from "../../../utils/path";
+import { downloadPDFs } from "../../../utils/got";
 
 export interface DownloaderRequestType {
-  downloadURL: string;
+  queryUrl: string;
   headers: Record<string, string>;
   enable: boolean;
 }
 
 export interface DownloaderType {
+  sharedState: SharedState;
   preference: Preference;
-  download(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft>;
+  download(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft | null>;
   preProcess(entityDraft: PaperEntityDraft): DownloaderRequestType | void;
-  downloadProcess(urlList: string[]): Promise<string[]>;
-  downloadImpl: (_: PaperEntityDraft) => Promise<PaperEntityDraft>;
+  queryProcess(
+    queryUrl: string,
+    headers: Record<string, string>,
+    entityDraft: PaperEntityDraft | null
+  ): Promise<string>;
+  downloadImpl: (_: PaperEntityDraft) => Promise<PaperEntityDraft | null>;
   getProxyAgent(): Record<string, HttpProxyAgent | HttpsProxyAgent | void>;
   getEnable(name: string): boolean;
 }
@@ -36,7 +35,7 @@ export class Downloader implements DownloaderType {
     this.preference = preference;
   }
 
-  download(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft> {
+  download(entityDraft: PaperEntityDraft): Promise<PaperEntityDraft | null> {
     return this.downloadImpl(entityDraft);
   }
 
@@ -85,38 +84,12 @@ export class Downloader implements DownloaderType {
     throw new Error("Method not implemented.");
   }
 
-  async downloadProcess(urlList: string[]): Promise<string[]> {
-    const _download = async (url: string): Promise<string> => {
-      try {
-        let filename = url.split("/").pop() as string;
-        filename = filename.slice(0, 100);
-        if (!filename.endsWith(".pdf")) {
-          filename += ".pdf";
-        }
-        const targetUrl = path.join(os.homedir(), "Downloads", filename);
-        const pipeline = promisify(stream.pipeline);
-        const headers = {
-          "user-agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-        };
-        await pipeline(
-          got.stream(url, { headers: headers, rejectUnauthorized: false }),
-          createWriteStream(constructFileURL(targetUrl, false, false))
-        );
-        return targetUrl;
-      } catch (e) {
-        console.log(e);
-        return "";
-      }
-    };
-
-    this.sharedState.set("viewState.processInformation", `Downloading...`);
-
-    const downloadedUrls = (await Promise.all(urlList.map(_download))).filter(
-      (url) => url !== ""
-    );
-
-    return downloadedUrls;
+  queryProcess(
+    queryUrl: string,
+    headers: Record<string, string>,
+    entityDraft: PaperEntityDraft | null
+  ): Promise<string> {
+    throw new Error("Method not implemented.");
   }
 
   downloadImpl = downloadImpl;
@@ -133,27 +106,29 @@ export class Downloader implements DownloaderType {
 async function downloadImpl(
   this: DownloaderType,
   entityDraft: PaperEntityDraft
-): Promise<PaperEntityDraft> {
-  const { downloadURL, headers, enable } = this.preProcess(
+): Promise<PaperEntityDraft | null> {
+  const { queryUrl, headers, enable } = this.preProcess(
     entityDraft
   ) as DownloaderRequestType;
 
+  console.log(queryUrl, enable);
   if (enable) {
     const agent = this.getProxyAgent();
-    let options = {
-      headers: headers,
-      retry: 1,
-      timeout: 10000,
-      agent: agent,
-    };
-    const downloadedUrl = await this.downloadProcess([downloadURL]);
+    const downloadUrl = await this.queryProcess(queryUrl, headers, entityDraft);
+    if (downloadUrl) {
+      this.sharedState.set("viewState.processInformation", "Downloading...");
+      const downloadedUrl = await downloadPDFs([downloadUrl], agent);
 
-    if (downloadedUrl.length > 0) {
-      entityDraft.mainURL = downloadedUrl[0];
+      if (downloadedUrl.length > 0) {
+        entityDraft.mainURL = downloadedUrl[0];
+        return entityDraft;
+      } else {
+        return null;
+      }
+    } else {
+      return null;
     }
-
-    return entityDraft;
   } else {
-    return entityDraft;
+    return null;
   }
 }

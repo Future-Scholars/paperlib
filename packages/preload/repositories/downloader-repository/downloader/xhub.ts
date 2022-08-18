@@ -1,4 +1,3 @@
-import got from "got";
 import { parse } from "node-html-parser";
 
 import {
@@ -15,12 +14,12 @@ export class XHubDownloader extends Downloader {
     const siteUrl =
       (this.preference.get("downloaders") as Array<DownloaderPreference>).find(
         (downloaderPref) => downloaderPref.name === "x-hub"
-      )?.args ?? "";
+      )?.args || "";
     const enable =
       entityDraft.doi !== "" && siteUrl !== "" && this.getEnable("x-hub");
 
     const requestIdentifier = entityDraft.doi;
-    const downloadURL = siteUrl + requestIdentifier;
+    const queryUrl = siteUrl + requestIdentifier;
 
     const headers = {
       "user-agent":
@@ -34,7 +33,34 @@ export class XHubDownloader extends Downloader {
       );
     }
 
-    return { downloadURL, headers, enable };
+    return { queryUrl, headers, enable };
+  }
+
+  async queryProcess(
+    queryUrl: string,
+    headers: Record<string, string>,
+    entityDraft: PaperEntityDraft | null
+  ): Promise<string> {
+    const siteUrl =
+      (this.preference.get("downloaders") as Array<DownloaderPreference>).find(
+        (downloaderPref) => downloaderPref.name === "x-hub"
+      )?.args ?? "";
+    const body = await ipcRenderer.invoke("xhub-request", queryUrl);
+    const root = parse(body);
+    const buttonNodes = root.querySelectorAll("button");
+    const button = buttonNodes.find((node) => {
+      return node.attributes.onclick.includes("download");
+    });
+    let downloadUrl;
+    if (button) {
+      downloadUrl =
+        siteUrl +
+        button.attributes.onclick.replace("location.href='", "").slice(0, -1);
+    } else {
+      downloadUrl = "";
+    }
+
+    return downloadUrl;
   }
 
   downloadImpl = downloadImpl;
@@ -43,45 +69,28 @@ export class XHubDownloader extends Downloader {
 async function downloadImpl(
   this: DownloaderType,
   entityDraft: PaperEntityDraft
-): Promise<PaperEntityDraft> {
-  const { downloadURL, headers, enable } = this.preProcess(
+): Promise<PaperEntityDraft | null> {
+  const { queryUrl, headers, enable } = this.preProcess(
     entityDraft
   ) as DownloaderRequestType;
 
   if (enable) {
-    const siteUrl =
-      (this.preference.get("downloaders") as Array<DownloaderPreference>).find(
-        (downloaderPref) => downloaderPref.name === "x-hub"
-      )?.args ?? "";
-    const agent = this.getProxyAgent();
-    let options = {
-      headers: headers,
-      retry: 1,
-      timeout: 10000,
-      agent: agent,
-    };
-
-    const body = await ipcRenderer.invoke("xhub-request", downloadURL);
-
-    const root = parse(body);
-    const buttonNodes = root.querySelectorAll("button");
-    const button = buttonNodes.find((node) => {
-      return node.attributes.onclick.includes("download");
-    });
-
-    if (button) {
-      const url =
-        siteUrl +
-        button.attributes.onclick.replace("location.href='", "").slice(0, -1);
-      const downloadedUrl = await ipcRenderer.invoke("xhub-request", url);
+    const downloadUrl = await this.queryProcess(queryUrl, headers, null);
+    if (downloadUrl) {
+      const downloadedUrl = await ipcRenderer.invoke(
+        "xhub-request",
+        downloadUrl
+      );
       if (downloadedUrl) {
         entityDraft.mainURL = downloadedUrl;
+        return entityDraft;
+      } else {
+        return null;
       }
-      return entityDraft;
+    } else {
+      return null;
     }
-
-    return entityDraft;
   } else {
-    return entityDraft;
+    return null;
   }
 }

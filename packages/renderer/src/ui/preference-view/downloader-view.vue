@@ -23,7 +23,7 @@ const onAddNewDownloaderClicked = () => {
     args: "",
     priority: 1,
     preProcessCode: "",
-    downloadProcessCode: "",
+    queryProcessCode: "",
     downloadImplCode: "",
   };
 

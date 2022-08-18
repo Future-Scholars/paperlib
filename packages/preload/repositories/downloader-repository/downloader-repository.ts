@@ -1,5 +1,6 @@
 import { DownloaderType } from "./downloader/downloader";
 import { XHubDownloader } from "./downloader/xhub";
+import { UnpayWallDownloader } from "./downloader/unpaywall";
 
 import { Preference, DownloaderPreference } from "../../utils/preference";
 import { PaperEntityDraft } from "../../models/PaperEntityDraft";
@@ -36,6 +37,12 @@ export class DownloaderRepository {
             this.preference
           );
           break;
+        case "unpaywall":
+          downloaderInstance = new UnpayWallDownloader(
+            this.sharedState,
+            this.preference
+          );
+          break;
         default:
           downloaderInstance = new XHubDownloader(
             this.sharedState,
@@ -60,7 +67,12 @@ export class DownloaderRepository {
         continue;
       }
       try {
-        entityDraft = await downloader.downloader.download(entityDraft);
+        const entityDraftOrNull = await downloader.downloader.download(
+          entityDraft
+        );
+        if (entityDraftOrNull !== null) {
+          return entityDraftOrNull;
+        }
       } catch (error) {
         console.log(error);
         this.sharedState.set(
