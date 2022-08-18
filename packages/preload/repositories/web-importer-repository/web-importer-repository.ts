@@ -6,6 +6,7 @@ import { ArXivWebImporter } from "./importers/arxiv";
 import { GoogleScholarWebImporter } from "./importers/google-scholar";
 import { IEEEWebImporter } from "./importers/ieee";
 import { EmbedWebImporter } from "./importers/embed";
+import { PDFUrlWebImporter } from "./importers/pdfurl";
 
 import { Preference } from "../../utils/preference";
 import { SharedState } from "../../utils/appstate";
@@ -29,6 +30,7 @@ export class WebImporterRepository {
       ),
       ieee: new IEEEWebImporter(this.sharedState, this.preference),
       embed: new EmbedWebImporter(this.sharedState, this.preference),
+      pdfurl: new PDFUrlWebImporter(this.sharedState, this.preference),
     };
   }
 

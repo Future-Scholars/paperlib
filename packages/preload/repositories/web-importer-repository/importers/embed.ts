@@ -2,6 +2,7 @@ import { WebContentType, WebImporter } from "./importer";
 import { SharedState } from "../../../utils/appstate";
 import { Preference } from "../../../utils/preference";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
+import { downloadPDFs } from "../../../utils/got";
 
 export class EmbedWebImporter extends WebImporter {
   constructor(sharedState: SharedState, preference: Preference) {
@@ -43,8 +44,15 @@ export class EmbedWebImporter extends WebImporter {
           } else {
             downloadURL = meta.content + ".pdf";
           }
-          const downloadedFilePath = await this.downloadProcess([downloadURL]);
-          entityDraft.setValue("mainURL", downloadedFilePath[0]);
+
+          this.sharedState.set(
+            "viewState.processInformation",
+            `Downloading...`
+          );
+          const downloadedFilePath = await downloadPDFs([downloadURL]);
+          if (downloadedFilePath.length > 0) {
+            entityDraft.setValue("mainURL", downloadedFilePath[0]);
+          }
         }
       }
       if (authors.length > 0) {

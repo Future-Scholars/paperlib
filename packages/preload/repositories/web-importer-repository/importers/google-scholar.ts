@@ -6,6 +6,7 @@ import { SharedState } from "../../../utils/appstate";
 import { Preference } from "../../../utils/preference";
 import { safeGot } from "../../../utils/got";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
+import { downloadPDFs } from "../../../utils/got";
 
 export class GoogleScholarWebImporter extends WebImporter {
   constructor(sharedState: SharedState, preference: Preference) {
@@ -26,7 +27,9 @@ export class GoogleScholarWebImporter extends WebImporter {
       // @ts-ignore
       const downloadURL = fileUrlNode?.attributes["href"];
       if (downloadURL) {
-        const downloadedFilePath = await this.downloadProcess([downloadURL]);
+        this.sharedState.set("viewState.processInformation", `Downloading...`);
+        const downloadedFilePath = await downloadPDFs([downloadURL]);
+
         if (downloadedFilePath) {
           if (downloadedFilePath.length > 0) {
             entityDraft.mainURL = downloadedFilePath[0];

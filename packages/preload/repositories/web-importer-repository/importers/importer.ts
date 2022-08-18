@@ -1,15 +1,8 @@
-import path from "path";
-import os from "os";
-import stream from "stream";
-import { promisify } from "util";
-import got from "got";
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
-import { createWriteStream } from "fs";
 
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 import { SharedState } from "../../../utils/appstate";
 import { Preference } from "../../../utils/preference";
-import { constructFileURL } from "../../../utils/path";
 
 export interface WebContentType {
   url: string;
@@ -105,38 +98,5 @@ export class WebImporter implements WebImporterType {
     webContent: WebContentType
   ): Promise<PaperEntityDraft | boolean> {
     throw new Error("Method not implemented.");
-  }
-
-  async downloadProcess(urlList: string[]): Promise<string[]> {
-    const _download = async (url: string): Promise<string> => {
-      try {
-        let filename = url.split("/").pop() as string;
-        if (!filename.endsWith(".pdf")) {
-          filename += ".pdf";
-        }
-        const targetUrl = path.join(os.homedir(), "Downloads", filename);
-        const pipeline = promisify(stream.pipeline);
-        const headers = {
-          "user-agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-        };
-        await pipeline(
-          got.stream(url, { headers: headers, rejectUnauthorized: false }),
-          createWriteStream(constructFileURL(targetUrl, false, false))
-        );
-        return targetUrl;
-      } catch (e) {
-        console.log(e);
-        return "";
-      }
-    };
-
-    this.sharedState.set("viewState.processInformation", `Downloading...`);
-
-    const downloadedUrls = (await Promise.all(urlList.map(_download))).filter(
-      (url) => url !== ""
-    );
-
-    return downloadedUrls;
   }
 }
