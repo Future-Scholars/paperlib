@@ -67,7 +67,7 @@ export class UnpayWallDownloader extends Downloader {
       } else if (responseBody.results) {
         for (const result of responseBody.results) {
           if (
-            result.response.title === entityDraft.title &&
+            result.response.title === entityDraft?.title &&
             result.best_oa_location
           ) {
             downloadUrl = result.response.best_oa_location.url_for_pdf;
