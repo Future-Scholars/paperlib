@@ -64,6 +64,7 @@
     "keytar": "7.9.0",
     "markdown-it": "13.0.1",
     "markdown-it-texmath": "1.0.0",
+    "no-internet": "1.6.1",
     "node-html-parser": "5.3.3",
     "realm": "10.13.0",
     "rss-parser": "3.12.0",

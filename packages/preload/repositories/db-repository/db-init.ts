@@ -2,6 +2,8 @@ import Realm from "realm";
 import path from "path";
 import { existsSync, promises as fsPromise } from "fs";
 import keytar from "keytar";
+// @ts-ignore
+import noInternet from "no-internet";
 
 import { PaperEntitySchema } from "../../models/PaperEntity";
 import {
@@ -152,6 +154,7 @@ export async function getCloudConfig(
   this: DBRepository
 ): Promise<Realm.Configuration> {
   const cloudUser = await this.loginCloud();
+
   if (cloudUser) {
     const config = {
       schema: [
@@ -190,6 +193,11 @@ export async function loginCloud(
     this.app = new Realm.App({
       id: id,
     });
+  }
+
+  if (await noInternet()) {
+    console.log("No internet!");
+    return this.app.currentUser;
   }
 
   try {
