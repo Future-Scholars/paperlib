@@ -102,7 +102,7 @@ const onClickGuide = () => {
         "
       />
     </div>
-    <div class="flex justify-end mt-2 px-2 space-x-2">
+    <div class="flex justify-end mt-2 px-2 space-x-2 mb-2">
       <div
         class="text-xxs my-auto underline hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
         @click="onClickGuide"
