@@ -13,7 +13,7 @@ import Categorizers from "./components/categorizers.vue";
 import Thumbnail from "./components/thumbnail.vue";
 import Supplementary from "./components/supplementary.vue";
 import Markdown from "./components/markdown.vue";
-import { onMounted } from "vue";
+import { onBeforeUpdate, onMounted, ref } from "vue";
 import PubDetails from "./components/pub-details.vue";
 
 const props = defineProps({
@@ -101,6 +101,22 @@ const registerDropHandler = () => {
   });
 };
 
+const reanderedTitle = ref("");
+
+const render = async () => {
+  if (props.entity.title?.includes("$")) {
+    reanderedTitle.value = await window.renderInteractor.renderMath(
+      props.entity.title
+    );
+  } else {
+    reanderedTitle.value = props.entity.title || "";
+  }
+};
+
+onBeforeUpdate(() => {
+  render();
+});
+
 onMounted(() => {
   registerDropHandler();
 });
@@ -111,9 +127,7 @@ onMounted(() => {
     id="detail-view"
     class="flex-none flex flex-col w-80 max-h-[calc(100vh-3rem)] pl-4 pr-2 pb-4 overflow-auto"
   >
-    <div class="text-md font-bold">
-      {{ entity.title }}
-    </div>
+    <div class="text-md font-bold" v-html="reanderedTitle"></div>
     <Section title="Authors">
       <Authors :authors="entity.authors" />
     </Section>

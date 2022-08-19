@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@types/jsdom": "^16.2.15",
+    "@types/katex": "^0.14.0",
     "@types/markdown-it": "^12.2.3",
     "@types/splitpanes": "^2.2.1",
     "@types/tough-cookie": "^4.0.2",

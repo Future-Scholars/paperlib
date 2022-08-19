@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onBeforeUpdate, ref, watch } from "vue";
 // @ts-ignore
 import { BIconPlus, BIconCheck2 } from "bootstrap-icons-vue";
 
@@ -65,6 +65,31 @@ const onReadTimeout = () => {
   }
 };
 
+const reanderedTitle = ref("");
+const reanderedAbstract = ref("");
+
+const render = async () => {
+  if (props.feedEntity?.title?.includes("$")) {
+    reanderedTitle.value = await window.renderInteractor.renderMath(
+      props.feedEntity?.title
+    );
+  } else {
+    reanderedTitle.value = props.feedEntity?.title || "";
+  }
+
+  if (props.feedEntity?.abstract?.includes("$")) {
+    reanderedAbstract.value = await window.renderInteractor.renderMath(
+      props.feedEntity?.abstract
+    );
+  } else {
+    reanderedAbstract.value = props.feedEntity?.abstract || "";
+  }
+};
+
+onBeforeUpdate(() => {
+  render();
+});
+
 watch(props, (props, prevProps) => {
   onReadTimeout();
 });
@@ -101,9 +126,7 @@ watch(props, (props, prevProps) => {
         <span class="my-auto text-xs select-none">Added</span>
       </div>
     </div>
-    <div class="text-md font-bold">
-      {{ feedEntity?.title }}
-    </div>
+    <div class="text-md font-bold" v-html="reanderedTitle"></div>
 
     <Section title="Feed Name">
       <div class="text-xxs">
@@ -132,9 +155,7 @@ watch(props, (props, prevProps) => {
       </div>
     </Section>
     <Section title="Abstract" v-if="feedEntity?.abstract" class="pr-3">
-      <div class="text-xxs text-justify">
-        {{ feedEntity?.abstract }}
-      </div>
+      <div class="text-xxs text-justify" v-html="reanderedAbstract"></div>
     </Section>
     <div class="w-40 h-10">&nbsp;</div>
     <div
