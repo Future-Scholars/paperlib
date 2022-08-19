@@ -6,16 +6,10 @@ import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class CustomScraper extends Scraper {
-  scrapeImplCode = "";
   name = "";
 
   constructor(sharedState: SharedState, preference: Preference, name: string) {
     super(sharedState, preference);
-
-    this.scrapeImplCode =
-      (this.preference.get("scrapers") as Array<ScraperPreference>).find(
-        (scraperPref) => scraperPref.name === this.name
-      )?.scrapeImplCode || "";
 
     this.name = name;
   }
@@ -65,16 +59,20 @@ async function scrapeImpl(
   this: ScraperType,
   entityDraft: PaperEntityDraft
 ): Promise<PaperEntityDraft> {
-  const { scrapeURL, headers, enable } = this.preProcess(
-    entityDraft
-  ) as ScraperRequestType;
+  const scrapeImplCode =
+    (this.preference.get("scrapers") as Array<ScraperPreference>).find(
+      // @ts-ignore
+      (scraperPref) => scraperPref.name === this.name
+    )?.scrapeImplCode || "";
 
-  // @ts-ignore
-  if (this.scrapeImplCode) {
-    // @ts-ignore
-    eval(this.scrapeImplCode);
+  if (scrapeImplCode) {
+    eval(scrapeImplCode);
     return entityDraft;
   } else {
+    const { scrapeURL, headers, enable } = this.preProcess(
+      entityDraft
+    ) as ScraperRequestType;
+
     if (enable) {
       const agent = this.getProxyAgent();
       let options = {

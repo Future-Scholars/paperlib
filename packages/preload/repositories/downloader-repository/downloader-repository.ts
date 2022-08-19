@@ -2,6 +2,7 @@ import { DownloaderType } from "./downloader/downloader";
 import { XHubDownloader } from "./downloader/xhub";
 import { UnpayWallDownloader } from "./downloader/unpaywall";
 import { ArXivDownloader } from "./downloader/arxiv";
+import { CustomDownloader } from "./downloader/custom";
 
 import { Preference, DownloaderPreference } from "../../utils/preference";
 import { PaperEntityDraft } from "../../models/PaperEntityDraft";
@@ -51,9 +52,10 @@ export class DownloaderRepository {
           );
           break;
         default:
-          downloaderInstance = new XHubDownloader(
+          downloaderInstance = new CustomDownloader(
             this.sharedState,
-            this.preference
+            this.preference,
+            downloader.name
           );
       }
       if (downloaderInstance !== undefined) {
