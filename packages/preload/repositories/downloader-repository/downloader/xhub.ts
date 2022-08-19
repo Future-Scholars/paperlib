@@ -32,7 +32,6 @@ export class XHubDownloader extends Downloader {
         `Downloading PDF from X-hub ...`
       );
     }
-
     return { queryUrl, headers, enable };
   }
 

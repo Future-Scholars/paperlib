@@ -59,15 +59,16 @@ async function scrapeImpl(
   this: ScraperType,
   entityDraft: PaperEntityDraft
 ): Promise<PaperEntityDraft> {
-  const scrapeImplCode =
+  let scrapeImplCode =
     (this.preference.get("scrapers") as Array<ScraperPreference>).find(
       // @ts-ignore
       (scraperPref) => scraperPref.name === this.name
     )?.scrapeImplCode || "";
 
+  scrapeImplCode = scrapeImplCode.replaceAll("return", "entityDraft = ");
+
   if (scrapeImplCode) {
     eval(scrapeImplCode);
-    return entityDraft;
   } else {
     const { scrapeURL, headers, enable } = this.preProcess(
       entityDraft
@@ -87,4 +88,6 @@ async function scrapeImpl(
       return entityDraft;
     }
   }
+
+  return entityDraft;
 }

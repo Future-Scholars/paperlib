@@ -1,9 +1,12 @@
 import { clipboard, ipcRenderer } from "electron";
 import path from "path";
 import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
+import { BibtexParser } from "bibtex-js-parser";
+import { readFileSync } from "fs";
 
 import { SharedState } from "../utils/appstate";
 import { Preference } from "../utils/preference";
+import { bibtex2entityDraft } from "../utils/bibtex";
 
 import { DBRepository } from "../repositories/db-repository/db-repository";
 import { ScraperRepository } from "../repositories/scraper-repository/scraper-repository";
@@ -123,25 +126,55 @@ export class EntityInteractor {
     );
 
     try {
-      // 1. Metadata scraping.
-      const scrapingPromise = async (url: string) => {
+      const pdfUrls = urlList.filter((url) => path.extname(url) === ".pdf");
+      const bibUrls = urlList.filter((url) => path.extname(url) === ".bib");
+
+      // 1.1 PDF Metadata scraping.
+      const pdfScrapingPromise = async (url: string) => {
         let entityDraft = new PaperEntityDraft(true);
         entityDraft.setValue("mainURL", url);
         entityDraft = await this.scraperRepository.scrape(entityDraft);
         return entityDraft;
       };
 
-      let entityDrafts = await Promise.all(
-        urlList.map((url) => scrapingPromise(url))
+      let entityDraftsFromPDFs = await Promise.all(
+        pdfUrls.map((url) => pdfScrapingPromise(url))
       );
 
-      // 2. File moving.
-      entityDrafts = (await Promise.all(
-        entityDrafts.map((entityDraft) => this.fileRepository.move(entityDraft))
-      )) as PaperEntityDraft[];
-      entityDrafts = entityDrafts.filter((entityDraft) => entityDraft !== null);
+      // 1.2 BibTeX scraping.
+      const bibScrapingPromise = async (url: string) => {
+        const bibtexStr = readFileSync(url.replace("file://", ""), "utf8");
+        const bibtexs = BibtexParser.parseToJSON(bibtexStr);
+        const entityDrafts = [];
+        for (const bibtex of bibtexs) {
+          let entityDraft = new PaperEntityDraft(true);
+          entityDraft = bibtex2entityDraft(bibtex, entityDraft);
+          entityDrafts.push(entityDraft);
+        }
 
-      // 3. DB insertion.
+        return entityDrafts;
+      };
+
+      let entityDraftsFromBibTexes = (
+        await Promise.all(bibUrls.map((url) => bibScrapingPromise(url)))
+      ).flat();
+
+      // 2. File moving.
+      entityDraftsFromPDFs = (await Promise.all(
+        entityDraftsFromPDFs.map((entityDraft) =>
+          this.fileRepository.move(entityDraft)
+        )
+      )) as PaperEntityDraft[];
+      entityDraftsFromPDFs = entityDraftsFromPDFs.filter(
+        (entityDraft) => entityDraft !== null
+      );
+
+      // 3. Merge PDF and BibTeX scraping results.
+      const entityDrafts = entityDraftsFromPDFs.concat(
+        entityDraftsFromBibTexes
+      );
+
+      // 4. DB insertion.
       const dbSuccesses = await this.dbRepository.update(entityDrafts);
       // - find unsuccessful entities.
       const unsuccessfulEntityDrafts = entityDrafts.filter(
