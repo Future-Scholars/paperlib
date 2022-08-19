@@ -280,12 +280,23 @@ const defaultPreferences: PreferenceStore = {
 
   downloaders: [
     {
+      name: "arxiv",
+      description: "ArXiv.org",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 10,
+      preProcessCode: "",
+      queryProcessCode: "",
+      downloadImplCode: "",
+    },
+    {
       name: "x-hub",
       description: "XXX-hub, fill the url in args.",
       enable: false,
       custom: false,
       args: "",
-      priority: 10,
+      priority: 9,
       preProcessCode: "",
       queryProcessCode: "",
       downloadImplCode: "",
@@ -297,7 +308,7 @@ const defaultPreferences: PreferenceStore = {
       enable: true,
       custom: false,
       args: "",
-      priority: 9,
+      priority: 8,
       preProcessCode: "",
       queryProcessCode: "",
       downloadImplCode: "",

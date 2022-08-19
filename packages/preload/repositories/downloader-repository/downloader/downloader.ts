@@ -111,7 +111,6 @@ async function downloadImpl(
     entityDraft
   ) as DownloaderRequestType;
 
-  console.log(queryUrl, enable);
   if (enable) {
     const agent = this.getProxyAgent();
     const downloadUrl = await this.queryProcess(queryUrl, headers, entityDraft);

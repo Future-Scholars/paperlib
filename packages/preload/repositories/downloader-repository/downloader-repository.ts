@@ -1,6 +1,7 @@
 import { DownloaderType } from "./downloader/downloader";
 import { XHubDownloader } from "./downloader/xhub";
 import { UnpayWallDownloader } from "./downloader/unpaywall";
+import { ArXivDownloader } from "./downloader/arxiv";
 
 import { Preference, DownloaderPreference } from "../../utils/preference";
 import { PaperEntityDraft } from "../../models/PaperEntityDraft";
@@ -31,6 +32,12 @@ export class DownloaderRepository {
     for (const downloader of downloaderPrefs) {
       let downloaderInstance: DownloaderType | undefined;
       switch (downloader.name) {
+        case "arxiv":
+          downloaderInstance = new ArXivDownloader(
+            this.sharedState,
+            this.preference
+          );
+          break;
         case "x-hub":
           downloaderInstance = new XHubDownloader(
             this.sharedState,

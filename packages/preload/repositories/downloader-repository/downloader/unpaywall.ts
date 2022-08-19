@@ -38,7 +38,7 @@ export class UnpayWallDownloader extends Downloader {
     if (enable) {
       this.sharedState.set(
         "viewState.processInformation",
-        `Downloading PDF from X-hub ...`
+        `Downloading PDF from Unpaywall ...`
       );
     }
 
