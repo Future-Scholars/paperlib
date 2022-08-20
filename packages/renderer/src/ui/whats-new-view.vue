@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 
-const show = ref(false);
+const show = ref(true);
 
 const checkShouldShow = async () => {
-  show.value = await window.appInteractor.shouldShowWhatsNew();
+  // show.value = await window.appInteractor.shouldShowWhatsNew();
 };
 
 const hide = () => {
@@ -34,35 +34,48 @@ onMounted(() => {
       <div class="w-[45rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.9.5
+          What's New in Paperlib 1.9.6
         </p>
 
-        <p class="mt-10"><b>Tips&#128161;</b></p>
-        <p>
-          Use the custom scraper to automatically tag your newly imported
-          papers.
-        </p>
-        <p>利用自定义搜刮器来实现给新导入论文自动添加标签的功能。</p>
-        <p>
-          https://github.com/GeoffreyChen777/paperlib/wiki/Custom-Scraper#use-custom-scraper-to-implement-auto-tagger
-        </p>
+        <p class="mt-10 font-bold">New Features</p>
+        <div class="flex justify-between space-x-5">
+          <div class="pt-10">
+            <ul class="list-disc">
+              <li>Render LaTex in the details panel.</li>
+              <p class="mb-4">详情界面的标题和摘要支持渲染 LaTex。</p>
 
-        <p class="mt-10"><b>Improvements and fixed Bugs</b></p>
-        <li>Now you can remove a tag/folder in the details panel.</li>
-        <p class="ml-5">可以在详情界面删除标签/文件夹了。</p>
-        <img
-          class="mx-auto mt-5 mb-8 rounded-md shadow-lg w-96"
-          src="../assets/1.png"
-        />
-        <li>
-          Copy plain text or BibTex using the plugin with two modes. Press Tab
-          or click it to switch between two modes
-        </li>
-        <p class="ml-5">
-          快速复制插件支持两种模式，按下 Tab 键或者点击来切换。
-        </p>
-        <img class="mx-auto mt-5" src="../assets/2.png" />
-        <img class="mx-auto mb-8" src="../assets/3.png" />
+              <li>
+                Support locating PDF from arXiv, unpaywall, and xxx-hub. #122
+                Please manually input the URL of the xxx-hub in the preference
+                window.
+              </li>
+              <p class="mb-4">
+                对于没有链接 PDF 的论文条目，可以从 arXiv，unpaywall，和某 hub
+                查找下载 PDF。为规避可能的法律风险，请在设置里自行手动输入那个
+                hub 的网址。
+              </p>
+
+              <li>Import papers from a BibTex file.</li>
+              <p>支持拖入 BibTex 文件导入论文。</p>
+            </ul>
+          </div>
+          <img class="rounded-md shadow-lg w-72" src="../assets/1.png" />
+        </div>
+
+        <p class="mt-10 mb-4"><b>Improvements and fixed Bugs</b></p>
+        <ul class="list-disc">
+          <li>
+            For those who have cloud sync set up, now it is possible to use
+            Paperlib without network connection.
+          </li>
+          <p class="mb-4">
+            对于设置了云同步的用户，现在可以在无网络环境使用
+            Paperlib。做出的更改会在恢复网络之后进行同步。
+          </p>
+
+          <li>Fixed some bugs in custom scrapers.</li>
+        </ul>
+
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
           @click="hide"
