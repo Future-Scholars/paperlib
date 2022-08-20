@@ -1,5 +1,4 @@
 import { parse } from "node-html-parser";
-import { BibtexParser } from "bibtex-js-parser";
 
 import { WebContentType, WebImporter } from "./importer";
 import { SharedState } from "../../../utils/appstate";
@@ -7,6 +6,7 @@ import { Preference } from "../../../utils/preference";
 import { safeGot } from "../../../utils/got";
 import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 import { downloadPDFs } from "../../../utils/got";
+import { bibtex2entityDraft, bibtex2json } from "../../../utils/bibtex";
 
 export class GoogleScholarWebImporter extends WebImporter {
   constructor(sharedState: SharedState, preference: Preference) {
@@ -72,50 +72,11 @@ export class GoogleScholarWebImporter extends WebImporter {
                 );
                 const bibtexStr = citeBibtexResponse?.body;
                 if (bibtexStr) {
-                  const bibtexs = BibtexParser.parseToJSON(bibtexStr);
-                  for (const bibtex of bibtexs) {
-                    if (bibtex.title) {
-                      entityDraft.title = bibtex.title;
-                    }
-                    if (bibtex.year) {
-                      entityDraft.pubTime = `${bibtex.year}`;
-                    }
-                    if (bibtex.author) {
-                      const authors = bibtex.author
-                        .split(" and ")
-                        .map((author) => {
-                          const first_last = author.split(",").map((author) => {
-                            return author.trim();
-                          });
-                          first_last.reverse();
-                          return first_last.join(" ");
-                        })
-                        .join(", ");
-                      entityDraft.authors = authors;
-                    }
-                    if (bibtex.type === "article") {
-                      if (bibtex.journal) {
-                        entityDraft.publication = bibtex.journal;
-                      }
-                      entityDraft.pubType = 0;
-                    } else if (
-                      bibtex.type === "inproceedings" ||
-                      bibtex.type === "incollection"
-                    ) {
-                      if (bibtex.booktitle) {
-                        entityDraft.publication = bibtex.booktitle;
-                      }
-                      entityDraft.pubType = 1;
-                    } else if (bibtex.type === "book") {
-                      if (bibtex.publisher) {
-                        entityDraft.publication = bibtex.publisher;
-                      }
-                      entityDraft.pubType = 3;
-                    } else {
-                      if (bibtex.journal) {
-                        entityDraft.publication = bibtex.journal;
-                      }
-                      entityDraft.pubType = 2;
+                  const bibtexs = bibtex2json(bibtexStr);
+                  if (bibtexs.length > 0) {
+                    const bibtex = bibtexs[0];
+                    if (bibtex) {
+                      entityDraft = bibtex2entityDraft(bibtex, entityDraft);
                     }
                   }
                 }

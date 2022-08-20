@@ -50,10 +50,10 @@
   ],
   "dependencies": {
     "@headlessui/vue": "1.5.0",
-    "bibtex-js-parser": "1.1.6",
     "bootstrap-icons-vue": "1.8.1",
     "bson": "4.6.3",
     "chokidar": "3.5.3",
+    "citation-js": "^0.6.4",
     "drag-drop": "7.2.0",
     "electron-store": "8.0.1",
     "electron-updater": "5.0.1",

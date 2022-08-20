@@ -1,12 +1,11 @@
 import { clipboard, ipcRenderer } from "electron";
 import path from "path";
 import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
-import { BibtexParser } from "bibtex-js-parser";
 import { readFileSync } from "fs";
 
 import { SharedState } from "../utils/appstate";
 import { Preference } from "../utils/preference";
-import { bibtex2entityDraft } from "../utils/bibtex";
+import { bibtex2entityDraft, bibtex2json } from "../utils/bibtex";
 
 import { DBRepository } from "../repositories/db-repository/db-repository";
 import { ScraperRepository } from "../repositories/scraper-repository/scraper-repository";
@@ -144,9 +143,9 @@ export class EntityInteractor {
       // 1.2 BibTeX scraping.
       const bibScrapingPromise = async (url: string) => {
         const bibtexStr = readFileSync(url.replace("file://", ""), "utf8");
-        const bibtexs = BibtexParser.parseToJSON(bibtexStr);
+        const bibtexes = bibtex2json(bibtexStr);
         const entityDrafts = [];
-        for (const bibtex of bibtexs) {
+        for (const bibtex of bibtexes) {
           let entityDraft = new PaperEntityDraft(true);
           entityDraft = bibtex2entityDraft(bibtex, entityDraft);
           entityDrafts.push(entityDraft);
