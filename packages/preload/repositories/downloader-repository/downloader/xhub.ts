@@ -1,4 +1,5 @@
 import { parse } from "node-html-parser";
+import path from "path";
 
 import {
   Downloader,
@@ -16,15 +17,27 @@ export class XHubDownloader extends Downloader {
         (downloaderPref) => downloaderPref.name === "x-hub"
       )?.args || "";
     const enable =
-      entityDraft.doi !== "" && siteUrl !== "" && this.getEnable("x-hub");
+      (entityDraft.doi || entityDraft.title) !== "" &&
+      siteUrl !== "" &&
+      this.getEnable("x-hub");
 
-    const requestIdentifier = entityDraft.doi;
-    const queryUrl = siteUrl + requestIdentifier;
+    let queryUrl = "";
 
-    const headers = {
+    let headers = {
       "user-agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
+      method: "GET",
+      requestIdentifier: "",
     };
+
+    if (entityDraft.doi) {
+      queryUrl = path.join(siteUrl, entityDraft.doi);
+      headers.method = "GET";
+    } else if (entityDraft.title) {
+      queryUrl = siteUrl;
+      headers.method = "POST";
+      headers.requestIdentifier = entityDraft.title;
+    }
 
     if (enable) {
       this.sharedState.set(
@@ -32,6 +45,7 @@ export class XHubDownloader extends Downloader {
         `Downloading PDF from X-hub ...`
       );
     }
+
     return { queryUrl, headers, enable };
   }
 
@@ -44,21 +58,35 @@ export class XHubDownloader extends Downloader {
       (this.preference.get("downloaders") as Array<DownloaderPreference>).find(
         (downloaderPref) => downloaderPref.name === "x-hub"
       )?.args ?? "";
+
+    let downloadUrl = "";
+
+    if (headers.method === "POST") {
+      queryUrl = await ipcRenderer.invoke(
+        "xhub-request-by-title",
+        queryUrl,
+        headers
+      );
+    }
+
     const body = await ipcRenderer.invoke("xhub-request", queryUrl);
     const root = parse(body);
     const buttonNodes = root.querySelectorAll("button");
     const button = buttonNodes.find((node) => {
       return node.attributes.onclick.includes("download");
     });
-    let downloadUrl;
     if (button) {
-      downloadUrl =
-        siteUrl +
-        button.attributes.onclick.replace("location.href='", "").slice(0, -1);
+      downloadUrl = button.attributes.onclick
+        .replace("location.href='", "")
+        .slice(0, -1);
+      if (downloadUrl.startsWith("//")) {
+        downloadUrl = "https:" + downloadUrl;
+      } else {
+        downloadUrl = path.join(siteUrl, downloadUrl);
+      }
     } else {
       downloadUrl = "";
     }
-
     return downloadUrl;
   }
 

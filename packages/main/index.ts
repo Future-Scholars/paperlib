@@ -393,3 +393,64 @@ ipcMain.handle("xhub-request", async (event, url) => {
 
   return await promise;
 });
+
+ipcMain.handle("xhub-request-by-title", async (event, url, headers) => {
+  if (winCheck === null) {
+    winCheck = new BrowserWindow({
+      title: "XHub window",
+      width: 600,
+      height: 600,
+      useContentSize: true,
+      webPreferences: {
+        webSecurity: false,
+        nodeIntegration: true,
+        contextIsolation: true,
+      },
+      frame: true,
+      show: false,
+    });
+  }
+  winCheck.loadURL(url);
+
+  winCheck.on("closed", () => {
+    winCheck = null;
+  });
+
+  const promise = new Promise((resolve, reject) => {
+    winCheck?.webContents.on("dom-ready", async () => {
+      winXHubDom = await winCheck?.webContents.executeJavaScript(
+        "document.body.innerHTML"
+      );
+
+      if (winXHubDom?.includes("This process is automatic.")) {
+        setTimeout(async () => {
+          winCheck?.close();
+          resolve("");
+        }, 20000);
+      } else {
+        const postResponseUrl = await winCheck?.webContents.executeJavaScript(
+          `
+            var promise = new Promise((resolve, reject) => {
+              var xhr = new XMLHttpRequest();
+              xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                  resolve(xhr.responseURL);
+                } else if (xhr.readyState === 4 && xhr.status !== 200) {
+                  resolve("");
+                }
+              }
+              xhr.open('POST', '${url}', true);
+              xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded; charset=UTF-8');
+              xhr.send('request=${headers.requestIdentifier}');
+            });
+
+            promise;
+          `
+        );
+        resolve(postResponseUrl);
+      }
+    });
+  });
+
+  return await promise;
+});
