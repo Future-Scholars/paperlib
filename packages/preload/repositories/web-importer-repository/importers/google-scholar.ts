@@ -58,25 +58,27 @@ export class GoogleScholarWebImporter extends WebImporter {
           if (dataid) {
             const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
             const citeResponse = await safeGot(citeUrl, headers, agent);
-            const citeRoot = parse(citeResponse?.body);
-            const citeBibtexNode = citeRoot.lastChild
-              .childNodes[0] as any as HTMLElement;
-            if (citeBibtexNode) {
-              // @ts-ignore
-              const citeBibtexUrl = citeBibtexNode.attributes["href"];
-              if (citeBibtexUrl) {
-                const citeBibtexResponse = await safeGot(
-                  citeBibtexUrl,
-                  headers,
-                  agent
-                );
-                const bibtexStr = citeBibtexResponse?.body;
-                if (bibtexStr) {
-                  const bibtexs = bibtex2json(bibtexStr);
-                  if (bibtexs.length > 0) {
-                    const bibtex = bibtexs[0];
-                    if (bibtex) {
-                      entityDraft = bibtex2entityDraft(bibtex, entityDraft);
+            if (citeResponse?.body) {
+              const citeRoot = parse(citeResponse?.body);
+              const citeBibtexNode = citeRoot.lastChild
+                .childNodes[0] as any as HTMLElement;
+              if (citeBibtexNode) {
+                // @ts-ignore
+                const citeBibtexUrl = citeBibtexNode.attributes["href"];
+                if (citeBibtexUrl) {
+                  const citeBibtexResponse = await safeGot(
+                    citeBibtexUrl,
+                    headers,
+                    agent
+                  );
+                  const bibtexStr = citeBibtexResponse?.body;
+                  if (bibtexStr) {
+                    const bibtexs = bibtex2json(bibtexStr);
+                    if (bibtexs.length > 0) {
+                      const bibtex = bibtexs[0];
+                      if (bibtex) {
+                        entityDraft = bibtex2entityDraft(bibtex, entityDraft);
+                      }
                     }
                   }
                 }
