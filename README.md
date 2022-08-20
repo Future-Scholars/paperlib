@@ -45,6 +45,7 @@ That is Paperlib.
 -   Fulltext and advanced search.
 -   Rating, flag, tag, folder and markdown/plain text note.
 -   RSS feed subscription.
+-   Locate PDF files from web.
 -   Plugin like macOS spotlight to copy paste BibTex easily.
 -   Cloud sync, supports macOS and Windows.
 -   Beautiful and clean UI.
