@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 
-const show = ref(true);
+const show = ref(false);
 
 const checkShouldShow = async () => {
-  // show.value = await window.appInteractor.shouldShowWhatsNew();
+  show.value = await window.appInteractor.shouldShowWhatsNew();
 };
 
 const hide = () => {
@@ -45,9 +45,8 @@ onMounted(() => {
               <p class="mb-4">详情界面的标题和摘要支持渲染 LaTex。</p>
 
               <li>
-                Support locating PDF from arXiv, unpaywall, and xxx-hub. #122
-                Please manually input the URL of the xxx-hub in the preference
-                window.
+                Support locating PDF from arXiv, unpaywall, and xxx-hub. Please
+                manually input the URL of the xxx-hub in the preference window.
               </li>
               <p class="mb-4">
                 对于没有链接 PDF 的论文条目，可以从 arXiv，unpaywall，和某 hub
@@ -56,7 +55,12 @@ onMounted(() => {
               </p>
 
               <li>Import papers from a BibTex file.</li>
-              <p>支持拖入 BibTex 文件导入论文。</p>
+              <p class="mb-4">支持拖入 BibTex 文件导入论文。</p>
+
+              <li>
+                The browser extension supports all urls ending with '.pdf'.
+              </li>
+              <p>现在浏览器插件支持所有以 '.pdf' 结尾的网址。</p>
             </ul>
           </div>
           <img class="rounded-md shadow-lg w-72" src="../assets/1.png" />
