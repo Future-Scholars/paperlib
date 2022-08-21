@@ -34,6 +34,19 @@ onMounted(() => {
       <div class="w-[45rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
+          What's New in Paperlib 1.9.7
+        </p>
+        <p class="mt-10 mb-4"><b>Improvements and fixed Bugs</b></p>
+        <ul class="list-disc">
+          <li>
+            Fixed: Papers from the ACL conference will be mistakenly identified from AMTA conference #127
+          </li>
+          <p class="mb-4">
+          修复了 ACL 会议元数据匹配的 Bug。
+          </p>
+        </ul>
+
+        <p class="text-center text-2xl font-bold mb-8">
           What's New in Paperlib 1.9.6
         </p>
 

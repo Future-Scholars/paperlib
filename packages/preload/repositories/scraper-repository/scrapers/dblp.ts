@@ -209,13 +209,15 @@ export class DBLPVenueScraper extends Scraper {
         };
       };
     };
+
+    const venueID = entityDraft.publication.replace("dblp://", "") + "/";
     if (response.result.hits["@sent"] > 0) {
       const hits = response.result.hits.hit;
       for (const hit of hits) {
         const venueInfo = hit["info"];
         if (
           venueInfo["url"].includes(
-            entityDraft.publication.replace("dblp://", "") + "/"
+            venueID
           )
         ) {
           const venue = venueInfo["venue"];

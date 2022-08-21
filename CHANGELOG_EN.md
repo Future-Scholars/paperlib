@@ -1,3 +1,7 @@
+## v1.9.7 Aug 21 2022
+
+1. Fixed: Papers from the ACL conference will be mistakenly identified from AMTA conference #127
+
 ## v1.9.6 Aug 20 2022
 
 1. Render LaTex in the details panel.
