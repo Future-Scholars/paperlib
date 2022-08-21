@@ -21,8 +21,9 @@ An open-source academic paper management tool.
 ---
 
 
-⚠️ **I'm looking for someone who can help me:** ⚠️
-- Continue to develop the native SwiftUI version if you like Paperlib and are familiar with SwiftUI.
+📣 **I'm looking for someone to work with me on developing Paperlib.** 📣
+
+ If you are interested please contact me. 
 
 ## Introduction
 
