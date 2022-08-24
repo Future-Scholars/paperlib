@@ -32,7 +32,10 @@ export async function safeGot(
         error.response.statusCode === 429 ||
         error.response.statusCode === 403
       ) {
-        const robot_checked_body = await ipcRenderer.invoke("robot-check", url);
+        const robot_checked_body = await ipcRenderer.invoke(
+          "sidework-window-robot-check",
+          url
+        );
         response = {
           body: robot_checked_body,
         };
@@ -44,7 +47,10 @@ export async function safeGot(
     response?.body.includes("Please show you&#39;re not a robot") ||
     response?.body.includes("does not have permission")
   ) {
-    const robot_checked_body = await ipcRenderer.invoke("robot-check", url);
+    const robot_checked_body = await ipcRenderer.invoke(
+      "sidework-window-robot-check",
+      url
+    );
     response = {
       body: robot_checked_body,
     };

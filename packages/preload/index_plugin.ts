@@ -1,8 +1,8 @@
 import { contextBridge } from "electron";
-import { PluginInteractor } from "./interactors/plugin-interactor";
+import { PluginSideInteractor } from "./interactors/plugin-side-interactor";
 import { createInteractorProxy } from "./utils/misc";
 
-const pluginInteractor = new PluginInteractor();
+const pluginInteractor = new PluginSideInteractor();
 
 const pluginInteractorProxy = createInteractorProxy(pluginInteractor);
 

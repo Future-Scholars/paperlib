@@ -63,13 +63,16 @@ export class XHubDownloader extends Downloader {
 
     if (headers.method === "POST") {
       queryUrl = await ipcRenderer.invoke(
-        "xhub-request-by-title",
+        "sidework-window-xhub-request-by-title",
         queryUrl,
         headers
       );
     }
 
-    const body = await ipcRenderer.invoke("xhub-request", queryUrl);
+    const body = await ipcRenderer.invoke(
+      "sidework-window-xhub-request",
+      queryUrl
+    );
     const root = parse(body);
     const buttonNodes = root.querySelectorAll("button");
     const button = buttonNodes.find((node) => {
@@ -105,7 +108,7 @@ async function downloadImpl(
     const downloadUrl = await this.queryProcess(queryUrl, headers, null);
     if (downloadUrl) {
       const downloadedUrl = await ipcRenderer.invoke(
-        "xhub-request",
+        "sidework-window-xhub-request",
         downloadUrl
       );
       if (downloadedUrl) {

@@ -2,7 +2,7 @@ import { AppInteractor } from "../../preload/interactors/app-interactor";
 import { EntityInteractor } from "../../preload/interactors/entity-interactor";
 import { RenderInteractor } from "../../preload/interactors/render-interactor";
 import { BrowserExtensionInteractor } from "../../preload/interactors/browser-extension-interactor";
-import { PluginInteractor } from "../../preload/interactors/plugin-interactor";
+import { PluginSideInteractor } from "../../preload/interactors/plugin-side-interactor";
 import { FeedInteractor } from "../../preload/interactors/feed-interactor";
 
 export {};
@@ -13,7 +13,7 @@ declare global {
     entityInteractor: EntityInteractor;
     renderInteractor: RenderInteractor;
     browserExtensionInteractor: BrowserExtensionInteractor;
-    pluginInteractor: PluginInteractor;
+    pluginInteractor: PluginSideInteractor;
     feedInteractor: FeedInteractor;
     quicklookInteractor: { preview: () => void; closePreview: () => void };
   }

@@ -6,7 +6,7 @@ import { DBRepository } from "./repositories/db-repository/db-repository";
 import { FileRepository } from "./repositories/file-repository/file-repository";
 import { ScraperRepository } from "./repositories/scraper-repository/scraper-repository";
 import { CacheRepository } from "./repositories/cache-repository/cache-repository";
-import { ExporterRepository } from "./repositories/exporter-repository/exporter-repository";
+import { ReferenceRepository } from "./repositories/reference-repository/reference-repository";
 import { WebImporterRepository } from "./repositories/web-importer-repository/web-importer-repository";
 import { RSSRepository } from "./repositories/rss-repository/rss-repository";
 import { DownloaderRepository } from "./repositories/downloader-repository/downloader-repository";
@@ -17,6 +17,7 @@ import { EntityInteractor } from "./interactors/entity-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
 import { BrowserExtensionInteractor } from "./interactors/browser-extension-interactor";
 import { FeedInteractor } from "./interactors/feed-interactor";
+import { PluginMainInteractor } from "./interactors/plugin-main-interactor";
 
 import { appendLoading } from "./loading";
 import { domReady } from "./utils";
@@ -34,7 +35,7 @@ const dbRepository = new DBRepository(sharedState, preference);
 const fileRepository = new FileRepository(sharedState, preference);
 const scraperRepository = new ScraperRepository(sharedState, preference);
 const cacheRepository = new CacheRepository(sharedState, preference);
-const exporterRepository = new ExporterRepository(sharedState, preference);
+const referenceRepository = new ReferenceRepository(sharedState, preference);
 const webImporterRepository = new WebImporterRepository(
   sharedState,
   preference
@@ -57,7 +58,7 @@ const entityInteractor = new EntityInteractor(
   fileRepository,
   scraperRepository,
   cacheRepository,
-  exporterRepository,
+  referenceRepository,
   downloaderRepository
 );
 const renderInteractor = new RenderInteractor(preference);
@@ -78,6 +79,12 @@ const feedInteractor = new FeedInteractor(
   webImporterRepository,
   entityInteractor
 );
+const pluginMainInteractor = new PluginMainInteractor(
+  sharedState,
+  preference,
+  referenceRepository,
+  entityInteractor
+);
 
 const appInteractorProxy = createInteractorProxy(appInteractor);
 const entityInteractorProxy = createInteractorProxy(entityInteractor);
@@ -86,6 +93,7 @@ const browserExtensionInteractorProxy = createInteractorProxy(
   browserExtensionInteractor
 );
 const feedInteractorProxy = createInteractorProxy(feedInteractor);
+const pluginMainInteractorProxy = createInteractorProxy(pluginMainInteractor);
 
 contextBridge.exposeInMainWorld("appInteractor", appInteractorProxy);
 contextBridge.exposeInMainWorld("entityInteractor", entityInteractorProxy);
@@ -95,3 +103,7 @@ contextBridge.exposeInMainWorld(
   browserExtensionInteractorProxy
 );
 contextBridge.exposeInMainWorld("feedInteractor", feedInteractorProxy);
+contextBridge.exposeInMainWorld(
+  "pluginMainInteractor",
+  pluginMainInteractorProxy
+);

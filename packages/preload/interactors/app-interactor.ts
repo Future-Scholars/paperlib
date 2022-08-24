@@ -212,6 +212,6 @@ export class AppInteractor {
   }
 
   async requestXHub(url: string) {
-    return await ipcRenderer.invoke("xhub-request", url);
+    return await ipcRenderer.invoke("sidework-window-xhub-request", url);
   }
 }

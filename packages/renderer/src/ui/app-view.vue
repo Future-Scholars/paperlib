@@ -258,10 +258,6 @@ window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
   void window.appInteractor.resumeSync();
 });
 
-window.appInteractor.registerMainSignal("plugin-window-comm-request", (_) => {
-  window.appInteractor.sendMainSignal("request-plugin-channel", null);
-});
-
 // =======================================
 onBeforeMount(async () => {
   reloadPreference();
@@ -269,22 +265,8 @@ onBeforeMount(async () => {
   sidebarWidth.value = window.appInteractor.getPreference(
     "sidebarWidth"
   ) as number;
-
-  //   window.appInteractor.setState(
-  //     "viewState.sortBy",
-  //     window.appInteractor.getPreference("mainviewSortBy") as string
-  //   );
-  //   window.appInteractor.setState(
-  //     "viewState.sortOrder",
-  //     window.appInteractor.getPreference("mainviewSortOrder") as string
-  //   );
 });
 onMounted(async () => {
-  //   window.appInteractor.setState(
-  //     "viewState.viewType",
-  //     window.appInteractor.getPreference("mainviewType") as string
-  //   );
-
   await reloadTags();
   await reloadFolders();
   await reloadEntities();

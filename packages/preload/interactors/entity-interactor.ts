@@ -11,7 +11,7 @@ import { DBRepository } from "../repositories/db-repository/db-repository";
 import { ScraperRepository } from "../repositories/scraper-repository/scraper-repository";
 import { FileRepository } from "../repositories/file-repository/file-repository";
 import { CacheRepository } from "../repositories/cache-repository/cache-repository";
-import { ExporterRepository } from "../repositories/exporter-repository/exporter-repository";
+import { ReferenceRepository } from "../repositories/reference-repository/reference-repository";
 import { DownloaderRepository } from "../repositories/downloader-repository/downloader-repository";
 
 import { Categorizers } from "../models/PaperCategorizer";
@@ -25,7 +25,7 @@ export class EntityInteractor {
   fileRepository: FileRepository;
   scraperRepository: ScraperRepository;
   cacheRepository: CacheRepository;
-  exporterRepository: ExporterRepository;
+  referenceRepository: ReferenceRepository;
   downloaderRepository: DownloaderRepository;
 
   scheduler: ToadScheduler;
@@ -37,7 +37,7 @@ export class EntityInteractor {
     fileRepository: FileRepository,
     scraperRepository: ScraperRepository,
     cacheRepository: CacheRepository,
-    exporterRepository: ExporterRepository,
+    referenceRepository: ReferenceRepository,
     downloaderRepository: DownloaderRepository
   ) {
     this.sharedState = sharedState;
@@ -47,35 +47,11 @@ export class EntityInteractor {
     this.fileRepository = fileRepository;
     this.scraperRepository = scraperRepository;
     this.cacheRepository = cacheRepository;
-    this.exporterRepository = exporterRepository;
+    this.referenceRepository = referenceRepository;
     this.downloaderRepository = downloaderRepository;
 
     this.scheduler = new ToadScheduler();
     this.setupRoutineScrapeScheduler();
-
-    // Communicate with plugin
-    ipcRenderer.once("provide-plugin-channel", (event) => {
-      // Once we receive the reply, we can take the port...
-      const [port] = event.ports;
-      // ... register a handler to receive results ...
-      port.onmessage = async (event) => {
-        const data = JSON.parse(event.data);
-        if (data.op === "search") {
-          this.sharedState.set("viewState.searchMode", "general");
-          const entities = await this.loadEntities(
-            data.value,
-            false,
-            "",
-            "",
-            "addTime",
-            "desc"
-          );
-          port.postMessage(entities);
-        } else if (data.op === "export") {
-          this.export(data.value, data.args === "BibTex" ? "bibtex" : "plain");
-        }
-      };
-    });
   }
 
   // ============================================================
@@ -630,8 +606,8 @@ export class EntityInteractor {
       return draft;
     });
 
-    const text = this.exporterRepository.export(entityDrafts, format);
-    clipboard.writeText(text);
+    // const text = this.referenceRepository.export(entityDrafts, format);
+    // clipboard.writeText(text);
   }
 
   // ============================================================
