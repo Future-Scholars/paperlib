@@ -129,6 +129,10 @@ window.pluginInteractor.registerState(
   }
 );
 
+window.pluginInteractor.registerMainSignal("plugin-gain-focus", () => {
+  checkLinkedFolder();
+});
+
 onMounted(() => {
   checkLinkedFolder();
 });

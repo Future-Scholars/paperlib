@@ -41,13 +41,22 @@ async function createWindow() {
   globalShortcut.register(
     (preference.get("shortcutPlugin") as string) || "CommandOrControl+Shift+I",
     async () => {
-      win?.blur();
+      // win?.blur();
       if (winPlugin === null || winPlugin?.isDestroyed()) {
         winPlugin = await createPluginWindow(winPlugin);
+        winPlugin.on("show", () => {
+          setMainPluginCommunicationChannel(win, winPlugin);
+        });
+
+        winPlugin.on("hide", () => {
+          winPlugin?.setSize(600, 76);
+
+          if (platform() === "darwin") {
+            win?.hide();
+            app.hide();
+          }
+        });
       }
-      winPlugin.on("show", () => {
-        setMainPluginCommunicationChannel(win, winPlugin);
-      });
       winPlugin?.show();
     }
   );

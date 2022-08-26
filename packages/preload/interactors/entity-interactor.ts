@@ -537,6 +537,7 @@ export class EntityInteractor {
         .value as string) === oldCategorizerName &&
       success
     ) {
+      console.log("rename linked folder");
       this.sharedState.set(
         "selectionState.pluginLinkedFolder",
         newCategorizerName

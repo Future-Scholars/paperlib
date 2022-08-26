@@ -32,7 +32,9 @@ const selectedCategorizer = ref("lib-all");
 const editingCategorizer = ref("");
 
 const isSpinnerShown = ref(false);
-const pluginLinkedFolder = ref("");
+const pluginLinkedFolder = ref(
+  window.appInteractor.getPreference("pluginLinkedFolder") as string
+);
 
 const onSelectCategorizer = (categorizer: string) => {
   window.appInteractor.setState(

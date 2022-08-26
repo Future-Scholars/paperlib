@@ -116,4 +116,8 @@ export class PluginSideInteractor {
   ) {
     this.sharedState.register(dest, callback);
   }
+
+  registerMainSignal(signal: string, callback: (args: any) => void) {
+    ipcRenderer.on(signal, (_, args) => callback(args));
+  }
 }

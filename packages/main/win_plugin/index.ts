@@ -77,19 +77,11 @@ export async function createPluginWindow(
 
   winPlugin.on("focus", () => {
     winPlugin?.setSize(600, 76);
-    winPlugin?.webContents.send("plugin-gained-focus");
+    winPlugin?.webContents.send("plugin-gain-focus");
   });
 
   winPlugin.on("show", () => {
     winPlugin?.setSize(600, 76);
-  });
-
-  winPlugin.on("hide", () => {
-    winPlugin?.setSize(600, 76);
-
-    if (os.platform() === "darwin") {
-      app.hide();
-    }
   });
 
   registerPluginWindowEvents(winPlugin);

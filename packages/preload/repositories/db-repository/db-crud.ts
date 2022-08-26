@@ -312,8 +312,8 @@ export async function renameCategorizer(
       for (const object of objects) {
         object.name = newCategorizerNameStr;
       }
-      return true;
     });
+    return true;
   } catch (error) {
     this.sharedState.set(
       "viewState.alertInformation",
