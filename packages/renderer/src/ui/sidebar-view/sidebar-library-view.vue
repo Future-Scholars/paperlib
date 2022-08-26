@@ -16,6 +16,7 @@ import {
   PaperFolder,
   Categorizers,
 } from "../../../../preload/models/PaperCategorizer";
+import { AppInteractor } from "packages/preload/interactors/app-interactor";
 
 const props = defineProps({
   tags: Array as () => Array<PaperTag>,
@@ -28,6 +29,8 @@ const entitiesCount = ref(
   window.appInteractor.getState("viewState.entitiesCount") as number
 );
 const selectedCategorizer = ref("lib-all");
+const editingCategorizer = ref("");
+
 const isSpinnerShown = ref(false);
 const pluginLinkedFolder = ref("");
 
@@ -118,12 +121,29 @@ const onItemDroped = (
   );
 };
 
+const onCategorizerNameChanged = (name: string) => {
+  if (
+    editingCategorizer.value.replace("folder-", "").replace("tag-", "") !== name
+  ) {
+    window.entityInteractor.renameCategorizer(
+      editingCategorizer.value.replace("folder-", "").replace("tag-", ""),
+      name,
+      editingCategorizer.value.startsWith("tag-") ? "PaperTag" : "PaperFolder"
+    );
+  }
+  window.appInteractor.setState("selectionState.editingCategorizer", "");
+};
+
 window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
     deleteCategorizer(args);
   }
 );
+
+window.appInteractor.registerMainSignal("sidebar-context-menu-edit", (args) => {
+  window.appInteractor.setState("selectionState.editingCategorizer", args);
+});
 
 window.appInteractor.registerMainSignal(
   "sidebar-context-menu-color",
@@ -152,6 +172,13 @@ window.appInteractor.registerState(
   "selectionState.selectedCategorizer",
   (value) => {
     selectedCategorizer.value = value as string;
+  }
+);
+
+window.appInteractor.registerState(
+  "selectionState.editingCategorizer",
+  (value) => {
+    editingCategorizer.value = value as string;
   }
 );
 
@@ -195,6 +222,7 @@ window.appInteractor.registerState(
         :with-counter="showSidebarCount"
         :with-spinner="false"
         :compact="compact"
+        :editing="editingCategorizer === `tag-${tag.name}`"
         v-for="tag in tags"
         :active="selectedCategorizer === `tag-${tag.name}`"
         @click="onSelectCategorizer(`tag-${tag.name}`)"
@@ -207,6 +235,11 @@ window.appInteractor.registerState(
         @item-droped="
           () => {
             onItemDroped(tag.name, 'PaperTag');
+          }
+        "
+        @name-changed="
+          (name) => {
+            onCategorizerNameChanged(name);
           }
         "
       >
@@ -229,6 +262,7 @@ window.appInteractor.registerState(
         :with-counter="showSidebarCount"
         :with-spinner="false"
         :compact="compact"
+        :editing="editingCategorizer === `folder-${folder.name}`"
         v-for="folder in folders"
         :active="selectedCategorizer === `folder-${folder.name}`"
         @click="onSelectCategorizer(`folder-${folder.name}`)"
@@ -241,6 +275,11 @@ window.appInteractor.registerState(
         @item-droped="
           () => {
             onItemDroped(folder.name, 'PaperFolder');
+          }
+        "
+        @name-changed="
+          (name) => {
+            onCategorizerNameChanged(name);
           }
         "
       >

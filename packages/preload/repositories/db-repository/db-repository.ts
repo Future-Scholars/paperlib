@@ -23,6 +23,7 @@ import {
   remove,
   updateCategorizers,
   colorizeCategorizers,
+  renameCategorizer,
   update,
 } from "./db-crud";
 import {
@@ -103,6 +104,7 @@ export class DBRepository {
   deleteCategorizers = deleteCategorizers;
   updateCategorizers = updateCategorizers;
   colorizeCategorizers = colorizeCategorizers;
+  renameCategorizer = renameCategorizer;
   update = update;
 
   // Feeds CURD Func

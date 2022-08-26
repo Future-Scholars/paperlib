@@ -79,6 +79,7 @@ export class SharedState {
       pluginLinkedFolder: new State(
         preference.get("pluginLinkedFolder") as string
       ),
+      editingCategorizer: new State(""),
     };
 
     // Shared Data

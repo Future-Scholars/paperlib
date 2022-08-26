@@ -520,6 +520,31 @@ export class EntityInteractor {
     );
   }
 
+  async renameCategorizer(
+    oldCategorizerName: string,
+    newCategorizerName: string,
+    categorizerType: Categorizers
+  ) {
+    const success = await this.dbRepository.renameCategorizer(
+      oldCategorizerName,
+      newCategorizerName,
+      categorizerType
+    );
+
+    if (
+      categorizerType === "PaperFolder" &&
+      (this.sharedState.get("selectionState.pluginLinkedFolder")
+        .value as string) === oldCategorizerName &&
+      success
+    ) {
+      this.sharedState.set(
+        "selectionState.pluginLinkedFolder",
+        newCategorizerName
+      );
+      this.preference.set("pluginLinkedFolder", newCategorizerName);
+    }
+  }
+
   async routineScrape() {
     const allowRoutineMatch = this.preference.get(
       "allowRoutineMatch"

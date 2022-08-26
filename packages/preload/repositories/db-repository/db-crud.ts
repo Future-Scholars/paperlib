@@ -276,6 +276,52 @@ export async function colorizeCategorizers(
   });
 }
 
+export async function renameCategorizer(
+  this: DBRepository,
+  oldCategorizerNameStr: string,
+  newCategorizerNameStr: string,
+  categorizerType: Categorizers,
+  realm: Realm | null = null
+) {
+  if (!realm) {
+    realm = await this.realm();
+  }
+
+  try {
+    realm.safeWrite(() => {
+      const objects = realm!
+        .objects<PaperCategorizer>(categorizerType)
+        .filtered(
+          `name == "${oldCategorizerNameStr}"`
+        ) as Results<PaperCategorizer>;
+
+      const existingObjects = realm!
+        .objects<PaperCategorizer>(categorizerType)
+        .filtered(
+          `name == "${newCategorizerNameStr}"`
+        ) as Results<PaperCategorizer>;
+      if (existingObjects.length > 0) {
+        this.sharedState.set(
+          "viewState.alertInformation",
+          `Categorizer ${newCategorizerNameStr} already exists`
+        );
+        return false;
+      } else {
+        for (const object of objects) {
+          object.name = newCategorizerNameStr;
+        }
+        return true;
+      }
+    });
+  } catch (error) {
+    this.sharedState.set(
+      "viewState.alertInformation",
+      `Error renaming categorizer: ${error as string}`
+    );
+    return false;
+  }
+}
+
 export function updateCategorizers(
   this: DBRepository,
   existCategorizers: PaperCategorizer[],

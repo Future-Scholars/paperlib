@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // @ts-ignore
 import dragDrop from "drag-drop";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 import Spinner from "./spinner.vue";
 import Counter from "./counter.vue";
@@ -13,10 +13,11 @@ const props = defineProps({
   withSpinner: Boolean,
   withCounter: Boolean,
   compact: Boolean,
+  editing: Boolean,
 });
 
 const item = ref(null);
-const emit = defineEmits(["droped", "item-droped"]);
+const emit = defineEmits(["droped", "item-droped", "name-changed"]);
 
 const registerDropHandler = () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -41,6 +42,11 @@ const registerDropHandler = () => {
   });
 };
 
+// @ts-ignore
+const onNameChanged = (event) => {
+  emit("name-changed", event.target.value);
+};
+
 onMounted(() => {
   registerDropHandler();
 });
@@ -59,9 +65,19 @@ onMounted(() => {
     <slot></slot>
     <div
       class="my-auto text-xs select-none text-ellipsis overflow-hidden whitespace-nowrap grow"
+      v-if="!editing"
     >
       {{ name }}
     </div>
+    <input
+      class="my-auto text-xs bg-transparent grow text-ellipsis overflow-hidden whitespace-nowrap border-2 rounded-md px-1 border-accentlight dark:border-accentdark"
+      autofocus
+      type="text"
+      v-model="name"
+      v-if="editing"
+      @change="onNameChanged"
+      @blur="onNameChanged"
+    />
     <div class="my-auto flex space-x-2">
       <Spinner class="m-auto" v-show="withSpinner" />
       <Counter class="m-auto" :value="count" v-if="withCounter" />
