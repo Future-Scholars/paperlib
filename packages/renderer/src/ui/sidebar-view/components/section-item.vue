@@ -76,7 +76,6 @@ onMounted(() => {
       v-model="name"
       v-if="editing"
       @change="onNameChanged"
-      @blur="onNameChanged"
     />
     <div class="my-auto flex space-x-2">
       <Spinner class="m-auto" v-show="withSpinner" />

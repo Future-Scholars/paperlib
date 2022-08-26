@@ -123,6 +123,7 @@ const onItemDroped = (
 
 const onCategorizerNameChanged = (name: string) => {
   if (
+    editingCategorizer.value &&
     editingCategorizer.value.replace("folder-", "").replace("tag-", "") !== name
   ) {
     window.entityInteractor.renameCategorizer(

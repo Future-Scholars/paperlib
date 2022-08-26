@@ -287,6 +287,20 @@ export async function renameCategorizer(
     realm = await this.realm();
   }
 
+  const existingObjects = realm!
+    .objects<PaperCategorizer>(categorizerType)
+    .filtered(
+      `name == "${newCategorizerNameStr}"`
+    ) as Results<PaperCategorizer>;
+
+  if (existingObjects.length > 0) {
+    this.sharedState.set(
+      "viewState.alertInformation",
+      `Categorizer ${newCategorizerNameStr} already exists`
+    );
+    return false;
+  }
+
   try {
     realm.safeWrite(() => {
       const objects = realm!
@@ -295,23 +309,10 @@ export async function renameCategorizer(
           `name == "${oldCategorizerNameStr}"`
         ) as Results<PaperCategorizer>;
 
-      const existingObjects = realm!
-        .objects<PaperCategorizer>(categorizerType)
-        .filtered(
-          `name == "${newCategorizerNameStr}"`
-        ) as Results<PaperCategorizer>;
-      if (existingObjects.length > 0) {
-        this.sharedState.set(
-          "viewState.alertInformation",
-          `Categorizer ${newCategorizerNameStr} already exists`
-        );
-        return false;
-      } else {
-        for (const object of objects) {
-          object.name = newCategorizerNameStr;
-        }
-        return true;
+      for (const object of objects) {
+        object.name = newCategorizerNameStr;
       }
+      return true;
     });
   } catch (error) {
     this.sharedState.set(
