@@ -103,6 +103,9 @@ export interface PreferenceStore {
 
   pluginLinkedFolder: string;
 
+  choosedPDFViewer: string;
+  choosedPDFViewerPath: string;
+
   [Key: string]: unknown;
 }
 
@@ -318,6 +321,9 @@ const defaultPreferences: PreferenceStore = {
   ],
 
   pluginLinkedFolder: "",
+
+  choosedPDFViewer: "default",
+  choosedPDFViewerPath: "",
 };
 
 export class Preference {

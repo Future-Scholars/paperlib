@@ -1,6 +1,10 @@
 import { ipcRenderer, shell } from "electron";
 import keytar from "keytar";
 import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
+import { spawn, SpawnOptions } from "child_process";
+import { pathExists } from "fs-extra";
+import path from "path";
+import os from "os";
 
 import { DBRepository } from "../repositories/db-repository/db-repository";
 import { DownloaderRepository } from "../repositories/downloader-repository/downloader-repository";
@@ -99,12 +103,37 @@ export class AppInteractor {
   }
 
   // ============================================================
+  filename(url: string) {
+    return path.basename(url);
+  }
+
   async open(url: string) {
     if (url.startsWith("http")) {
       shell.openExternal(url);
     } else {
       const accessedURL = (await this.access(url, true)).replace("file://", "");
-      shell.openPath(accessedURL);
+      if (this.preference.get("choosedPDFViewer") === "default") {
+        shell.openPath(accessedURL);
+      } else {
+        const viewerPath = this.preference.get(
+          "choosedPDFViewerPath"
+        ) as string;
+
+        const exists = await pathExists(viewerPath);
+        if (!exists) {
+          console.error("Viewer not found");
+        }
+
+        const opts: SpawnOptions = {
+          detached: true,
+        };
+
+        if (os.platform() === "win32") {
+          spawn(viewerPath, [accessedURL], opts);
+        } else {
+          spawn("open", ["-a", viewerPath, accessedURL], opts);
+        }
+      }
     }
   }
 
