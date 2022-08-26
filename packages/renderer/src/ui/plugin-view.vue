@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, ref } from "vue";
+import { onMounted, Ref, ref } from "vue";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import {
   BIconLink,
@@ -13,10 +13,13 @@ import PluginTableItem from "./main-view/data-view/components/plugin-table-item.
 import { debounce } from "../utils/debounce";
 import { PaperEntity } from "../../../preload/models/PaperEntity";
 
+const searchInput = ref(null);
+
 const exportMode = ref("BibTex");
 const searchText = ref("");
 const searchDebounce = ref(300);
 const selectedIndex: Ref<number> = ref(0);
+const pluginLinkedFolder = ref("");
 
 const isNotificationShown = ref(false);
 
@@ -43,7 +46,7 @@ const onInput = (payload: Event) => {
 
 const exportSelectedEntity = (shiftKey: boolean, ctrlOrCmdKey: boolean) => {
   const selectedEntity = entities.value[selectedIndex.value];
-  if (selectedEntity.id === "search-in-google-scholar") {
+  if (selectedEntity && selectedEntity.id === "search-in-google-scholar") {
     window.pluginInteractor.open(
       `https://scholar.google.com/scholar?q=${searchText.value}`
     );
@@ -52,6 +55,11 @@ const exportSelectedEntity = (shiftKey: boolean, ctrlOrCmdKey: boolean) => {
       window.pluginInteractor.export(
         JSON.stringify([selectedEntity]),
         "BibTex-Key"
+      );
+    } else if (ctrlOrCmdKey) {
+      window.pluginInteractor.export(
+        JSON.stringify([selectedEntity]),
+        "BibTex-In-Folder"
       );
     } else {
       window.pluginInteractor.export(
@@ -92,14 +100,45 @@ function shortcutHandler(event: KeyboardEvent) {
     event.preventDefault();
     exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
   }
+
+  // @ts-ignore
+  searchInput.value.focus();
 }
 window.addEventListener("keydown", shortcutHandler, true);
+
+const onLinkClicked = async () => {
+  await window.pluginInteractor.showFolderList();
+  // @ts-ignore
+  searchInput.value.focus();
+};
+
+const onUnlinkClicked = () => {
+  window.pluginInteractor.pluginUnlinkFolder();
+  // @ts-ignore
+  searchInput.value.focus();
+};
+
+const checkLinkedFolder = () => {
+  pluginLinkedFolder.value = window.pluginInteractor.linkedFolder();
+};
+
+window.pluginInteractor.registerState(
+  "selectionState.pluginLinkedFolder",
+  (value) => {
+    pluginLinkedFolder.value = value as string;
+  }
+);
+
+onMounted(() => {
+  checkLinkedFolder();
+});
 </script>
 
 <template>
   <div class="w-full text-neutral-700 dark:text-neutral-200 plugin-windows-bg">
     <div class="flex">
       <input
+        ref="searchInput"
         class="w-full h-12 text-sm px-3 bg-transparent focus:outline-none grow"
         type="text"
         autofocus
@@ -135,7 +174,7 @@ window.addEventListener("keydown", shortcutHandler, true);
           @click="
             () => {
               selectedIndex = index;
-              exportSelectedEntity();
+              exportSelectedEntity(false, false);
             }
           "
         />
@@ -148,9 +187,24 @@ window.addEventListener("keydown", shortcutHandler, true);
       <div
         class="flex my-auto space-x-4 ml-1 hover:text-neutral-600 transition-colors"
       >
-        <div class="flex space-x-1">
+        <div
+          class="flex space-x-1"
+          @click="onLinkClicked"
+          v-if="pluginLinkedFolder === ''"
+        >
           <BIconLink class="my-auto text-base" />
           <span class="my-auto mr-1 select-none">Link Folder</span>
+        </div>
+        <div
+          class="flex space-x-1"
+          @click="onUnlinkClicked"
+          v-if="pluginLinkedFolder !== ''"
+          :class="
+            pluginLinkedFolder !== '' ? 'text-neutral-600' : 'text-neutral-400'
+          "
+        >
+          <BIconLink class="my-auto text-base" />
+          <span class="my-auto mr-1 select-none">{{ pluginLinkedFolder }}</span>
         </div>
       </div>
 
@@ -163,7 +217,7 @@ window.addEventListener("keydown", shortcutHandler, true);
             />
           </div>
         </div>
-        <div class="flex">
+        <div class="flex" v-if="pluginLinkedFolder !== ''">
           <span class="my-auto mr-1 select-none">All Refs</span>
           <div class="flex space-x-1">
             <BIconCommand class="my-auto" />

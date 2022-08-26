@@ -101,6 +101,8 @@ export interface PreferenceStore {
   mainviewSortOrder: string;
   mainviewType: string;
 
+  pluginLinkedFolder: string;
+
   [Key: string]: unknown;
 }
 
@@ -314,6 +316,8 @@ const defaultPreferences: PreferenceStore = {
       downloadImplCode: "",
     },
   ],
+
+  pluginLinkedFolder: "",
 };
 
 export class Preference {

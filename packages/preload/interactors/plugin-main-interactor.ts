@@ -8,7 +8,13 @@ import { EntityInteractor } from "./entity-interactor";
 import { PaperEntityDraft } from "../models/PaperEntityDraft";
 
 interface PluginRequestData {
-  op: "search" | "export";
+  op:
+    | "search"
+    | "export"
+    | "folder-list"
+    | "plugin-link-folder"
+    | "linked-folder"
+    | "plugin-unlink-folder";
   value: string;
   args?: string;
 }
@@ -54,6 +60,18 @@ export class PluginMainInteractor {
           case "export":
             this.export(data);
             break;
+          case "folder-list":
+            this.getFolderList(data);
+            break;
+          case "plugin-link-folder":
+            this.pluginLinkFolder(data.value);
+            break;
+          case "linked-folder":
+            this.getLinkedFolder();
+            break;
+          case "plugin-unlink-folder":
+            this.pluginUnlinkFolder();
+            break;
         }
       };
     });
@@ -69,18 +87,39 @@ export class PluginMainInteractor {
       "addTime",
       "desc"
     );
-    this.port?.postMessage(entities);
+    this.port?.postMessage({ type: "search-result", value: entities });
   }
 
   async export(data: PluginRequestData) {
     let entityDrafts = JSON.parse(data.value) as PaperEntityDraft[];
-    entityDrafts = entityDrafts.map((entityDraft) => {
-      const draft = new PaperEntityDraft();
-      draft.initialize(entityDraft);
-      return draft;
-    });
+    const pluginLinkedFolder = this.sharedState.get(
+      "selectionState.pluginLinkedFolder"
+    ).value as string;
+
+    if (entityDrafts.length > 0) {
+      entityDrafts = entityDrafts
+        .filter((entityDraft) => entityDraft !== null)
+        .map((entityDraft) => {
+          const draft = new PaperEntityDraft();
+          draft.initialize(entityDraft);
+          return draft;
+        });
+    }
+
+    if (pluginLinkedFolder !== "") {
+      if (entityDrafts.length > 0) {
+        this.entityInteractor.updateWithCategorizer(
+          entityDrafts.map((draft) => {
+            return `${draft.id}`;
+          }),
+          pluginLinkedFolder,
+          "PaperFolder"
+        );
+      }
+    }
 
     let copyStr = "";
+
     if (data.args === "BibTex") {
       copyStr = this.referenceRepository.exportBibTexBody(
         this.referenceRepository.toCite(entityDrafts)
@@ -93,8 +132,65 @@ export class PluginMainInteractor {
       copyStr = this.referenceRepository.exportPlainText(
         this.referenceRepository.toCite(entityDrafts)
       );
+    } else if (data.args === "BibTex-In-Folder") {
+      if (
+        (this.sharedState.get("selectionState.pluginLinkedFolder")
+          .value as string) !== ""
+      ) {
+        const entities = await this.entityInteractor.loadEntities(
+          "",
+          false,
+          "",
+          pluginLinkedFolder,
+          "addTime",
+          "desc"
+        );
+        entityDrafts = entities.map((entity) => {
+          const draft = new PaperEntityDraft();
+          draft.initialize(entity);
+          return draft;
+        });
+        copyStr = this.referenceRepository.exportBibTexBody(
+          this.referenceRepository.toCite(entityDrafts)
+        );
+      }
     }
 
     clipboard.writeText(copyStr);
+  }
+
+  async getFolderList(data: PluginRequestData) {
+    const folders = await this.entityInteractor.loadCategorizers(
+      "PaperFolder",
+      "name",
+      "desc"
+    );
+    this.port?.postMessage({ type: "folder-list-result", value: folders });
+  }
+
+  // ============================================================
+
+  pluginLinkFolder(folderName: string) {
+    if (folderName === "paperlib-link-new-folder") {
+    } else {
+      this.preference.set("pluginLinkedFolder", folderName);
+      this.sharedState.set("selectionState.pluginLinkedFolder", folderName);
+      this.port?.postMessage({
+        type: "linked-folder-changed",
+        value: folderName,
+      });
+    }
+  }
+
+  pluginUnlinkFolder() {
+    this.preference.set("pluginLinkedFolder", "");
+    this.sharedState.set("selectionState.pluginLinkedFolder", "");
+  }
+
+  getLinkedFolder() {
+    this.port?.postMessage({
+      type: "linked-folder-result",
+      value: this.preference.get("pluginLinkedFolder"),
+    });
   }
 }

@@ -68,12 +68,16 @@ export async function createPluginWindow(
   });
 
   winPlugin.on("blur", () => {
+    if (os.platform() === "win32") {
+      winPlugin?.minimize();
+    }
     winPlugin?.hide();
     winPlugin?.setSize(600, 76);
   });
 
   winPlugin.on("focus", () => {
     winPlugin?.setSize(600, 76);
+    winPlugin?.webContents.send("plugin-gained-focus");
   });
 
   winPlugin.on("show", () => {
@@ -82,6 +86,10 @@ export async function createPluginWindow(
 
   winPlugin.on("hide", () => {
     winPlugin?.setSize(600, 76);
+
+    if (os.platform() === "darwin") {
+      app.hide();
+    }
   });
 
   registerPluginWindowEvents(winPlugin);

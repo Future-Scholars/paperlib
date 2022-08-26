@@ -59,7 +59,6 @@ export class ReferenceRepository {
           break;
         }
       }
-      console.log(nameArray);
       return {
         id: paperEntityDraft.id,
         type: ["article", "paper-conference", "article", "book"][

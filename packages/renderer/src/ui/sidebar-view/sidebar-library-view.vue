@@ -6,6 +6,7 @@ import {
   BIconFlag,
   BIconTag,
   BIconFolder,
+  BIconFolderSymlink,
 } from "bootstrap-icons-vue";
 
 import SectionItem from "./components/section-item.vue";
@@ -28,6 +29,7 @@ const entitiesCount = ref(
 );
 const selectedCategorizer = ref("lib-all");
 const isSpinnerShown = ref(false);
+const pluginLinkedFolder = ref("");
 
 const onSelectCategorizer = (categorizer: string) => {
   window.appInteractor.setState(
@@ -152,6 +154,14 @@ window.appInteractor.registerState(
     selectedCategorizer.value = value as string;
   }
 );
+
+window.appInteractor.registerState(
+  "selectionState.pluginLinkedFolder",
+  (value) => {
+    console.log(value);
+    pluginLinkedFolder.value = value as string;
+  }
+);
 </script>
 
 <template>
@@ -242,6 +252,17 @@ window.appInteractor.registerState(
             'text-green-500': folder.color === 'green',
             'text-yellow-500': folder.color === 'yellow',
           }"
+          v-if="folder.name !== pluginLinkedFolder"
+        />
+        <BIconFolderSymlink
+          class="text-sm my-auto min-w-[1em]"
+          :class="{
+            'text-blue-500': folder.color === 'blue' || folder.color === null,
+            'text-red-500': folder.color === 'red',
+            'text-green-500': folder.color === 'green',
+            'text-yellow-500': folder.color === 'yellow',
+          }"
+          v-if="folder.name === pluginLinkedFolder"
         />
       </SectionItem>
     </CollopseGroup>

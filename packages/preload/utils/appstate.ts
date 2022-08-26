@@ -76,6 +76,9 @@ export class SharedState {
       selectedCategorizer: new State(""),
       selectedFeed: new State("feed-all"),
       dragedIds: new State(""),
+      pluginLinkedFolder: new State(
+        preference.get("pluginLinkedFolder") as string
+      ),
     };
 
     // Shared Data
@@ -92,6 +95,36 @@ export class SharedState {
       feedsUpdated: new State(`${Date.now()}`),
       feedEntitiesUpdated: new State(`${Date.now()}`),
       defaultPath: new State(ipcRenderer.sendSync("userData")),
+    };
+  }
+
+  get(dest: string) {
+    const state = getObj(this, dest) as State;
+    return state;
+  }
+
+  set(dest: string, value: any, publish = true) {
+    const state = getObj(this, dest) as State;
+    state.set(value, publish);
+  }
+
+  register(dest: string, callback: (value: any) => void) {
+    const state = this.get(dest);
+    const channel = new BroadcastChannel(state.id);
+    channel.addEventListener("message", (event) => {
+      callback(event.data);
+    });
+  }
+}
+
+export class PluginSharedState {
+  selectionState: Record<string, State>;
+
+  constructor(preference: Preference) {
+    this.selectionState = {
+      pluginLinkedFolder: new State(
+        preference.get("pluginLinkedFolder") as string
+      ),
     };
   }
 
