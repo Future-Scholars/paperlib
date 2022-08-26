@@ -171,15 +171,12 @@ export class PluginMainInteractor {
   // ============================================================
 
   pluginLinkFolder(folderName: string) {
-    if (folderName === "paperlib-link-new-folder") {
-    } else {
-      this.preference.set("pluginLinkedFolder", folderName);
-      this.sharedState.set("selectionState.pluginLinkedFolder", folderName);
-      this.port?.postMessage({
-        type: "linked-folder-changed",
-        value: folderName,
-      });
-    }
+    this.preference.set("pluginLinkedFolder", folderName);
+    this.sharedState.set("selectionState.pluginLinkedFolder", folderName);
+    this.port?.postMessage({
+      type: "linked-folder-changed",
+      value: folderName,
+    });
   }
 
   pluginUnlinkFolder() {

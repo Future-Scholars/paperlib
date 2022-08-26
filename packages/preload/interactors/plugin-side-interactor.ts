@@ -92,6 +92,10 @@ export class PluginSideInteractor {
 
   pluginLinkFolder(folder: string) {
     if (this.port) {
+      if (folder === "paperlib-link-new-folder") {
+        folder = "Folder_" + new Date().getTime();
+      }
+
       this.sharedState.set("selectionState.pluginLinkedFolder", folder);
       this.port.postMessage(
         JSON.stringify({ op: "plugin-link-folder", value: folder })
