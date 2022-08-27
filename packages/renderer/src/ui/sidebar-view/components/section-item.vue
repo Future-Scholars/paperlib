@@ -17,7 +17,12 @@ const props = defineProps({
 });
 
 const item = ref(null);
-const emit = defineEmits(["droped", "item-droped", "name-changed"]);
+const emit = defineEmits([
+  "droped",
+  "item-droped",
+  "name-changed",
+  "name-input-blured",
+]);
 
 const registerDropHandler = () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -45,6 +50,10 @@ const registerDropHandler = () => {
 // @ts-ignore
 const onNameChanged = (event) => {
   emit("name-changed", event.target.value);
+};
+
+const onNameInputBlured = () => {
+  emit("name-input-blured");
 };
 
 onMounted(() => {
@@ -76,6 +85,7 @@ onMounted(() => {
       v-model="name"
       v-if="editing"
       @change="onNameChanged"
+      @blur="onNameInputBlured"
     />
     <div class="my-auto flex space-x-2">
       <Spinner class="m-auto" v-show="withSpinner" />

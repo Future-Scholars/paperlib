@@ -137,6 +137,10 @@ const onCategorizerNameChanged = (name: string) => {
   window.appInteractor.setState("selectionState.editingCategorizer", "");
 };
 
+const onCategorizerNameInputBlured = () => {
+  window.appInteractor.setState("selectionState.editingCategorizer", "");
+};
+
 window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
@@ -181,6 +185,13 @@ window.appInteractor.registerState(
 window.appInteractor.registerState(
   "selectionState.editingCategorizer",
   (value) => {
+    if (value) {
+      window.appInteractor.setState(
+        "selectionState.selectedCategorizer",
+        value
+      );
+    }
+
     editingCategorizer.value = value as string;
   }
 );
@@ -245,6 +256,7 @@ window.appInteractor.registerState(
             onCategorizerNameChanged(name);
           }
         "
+        @name-input-blured="onCategorizerNameInputBlured"
       >
         <BIconTag
           class="text-sm my-auto min-w-[1em]"
@@ -285,6 +297,7 @@ window.appInteractor.registerState(
             onCategorizerNameChanged(name);
           }
         "
+        @name-input-blured="onCategorizerNameInputBlured"
       >
         <BIconFolder
           class="text-sm my-auto min-w-[1em]"
