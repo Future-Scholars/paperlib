@@ -30,7 +30,7 @@ export class PluginSideInteractor {
           if (event.data.type === "search-result") {
             ipcRenderer.send(
               "plugin-window-resize",
-              Math.min(28 * (event.data.value.length + 1) + 76, 394)
+              Math.min(28 * (event.data.value.length + 1) + 78, 394)
             );
             resolve(event.data.value);
           } else {
