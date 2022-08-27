@@ -148,7 +148,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-full text-neutral-700 dark:text-neutral-200 plugin-windows-bg">
+  <div class="w-full text-neutral-700 dark:text-neutral-200">
     <div class="flex">
       <input
         ref="searchInput"
@@ -169,7 +169,7 @@ onMounted(() => {
 
     <hr class="border-neutral-300 dark:border-neutral-700 mx-2" />
 
-    <div class="w-full px-2 plugin-windows-bg">
+    <div class="w-full px-2">
       <RecycleScroller
         class="scroller"
         :class="'max-h-[calc(100vh-4.8em)]'"
