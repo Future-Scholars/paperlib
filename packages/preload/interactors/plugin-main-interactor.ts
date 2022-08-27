@@ -128,7 +128,7 @@ export class PluginMainInteractor {
         this.referenceRepository.toCite(entityDrafts)
       );
     } else if (data.args === "PlainText") {
-      copyStr = this.referenceRepository.exportPlainText(
+      copyStr = await this.referenceRepository.exportPlainText(
         this.referenceRepository.toCite(entityDrafts)
       );
     } else if (data.args?.endsWith("In-Folder")) {
@@ -155,7 +155,7 @@ export class PluginMainInteractor {
             this.referenceRepository.toCite(entityDrafts)
           );
         } else if (data.args === "PlainText-In-Folder") {
-          copyStr = this.referenceRepository.exportPlainText(
+          copyStr = await this.referenceRepository.exportPlainText(
             this.referenceRepository.toCite(entityDrafts)
           );
         }

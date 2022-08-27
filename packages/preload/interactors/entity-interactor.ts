@@ -624,7 +624,7 @@ export class EntityInteractor {
 
   // ============================================================
 
-  export(entitiesStr: string, format: string) {
+  async export(entitiesStr: string, format: string) {
     let entityDrafts = JSON.parse(entitiesStr) as PaperEntityDraft[];
     entityDrafts = entityDrafts.map((entityDraft) => {
       const draft = new PaperEntityDraft();
@@ -642,7 +642,7 @@ export class EntityInteractor {
         this.referenceRepository.toCite(entityDrafts)
       );
     } else if (format === "PlainText") {
-      copyStr = this.referenceRepository.exportPlainText(
+      copyStr = await this.referenceRepository.exportPlainText(
         this.referenceRepository.toCite(entityDrafts)
       );
     }

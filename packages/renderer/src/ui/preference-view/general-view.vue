@@ -76,14 +76,14 @@ const onRenameAllClicked = () => {
   window.entityInteractor.renameAll();
 };
 
-const choosedPDFViewer = ref(props.preference.choosedPDFViewer);
-const choosedPDFViewerPath = ref(
-  window.appInteractor.filename(props.preference.choosedPDFViewerPath)
+const selectedPDFViewer = ref(props.preference.selectedPDFViewer);
+const selectedPDFViewerPath = ref(
+  window.appInteractor.filename(props.preference.selectedPDFViewerPath)
 );
 
 const checkPDFViewerPreference = () => {
-  if (choosedPDFViewer.value === "default") {
-    choosedPDFViewerPath.value = "";
+  if (selectedPDFViewer.value === "default") {
+    selectedPDFViewerPath.value = "";
   }
 };
 
@@ -94,17 +94,17 @@ const onChangePDFViewer = async (pdfViewer: string) => {
     const pickedViewer = (await window.appInteractor.showFilePicker())
       .filePaths[0];
     if (pickedViewer) {
-      window.appInteractor.updatePreference("choosedPDFViewer", "custom");
+      window.appInteractor.updatePreference("selectedPDFViewer", "custom");
       window.appInteractor.updatePreference(
-        "choosedPDFViewerPath",
+        "selectedPDFViewerPath",
         pickedViewer
       );
-      choosedPDFViewerPath.value = window.appInteractor.filename(pickedViewer);
+      selectedPDFViewerPath.value = window.appInteractor.filename(pickedViewer);
     } else {
-      choosedPDFViewer.value = props.preference.choosedPDFViewer;
+      selectedPDFViewer.value = props.preference.selectedPDFViewer;
     }
   } else {
-    window.appInteractor.updatePreference("choosedPDFViewer", "default");
+    window.appInteractor.updatePreference("selectedPDFViewer", "default");
   }
 
   checkPDFViewerPreference();
@@ -217,15 +217,15 @@ const onChangePDFViewer = async (pdfViewer: string) => {
       <div class="flex flex-col max-w-[90%]">
         <div class="text-xs font-semibold">Open PDF with</div>
         <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-          Use {{ choosedPDFViewer }} viewer to open PDF files.
-          {{ choosedPDFViewerPath }}
+          Use {{ selectedPDFViewer }} viewer to open PDF files.
+          {{ selectedPDFViewerPath }}
         </div>
       </div>
       <div>
         <select
           id="countries"
           class="my-auto bg-gray-50 border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-28 h-6 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          v-model="choosedPDFViewer"
+          v-model="selectedPDFViewer"
           @change="
             (e) => {
               // @ts-ignore

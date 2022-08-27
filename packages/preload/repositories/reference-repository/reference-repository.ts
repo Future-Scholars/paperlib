@@ -1,5 +1,7 @@
 // @ts-ignore
 import Cite from "citation-js";
+import { existsSync, readFile } from "fs-extra";
+import path from "path";
 
 import { CSL } from "../../models/CSL";
 import { Preference } from "../../utils/preference";
@@ -131,7 +133,32 @@ export class ReferenceRepository {
     return cite.format("bibtex");
   }
 
-  exportPlainText(cite: Cite): string {
-    return cite.format("bibliography", { template: "vancouver" });
+  async exportPlainText(cite: Cite): Promise<string> {
+    const csl = this.preference.get("selectedCSLStyle") as string;
+
+    if (["apa", "vancouver", "harvard1"].includes(csl)) {
+      return cite.format("bibliography", { template: csl });
+    } else {
+      let templatePath = path.join(
+        this.preference.get("importedCSLStylesPath") as string,
+        csl + ".csl"
+      );
+
+      let config = Cite.plugins.config.get("@csl");
+      if (existsSync(templatePath)) {
+        if (!config.templates.has(csl)) {
+          const template = await readFile(templatePath, "utf8");
+          config.templates.add(csl, template);
+        }
+
+        return cite.format("bibliography", { template: csl });
+      } else {
+        this.sharedState.set(
+          "viewState.alertInformation",
+          `CSL template file: ${csl}.csl not found.`
+        );
+        return cite.format("bibliography", { template: "apa" });
+      }
+    }
   }
 }

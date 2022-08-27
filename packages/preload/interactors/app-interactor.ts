@@ -2,9 +2,10 @@ import { ipcRenderer, shell } from "electron";
 import keytar from "keytar";
 import { ToadScheduler, SimpleIntervalJob, Task } from "toad-scheduler";
 import { spawn, SpawnOptions } from "child_process";
-import { pathExists } from "fs-extra";
+import { pathExists, readdir, readFile } from "fs-extra";
 import path from "path";
 import os from "os";
+import { XMLParser } from "fast-xml-parser";
 
 import { DBRepository } from "../repositories/db-repository/db-repository";
 import { DownloaderRepository } from "../repositories/downloader-repository/downloader-repository";
@@ -13,6 +14,7 @@ import { ScraperRepository } from "../repositories/scraper-repository/scraper-re
 
 import { SharedState } from "../utils/appstate";
 import { Preference } from "../utils/preference";
+import { string } from "yargs";
 
 export class AppInteractor {
   sharedState: SharedState;
@@ -112,11 +114,11 @@ export class AppInteractor {
       shell.openExternal(url);
     } else {
       const accessedURL = (await this.access(url, true)).replace("file://", "");
-      if (this.preference.get("choosedPDFViewer") === "default") {
+      if (this.preference.get("selectedPDFViewer") === "default") {
         shell.openPath(accessedURL);
       } else {
         const viewerPath = this.preference.get(
-          "choosedPDFViewerPath"
+          "selectedPDFViewerPath"
         ) as string;
 
         const exists = await pathExists(viewerPath);
@@ -242,5 +244,61 @@ export class AppInteractor {
 
   async requestXHub(url: string) {
     return await ipcRenderer.invoke("sidework-window-xhub-request", url);
+  }
+
+  // ============================================================
+  async loadCSLStyles(): Promise<{ key: string; name: string }[]> {
+    const CSLStyles = [
+      {
+        key: "apa",
+        name: "American Psychological Association",
+      },
+      {
+        key: "vancouver",
+        name: "Vancouver",
+      },
+      {
+        key: "harvard1",
+        name: "Harvard1",
+      },
+    ];
+
+    const importedCSLStylesPath = this.preference.get(
+      "importedCSLStylesPath"
+    ) as string;
+
+    if (importedCSLStylesPath) {
+      // List all files in the importedCSLStylesPath
+      const files = await readdir(importedCSLStylesPath);
+      const xmlParser = new XMLParser();
+
+      const parsePromise = async (filePath: string) => {
+        const fileContent = await readFile(filePath);
+        const xml = xmlParser.parse(fileContent);
+        try {
+          const name = xml.style.info.title;
+          const key = path.basename(filePath, ".csl");
+          return { key, name };
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const promises = [];
+
+      for (const file of files) {
+        if (file.endsWith(".csl")) {
+          promises.push(parsePromise(path.join(importedCSLStylesPath, file)));
+        }
+      }
+
+      const importedCSLStyles = (await Promise.all(promises)).filter(
+        (item) => item !== null
+      ) as { key: string; name: string }[];
+
+      return [...CSLStyles, ...importedCSLStyles];
+    }
+
+    return CSLStyles;
   }
 }
