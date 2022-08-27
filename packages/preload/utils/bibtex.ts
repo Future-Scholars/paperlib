@@ -80,16 +80,26 @@ export function bibtexes2entityDrafts(
   bibtexes: BibtexEntry[],
   entityDrafts: PaperEntityDraft[]
 ): PaperEntityDraft | PaperEntityDraft[] {
-  // Assert bibtex and entityDraft are both arrays or not
-  if (Array.isArray(bibtexes) && Array.isArray(entityDrafts)) {
-    console.error("Bibtex and EntityDraft must be both arrays or not");
+  try {
+    // Assert bibtex and entityDraft are both arrays or not
+    if (Array.isArray(bibtexes) && Array.isArray(entityDrafts)) {
+      console.error("Bibtex and EntityDraft must be both arrays or not");
+      return entityDrafts;
+    }
+    return bibtexes.map((bib, index) => {
+      return bibtex2entityDraft(bib, entityDrafts[index]);
+    });
+  } catch (e) {
+    console.error(e);
     return entityDrafts;
   }
-  return bibtexes.map((bib, index) => {
-    return bibtex2entityDraft(bib, entityDrafts[index]);
-  });
 }
 
 export function bibtex2json(bibtex: string): BibtexEntry[] {
-  return Cite(bibtex).data;
+  try {
+    return Cite(bibtex).data;
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
 }
