@@ -34,63 +34,65 @@ onMounted(() => {
       <div class="w-[45rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.9.7
+          What's New in Paperlib 1.10.0
         </p>
-        <p class="mt-10 mb-4"><b>Improvements and fixed Bugs</b></p>
+        <p class="mt-10 mb-4"><b>New Features</b></p>
         <ul class="list-disc">
-          <li>
-            Fixed: Papers from the ACL conference will be mistakenly identified from AMTA conference #127
-          </li>
-          <p class="mb-4">
-          修复了 ACL 会议元数据匹配的 Bug。
+          <li>1. Better reference copy-paste plugin.</li>
+          <p>更好的引用快速复制粘贴插件。</p>
+
+          <img class="rounded-md" src="../assets/1.png" />
+          <p>
+            Link an existing/newly-created folder in paperlib to this copy-paste
+            plugin.
           </p>
+          <p class="mb-4">
+            现在插件可以链接 Paperlib 里的
+            Folder，来帮助你组织一次写作所需的引用。当然也可是新建的。
+          </p>
+
+          <p>Press shift + enter to copy the cite key of a paper.</p>
+          <p class="mb-4">按 shift + enter 可以复制文章的引用 Key。</p>
+
+          <img class="rounded-md" src="../assets/2.png" />
+          <p class="mb-4">
+            在链接了文件夹之后，所有通过此插件复制引用的文都会被自动添加到这个文件夹里面。同时，一个新的快捷键
+            ctrl/cmd + enter 按下之后可以复制整个文件夹里所有文章的引用。
+          </p>
+
+          <p class="mb-4">
+            至此，使用此插件和 BibTex 写作将会变得非常简单，无论你是喜欢用
+            overleaf，vscode，texpad，还是任何编辑器：链接一个
+            Folder，写作过程中不断地查找引用，复制引用 key，最后复制全部的引用
+            BibTex 到你的论文草稿里。
+          </p>
+
+          <img class="rounded-md" src="../assets/3.png" />
+          <p>
+            For the plaintext reference, now you can choose/import a citation
+            style.
+          </p>
+          <p class="mb-4">
+            对于纯文本引用格式，现在你可以在设置里选择你喜欢的 CSL
+            格式，你也可以导入自己下载的 CSL 格式。
+          </p>
+
+          <li>2. Editable folder and tag.</li>
+          <p>现在可以在侧边栏重命名 tag 和 folder 了。</p>
+          <img class="rounded-md w-72 mb-4" src="../assets/4.png" />
+
+          <li>3. Choose your prefered PDF viewer.</li>
+          <p>现在可以在设置里的 General 选项卡选择你喜欢的 PDF 阅读器了。</p>
         </ul>
 
-        <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.9.6
-        </p>
-
-        <p class="mt-10 font-bold">New Features</p>
-        <div class="flex justify-between space-x-5">
-          <div class="pt-10">
-            <ul class="list-disc">
-              <li>Render LaTex in the details panel.</li>
-              <p class="mb-4">详情界面的标题和摘要支持渲染 LaTex。</p>
-
-              <li>
-                Support locating PDF from arXiv, unpaywall, and xxx-hub. Please
-                manually input the URL of the xxx-hub in the preference window.
-              </li>
-              <p class="mb-4">
-                对于没有链接 PDF 的论文条目，可以从 arXiv，unpaywall，和某 hub
-                查找下载 PDF。为规避可能的法律风险，请在设置里自行手动输入那个
-                hub 的网址。
-              </p>
-
-              <li>Import papers from a BibTex file.</li>
-              <p class="mb-4">支持拖入 BibTex 文件导入论文。</p>
-
-              <li>
-                The browser extension supports all urls ending with '.pdf'.
-              </li>
-              <p>现在浏览器插件支持所有以 '.pdf' 结尾的网址。</p>
-            </ul>
-          </div>
-          <img class="rounded-md shadow-lg w-72" src="../assets/1.png" />
-        </div>
-
         <p class="mt-10 mb-4"><b>Improvements and fixed Bugs</b></p>
         <ul class="list-disc">
-          <li>
-            For those who have cloud sync set up, now it is possible to use
-            Paperlib without network connection.
-          </li>
+          <li>Fixed some shortcuts bugs of the plugin window.</li>
+          <p class="mb-4">修复了插件窗口的一些快捷键的 bug。</p>
+          <li>Rewrite the reference management backend.</li>
           <p class="mb-4">
-            对于设置了云同步的用户，现在可以在无网络环境使用
-            Paperlib。做出的更改会在恢复网络之后进行同步。
+            重写了整个引用格式管理的后端，为未来更多引用导出的功能做铺垫。
           </p>
-
-          <li>Fixed some bugs in custom scrapers.</li>
         </ul>
 
         <div

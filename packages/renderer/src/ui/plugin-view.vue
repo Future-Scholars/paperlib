@@ -106,6 +106,8 @@ function shortcutHandler(event: KeyboardEvent) {
   } else if (event.code === "Tab") {
     event.preventDefault();
     exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
+  } else if (event.code === "Space") {
+    event.stopPropagation();
   }
 
   // @ts-ignore
