@@ -190,18 +190,19 @@ export function registerMainContextMenu(preference: Store) {
           event.sender.send("sidebar-context-menu-delete", args);
         },
       },
-      {
-        label: "Edit",
-        click: () => {
-          event.sender.send("sidebar-context-menu-edit", args);
-        },
-      },
     ];
     if ((args as string).startsWith("feed-")) {
       template.push({
         label: "Refresh",
         click: () => {
           event.sender.send("sidebar-context-menu-feed-refresh", args);
+        },
+      });
+    } else {
+      template.push({
+        label: "Edit",
+        click: () => {
+          event.sender.send("sidebar-context-menu-edit", args);
         },
       });
     }

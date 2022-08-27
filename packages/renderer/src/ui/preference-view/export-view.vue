@@ -117,7 +117,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <hr class="my-5" />
+    <hr class="my-5 dark:border-neutral-600" />
 
     <Toggle
       class="mb-2"

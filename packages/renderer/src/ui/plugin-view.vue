@@ -196,7 +196,7 @@ onMounted(() => {
       class="h-[24px] p-2 text-xxs text-neutral-400 flex justify-between fixed bottom-[6px]"
     >
       <div
-        class="flex my-auto space-x-4 ml-1 hover:text-neutral-600 transition-colors"
+        class="flex my-auto space-x-4 ml-1 hover:text-neutral-600 hover:dark:text-neutral-300 transition-colors"
       >
         <div
           class="flex space-x-1"
@@ -211,7 +211,9 @@ onMounted(() => {
           @click="onUnlinkClicked"
           v-if="pluginLinkedFolder !== ''"
           :class="
-            pluginLinkedFolder !== '' ? 'text-neutral-600' : 'text-neutral-400'
+            pluginLinkedFolder !== ''
+              ? 'text-neutral-600 dark:text-neutral-300'
+              : 'text-neutral-400'
           "
         >
           <BIconLink class="my-auto text-base" />
@@ -236,7 +238,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex">
-          <span class="my-auto mr-1 select-none">BibTex</span>
+          <span class="my-auto mr-1 select-none">Single Ref</span>
           <div class="flex space-x-1">
             <BIconArrowReturnLeft class="my-auto" />
           </div>
