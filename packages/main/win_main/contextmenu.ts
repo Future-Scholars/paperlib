@@ -97,9 +97,16 @@ export function registerMainContextMenu(preference: Store) {
         submenu: [
           {
             label: "BibTex",
-            accelerator: isMac ? "cmd+shift+c" : "ctrl+shift+f",
+            accelerator: isMac ? "cmd+shift+c" : "ctrl+shift+c",
             click: () => {
               event.sender.send("data-context-menu-export-bibtex");
+            },
+          },
+          {
+            label: "BibTex Key",
+            accelerator: isMac ? "cmd+shift+k" : "ctrl+shift+k",
+            click: () => {
+              event.sender.send("data-context-menu-export-bibtex-key");
             },
           },
           {

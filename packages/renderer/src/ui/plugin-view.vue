@@ -57,10 +57,17 @@ const exportSelectedEntity = (shiftKey: boolean, ctrlOrCmdKey: boolean) => {
         "BibTex-Key"
       );
     } else if (ctrlOrCmdKey) {
-      window.pluginInteractor.export(
-        JSON.stringify([selectedEntity]),
-        "BibTex-In-Folder"
-      );
+      if (exportMode.value === "BibTex") {
+        window.pluginInteractor.export(
+          JSON.stringify([selectedEntity]),
+          "BibTex-In-Folder"
+        );
+      } else if (exportMode.value === "PlainText") {
+        window.pluginInteractor.export(
+          JSON.stringify([selectedEntity]),
+          "PlainText-In-Folder"
+        );
+      }
     } else {
       window.pluginInteractor.export(
         JSON.stringify([selectedEntity]),

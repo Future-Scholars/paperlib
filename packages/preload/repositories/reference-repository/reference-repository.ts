@@ -65,6 +65,7 @@ export class ReferenceRepository {
           paperEntityDraft.pubType
         ],
         "citation-key": citeKey,
+        title: paperEntityDraft.title,
         author: nameArray,
         issued: {
           "date-parts": [[paperEntityDraft.pubTime]],
@@ -131,6 +132,6 @@ export class ReferenceRepository {
   }
 
   exportPlainText(cite: Cite): string {
-    return cite.format("citation");
+    return cite.format("bibliography", { template: "vancouver" });
   }
 }

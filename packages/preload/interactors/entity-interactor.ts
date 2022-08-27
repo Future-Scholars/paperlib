@@ -632,8 +632,22 @@ export class EntityInteractor {
       return draft;
     });
 
-    // const text = this.referenceRepository.export(entityDrafts, format);
-    // clipboard.writeText(text);
+    let copyStr = "";
+    if (format === "BibTex") {
+      copyStr = this.referenceRepository.exportBibTexBody(
+        this.referenceRepository.toCite(entityDrafts)
+      );
+    } else if (format === "BibTex-Key") {
+      copyStr = this.referenceRepository.exportBibTexKey(
+        this.referenceRepository.toCite(entityDrafts)
+      );
+    } else if (format === "PlainText") {
+      copyStr = this.referenceRepository.exportPlainText(
+        this.referenceRepository.toCite(entityDrafts)
+      );
+    }
+
+    clipboard.writeText(copyStr);
   }
 
   // ============================================================

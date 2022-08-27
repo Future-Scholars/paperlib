@@ -119,7 +119,6 @@ export class PluginMainInteractor {
     }
 
     let copyStr = "";
-
     if (data.args === "BibTex") {
       copyStr = this.referenceRepository.exportBibTexBody(
         this.referenceRepository.toCite(entityDrafts)
@@ -128,11 +127,11 @@ export class PluginMainInteractor {
       copyStr = this.referenceRepository.exportBibTexKey(
         this.referenceRepository.toCite(entityDrafts)
       );
-    } else if (data.args === "Plain") {
+    } else if (data.args === "PlainText") {
       copyStr = this.referenceRepository.exportPlainText(
         this.referenceRepository.toCite(entityDrafts)
       );
-    } else if (data.args === "BibTex-In-Folder") {
+    } else if (data.args?.endsWith("In-Folder")) {
       if (
         (this.sharedState.get("selectionState.pluginLinkedFolder")
           .value as string) !== ""
@@ -150,12 +149,18 @@ export class PluginMainInteractor {
           draft.initialize(entity);
           return draft;
         });
-        copyStr = this.referenceRepository.exportBibTexBody(
-          this.referenceRepository.toCite(entityDrafts)
-        );
+
+        if (data.args === "BibTex-In-Folder") {
+          copyStr = this.referenceRepository.exportBibTexBody(
+            this.referenceRepository.toCite(entityDrafts)
+          );
+        } else if (data.args === "PlainText-In-Folder") {
+          copyStr = this.referenceRepository.exportPlainText(
+            this.referenceRepository.toCite(entityDrafts)
+          );
+        }
       }
     }
-
     clipboard.writeText(copyStr);
   }
 

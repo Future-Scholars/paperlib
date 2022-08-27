@@ -318,14 +318,21 @@ window.appInteractor.registerMainSignal(
 window.appInteractor.registerMainSignal(
   "data-context-menu-export-bibtex",
   () => {
-    exportSelectedEntities("bibtex");
+    exportSelectedEntities("BibTex");
+  }
+);
+
+window.appInteractor.registerMainSignal(
+  "data-context-menu-export-bibtex-key",
+  () => {
+    exportSelectedEntities("BibTex-Key");
   }
 );
 
 window.appInteractor.registerMainSignal(
   "data-context-menu-export-plain",
   () => {
-    exportSelectedEntities("plain");
+    exportSelectedEntities("PlainText");
   }
 );
 
