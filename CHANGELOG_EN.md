@@ -1,3 +1,7 @@
+## v1.10.1 Sep 01 2022
+
+1. Fixed some bugs.
+
 ## v1.10.0 Aug 27 2022
 
 1. Better reference copy-paste plugin: copy cite key, link to a folder.
