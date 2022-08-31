@@ -18,12 +18,14 @@ export class RenderInteractor {
   markdownIt: MarkdownIt;
   pdfWorker: Worker | null;
   renderingPage: PDFPageProxy | null;
+  renderingPDF: pdfjs.PDFDocumentProxy | null;
 
   constructor(preference: Preference) {
     this.preference = preference;
 
     this.pdfWorker = null;
     this.renderingPage = null;
+    this.renderingPDF = null;
     this.createPDFWorker();
 
     this.markdownIt = new MarkdownIt().use(tm, {
@@ -47,8 +49,12 @@ export class RenderInteractor {
 
   async render(fileURL: string) {
     this.createPDFWorker();
-    // @ts-ignore
+    if (this.renderingPDF) {
+      this.renderingPDF.destroy();
+    }
     const pdf = await pdfjs.getDocument(fileURL).promise;
+    this.renderingPDF = pdf;
+
     const page = await pdf.getPage(1);
     this.renderingPage = page;
     var scale = 0.25;
