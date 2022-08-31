@@ -8,6 +8,7 @@ const props = defineProps({
   publication: String,
   flag: Boolean,
   active: Boolean,
+  striped: Boolean,
 });
 </script>
 
@@ -15,7 +16,10 @@ const props = defineProps({
   <div
     class="flex w-full h-7 py-1 px-2 space-x-2 text-xs rounded-md select-none cursor-pointer"
     :class="
-      active ? 'bg-accentlight dark:bg-accentdark dark:bg-opacity-100' : ''
+      (striped && !active
+        ? 'bg-neutral-100 dark:bg-neutral-700 dark:bg-opacity-40'
+        : '') +
+      (active ? 'bg-accentlight dark:bg-accentdark dark:bg-opacity-100' : '')
     "
   >
     <div

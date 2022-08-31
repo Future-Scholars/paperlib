@@ -1,7 +1,7 @@
 import { resolve } from "path";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import electron from "vite-plugin-electron/renderer";
+import electron from "vite-plugin-electron-renderer";
 import pkg from "../../package.json";
 
 // https://vitejs.dev/config/

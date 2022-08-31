@@ -65,9 +65,15 @@ async function createWindow() {
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
-  win?.close();
-  winPlugin?.close();
-  winSidework?.close();
+  if (win && !win.isDestroyed()) {
+    win.close();
+  }
+  if (winPlugin && !winPlugin.isDestroyed()) {
+    winPlugin.close();
+  }
+  if (winSidework && !winSidework.isDestroyed()) {
+    winSidework.close();
+  }
   win = null;
   winPlugin = null;
   winSidework = null;

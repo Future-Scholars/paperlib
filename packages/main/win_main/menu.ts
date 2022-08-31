@@ -70,6 +70,14 @@ export function setMainMenu(mainWindow: BrowserWindow, preference: Store) {
             mainWindow.webContents.send("shortcut-cmd-shift-c");
           },
         },
+        {
+          label: "Copy Bibtex Key",
+          accelerator:
+            preference.get("shortcutCopyKey") || "CommandOrControl+Shift+K",
+          click: () => {
+            mainWindow.webContents.send("shortcut-cmd-shift-k");
+          },
+        },
         isMac ? { role: "close" } : { role: "quit" },
       ],
     },

@@ -7,7 +7,6 @@ import DBUpdateRequireView from "./ui/db-update-require-view.vue";
 
 <template>
   <AppView />
-  <ModalView />
   <WhatsNewView />
   <DBUpdateRequireView />
 </template>

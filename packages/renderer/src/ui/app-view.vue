@@ -12,6 +12,7 @@ import MainView from "./main-view/main-view.vue";
 import EditView from "./edit-view/edit-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import FeedEditView from "./edit-view/feed-edit-view.vue";
+import ModalView from "./modal-view.vue";
 
 import { PreferenceStore } from "../../../preload/utils/preference";
 
@@ -125,6 +126,22 @@ const reloadFeedEntities = async () => {
     sortOrder.value
   );
   feedEntities.value = results;
+};
+
+const onShowModal = () => {
+  window.appInteractor.setState("viewState.isModalShown", true);
+};
+
+const onDeleteSelected = () => {
+  const ids = JSON.parse(
+    window.appInteractor.getState("selectionState.selectedIds") as string
+  );
+  window.appInteractor.setState(
+    "selectionState.selectedIndex",
+    JSON.stringify([])
+  );
+  void window.entityInteractor.delete(ids);
+  window.appInteractor.setState("viewState.isModalShown", false);
 };
 
 // =======================================
@@ -315,6 +332,7 @@ onMounted(async () => {
           :show-main-folders="showMainFolders"
           :show-main-rating="showMainRating"
           :show-main-note="showMainNote"
+          @delete="onShowModal"
         />
       </pane>
     </splitpanes>
@@ -322,4 +340,11 @@ onMounted(async () => {
   <EditView class="text-neutral-700" :tags="tags" :folders="folders" />
   <FeedEditView class="text-neutral-700" />
   <PreferenceView :preference="preference" />
+  <ModalView
+    title="Confirmation"
+    info="Are you sure to delete?"
+    :cancel-btn="true"
+    :ok-btn="true"
+    @confirm="onDeleteSelected"
+  />
 </template>

@@ -176,12 +176,8 @@ onMounted(() => {
         :publication="item.publication"
         :flag="item.flag"
         :active="selectedIndex.indexOf(index) >= 0"
+        :striped="index % 2 === 0"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
-        :class="
-          index % 2 === 1
-            ? 'bg-neutral-100 dark:bg-neutral-700 dark:bg-opacity-40'
-            : ''
-        "
         v-if="viewType === 'table'"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"

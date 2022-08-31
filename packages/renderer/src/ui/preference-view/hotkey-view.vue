@@ -16,6 +16,7 @@ let existingShortcuts = {
   shortcutPreview: props.preference.shortcutPreview,
   shortcutOpen: props.preference.shortcutOpen,
   shortcutCopy: props.preference.shortcutCopy,
+  shortcutCopyKey: props.preference.shortcutCopyKey,
   shortcutScrape: props.preference.shortcutScrape,
   shortcutEdit: props.preference.shortcutEdit,
   shortcutFlag: props.preference.shortcutFlag,
@@ -92,6 +93,16 @@ const onUpdate = (key: string, value: string) => {
         title="Open Bibtex Insert Plugin"
         :choosed-key="preference.shortcutPlugin"
         @update="(key) => onUpdate('shortcutPlugin', key)"
+      />
+      <HotkeyOption
+        title="Copy Bibtex to Clipboard"
+        :choosed-key="preference.shortcutCopy"
+        @update="(key) => onUpdate('shortcutCopy', key)"
+      />
+      <HotkeyOption
+        title="Copy Bibtex Key to Clipboard"
+        :choosed-key="preference.shortcutCopyKey"
+        @update="(key) => onUpdate('shortcutCopyKey', key)"
       />
     </div>
     <div class="text-xs text-red-600 dark:text-red-500 mb-5">

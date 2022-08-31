@@ -62,7 +62,9 @@ export async function createMainWindow(
 
   win.on("focus", () => {
     win?.webContents.send("window-gained-focus");
-    winPlugin?.hide();
+    if (winPlugin && !winPlugin.isDestroyed()) {
+      winPlugin?.hide();
+    }
   });
 
   win.on("close", () => {

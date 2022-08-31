@@ -95,6 +95,7 @@ export interface PreferenceStore {
   shortcutScrape: string;
   shortcutEdit: string;
   shortcutFlag: string;
+  shortcutCopyKey: string;
 
   sidebarWidth: number;
   mainviewSortBy: string;
@@ -175,6 +176,7 @@ const defaultPreferences: PreferenceStore = {
   shortcutScrape: "CommandOrControl+R",
   shortcutEdit: "CommandOrControl+E",
   shortcutFlag: "CommandOrControl+F",
+  shortcutCopyKey: "CommandOrControl+Shift+K",
 
   sidebarWidth: 20,
   mainviewSortBy: "addTime",
