@@ -2,8 +2,6 @@ import Realm from "realm";
 import path from "path";
 import { existsSync, promises as fsPromise } from "fs";
 import keytar from "keytar";
-// @ts-ignore
-import noInternet from "no-internet";
 
 import { PaperEntitySchema } from "../../models/PaperEntity";
 import {
@@ -195,7 +193,12 @@ export async function loginCloud(
     });
   }
 
-  if (await noInternet()) {
+  const checkInternetConnected = require("check-internet-connected");
+  if (
+    !(await checkInternetConnected({
+      domain: "https://httpbin.org/get",
+    }))
+  ) {
     console.log("No internet!");
     return this.app.currentUser;
   }

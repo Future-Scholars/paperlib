@@ -210,6 +210,8 @@ jobs:
 
       - name: Upload to Oracle Storage
         run: |
+          powershell Compress-Archive './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' './latest.zip'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './latest.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/latest.zip'
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/Paperlib_${{ env.VERSION }}.exe'
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-win/latest.exe
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/Paperlib_${{ env.VERSION }}.exe.blockmap'

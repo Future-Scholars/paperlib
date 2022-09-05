@@ -34,11 +34,15 @@ onMounted(() => {
       <div class="w-[45rem] h-screen px-3 mx-auto">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.10.1
+          What's New in Paperlib 1.10.2
         </p>
+        <p class="mt-10 mb-4"><b>New Features</b></p>
+        <ul class="list-disc mb-20">
+          <li>New metadata scraper: crossref.org</li>
+        </ul>
         <p class="mt-10 mb-4"><b>Improvements and fixed Bugs</b></p>
         <ul class="list-disc mb-20">
-          <li>Fixed some bugs: #134 #135.</li>
+          <li>Fixed some bugs in the sync cloud login.</li>
         </ul>
 
         <div

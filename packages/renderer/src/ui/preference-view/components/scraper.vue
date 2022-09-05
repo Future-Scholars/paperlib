@@ -42,7 +42,7 @@ const onApplyUpdate = () => {
         </div>
 
         <div
-          class="text-right text-neutral-600 w-[5%] dark:text-neutral-500 overflow-hidden text-ellipsis pr-1 my-auto"
+          class="text-right text-neutral-600 w-[6%] dark:text-neutral-500 overflow-hidden text-ellipsis pr-1 my-auto"
         >
           {{ scraperPref.priority }}
         </div>

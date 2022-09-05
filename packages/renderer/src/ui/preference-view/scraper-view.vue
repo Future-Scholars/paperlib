@@ -84,7 +84,7 @@ const onClickGuide = () => {
     <div class="flex text-xxs font-semibold">
       <div class="pl-4 w-[17%]">Scraper</div>
       <div>Priority</div>
-      <div class="pl-2">Description</div>
+      <div class="pl-4">Description</div>
     </div>
     <hr class="mx-2 mb-1 dark:border-neutral-600" />
     <div class="flex flex-col px-2 rounded-md max-h-[450px] overflow-scroll">

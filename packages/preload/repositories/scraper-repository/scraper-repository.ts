@@ -14,6 +14,7 @@ import { CVFScraper } from "./scrapers/cvf";
 import { PwCScraper } from "./scrapers/paperwithcode";
 import { OpenreviewScraper } from "./scrapers/openreview";
 import { GoogleScholarScraper } from "./scrapers/google-scholar";
+import { CrossRefScraper } from "./scrapers/crossref";
 import { CustomScraper } from "./scrapers/custom";
 
 import { Preference, ScraperPreference } from "../../utils/preference";
@@ -82,6 +83,12 @@ export class ScraperRepository {
         switch (scraper.name) {
           case "pdf":
             scraperInstance = new PDFScraper(this.sharedState, this.preference);
+            break;
+          case "crossref":
+            scraperInstance = new CrossRefScraper(
+              this.sharedState,
+              this.preference
+            );
             break;
           case "doi":
             scraperInstance = new DOIScraper(this.sharedState, this.preference);

@@ -1,3 +1,9 @@
+## v1.10.2 Sep 05 2022
+
+1. New metadata scraper: corssref.org
+2. Fixed some bugs.
+
+
 ## v1.10.1 Sep 01 2022
 
 1. Fixed some bugs.

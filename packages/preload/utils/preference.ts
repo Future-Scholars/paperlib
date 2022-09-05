@@ -207,6 +207,17 @@ const defaultPreferences: PreferenceStore = {
       scrapeImplCode: "",
     },
     {
+      name: "crossref",
+      description: "crossref.org",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 8.5,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
       name: "doi",
       description: "DOI.org",
       enable: true,
@@ -346,6 +357,18 @@ export class Preference {
     for (const key in defaultPreferences) {
       if (!this.store.has(key)) {
         this.store.set(key, defaultPreferences[key]);
+      }
+    }
+
+    const existingScrapers = this.store
+      .get("scrapers")
+      .map((scraper) => scraper.name);
+
+    for (const defaultPref of defaultPreferences.scrapers) {
+      if (!existingScrapers.includes(defaultPref.name)) {
+        const existingPreference = this.store.get("scrapers");
+        existingPreference.push(defaultPref);
+        this.store.set("scrapers", existingPreference);
       }
     }
 

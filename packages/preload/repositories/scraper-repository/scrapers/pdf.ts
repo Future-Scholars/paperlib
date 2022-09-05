@@ -140,6 +140,10 @@ export class PDFScraper extends Scraper {
       }
     }
 
+    if (entityDraft.doi.endsWith(",")) {
+      entityDraft.setValue("doi", entityDraft.doi.slice(0, -1));
+    }
+
     if (entityDraft.title === "" || entityDraft.title === "untitled") {
       entityDraft.setValue("title", rawResponse.largestText.slice(0, 400));
     }

@@ -1,6 +1,6 @@
 {
   "name": "paperlib",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "description": "A simple academic paper management tool for CSer.",
   "productName": "Paperlib",
   "author": "Geoffrey Chen <geoffreychen777@gmail.com>",
@@ -53,6 +53,7 @@
     "@headlessui/vue": "1.5.0",
     "bootstrap-icons-vue": "1.8.1",
     "bson": "4.6.3",
+    "check-internet-connected": "2.0.6",
     "chokidar": "3.5.3",
     "citation-js": "^0.6.4",
     "drag-drop": "7.2.0",
@@ -66,7 +67,6 @@
     "keytar": "7.9.0",
     "markdown-it": "13.0.1",
     "markdown-it-texmath": "1.0.0",
-    "no-internet": "1.6.1",
     "node-html-parser": "5.3.3",
     "realm": "10.13.0",
     "rss-parser": "3.12.0",
