@@ -1,5 +1,5 @@
 {
-  "name": "paperlib",
+  "name": "paperlibv2",
   "version": "2.0.0",
   "main": "dist/app/main/index.js",
   "description": "A simple academic paper management tool for CSer.",
@@ -30,6 +30,7 @@
   "dependencies": {
     "bootstrap-icons-vue": "1.8.1",
     "bson": "4.6.3",
+    "drag-drop": "^7.2.0",
     "electron-store": "8.0.1",
     "electron-updater": "5.0.1",
     "keytar": "7.9.0",

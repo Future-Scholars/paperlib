@@ -1,6 +1,12 @@
 import Realm, { Results } from "realm";
-import { Categorizer, CategorizerType } from "../../models/categorizer";
-import { MainRendererStateStore } from "../../state/renderer/appstate";
+import {
+  Categorizer,
+  CategorizerType,
+  PaperTag,
+  PaperFolder,
+  Colors,
+} from "@/models/categorizer";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 export class CategorizerRepository {
   stateStore: MainRendererStateStore;
@@ -21,11 +27,14 @@ export class CategorizerRepository {
     };
   }
 
+  // ========================
+  // CRUD
+  // ========================
   load(
+    realm: Realm,
     type: CategorizerType,
     sortBy: string,
-    sortOrder: string,
-    realm: Realm
+    sortOrder: string
   ): Realm.Results<Categorizer & Realm.Object> {
     const objects = realm
       .objects<Categorizer>(type)
@@ -51,6 +60,105 @@ export class CategorizerRepository {
       this.listened[type] = true;
     }
     return objects;
+  }
+
+  remove(
+    realm: Realm,
+    deleteAll = true,
+    type: CategorizerType,
+    categorizer?: Categorizer,
+    name?: string
+  ) {
+    realm.safeWrite(() => {
+      let objects;
+      if (categorizer) {
+        objects = realm
+          .objects<Categorizer>(type)
+          .filtered(`name == "${categorizer.name}"`);
+      } else if (name) {
+        objects = realm
+          .objects<Categorizer>(type)
+          .filtered(`name == "${name}"`);
+      } else {
+        throw new Error(`Invalid arguments: ${categorizer}, ${name}, ${type}`);
+      }
+
+      if (deleteAll) {
+        realm.delete(objects);
+      } else {
+        for (const object of objects) {
+          object.count -= 1;
+          if (object.count <= 0) {
+            realm.delete(object);
+          }
+        }
+      }
+    });
+  }
+
+  async colorize(
+    realm: Realm,
+    color: Colors,
+    type: CategorizerType,
+    categorizer?: Categorizer,
+    name?: string
+  ) {
+    realm.safeWrite(() => {
+      let objects;
+      if (categorizer) {
+        objects = realm
+          .objects<Categorizer>(type)
+          .filtered(`name == "${categorizer.name}"`);
+      } else if (name) {
+        objects = realm
+          .objects<Categorizer>(type)
+          .filtered(`name == "${name}"`);
+      } else {
+        throw new Error(`Invalid arguments: ${categorizer}, ${name}, ${type}`);
+      }
+      for (const object of objects) {
+        object.color = color;
+      }
+    });
+  }
+
+  async rename(
+    realm: Realm,
+    oldName: string,
+    newName: string,
+    type: CategorizerType
+  ) {
+    realm.safeWrite(() => {
+      const objects = realm
+        .objects<Categorizer>(type)
+        .filtered(`name == "${oldName}"`);
+      for (const object of objects) {
+        object.name = newName;
+      }
+    });
+  }
+
+  // ========================
+  // Dev Functions
+  // ========================
+  async addDummyData(realm: Realm) {
+    const tag = new PaperTag("test-tag-1", 1);
+    const folder = new PaperFolder("test-folder-1", 1);
+    realm.write(() => {
+      realm.create("PaperTag", tag);
+      realm.create("PaperFolder", folder);
+    });
+
+    return { tag, folder };
+  }
+
+  async removeAll(realm: Realm) {
+    realm.write(() => {
+      const tags = realm.objects<Categorizer>("PaperTag");
+      realm.delete(tags);
+      const folders = realm.objects<Categorizer>("PaperFolder");
+      realm.delete(folders);
+    });
   }
 }
 

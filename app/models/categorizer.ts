@@ -30,11 +30,9 @@ export class PaperTag extends Categorizer {
       color: "string?",
     },
   };
-  type: string;
 
   constructor(name: string, count: number, color?: string, partition?: string) {
     super(name, count, color, partition);
-    this.type = "PaperTag";
   }
 }
 
@@ -50,12 +48,11 @@ export class PaperFolder extends Categorizer {
       color: "string?",
     },
   };
-  type: string;
 
   constructor(name: string, count: number, color?: string, partition?: string) {
     super(name, count, color, partition);
-    this.type = "PaperFolder";
   }
 }
 
 export type CategorizerType = "PaperTag" | "PaperFolder";
+export type Colors = "red" | "green" | "blue" | "yellow";

@@ -3,7 +3,7 @@ import { ObjectId } from "bson";
 
 import { watch } from "vue";
 
-import { LogState, DBState, ViewState } from "../states";
+import { LogState, DBState, ViewState, SelectionState } from "../states";
 
 export class RendererStateStore {
   commChannel: BroadcastChannel;
@@ -79,7 +79,7 @@ export class MainRendererStateStore extends RendererStateStore {
   logState: Store<string, LogState>;
   viewState: Store<string, ViewState>;
   dbState: Store<string, DBState>;
-  selectionState: Store;
+  selectionState: Store<string, SelectionState>;
 
   constructor(pinia?: Pinia) {
     super();
@@ -134,6 +134,8 @@ export class MainRendererStateStore extends RendererStateStore {
         sidebarWidth: 20,
         sidebarSortBy: "name",
         sidebarSortOrder: "desc",
+        sidebarShowCount: true,
+        sidebarCompact: true,
 
         // Update Signal
         preferenceUpdated: 0,

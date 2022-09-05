@@ -153,32 +153,42 @@ export function registerMainContextMenu(preference: Preference) {
   });
 
   ipcMain.on("show-sidebar-context-menu", (event, args) => {
+    const data = args.data;
+    const type = args.type;
     const template = [
       {
         label: "Blue",
         click: () => {
-          event.sender.send("sidebar-context-menu-color", [args, "blue"]);
+          event.sender.send("sidebar-context-menu-color", [data, type, "blue"]);
         },
         icon: blueIcon,
       },
       {
         label: "Red",
         click: () => {
-          event.sender.send("sidebar-context-menu-color", [args, "red"]);
+          event.sender.send("sidebar-context-menu-color", [data, type, "red"]);
         },
         icon: redIcon,
       },
       {
         label: "Yellow",
         click: () => {
-          event.sender.send("sidebar-context-menu-color", [args, "yellow"]);
+          event.sender.send("sidebar-context-menu-color", [
+            data,
+            type,
+            "yellow",
+          ]);
         },
         icon: yellowIcon,
       },
       {
         label: "Green",
         click: () => {
-          event.sender.send("sidebar-context-menu-color", [args, "green"]);
+          event.sender.send("sidebar-context-menu-color", [
+            data,
+            type,
+            "green",
+          ]);
         },
         icon: greenIcon,
       },
@@ -186,22 +196,22 @@ export function registerMainContextMenu(preference: Preference) {
       {
         label: "Delete",
         click: () => {
-          event.sender.send("sidebar-context-menu-delete", args);
+          event.sender.send("sidebar-context-menu-delete", [data, type]);
         },
       },
     ];
-    if ((args as string).startsWith("feed-")) {
+    if (type === "feed") {
       template.push({
         label: "Refresh",
         click: () => {
-          event.sender.send("sidebar-context-menu-feed-refresh", args);
+          event.sender.send("sidebar-context-menu-feed-refresh", [data, type]);
         },
       });
     } else {
       template.push({
         label: "Edit",
         click: () => {
-          event.sender.send("sidebar-context-menu-edit", args);
+          event.sender.send("sidebar-context-menu-edit", [data, type]);
         },
       });
     }

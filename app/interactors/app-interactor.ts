@@ -14,8 +14,9 @@ export class AppInteractor {
     return await ipcRenderer.invoke("version");
   }
 
-  // ============================================================
+  // ===============================
   // Window Control
+  // ===============================
   minimize() {
     ipcRenderer.send("minimize");
   }
@@ -28,13 +29,16 @@ export class AppInteractor {
     ipcRenderer.send("close");
   }
 
-  // ============================================================
+  // ===============================
+  // Theme
+  // ===============================
   changeTheme(theme: string) {
     ipcRenderer.send("themeChanged", theme);
   }
 
-  // ============================================================
+  // ===============================
   // Preference
+  // ===============================
   loadPreferences() {
     return this.preference.store.store;
   }
@@ -52,11 +56,25 @@ export class AppInteractor {
     return this.preference.get(name);
   }
 
-  // ============================================================
+  // =============================
   // Password
+  // =============================
   async getPassword(key: string) {
     return await keytar.getPassword("paperlib", key);
   }
 
-  setPassword(key: string, value: string) {}
+  async setPassword(key: string, pwd: string) {
+    await keytar.setPassword("paperlib", key, pwd);
+  }
+
+  // =============================
+  // Register Events
+  // =============================
+  showContextMenu(key: string, args: any) {
+    ipcRenderer.send(key, args);
+  }
+
+  registerMainSignal(signal: string, callback: (args: any) => void) {
+    ipcRenderer.on(signal, (_, args) => callback(args));
+  }
 }

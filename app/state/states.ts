@@ -1,3 +1,5 @@
+import { ObjectId } from "bson";
+
 export interface LogState {
   processLog: string;
   alertLog: string;
@@ -24,6 +26,8 @@ export interface ViewState {
   sidebarWidth: number;
   sidebarSortBy: string;
   sidebarSortOrder: string;
+  sidebarShowCount: boolean;
+  sidebarCompact: boolean;
 
   preferenceUpdated: number;
   realmReinited: number;
@@ -40,4 +44,14 @@ export interface DBState {
   feedsUpdated: number;
   feedEntitiesUpdated: number;
   defaultPath: string;
+}
+
+export interface SelectionState {
+  selectedIndex: number[];
+  selectedIds: (string | ObjectId)[];
+  selectedCategorizer: string;
+  selectedFeed: string;
+  dragedIds: (string | ObjectId)[];
+  pluginLinkedFolder: string;
+  editingCategorizer: string;
 }

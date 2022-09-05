@@ -1,5 +1,6 @@
 import Realm, { Results } from "realm";
 import { PaperEntity } from "@/models/paper-entity";
+import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 export class PaperEntityRepository {
@@ -17,6 +18,8 @@ export class PaperEntityRepository {
 
   load(realm: Realm) {
     const objects = realm.objects<PaperEntity>("PaperEntity");
+
+    this.stateStore.viewState.entitiesCount = objects.length;
 
     if (!this.listened) {
       objects.addListener((objs, changes) => {
@@ -45,10 +48,18 @@ export class PaperEntityRepository {
     });
   }
 
-  addDummyData(realm: Realm) {
+  addDummyData(tag: PaperTag, folder: PaperFolder, realm: Realm) {
     realm.safeWrite(() => {
       for (let i = 0; i < 10000; i++) {
         const entity = new PaperEntity(true);
+
+        if (i % 5000 === 0) {
+          entity.tags.push(tag);
+        }
+        if (i % 5001 === 0) {
+          entity.folders.push(folder);
+        }
+
         entity.dummyFill();
         realm.create("PaperEntity", entity);
       }

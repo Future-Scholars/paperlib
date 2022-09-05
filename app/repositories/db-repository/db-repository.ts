@@ -2,7 +2,13 @@ import Realm from "realm";
 
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { CategorizerRepository } from "./categorizer-repository";
-import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
+import {
+  Categorizer,
+  CategorizerType,
+  Colors,
+  PaperFolder,
+  PaperTag,
+} from "@/models/categorizer";
 import { migrate } from "./db-migration";
 import { PaperEntity } from "@/models/paper-entity";
 import { Feed } from "@/models/feed";
@@ -59,12 +65,9 @@ export class DBRepository {
       this.syncSession = undefined;
       this.localConfig = undefined;
 
-      // TODO: Uncomment this
+      this.paperEntityRepository.removeListeners();
       this.categorizerRepository.removeListeners();
-      // this.categorizersListenerInited = {
-      //   PaperTag: false,
-      //   PaperFolder: false,
-      // };
+      // TODO: Uncomment this
       // this.feedsListenerInited = false;
       // this.feedEntitiesListenerInited = false;
     }
@@ -278,7 +281,48 @@ export class DBRepository {
 
   async categorizers(type: CategorizerType, sortBy: string, sortOrder: string) {
     const realm = await this.realm();
-    return this.categorizerRepository.load(type, sortBy, sortOrder, realm);
+    return this.categorizerRepository.load(realm, type, sortBy, sortOrder);
+  }
+
+  async removeCategorizer(
+    deleteAll = true,
+    type: CategorizerType,
+    categorizer?: Categorizer,
+    name?: string
+  ) {
+    const realm = await this.realm();
+    return this.categorizerRepository.remove(
+      realm,
+      deleteAll,
+      type,
+      categorizer,
+      name
+    );
+  }
+
+  async colorizeCategorizer(
+    color: Colors,
+    type: CategorizerType,
+    categorizer?: Categorizer,
+    name?: string
+  ) {
+    const realm = await this.realm();
+    return this.categorizerRepository.colorize(
+      realm,
+      color,
+      type,
+      categorizer,
+      name
+    );
+  }
+
+  async renameCategorizer(
+    oldName: string,
+    newName: string,
+    type: CategorizerType
+  ) {
+    const realm = await this.realm();
+    return this.categorizerRepository.rename(realm, oldName, newName, type);
   }
 
   // ========================
@@ -287,11 +331,15 @@ export class DBRepository {
 
   async addDummyData() {
     const realm = await this.realm();
-    this.paperEntityRepository.addDummyData(realm);
+    const { tag, folder } = await this.categorizerRepository.addDummyData(
+      realm
+    );
+    this.paperEntityRepository.addDummyData(tag, folder, realm);
   }
 
   async removeAll() {
     const realm = await this.realm();
     this.paperEntityRepository.removeAll(realm);
+    this.categorizerRepository.removeAll(realm);
   }
 }
