@@ -12,16 +12,25 @@ import {
 } from "vue";
 
 import SidebarView from "./sidebar-view/sidebar-view.vue";
+import MainView from "./main-view/main-view.vue";
 
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { removeLoading } from "@/preload/loading";
 
+// ================================
+// State
+// ================================
+
 const viewState = MainRendererStateStore.useViewState();
 const dbState = MainRendererStateStore.useDBState();
 
+// ================================
+// Data
+// ================================
 const paperEntities: Ref<PaperEntityResults> = ref([]);
+provide("paperEntities", paperEntities);
 const tags: Ref<CategorizerResults> = ref([]);
 provide("tags", tags);
 const folders: Ref<CategorizerResults> = ref([]);
@@ -41,7 +50,9 @@ const onSidebarResized = (event: any) => {
 // ================================
 const reloadPaperEntities = async () => {
   console.log("Reload paper entities...");
+  paperEntities.value = [];
   paperEntities.value = await window.entityInteractor.loadPaperEntities();
+  console.log(`Paper entities (${paperEntities.value.length}) loaded!`);
 };
 watch(
   () => dbState.entitiesUpdated,
@@ -122,18 +133,39 @@ onMounted(async () => {
 
 <template>
   <div class="flex text-neutral-700 dark:text-neutral-200">
+    <div class="flex space-x-2 fixed left-24 text-xs">
+      <button
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="reloadAll"
+      >
+        Reload all
+      </button>
+      <button
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="addDummyData"
+      >
+        Add dummy
+      </button>
+      <button
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="removeAll"
+      >
+        Remove all
+      </button>
+      <button
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="log"
+      >
+        Log
+      </button>
+    </div>
     <splitpanes @resized="onSidebarResized($event)">
       <pane :key="1" min-size="12" :size="viewState.sidebarWidth">
         <SidebarView class="sidebar-windows-bg" />
       </pane>
       <pane :key="2">
-        <div class="w-full h-36 bg-white flex space-x-2">
-          <button @click="reloadAll">Reload all</button>
-          <button @click="addDummyData">Add dummy</button>
-          <button @click="removeAll">Remove all</button>
-          <button @click="log">Log</button>
-        </div></pane
-      >
+        <MainView />
+      </pane>
     </splitpanes>
   </div>
 </template>

@@ -3,7 +3,13 @@ import { ObjectId } from "bson";
 
 import { watch } from "vue";
 
-import { LogState, DBState, ViewState, SelectionState } from "../states";
+import {
+  LogState,
+  DBState,
+  ViewState,
+  DataViewState,
+  SelectionState,
+} from "../states";
 
 export class RendererStateStore {
   commChannel: BroadcastChannel;
@@ -78,6 +84,7 @@ export class RendererStateStore {
 export class MainRendererStateStore extends RendererStateStore {
   logState: Store<string, LogState>;
   viewState: Store<string, ViewState>;
+  dataViewState: Store<string, DataViewState>;
   dbState: Store<string, DBState>;
   selectionState: Store<string, SelectionState>;
 
@@ -86,16 +93,14 @@ export class MainRendererStateStore extends RendererStateStore {
 
     this.logState = MainRendererStateStore.useLogState(pinia);
     this.viewState = MainRendererStateStore.useViewState(pinia);
+    this.dataViewState = MainRendererStateStore.useDataViewState(pinia);
     this.dbState = MainRendererStateStore.useDBState(pinia);
     this.selectionState = MainRendererStateStore.useSelectionState(pinia);
 
-    this.subscribe(this.logState);
-    this.subscribe(this.viewState);
-    this.subscribe(this.dbState);
-    this.subscribe(this.selectionState);
-
-    this.initFromPreload(this.viewState);
-    this.initFromPreload(this.dbState);
+    // this.subscribe(this.logState);
+    // this.subscribe(this.viewState);
+    // this.subscribe(this.dbState);
+    // this.subscribe(this.selectionState);
   }
 
   static useLogState = defineStore("logState", {
@@ -130,6 +135,9 @@ export class MainRendererStateStore extends RendererStateStore {
         searchText: "",
         searchMode: "general",
 
+        //
+        inputFieldFocused: false,
+
         // Sidebar
         sidebarWidth: 20,
         sidebarSortBy: "name",
@@ -145,6 +153,22 @@ export class MainRendererStateStore extends RendererStateStore {
 
         //
         syncFileStorageAvaliable: false,
+      };
+    },
+  });
+
+  static useDataViewState = defineStore("dataViewState", {
+    state: () => {
+      return {
+        // TODO: Read from preference & remove dev value
+        showPubTime: true,
+        showPublication: true,
+        showPubType: true,
+        showFlag: true,
+        showTags: true,
+        showFolders: true,
+        showRating: true,
+        showNote: true,
       };
     },
   });

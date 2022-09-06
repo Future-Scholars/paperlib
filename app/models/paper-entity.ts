@@ -83,7 +83,10 @@ export class PaperEntity {
   dummyFill() {
     this.title = `Paper ${this._id}`;
     this.authors = "author1, author2, author3";
-    this.publication = "Dummy Publication";
+    this.publication =
+      Math.random() > 0.5
+        ? "Dummy Publication Journal Conference Proceedings Long Text Test Good Nice"
+        : "Dummy Publication Journal Short";
     this.pubTime = `${2020 + Math.floor(Math.random() * 10)}`;
     this.pubType = Math.floor(Math.random() * 3);
     this.doi = "";
@@ -93,9 +96,13 @@ export class PaperEntity {
     this.rating = Math.floor(Math.random() * 5);
     this.tags = [];
     this.folders = [];
-    this.flag = false;
-    this.note = "Dummy Note";
-    this.codes = ["https://www.google.com", "https://www.apple.com"];
+    this.flag = Math.random() > 0.5;
+    this.note =
+      "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec";
+    this.codes = [
+      JSON.stringify({ url: "www.google.com", isOfficial: true }),
+      JSON.stringify({ url: "www.apple.com", isOfficial: false }),
+    ];
     this.pages = "1-1";
     this.volume = "1";
     this.number = "1";

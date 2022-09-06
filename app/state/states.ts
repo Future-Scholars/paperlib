@@ -23,6 +23,8 @@ export interface ViewState {
   searchText: string;
   searchMode: string;
 
+  inputFieldFocused: boolean;
+
   sidebarWidth: number;
   sidebarSortBy: string;
   sidebarSortOrder: string;
@@ -35,6 +37,17 @@ export interface ViewState {
   renderRequired: number;
 
   syncFileStorageAvaliable: boolean;
+}
+
+export interface DataViewState {
+  showPubTime: boolean;
+  showPublication: boolean;
+  showPubType: boolean;
+  showFlag: boolean;
+  showTags: boolean;
+  showFolders: boolean;
+  showRating: boolean;
+  showNote: boolean;
 }
 
 export interface DBState {

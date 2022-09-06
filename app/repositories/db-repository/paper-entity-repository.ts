@@ -1,7 +1,8 @@
-import Realm, { Results } from "realm";
+import Realm, { PrimaryKey, Results } from "realm";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { ObjectId } from "bson";
 
 export class PaperEntityRepository {
   stateStore: MainRendererStateStore;
@@ -49,19 +50,39 @@ export class PaperEntityRepository {
   }
 
   addDummyData(tag: PaperTag, folder: PaperFolder, realm: Realm) {
+    const ids: Array<string | ObjectId> = [];
     realm.safeWrite(() => {
-      for (let i = 0; i < 10000; i++) {
+      for (let i = 0; i < 100; i++) {
         const entity = new PaperEntity(true);
 
-        if (i % 5000 === 0) {
-          entity.tags.push(tag);
-        }
-        if (i % 5001 === 0) {
-          entity.folders.push(folder);
-        }
-
         entity.dummyFill();
+
         realm.create("PaperEntity", entity);
+
+        if (i % 5 === 0) {
+          ids.push(entity.id);
+        }
+      }
+
+      for (const id of ids) {
+        const createdEntity = realm.objectForPrimaryKey<PaperEntity>(
+          "PaperEntity",
+          id as PrimaryKey
+        );
+        const tagObj = realm.objectForPrimaryKey<PaperTag>(
+          "PaperTag",
+          tag._id as PrimaryKey
+        );
+        const folderObj = realm.objectForPrimaryKey<PaperFolder>(
+          "PaperFolder",
+          folder._id as PrimaryKey
+        );
+        if (createdEntity && tagObj && folderObj) {
+          tagObj.count += 1;
+          folderObj.count += 1;
+          createdEntity.tags.push(tagObj);
+          createdEntity.folders.push(folderObj);
+        }
       }
     });
   }

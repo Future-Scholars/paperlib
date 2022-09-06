@@ -8,7 +8,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build && electron-builder"
+    "build": "vue-tsc --noEmit && vite build && electron-builder",
+    "dev-build": "vite build && electron-builder"
   },
   "engines": {
     "node": "^14.18.0 || >=16.0.0"
@@ -19,7 +20,7 @@
     "autoprefixer": "10.4.4",
     "cssnano": "5.1.7",
     "electron": "18.0.3",
-    "electron-builder": "23.1.0",
+    "electron-builder": "^23.3.3",
     "postcss": "8.4.12",
     "tailwindcss": "3.0.24",
     "typescript": "4.7.4",
@@ -28,16 +29,19 @@
     "vue-tsc": "0.40.1"
   },
   "dependencies": {
+    "@headlessui/vue": "1.5.0",
     "bootstrap-icons-vue": "1.8.1",
     "bson": "4.6.3",
     "drag-drop": "^7.2.0",
     "electron-store": "8.0.1",
     "electron-updater": "5.0.1",
+    "katex": "^0.16.2",
     "keytar": "7.9.0",
     "pinia": "2.0.21",
     "realm": "^10.20.0",
     "splitpanes": "3.1.1",
-    "vite": "^3.0.3"
+    "vite": "^3.0.9",
+    "vue-virtual-scroller": "^2.0.0-alpha.1"
   },
   "debug": {
     "env": {

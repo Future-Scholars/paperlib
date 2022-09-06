@@ -58,7 +58,7 @@ export function registerMainContextMenu(preference: Preference) {
       { type: "separator" },
       {
         label: "Edit",
-        enabled: JSON.parse(args),
+        enabled: args,
         accelerator: isMac ? "cmd+e" : "ctrl+e",
         click: () => {
           event.sender.send("data-context-menu-edit");

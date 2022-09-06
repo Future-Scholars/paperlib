@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref, watch } from "vue";
+import { inject, Ref, ref, watch } from "vue";
 
 import {
   BIconCollection,
@@ -28,8 +28,8 @@ const isSpinnerShown = ref(false);
 // ================================
 // Data
 // ================================
-const tags = inject<CategorizerResults>("tags");
-const folders = inject<CategorizerResults>("folders");
+const tags = inject<Ref<CategorizerResults>>("tags");
+const folders = inject<Ref<CategorizerResults>>("folders");
 
 // ================================
 // Event Functions
