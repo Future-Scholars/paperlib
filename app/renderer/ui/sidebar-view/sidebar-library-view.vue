@@ -106,7 +106,7 @@ const onCategorizerNameInputBlured = () => {
 window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
-    window.entityInteractor.removeCategorizer(args[1], args[0]);
+    window.entityInteractor.deleteCategorizer(args[1], args[0]);
   }
 );
 

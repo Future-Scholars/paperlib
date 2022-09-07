@@ -69,10 +69,18 @@ export class PaperEntity {
   number: string = "";
   publisher: string = "";
 
+  [Key: string]: unknown;
+
   constructor(initObjectId = false) {
     if (initObjectId) {
       this._id = new ObjectId();
       this.id = this._id;
+    }
+  }
+
+  setValue(key: string, value: unknown, allowEmpty = false) {
+    if ((value || allowEmpty) && value !== "undefined") {
+      this[key] = value;
     }
   }
 

@@ -259,6 +259,29 @@ const onMenuButtonClicked = (command: string) => {
   }
 };
 
+const onArrowUpPressed = () => {
+  const currentIndex = selectionState.selectedIndex[0] || 0;
+  const newIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1;
+  if (!viewState.isEditViewShown && !viewState.isPreferenceViewShown) {
+    selectionState.selectedIndex = [newIndex];
+  }
+};
+
+const onArrowDownPressed = () => {
+  const currentIndex = selectionState.selectedIndex[0] || 0;
+  const newIndex =
+    currentIndex + 1 >
+    (viewState.contentType === "library"
+      ? viewState.entitiesCount
+      : viewState.feedEntitiesCount) -
+      1
+      ? currentIndex
+      : currentIndex + 1;
+  if (!viewState.isEditViewShown && !viewState.isPreferenceViewShown) {
+    selectionState.selectedIndex = [newIndex];
+  }
+};
+
 // // ========================================================
 // // Register Context Menu
 
@@ -355,55 +378,42 @@ const onMenuButtonClicked = (command: string) => {
 //     previewSelectedEntities();
 //   }
 // });
-// function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
-//   if (
-//     event.code === "Space" ||
-//     event.code === "ArrowDown" ||
-//     event.code === "ArrowUp"
-//   ) {
-//     if (
-//       event.target instanceof HTMLInputElement ||
-//       event.target instanceof HTMLTextAreaElement
-//     ) {
-//       return true;
-//     }
-//     if (event.target == document.body) {
-//       event.preventDefault();
-//     }
+function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
+  if (
+    event.code === "Space" ||
+    event.code === "ArrowDown" ||
+    event.code === "ArrowUp"
+  ) {
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
+      return true;
+    }
+    if (event.target == document.body) {
+      event.preventDefault();
+    }
 
-//     if (event.code === "ArrowDown") {
-//       const currentIndex = selectedIndex.value[0] || 0;
-//       const newIndex =
-//         currentIndex + 1 >
-//         ((contentType.value === "library"
-//           ? window.appInteractor.getState("viewState.entitiesCount")
-//           : window.appInteractor.getState(
-//               "viewState.feedEntitiesCount"
-//             )) as number) -
-//           1
-//           ? currentIndex
-//           : currentIndex + 1;
-//       window.appInteractor.setState(
-//         "selectionState.selectedIndex",
-//         JSON.stringify([newIndex])
-//       );
-//     }
+    if (event.code === "ArrowDown") {
+      event.preventDefault();
+      onArrowDownPressed();
+    }
 
-//     if (event.code === "ArrowUp") {
-//       const currentIndex = selectedIndex.value[0] || 0;
-//       const newIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1;
-//       window.appInteractor.setState(
-//         "selectionState.selectedIndex",
-//         JSON.stringify([newIndex])
-//       );
-//     }
+    if (event.code === "ArrowUp") {
+      event.preventDefault();
+      onArrowUpPressed();
+    }
 
-//     if (event.code === "Space" && selectedEntities.value.length >= 1) {
-//       previewSelectedEntities();
-//     }
-//   }
-// }
-// window.addEventListener("keydown", preventSpaceArrowScrollEvent, true);
+    //     if (event.code === "Space" && selectedEntities.value.length >= 1) {
+    //       previewSelectedEntities();
+    //     }
+  }
+}
+window.addEventListener("keydown", preventSpaceArrowScrollEvent, true);
+
+// =======================================
+// Register State Change
+// =======================================
 
 // window.appInteractor.registerMainSignal("shortcut-cmd-shift-c", () => {
 //   if (selectedEntities.value.length >= 1) {
@@ -434,46 +444,13 @@ const onMenuButtonClicked = (command: string) => {
 //   }
 // });
 
-// window.appInteractor.registerMainSignal("shortcut-arrow-up", () => {
-//   const currentIndex = selectedIndex.value[0] || 0;
-//   const newIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1;
-//   if (
-//     !window.appInteractor.getState("viewState.isEditViewShown") &&
-//     !window.appInteractor.getState("viewState.isPreferenceViewShown")
-//   ) {
-//     window.appInteractor.setState(
-//       "selectionState.selectedIndex",
-//       JSON.stringify([newIndex])
-//     );
-//   }
-// });
+window.appInteractor.registerMainSignal("shortcut-arrow-up", onArrowUpPressed);
 
-// window.appInteractor.registerMainSignal("shortcut-arrow-down", () => {
-//   const currentIndex = selectedIndex.value[0] || 0;
-//   const newIndex =
-//     currentIndex + 1 >
-//     ((contentType.value === "library"
-//       ? window.appInteractor.getState("viewState.entitiesCount")
-//       : window.appInteractor.getState(
-//           "viewState.feedEntitiesCount"
-//         )) as number) -
-//       1
-//       ? currentIndex
-//       : currentIndex + 1;
-//   if (
-//     !window.appInteractor.getState("viewState.isEditViewShown") &&
-//     !window.appInteractor.getState("viewState.isPreferenceViewShown")
-//   ) {
-//     window.appInteractor.setState(
-//       "selectionState.selectedIndex",
-//       JSON.stringify([newIndex])
-//     );
-//   }
-// });
+window.appInteractor.registerMainSignal(
+  "shortcut-arrow-down",
+  onArrowDownPressed
+);
 
-// =======================================
-// Register State Change
-// =======================================
 watch(
   () => selectionState.selectedIndex,
   (value) => {
@@ -491,10 +468,17 @@ watch(
 );
 
 watch(
-  () => viewState.contentType,
+  () =>
+    viewState.contentType +
+    viewState.sortBy +
+    viewState.sortOrder +
+    viewState.searchText +
+    selectionState.selectedCategorizer +
+    selectionState.selectedFeed,
   (value) => clearSelected()
 );
 
+// TODO: check if stil needed
 // window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
 //   selectedIndex.value = JSON.parse(value as string) as number[];
 //   reloadSelectedEntities();
@@ -506,31 +490,6 @@ watch(
 
 // window.appInteractor.registerState("dbState.feedEntitiesUpdated", (value) => {
 //   reloadSelectedEntities();
-// });
-
-// window.appInteractor.registerState("viewState.sortBy", (value) => {
-//   sortBy.value = value as string;
-//   clearSelected();
-// });
-
-// window.appInteractor.registerState("viewState.sortOrder", (value) => {
-//   sortOrder.value = value as string;
-//   clearSelected();
-// });
-
-// window.appInteractor.registerState("viewState.searchText", (value) => {
-//   clearSelected();
-// });
-
-// window.appInteractor.registerState(
-//   "selectionState.selectedCategorizer",
-//   (value) => {
-//     clearSelected();
-//   }
-// );
-
-// window.appInteractor.registerState("selectionState.selectedFeed", (value) => {
-//   clearSelected();
 // });
 </script>
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { BIconArrowDown, BIconArrowUp } from "bootstrap-icons-vue";
 
 const props = defineProps({
@@ -12,10 +13,14 @@ const props = defineProps({
   },
 });
 
+const viewState = MainRendererStateStore.useViewState();
+
 const onTitleClicked = (key: string) => {
-  window.appInteractor.setState("viewState.sortBy", key);
+  viewState.sortBy = key;
   const sortOrder = props.sortOrder === "asce" ? "desc" : "asce";
-  window.appInteractor.setState("viewState.sortOrder", sortOrder);
+  viewState.sortOrder = sortOrder;
+  window.appInteractor.setPreference("sortBy", key);
+  window.appInteractor.setPreference("sortOrder", sortOrder);
 };
 </script>
 

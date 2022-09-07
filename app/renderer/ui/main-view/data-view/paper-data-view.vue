@@ -77,8 +77,7 @@ const registerDropHandler = () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
         filePaths.push(`file://${file.path as string}`);
       });
-      // TODO: uncomment this
-      // await window.entityInteractor.add(filePaths);
+      await window.entityInteractor.create(filePaths);
     },
   });
 };
@@ -92,21 +91,20 @@ const dragHandler = (event: DragEvent) => {
   selectionState.dragedIds = [el.id];
 };
 
-// TODO: Why we need this?
-// watch(
-//   () => selectionState.selectedIndex,
-//   (value) => {
-//     if (newSelectedIndex.length === 1 && selectedIndex.value.length === 1) {
-//       selectedLastSingleIndex.value = newSelectedIndex[0];
-//     }
+watch(
+  () => selectionState.selectedIndex,
+  (newSelectedIndex) => {
+    if (newSelectedIndex.length === 1 && selectedIndex.value.length === 1) {
+      selectedLastSingleIndex.value = newSelectedIndex[0];
+    }
 
-//     selectedIndex.value = newSelectedIndex;
+    selectedIndex.value = newSelectedIndex;
 
-//     if (newSelectedIndex.length === 0) {
-//       selectedIndex.value = [];
-//     }
-//   }
-// );
+    if (newSelectedIndex.length === 0) {
+      selectedIndex.value = [];
+    }
+  }
+);
 
 onMounted(() => {
   registerDropHandler();

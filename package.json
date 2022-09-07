@@ -35,6 +35,8 @@
     "drag-drop": "^7.2.0",
     "electron-store": "8.0.1",
     "electron-updater": "5.0.1",
+    "got": "^11.8.3",
+    "hpagent": "^1.0.0",
     "katex": "^0.16.2",
     "keytar": "7.9.0",
     "pinia": "2.0.21",

@@ -299,7 +299,7 @@ export class DBRepository {
     return this.categorizerRepository.load(realm, type, sortBy, sortOrder);
   }
 
-  async removeCategorizer(
+  async deleteCategorizer(
     deleteAll = true,
     type: CategorizerType,
     categorizer?: Categorizer,
