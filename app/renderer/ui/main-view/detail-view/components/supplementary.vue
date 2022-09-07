@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps({
-  sups: Array as () => Array<string>,
+  sups: Object as () => Array<string>,
 });
 
 const getExtension = (sup: string) => {

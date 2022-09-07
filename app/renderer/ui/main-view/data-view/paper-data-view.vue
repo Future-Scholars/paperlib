@@ -7,6 +7,7 @@ import { inject, onMounted, provide, ref, Ref, watch } from "vue";
 import ListItem from "./components/list-item.vue";
 import TableTitle from "./components/table-title.vue";
 import TableItem from "./components/table-item.vue";
+import RecycleScroller from "@/renderer/thirdparty/virutalscroll/src/components/RecycleScroller.vue";
 
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { PaperEntity } from "@/models/paper-entity";

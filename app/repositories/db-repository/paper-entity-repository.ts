@@ -3,6 +3,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { ObjectId } from "bson";
+import { formatString } from "@/utils/string";
 
 export class PaperEntityRepository {
   stateStore: MainRendererStateStore;
@@ -17,9 +18,58 @@ export class PaperEntityRepository {
     this.listened = false;
   }
 
-  load(realm: Realm) {
-    const objects = realm.objects<PaperEntity>("PaperEntity");
+  createFilterPattern(
+    search: string | null,
+    flag: boolean,
+    tag: string,
+    folder: string
+  ): string {
+    let filterFormat = "";
 
+    const formatedSearch = formatString({
+      str: search,
+      removeNewline: true,
+      trimWhite: true,
+    });
+
+    if (search) {
+      if (this.stateStore.viewState.searchMode === "general") {
+        filterFormat += `(title contains[c] \"${formatedSearch}\" OR authors contains[c] \"${formatedSearch}\" OR publication contains[c] \"${formatedSearch}\" OR note contains[c] \"${formatedSearch}\") AND `;
+      } else if (this.stateStore.viewState.searchMode === "advanced") {
+        filterFormat += `(${formatedSearch}) AND `;
+      }
+    }
+    if (flag) {
+      filterFormat += "flag == true AND ";
+    }
+    if (tag) {
+      filterFormat += `(ANY tags.name == \"${tag}\") AND `;
+    }
+    if (folder) {
+      filterFormat += `(ANY folders.name == \"${folder}\") AND `;
+    }
+
+    if (filterFormat.length > 0) {
+      filterFormat = filterFormat.slice(0, -5);
+    }
+
+    return filterFormat;
+  }
+
+  load(
+    realm: Realm,
+    search: string,
+    flag: boolean,
+    tag: string,
+    folder: string,
+    sortBy: string,
+    sortOrder: string
+  ) {
+    const filterPattern = this.createFilterPattern(search, flag, tag, folder);
+
+    let objects = realm
+      .objects<PaperEntity>("PaperEntity")
+      .sorted(sortBy, sortOrder == "desc");
     this.stateStore.viewState.entitiesCount = objects.length;
 
     if (!this.listened) {
@@ -35,6 +85,18 @@ export class PaperEntityRepository {
       });
       this.listened = true;
     }
+
+    if (filterPattern) {
+      try {
+        objects = objects.filtered(filterPattern);
+      } catch (error) {
+        console.error(error);
+        this.stateStore.logState.alertLog = `Filter pattern is invalid: ${
+          error as string
+        }`;
+      }
+    }
+
     return objects;
   }
 
@@ -52,14 +114,14 @@ export class PaperEntityRepository {
   addDummyData(tag: PaperTag, folder: PaperFolder, realm: Realm) {
     const ids: Array<string | ObjectId> = [];
     realm.safeWrite(() => {
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 10000; i++) {
         const entity = new PaperEntity(true);
 
         entity.dummyFill();
 
         realm.create("PaperEntity", entity);
 
-        if (i % 5 === 0) {
+        if (i % 500 === 0) {
           ids.push(entity.id);
         }
       }

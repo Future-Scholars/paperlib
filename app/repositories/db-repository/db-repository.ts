@@ -274,9 +274,24 @@ export class DBRepository {
   // CRUD
   // ========================
 
-  async paperEntities() {
+  async paperEntities(
+    search: string,
+    flag: boolean,
+    tag: string,
+    folder: string,
+    sortBy: string,
+    sortOrder: string
+  ) {
     const realm = await this.realm();
-    return this.paperEntityRepository.load(realm);
+    return this.paperEntityRepository.load(
+      realm,
+      search,
+      flag,
+      tag,
+      folder,
+      sortBy,
+      sortOrder
+    );
   }
 
   async categorizers(type: CategorizerType, sortBy: string, sortOrder: string) {

@@ -25,6 +25,7 @@ import { removeLoading } from "@/preload/loading";
 
 const viewState = MainRendererStateStore.useViewState();
 const dbState = MainRendererStateStore.useDBState();
+const selectionState = MainRendererStateStore.useSelectionState();
 
 // ================================
 // Data
@@ -50,8 +51,25 @@ const onSidebarResized = (event: any) => {
 // ================================
 const reloadPaperEntities = async () => {
   console.log("Reload paper entities...");
-  paperEntities.value = [];
-  paperEntities.value = await window.entityInteractor.loadPaperEntities();
+  let flaged = false;
+
+  let tag = "";
+  let folder = "";
+  if (selectionState.selectedCategorizer.startsWith("tag-")) {
+    tag = selectionState.selectedCategorizer.replace("tag-", "");
+  } else if (selectionState.selectedCategorizer.startsWith("folder-")) {
+    folder = selectionState.selectedCategorizer.replace("folder-", "");
+  } else if (selectionState.selectedCategorizer === "lib-flaged") {
+    flaged = true;
+  }
+  paperEntities.value = await window.entityInteractor.loadPaperEntities(
+    viewState.searchText,
+    flaged,
+    tag,
+    folder,
+    viewState.sortBy,
+    viewState.sortOrder
+  );
   console.log(`Paper entities (${paperEntities.value.length}) loaded!`);
 };
 watch(
@@ -83,6 +101,26 @@ const reloadFolders = async () => {
 watch(
   () => dbState.foldersUpdated,
   (value) => reloadFolders()
+);
+
+// ================================
+// Register State
+// ================================
+watch(
+  () =>
+    viewState.sortBy +
+    viewState.sortOrder +
+    viewState.contentType +
+    viewState.searchText +
+    selectionState.selectedCategorizer,
+  (value) => {
+    if (viewState.contentType === "library") {
+      reloadPaperEntities();
+    } else if (viewState.contentType === "feed") {
+      // TODO: reload feed
+      // reloadFeedEntities();
+    }
+  }
 );
 
 // ================================
@@ -128,8 +166,6 @@ onMounted(async () => {
   });
 });
 </script>
-
-<style></style>
 
 <template>
   <div class="flex text-neutral-700 dark:text-neutral-200">

@@ -1,5 +1,6 @@
 import { Categorizer, CategorizerType, Colors } from "@/models/categorizer";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
+import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 export class EntityInteractor {
@@ -16,8 +17,35 @@ export class EntityInteractor {
   // Read
   // ========================
 
-  async loadPaperEntities() {
-    return await this.dbRepository.paperEntities();
+  async loadPaperEntities(
+    search: string,
+    flag: boolean,
+    tag: string,
+    folder: string,
+    sortBy: string,
+    sortOrder: string
+  ) {
+    let entities;
+    this.stateStore.viewState.processingQueueCount += 1;
+    try {
+      entities = await this.dbRepository.paperEntities(
+        search,
+        flag,
+        tag,
+        folder,
+        sortBy,
+        sortOrder
+      );
+    } catch (e) {
+      console.error(e);
+      entities = [] as PaperEntityResults;
+    }
+    // TODO: implement this
+    // if (this.sharedState.viewState.searchMode.get() === "fulltext" && search) {
+    //   entities = await this.cacheRepository.fullTextFilter(search, entities);
+    // }
+    this.stateStore.viewState.processingQueueCount -= 1;
+    return entities;
   }
 
   async loadCategorizers(

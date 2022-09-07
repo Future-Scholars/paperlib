@@ -41,6 +41,7 @@ const selectionState = MainRendererStateStore.useSelectionState();
 // ================================
 // Data
 // ================================
+const selectedEntityPlaceHolder = ref(new PaperEntity(false));
 const paperEntities = inject<Ref<PaperEntityResults>>("paperEntities");
 
 const selectedPaperEntities = ref<Array<PaperEntity>>([]);
@@ -49,6 +50,9 @@ const selectedPaperEntities = ref<Array<PaperEntity>>([]);
 
 // const feedEntityAddingStatus = ref(0); // 0: not adding, 1: adding, 2: added
 
+// ================================
+// Event Handlers
+// ================================
 // const openSelectedEntities = () => {
 //   if (contentType.value === "library") {
 //     selectedEntities.value.forEach((entity) => {
@@ -97,16 +101,9 @@ const selectedPaperEntities = ref<Array<PaperEntity>>([]);
 //   );
 // };
 
-// const clearSelected = () => {
-//   selectedIndex.value = [];
-//   selectedEntities.value = [];
-//   selectedFeedEntities.value = [];
-//   window.appInteractor.setState(
-//     "selectionState.selectedIndex",
-//     JSON.stringify(selectedIndex.value)
-//   );
-//   window.appInteractor.setState("selectionState.selectedIds", "");
-// };
+const clearSelected = () => {
+  selectionState.selectedIndex = [];
+};
 
 // const scrapeSelectedEntities = () => {
 //   if (contentType.value === "library") {
@@ -215,15 +212,15 @@ const switchViewType = (viewType: string) => {
   window.appInteractor.setPreference("mainviewType", viewType);
 };
 
-// const switchSortBy = (key: string) => {
-//   window.appInteractor.setState("viewState.sortBy", key);
-//   window.appInteractor.updatePreference("mainviewSortBy", key);
-// };
+const switchSortBy = (key: string) => {
+  viewState.sortBy = key;
+  window.appInteractor.setPreference("mainviewSortBy", key);
+};
 
-// const switchSortOrder = (order: string) => {
-//   window.appInteractor.setState("viewState.sortOrder", order);
-//   window.appInteractor.updatePreference("mainviewSortOrder", order);
-// };
+const switchSortOrder = (order: string) => {
+  viewState.sortOrder = order;
+  window.appInteractor.setPreference("mainviewSortOrder", order);
+};
 
 const onMenuButtonClicked = (command: string) => {
   switch (command) {
@@ -245,17 +242,17 @@ const onMenuButtonClicked = (command: string) => {
     case "table-view":
       switchViewType("table");
       break;
-    //     case "sort-by-title":
-    //     case "sort-by-authors":
-    //     case "sort-by-addTime":
-    //     case "sort-by-publication":
-    //     case "sort-by-pubTime":
-    //       switchSortBy(command.replaceAll("sort-by-", ""));
-    //       break;
-    //     case "sort-order-asce":
-    //     case "sort-order-desc":
-    //       switchSortOrder(command.replaceAll("sort-order-", ""));
-    //       break;
+    case "sort-by-title":
+    case "sort-by-authors":
+    case "sort-by-addTime":
+    case "sort-by-publication":
+    case "sort-by-pubTime":
+      switchSortBy(command.replaceAll("sort-by-", ""));
+      break;
+    case "sort-order-asce":
+    case "sort-order-desc":
+      switchSortOrder(command.replaceAll("sort-order-", ""));
+      break;
     case "preference":
       viewState.isPreferenceViewShown = true;
       break;
@@ -493,10 +490,10 @@ watch(
   }
 );
 
-// window.appInteractor.registerState("viewState.contentType", (value) => {
-//   contentType.value = value as string;
-//   clearSelected();
-// });
+watch(
+  () => viewState.contentType,
+  (value) => clearSelected()
+);
 
 // window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
 //   selectedIndex.value = JSON.parse(value as string) as number[];
@@ -552,7 +549,7 @@ watch(
         :entity="
           selectedPaperEntities.length === 1
             ? selectedPaperEntities[0]
-            : new PaperEntity(false)
+            : selectedEntityPlaceHolder
         "
         v-show="selectionState.selectedIndex.length === 1"
         v-if="viewState.contentType === 'library'"

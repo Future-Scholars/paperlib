@@ -1,8 +1,6 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { Splitpanes, Pane } from "splitpanes";
-// @ts-ignore
-import { RecycleScroller } from "vue-virtual-scroller";
 
 import "./css/index.css";
 import App from "./App.vue";
@@ -22,7 +20,6 @@ app.use(pinia);
 
 app.component("Splitpanes", Splitpanes);
 app.component("Pane", Pane);
-app.component("RecycleScroller", RecycleScroller);
 
 // ====================================
 // Setup interactors and repositories

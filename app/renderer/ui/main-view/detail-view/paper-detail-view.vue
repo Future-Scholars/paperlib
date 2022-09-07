@@ -197,9 +197,9 @@ onBeforeUpdate(() => {
     <Section title="Codes" v-if="entity.codes.length > 0">
       <Code :codes="entity.codes" />
     </Section>
-    <!--  <Section title="Supplementaries" v-if="entity.supURLs.length > 0">
+    <Section title="Supplementaries" v-if="entity.supURLs.length > 0">
       <Supplementary :sups="entity.supURLs" />
-    </Section> -->
+    </Section>
     <!-- <Markdown :title="'Markdown'" :sups="entity.supURLs" /> -->
     <div class="w-40 h-10">&nbsp;</div>
     <div
