@@ -199,6 +199,22 @@ export class EntityInteractor {
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
   }
 
+  async scrape(paperEntities: PaperEntity[]) {
+    this.stateStore.logState.processLog = `Scraping ${paperEntities.length} paper(s)...`;
+    this.stateStore.viewState.processingQueueCount += paperEntities.length;
+
+    const scrapePromise = async (paperEntityDraft: PaperEntity) => {
+      return await this.scraperRepository.scrape(paperEntityDraft);
+    };
+
+    paperEntities = await Promise.all(
+      paperEntities.map((paperEntityDraft) => scrapePromise(paperEntityDraft))
+    );
+
+    this.stateStore.viewState.processingQueueCount -= paperEntities.length;
+    await this.update(paperEntities);
+  }
+
   colorizeCategorizers(
     color: Colors,
     type: CategorizerType,

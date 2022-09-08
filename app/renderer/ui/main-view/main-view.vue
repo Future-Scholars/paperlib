@@ -106,16 +106,15 @@ const clearSelected = () => {
   selectionState.selectedIndex = [];
 };
 
-// const scrapeSelectedEntities = () => {
-//   if (contentType.value === "library") {
-//     const entityDrafts = selectedEntities.value.map((entity) => {
-//       const entityDraft = new PaperEntityDraft();
-//       entityDraft.initialize(entity);
-//       return entityDraft;
-//     });
-//     void window.entityInteractor.scrape(JSON.stringify(entityDrafts));
-//   }
-// };
+const scrapeSelectedEntities = () => {
+  if (viewState.contentType === "library") {
+    const paperEntityDrafts = selectedPaperEntities.value.map((paperEntity) => {
+      const paperEntityDraft = (new PaperEntity(false)).initialize(paperEntity);
+      return paperEntityDraft;
+    });
+    void window.entityInteractor.scrape(paperEntityDrafts);
+  }
+};
 
 // const scrapeSelectedEntitiesFrom = (scraperName: string) => {
 //   if (contentType.value === "library") {
@@ -224,9 +223,9 @@ const switchSortOrder = (order: string) => {
 
 const onMenuButtonClicked = (command: string) => {
   switch (command) {
-    //     case "rescrape":
-    //       scrapeSelectedEntities();
-    //       break;
+        case "rescrape":
+          scrapeSelectedEntities();
+          break;
         case "delete":
           deleteSelectedEntities();
           break;
@@ -297,9 +296,9 @@ window.appInteractor.registerMainSignal("data-context-menu-delete", () => {
   deleteSelectedEntities();
 });
 
-// window.appInteractor.registerMainSignal("data-context-menu-scrape", () => {
-//   scrapeSelectedEntities();
-// });
+window.appInteractor.registerMainSignal("data-context-menu-scrape", () => {
+  scrapeSelectedEntities();
+});
 
 // window.appInteractor.registerMainSignal(
 //   "data-context-menu-scrape-from",
@@ -439,11 +438,11 @@ window.appInteractor.registerMainSignal("shortcut-cmd-f", () => {
   }
 });
 
-// window.appInteractor.registerMainSignal("shortcut-cmd-r", () => {
-//   if (selectedEntities.value.length >= 1) {
-//     scrapeSelectedEntities();
-//   }
-// });
+window.appInteractor.registerMainSignal("shortcut-cmd-r", () => {
+  if (selectedPaperEntities.value.length >= 1) {
+    scrapeSelectedEntities();
+  }
+});
 
 window.appInteractor.registerMainSignal("shortcut-arrow-up", onArrowUpPressed);
 
@@ -477,19 +476,6 @@ watch(
   (value) => clearSelected()
 );
 
-// TODO: check if stil needed
-// window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
-//   selectedIndex.value = JSON.parse(value as string) as number[];
-//   reloadSelectedEntities();
-// });
-
-// window.appInteractor.registerState("dbState.entitiesUpdated", (value) => {
-//   reloadSelectedEntities();
-// });
-
-// window.appInteractor.registerState("dbState.feedEntitiesUpdated", (value) => {
-//   reloadSelectedEntities();
-// });
 </script>
 
 <template>
