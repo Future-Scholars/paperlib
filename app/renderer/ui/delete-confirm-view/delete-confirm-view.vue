@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
-const viewState = MainRendererStateStore.useViewState()
-const selectionState = MainRendererStateStore.useSelectionState()
+const viewState = MainRendererStateStore.useViewState();
+const selectionState = MainRendererStateStore.useSelectionState();
 
 const onClick = () => {
   viewState.isDeleteConfirmShown = false;
@@ -24,7 +24,7 @@ const onCancel = () => {
 };
 
 const onConfirm = () => {
-  window.entityInteractor.delete(selectionState.selectedIds)
+  window.entityInteractor.delete(selectionState.selectedIds);
   onClick();
 };
 </script>
@@ -54,7 +54,10 @@ const onConfirm = () => {
             @click.stop=""
           >
             <div>
-              <img class="mx-auto mt-2 w-16 h-16" src="@/renderer/assets/icon.png" />
+              <img
+                class="mx-auto mt-2 w-16 h-16"
+                src="@/renderer/assets/icon.png"
+              />
               <div class="mt-1 text-center text-sm font-semibold">
                 Confirmation
               </div>

@@ -2,7 +2,10 @@ import { ObjectId } from "bson";
 import { Pinia, Store, defineStore } from "pinia";
 import { watch } from "vue";
 
+import { PaperEntity } from "@/models/paper-entity";
+
 import {
+  BufferState,
   DBState,
   DataViewState,
   LogState,
@@ -84,6 +87,7 @@ export class MainRendererStateStore extends RendererStateStore {
   logState: Store<string, LogState>;
   viewState: Store<string, ViewState>;
   dataViewState: Store<string, DataViewState>;
+  bufferState: Store<string, BufferState>;
   dbState: Store<string, DBState>;
   selectionState: Store<string, SelectionState>;
 
@@ -93,6 +97,7 @@ export class MainRendererStateStore extends RendererStateStore {
     this.logState = MainRendererStateStore.useLogState(pinia);
     this.viewState = MainRendererStateStore.useViewState(pinia);
     this.dataViewState = MainRendererStateStore.useDataViewState(pinia);
+    this.bufferState = MainRendererStateStore.useBufferState(pinia);
     this.dbState = MainRendererStateStore.useDBState(pinia);
     this.selectionState = MainRendererStateStore.useSelectionState(pinia);
 
@@ -168,6 +173,14 @@ export class MainRendererStateStore extends RendererStateStore {
         showFolders: true,
         showRating: true,
         showNote: true,
+      };
+    },
+  });
+
+  static useBufferState = defineStore("bufferState", {
+    state: () => {
+      return {
+        editingPaperEntityDraft: new PaperEntity(false),
       };
     },
   });

@@ -1,21 +1,14 @@
 <script setup lang="ts">
-import { ref, Ref, inject, watch } from "vue";
+import { Ref, inject, ref, watch } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
 
-// import {
-//   PaperEntity,
-//   PaperEntityPlaceholder,
-// } from "../../../../preload/models/PaperEntity";
-// import { FeedEntity } from "../../../../preload/models/FeedEntity";
-// import { PaperEntityDraft } from "../../../../preload/models/PaperEntityDraft";
-// import { FeedEntityDraft } from "../../../../preload/models/FeedEntityDraft";
-
-import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 import PaperDataView from "./data-view/paper-data-view.vue";
 import PaperDetailView from "./detail-view/paper-detail-view.vue";
+import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
+
 // import FeedDataView from "./data-view/feed-data-view.vue";
 // import FeedDetailView from "./detail-view/feed-detail-view.vue";
 
@@ -38,6 +31,7 @@ import PaperDetailView from "./detail-view/paper-detail-view.vue";
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
 const dbState = MainRendererStateStore.useDBState();
+const bufferState = MainRendererStateStore.useBufferState();
 
 // ================================
 // Data
@@ -83,23 +77,22 @@ const previewSelectedEntities = () => {
 
 const reloadSelectedEntities = () => {
   if (viewState.contentType === "library") {
-      selectedPaperEntities.value = [];
-      if (paperEntities) {
-        for (const index of selectionState.selectedIndex) {
-          if (paperEntities.value.length > index) {
-            selectedPaperEntities.value.push(paperEntities.value[index]);
-            selectionState.selectedIds.push(paperEntities.value[index].id);
-          }
-          else if (selectionState.selectedIndex.length === 1) {
-            selectionState.selectedIndex = [];
-            selectionState.selectedIds = [];
-            break;
-          }
+    selectedPaperEntities.value = [];
+    if (paperEntities) {
+      for (const index of selectionState.selectedIndex) {
+        if (paperEntities.value.length > index) {
+          selectedPaperEntities.value.push(paperEntities.value[index]);
+          selectionState.selectedIds.push(paperEntities.value[index].id);
+        } else if (selectionState.selectedIndex.length === 1) {
+          selectionState.selectedIndex = [];
+          selectionState.selectedIds = [];
+          break;
         }
       }
-    } else {
-      // TODO: Feed
     }
+  } else {
+    // TODO: Feed
+  }
 };
 
 const clearSelected = () => {
@@ -109,7 +102,7 @@ const clearSelected = () => {
 const scrapeSelectedEntities = () => {
   if (viewState.contentType === "library") {
     const paperEntityDrafts = selectedPaperEntities.value.map((paperEntity) => {
-      const paperEntityDraft = (new PaperEntity(false)).initialize(paperEntity);
+      const paperEntityDraft = new PaperEntity(false).initialize(paperEntity);
       return paperEntityDraft;
     });
     void window.entityInteractor.scrape(paperEntityDrafts);
@@ -119,13 +112,10 @@ const scrapeSelectedEntities = () => {
 const scrapeSelectedEntitiesFrom = (scraperName: string) => {
   if (viewState.contentType === "library") {
     const paperEntityDrafts = selectedPaperEntities.value.map((paperEntity) => {
-      const paperEntityDraft = (new PaperEntity(false)).initialize(paperEntity);
+      const paperEntityDraft = new PaperEntity(false).initialize(paperEntity);
       return paperEntityDraft;
     });
-    void window.entityInteractor.scrapeFrom(
-      paperEntityDrafts,
-      scraperName
-    );
+    void window.entityInteractor.scrapeFrom(paperEntityDrafts, scraperName);
   }
 };
 
@@ -135,22 +125,20 @@ const deleteSelectedEntities = () => {
   }
 };
 
-// const editSelectedEntities = () => {
-//   if (contentType.value === "library") {
-//     const entityDraft = new PaperEntityDraft();
-//     entityDraft.initialize(selectedEntities.value[0]);
-//     window.appInteractor.setState(
-//       "sharedData.editEntityDraft",
-//       JSON.stringify(entityDraft)
-//     );
-//     window.appInteractor.setState("viewState.isEditViewShown", true);
-//   }
-// };
+const editSelectedEntities = () => {
+  if (viewState.contentType === "library") {
+    const paperEntityDraft = new PaperEntity(false).initialize(
+      selectedPaperEntities.value[0]
+    );
+    bufferState.editingPaperEntityDraft = paperEntityDraft;
+    viewState.isEditViewShown = true;
+  }
+};
 
 const flagSelectedEntities = () => {
   if (viewState.contentType === "library") {
     const paperEntityDrafts = selectedPaperEntities.value.map((paperEntity) => {
-      const paperEntityDraft = (new PaperEntity(false)).initialize(paperEntity);
+      const paperEntityDraft = new PaperEntity(false).initialize(paperEntity);
       paperEntityDraft.flag = !paperEntityDraft.flag;
       return paperEntityDraft;
     });
@@ -222,18 +210,18 @@ const switchSortOrder = (order: string) => {
 
 const onMenuButtonClicked = (command: string) => {
   switch (command) {
-        case "rescrape":
-          scrapeSelectedEntities();
-          break;
-        case "delete":
-          deleteSelectedEntities();
-          break;
-    //     case "edit":
-    //       editSelectedEntities();
-    //       break;
-        case "flag":
-          flagSelectedEntities();
-          break;
+    case "rescrape":
+      scrapeSelectedEntities();
+      break;
+    case "delete":
+      deleteSelectedEntities();
+      break;
+    case "edit":
+      editSelectedEntities();
+      break;
+    case "flag":
+      flagSelectedEntities();
+      break;
     case "list-view":
       switchViewType("list");
       break;
@@ -283,9 +271,9 @@ const onArrowDownPressed = () => {
 // // ========================================================
 // // Register Context Menu
 
-// window.appInteractor.registerMainSignal("data-context-menu-edit", () => {
-//   editSelectedEntities();
-// });
+window.appInteractor.registerMainSignal("data-context-menu-edit", () => {
+  editSelectedEntities();
+});
 
 window.appInteractor.registerMainSignal("data-context-menu-flag", () => {
   flagSelectedEntities();
@@ -425,11 +413,12 @@ window.addEventListener("keydown", preventSpaceArrowScrollEvent, true);
 //     exportSelectedEntities("BibTex-Key");
 //   }
 // }),
-//   window.appInteractor.registerMainSignal("shortcut-cmd-e", () => {
-//     if (selectedEntities.value.length == 1) {
-//       editSelectedEntities();
-//     }
-//   });
+
+window.appInteractor.registerMainSignal("shortcut-cmd-e", () => {
+  if (selectedPaperEntities.value.length == 1) {
+    editSelectedEntities();
+  }
+});
 
 window.appInteractor.registerMainSignal("shortcut-cmd-f", () => {
   if (selectedPaperEntities.value.length >= 1) {
@@ -474,7 +463,6 @@ watch(
     selectionState.selectedFeed,
   (value) => clearSelected()
 );
-
 </script>
 
 <template>

@@ -1,5 +1,7 @@
 import { ObjectId } from "bson";
 
+import { PaperEntity } from "@/models/paper-entity";
+
 export interface LogState {
   processLog: string;
   alertLog: string;
@@ -48,6 +50,10 @@ export interface DataViewState {
   showFolders: boolean;
   showRating: boolean;
   showNote: boolean;
+}
+
+export interface BufferState {
+  editingPaperEntityDraft: PaperEntity;
 }
 
 export interface DBState {
