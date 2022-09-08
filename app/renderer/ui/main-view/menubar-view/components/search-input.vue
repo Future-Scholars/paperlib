@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { BIconQuestionCircle, BIconSearch, BIconX } from "bootstrap-icons-vue";
 import { ref } from "vue";
 
-import { BIconSearch, BIconQuestionCircle, BIconX } from "bootstrap-icons-vue";
-import { debounce } from "@/utils/misc";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { debounce } from "@/utils/misc";
 
 // ================================
 // State
@@ -67,6 +67,8 @@ const onClearClicked = (payload: Event) => {
       v-model="searchText"
       @input="onInput"
       @change="onSubmit"
+      @focus="viewState.inputFieldFocused = true"
+      @blur="viewState.inputFieldFocused = false"
     />
     <div class="my-auto invisible peer-focus:visible">
       <BIconQuestionCircle

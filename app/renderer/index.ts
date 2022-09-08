@@ -1,6 +1,8 @@
+import { BIconChevronUp, BIconX } from "bootstrap-icons-vue";
 import { createPinia } from "pinia";
 import { Pane, Splitpanes } from "splitpanes";
 import { createApp } from "vue";
+import vSelect from "vue-select";
 
 import { AppInteractor } from "@/interactors/app-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
@@ -14,6 +16,12 @@ import { MainRendererStateStore } from "../state/renderer/appstate";
 import App from "./App.vue";
 import "./css/index.css";
 
+// @ts-ignore
+vSelect.props.components.default = () => ({
+  Deselect: BIconX,
+  OpenIndicator: BIconChevronUp,
+});
+
 const pinia = createPinia();
 
 const app = createApp(App);
@@ -23,6 +31,7 @@ app.use(pinia);
 
 app.component("Splitpanes", Splitpanes);
 app.component("Pane", Pane);
+app.component("v-select", vSelect);
 
 // ====================================
 // Setup interactors and repositories

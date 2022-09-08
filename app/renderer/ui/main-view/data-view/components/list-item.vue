@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { PropType } from "vue";
 import {
   BIconFlagFill,
+  BIconFolder,
   BIconStarFill,
   BIconTag,
-  BIconFolder,
 } from "bootstrap-icons-vue";
+import { PropType } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
 
@@ -120,7 +120,7 @@ const getPubTypeString = (pubType: any) => {
           class="my-auto min-w-[11px]"
           style="margin-right: -5px !important"
         />
-        <div class="truncate overflow-hidden min-w-[40px]">
+        <div class="truncate overflow-hidden">
           {{ item.tags.map((tag) => tag.name).join(" / ") }}
         </div>
       </div>
@@ -132,7 +132,7 @@ const getPubTypeString = (pubType: any) => {
           class="my-auto min-w-[11px]"
           style="margin-right: -5px !important"
         />
-        <div class="truncate overflow-hidden min-w-[40px]">
+        <div class="truncate overflow-hidden">
           {{ item.folders.map((folder) => folder.name).join(" / ") }}
         </div>
       </div>

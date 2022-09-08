@@ -1,25 +1,26 @@
 <script setup lang="ts">
 import "splitpanes/dist/splitpanes.css";
 import {
-computed,
+  Ref,
+  computed,
   inject,
   nextTick,
   onBeforeMount,
   onMounted,
   provide,
-  Ref,
   ref,
   watch,
 } from "vue";
 
-import SidebarView from "./sidebar-view/sidebar-view.vue";
-import MainView from "./main-view/main-view.vue";
-import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
-
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
-import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { removeLoading } from "@/preload/loading";
+import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
+import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+
+import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
+import EditView from "./edit-view/edit-view.vue";
+import MainView from "./main-view/main-view.vue";
+import SidebarView from "./sidebar-view/sidebar-view.vue";
 
 // ================================
 // State
@@ -33,7 +34,10 @@ const selectionState = MainRendererStateStore.useSelectionState();
 // Data
 // ================================
 const paperEntities: Ref<PaperEntityResults> = ref([]);
-provide("paperEntities", computed(() => paperEntities.value));
+provide(
+  "paperEntities",
+  computed(() => paperEntities.value)
+);
 const tags: Ref<CategorizerResults> = ref([]);
 provide("tags", tags);
 const folders: Ref<CategorizerResults> = ref([]);
@@ -205,6 +209,7 @@ onMounted(async () => {
         <MainView />
       </pane>
     </splitpanes>
+    <EditView />
     <DeleteConfirmView />
   </div>
 </template>

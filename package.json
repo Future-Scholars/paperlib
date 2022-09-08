@@ -50,6 +50,7 @@
     "realm": "^10.20.0",
     "splitpanes": "3.1.1",
     "vite": "^3.0.9",
+    "vue-select": "^4.0.0-beta.3",
     "vue-virtual-scroller": "^2.0.0-alpha.1",
     "webdav": "^4.9.0"
   },
