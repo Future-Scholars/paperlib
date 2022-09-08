@@ -1,25 +1,26 @@
 import { XMLParser } from "fast-xml-parser";
 import { Response } from "got";
 
+import { PaperEntity } from "@/models/paper-entity";
+import { Preference } from "@/preference/preference";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { formatString } from "@/utils/string";
+
 import { Scraper, ScraperRequestType } from "./scraper";
-import { formatString } from "../../../utils/string";
-import { Preference } from "../../../utils/preference";
-import { SharedState } from "../../../utils/appstate";
-import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class ArXivScraper extends Scraper {
   xmlParser: XMLParser;
 
-  constructor(sharedState: SharedState, preference: Preference) {
-    super(sharedState, preference);
+  constructor(stateStore: MainRendererStateStore, preference: Preference) {
+    super(stateStore, preference);
     this.xmlParser = new XMLParser();
   }
 
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
-    const enable = this.getEnable("arxiv") && entityDraft.arxiv !== "";
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    const enable = this.getEnable("arxiv") && paperEntityDraft.arxiv !== "";
 
     const arxivID = formatString({
-      str: entityDraft.arxiv,
+      str: paperEntityDraft.arxiv,
       removeStr: "arXiv:",
     });
     const scrapeURL = `https://export.arxiv.org/api/query?id_list=${arxivID}`;
@@ -29,10 +30,7 @@ export class ArXivScraper extends Scraper {
     };
 
     if (enable) {
-      this.sharedState.set(
-        "viewState.processInformation",
-        `Scraping metadata from arXiv.org ...`
-      );
+      this.stateStore.logState.processLog = `Scraping metadata from arXiv.org ...`;
     }
 
     return { scrapeURL, headers, enable };
@@ -40,8 +38,8 @@ export class ArXivScraper extends Scraper {
 
   parsingProcess(
     rawResponse: Response<string>,
-    entityDraft: PaperEntityDraft
-  ): PaperEntityDraft {
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     const parsedResponse = this.xmlParser.parse(rawResponse.body) as {
       feed: {
         entry: {
@@ -66,12 +64,12 @@ export class ArXivScraper extends Scraper {
     }
 
     const pubTime = arxivResponse.published.substring(0, 4);
-    entityDraft.setValue("title", title);
-    entityDraft.setValue("authors", authors);
-    entityDraft.setValue("pubTime", pubTime);
-    entityDraft.setValue("pubType", 0);
-    entityDraft.setValue("publication", "arXiv");
+    paperEntityDraft.setValue("title", title);
+    paperEntityDraft.setValue("authors", authors);
+    paperEntityDraft.setValue("pubTime", pubTime);
+    paperEntityDraft.setValue("pubType", 0);
+    paperEntityDraft.setValue("publication", "arXiv");
 
-    return entityDraft;
+    return paperEntityDraft;
   }
 }

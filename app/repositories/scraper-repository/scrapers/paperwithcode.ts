@@ -1,16 +1,16 @@
 import got, { Response } from "got";
-import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
+
+import { PaperEntity } from "@/models/paper-entity";
+import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
-import { formatString } from "../../../utils/string";
-import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class PwCScraper extends Scraper {
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
-    const enable = entityDraft.title !== "" && this.getEnable("pwc");
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    const enable = paperEntityDraft.title !== "" && this.getEnable("pwc");
 
     const connectedTitle = formatString({
-      str: entityDraft.title,
+      str: paperEntityDraft.title,
       removeStr: "&amp",
       lowercased: true,
       trimWhite: true,
@@ -24,10 +24,7 @@ export class PwCScraper extends Scraper {
     };
 
     if (enable) {
-      this.sharedState.set(
-        "viewState.processInformation",
-        `Scraping code from paperswithcode.com ...`
-      );
+      this.stateStore.logState.processLog = `Scraping code from paperswithcode.com ...`;
     }
 
     return { scrapeURL, headers, enable };
@@ -35,8 +32,8 @@ export class PwCScraper extends Scraper {
 
   parsingProcess(
     rawResponse: Response<string>,
-    entityDraft: PaperEntityDraft
-  ): PaperEntityDraft {
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     const response = JSON.parse(rawResponse.body) as {
       count?: number;
       results: {
@@ -70,9 +67,9 @@ export class PwCScraper extends Scraper {
           return 0;
         }
       });
-      entityDraft.setValue("codes", codeList);
+      paperEntityDraft.setValue("codes", codeList);
     }
-    return entityDraft;
+    return paperEntityDraft;
   }
 
   scrapeImpl = scrapeImpl;
@@ -80,13 +77,14 @@ export class PwCScraper extends Scraper {
 
 async function scrapeImpl(
   this: ScraperType,
-  entityDraft: PaperEntityDraft
-): Promise<PaperEntityDraft> {
+  paperEntityDraft: PaperEntity,
+  force = false
+): Promise<PaperEntity> {
   const { scrapeURL, headers, enable } = this.preProcess(
-    entityDraft
+    paperEntityDraft
   ) as ScraperRequestType;
 
-  if (enable) {
+  if (enable || force) {
     const agent = this.getProxyAgent();
     let options = {
       headers: headers,
@@ -110,7 +108,7 @@ async function scrapeImpl(
       }[];
     };
     const targetTitle = formatString({
-      str: entityDraft.title,
+      str: paperEntityDraft.title,
       removeStr: "&amp",
       removeSymbol: true,
       lowercased: true,
@@ -118,7 +116,6 @@ async function scrapeImpl(
 
     let id = "";
     if (searchResponse.count) {
-      const codeList: string[] = [];
       for (const result of searchResponse.results) {
         const hitTitle = formatString({
           str: result.paper.title,
@@ -142,12 +139,12 @@ async function scrapeImpl(
 
       return this.parsingProcess(
         rawRepoResponse,
-        entityDraft
-      ) as PaperEntityDraft;
+        paperEntityDraft
+      ) as PaperEntity;
     } else {
-      return entityDraft;
+      return paperEntityDraft;
     }
   } else {
-    return entityDraft;
+    return paperEntityDraft;
   }
 }

@@ -1,43 +1,43 @@
-// @ts-nocheck
 import fs from "fs";
-import * as pdfjs from "pdfjs-dist/build/pdf";
-
-import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
-import { Preference } from "../../../utils/preference";
-import { SharedState } from "../../../utils/appstate";
-import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
-import { constructFileURL } from "../../../utils/path";
-import { formatString } from "../../../utils/string";
 import {
   PDFDocumentProxy,
   PDFPageProxy,
   TextItem,
 } from "pdfjs-dist/types/src/display/api";
+// @ts-ignore
+import * as pdfjs from "pdfjs-dist/build/pdf";
+
+import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { Preference } from "@/preference/preference";
+import { constructFileURL } from "@/utils/path";
+import { formatString } from "@/utils/string";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { PaperEntity } from "@/models/paper-entity";
 
 export class PDFScraper extends Scraper {
-  constructor(sharedState: SharedState, preference: Preference) {
-    super(sharedState, preference);
+  constructor(stateStore: MainRendererStateStore, preference: Preference) {
+    super(stateStore, preference);
 
     const worker = new Worker("./pdf.worker.min.js");
     pdfjs.GlobalWorkerOptions.workerPort = worker;
   }
 
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const enable =
-      entityDraft.mainURL !== "" &&
+      paperEntityDraft.mainURL !== "" &&
       fs.existsSync(
         constructFileURL(
-          entityDraft.mainURL,
+          paperEntityDraft.mainURL,
           true,
           false,
           this.preference.get("appLibFolder") as string
         )
       ) &&
-      entityDraft.mainURL.endsWith(".pdf") &&
+      paperEntityDraft.mainURL.endsWith(".pdf") &&
       this.getEnable("pdf");
 
     const scrapeURL = constructFileURL(
-      entityDraft.mainURL,
+      paperEntityDraft.mainURL,
       true,
       true,
       this.preference.get("appLibFolder") as string
@@ -46,10 +46,8 @@ export class PDFScraper extends Scraper {
     const headers = {};
 
     if (enable) {
-      this.sharedState.set(
-        "viewState.processInformation",
-        "Scraping metadata from PDF builtin info..."
-      );
+      this.stateStore.logState.processLog =
+        "Scraping metadata from PDF builtin info...";
     }
 
     return { scrapeURL, headers, enable };
@@ -58,8 +56,8 @@ export class PDFScraper extends Scraper {
   // @ts-ignore
   parsingProcess(
     rawResponse: PDFFileResponseType,
-    entityDraft: PaperEntityDraft
-  ): PaperEntityDraft {
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     const metaData = rawResponse.metaData as {
       info: {
         Title: string;
@@ -68,8 +66,8 @@ export class PDFScraper extends Scraper {
     };
     const firstPageText = rawResponse.firstPageText;
 
-    if (entityDraft.title === "") {
-      entityDraft.setValue("title", metaData.info.Title || "");
+    if (paperEntityDraft.title === "") {
+      paperEntityDraft.setValue("title", metaData.info.Title || "");
     }
 
     let authors;
@@ -82,8 +80,8 @@ export class PDFScraper extends Scraper {
     } else {
       authors = metaData.info.Author || "";
     }
-    if (entityDraft.authors === "") {
-      entityDraft.setValue("authors", authors);
+    if (paperEntityDraft.authors === "") {
+      paperEntityDraft.setValue("authors", authors);
     }
 
     // Extract arXiv ID
@@ -95,8 +93,8 @@ export class PDFScraper extends Scraper {
     );
     if (arxivIds) {
       const arxivId = formatString({ str: arxivIds[0], removeWhite: true });
-      if (entityDraft.arxiv === "") {
-        entityDraft.setValue("arxiv", arxivId);
+      if (paperEntityDraft.arxiv === "") {
+        paperEntityDraft.setValue("arxiv", arxivId);
       }
     }
 
@@ -121,8 +119,8 @@ export class PDFScraper extends Scraper {
       .filter((doi) => doi !== "");
     if (dois.length > 0) {
       const doi = formatString({ str: dois[0], removeWhite: true });
-      if (entityDraft.doi === "") {
-        entityDraft.setValue("doi", doi);
+      if (paperEntityDraft.doi === "") {
+        paperEntityDraft.setValue("doi", doi);
       }
     } else {
       // Extract DOI from first page
@@ -134,21 +132,25 @@ export class PDFScraper extends Scraper {
       );
       if (dois) {
         const doi = formatString({ str: dois[0], removeWhite: true });
-        if (entityDraft.doi === "") {
-          entityDraft.setValue("doi", doi);
+        if (paperEntityDraft.doi === "") {
+          paperEntityDraft.setValue("doi", doi);
         }
       }
     }
 
-    if (entityDraft.doi.endsWith(",")) {
-      entityDraft.setValue("doi", entityDraft.doi.slice(0, -1));
+    if (paperEntityDraft.doi.endsWith(",")) {
+      paperEntityDraft.setValue("doi", paperEntityDraft.doi.slice(0, -1));
     }
 
-    if (entityDraft.title === "" || entityDraft.title === "untitled") {
-      entityDraft.setValue("title", rawResponse.largestText.slice(0, 400));
+    // Largest String as Title
+    if (
+      paperEntityDraft.title === "" ||
+      paperEntityDraft.title === "untitled"
+    ) {
+      paperEntityDraft.setValue("title", rawResponse.largestText.slice(0, 400));
     }
 
-    return entityDraft;
+    return paperEntityDraft;
   }
 
   scrapeImpl = scrapeImpl;
@@ -156,12 +158,13 @@ export class PDFScraper extends Scraper {
 
 async function scrapeImpl(
   this: ScraperType,
-  entityDraft: PaperEntityDraft
-): Promise<PaperEntityDraft> {
+  paperEntityDraft: PaperEntity,
+  force = false
+): Promise<PaperEntity> {
   const { scrapeURL, headers, enable } = this.preProcess(
-    entityDraft
+    paperEntityDraft
   ) as ScraperRequestType;
-  if (enable) {
+  if (enable || force) {
     try {
       const pdf = await pdfjs.getDocument(
         constructFileURL(scrapeURL, false, true)
@@ -178,19 +181,19 @@ async function scrapeImpl(
       };
 
       // @ts-ignore
-      return this.parsingProcess(response, entityDraft) as PaperEntityDraft;
+      return this.parsingProcess(response, paperEntityDraft);
     } catch (error) {
       throw error;
     }
   } else {
-    return entityDraft;
+    return paperEntityDraft;
   }
 }
 
-async function _getPDFURL(pdfData: PDFDocumentProxy): Promise<[string]> {
+async function _getPDFURL(pdfData: PDFDocumentProxy): Promise<Array<string>> {
   const pageData = await pdfData.getPage(1);
   const annos = await pageData.getAnnotations();
-  let urls = [];
+  let urls: Array<string> = [];
   for (const anno of annos) {
     urls.push(anno.url);
   }

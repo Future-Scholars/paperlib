@@ -1,8 +1,9 @@
+import vue from "@vitejs/plugin-vue";
 import { rmSync } from "fs";
 import path from "path";
 import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
 import electron, { onstart } from "vite-plugin-electron";
+
 import pkg from "./package.json";
 
 rmSync("dist", { recursive: true, force: true }); // v14.14.0
@@ -53,7 +54,15 @@ export default defineConfig({
       renderer: {
         resolve() {
           // explicitly specify which packages are Node.js(CJS) packages
-          return ["realm", "keytar", "electron-store"];
+          return [
+            "webdav",
+            "chokidar",
+            "realm",
+            "keytar",
+            "electron-store",
+            "got",
+            "hpagent",
+          ];
         },
       },
     }),

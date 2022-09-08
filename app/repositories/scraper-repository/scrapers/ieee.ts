@@ -1,26 +1,27 @@
 import { Response } from "got";
 
+import { PaperEntity } from "@/models/paper-entity";
+import { ScraperPreference } from "@/preference/preference";
+import { formatString } from "@/utils/string";
+
 import { Scraper, ScraperRequestType } from "./scraper";
-import { formatString } from "../../../utils/string";
-import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
-import { ScraperPreference } from "../../../utils/preference";
 
 export class IEEEScraper extends Scraper {
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const ieeeAPIKey =
       (this.preference.get("scrapers") as Array<ScraperPreference>).find(
         (scraperPref) => scraperPref.name === "ieee"
       )?.args ?? "";
     const enable =
-      entityDraft.title !== "" &&
-      (entityDraft.publication === "" ||
-        entityDraft.publication.toLowerCase().includes("arxiv") ||
-        entityDraft.publication.toLowerCase().includes("openreview")) &&
+      paperEntityDraft.title !== "" &&
+      (paperEntityDraft.publication === "" ||
+        paperEntityDraft.publication.toLowerCase().includes("arxiv") ||
+        paperEntityDraft.publication.toLowerCase().includes("openreview")) &&
       ieeeAPIKey !== "" &&
       this.getEnable("ieee");
 
     let requestTitle = formatString({
-      str: entityDraft.title,
+      str: paperEntityDraft.title,
       removeNewline: true,
     });
     requestTitle = requestTitle.replace(/ /g, "+");
@@ -35,10 +36,7 @@ export class IEEEScraper extends Scraper {
     };
 
     if (enable) {
-      this.sharedState.set(
-        "viewState.processInformation",
-        `Scraping metadata from IEEE Xplore ...`
-      );
+      this.stateStore.logState.processLog = `Scraping metadata from IEEE Xplore ...`;
     }
 
     return { scrapeURL, headers, enable };
@@ -46,8 +44,8 @@ export class IEEEScraper extends Scraper {
 
   parsingProcess(
     rawResponse: Response<string>,
-    entityDraft: PaperEntityDraft
-  ): PaperEntityDraft {
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     const response = JSON.parse(rawResponse.body) as {
       total_records: number;
       articles: {
@@ -76,7 +74,7 @@ export class IEEEScraper extends Scraper {
         });
 
         const existTitle = formatString({
-          str: entityDraft.title,
+          str: paperEntityDraft.title,
           removeStr: "&amp",
           removeSymbol: true,
           lowercased: true,
@@ -109,30 +107,30 @@ export class IEEEScraper extends Scraper {
           }
 
           const publication = article.publication_title;
-          entityDraft.setValue("title", title);
-          entityDraft.setValue("authors", authors);
-          entityDraft.setValue("pubTime", `${pubTime}`);
-          entityDraft.setValue("pubType", pubType);
-          entityDraft.setValue("publication", publication);
+          paperEntityDraft.setValue("title", title);
+          paperEntityDraft.setValue("authors", authors);
+          paperEntityDraft.setValue("pubTime", `${pubTime}`);
+          paperEntityDraft.setValue("pubType", pubType);
+          paperEntityDraft.setValue("publication", publication);
           if (article.volume) {
-            entityDraft.setValue("volume", article.volume);
+            paperEntityDraft.setValue("volume", article.volume);
           }
           if (article.start_page) {
-            entityDraft.setValue("pages", article.start_page);
+            paperEntityDraft.setValue("pages", article.start_page);
           }
           if (article.end_page) {
-            entityDraft.setValue(
+            paperEntityDraft.setValue(
               "pages",
-              entityDraft.pages + "-" + article.end_page
+              paperEntityDraft.pages + "-" + article.end_page
             );
           }
           if (article.publisher) {
-            entityDraft.setValue("publisher", article.publisher);
+            paperEntityDraft.setValue("publisher", article.publisher);
           }
           break;
         }
       }
     }
-    return entityDraft;
+    return paperEntityDraft;
   }
 }

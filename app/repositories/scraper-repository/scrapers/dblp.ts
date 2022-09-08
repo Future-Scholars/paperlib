@@ -1,15 +1,16 @@
 import { Response } from "got";
 
+import { PaperEntity } from "@/models/paper-entity";
+import { Preference } from "@/preference/preference";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { formatString } from "@/utils/string";
+
 import { Scraper, ScraperRequestType } from "./scraper";
-import { formatString } from "../../../utils/string";
-import { Preference } from "../../../utils/preference";
-import { SharedState } from "../../../utils/appstate";
-import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 function parsingProcess(
   rawResponse: Response<string>,
-  entityDraft: PaperEntityDraft
-): PaperEntityDraft {
+  paperEntityDraft: PaperEntity
+): PaperEntity {
   const response = JSON.parse(rawResponse.body) as {
     result: {
       hits: {
@@ -49,7 +50,7 @@ function parsingProcess(
       });
 
       const existTitle = formatString({
-        str: entityDraft.title,
+        str: paperEntityDraft.title,
         removeStr: "&amp",
         removeSymbol: true,
         lowercased: true,
@@ -86,23 +87,23 @@ function parsingProcess(
         const pubKey = article.key.split("/").slice(0, 2).join("/");
 
         if (pubKey != "journals/corr") {
-          entityDraft.setValue("title", title);
-          entityDraft.setValue("authors", authors);
-          entityDraft.setValue("pubTime", `${pubTime}`);
-          entityDraft.setValue("pubType", pubType);
-          entityDraft.setValue("publication", "dblp://" + pubKey);
+          paperEntityDraft.setValue("title", title);
+          paperEntityDraft.setValue("authors", authors);
+          paperEntityDraft.setValue("pubTime", `${pubTime}`);
+          paperEntityDraft.setValue("pubType", pubType);
+          paperEntityDraft.setValue("publication", "dblp://" + pubKey);
 
           if (article.volume) {
-            entityDraft.setValue("volume", article.volume);
+            paperEntityDraft.setValue("volume", article.volume);
           }
           if (article.pages) {
-            entityDraft.setValue("pages", article.pages);
+            paperEntityDraft.setValue("pages", article.pages);
           }
           if (article.number) {
-            entityDraft.setValue("number", article.number);
+            paperEntityDraft.setValue("number", article.number);
           }
           if (article.publisher) {
-            entityDraft.setValue("publisher", article.publisher);
+            paperEntityDraft.setValue("publisher", article.publisher);
           }
         }
         break;
@@ -110,13 +111,13 @@ function parsingProcess(
     }
   }
 
-  return entityDraft;
+  return paperEntityDraft;
 }
 
 export class DBLPScraper extends Scraper {
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     let dblpQuery = formatString({
-      str: entityDraft.title,
+      str: paperEntityDraft.title,
       removeStr: "&amp",
     });
     dblpQuery = formatString({
@@ -130,10 +131,7 @@ export class DBLPScraper extends Scraper {
     const headers = {};
 
     if (enable) {
-      this.sharedState.set(
-        "viewState.processInformation",
-        `Scraping metadata from dblp.com ...`
-      );
+      this.stateStore.logState.processLog = `Scraping metadata from dblp.com ...`;
     }
 
     return { scrapeURL, headers, enable };
@@ -146,19 +144,19 @@ export class DBLPbyTimeScraper extends Scraper {
   offset: number;
 
   constructor(
-    sharedState: SharedState,
+    stateStore: MainRendererStateStore,
     preference: Preference,
     offset: number
   ) {
-    super(sharedState, preference);
+    super(stateStore, preference);
     this.offset = offset;
   }
 
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
-    const year = parseInt(entityDraft.pubTime);
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    const year = parseInt(paperEntityDraft.pubTime);
 
     let dblpQuery = formatString({
-      str: entityDraft.title,
+      str: paperEntityDraft.title,
       removeStr: "&amp",
     });
     dblpQuery = formatString({
@@ -180,12 +178,12 @@ export class DBLPbyTimeScraper extends Scraper {
 }
 
 export class DBLPVenueScraper extends Scraper {
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
-    const enable = entityDraft.publication.startsWith("dblp://");
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    const enable = paperEntityDraft.publication.startsWith("dblp://");
 
     const scrapeURL =
       "https://dblp.org/search/venue/api?q=" +
-      entityDraft.publication.replace("dblp://", "") +
+      paperEntityDraft.publication.replace("dblp://", "") +
       "&format=json";
 
     const headers = {};
@@ -194,8 +192,8 @@ export class DBLPVenueScraper extends Scraper {
 
   parsingProcess(
     rawResponse: Response<string>,
-    entityDraft: PaperEntityDraft
-  ): PaperEntityDraft {
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     const response = JSON.parse(rawResponse.body) as {
       result: {
         hits: {
@@ -210,26 +208,22 @@ export class DBLPVenueScraper extends Scraper {
       };
     };
 
-    const venueID = entityDraft.publication.replace("dblp://", "") + "/";
+    const venueID = paperEntityDraft.publication.replace("dblp://", "") + "/";
     if (response.result.hits["@sent"] > 0) {
       const hits = response.result.hits.hit;
       for (const hit of hits) {
         const venueInfo = hit["info"];
-        if (
-          venueInfo["url"].includes(
-            venueID
-          )
-        ) {
+        if (venueInfo["url"].includes(venueID)) {
           const venue = venueInfo["venue"];
-          entityDraft.setValue("publication", venue);
+          paperEntityDraft.setValue("publication", venue);
           break;
         } else {
-          entityDraft.setValue("publication", "", true);
+          paperEntityDraft.setValue("publication", "", true);
         }
       }
     } else {
-      entityDraft.setValue("publication", "", true);
+      paperEntityDraft.setValue("publication", "", true);
     }
-    return entityDraft;
+    return paperEntityDraft;
   }
 }

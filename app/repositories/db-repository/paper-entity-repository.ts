@@ -1,8 +1,9 @@
-import Realm, { PrimaryKey, Results } from "realm";
-import { PaperEntity } from "@/models/paper-entity";
-import { PaperFolder, PaperTag } from "@/models/categorizer";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { ObjectId } from "bson";
+import Realm, { PrimaryKey, Results } from "realm";
+
+import { PaperFolder, PaperTag } from "@/models/categorizer";
+import { PaperEntity } from "@/models/paper-entity";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
 export class PaperEntityRepository {
@@ -56,6 +57,9 @@ export class PaperEntityRepository {
     return filterFormat;
   }
 
+  // ========================
+  // Read
+  // ========================
   load(
     realm: Realm,
     search: string,
@@ -98,6 +102,95 @@ export class PaperEntityRepository {
     }
 
     return objects;
+  }
+
+  loadByIds(realm: Realm, ids: (ObjectId | string)[]) {
+    const idsQuery = ids
+      .map((id) => `_id == oid(${id as string})`)
+      .join(" OR ");
+
+    let objects = realm
+      .objects<PaperEntity>("PaperEntity")
+      .filtered(`(${idsQuery})`);
+
+    return objects;
+  }
+
+  // ========================
+  // Update
+  // ========================
+  update(
+    realm: Realm,
+    paperEntity: PaperEntity,
+    paperTag: PaperTag[],
+    paperFolder: PaperFolder[],
+    existingPaperEntity?: PaperEntity
+  ) {
+    let success = false;
+    try {
+      realm.safeWrite(() => {
+        let existingObjs;
+        if (paperEntity._id) {
+          existingObjs = this.loadByIds(realm, [paperEntity._id]);
+        } else {
+          existingObjs = null;
+        }
+        if (existingObjs && existingObjs.length === 1) {
+          // Update
+          const updateObj = existingObjs[0];
+          updateObj.title = paperEntity.title;
+          updateObj.authors = paperEntity.authors;
+          updateObj.publication = paperEntity.publication;
+          updateObj.pubTime = paperEntity.pubTime;
+          updateObj.pubType = paperEntity.pubType;
+          updateObj.doi = paperEntity.doi;
+          updateObj.arxiv = paperEntity.arxiv;
+          updateObj.mainURL = paperEntity.mainURL;
+          updateObj.supURLs = paperEntity.supURLs;
+          updateObj.rating = paperEntity.rating;
+          updateObj.flag = paperEntity.flag;
+          updateObj.note = paperEntity.note;
+          updateObj.codes = paperEntity.codes;
+          updateObj.volume = paperEntity.volume;
+          updateObj.number = paperEntity.number;
+          updateObj.pages = paperEntity.pages;
+          updateObj.publisher = paperEntity.publisher;
+          updateObj.tags = paperTag;
+          updateObj.folders = paperFolder;
+          success = true;
+        } else {
+          // Add
+          const reduplicatedEntities = realm
+            .objects<PaperEntity>("PaperEntity")
+            .filtered(
+              "title == $0 and authors == $1",
+              paperEntity.title,
+              paperEntity.authors
+            );
+          if (reduplicatedEntities.length === 0) {
+            paperEntity.tags = [];
+            paperEntity.folders = [];
+            realm.create("PaperEntity", paperEntity);
+
+            const addedObj = realm.objectForPrimaryKey<PaperEntity>(
+              "PaperEntity",
+              new Realm.BSON.ObjectId(paperEntity._id)
+            );
+            if (addedObj) {
+              addedObj.tags = paperTag;
+              addedObj.folders = paperFolder;
+            }
+            success = true;
+          }
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to update database: ${
+        error as string
+      }`;
+    }
+    return success;
   }
 
   // ==============================

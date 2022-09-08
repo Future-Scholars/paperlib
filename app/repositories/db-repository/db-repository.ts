@@ -1,7 +1,7 @@
+import { existsSync, promises } from "fs";
+import path from "path";
 import Realm from "realm";
 
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { CategorizerRepository } from "./categorizer-repository";
 import {
   Categorizer,
   CategorizerType,
@@ -9,12 +9,13 @@ import {
   PaperFolder,
   PaperTag,
 } from "@/models/categorizer";
-import { migrate } from "./db-migration";
-import { PaperEntity } from "@/models/paper-entity";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
-import { existsSync, promises } from "fs";
-import path from "path";
+import { PaperEntity } from "@/models/paper-entity";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+
+import { CategorizerRepository } from "./categorizer-repository";
+import { migrate } from "./db-migration";
 import { PaperEntityRepository } from "./paper-entity-repository";
 
 export class DBRepository {
@@ -270,10 +271,13 @@ export class DBRepository {
     }
   }
 
-  // ========================
+  // ======================================
   // CRUD
-  // ========================
+  // ======================================
 
+  // ========================
+  // Read
+  // ========================
   async paperEntities(
     search: string,
     flag: boolean,
@@ -297,6 +301,58 @@ export class DBRepository {
   async categorizers(type: CategorizerType, sortBy: string, sortOrder: string) {
     const realm = await this.realm();
     return this.categorizerRepository.load(realm, type, sortBy, sortOrder);
+  }
+
+  // ========================
+  // Create and Update
+  // ========================
+  async updatePaperEntities(paperEntities: PaperEntity[]): Promise<boolean[]> {
+    const realm = await this.realm();
+
+    const successes: boolean[] = [];
+
+    realm.safeWrite(() => {
+      for (const paperEntity of paperEntities) {
+        let existingPaperEntity;
+        if (paperEntity._id) {
+          const existingObjs = this.paperEntityRepository.loadByIds(realm, [
+            paperEntity._id,
+          ]);
+          if (existingObjs.length > 0) {
+            existingPaperEntity = existingObjs[0];
+          }
+        }
+
+        const tags = existingPaperEntity
+          ? this.categorizerRepository.update(
+              realm,
+              "",
+              existingPaperEntity.tags,
+              paperEntity.tags,
+              "PaperTag"
+            )
+          : [];
+        const folders = existingPaperEntity
+          ? this.categorizerRepository.update(
+              realm,
+              "",
+              existingPaperEntity.folders,
+              paperEntity.folders,
+              "PaperFolder"
+            )
+          : [];
+
+        const success = this.paperEntityRepository.update(
+          realm,
+          paperEntity,
+          tags,
+          folders,
+          existingPaperEntity
+        );
+        successes.push(success);
+      }
+    });
+    return successes;
   }
 
   async deleteCategorizer(

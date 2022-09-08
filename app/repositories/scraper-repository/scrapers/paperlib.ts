@@ -1,20 +1,21 @@
 import { Response } from "got";
 
-import { Scraper, ScraperRequestType } from "./scraper";
-import { formatString } from "../../../utils/string";
-import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
+import { PaperEntity } from "@/models/paper-entity";
+import { formatString } from "@/utils/string";
 
-export class CVFScraper extends Scraper {
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
+import { Scraper, ScraperRequestType } from "./scraper";
+
+export class PaperlibScraper extends Scraper {
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const enable =
-      entityDraft.title !== "" &&
-      (entityDraft.publication.toLowerCase().includes("arxiv") ||
-        entityDraft.publication.toLowerCase().includes("openreview") ||
-        entityDraft.publication === "") &&
+      paperEntityDraft.title !== "" &&
+      (paperEntityDraft.publication.toLowerCase().includes("arxiv") ||
+        paperEntityDraft.publication.toLowerCase().includes("openreview") ||
+        paperEntityDraft.publication === "") &&
       this.getEnable("cvf");
 
     const shortTitle = formatString({
-      str: entityDraft.title,
+      str: paperEntityDraft.title,
       removeWhite: true,
       removeStr: "&amp",
     });
@@ -23,10 +24,7 @@ export class CVFScraper extends Scraper {
     const headers = {};
 
     if (enable) {
-      this.sharedState.set(
-        "viewState.processInformation",
-        `Scraping metadata from the CVF...`
-      );
+      this.stateStore.logState.processLog = `Scraping metadata from the Paperlib Qeury Server...`;
     }
 
     return { scrapeURL, headers, enable };
@@ -34,8 +32,8 @@ export class CVFScraper extends Scraper {
 
   parsingProcess(
     rawResponse: Response<string>,
-    entityDraft: PaperEntityDraft
-  ): PaperEntityDraft {
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     const response = JSON.parse(rawResponse.body) as {
       year: string;
       booktitle: string;
@@ -61,10 +59,10 @@ export class CVFScraper extends Scraper {
       } else {
         pubType = 2;
       }
-      entityDraft.setValue("pubTime", `${pubTime}`);
-      entityDraft.setValue("pubType", pubType);
-      entityDraft.setValue("publication", publication);
-      entityDraft.setValue("pages", response.pages || "");
+      paperEntityDraft.setValue("pubTime", `${pubTime}`);
+      paperEntityDraft.setValue("pubType", pubType);
+      paperEntityDraft.setValue("publication", publication);
+      paperEntityDraft.setValue("pages", response.pages || "");
 
       if (response.author) {
         const authorList = response.author.split("and").map((author) => {
@@ -74,9 +72,9 @@ export class CVFScraper extends Scraper {
             .map((v) => v.trim());
           return `${first_last[1]} ${first_last[0]}`;
         });
-        entityDraft.setValue("authors", authorList.join(", "));
+        paperEntityDraft.setValue("authors", authorList.join(", "));
       }
     }
-    return entityDraft;
+    return paperEntityDraft;
   }
 }

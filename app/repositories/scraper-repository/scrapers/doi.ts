@@ -1,14 +1,15 @@
 import { Response } from "got";
 
+import { PaperEntity } from "@/models/paper-entity";
+import { formatString } from "@/utils/string";
+
 import { Scraper, ScraperRequestType } from "./scraper";
-import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
-import { formatString } from "../../../utils/string";
 
 export class DOIScraper extends Scraper {
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
-    const enable = entityDraft.doi !== "" && this.getEnable("doi");
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    const enable = paperEntityDraft.doi !== "" && this.getEnable("doi");
     const doiID = formatString({
-      str: entityDraft.doi,
+      str: paperEntityDraft.doi,
       removeNewline: true,
       removeWhite: true,
     });
@@ -18,10 +19,7 @@ export class DOIScraper extends Scraper {
     };
 
     if (enable) {
-      this.sharedState.set(
-        "viewState.processInformation",
-        "Scraping metadata by DOI..."
-      );
+      this.stateStore.logState.processLog = `Scraping metadata by DOI ...`;
     }
 
     return { scrapeURL, headers, enable };
@@ -29,8 +27,8 @@ export class DOIScraper extends Scraper {
 
   parsingProcess(
     rawResponse: Response<string>,
-    entityDraft: PaperEntityDraft
-  ): PaperEntityDraft {
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     const response = JSON.parse(rawResponse.body) as {
       title: string;
       author: { given: string; family: string }[];
@@ -61,22 +59,22 @@ export class DOIScraper extends Scraper {
     }
     const publication = response["container-title"];
 
-    entityDraft.setValue("title", title);
-    entityDraft.setValue("authors", authors);
-    entityDraft.setValue("pubTime", `${pubTime}`);
-    entityDraft.setValue("pubType", pubType);
-    entityDraft.setValue("publication", publication);
+    paperEntityDraft.setValue("title", title);
+    paperEntityDraft.setValue("authors", authors);
+    paperEntityDraft.setValue("pubTime", `${pubTime}`);
+    paperEntityDraft.setValue("pubType", pubType);
+    paperEntityDraft.setValue("publication", publication);
     if (response.volume) {
-      entityDraft.setValue("volume", response.volume);
+      paperEntityDraft.setValue("volume", response.volume);
     }
     if (response.issue) {
-      entityDraft.setValue("number", response.issue);
+      paperEntityDraft.setValue("number", response.issue);
     }
     if (response.page) {
-      entityDraft.setValue("pages", response.page);
+      paperEntityDraft.setValue("pages", response.page);
     }
     if (response.publisher) {
-      entityDraft.setValue(
+      paperEntityDraft.setValue(
         "publisher",
         response.publisher ===
           "Institute of Electrical and Electronics Engineers (IEEE)"
@@ -84,6 +82,6 @@ export class DOIScraper extends Scraper {
           : response.publisher
       );
     }
-    return entityDraft;
+    return paperEntityDraft;
   }
 }

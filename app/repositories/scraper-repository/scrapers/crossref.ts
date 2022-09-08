@@ -1,30 +1,28 @@
 import { Response } from "got";
 
+import { PaperEntity } from "@/models/paper-entity";
+import { Preference } from "@/preference/preference";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { formatString } from "@/utils/string";
+
 import { Scraper, ScraperRequestType } from "./scraper";
-import { formatString } from "../../../utils/string";
-import { Preference } from "../../../utils/preference";
-import { SharedState } from "../../../utils/appstate";
-import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class CrossRefScraper extends Scraper {
-  constructor(sharedState: SharedState, preference: Preference) {
-    super(sharedState, preference);
+  constructor(stateStore: MainRendererStateStore, preference: Preference) {
+    super(stateStore, preference);
   }
 
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const enable =
       this.getEnable("crossref") &&
-      entityDraft.title !== "" &&
-      entityDraft.doi === "";
+      paperEntityDraft.title !== "" &&
+      paperEntityDraft.doi === "";
 
-    const scrapeURL = `https://api.crossref.org/works?query.title=${entityDraft.title}`;
+    const scrapeURL = `https://api.crossref.org/works?query.title=${paperEntityDraft.title}`;
 
     const headers = {};
     if (enable) {
-      this.sharedState.set(
-        "viewState.processInformation",
-        `Scraping metadata from crossref.org ...`
-      );
+      this.stateStore.logState.processLog = `Scraping metadata from crossref.org ...`;
     }
 
     return { scrapeURL, headers, enable };
@@ -32,8 +30,8 @@ export class CrossRefScraper extends Scraper {
 
   parsingProcess(
     rawResponse: Response<string>,
-    entityDraft: PaperEntityDraft
-  ): PaperEntityDraft {
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     const parsedResponse = JSON.parse(rawResponse.body) as {
       message: {
         items: [
@@ -44,7 +42,6 @@ export class CrossRefScraper extends Scraper {
         ];
       };
     };
-    console.log(parsedResponse);
     for (const item of parsedResponse.message.items) {
       const plainHitTitle = formatString({
         str: item.title[0],
@@ -54,18 +51,22 @@ export class CrossRefScraper extends Scraper {
       });
 
       const existTitle = formatString({
-        str: entityDraft.title,
+        str: paperEntityDraft.title,
         removeStr: "&amp",
         removeSymbol: true,
         lowercased: true,
       });
 
-      if (plainHitTitle === existTitle && item.DOI && entityDraft.doi === "") {
-        entityDraft.doi = item.DOI;
+      if (
+        plainHitTitle === existTitle &&
+        item.DOI &&
+        paperEntityDraft.doi === ""
+      ) {
+        paperEntityDraft.doi = item.DOI;
         break;
       }
     }
 
-    return entityDraft;
+    return paperEntityDraft;
   }
 }

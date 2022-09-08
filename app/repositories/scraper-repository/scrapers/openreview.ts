@@ -1,29 +1,27 @@
 import { Response } from "got";
 
+import { PaperEntity } from "@/models/paper-entity";
+import { formatString } from "@/utils/string";
+
 import { Scraper, ScraperRequestType } from "./scraper";
-import { formatString } from "../../../utils/string";
-import { PaperEntityDraft } from "../../../models/PaperEntityDraft";
 
 export class OpenreviewScraper extends Scraper {
-  preProcess(entityDraft: PaperEntityDraft): ScraperRequestType {
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const enable =
-      entityDraft.title !== "" &&
-      (entityDraft.publication === "" ||
-        entityDraft.publication.toLowerCase().includes("arxiv") ||
-        entityDraft.publication.toLowerCase().includes("openreview")) &&
+      paperEntityDraft.title !== "" &&
+      (paperEntityDraft.publication === "" ||
+        paperEntityDraft.publication.toLowerCase().includes("arxiv") ||
+        paperEntityDraft.publication.toLowerCase().includes("openreview")) &&
       this.getEnable("openreview");
 
-    const scrapeURL = `https://api.openreview.net/notes/search?term=${entityDraft.title}`;
+    const scrapeURL = `https://api.openreview.net/notes/search?term=${paperEntityDraft.title}`;
 
     const headers = {
       Accept: "application/json",
     };
 
     if (enable) {
-      this.sharedState.set(
-        "viewState.processInformation",
-        `Scraping metadata from openreview.net ...`
-      );
+      this.stateStore.logState.processLog = `Scraping metadata from openreview.net ...`;
     }
 
     return { scrapeURL, headers, enable };
@@ -31,8 +29,8 @@ export class OpenreviewScraper extends Scraper {
 
   parsingProcess(
     rawResponse: Response<string>,
-    entityDraft: PaperEntityDraft
-  ): PaperEntityDraft {
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     const response = (
       JSON.parse(rawResponse.body) as {
         notes: {
@@ -55,14 +53,14 @@ export class OpenreviewScraper extends Scraper {
     });
 
     const existTitle = formatString({
-      str: entityDraft.title,
+      str: paperEntityDraft.title,
       removeStr: "&amp",
       removeSymbol: true,
       lowercased: true,
     });
 
     if (plainHitTitle !== existTitle) {
-      return entityDraft;
+      return paperEntityDraft;
     }
 
     const title = response.content.title;
@@ -83,8 +81,8 @@ export class OpenreviewScraper extends Scraper {
         const pubTimeReg = response.content.venueid.match(/\d{4}/g);
         const pubTime = pubTimeReg ? pubTimeReg[0] : "";
 
-        entityDraft.setValue("pubTime", `${pubTime}`);
-        entityDraft.setValue("publication", publication);
+        paperEntityDraft.setValue("pubTime", `${pubTime}`);
+        paperEntityDraft.setValue("publication", publication);
       }
     } else {
       if (
@@ -93,14 +91,14 @@ export class OpenreviewScraper extends Scraper {
       ) {
         const pubTimeReg = response.content._bibtex.match(/year={(\d{4})/);
         const pubTime = pubTimeReg ? pubTimeReg[1] : "";
-        entityDraft.setValue("pubTime", `${pubTime}`);
+        paperEntityDraft.setValue("pubTime", `${pubTime}`);
       }
-      entityDraft.setValue("publication", "openreview.net");
+      paperEntityDraft.setValue("publication", "openreview.net");
     }
 
-    entityDraft.setValue("title", title);
-    entityDraft.setValue("authors", authors);
+    paperEntityDraft.setValue("title", title);
+    paperEntityDraft.setValue("authors", authors);
 
-    return entityDraft;
+    return paperEntityDraft;
   }
 }

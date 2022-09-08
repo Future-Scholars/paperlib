@@ -1,25 +1,25 @@
 import got from "got";
 
-import { ScraperType } from "./scrapers/scraper";
-import { PDFScraper } from "./scrapers/pdf";
-import { DOIScraper } from "./scrapers/doi";
+import { PaperEntity } from "@/models/paper-entity";
+import { Preference, ScraperPreference } from "@/preference/preference";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+
 import { ArXivScraper } from "./scrapers/arxiv";
-import {
-  DBLPbyTimeScraper,
-  DBLPScraper,
-  DBLPVenueScraper,
-} from "./scrapers/dblp";
-import { IEEEScraper } from "./scrapers/ieee";
-import { CVFScraper } from "./scrapers/cvf";
-import { PwCScraper } from "./scrapers/paperwithcode";
-import { OpenreviewScraper } from "./scrapers/openreview";
-import { GoogleScholarScraper } from "./scrapers/google-scholar";
 import { CrossRefScraper } from "./scrapers/crossref";
 import { CustomScraper } from "./scrapers/custom";
-
-import { Preference, ScraperPreference } from "@/preference/preference";
-import { PaperEntity } from "@/models/paper-entity";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import {
+  DBLPScraper,
+  DBLPVenueScraper,
+  DBLPbyTimeScraper,
+} from "./scrapers/dblp";
+import { DOIScraper } from "./scrapers/doi";
+import { GoogleScholarScraper } from "./scrapers/google-scholar";
+import { IEEEScraper } from "./scrapers/ieee";
+import { OpenreviewScraper } from "./scrapers/openreview";
+import { PaperlibScraper } from "./scrapers/paperlib";
+import { PwCScraper } from "./scrapers/paperwithcode";
+import { PDFScraper } from "./scrapers/pdf";
+import { ScraperType } from "./scrapers/scraper";
 
 export class ScraperRepository {
   stateStore: MainRendererStateStore;
@@ -47,19 +47,19 @@ export class ScraperRepository {
 
     for (const scraper of scraperPrefs) {
       if (scraper.name === "dblp") {
-        const dblpScraper = new DBLPScraper(this.sharedState, this.preference);
+        const dblpScraper = new DBLPScraper(this.stateStore, this.preference);
         const dblpByTimeScraper0 = new DBLPbyTimeScraper(
-          this.sharedState,
+          this.stateStore,
           this.preference,
           0
         );
         const dblpbyTimeScraper1 = new DBLPbyTimeScraper(
-          this.sharedState,
+          this.stateStore,
           this.preference,
           1
         );
         const dblpVenueScraper = new DBLPVenueScraper(
-          this.sharedState,
+          this.stateStore,
           this.preference
         );
         this.scraperList.push({
@@ -82,50 +82,50 @@ export class ScraperRepository {
         let scraperInstance: ScraperType | undefined;
         switch (scraper.name) {
           case "pdf":
-            scraperInstance = new PDFScraper(this.sharedState, this.preference);
+            scraperInstance = new PDFScraper(this.stateStore, this.preference);
             break;
           case "crossref":
             scraperInstance = new CrossRefScraper(
-              this.sharedState,
+              this.stateStore,
               this.preference
             );
             break;
           case "doi":
-            scraperInstance = new DOIScraper(this.sharedState, this.preference);
+            scraperInstance = new DOIScraper(this.stateStore, this.preference);
             break;
           case "arxiv":
             scraperInstance = new ArXivScraper(
-              this.sharedState,
+              this.stateStore,
               this.preference
             );
             break;
           case "ieee":
-            scraperInstance = new IEEEScraper(
-              this.sharedState,
+            scraperInstance = new IEEEScraper(this.stateStore, this.preference);
+            break;
+          case "paperlib":
+            scraperInstance = new PaperlibScraper(
+              this.stateStore,
               this.preference
             );
             break;
-          case "cvf":
-            scraperInstance = new CVFScraper(this.sharedState, this.preference);
-            break;
           case "pwc":
-            scraperInstance = new PwCScraper(this.sharedState, this.preference);
+            scraperInstance = new PwCScraper(this.stateStore, this.preference);
             break;
           case "openreview":
             scraperInstance = new OpenreviewScraper(
-              this.sharedState,
+              this.stateStore,
               this.preference
             );
             break;
           case "googlescholar":
             scraperInstance = new GoogleScholarScraper(
-              this.sharedState,
+              this.stateStore,
               this.preference
             );
             break;
           default:
             scraperInstance = new CustomScraper(
-              this.sharedState,
+              this.stateStore,
               this.preference,
               scraper.name
             );
@@ -141,7 +141,7 @@ export class ScraperRepository {
   }
 
   async scrape(
-    entityDraft: PaperEntity,
+    paperEntityDraft: PaperEntity,
     excludes: string[] = []
   ): Promise<PaperEntity> {
     for (const scraper of this.scraperList) {
@@ -149,7 +149,7 @@ export class ScraperRepository {
         continue;
       }
       try {
-        entityDraft = await scraper.scraper.scrape(entityDraft);
+        paperEntityDraft = await scraper.scraper.scrape(paperEntityDraft);
       } catch (error) {
         console.error(error);
         this.stateStore.logState.alertLog = `${scraper.name} error: ${
@@ -157,17 +157,17 @@ export class ScraperRepository {
         }`;
       }
     }
-    return entityDraft;
+    return paperEntityDraft;
   }
 
   async scrapeFrom(
-    entityDraft: PaperEntity,
+    paperEntityDraft: PaperEntity,
     scraperName: string
   ): Promise<PaperEntity> {
     for (const scraper of this.scraperList) {
       if (scraper.name === scraperName) {
         try {
-          entityDraft = await scraper.scraper.scrape(entityDraft);
+          paperEntityDraft = await scraper.scraper.scrape(paperEntityDraft);
         } catch (error) {
           console.error(error);
           this.stateStore.logState.alertLog = `${scraper.name} error: ${
@@ -176,6 +176,6 @@ export class ScraperRepository {
         }
       }
     }
-    return entityDraft;
+    return paperEntityDraft;
   }
 }

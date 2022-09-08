@@ -1,6 +1,6 @@
-import path from "path";
-import os from "os";
 import Store from "electron-store";
+import os from "os";
+import path from "path";
 
 export interface ScraperPreference {
   name: string;
@@ -67,17 +67,6 @@ export interface PreferenceStore {
   lastRematchTime: number;
 
   lastFeedRefreshTime: number;
-
-  pdfBuiltinScraper: boolean;
-  arXivScraper: boolean;
-  doiScraper: boolean;
-  dblpScraper: boolean;
-  openreviewScraper: boolean;
-  cvfScraper: boolean;
-  ieeeScraper: boolean;
-  ieeeAPIKey: string;
-  pwcScraper: boolean;
-  googlescholarScraper: boolean;
 
   scrapers: Array<ScraperPreference>;
   downloaders: Array<DownloaderPreference>;
@@ -151,17 +140,6 @@ const defaultPreferences: PreferenceStore = {
   lastRematchTime: Math.round(Date.now() / 1000),
 
   lastFeedRefreshTime: Math.round(Date.now() / 1000),
-
-  pdfBuiltinScraper: true,
-  arXivScraper: true,
-  doiScraper: true,
-  dblpScraper: true,
-  openreviewScraper: true,
-  cvfScraper: true,
-  ieeeScraper: true,
-  ieeeAPIKey: "",
-  pwcScraper: true,
-  googlescholarScraper: true,
 
   httpproxy: "",
   httpsproxy: "",
@@ -240,8 +218,8 @@ const defaultPreferences: PreferenceStore = {
       scrapeImplCode: "",
     },
     {
-      name: "cvf",
-      description: "The Computer Vision Foundation",
+      name: "paperlib",
+      description: "The Paperlib query service.",
       enable: true,
       custom: false,
       args: "",
@@ -337,49 +315,22 @@ export class Preference {
   constructor() {
     this.store = new Store<PreferenceStore>({});
 
-    let migrationRequired = false;
-    if (!this.store.has("scrapers")) {
-      console.log("Migrate scrapers preference to new format");
-      migrationRequired = true;
-    }
-
     for (const key in defaultPreferences) {
       if (!this.store.has(key)) {
         this.store.set(key, defaultPreferences[key]);
       }
     }
 
-    if (migrationRequired) {
-      let defaultScraperPrefs = defaultPreferences.scrapers;
-      if (!this.store.get("pdfBuiltinScraper")) {
-        defaultScraperPrefs[0].enable = false;
+    const existingScrapers = this.store
+      .get("scrapers")
+      .map((scraper) => scraper.name);
+
+    for (const defaultPref of defaultPreferences.scrapers) {
+      if (!existingScrapers.includes(defaultPref.name)) {
+        const existingPreference = this.store.get("scrapers");
+        existingPreference.push(defaultPref);
+        this.store.set("scrapers", existingPreference);
       }
-      if (!this.store.get("arXivScraper")) {
-        defaultScraperPrefs[1].enable = false;
-      }
-      if (!this.store.get("doiScraper")) {
-        defaultScraperPrefs[2].enable = false;
-      }
-      if (!this.store.get("dblpScraper")) {
-        defaultScraperPrefs[3].enable = false;
-      }
-      if (!this.store.get("openreviewScraper")) {
-        defaultScraperPrefs[4].enable = false;
-      }
-      if (!this.store.get("cvfScraper")) {
-        defaultScraperPrefs[5].enable = false;
-      }
-      if (!this.store.get("ieeeScraper")) {
-        defaultScraperPrefs[6].enable = false;
-      }
-      defaultScraperPrefs[6].args = this.store.get("ieeeAPIKey");
-      if (!this.store.get("pwcScraper")) {
-        defaultScraperPrefs[7].enable = false;
-      }
-      if (!this.store.get("googlescholarScraper")) {
-        defaultScraperPrefs[8].enable = false;
-      }
-      this.store.set("scrapers", defaultScraperPrefs);
     }
   }
 
