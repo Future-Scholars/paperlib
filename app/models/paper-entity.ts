@@ -1,4 +1,5 @@
 import { ObjectId } from "bson";
+
 import { PaperFolder, PaperTag } from "./categorizer";
 
 export class PaperEntity {
@@ -82,6 +83,36 @@ export class PaperEntity {
     if ((value || allowEmpty) && value !== "undefined") {
       this[key] = value;
     }
+  }
+
+  initialize(entity: PaperEntity) {
+    this._id = new ObjectId(entity._id);
+    this.id = new ObjectId(entity.id);
+    this._partition = entity._partition;
+    this.addTime = entity.addTime;
+    this.title = entity.title;
+    this.authors = entity.authors;
+    this.publication = entity.publication;
+    this.pubTime = entity.pubTime;
+    this.pubType = entity.pubType;
+    this.doi = entity.doi;
+    this.arxiv = entity.arxiv;
+    this.mainURL = entity.mainURL;
+    this.supURLs = JSON.parse(JSON.stringify(entity.supURLs));
+    this.rating = entity.rating;
+    this.tags = entity.tags.map((tag) => new PaperTag("", 0).initialize(tag));
+    this.folders = entity.folders.map((folder) =>
+      new PaperFolder("", 0).initialize(folder)
+    );
+    this.flag = entity.flag;
+    this.note = entity.note;
+    this.codes = JSON.parse(JSON.stringify(entity.codes));
+    this.pages = entity.pages;
+    this.volume = entity.volume;
+    this.number = entity.number;
+    this.publisher = entity.publisher;
+
+    return this;
   }
 
   // =====================

@@ -1,3 +1,4 @@
+import { ObjectId } from "bson";
 import { existsSync, promises } from "fs";
 import path from "path";
 import Realm from "realm";
@@ -311,6 +312,7 @@ export class DBRepository {
 
     const successes: boolean[] = [];
 
+    // TODO: partition
     realm.safeWrite(() => {
       for (const paperEntity of paperEntities) {
         let existingPaperEntity;
@@ -362,7 +364,7 @@ export class DBRepository {
     name?: string
   ) {
     const realm = await this.realm();
-    return this.categorizerRepository.remove(
+    return this.categorizerRepository.delete(
       realm,
       deleteAll,
       type,
@@ -397,6 +399,40 @@ export class DBRepository {
   }
 
   // ========================
+  // Delete
+  // ========================
+  async deletePaperEntities(ids: (ObjectId | string)[]) {
+    const realm = await this.realm();
+    const removeFileURLs: string[] = [];
+
+    const toBeDeletedObjs = this.paperEntityRepository.loadByIds(realm, ids);
+    // TODO: partition
+    realm.safeWrite(() => {
+      for (const obj of toBeDeletedObjs) {
+        for (const tag of obj.tags) {
+          this.categorizerRepository.delete(realm, false, "PaperTag", tag);
+        }
+        for (const folder of obj.folders) {
+          this.categorizerRepository.delete(
+            realm,
+            false,
+            "PaperFolder",
+            folder
+          );
+        }
+
+        const objFileURLs = [obj.mainURL, ...obj.supURLs];
+        const success = this.paperEntityRepository.delete(realm, obj);
+
+        if (success) {
+          removeFileURLs.push(...objFileURLs);
+        }
+      }
+    });
+    return removeFileURLs;
+  }
+
+  // ========================
   // Dev Functions
   // ========================
 
@@ -411,6 +447,6 @@ export class DBRepository {
   async removeAll() {
     const realm = await this.realm();
     this.paperEntityRepository.removeAll(realm);
-    this.categorizerRepository.removeAll(realm);
+    this.categorizerRepository.deleteAll(realm);
   }
 }

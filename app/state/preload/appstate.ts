@@ -1,7 +1,7 @@
 import { ObjectId } from "bson";
 
-import { State } from "./state";
 import { Preference } from "../../preference/preference";
+import { State } from "./state";
 
 export class PreloadStateStore {
   commChannel: BroadcastChannel;
@@ -27,8 +27,8 @@ export class PreloadStateStore {
       infoLog: new State("logState.infoLog", "", this.commChannel, false),
     };
     this.viewState = {
-      isModalShown: new State(
-        "viewState.isModalShown",
+      isDeleteConfirmShown: new State(
+        "viewState.isDeleteConfirmShown",
         false,
         this.commChannel
       ),

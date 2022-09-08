@@ -129,15 +129,9 @@ export class PaperEntityRepository {
     let success = false;
     try {
       realm.safeWrite(() => {
-        let existingObjs;
-        if (paperEntity._id) {
-          existingObjs = this.loadByIds(realm, [paperEntity._id]);
-        } else {
-          existingObjs = null;
-        }
-        if (existingObjs && existingObjs.length === 1) {
+        if (existingPaperEntity) {
           // Update
-          const updateObj = existingObjs[0];
+          const updateObj = existingPaperEntity;
           updateObj.title = paperEntity.title;
           updateObj.authors = paperEntity.authors;
           updateObj.publication = paperEntity.publication;
@@ -191,6 +185,35 @@ export class PaperEntityRepository {
       }`;
     }
     return success;
+  }
+
+  // ========================
+  // Delete
+  // ========================
+  delete(realm: Realm, paperEntity?: PaperEntity, ids?: (ObjectId | string)[]) {
+    try {
+      realm.safeWrite(() => {
+        if (paperEntity) {
+          realm.delete(paperEntity);
+        } else if (ids) {
+          const idsQuery = ids
+            .map((id) => `_id == oid(${id as string})`)
+            .join(" OR ");
+          realm.delete(
+            realm.objects<PaperEntity>("PaperEntity").filtered(`(${idsQuery})`)
+          );
+        } else {
+          throw new Error("No paper entity or ids are given");
+        }
+      });
+      return true;
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to delete papers: ${
+        error as string
+      }`;
+      return false;
+    }
   }
 
   // ==============================

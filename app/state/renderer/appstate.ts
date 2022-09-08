@@ -1,14 +1,13 @@
-import { defineStore, Pinia, Store } from "pinia";
 import { ObjectId } from "bson";
-
+import { Pinia, Store, defineStore } from "pinia";
 import { watch } from "vue";
 
 import {
-  LogState,
   DBState,
-  ViewState,
   DataViewState,
+  LogState,
   SelectionState,
+  ViewState,
 } from "../states";
 
 export class RendererStateStore {
@@ -117,7 +116,7 @@ export class MainRendererStateStore extends RendererStateStore {
     state: () => {
       return {
         // View Shown
-        isModalShown: false,
+        isDeleteConfirmShown: false,
         isEditViewShown: false,
         isPreferenceViewShown: false,
         isFeedEditViewShown: false,

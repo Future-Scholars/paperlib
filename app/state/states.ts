@@ -7,7 +7,7 @@ export interface LogState {
 }
 
 export interface ViewState {
-  isModalShown: boolean;
+  isDeleteConfirmShown: boolean;
   isEditViewShown: boolean;
   isPreferenceViewShown: boolean;
   isFeedEditViewShown: boolean;

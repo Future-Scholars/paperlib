@@ -17,6 +17,7 @@ import "./css/index.css";
 const pinia = createPinia();
 
 const app = createApp(App);
+app.config.unwrapInjectedRef = true;
 
 app.use(pinia);
 
@@ -33,13 +34,13 @@ const dbRepository = new DBRepository(stateStore);
 const scraperRepository = new ScraperRepository(stateStore, preference);
 const fileRepository = new FileRepository(stateStore, preference);
 
+const appInteractor = new AppInteractor(stateStore, preference, fileRepository);
 const entityInteractor = new EntityInteractor(
   stateStore,
   dbRepository,
   scraperRepository,
   fileRepository
 );
-const appInteractor = new AppInteractor(preference);
 const renderInteractor = new RenderInteractor(preference);
 
 // ====================================

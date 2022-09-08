@@ -16,6 +16,16 @@ export class Categorizer {
     this.count = count;
     this.color = color;
   }
+
+  initialize(categorizer: Categorizer) {
+    this._id = categorizer._id;
+    this._partition = categorizer._partition;
+    this.name = categorizer.name;
+    this.count = categorizer.count;
+    this.color = categorizer.color;
+
+    return this;
+  }
 }
 
 export class PaperTag extends Categorizer {

@@ -1,3 +1,4 @@
+import { ObjectId } from "bson";
 import { readFileSync } from "fs";
 import path from "path";
 
@@ -164,6 +165,40 @@ export class EntityInteractor {
   // ========================
   // Update
   // ========================
+  async update(paperEntities: PaperEntity[]) {
+    this.stateStore.logState.processLog = `Updating ${paperEntities.length} paper(s)...`;
+    this.stateStore.viewState.processingQueueCount += paperEntities.length;
+
+    try {
+      const updatePromise = async (paperEntityDrafts: PaperEntity[]) => {
+        const movedPaperEntityDrafts = await Promise.all(
+          paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
+            this.fileRepository.move(paperEntityDraft, true)
+          )
+        );
+
+        for (let i = 0; i < movedPaperEntityDrafts.length; i++) {
+          if (movedPaperEntityDrafts[i] === null) {
+            movedPaperEntityDrafts[i] = paperEntityDrafts[i];
+          }
+        }
+
+        await this.dbRepository.updatePaperEntities(
+          movedPaperEntityDrafts as PaperEntity[]
+        );
+      };
+
+      await updatePromise(paperEntities);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Update paper failed: ${
+        error as string
+      }`;
+    }
+
+    this.stateStore.viewState.processingQueueCount -= paperEntities.length;
+  }
+
   colorizeCategorizers(
     color: Colors,
     type: CategorizerType,
@@ -195,6 +230,28 @@ export class EntityInteractor {
     //     newCategorizerName;
     //   this.preference.set("pluginLinkedFolder", newCategorizerName);
     // }
+  }
+
+  // ========================
+  // Delete
+  // ========================
+  async delete(ids: (ObjectId | string)[]) {
+    this.stateStore.logState.processLog = `Deleting ${ids.length} paper(s)...`;
+    this.stateStore.viewState.processingQueueCount += ids.length;
+    try {
+      const removeFileURLs = await this.dbRepository.deletePaperEntities(ids);
+      await Promise.all(
+        removeFileURLs.map((url) => this.fileRepository.removeFile(url))
+      );
+      //TODO: implement this
+      // void this.cacheRepository.remove(ids);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Delete paper failed: ${
+        error as string
+      }`;
+    }
+    this.stateStore.viewState.processingQueueCount -= ids.length;
   }
 
   // ========================

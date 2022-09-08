@@ -63,7 +63,7 @@ export class CategorizerRepository {
     return objects;
   }
 
-  remove(
+  delete(
     realm: Realm,
     deleteAll = true,
     type: CategorizerType,
@@ -212,7 +212,7 @@ export class CategorizerRepository {
     return { tag, folder };
   }
 
-  async removeAll(realm: Realm) {
+  async deleteAll(realm: Realm) {
     realm.write(() => {
       const tags = realm.objects<Categorizer>("PaperTag");
       realm.delete(tags);

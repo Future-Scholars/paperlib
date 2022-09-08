@@ -37,6 +37,7 @@ import PaperDetailView from "./detail-view/paper-detail-view.vue";
 // ================================
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
+const dbState = MainRendererStateStore.useDBState();
 
 // ================================
 // Data
@@ -45,61 +46,61 @@ const selectedEntityPlaceHolder = ref(new PaperEntity(false));
 const paperEntities = inject<Ref<PaperEntityResults>>("paperEntities");
 
 const selectedPaperEntities = ref<Array<PaperEntity>>([]);
-// const selectedIndex: Ref<number[]> = ref([]);
-// const selectedFeedEntities: Ref<FeedEntity[]> = ref([]);
+// TODO: fix this type
+const selectedFeedEntities = ref<Array<PaperEntity>>([]);
 
 // const feedEntityAddingStatus = ref(0); // 0: not adding, 1: adding, 2: added
 
 // ================================
 // Event Handlers
 // ================================
-// const openSelectedEntities = () => {
-//   if (contentType.value === "library") {
-//     selectedEntities.value.forEach((entity) => {
-//       window.appInteractor.open(entity.mainURL);
-//     });
-//   } else {
-//     selectedFeedEntities.value.forEach((entity) => {
-//       window.appInteractor.open(entity.mainURL);
-//     });
-//   }
-// };
+const openSelectedEntities = () => {
+  if (viewState.contentType === "library") {
+    selectedPaperEntities.value.forEach((paperEntity) => {
+      window.appInteractor.open(paperEntity.mainURL);
+    });
+  } else {
+    // TODO: uncomment this
+    // selectedFeedEntities.value.forEach((entity) => {
+    //   window.appInteractor.open(entity.mainURL);
+    // });
+  }
+};
 
-// const showInFinderSelectedEntities = () => {
-//   if (contentType.value === "library") {
-//     selectedEntities.value.forEach((entity) => {
-//       window.appInteractor.showInFinder(entity.mainURL);
-//     });
-//   }
-// };
+const showInFinderSelectedEntities = () => {
+  if (viewState.contentType === "library") {
+    selectedPaperEntities.value.forEach((paperEentity) => {
+      window.appInteractor.showInFinder(paperEentity.mainURL);
+    });
+  }
+};
 
-// const previewSelectedEntities = () => {
-//   if (contentType.value === "library") {
-//     window.appInteractor.preview(selectedEntities.value[0].mainURL);
-//   }
-// };
+const previewSelectedEntities = () => {
+  if (viewState.contentType === "library") {
+    window.appInteractor.preview(selectedPaperEntities.value[0].mainURL);
+  }
+};
 
-// const reloadSelectedEntities = () => {
-//   let selectedIds;
-//   if (viewState.contentType === "library") {
-//     selectedPaperEntities.value = [];
-//     selectionState.selectedIds.forEach((index) => {
-//       selectedEntities.value.push(props.entities![index]);
-//     });
-//     selectedIds = selectedEntities.value.map((entity) => entity.id);
-//   } else {
-//     feedEntityAddingStatus.value = 0;
-//     selectedFeedEntities.value = [];
-//     selectedIndex.value.forEach((index) => {
-//       selectedFeedEntities.value.push(props.feedEntities![index]);
-//     });
-//     selectedIds = selectedFeedEntities.value.map((entity) => entity.id);
-//   }
-//   window.appInteractor.setState(
-//     "selectionState.selectedIds",
-//     JSON.stringify(selectedIds)
-//   );
-// };
+const reloadSelectedEntities = () => {
+  if (viewState.contentType === "library") {
+      selectedPaperEntities.value = [];
+      if (paperEntities) {
+        for (const index of selectionState.selectedIndex) {
+          if (paperEntities.value.length > index) {
+            selectedPaperEntities.value.push(paperEntities.value[index]);
+            selectionState.selectedIds.push(paperEntities.value[index].id);
+          }
+          else if (selectionState.selectedIndex.length === 1) {
+            selectionState.selectedIndex = [];
+            selectionState.selectedIds = [];
+            break;
+          }
+        }
+      }
+    } else {
+      // TODO: Feed
+    }
+};
 
 const clearSelected = () => {
   selectionState.selectedIndex = [];
@@ -130,11 +131,11 @@ const clearSelected = () => {
 //   }
 // };
 
-// const deleteSelectedEntities = () => {
-//   if (contentType.value === "library") {
-//     emits("delete");
-//   }
-// };
+const deleteSelectedEntities = () => {
+  if (viewState.contentType === "library") {
+    viewState.isDeleteConfirmShown = true;
+  }
+};
 
 // const editSelectedEntities = () => {
 //   if (contentType.value === "library") {
@@ -148,17 +149,16 @@ const clearSelected = () => {
 //   }
 // };
 
-// const flagSelectedEntities = () => {
-//   if (contentType.value === "library") {
-//     const entityDrafts = selectedEntities.value.map((entity) => {
-//       const entityDraft = new PaperEntityDraft();
-//       entityDraft.initialize(entity);
-//       entityDraft.flag = !entityDraft.flag;
-//       return entityDraft;
-//     });
-//     void window.entityInteractor.update(JSON.stringify(entityDrafts));
-//   }
-// };
+const flagSelectedEntities = () => {
+  if (viewState.contentType === "library") {
+    const paperEntityDrafts = selectedPaperEntities.value.map((paperEntity) => {
+      const paperEntityDraft = (new PaperEntity(false)).initialize(paperEntity);
+      paperEntityDraft.flag = !paperEntityDraft.flag;
+      return paperEntityDraft;
+    });
+    void window.entityInteractor.update(paperEntityDrafts);
+  }
+};
 
 // const exportSelectedEntities = (format: string) => {
 //   if (contentType.value === "library") {
@@ -227,15 +227,15 @@ const onMenuButtonClicked = (command: string) => {
     //     case "rescrape":
     //       scrapeSelectedEntities();
     //       break;
-    //     case "delete":
-    //       deleteSelectedEntities();
-    //       break;
+        case "delete":
+          deleteSelectedEntities();
+          break;
     //     case "edit":
     //       editSelectedEntities();
     //       break;
-    //     case "flag":
-    //       flagSelectedEntities();
-    //       break;
+        case "flag":
+          flagSelectedEntities();
+          break;
     case "list-view":
       switchViewType("list");
       break;
@@ -289,13 +289,13 @@ const onArrowDownPressed = () => {
 //   editSelectedEntities();
 // });
 
-// window.appInteractor.registerMainSignal("data-context-menu-flag", () => {
-//   flagSelectedEntities();
-// });
+window.appInteractor.registerMainSignal("data-context-menu-flag", () => {
+  flagSelectedEntities();
+});
 
-// window.appInteractor.registerMainSignal("data-context-menu-delete", () => {
-//   deleteSelectedEntities();
-// });
+window.appInteractor.registerMainSignal("data-context-menu-delete", () => {
+  deleteSelectedEntities();
+});
 
 // window.appInteractor.registerMainSignal("data-context-menu-scrape", () => {
 //   scrapeSelectedEntities();
@@ -308,16 +308,16 @@ const onArrowDownPressed = () => {
 //   }
 // );
 
-// window.appInteractor.registerMainSignal("data-context-menu-open", () => {
-//   openSelectedEntities();
-// });
+window.appInteractor.registerMainSignal("data-context-menu-open", () => {
+  openSelectedEntities();
+});
 
-// window.appInteractor.registerMainSignal(
-//   "data-context-menu-showinfinder",
-//   () => {
-//     showInFinderSelectedEntities();
-//   }
-// );
+window.appInteractor.registerMainSignal(
+  "data-context-menu-showinfinder",
+  () => {
+    showInFinderSelectedEntities();
+  }
+);
 
 // window.appInteractor.registerMainSignal(
 //   "data-context-menu-export-bibtex",
@@ -354,30 +354,31 @@ const onArrowDownPressed = () => {
 //   window.appInteractor.setState("viewState.isPreferenceViewShown", true);
 // });
 
-// window.appInteractor.registerMainSignal("shortcut-Enter", () => {
-//   if (
-//     !searchInputFocus.value &&
-//     (selectedEntities.value.length >= 1 ||
-//       selectedFeedEntities.value.length >= 1) &&
-//     !window.appInteractor.getState("viewState.isModalShown") &&
-//     !window.appInteractor.getState("viewState.isEditViewShown") &&
-//     !window.appInteractor.getState("viewState.isPreferenceViewShown")
-//   ) {
-//     openSelectedEntities();
-//   }
-// });
+window.appInteractor.registerMainSignal("shortcut-Enter", () => {
+  if (
+    !viewState.inputFieldFocused &&
+    (selectedPaperEntities.value.length >= 1 ||
+      selectedFeedEntities.value.length >= 1) &&
+    !viewState.isDeleteConfirmShown &&
+    !viewState.isEditViewShown &&
+    !viewState.isPreferenceViewShown
+  ) {
+    openSelectedEntities();
+  }
+});
 
-// window.appInteractor.registerMainSignal("shortcut-Space", () => {
-//   if (
-//     !searchInputFocus.value &&
-//     selectedEntities.value.length >= 1 &&
-//     !window.appInteractor.getState("viewState.isModalShown") &&
-//     !window.appInteractor.getState("viewState.isEditViewShown") &&
-//     !window.appInteractor.getState("viewState.isPreferenceViewShown")
-//   ) {
-//     previewSelectedEntities();
-//   }
-// });
+window.appInteractor.registerMainSignal("shortcut-Space", () => {
+  if (
+    !viewState.inputFieldFocused &&
+    selectedPaperEntities.value.length >= 1 &&
+    !viewState.isDeleteConfirmShown &&
+    !viewState.isEditViewShown &&
+    !viewState.isPreferenceViewShown
+  ) {
+    previewSelectedEntities();
+  }
+});
+
 function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
   if (
     event.code === "Space" ||
@@ -404,9 +405,9 @@ function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
       onArrowUpPressed();
     }
 
-    //     if (event.code === "Space" && selectedEntities.value.length >= 1) {
-    //       previewSelectedEntities();
-    //     }
+    if (event.code === "Space" && selectedPaperEntities.value.length >= 1) {
+      previewSelectedEntities();
+    }
   }
 }
 window.addEventListener("keydown", preventSpaceArrowScrollEvent, true);
@@ -432,11 +433,11 @@ window.addEventListener("keydown", preventSpaceArrowScrollEvent, true);
 //     }
 //   });
 
-// window.appInteractor.registerMainSignal("shortcut-cmd-f", () => {
-//   if (selectedEntities.value.length >= 1) {
-//     flagSelectedEntities();
-//   }
-// });
+window.appInteractor.registerMainSignal("shortcut-cmd-f", () => {
+  if (selectedPaperEntities.value.length >= 1) {
+    flagSelectedEntities();
+  }
+});
 
 // window.appInteractor.registerMainSignal("shortcut-cmd-r", () => {
 //   if (selectedEntities.value.length >= 1) {
@@ -454,16 +455,14 @@ window.appInteractor.registerMainSignal(
 watch(
   () => selectionState.selectedIndex,
   (value) => {
-    if (viewState.contentType === "library") {
-      selectedPaperEntities.value = [];
-      if (paperEntities) {
-        for (const index of value) {
-          selectedPaperEntities.value.push(paperEntities.value[index]);
-        }
-      }
-    } else {
-      // TODO: Feed
-    }
+    reloadSelectedEntities();
+  }
+);
+
+watch(
+  () => paperEntities?.value,
+  (value) => {
+    reloadSelectedEntities();
   }
 );
 

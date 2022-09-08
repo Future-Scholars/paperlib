@@ -26,20 +26,20 @@ const fileExistingStatus = ref(1);
 
 // TODO: implement this
 const render = async () => {
-  // isRendering.value = true;
-  // const fileURL = await window.appInteractor.access(props.url, false);
-  // if (fileURL.length === 0) {
-  //   isRendering.value = false;
-  //   fileExistingStatus.value = 1;
-  //   return;
-  // } else if (fileURL.startsWith("donwloadRequired://")) {
-  //   isRendering.value = false;
-  //   fileExistingStatus.value = 2;
-  //   return;
-  // } else {
-  //   fileExistingStatus.value = 0;
-  // }
-  // await window.renderInteractor.render(fileURL);
+  isRendering.value = true;
+  const fileURL = await window.appInteractor.access(props.url, false);
+  if (fileURL.length === 0) {
+    isRendering.value = false;
+    fileExistingStatus.value = 1;
+    return;
+  } else if (fileURL.startsWith("donwloadRequired://")) {
+    isRendering.value = false;
+    fileExistingStatus.value = 2;
+    return;
+  } else {
+    fileExistingStatus.value = 0;
+  }
+  await window.renderInteractor.render(fileURL);
   isRendering.value = false;
 };
 
