@@ -116,19 +116,18 @@ const scrapeSelectedEntities = () => {
   }
 };
 
-// const scrapeSelectedEntitiesFrom = (scraperName: string) => {
-//   if (contentType.value === "library") {
-//     const entityDrafts = selectedEntities.value.map((entity) => {
-//       const entityDraft = new PaperEntityDraft();
-//       entityDraft.initialize(entity);
-//       return entityDraft;
-//     });
-//     void window.entityInteractor.scrapeFrom(
-//       JSON.stringify(entityDrafts),
-//       scraperName
-//     );
-//   }
-// };
+const scrapeSelectedEntitiesFrom = (scraperName: string) => {
+  if (viewState.contentType === "library") {
+    const paperEntityDrafts = selectedPaperEntities.value.map((paperEntity) => {
+      const paperEntityDraft = (new PaperEntity(false)).initialize(paperEntity);
+      return paperEntityDraft;
+    });
+    void window.entityInteractor.scrapeFrom(
+      paperEntityDrafts,
+      scraperName
+    );
+  }
+};
 
 const deleteSelectedEntities = () => {
   if (viewState.contentType === "library") {
@@ -300,12 +299,12 @@ window.appInteractor.registerMainSignal("data-context-menu-scrape", () => {
   scrapeSelectedEntities();
 });
 
-// window.appInteractor.registerMainSignal(
-//   "data-context-menu-scrape-from",
-//   (args) => {
-//     scrapeSelectedEntitiesFrom(args[0]);
-//   }
-// );
+window.appInteractor.registerMainSignal(
+  "data-context-menu-scrape-from",
+  (args) => {
+    scrapeSelectedEntitiesFrom(args[0]);
+  }
+);
 
 window.appInteractor.registerMainSignal("data-context-menu-open", () => {
   openSelectedEntities();

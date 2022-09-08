@@ -215,6 +215,25 @@ export class EntityInteractor {
     await this.update(paperEntities);
   }
 
+  async scrapeFrom(paperEntities: PaperEntity[], scraperName: string) {
+    this.stateStore.logState.processLog = `Scraping ${paperEntities.length} paper(s)...`;
+    this.stateStore.viewState.processingQueueCount += paperEntities.length;
+
+    const scrapePromise = async (paperEntityDraft: PaperEntity) => {
+      return await this.scraperRepository.scrapeFrom(
+        paperEntityDraft,
+        scraperName
+      );
+    };
+
+    paperEntities = await Promise.all(
+      paperEntities.map((paperEntityDraft) => scrapePromise(paperEntityDraft))
+    );
+
+    this.stateStore.viewState.processingQueueCount -= paperEntities.length;
+    await this.update(paperEntities);
+  }
+
   colorizeCategorizers(
     color: Colors,
     type: CategorizerType,
