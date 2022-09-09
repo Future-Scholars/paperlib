@@ -1,4 +1,5 @@
 import { ObjectId } from "bson";
+import { clipboard } from "electron";
 import { readFileSync } from "fs";
 import path from "path";
 
@@ -7,6 +8,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
+import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";
@@ -17,17 +19,20 @@ export class EntityInteractor {
   dbRepository: DBRepository;
   scraperRepository: ScraperRepository;
   fileRepository: FileRepository;
+  referenceRepository: ReferenceRepository;
 
   constructor(
     stateStore: MainRendererStateStore,
     dbRepository: DBRepository,
     scraperRepository: ScraperRepository,
-    fileRepository: FileRepository
+    fileRepository: FileRepository,
+    referenceRepository: ReferenceRepository
   ) {
     this.stateStore = stateStore;
     this.dbRepository = dbRepository;
     this.scraperRepository = scraperRepository;
     this.fileRepository = fileRepository;
+    this.referenceRepository = referenceRepository;
   }
 
   // ========================
@@ -333,6 +338,33 @@ export class EntityInteractor {
       }`;
     }
     this.stateStore.viewState.processingQueueCount -= ids.length;
+  }
+
+  // ========================
+  // Export
+  // ========================
+
+  async export(paperEntities: PaperEntity[], format: string) {
+    let paperEntityDrafts = paperEntities.map((paperEntity) => {
+      return new PaperEntity(false).initialize(paperEntity);
+    });
+
+    let copyStr = "";
+    if (format === "BibTex") {
+      copyStr = this.referenceRepository.exportBibTexBody(
+        this.referenceRepository.toCite(paperEntityDrafts)
+      );
+    } else if (format === "BibTex-Key") {
+      copyStr = this.referenceRepository.exportBibTexKey(
+        this.referenceRepository.toCite(paperEntityDrafts)
+      );
+    } else if (format === "PlainText") {
+      copyStr = await this.referenceRepository.exportPlainText(
+        this.referenceRepository.toCite(paperEntityDrafts)
+      );
+    }
+
+    clipboard.writeText(copyStr);
   }
 
   // ========================

@@ -4,7 +4,6 @@ import dragDrop from "drag-drop";
 import { Ref, inject, onMounted, provide, ref, watch } from "vue";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
-import { PaperEntity } from "@/models/paper-entity";
 import RecycleScroller from "@/renderer/thirdparty/virutalscroll/src/components/RecycleScroller.vue";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";

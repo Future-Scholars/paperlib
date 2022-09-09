@@ -10,6 +10,7 @@ import { RenderInteractor } from "@/interactors/render-interactor";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
+import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 
 import { MainRendererStateStore } from "../state/renderer/appstate";
@@ -42,13 +43,15 @@ const preference = new Preference();
 const dbRepository = new DBRepository(stateStore);
 const scraperRepository = new ScraperRepository(stateStore, preference);
 const fileRepository = new FileRepository(stateStore, preference);
+const referenceRepository = new ReferenceRepository(stateStore, preference);
 
 const appInteractor = new AppInteractor(stateStore, preference, fileRepository);
 const entityInteractor = new EntityInteractor(
   stateStore,
   dbRepository,
   scraperRepository,
-  fileRepository
+  fileRepository,
+  referenceRepository
 );
 const renderInteractor = new RenderInteractor(preference);
 

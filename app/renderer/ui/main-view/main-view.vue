@@ -150,14 +150,11 @@ const flagSelectedEntities = () => {
   }
 };
 
-// const exportSelectedEntities = (format: string) => {
-//   if (contentType.value === "library") {
-//     window.entityInteractor.export(
-//       JSON.stringify(selectedEntities.value),
-//       format
-//     );
-//   }
-// };
+const exportSelectedEntities = (format: string) => {
+  if (viewState.contentType === "library") {
+    window.entityInteractor.export(selectedPaperEntities.value, format);
+  }
+};
 
 // const addSelectedFeedEntities = async () => {
 //   if (contentType.value === "feed") {
@@ -272,8 +269,8 @@ const onArrowDownPressed = () => {
   }
 };
 
-// // ========================================================
-// // Register Context Menu
+// ========================================================
+// Register Context Menu
 
 window.appInteractor.registerMainSignal("data-context-menu-edit", () => {
   editSelectedEntities();
@@ -309,26 +306,26 @@ window.appInteractor.registerMainSignal(
   }
 );
 
-// window.appInteractor.registerMainSignal(
-//   "data-context-menu-export-bibtex",
-//   () => {
-//     exportSelectedEntities("BibTex");
-//   }
-// );
+window.appInteractor.registerMainSignal(
+  "data-context-menu-export-bibtex",
+  () => {
+    exportSelectedEntities("BibTex");
+  }
+);
 
-// window.appInteractor.registerMainSignal(
-//   "data-context-menu-export-bibtex-key",
-//   () => {
-//     exportSelectedEntities("BibTex-Key");
-//   }
-// );
+window.appInteractor.registerMainSignal(
+  "data-context-menu-export-bibtex-key",
+  () => {
+    exportSelectedEntities("BibTex-Key");
+  }
+);
 
-// window.appInteractor.registerMainSignal(
-//   "data-context-menu-export-plain",
-//   () => {
-//     exportSelectedEntities("PlainText");
-//   }
-// );
+window.appInteractor.registerMainSignal(
+  "data-context-menu-export-plain",
+  () => {
+    exportSelectedEntities("PlainText");
+  }
+);
 
 // window.appInteractor.registerMainSignal("feed-data-context-menu-add", () => {
 //   addSelectedFeedEntities();
@@ -406,23 +403,22 @@ window.addEventListener("keydown", preventSpaceArrowScrollEvent, true);
 // Register State Change
 // =======================================
 
-// window.appInteractor.registerMainSignal("shortcut-cmd-shift-c", () => {
-//   if (selectedEntities.value.length >= 1) {
-//     exportSelectedEntities("BibTex");
-//   }
-// });
-
-// window.appInteractor.registerMainSignal("shortcut-cmd-shift-k", () => {
-//   if (selectedEntities.value.length >= 1) {
-//     exportSelectedEntities("BibTex-Key");
-//   }
-// }),
-
-window.appInteractor.registerMainSignal("shortcut-cmd-e", () => {
-  if (selectedPaperEntities.value.length == 1) {
-    editSelectedEntities();
+window.appInteractor.registerMainSignal("shortcut-cmd-shift-c", () => {
+  if (selectedPaperEntities.value.length >= 1) {
+    exportSelectedEntities("BibTex");
   }
 });
+
+window.appInteractor.registerMainSignal("shortcut-cmd-shift-k", () => {
+  if (selectedPaperEntities.value.length >= 1) {
+    exportSelectedEntities("BibTex-Key");
+  }
+}),
+  window.appInteractor.registerMainSignal("shortcut-cmd-e", () => {
+    if (selectedPaperEntities.value.length == 1) {
+      editSelectedEntities();
+    }
+  });
 
 window.appInteractor.registerMainSignal("shortcut-cmd-f", () => {
   if (selectedPaperEntities.value.length >= 1) {
