@@ -476,15 +476,24 @@ watch(
     <div class="grow flex divide-x dark:divide-neutral-700">
       <PaperDataView v-if="viewState.contentType === 'library'" />
 
-      <PaperDetailView
-        :entity="
-          selectedPaperEntities.length === 1
-            ? selectedPaperEntities[0]
-            : selectedEntityPlaceHolder
-        "
-        v-show="selectionState.selectedIndex.length === 1"
-        v-if="viewState.contentType === 'library'"
-      />
+      <Transition
+        enter-active-class="transition ease-out duration-75"
+        enter-from-class="transform opacity-0"
+        enter-to-class="transform opacity-100"
+        leave-active-class="transition ease-in duration-75"
+        leave-from-class="transform opacity-100"
+        leave-to-class="transform opacity-0"
+      >
+        <PaperDetailView
+          :entity="
+            selectedPaperEntities.length === 1
+              ? selectedPaperEntities[0]
+              : selectedEntityPlaceHolder
+          "
+          v-show="selectionState.selectedIndex.length === 1"
+          v-if="viewState.contentType === 'library'"
+        />
+      </Transition>
 
       <!-- 
       <FeedDataView

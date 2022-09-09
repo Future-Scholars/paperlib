@@ -3,10 +3,17 @@ import { clipboard } from "electron";
 import { readFileSync } from "fs";
 import path from "path";
 
-import { Categorizer, CategorizerType, Colors } from "@/models/categorizer";
+import {
+  Categorizer,
+  CategorizerType,
+  Colors,
+  PaperFolder,
+  PaperTag,
+} from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
@@ -20,19 +27,22 @@ export class EntityInteractor {
   scraperRepository: ScraperRepository;
   fileRepository: FileRepository;
   referenceRepository: ReferenceRepository;
+  downloaderRepository: DownloaderRepository;
 
   constructor(
     stateStore: MainRendererStateStore,
     dbRepository: DBRepository,
     scraperRepository: ScraperRepository,
     fileRepository: FileRepository,
-    referenceRepository: ReferenceRepository
+    referenceRepository: ReferenceRepository,
+    downloaderRepository: DownloaderRepository
   ) {
     this.stateStore = stateStore;
     this.dbRepository = dbRepository;
     this.scraperRepository = scraperRepository;
     this.fileRepository = fileRepository;
     this.referenceRepository = referenceRepository;
+    this.downloaderRepository = downloaderRepository;
   }
 
   // ========================
@@ -83,6 +93,7 @@ export class EntityInteractor {
   // ========================
   async create(urlList: string[]) {
     this.stateStore.viewState.processingQueueCount += urlList.length;
+    let successfulEntityDrafts: PaperEntity[] = [];
     try {
       const pdfUrls = urlList.filter((url) => path.extname(url) === ".pdf");
       const bibUrls = urlList.filter((url) => path.extname(url) === ".bib");
@@ -134,6 +145,10 @@ export class EntityInteractor {
       const unsuccessfulEntityDrafts = paperEntityDrafts.filter(
         (_, index) => !dbSuccesses[index]
       );
+      // - find successful entities.
+      successfulEntityDrafts = paperEntityDrafts.filter(
+        (_, index) => dbSuccesses[index]
+      );
       // - remove files of unsuccessful entities.
       await Promise.all(
         unsuccessfulEntityDrafts.map((entityDraft) =>
@@ -146,6 +161,45 @@ export class EntityInteractor {
         error as string
       }`;
     }
+    this.stateStore.viewState.processingQueueCount -= urlList.length;
+    return successfulEntityDrafts;
+  }
+
+  async createIntoCategorizer(
+    urlList: string[],
+    categorizer: Categorizer,
+    type: CategorizerType
+  ) {
+    this.stateStore.logState.processLog = `Adding ${urlList.length} papers to ${categorizer.name}...`;
+    this.stateStore.viewState.processingQueueCount += urlList.length;
+
+    try {
+      const paperEntityDrafts = await this.create(urlList);
+
+      // 4. DB update.
+      const toBeUpdatedPaperEntityDrafts = paperEntityDrafts.map(
+        (paperEntityDraft) => {
+          if ((type = "PaperTag")) {
+            paperEntityDraft.setValue("tags", [
+              new PaperTag("", 0, "").initialize(categorizer),
+            ]);
+          } else if (type === "PaperFolder") {
+            paperEntityDraft.setValue("folders", [
+              new PaperFolder("", 0, "").initialize(categorizer),
+            ]);
+          }
+          return paperEntityDraft;
+        }
+      );
+      console.log(toBeUpdatedPaperEntityDrafts);
+      await this.dbRepository.updatePaperEntities(toBeUpdatedPaperEntityDrafts);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Add paper to library failed: ${
+        error as string
+      }`;
+    }
+
     this.stateStore.viewState.processingQueueCount -= urlList.length;
   }
 
@@ -164,6 +218,24 @@ export class EntityInteractor {
       console.error(e);
       this.stateStore.logState.alertLog = `Failed to remove categorizer ${type} ${name} ${categorizer}`;
     }
+    this.stateStore.viewState.processingQueueCount -= 1;
+  }
+
+  deleteSup(paperEntity: PaperEntity, url: string) {
+    this.stateStore.logState.processLog = `Removing supplementary file ${url}...`;
+    this.stateStore.viewState.processingQueueCount += 1;
+
+    try {
+      void this.fileRepository.removeFile(url);
+      paperEntity.supURLs = paperEntity.supURLs.filter(
+        (supUrl) => supUrl !== path.basename(url)
+      );
+      this.dbRepository.updatePaperEntities([paperEntity]);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to remove supplementary file ${url}`;
+    }
+
     this.stateStore.viewState.processingQueueCount -= 1;
   }
 
@@ -212,9 +284,16 @@ export class EntityInteractor {
       return await this.scraperRepository.scrape(paperEntityDraft);
     };
 
-    paperEntities = await Promise.all(
-      paperEntities.map((paperEntityDraft) => scrapePromise(paperEntityDraft))
-    );
+    try {
+      paperEntities = await Promise.all(
+        paperEntities.map((paperEntityDraft) => scrapePromise(paperEntityDraft))
+      );
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Scrape paper failed: ${
+        error as string
+      }`;
+    }
 
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
     await this.update(paperEntities);
@@ -231,9 +310,16 @@ export class EntityInteractor {
       );
     };
 
-    paperEntities = await Promise.all(
-      paperEntities.map((paperEntityDraft) => scrapePromise(paperEntityDraft))
-    );
+    try {
+      paperEntities = await Promise.all(
+        paperEntities.map((paperEntityDraft) => scrapePromise(paperEntityDraft))
+      );
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Scrape paper failed: ${
+        error as string
+      }`;
+    }
 
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
     await this.update(paperEntities);
@@ -291,7 +377,19 @@ export class EntityInteractor {
     name?: string,
     categorizer?: Categorizer
   ) {
-    void this.dbRepository.colorizeCategorizer(color, type, categorizer, name);
+    this.stateStore.viewState.processingQueueCount += 1;
+    try {
+      void this.dbRepository.colorizeCategorizer(
+        color,
+        type,
+        categorizer,
+        name
+      );
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to colorize categorizer ${type} ${name} ${categorizer}`;
+    }
+    this.stateStore.viewState.processingQueueCount -= 1;
   }
 
   async renameCategorizer(
@@ -338,6 +436,39 @@ export class EntityInteractor {
       }`;
     }
     this.stateStore.viewState.processingQueueCount -= ids.length;
+  }
+
+  // ========================
+  // Download
+  // ========================
+  async locateMainFile(paperEntities: PaperEntity[]) {
+    this.stateStore.logState.processLog = `Locating main file for ${paperEntities.length} paper(s)...`;
+    this.stateStore.viewState.processingQueueCount += paperEntities.length;
+
+    let paperEntityDrafts = paperEntities.map((paperEntity) => {
+      return new PaperEntity(false).initialize(paperEntity);
+    });
+
+    try {
+      const downloadPromise = async (paperEntityDraft: PaperEntity) => {
+        return await this.downloaderRepository.download(paperEntityDraft);
+      };
+
+      paperEntityDrafts = await Promise.all(
+        paperEntityDrafts.map((paperEntityDraft) =>
+          downloadPromise(paperEntityDraft)
+        )
+      );
+
+      await this.update(paperEntityDrafts);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Download paper failed: ${
+        error as string
+      }`;
+    }
+
+    this.stateStore.viewState.processingQueueCount -= paperEntities.length;
   }
 
   // ========================

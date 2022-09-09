@@ -139,4 +139,12 @@ export class AppInteractor {
     const accessedURL = (await this.access(url, true)).replace("file://", "");
     shell.showItemInFolder(accessedURL);
   }
+
+  async showFilePicker() {
+    return await ipcRenderer.invoke("show-file-picker");
+  }
+
+  async showFolderPicker() {
+    return await ipcRenderer.invoke("show-folder-picker");
+  }
 }

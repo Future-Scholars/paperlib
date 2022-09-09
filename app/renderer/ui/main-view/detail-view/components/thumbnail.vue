@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import {
+  BIconArrowClockwise,
   BIconCloudArrowDown,
   BIconPlus,
-  BIconArrowClockwise,
   BIconSearch,
 } from "bootstrap-icons-vue";
-
-import { onMounted, watch, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
@@ -24,7 +23,6 @@ const viewState = MainRendererStateStore.useViewState();
 const isRendering = ref(true);
 const fileExistingStatus = ref(1);
 
-// TODO: implement this
 const render = async () => {
   isRendering.value = true;
   const fileURL = await window.appInteractor.access(props.url, false);
@@ -52,26 +50,26 @@ const onClick = async (e: MouseEvent) => {
 };
 
 const showFilePicker = async () => {
-  // const pickedFile = (await window.appInteractor.showFilePicker()).filePaths[0];
-  // if (pickedFile) {
-  //   emit("modifyMainFile", pickedFile);
-  // }
+  const pickedFile = (await window.appInteractor.showFilePicker()).filePaths[0];
+  if (pickedFile) {
+    emit("modifyMainFile", pickedFile);
+  }
 };
 
 const locatePDF = async () => {
   emit("locateMainFile");
 };
 
-const onCloudDownloadClicked = async () => {
-  // isRendering.value = true;
-  // const fileURL = await window.appInteractor.access(props.url, true);
-  // isRendering.value = false;
-  // if (fileURL === "") {
-  //   viewState.alertInformation = `File ${props.url} download faield.`;
-  //   return;
-  // } else {
-  //   render();
-  // }
+// TODO: check this
+const onWebdavDownloadClicked = async () => {
+  isRendering.value = true;
+  const fileURL = await window.appInteractor.access(props.url, true);
+  isRendering.value = false;
+  if (fileURL === "") {
+    return;
+  } else {
+    render();
+  }
 };
 
 const onRightClicked = (event: MouseEvent) => {
@@ -112,7 +110,7 @@ watch(props, (props, prevProps) => {
     <BIconCloudArrowDown
       class="text-md"
       v-show="fileExistingStatus === 2"
-      @click="onCloudDownloadClicked"
+      @click="onWebdavDownloadClicked"
     />
     <div class="flex space-x-2" v-show="fileExistingStatus === 1">
       <div

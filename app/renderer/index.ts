@@ -9,6 +9,7 @@ import { EntityInteractor } from "@/interactors/entity-interactor";
 import { RenderInteractor } from "@/interactors/render-interactor";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
+import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
@@ -44,6 +45,7 @@ const dbRepository = new DBRepository(stateStore);
 const scraperRepository = new ScraperRepository(stateStore, preference);
 const fileRepository = new FileRepository(stateStore, preference);
 const referenceRepository = new ReferenceRepository(stateStore, preference);
+const downloaderRepository = new DownloaderRepository(stateStore, preference);
 
 const appInteractor = new AppInteractor(stateStore, preference, fileRepository);
 const entityInteractor = new EntityInteractor(
@@ -51,7 +53,8 @@ const entityInteractor = new EntityInteractor(
   dbRepository,
   scraperRepository,
   fileRepository,
-  referenceRepository
+  referenceRepository,
+  downloaderRepository
 );
 const renderInteractor = new RenderInteractor(preference);
 

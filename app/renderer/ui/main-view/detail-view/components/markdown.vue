@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { BIconArrowsCollapse, BIconArrowsExpand } from "bootstrap-icons-vue";
 import { nextTick, onMounted, ref, watch } from "vue";
-import { BIconArrowsExpand, BIconArrowsCollapse } from "bootstrap-icons-vue";
 
 const props = defineProps({
   title: {
@@ -12,7 +12,7 @@ const props = defineProps({
     required: false,
   },
   sups: {
-    type: Array as () => Array<string>,
+    type: Object as () => Array<string>,
     required: false,
   },
 });
@@ -46,6 +46,7 @@ const render = async () => {
 
   nextTick(() => {
     isOverflow.value = renderedHTML.value.length > 0;
+    checkOverflow();
   });
 };
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PropType } from "vue";
 import { BIconXLg } from "bootstrap-icons-vue";
+import { PropType } from "vue";
 
 import { Categorizer } from "@/models/categorizer";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -30,10 +30,10 @@ const onClick = (e: MouseEvent, categorizerName: string) => {
   viewState.searchText = `${key}.name contains '${categorizerName}'`;
 };
 
-const onDeleteClick = (e: MouseEvent, categorizerName: string) => {
+const onDeleteClick = (e: MouseEvent, categorizer: Categorizer) => {
   e.preventDefault();
   e.stopPropagation();
-  emits("delete-categorizer", categorizerName);
+  emits("delete-categorizer", categorizer);
 };
 </script>
 
@@ -61,7 +61,7 @@ const onDeleteClick = (e: MouseEvent, categorizerName: string) => {
       </div>
       <BIconXLg
         class="my-auto text-[0px] group-hover:text-xxs transition-all ease-in-out group-hover:opacity-100 opacity-0"
-        @click="onDeleteClick($event, categorizer.name)"
+        @click="onDeleteClick($event, categorizer)"
       />
     </div>
   </div>

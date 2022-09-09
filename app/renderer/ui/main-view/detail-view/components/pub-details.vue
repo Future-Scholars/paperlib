@@ -29,8 +29,8 @@ const isExpanded = ref(false);
     >
       {{ publication }}
       <span
-        class="invisible group-hover:visible"
-        v-if="volume || pages || number || publisher"
+        class="hidden group-hover:block"
+        v-if="(volume || pages || number || publisher) && !isExpanded"
         >»</span
       >
     </div>

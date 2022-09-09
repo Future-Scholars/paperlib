@@ -1,5 +1,9 @@
 import { ipcRenderer } from "electron";
+import { promises as fsPromise } from "fs";
 import katex from "katex";
+import MarkdownIt from "markdown-it";
+// @ts-ignore
+import tm from "markdown-it-texmath";
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
 import {
@@ -11,9 +15,12 @@ import { Preference } from "@/preference/preference";
 
 export class RenderInteractor {
   preference: Preference;
+
   pdfWorker: Worker | null;
   renderingPage: PDFPageProxy | null;
   renderingPDF: pdfjs.PDFDocumentProxy | null;
+
+  markdownIt: MarkdownIt;
 
   constructor(preference: Preference) {
     this.preference = preference;
@@ -22,6 +29,12 @@ export class RenderInteractor {
     this.renderingPage = null;
     this.renderingPDF = null;
     this.createPDFWorker();
+
+    this.markdownIt = new MarkdownIt().use(tm, {
+      engine: require("katex"),
+      delimiters: "dollars",
+      katexOptions: { macros: { "\\RR": "\\mathbb{R}" } },
+    });
   }
 
   async createPDFWorker() {
@@ -72,6 +85,29 @@ export class RenderInteractor {
     }
     pdf.destroy();
     return true;
+  }
+
+  async renderMarkdown(content: string) {
+    try {
+      return this.markdownIt.render(content);
+    } catch (e) {
+      console.log(e);
+      return "";
+    }
+  }
+
+  async renderMarkdownFile(url: string) {
+    // Read content from file
+    try {
+      const content = await fsPromise.readFile(
+        url.replace("file://", ""),
+        "utf8"
+      );
+      return this.markdownIt.render(content);
+    } catch (e) {
+      console.log(e);
+      return "";
+    }
   }
 
   async renderMath(content: string) {

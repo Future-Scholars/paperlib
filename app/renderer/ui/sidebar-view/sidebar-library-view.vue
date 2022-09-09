@@ -47,17 +47,12 @@ const onItemRightClicked = (
   });
 };
 
-// TODO: uncomment this
 const onFileDroped = (
-  categorizerName: string,
-  categorizerType: CategorizerType,
+  categorizer: Categorizer,
+  type: CategorizerType,
   filePaths: string[]
 ) => {
-  // window.entityInteractor.addToCategorizer(
-  //   filePaths,
-  //   categorizerName,
-  //   categorizerType
-  // );
+  window.entityInteractor.createIntoCategorizer(filePaths, categorizer, type);
 };
 
 const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
@@ -180,7 +175,7 @@ watch(
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, tag, 'PaperTag')}"
         @droped="
           (filePaths) => {
-            onFileDroped(tag.name, 'PaperTag', filePaths);
+            onFileDroped(tag, 'PaperTag', filePaths);
           }
         "
         @item-droped="
@@ -221,7 +216,7 @@ watch(
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, folder, 'PaperFolder')}"
         @droped="
           (filePaths) => {
-            onFileDroped(folder.name, 'PaperFolder', filePaths);
+            onFileDroped(folder, 'PaperFolder', filePaths);
           }
         "
         @item-droped="
