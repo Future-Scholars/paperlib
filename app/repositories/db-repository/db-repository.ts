@@ -299,6 +299,11 @@ export class DBRepository {
     );
   }
 
+  async paperEntitiesByIds(ids: (string | ObjectId)[]) {
+    const realm = await this.realm();
+    return this.paperEntityRepository.loadByIds(realm, ids);
+  }
+
   async categorizers(type: CategorizerType, sortBy: string, sortOrder: string) {
     const realm = await this.realm();
     return this.categorizerRepository.load(realm, type, sortBy, sortOrder);

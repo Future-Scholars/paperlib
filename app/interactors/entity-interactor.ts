@@ -234,6 +234,52 @@ export class EntityInteractor {
     await this.update(paperEntities);
   }
 
+  async updateWithCategorizer(
+    ids: (string | ObjectId)[],
+    categorizer: Categorizer,
+    type: CategorizerType
+  ) {
+    this.stateStore.logState.processLog = `Updating ${ids.length} paper(s)...`;
+    this.stateStore.viewState.processingQueueCount += ids.length;
+
+    try {
+      // 1. Get Entities by IDs.
+      const paperEntities = await this.dbRepository.paperEntitiesByIds(ids);
+
+      let paperEntityDrafts = paperEntities.map((paperEntity) => {
+        return new PaperEntity(false).initialize(paperEntity);
+      });
+
+      paperEntityDrafts = paperEntityDrafts.map((paperEntityDraft) => {
+        if (type === "PaperTag") {
+          let tagNames = paperEntityDraft.tags.map((tag) => tag.name);
+          if (!tagNames.includes(categorizer.name)) {
+            paperEntityDraft.tags.push(categorizer);
+          }
+        }
+        if (type === "PaperFolder") {
+          let folderNames = paperEntityDraft.folders.map(
+            (folder) => folder.name
+          );
+          if (!folderNames.includes(categorizer.name)) {
+            paperEntityDraft.folders.push(categorizer);
+          }
+        }
+
+        return paperEntityDraft;
+      });
+
+      await this.dbRepository.updatePaperEntities(paperEntityDrafts);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Add paper to ${
+        categorizer.name
+      } failed: ${error as string}`;
+    }
+
+    this.stateStore.viewState.processingQueueCount -= ids.length;
+  }
+
   colorizeCategorizers(
     color: Colors,
     type: CategorizerType,

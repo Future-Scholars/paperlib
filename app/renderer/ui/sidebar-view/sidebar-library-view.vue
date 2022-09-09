@@ -1,21 +1,19 @@
 <script setup lang="ts">
-import { inject, Ref, ref, watch } from "vue";
-
 import {
   BIconCollection,
   BIconFlag,
-  BIconTag,
   BIconFolder,
   BIconFolderSymlink,
+  BIconTag,
 } from "bootstrap-icons-vue";
-
-import SectionItem from "./components/section-item.vue";
-import CollopseGroup from "./components/collopse-group.vue";
+import { Ref, inject, ref, watch } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
-
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+
+import CollopseGroup from "./components/collopse-group.vue";
+import SectionItem from "./components/section-item.vue";
 
 // ================================
 // State
@@ -62,18 +60,16 @@ const onFileDroped = (
   // );
 };
 
-const onItemDroped = (
-  categorizerName: string,
-  categorizerType: CategorizerType
-) => {
-  // if (selectionState.selectedIds.includes(selectionState.dragedIds[0])) {
-  //   selectionState.dragedIds = selectionState.selectedIds;
-  // }
-  // window.entityInteractor.updateWithCategorizer(
-  //   JSON.parse(JSON.stringify(selectionState.dragedIds)) as string[],
-  //   categorizerName,
-  //   categorizerType
-  // );
+const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
+  console.log(selectionState);
+  let dragedIds = [];
+  if (selectionState.selectedIds.includes(selectionState.dragedIds[0])) {
+    selectionState.dragedIds = selectionState.selectedIds;
+    dragedIds = selectionState.selectedIds;
+  } else {
+    dragedIds = selectionState.dragedIds;
+  }
+  window.entityInteractor.updateWithCategorizer(dragedIds, categorizer, type);
 };
 
 const onCategorizerNameChanged = (name: string) => {
@@ -189,7 +185,7 @@ watch(
         "
         @item-droped="
           () => {
-            onItemDroped(tag.name, 'PaperTag');
+            onItemDroped(tag, 'PaperTag');
           }
         "
         @name-changed="
@@ -230,7 +226,7 @@ watch(
         "
         @item-droped="
           () => {
-            onItemDroped(folder.name, 'PaperFolder');
+            onItemDroped(folder, 'PaperFolder');
           }
         "
         @name-changed="

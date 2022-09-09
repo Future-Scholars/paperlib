@@ -78,17 +78,21 @@ const previewSelectedEntities = () => {
 const reloadSelectedEntities = () => {
   if (viewState.contentType === "library") {
     selectedPaperEntities.value = [];
+    let tempSelectedPaperEntities = [];
+    let tempSelectedIds = [];
     if (paperEntities) {
       for (const index of selectionState.selectedIndex) {
         if (paperEntities.value.length > index) {
-          selectedPaperEntities.value.push(paperEntities.value[index]);
-          selectionState.selectedIds.push(paperEntities.value[index].id);
+          tempSelectedPaperEntities.push(paperEntities.value[index]);
+          tempSelectedIds.push(`${paperEntities.value[index].id}`);
         } else if (selectionState.selectedIndex.length === 1) {
           selectionState.selectedIndex = [];
           selectionState.selectedIds = [];
           break;
         }
       }
+      selectedPaperEntities.value = tempSelectedPaperEntities;
+      selectionState.selectedIds = tempSelectedIds;
     }
   } else {
     // TODO: Feed

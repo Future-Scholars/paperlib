@@ -1,17 +1,17 @@
 <script setup lang="ts">
 // @ts-ignore
 import dragDrop from "drag-drop";
+import { Ref, inject, onMounted, provide, ref, watch } from "vue";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
-import { inject, onMounted, provide, ref, Ref, watch } from "vue";
+
+import { PaperEntity } from "@/models/paper-entity";
+import RecycleScroller from "@/renderer/thirdparty/virutalscroll/src/components/RecycleScroller.vue";
+import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";
-import TableTitle from "./components/table-title.vue";
 import TableItem from "./components/table-item.vue";
-import RecycleScroller from "@/renderer/thirdparty/virutalscroll/src/components/RecycleScroller.vue";
-
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { PaperEntity } from "@/models/paper-entity";
-import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import TableTitle from "./components/table-title.vue";
 
 // ================================
 // State
@@ -87,7 +87,6 @@ const dragHandler = (event: DragEvent) => {
   event.dataTransfer?.setDragImage(el, 0, 0);
   event.dataTransfer?.setData("text/plain", "paperlibEvent-drag-main-item");
 
-  // TODO: make this better.
   selectionState.dragedIds = [el.id];
 };
 
@@ -123,6 +122,7 @@ onMounted(() => {
       v-if="viewState.viewType === 'list'"
     >
       <ListItem
+        :id="item.id"
         :item="item"
         :active="selectedIndex.indexOf(index) >= 0"
         :showPubTime="dataViewState.showPubTime"
@@ -158,6 +158,7 @@ onMounted(() => {
       v-if="viewState.viewType === 'table'"
     >
       <TableItem
+        :id="item.id"
         :item="item"
         :active="selectedIndex.indexOf(index) >= 0"
         :striped="index % 2 === 0"
