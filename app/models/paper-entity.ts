@@ -146,5 +146,6 @@ export class PaperEntity {
     this.volume = "1";
     this.number = "1";
     this.publisher = "Dummy Publisher";
+    return this;
   }
 }

@@ -62,7 +62,7 @@ export class ReferenceRepository {
         }
       }
       return {
-        id: paperEntityDraft.id,
+        id: `${paperEntityDraft.id}`,
         type: ["article", "paper-conference", "article", "book"][
           paperEntityDraft.pubType
         ],
@@ -94,25 +94,25 @@ export class ReferenceRepository {
     const predicateMulti = (paperEntityDrafts: PaperEntity[]) => {
       if (!!paperEntityDrafts?.[Symbol.iterator]) {
         return paperEntityDrafts.every((paperEntityDraft) => {
-          return paperEntityDraft.constructor.name === "PaperEntityDraft";
+          return paperEntityDraft.constructor.name === "PaperEntity";
         });
       } else {
         return false;
       }
     };
 
-    Cite.plugins.input.add("@paperlib/PaperEntityDraft", {
+    Cite.plugins.input.add("@paperlib/PaperEntity", {
       parse: parseSingle,
       parseType: {
         predicate: predicateSingle,
         dataType: "ComplexObject",
       },
     });
-    Cite.plugins.input.add("@paperlib/PaperEntityDraft[]", {
+    Cite.plugins.input.add("@paperlib/PaperEntity[]", {
       parse: parseMulti,
       parseType: {
         predicate: predicateMulti,
-        dataType: "ComplexObject",
+        dataType: "Array",
       },
     });
 
@@ -125,8 +125,33 @@ export class ReferenceRepository {
     });
   }
 
+  replacePublication(source: PaperEntity) {
+    if (this.preference.get("enableExportReplacement")) {
+      const pubReplacement = this.preference.get("exportReplacement") as [
+        { from: string; to: string }
+      ];
+
+      const pubMap = new Map(
+        pubReplacement.map((item) => [item.from, item.to])
+      );
+
+      if (pubMap.has(source.publication)) {
+        source.publication = pubMap.get(source.publication) as string;
+      }
+    }
+    return source;
+  }
+
   toCite(source: PaperEntity | PaperEntity[] | string) {
-    return new Cite(source);
+    if (typeof source === "string") {
+      return new Cite(source);
+    } else if (source.constructor.name === "PaperEntity") {
+      return new Cite(this.replacePublication(source as PaperEntity));
+    } else {
+      return new Cite(
+        (source as PaperEntity[]).map((item) => this.replacePublication(item))
+      );
+    }
   }
 
   exportBibTexKey(cite: Cite): string {

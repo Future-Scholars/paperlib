@@ -1,10 +1,12 @@
 import { SpawnOptions, spawn } from "child_process";
 import { ipcRenderer, shell } from "electron";
-import { existsSync, readFile, readdir } from "fs";
+import { XMLParser } from "fast-xml-parser";
+import { existsSync, readFileSync, readdirSync } from "fs";
 import keytar from "keytar";
 import os from "os";
 import path from "path";
 
+import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
@@ -15,16 +17,19 @@ export class AppInteractor {
   preference: Preference;
 
   fileRepository: FileRepository;
+  dbRepository: DBRepository;
 
   constructor(
     stateStore: MainRendererStateStore,
     preference: Preference,
-    fileRepository: FileRepository
+    fileRepository: FileRepository,
+    dbRepository: DBRepository
   ) {
     this.stateStore = stateStore;
     this.preference = preference;
 
     this.fileRepository = fileRepository;
+    this.dbRepository = dbRepository;
   }
 
   async version() {
@@ -65,7 +70,9 @@ export class AppInteractor {
       value = JSON.parse(value as string);
     }
     this.preference.set(name, value);
-    this.stateStore.viewState.preferenceUpdated = Date.now();
+    let patch: Record<string, any> = {};
+    patch[name] = value;
+    this.stateStore.preferenceState.$patch(patch);
   }
 
   getPreference(name: string) {
@@ -146,5 +153,77 @@ export class AppInteractor {
 
   async showFolderPicker() {
     return await ipcRenderer.invoke("show-folder-picker");
+  }
+
+  getUserDataPath() {
+    return ipcRenderer.sendSync("userData");
+  }
+
+  // ============================================================
+  async loadCSLStyles(): Promise<{ key: string; name: string }[]> {
+    const CSLStyles = [
+      {
+        key: "apa",
+        name: "American Psychological Association",
+      },
+      {
+        key: "vancouver",
+        name: "Vancouver",
+      },
+      {
+        key: "harvard1",
+        name: "Harvard1",
+      },
+    ];
+
+    const importedCSLStylesPath = this.preference.get(
+      "importedCSLStylesPath"
+    ) as string;
+
+    if (importedCSLStylesPath) {
+      // List all files in the importedCSLStylesPath
+      const files = readdirSync(importedCSLStylesPath);
+      const xmlParser = new XMLParser();
+
+      const parsePromise = async (filePath: string) => {
+        const fileContent = readFileSync(filePath);
+        const xml = xmlParser.parse(fileContent);
+        try {
+          const name = xml.style.info.title;
+          const key = path.basename(filePath, ".csl");
+          return { key, name };
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const promises = [];
+
+      for (const file of files) {
+        if (file.endsWith(".csl")) {
+          promises.push(parsePromise(path.join(importedCSLStylesPath, file)));
+        }
+      }
+
+      const importedCSLStyles = (await Promise.all(promises)).filter(
+        (item) => item !== null
+      ) as { key: string; name: string }[];
+
+      return [...CSLStyles, ...importedCSLStyles];
+    }
+
+    return CSLStyles;
+  }
+
+  // =============================
+  // Database Event
+  // =============================
+  async initDB() {
+    await this.dbRepository.initRealm(true);
+    this.stateStore.viewState.realmReinited = Date.now();
+  }
+
+  migrateLocaltoCloud() {
+    void this.dbRepository.migrateLocaltoCloud();
   }
 }

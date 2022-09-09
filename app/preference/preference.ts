@@ -99,7 +99,7 @@ export interface PreferenceStore {
   [Key: string]: unknown;
 }
 
-const defaultPreferences: PreferenceStore = {
+export const defaultPreferences: PreferenceStore = {
   appLibFolder: path.join(os.homedir(), "Documents", "paperlib"),
   deleteSourceFile: false,
 
@@ -180,6 +180,17 @@ const defaultPreferences: PreferenceStore = {
       custom: false,
       args: "",
       priority: 9,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    {
+      name: "crossref",
+      description: "crossref.org",
+      enable: false,
+      custom: false,
+      args: "",
+      priority: 8.5,
       preProcessCode: "",
       parsingProcessCode: "",
       scrapeImplCode: "",
@@ -313,6 +324,7 @@ export class Preference {
   store: Store<PreferenceStore>;
 
   constructor() {
+    // TODO: path
     this.store = new Store<PreferenceStore>({});
 
     for (const key in defaultPreferences) {

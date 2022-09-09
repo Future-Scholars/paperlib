@@ -61,7 +61,8 @@ export function appendLoading() {
   oStyle.innerHTML = styleContent;
   oDiv.id = "app-loading-wrap";
   oDiv.className = "app-loading-wrap";
-  oDiv.innerHTML = `<div><div class="lds-dual-ring"><div></div><div></div></div> <span style="width: 150px; margin-left: 15px; font-size: 2rem; font-family: sans-serif; font-weight: 100;">PAPERLIB</span> </div>`;
+  oDiv.innerHTML = `
+  <div><div class="lds-dual-ring"><div></div><div></div></div> <span style="width: 150px; margin-left: 15px; font-size: 2rem; font-family: sans-serif; font-weight: 100;">PAPERLIB</span> </div>`;
 
   document.head.appendChild(oStyle);
   document.body.appendChild(oDiv);
@@ -72,7 +73,6 @@ export function removeLoading() {
     "app-loading-style"
   ) as HTMLStyleElement;
   const oDiv = document.getElementById("app-loading-wrap") as HTMLDivElement;
-
   document.head.removeChild(oStyle);
   document.body.removeChild(oDiv);
 }

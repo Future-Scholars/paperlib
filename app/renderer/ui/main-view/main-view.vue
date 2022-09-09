@@ -12,26 +12,13 @@ import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 // import FeedDataView from "./data-view/feed-data-view.vue";
 // import FeedDetailView from "./detail-view/feed-detail-view.vue";
 
-// const props = defineProps({
-//   entities: Array as () => PaperEntity[],
-//   feedEntities: Array as () => FeedEntity[],
-//   showMainYear: Boolean,
-//   showMainPublication: Boolean,
-//   showMainPubType: Boolean,
-//   showMainRating: Boolean,
-//   showMainFlag: Boolean,
-//   showMainTags: Boolean,
-//   showMainFolders: Boolean,
-//   showMainNote: Boolean,
-// });
-
 // ================================
 // State
 // ================================
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const dbState = MainRendererStateStore.useDBState();
 const bufferState = MainRendererStateStore.useBufferState();
+const prefState = MainRendererStateStore.usePreferenceState();
 
 // ================================
 // Data
@@ -195,17 +182,14 @@ const exportSelectedEntities = (format: string) => {
 // };
 
 const switchViewType = (viewType: string) => {
-  viewState.viewType = viewType;
   window.appInteractor.setPreference("mainviewType", viewType);
 };
 
 const switchSortBy = (key: string) => {
-  viewState.sortBy = key;
   window.appInteractor.setPreference("mainviewSortBy", key);
 };
 
 const switchSortOrder = (order: string) => {
-  viewState.sortOrder = order;
   window.appInteractor.setPreference("mainviewSortOrder", order);
 };
 
@@ -337,9 +321,9 @@ window.appInteractor.registerMainSignal(
 
 // // ========================================================
 // // Register Shortcut
-// window.appInteractor.registerMainSignal("shortcut-Preference", () => {
-//   window.appInteractor.setState("viewState.isPreferenceViewShown", true);
-// });
+window.appInteractor.registerMainSignal("shortcut-Preference", () => {
+  viewState.isPreferenceViewShown = true;
+});
 
 window.appInteractor.registerMainSignal("shortcut-Enter", () => {
   if (
@@ -456,8 +440,8 @@ watch(
 watch(
   () =>
     viewState.contentType +
-    viewState.sortBy +
-    viewState.sortOrder +
+    prefState.mainviewSortBy +
+    prefState.mainviewSortOrder +
     viewState.searchText +
     selectionState.selectedCategorizer +
     selectionState.selectedFeed,

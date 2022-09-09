@@ -191,7 +191,6 @@ export class EntityInteractor {
           return paperEntityDraft;
         }
       );
-      console.log(toBeUpdatedPaperEntityDrafts);
       await this.dbRepository.updatePaperEntities(toBeUpdatedPaperEntityDrafts);
     } catch (error) {
       console.error(error);
@@ -201,6 +200,24 @@ export class EntityInteractor {
     }
 
     this.stateStore.viewState.processingQueueCount -= urlList.length;
+  }
+
+  async createFromWholeFolder(folder: string) {
+    const files = await this.fileRepository.listPDFs(folder);
+    const PDFfiles = files.filter(
+      (file) => path.extname(file) === ".pdf" || path.extname(file) === ".bib"
+    );
+
+    this.create(PDFfiles);
+  }
+
+  async createFromZoteroCSV(csvFile: string) {
+    if (path.extname(csvFile) === ".csv") {
+      const paperEntityDrafts = await this.fileRepository.parseZoteroCSV(
+        csvFile
+      );
+      this.update(paperEntityDrafts);
+    }
   }
 
   // ========================
@@ -439,7 +456,7 @@ export class EntityInteractor {
   }
 
   // ========================
-  // Download
+  // Handle File
   // ========================
   async locateMainFile(paperEntities: PaperEntity[]) {
     this.stateStore.logState.processLog = `Locating main file for ${paperEntities.length} paper(s)...`;
@@ -469,6 +486,47 @@ export class EntityInteractor {
     }
 
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
+  }
+
+  async renameAll() {
+    this.stateStore.logState.processLog = `Renaming all paper(s)...`;
+    this.stateStore.viewState.processingQueueCount += 1;
+    try {
+      let paperEntities = await this.dbRepository.paperEntities(
+        "",
+        false,
+        "",
+        "",
+        "title",
+        "desc"
+      );
+      const paperEntityDrafts = paperEntities.map((paperEntity) => {
+        return new PaperEntity(false).initialize(paperEntity);
+      });
+
+      const movedEntityDrafts = await Promise.all(
+        paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
+          this.fileRepository.move(paperEntityDraft, true)
+        )
+      );
+
+      for (let i = 0; i < movedEntityDrafts.length; i++) {
+        if (movedEntityDrafts[i] === null) {
+          movedEntityDrafts[i] = paperEntityDrafts[i];
+        }
+      }
+
+      await this.dbRepository.updatePaperEntities(
+        movedEntityDrafts as PaperEntity[]
+      );
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Rename all paper failed: ${
+        error as string
+      }`;
+    }
+
+    this.stateStore.viewState.processingQueueCount -= 1;
   }
 
   // ========================

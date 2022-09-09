@@ -52,13 +52,14 @@
 <script lang="ts">
 // @ts-nocheck
 import { ObjectId } from "bson";
-import { shallowReactive, markRaw } from "vue";
-import { ResizeObserver } from "vue-resize";
+import { markRaw, shallowReactive } from "vue";
 import { ObserveVisibility } from "vue-observe-visibility";
-import { getScrollParent } from "../scrollparent";
+import { ResizeObserver } from "vue-resize";
+
 import config from "../config";
-import { props, simpleArray } from "./common";
+import { getScrollParent } from "../scrollparent";
 import { supportsPassive } from "../utils";
+import { props, simpleArray } from "./common";
 
 let uid = 0;
 
@@ -401,16 +402,21 @@ export default {
           if (view.nr.used) {
             // Update view item index
             if (checkItem) {
-              // view.nr.index = items.findIndex((item) =>
-              //   keyField
-              //     ? item[keyField] === view.item[keyField]
-              //     : item === view.item
-              // );
-              const targetItem = items.filtered(`_id == oid(${view.item._id})`);
-              const targetIdx = targetItem[0]
-                ? items.indexOf(targetItem[0])
-                : -1;
-              view.nr.index = targetIdx;
+              if (items.filtered) {
+                const targetItem = items.filtered(
+                  `_id == oid(${view.item._id})`
+                );
+                const targetIdx = targetItem[0]
+                  ? items.indexOf(targetItem[0])
+                  : -1;
+                view.nr.index = targetIdx;
+              } else {
+                view.nr.index = items.findIndex((item) =>
+                  keyField
+                    ? item[keyField] === view.item[keyField]
+                    : item === view.item
+                );
+              }
             }
 
             // Check if index is still in visible range

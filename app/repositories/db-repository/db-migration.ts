@@ -1,11 +1,15 @@
-// @ts-nocheck
-/* eslint-disable */
-export function migrate(oldRealm, newRealm) {
+import { ObjectId } from "bson";
+import path from "path";
+import Realm from "realm";
+
+import { PaperEntity } from "@/models/paper-entity";
+
+export function migrate(oldRealm: Realm, newRealm: Realm) {
   const oldVersion = oldRealm.schemaVersion;
   // only apply this change if upgrading to schemaVersion 2
   if (oldVersion <= 1) {
-    const oldObjects = oldRealm.objects("PaperEntity");
-    const newObjects = newRealm.objects("PaperEntity");
+    const oldObjects = oldRealm.objects<PaperEntity>("PaperEntity");
+    const newObjects = newRealm.objects<PaperEntity>("PaperEntity");
     // loop through all objects and set the fullName property in the new schema
     for (const objectIndex in oldObjects) {
       const oldObject = oldObjects[objectIndex];
@@ -26,7 +30,7 @@ export function migrate(oldRealm, newRealm) {
   }
 
   if (oldVersion <= 2) {
-    const newObjects = newRealm.objects("PaperEntity");
+    const newObjects = newRealm.objects<PaperEntity>("PaperEntity");
     // loop through all objects and set the fullName property in the new schema
     for (const objectIndex in newObjects) {
       const newObject = newObjects[objectIndex];
@@ -41,8 +45,8 @@ export function migrate(oldRealm, newRealm) {
   }
 
   if (oldVersion <= 3) {
-    const oldObjects = oldRealm.objects("PaperEntity");
-    const newObjects = newRealm.objects("PaperEntity");
+    const oldObjects = oldRealm.objects<PaperEntity>("PaperEntity");
+    const newObjects = newRealm.objects<PaperEntity>("PaperEntity");
     // loop through all objects and set the fullName property in the new schema
     for (const objectIndex in oldObjects) {
       const oldObject = oldObjects[objectIndex];
@@ -52,15 +56,15 @@ export function migrate(oldRealm, newRealm) {
   }
 
   if (oldVersion <= 4) {
-    const oldTags = oldRealm.objects("PaperTag");
-    const newTags = newRealm.objects("PaperTag");
+    const oldTags = oldRealm.objects<PaperEntity>("PaperTag");
+    const newTags = newRealm.objects<PaperEntity>("PaperTag");
     for (const objectIndex in oldTags) {
       const newTag = newTags[objectIndex];
       newTag["_id"] = new ObjectId();
     }
 
-    const oldFolders = oldRealm.objects("PaperFolder");
-    const newFolders = newRealm.objects("PaperFolder");
+    const oldFolders = oldRealm.objects<PaperEntity>("PaperFolder");
+    const newFolders = newRealm.objects<PaperEntity>("PaperFolder");
     for (const objectIndex in oldFolders) {
       const newFolder = newFolders[objectIndex];
       newFolder["_id"] = new ObjectId();
@@ -68,7 +72,7 @@ export function migrate(oldRealm, newRealm) {
   }
 
   if (oldVersion <= 5) {
-    const newEntities = newRealm.objects("PaperEntity");
+    const newEntities = newRealm.objects<PaperEntity>("PaperEntity");
     for (const objectIndex in newEntities) {
       const newEntity = newEntities[objectIndex];
       newEntity["codes"] = [];
@@ -76,7 +80,7 @@ export function migrate(oldRealm, newRealm) {
   }
 
   if (oldVersion <= 6) {
-    const newEntities = newRealm.objects("PaperEntity");
+    const newEntities = newRealm.objects<PaperEntity>("PaperEntity");
     for (const objectIndex in newEntities) {
       const newEntity = newEntities[objectIndex];
       newEntity["pages"] = "";
@@ -86,4 +90,3 @@ export function migrate(oldRealm, newRealm) {
     }
   }
 }
-/* eslint-enable */

@@ -17,7 +17,7 @@ import TableTitle from "./components/table-title.vue";
 // ================================
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const dataViewState = MainRendererStateStore.useDataViewState();
+const prefState = MainRendererStateStore.usePreferenceState();
 
 // ================================
 // Data
@@ -118,20 +118,20 @@ onMounted(() => {
       key-field="id"
       v-slot="{ item, index }"
       :buffer="500"
-      v-if="viewState.viewType === 'list'"
+      v-if="prefState.mainviewType === 'list'"
     >
       <ListItem
         :id="item.id"
         :item="item"
         :active="selectedIndex.indexOf(index) >= 0"
-        :showPubTime="dataViewState.showPubTime"
-        :showPublication="dataViewState.showPublication"
-        :showRating="dataViewState.showRating"
-        :showPubType="dataViewState.showPubType"
-        :showTags="dataViewState.showTags"
-        :showFolders="dataViewState.showFolders"
-        :showNote="dataViewState.showNote"
-        :showFlag="dataViewState.showFlag"
+        :showPubTime="prefState.showMainYear"
+        :showPublication="prefState.showMainPublication"
+        :showRating="prefState.showMainRating"
+        :showPubType="prefState.showMainPubType"
+        :showTags="prefState.showMainTags"
+        :showFolders="prefState.showMainFolders"
+        :showNote="prefState.showMainNote"
+        :showFlag="prefState.showMainFlag"
         :read="true"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
@@ -143,9 +143,9 @@ onMounted(() => {
 
     <TableTitle
       class="mb-1"
-      :sortBy="viewState.sortBy"
-      :sortOrder="viewState.sortOrder"
-      v-if="viewState.viewType === 'table'"
+      :sortBy="prefState.mainviewSortBy"
+      :sortOrder="prefState.mainviewSortOrder"
+      v-if="prefState.mainviewType === 'table'"
     />
     <RecycleScroller
       class="scroller pr-2 max-h-[calc(100vh-5rem)]"
@@ -154,7 +154,7 @@ onMounted(() => {
       key-field="id"
       v-slot="{ item, index }"
       :buffer="500"
-      v-if="viewState.viewType === 'table'"
+      v-if="prefState.mainviewType === 'table'"
     >
       <TableItem
         :id="item.id"

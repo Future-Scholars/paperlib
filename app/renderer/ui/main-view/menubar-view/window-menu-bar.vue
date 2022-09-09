@@ -1,21 +1,21 @@
 <script setup lang="ts">
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import {
+  BIconBook,
+  BIconCalendar3,
+  BIconCheck2,
+  BIconClock,
+  BIconFilterRight,
   BIconFonts,
   BIconPerson,
-  BIconCalendar3,
-  BIconBook,
-  BIconClock,
   BIconSortDown,
   BIconSortUp,
-  BIconFilterRight,
-  BIconCheck2,
 } from "bootstrap-icons-vue";
 
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
-import SearchInput from "./components/search-input.vue";
 import MenuBarBtn from "./components/menu-bar-btn.vue";
+import SearchInput from "./components/search-input.vue";
 
 const props = defineProps({
   disableSingleBtn: {
@@ -34,6 +34,7 @@ const emit = defineEmits(["click"]);
 // State
 // ================================
 const viewState = MainRendererStateStore.useViewState();
+const prefState = MainRendererStateStore.usePreferenceState();
 </script>
 
 <template>
@@ -119,7 +120,7 @@ const viewState = MainRendererStateStore.useViewState();
                   </div>
                   <BIconCheck2
                     class="my-auto"
-                    v-if="viewState.sortBy === 'title'"
+                    v-if="prefState.mainviewSortBy === 'title'"
                   />
                 </div>
               </MenuItem>
@@ -135,7 +136,7 @@ const viewState = MainRendererStateStore.useViewState();
                   </div>
                   <BIconCheck2
                     class="my-auto"
-                    v-if="viewState.sortBy === 'authors'"
+                    v-if="prefState.mainviewSortBy === 'authors'"
                   />
                 </div>
               </MenuItem>
@@ -151,7 +152,7 @@ const viewState = MainRendererStateStore.useViewState();
                   </div>
                   <BIconCheck2
                     class="my-auto"
-                    v-if="viewState.sortBy === 'pubTime'"
+                    v-if="prefState.mainviewSortBy === 'pubTime'"
                   />
                 </div>
               </MenuItem>
@@ -167,7 +168,7 @@ const viewState = MainRendererStateStore.useViewState();
                   </div>
                   <BIconCheck2
                     class="my-auto"
-                    v-if="viewState.sortBy === 'publication'"
+                    v-if="prefState.mainviewSortBy === 'publication'"
                   />
                 </div>
               </MenuItem>
@@ -183,7 +184,7 @@ const viewState = MainRendererStateStore.useViewState();
                   </div>
                   <BIconCheck2
                     class="my-auto"
-                    v-if="viewState.sortBy === 'addTime'"
+                    v-if="prefState.mainviewSortBy === 'addTime'"
                   />
                 </div>
               </MenuItem>
@@ -201,7 +202,7 @@ const viewState = MainRendererStateStore.useViewState();
                   </div>
                   <BIconCheck2
                     class="my-auto"
-                    v-if="viewState.sortOrder === 'desc'"
+                    v-if="prefState.mainviewSortOrder === 'desc'"
                   />
                 </div>
               </MenuItem>
@@ -217,7 +218,7 @@ const viewState = MainRendererStateStore.useViewState();
                   </div>
                   <BIconCheck2
                     class="my-auto"
-                    v-if="viewState.sortOrder === 'asce'"
+                    v-if="prefState.mainviewSortOrder === 'asce'"
                   />
                 </div>
               </MenuItem>

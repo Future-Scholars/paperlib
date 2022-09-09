@@ -1,4 +1,5 @@
 import got from "got";
+import { watch } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
@@ -36,6 +37,13 @@ export class ScraperRepository {
     this.createScrapers();
 
     void got("https://paperlib.app/api/version");
+
+    watch(
+      () => this.stateStore.viewState.storageBackendReinited,
+      () => {
+        this.createScrapers();
+      }
+    );
   }
 
   async createScrapers() {

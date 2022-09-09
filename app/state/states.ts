@@ -18,9 +18,6 @@ export interface ViewState {
   entitiesCount: number;
   feedEntitiesCount: number;
 
-  sortBy: string;
-  sortOrder: string;
-  viewType: string;
   contentType: string;
   searchText: string;
   searchMode: string;
@@ -28,28 +25,15 @@ export interface ViewState {
   inputFieldFocused: boolean;
 
   sidebarWidth: number;
-  sidebarSortBy: string;
-  sidebarSortOrder: string;
-  sidebarShowCount: boolean;
-  sidebarCompact: boolean;
 
-  preferenceUpdated: number;
+  realmReiniting: number;
   realmReinited: number;
+  scraperReinited: number;
+  downloaderReinited: number;
   storageBackendReinited: number;
   renderRequired: number;
 
   syncFileStorageAvaliable: boolean;
-}
-
-export interface DataViewState {
-  showPubTime: boolean;
-  showPublication: boolean;
-  showPubType: boolean;
-  showFlag: boolean;
-  showTags: boolean;
-  showFolders: boolean;
-  showRating: boolean;
-  showNote: boolean;
 }
 
 export interface BufferState {
@@ -62,7 +46,6 @@ export interface DBState {
   foldersUpdated: number;
   feedsUpdated: number;
   feedEntitiesUpdated: number;
-  defaultPath: string;
 }
 
 export interface SelectionState {

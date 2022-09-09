@@ -20,6 +20,7 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
 import EditView from "./edit-view/edit-view.vue";
 import MainView from "./main-view/main-view.vue";
+import PreferenceView from "./preference-view/preference-view.vue";
 import SidebarView from "./sidebar-view/sidebar-view.vue";
 
 // ================================
@@ -29,6 +30,7 @@ import SidebarView from "./sidebar-view/sidebar-view.vue";
 const viewState = MainRendererStateStore.useViewState();
 const dbState = MainRendererStateStore.useDBState();
 const selectionState = MainRendererStateStore.useSelectionState();
+const prefState = MainRendererStateStore.usePreferenceState();
 
 // ================================
 // Data
@@ -73,8 +75,8 @@ const reloadPaperEntities = async () => {
     flaged,
     tag,
     folder,
-    viewState.sortBy,
-    viewState.sortOrder
+    prefState.mainviewSortBy,
+    prefState.mainviewSortOrder
   );
   console.log(`Paper entities (${paperEntities.value.length}) loaded!`);
 };
@@ -87,8 +89,8 @@ const reloadTags = async () => {
   console.log("Reload tags...");
   tags.value = await window.entityInteractor.loadCategorizers(
     "PaperTag",
-    viewState.sidebarSortBy,
-    viewState.sidebarSortOrder
+    prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
   );
 };
 watch(
@@ -100,8 +102,8 @@ const reloadFolders = async () => {
   console.log("Reload folders...");
   folders.value = await window.entityInteractor.loadCategorizers(
     "PaperFolder",
-    viewState.sidebarSortBy,
-    viewState.sidebarSortOrder
+    prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
   );
 };
 watch(
@@ -114,8 +116,8 @@ watch(
 // ================================
 watch(
   () =>
-    viewState.sortBy +
-    viewState.sortOrder +
+    prefState.mainviewSortBy +
+    prefState.mainviewSortOrder +
     viewState.contentType +
     viewState.searchText +
     selectionState.selectedCategorizer,
@@ -126,6 +128,41 @@ watch(
       // TODO: reload feed
       // reloadFeedEntities();
     }
+  }
+);
+
+watch(
+  () => prefState.sidebarSortBy + prefState.sidebarSortOrder,
+  (value) => {
+    reloadTags();
+    reloadFolders();
+  }
+);
+
+watch(
+  () => viewState.realmReiniting,
+  (value) => {
+    selectionState.selectedCategorizer = "";
+    selectionState.selectedFeed = "";
+    selectionState.selectedIds = [];
+    selectionState.selectedIndex = [];
+    selectionState.dragedIds = [];
+    // TODO: clear more
+
+    paperEntities.value = [];
+    tags.value = [];
+    folders.value = [];
+
+    window.appInteractor.initDB();
+  }
+);
+
+watch(
+  () => viewState.realmReinited,
+  (value) => {
+    reloadPaperEntities();
+    reloadTags();
+    reloadFolders();
   }
 );
 
@@ -165,9 +202,11 @@ const log = () => {
 // ================================
 onMounted(async () => {
   nextTick(async () => {
+    console.time("Reload Data");
     await reloadPaperEntities();
     await reloadTags();
     await reloadFolders();
+    console.timeEnd("Reload Data");
     removeLoading();
   });
 });
@@ -210,6 +249,7 @@ onMounted(async () => {
       </pane>
     </splitpanes>
     <EditView />
+    <PreferenceView />
     <DeleteConfirmView />
   </div>
 </template>

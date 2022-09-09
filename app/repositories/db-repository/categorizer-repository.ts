@@ -141,10 +141,10 @@ export class CategorizerRepository {
 
   update(
     realm: Realm,
-    partition: string,
     existCategorizers: Categorizer[],
     updatedCategorizers: Categorizer[],
-    type: CategorizerType
+    type: CategorizerType,
+    partition?: string
   ) {
     const newCategorizers: Categorizer[] = [];
     realm.safeWrite(() => {

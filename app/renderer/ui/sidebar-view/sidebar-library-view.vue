@@ -20,6 +20,7 @@ import SectionItem from "./components/section-item.vue";
 // ================================
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
+const prefState = MainRendererStateStore.usePreferenceState();
 
 const isSpinnerShown = ref(false);
 
@@ -56,7 +57,6 @@ const onFileDroped = (
 };
 
 const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
-  console.log(selectionState);
   let dragedIds = [];
   if (selectionState.selectedIds.includes(selectionState.dragedIds[0])) {
     selectionState.dragedIds = selectionState.selectedIds;
@@ -112,8 +112,6 @@ window.appInteractor.registerMainSignal("sidebar-context-menu-edit", (args) => {
   selectionState.editingCategorizer = `${
     { PaperTag: "tag", PaperFolder: "folder" }[args[1] as string]
   }-${args[0]}`;
-
-  console.log(selectionState.editingCategorizer);
 });
 
 watch(
@@ -142,19 +140,21 @@ watch(
     <SectionItem
       name="All Papers"
       :count="viewState.entitiesCount"
-      :with-counter="viewState.sidebarShowCount"
+      :with-counter="prefState.showSidebarCount"
       :with-spinner="isSpinnerShown"
-      :compact="viewState.sidebarCompact"
+      :compact="prefState.isSidebarCompact"
       :active="selectionState.selectedCategorizer === 'lib-all'"
       @click="onSelectCategorizer('lib-all')"
     >
-      <BIconCollection class="text-sm my-auto text-blue-500 min-w-[1em]" />
+      <div class="my-auto">
+        <BIconCollection class="text-sm my-auto text-blue-500 min-w-[1em]" />
+      </div>
     </SectionItem>
     <SectionItem
       name="Flags"
       :with-counter="false"
       :with-spinner="false"
-      :compact="viewState.sidebarCompact"
+      :compact="prefState.isSidebarCompact"
       :active="selectionState.selectedCategorizer === 'lib-flaged'"
       @click="onSelectCategorizer('lib-flaged')"
     >
@@ -165,9 +165,9 @@ watch(
       <SectionItem
         :name="tag.name"
         :count="tag.count"
-        :with-counter="viewState.sidebarShowCount"
+        :with-counter="prefState.showSidebarCount"
         :with-spinner="false"
-        :compact="viewState.sidebarCompact"
+        :compact="prefState.isSidebarCompact"
         :editing="selectionState.editingCategorizer === `tag-${tag.name}`"
         v-for="tag in tags"
         :active="selectionState.selectedCategorizer === `tag-${tag.name}`"
@@ -206,9 +206,9 @@ watch(
       <SectionItem
         :name="folder.name"
         :count="folder.count"
-        :with-counter="viewState.sidebarShowCount"
+        :with-counter="prefState.showSidebarCount"
         :with-spinner="false"
-        :compact="viewState.sidebarCompact"
+        :compact="prefState.isSidebarCompact"
         :editing="selectionState.editingCategorizer === `folder-${folder.name}`"
         v-for="folder in folders"
         :active="selectionState.selectedCategorizer === `folder-${folder.name}`"

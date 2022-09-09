@@ -124,7 +124,8 @@ export class PaperEntityRepository {
     paperEntity: PaperEntity,
     paperTag: PaperTag[],
     paperFolder: PaperFolder[],
-    existingPaperEntity?: PaperEntity
+    existingPaperEntity?: PaperEntity,
+    partition?: string
   ) {
     let success = false;
     try {
@@ -164,6 +165,9 @@ export class PaperEntityRepository {
           if (reduplicatedEntities.length === 0) {
             paperEntity.tags = [];
             paperEntity.folders = [];
+            if (partition) {
+              paperEntity._partition = partition;
+            }
             realm.create("PaperEntity", paperEntity);
 
             const addedObj = realm.objectForPrimaryKey<PaperEntity>(

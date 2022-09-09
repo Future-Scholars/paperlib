@@ -1,5 +1,6 @@
 import { ObjectId } from "bson";
 import { existsSync, promises } from "fs";
+import got from "got";
 import path from "path";
 import Realm from "realm";
 
@@ -58,6 +59,7 @@ export class DBRepository {
     this.stateStore.logState.processLog = "Database Initializing...";
 
     if (this._realm || reinit) {
+      Realm.defaultPath = window.appInteractor.getUserDataPath();
       if (this._realm) {
         this._realm.close();
       }
@@ -143,8 +145,10 @@ export class DBRepository {
     }
   }
 
-  async getLocalConfig(): Promise<Realm.Configuration> {
-    await this.logoutCloud();
+  async getLocalConfig(logout = true): Promise<Realm.Configuration> {
+    if (logout) {
+      await this.logoutCloud();
+    }
 
     if (
       !existsSync(window.appInteractor.getPreference("appLibFolder") as string)
@@ -193,27 +197,30 @@ export class DBRepository {
           user: cloudUser,
           partitionValue: cloudUser.id,
         },
-        path: path.join(this.stateStore.dbState.defaultPath, "synced.realm"),
+        path: path.join(window.appInteractor.getUserDataPath(), "synced.realm"),
       };
       this.cloudConfig = config;
       return config;
     } else {
+      this.stateStore.logState.alertLog = "Login cloud failed.";
       window.appInteractor.setPreference("useSync", false);
-      this.stateStore.viewState.preferenceUpdated = Date.now();
       return this.getLocalConfig();
     }
   }
 
   async loginCloud(this: DBRepository): Promise<Realm.User | null> {
     if (!this.app) {
+      process.chdir(window.appInteractor.getUserDataPath());
+
       const id = window.appInteractor.getPreference("syncAPPID") as string;
       this.app = new Realm.App({
         id: id,
       });
     }
 
-    // TODO: implement no internet connection detection
-    if (false) {
+    // TODO: Check this
+    const response = await got("https://httpbin.org/ip", { timeout: 5000 });
+    if (response.statusCode !== 200) {
       console.warn("No internet!");
       return this.app?.currentUser ?? null;
     }
@@ -234,7 +241,6 @@ export class DBRepository {
       return this.app.currentUser;
     } catch (error) {
       window.appInteractor.setPreference("useSync", false);
-      this.stateStore.viewState.preferenceUpdated = Date.now();
       this.stateStore.logState.alertLog = `Login failed, ${error as string}`;
 
       return null;
@@ -249,12 +255,18 @@ export class DBRepository {
       }
     }
     const syncDBPath = path.join(
-      this.stateStore.dbState.defaultPath,
+      window.appInteractor.getUserDataPath(),
       "synced.realm"
     );
     if (existsSync(syncDBPath)) {
       await promises.unlink(syncDBPath);
     }
+  }
+
+  getPartition() {
+    return this.cloudConfig && this.app && this.app.currentUser
+      ? this.app.currentUser.id.toString()
+      : "";
   }
 
   // ========================
@@ -269,6 +281,34 @@ export class DBRepository {
   resumeSync() {
     if (this.syncSession) {
       this.syncSession.resume();
+    }
+  }
+
+  async migrateLocaltoCloud() {
+    try {
+      const localConfig = await this.getLocalConfig(false);
+      const localRealm = new Realm(localConfig);
+
+      const entities = localRealm.objects<PaperEntity>("PaperEntity");
+      const entityDraftsWithCategorizer = entities.map((entity) => {
+        const draft = new PaperEntity(false).initialize(entity);
+        return draft;
+      });
+
+      const entityDraftsWithoutCategorizer = entities.map((entity) => {
+        const draft = new PaperEntity(false).initialize(entity);
+        draft.tags = [];
+        draft.folders = [];
+        return draft;
+      });
+
+      await this.updatePaperEntities(entityDraftsWithoutCategorizer);
+      await this.updatePaperEntities(entityDraftsWithCategorizer);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Migration failed, ${
+        error as string
+      }`;
     }
   }
 
@@ -317,7 +357,6 @@ export class DBRepository {
 
     const successes: boolean[] = [];
 
-    // TODO: partition
     realm.safeWrite(() => {
       for (const paperEntity of paperEntities) {
         let existingPaperEntity;
@@ -333,19 +372,19 @@ export class DBRepository {
         const tags = existingPaperEntity
           ? this.categorizerRepository.update(
               realm,
-              "",
               existingPaperEntity.tags,
               paperEntity.tags,
-              "PaperTag"
+              "PaperTag",
+              this.getPartition()
             )
           : [];
         const folders = existingPaperEntity
           ? this.categorizerRepository.update(
               realm,
-              "",
               existingPaperEntity.folders,
               paperEntity.folders,
-              "PaperFolder"
+              "PaperFolder",
+              this.getPartition()
             )
           : [];
 
@@ -354,7 +393,8 @@ export class DBRepository {
           paperEntity,
           tags,
           folders,
-          existingPaperEntity
+          existingPaperEntity,
+          this.getPartition()
         );
         successes.push(success);
       }

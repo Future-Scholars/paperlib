@@ -17,6 +17,7 @@ import { ScraperRepository } from "@/repositories/scraper-repository/scraper-rep
 import { MainRendererStateStore } from "../state/renderer/appstate";
 import App from "./App.vue";
 import "./css/index.css";
+import "./css/katex.min.css";
 
 // @ts-ignore
 vSelect.props.components.default = () => ({
@@ -38,16 +39,22 @@ app.component("v-select", vSelect);
 // ====================================
 // Setup interactors and repositories
 // ====================================
-const stateStore = new MainRendererStateStore();
 const preference = new Preference();
+const stateStore = new MainRendererStateStore(preference);
 
+console.time("Setup interactors and repositories");
 const dbRepository = new DBRepository(stateStore);
 const scraperRepository = new ScraperRepository(stateStore, preference);
 const fileRepository = new FileRepository(stateStore, preference);
 const referenceRepository = new ReferenceRepository(stateStore, preference);
 const downloaderRepository = new DownloaderRepository(stateStore, preference);
 
-const appInteractor = new AppInteractor(stateStore, preference, fileRepository);
+const appInteractor = new AppInteractor(
+  stateStore,
+  preference,
+  fileRepository,
+  dbRepository
+);
 const entityInteractor = new EntityInteractor(
   stateStore,
   dbRepository,
@@ -57,6 +64,8 @@ const entityInteractor = new EntityInteractor(
   downloaderRepository
 );
 const renderInteractor = new RenderInteractor(preference);
+
+console.timeEnd("Setup interactors and repositories");
 
 // ====================================
 // Inject

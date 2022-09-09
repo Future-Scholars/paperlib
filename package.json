@@ -51,7 +51,7 @@
     "markdown-it-texmath": "^1.0.0",
     "node-html-parser": "^5.3.3",
     "pinia": "2.0.21",
-    "realm": "^10.20.0",
+    "realm": "^10.13.0",
     "splitpanes": "3.1.1",
     "vite": "^3.0.9",
     "vue-select": "^4.0.0-beta.3",

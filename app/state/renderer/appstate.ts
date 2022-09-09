@@ -1,110 +1,47 @@
 import { ObjectId } from "bson";
 import { Pinia, Store, defineStore } from "pinia";
-import { watch } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
+import {
+  Preference,
+  PreferenceStore,
+  defaultPreferences,
+} from "@/preference/preference";
 
 import {
   BufferState,
   DBState,
-  DataViewState,
   LogState,
   SelectionState,
   ViewState,
 } from "../states";
 
 export class RendererStateStore {
-  commChannel: BroadcastChannel;
-  subscriptions: Record<string, { value: any; send: boolean }>;
-
-  constructor() {
-    this.commChannel = new BroadcastChannel("state-store");
-
-    this.subscriptions = {};
-
-    this.commChannel.onmessage = (event) => {
-      const { key, value } = event.data as { key: string; value: any };
-      const [storeKey, stateKey] = key.split(".");
-
-      try {
-        let obj: Record<string, any> = {};
-        obj[stateKey as keyof typeof obj] = JSON.parse(value);
-        this.subscriptions[`${storeKey}.${stateKey}`].value = obj[stateKey];
-        this.subscriptions[`${storeKey}.${stateKey}`].send = false;
-        // @ts-ignore
-        this[storeKey].$patch(obj);
-      } catch (e) {
-        console.error(value, e);
-      }
-    };
-  }
-
-  subscribe(store: Store) {
-    for (const key in store.$state) {
-      this.subscriptions[`${store.$id}.${key}`] = {
-        // @ts-ignore
-        value: store.$state[key],
-        send: true,
-      };
-
-      watch(
-        // @ts-ignore
-        () => store.$state[key],
-        (newValue) => {
-          if (
-            this.subscriptions[`${store.$id}.${key}`].send ||
-            newValue !== this.subscriptions[`${store.$id}.${key}`].value
-          ) {
-            this.commChannel.postMessage({
-              op: "update",
-              key: `${store.$id}.${key}`,
-              // @ts-ignore
-              value: JSON.stringify(newValue),
-            });
-            this.subscriptions[`${store.$id}.${key}`].value = newValue;
-            this.subscriptions[`${store.$id}.${key}`].send = true;
-          }
-        }
-      );
-    }
-  }
-
-  initFromPreload(store: Store) {
-    try {
-      // @ts-ignore
-      this.commChannel.postMessage({
-        op: "init",
-        key: store.$id,
-        value: "",
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  constructor() {}
 }
 
 export class MainRendererStateStore extends RendererStateStore {
   logState: Store<string, LogState>;
   viewState: Store<string, ViewState>;
-  dataViewState: Store<string, DataViewState>;
   bufferState: Store<string, BufferState>;
   dbState: Store<string, DBState>;
   selectionState: Store<string, SelectionState>;
+  preferenceState: Store<string, PreferenceStore>;
 
-  constructor(pinia?: Pinia) {
+  constructor(preference: Preference, pinia?: Pinia) {
     super();
 
     this.logState = MainRendererStateStore.useLogState(pinia);
     this.viewState = MainRendererStateStore.useViewState(pinia);
-    this.dataViewState = MainRendererStateStore.useDataViewState(pinia);
     this.bufferState = MainRendererStateStore.useBufferState(pinia);
     this.dbState = MainRendererStateStore.useDBState(pinia);
     this.selectionState = MainRendererStateStore.useSelectionState(pinia);
 
-    // this.subscribe(this.logState);
-    // this.subscribe(this.viewState);
-    // this.subscribe(this.dbState);
-    // this.subscribe(this.selectionState);
+    // Bind prefence to the state
+    this.preferenceState = MainRendererStateStore.usePreferenceState(pinia);
+    this.preferenceState.$patch(
+      JSON.parse(JSON.stringify(preference.store.store))
+    );
   }
 
   static useLogState = defineStore("logState", {
@@ -132,8 +69,6 @@ export class MainRendererStateStore extends RendererStateStore {
         feedEntitiesCount: 0,
 
         // Mainview
-        sortBy: "addTime",
-        sortOrder: "desc",
         viewType: "list",
         contentType: "library",
         searchText: "",
@@ -144,35 +79,17 @@ export class MainRendererStateStore extends RendererStateStore {
 
         // Sidebar
         sidebarWidth: 20,
-        sidebarSortBy: "name",
-        sidebarSortOrder: "desc",
-        sidebarShowCount: true,
-        sidebarCompact: true,
 
         // Update Signal
-        preferenceUpdated: 0,
+        realmReiniting: 0,
         realmReinited: 0,
+        scraperReinited: 0,
+        downloaderReinited: 0,
         storageBackendReinited: 0,
         renderRequired: 0,
 
         //
         syncFileStorageAvaliable: false,
-      };
-    },
-  });
-
-  static useDataViewState = defineStore("dataViewState", {
-    state: () => {
-      return {
-        // TODO: Read from preference & remove dev value
-        showPubTime: true,
-        showPublication: true,
-        showPubType: true,
-        showFlag: true,
-        showTags: true,
-        showFolders: true,
-        showRating: true,
-        showNote: true,
       };
     },
   });
@@ -193,7 +110,6 @@ export class MainRendererStateStore extends RendererStateStore {
         foldersUpdated: 0,
         feedsUpdated: 0,
         feedEntitiesUpdated: 0,
-        defaultPath: "",
       };
     },
   });
@@ -211,6 +127,12 @@ export class MainRendererStateStore extends RendererStateStore {
       };
     },
   });
+
+  static usePreferenceState = defineStore("preferenceState", {
+    state: () => {
+      return defaultPreferences;
+    },
+  });
 }
 
 export class PluginRendererStateStore extends RendererStateStore {
@@ -219,8 +141,6 @@ export class PluginRendererStateStore extends RendererStateStore {
   constructor() {
     super();
     this.selectionState = PluginRendererStateStore.useSelectionState();
-
-    this.subscribe(this.selectionState);
   }
 
   static useSelectionState = defineStore("selectionState", {
