@@ -98,6 +98,7 @@ window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
     window.entityInteractor.deleteCategorizer(args[1], args[0]);
+    selectionState.selectedCategorizer = "lib-all";
   }
 );
 
@@ -146,9 +147,7 @@ watch(
       :active="selectionState.selectedCategorizer === 'lib-all'"
       @click="onSelectCategorizer('lib-all')"
     >
-      <div class="my-auto">
-        <BIconCollection class="text-sm my-auto text-blue-500 min-w-[1em]" />
-      </div>
+      <BIconCollection class="text-sm my-auto text-blue-500 min-w-[1em]" />
     </SectionItem>
     <SectionItem
       name="Flags"

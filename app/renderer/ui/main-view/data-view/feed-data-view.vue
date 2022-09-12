@@ -1,29 +1,25 @@
 <script setup lang="ts">
-// @ts-ignore
+import { Ref, inject, onMounted, ref, watch } from "vue";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
-import { onMounted, ref, Ref } from "vue";
 
-import { FeedEntity } from "../../../../../preload/models/FeedEntity";
+import RecycleScroller from "@/renderer/thirdparty/virutalscroll/src/components/RecycleScroller.vue";
+import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+
 import ListItem from "./components/list-item.vue";
-import TableTitle from "./components/table-title.vue";
 import TableItem from "./components/table-item.vue";
+import TableTitle from "./components/table-title.vue";
 
-const props = defineProps({
-  entities: Array as () => FeedEntity[],
-  sortBy: {
-    type: String,
-    required: true,
-  },
-  sortOrder: {
-    type: String,
-    required: true,
-  },
-  showMainYear: Boolean,
-  showMainPublication: Boolean,
-  showMainPubType: Boolean,
-});
+// ================================
+// State
+// ================================
+const selectionState = MainRendererStateStore.useSelectionState();
+const prefState = MainRendererStateStore.usePreferenceState();
 
-const viewType = ref(window.appInteractor.getState("viewState.viewType"));
+// ================================
+// Data
+// ================================
+const feedEntities = inject<Ref<FeedEntityResults>>("feedEntities");
 
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedLastSingleIndex = ref(-1);
@@ -46,10 +42,7 @@ const onItemClicked = (event: MouseEvent, index: number) => {
     selectedIndex.value = [index];
     selectedLastSingleIndex.value = index;
   }
-  window.appInteractor.setState(
-    "selectionState.selectedIndex",
-    JSON.stringify(selectedIndex.value)
-  );
+  selectionState.selectedIndex = selectedIndex.value;
 };
 
 const onItemRightClicked = (event: MouseEvent, index: number) => {
@@ -58,93 +51,85 @@ const onItemRightClicked = (event: MouseEvent, index: number) => {
   }
   window.appInteractor.showContextMenu(
     "show-feed-data-context-menu",
-    JSON.stringify(selectedIndex.value.length === 1)
+    selectedIndex.value.length === 1
   );
 };
 
 const onItemDoubleClicked = (event: MouseEvent, index: number, url: string) => {
   selectedIndex.value = [index];
-  window.appInteractor.setState(
-    "selectionState.selectedIndex",
-    JSON.stringify(selectedIndex.value)
-  );
+  selectionState.selectedIndex = selectedIndex.value;
   window.appInteractor.open(url);
 };
 
-window.appInteractor.registerState("selectionState.selectedIndex", (value) => {
-  const newSelectedIndex = JSON.parse(value as string) as number[];
+watch(
+  () => selectionState.selectedIndex,
+  (newSelectedIndex) => {
+    if (newSelectedIndex.length === 1 && selectedIndex.value.length === 1) {
+      selectedLastSingleIndex.value = newSelectedIndex[0];
+    }
 
-  if (newSelectedIndex.length === 1 && selectedIndex.value.length === 1) {
-    selectedLastSingleIndex.value = newSelectedIndex[0];
+    selectedIndex.value = newSelectedIndex;
+
+    if (newSelectedIndex.length === 0) {
+      selectedIndex.value = [];
+    }
   }
-
-  selectedIndex.value = newSelectedIndex;
-
-  if (newSelectedIndex.length === 0) {
-    selectedIndex.value = [];
-  }
-});
-
-window.appInteractor.registerState("viewState.viewType", (value) => {
-  viewType.value = value as string;
-});
+);
 
 onMounted(() => {});
 </script>
 
 <template>
   <div id="data-view" class="grow pl-2">
-    <TableTitle
-      :sortBy="sortBy"
-      :sortOrder="sortOrder"
-      v-if="viewType === 'table'"
-    />
     <RecycleScroller
-      class="scroller pr-2"
-      :class="
-        viewType === 'list'
-          ? 'max-h-[calc(100vh-3rem)]'
-          : 'max-h-[calc(100vh-5rem)]'
-      "
-      :items="entities"
-      :item-size="viewType === 'list' ? 64 : 28"
+      class="scroller pr-2 max-h-[calc(100vh-3rem)]"
+      :items="feedEntities"
+      :item-size="64"
       key-field="id"
       v-slot="{ item, index }"
+      :buffer="500"
+      v-if="prefState.mainviewType === 'list'"
     >
       <ListItem
         :id="item.id"
-        :title="item.title"
-        :authors="item.authors"
-        :year="showMainYear ? item.pubTime : ''"
-        :publication="showMainPublication ? item.publication : ''"
-        :pubType="showMainPubType ? item.pubType : -1"
-        :flag="false"
-        :rating="0"
-        :tags="[]"
-        :folders="[]"
-        :note="''"
-        :read="item.read"
+        :item="item"
         :active="selectedIndex.indexOf(index) >= 0"
+        :showPubTime="prefState.showMainYear"
+        :showPublication="prefState.showMainPublication"
+        :showRating="false"
+        :showPubType="false"
+        :showTags="false"
+        :showFolders="false"
+        :showNote="false"
+        :showFlag="false"
+        :read="item.read"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
-        v-if="viewType === 'list'"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
       />
+    </RecycleScroller>
+
+    <TableTitle
+      class="mb-1"
+      :sortBy="prefState.mainviewSortBy"
+      :sortOrder="prefState.mainviewSortOrder"
+      v-if="prefState.mainviewType === 'table'"
+    />
+    <RecycleScroller
+      class="scroller pr-2 max-h-[calc(100vh-5rem)]"
+      :items="feedEntities"
+      :item-size="28"
+      key-field="id"
+      v-slot="{ item, index }"
+      :buffer="500"
+      v-if="prefState.mainviewType === 'table'"
+    >
       <TableItem
         :id="item.id"
-        :title="item.title"
-        :authors="item.authors"
-        :year="item.pubTime"
-        :publication="item.publication"
-        :flag="item.flag"
+        :item="item"
         :active="selectedIndex.indexOf(index) >= 0"
+        :striped="index % 2 === 0"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
-        :class="
-          index % 2 === 1
-            ? 'bg-neutral-100 dark:bg-neutral-700 dark:bg-opacity-40'
-            : ''
-        "
-        v-if="viewType === 'table'"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
       />

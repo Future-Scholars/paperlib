@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // @ts-ignore
 import dragDrop from "drag-drop";
-import { Ref, inject, onMounted, provide, ref, watch } from "vue";
+import { Ref, inject, onMounted, ref, watch } from "vue";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
 import RecycleScroller from "@/renderer/thirdparty/virutalscroll/src/components/RecycleScroller.vue";
@@ -15,7 +15,6 @@ import TableTitle from "./components/table-title.vue";
 // ================================
 // State
 // ================================
-const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
 const prefState = MainRendererStateStore.usePreferenceState();
 
@@ -164,6 +163,8 @@ onMounted(() => {
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
+        draggable="true"
+        v-on:dragstart="dragHandler"
       />
     </RecycleScroller>
   </div>

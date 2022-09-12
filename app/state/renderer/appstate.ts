@@ -1,6 +1,7 @@
 import { ObjectId } from "bson";
 import { Pinia, Store, defineStore } from "pinia";
 
+import { Feed } from "@/models/feed";
 import { PaperEntity } from "@/models/paper-entity";
 import {
   Preference,
@@ -98,6 +99,7 @@ export class MainRendererStateStore extends RendererStateStore {
     state: () => {
       return {
         editingPaperEntityDraft: new PaperEntity(false),
+        editingFeedDraft: new Feed(false),
       };
     },
   });

@@ -66,15 +66,15 @@ const onConfirm = () => {
               </div>
             </div>
 
-            <div class="flex justify-between px-2">
+            <div class="flex justify-between px-4">
               <div
-                class="flex h-8 rounded-lg bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-24"
+                class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20"
                 @click.stop="onCancel"
               >
                 <span class="m-auto text-xs">Cancel</span>
               </div>
               <div
-                class="flex h-8 rounded-lg bg-accentlight dark:bg-accentdark hover:shadow-sm w-24"
+                class="flex h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm w-20"
                 @click.stop="onConfirm"
               >
                 <span class="m-auto text-xs text-white">OK</span>

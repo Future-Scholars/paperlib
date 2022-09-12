@@ -3,6 +3,7 @@ import path from "path";
 
 import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
+import { FeedInteractor } from "./interactors/feed-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
 
 declare global {
@@ -10,6 +11,7 @@ declare global {
     appInteractor: AppInteractor;
     entityInteractor: EntityInteractor;
     renderInteractor: RenderInteractor;
+    feedInteractor: FeedInteractor;
 
     quicklookInteractor: { preview: () => void; closePreview: () => void };
     fsAPI: typeof fs;
@@ -17,6 +19,6 @@ declare global {
   }
 
   interface Realm {
-    safeWrite: (callback: () => void) => void;
+    safeWrite: <T>(callback: () => T) => T;
   }
 }

@@ -1,22 +1,18 @@
 <script setup lang="ts">
+import { BIconCheck2, BIconPlus } from "bootstrap-icons-vue";
 import { onBeforeUpdate, ref, watch } from "vue";
-// @ts-ignore
-import { BIconPlus, BIconCheck2 } from "bootstrap-icons-vue";
 
-import { FeedEntity } from "../../../../../preload/models/FeedEntity";
+import { FeedEntity } from "@/models/feed-entity";
+import Spinner from "@/renderer/ui/sidebar-view/components/spinner.vue";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
 
-import Section from "./components/section.vue";
 import Authors from "./components/authors.vue";
 import PubDetails from "./components/pub-details.vue";
-import Spinner from "../../sidebar-view/components/spinner.vue";
+import Section from "./components/section.vue";
 
 const props = defineProps({
-  feedEntity: {
-    type: Object as () => FeedEntity | null,
-    required: false,
-  },
-  feedEntityAddingStatus: {
-    type: Number,
+  entity: {
+    type: Object as () => FeedEntity,
     required: true,
   },
 });
@@ -27,12 +23,11 @@ const emits = defineEmits([
   "read-timeout-in-unread",
 ]);
 
+const selectionState = MainRendererStateStore.useSelectionState();
+const addingStatus = ref(0);
+
 const onAddClicked = () => {
-  if (props.feedEntityAddingStatus === 0) {
-    window.appInteractor.setState(
-      "viewState.processInformation",
-      "Adding to Library..."
-    );
+  if (addingStatus.value === 0) {
     emits("add-clicked");
   }
 };
@@ -51,10 +46,7 @@ const debounce = (fn: Function, delay: number) => {
 };
 
 const onReadTimeout = () => {
-  if (
-    window.appInteractor.getState("selectionState.selectedFeed") !==
-    "feed-unread"
-  ) {
+  if (selectionState.selectedFeed !== "feed-unread") {
     debounce(() => {
       emits("read-timeout");
     }, 2000)();
@@ -69,20 +61,20 @@ const reanderedTitle = ref("");
 const reanderedAbstract = ref("");
 
 const render = async () => {
-  if (props.feedEntity?.title?.includes("$")) {
+  if (props.entity.title?.includes("$")) {
     reanderedTitle.value = await window.renderInteractor.renderMath(
-      props.feedEntity?.title
+      props.entity.title
     );
   } else {
-    reanderedTitle.value = props.feedEntity?.title || "";
+    reanderedTitle.value = props.entity.title || "";
   }
 
-  if (props.feedEntity?.abstract?.includes("$")) {
+  if (props.entity.abstract?.includes("$")) {
     reanderedAbstract.value = await window.renderInteractor.renderMath(
-      props.feedEntity?.abstract
+      props.entity.abstract
     );
   } else {
-    reanderedAbstract.value = props.feedEntity?.abstract || "";
+    reanderedAbstract.value = props.entity.abstract || "";
   }
 };
 
@@ -104,24 +96,15 @@ watch(props, (props, prevProps) => {
       class="flex mr-2 mb-4 h-8 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer hover:shadow-lg"
       @click="onAddClicked"
     >
-      <div
-        class="m-auto h-8 flex space-x-1"
-        v-if="feedEntityAddingStatus === 0"
-      >
+      <div class="m-auto h-8 flex space-x-1" v-if="addingStatus === 0">
         <BIconPlus class="my-auto" />
         <span class="my-auto text-xs select-none">Add to Library</span>
       </div>
-      <div
-        class="m-auto h-8 flex space-x-2"
-        v-if="feedEntityAddingStatus === 1"
-      >
+      <div class="m-auto h-8 flex space-x-2" v-if="addingStatus === 1">
         <Spinner class="my-auto" />
         <span class="my-auto text-xs select-none">Adding...</span>
       </div>
-      <div
-        class="m-auto h-8 flex space-x-1"
-        v-if="feedEntityAddingStatus === 2"
-      >
+      <div class="m-auto h-8 flex space-x-1" v-if="addingStatus === 2">
         <BIconCheck2 class="my-auto" />
         <span class="my-auto text-xs select-none">Added</span>
       </div>
@@ -130,31 +113,31 @@ watch(props, (props, prevProps) => {
 
     <Section title="Feed Name">
       <div class="text-xxs">
-        {{ feedEntity?.feed.name }}
+        {{ entity.feed.name }}
       </div>
     </Section>
 
-    <Section title="Authors" v-if="feedEntity?.authors">
-      <Authors :authors="feedEntity?.authors" />
+    <Section title="Authors" v-if="entity.authors">
+      <Authors :authors="entity.authors" />
     </Section>
     <PubDetails
-      :publication="feedEntity?.publication"
-      :volume="feedEntity?.volume"
-      :pages="feedEntity?.pages"
-      :number="feedEntity?.number"
-      :publisher="feedEntity?.publisher"
+      :publication="entity.publication"
+      :volume="entity.volume"
+      :pages="entity.pages"
+      :number="entity.number"
+      :publisher="entity.publisher"
     />
     <Section title="Publication Year">
       <div class="text-xxs">
-        {{ feedEntity?.pubTime }}
+        {{ entity.pubTime }}
       </div>
     </Section>
     <Section title="Add Time">
       <div class="text-xxs">
-        {{ feedEntity?.feedTime.toLocaleString() }}
+        {{ entity.feedTime.toLocaleString() }}
       </div>
     </Section>
-    <Section title="Abstract" v-if="feedEntity?.abstract" class="pr-3">
+    <Section title="Abstract" v-if="entity.abstract" class="pr-3">
       <div class="text-xxs text-justify" v-html="reanderedAbstract"></div>
     </Section>
     <div class="w-40 h-10">&nbsp;</div>

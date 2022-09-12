@@ -18,6 +18,8 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import { CategorizerRepository } from "./categorizer-repository";
 import { migrate } from "./db-migration";
+import { FeedEntityRepository } from "./feed-entity-repository";
+import { FeedRepository } from "./feed-repository";
 import { PaperEntityRepository } from "./paper-entity-repository";
 
 export class DBRepository {
@@ -35,11 +37,17 @@ export class DBRepository {
   paperEntityRepository: PaperEntityRepository;
   categorizerRepository: CategorizerRepository;
 
+  feedEntityRepository: FeedEntityRepository;
+  feedRepository: FeedRepository;
+
   constructor(stateStore: MainRendererStateStore) {
     this.stateStore = stateStore;
 
     this.paperEntityRepository = new PaperEntityRepository(this.stateStore);
     this.categorizerRepository = new CategorizerRepository(this.stateStore);
+
+    this.feedEntityRepository = new FeedEntityRepository(this.stateStore);
+    this.feedRepository = new FeedRepository(this.stateStore);
 
     this._schemaVersion = 9;
   }
@@ -120,9 +128,9 @@ export class DBRepository {
 
     this._realm!.safeWrite = (callback) => {
       if (this._realm!.isInTransaction) {
-        callback();
+        return callback();
       } else {
-        this._realm?.write(callback);
+        return this._realm!.write(callback);
       }
     };
 
@@ -349,17 +357,39 @@ export class DBRepository {
     return this.categorizerRepository.load(realm, type, sortBy, sortOrder);
   }
 
+  async feeds(sortBy: string, sortOrder: string) {
+    const realm = await this.realm();
+    return this.feedRepository.load(realm, sortBy, sortOrder);
+  }
+
+  async feedEntities(
+    search: string,
+    name: string,
+    unread: boolean,
+    sortBy: string,
+    sortOrder: string
+  ) {
+    const realm = await this.realm();
+    return this.feedEntityRepository.load(
+      realm,
+      search,
+      name,
+      unread,
+      sortBy,
+      sortOrder
+    );
+  }
+
   // ========================
   // Create and Update
   // ========================
   async updatePaperEntities(paperEntities: PaperEntity[]): Promise<boolean[]> {
     const realm = await this.realm();
 
-    const successes: boolean[] = [];
-
-    realm.safeWrite(() => {
+    return realm.safeWrite(() => {
+      const successes: boolean[] = [];
       for (const paperEntity of paperEntities) {
-        let existingPaperEntity;
+        let existingPaperEntity = null;
         if (paperEntity._id) {
           const existingObjs = this.paperEntityRepository.loadByIds(realm, [
             paperEntity._id,
@@ -398,24 +428,8 @@ export class DBRepository {
         );
         successes.push(success);
       }
+      return successes;
     });
-    return successes;
-  }
-
-  async deleteCategorizer(
-    deleteAll = true,
-    type: CategorizerType,
-    categorizer?: Categorizer,
-    name?: string
-  ) {
-    const realm = await this.realm();
-    return this.categorizerRepository.delete(
-      realm,
-      deleteAll,
-      type,
-      categorizer,
-      name
-    );
   }
 
   async colorizeCategorizer(
@@ -443,15 +457,76 @@ export class DBRepository {
     return this.categorizerRepository.rename(realm, oldName, newName, type);
   }
 
+  async updateFeedEntities(feedEntities: FeedEntity[]) {
+    const realm = await this.realm();
+
+    realm.safeWrite(() => {
+      const successes: boolean[] = [];
+      for (const feedEntity of feedEntities) {
+        let existingFeedEntity = null;
+        if (feedEntity._id) {
+          const existingObjs = this.feedEntityRepository.loadByIds(realm, [
+            feedEntity._id,
+          ]);
+          if (existingObjs.length > 0) {
+            existingFeedEntity = existingObjs[0];
+          }
+        }
+
+        const feed = existingFeedEntity
+          ? this.feedRepository.update(
+              realm,
+              existingFeedEntity.feed,
+              feedEntity.feed,
+              this.getPartition()
+            )
+          : this.feedRepository.update(
+              realm,
+              null,
+              feedEntity.feed,
+              this.getPartition()
+            );
+        let success;
+        if (feed) {
+          success = this.feedEntityRepository.update(
+            realm,
+            feedEntity,
+            feed,
+            existingFeedEntity,
+            this.getPartition()
+          );
+        } else {
+          success = false;
+        }
+        successes.push(success);
+      }
+    });
+  }
+
   // ========================
   // Delete
   // ========================
+  async deleteCategorizer(
+    deleteAll = true,
+    type: CategorizerType,
+    categorizer?: Categorizer,
+    name?: string
+  ) {
+    const realm = await this.realm();
+    return this.categorizerRepository.delete(
+      realm,
+      deleteAll,
+      type,
+      categorizer,
+      name
+    );
+  }
+
   async deletePaperEntities(ids: (ObjectId | string)[]) {
     const realm = await this.realm();
     const removeFileURLs: string[] = [];
 
     const toBeDeletedObjs = this.paperEntityRepository.loadByIds(realm, ids);
-    // TODO: partition
     realm.safeWrite(() => {
       for (const obj of toBeDeletedObjs) {
         for (const tag of obj.tags) {
@@ -477,6 +552,11 @@ export class DBRepository {
     return removeFileURLs;
   }
 
+  async deleteOutdatedFeedEntities() {
+    const realm = await this.realm();
+    return this.feedEntityRepository.deleteOutdate(realm);
+  }
+
   // ========================
   // Dev Functions
   // ========================
@@ -487,11 +567,16 @@ export class DBRepository {
       realm
     );
     this.paperEntityRepository.addDummyData(tag, folder, realm);
+
+    const feed = await this.feedRepository.addDummyData(realm);
+    this.feedEntityRepository.addDummyData(feed, realm);
   }
 
   async removeAll() {
     const realm = await this.realm();
     this.paperEntityRepository.removeAll(realm);
     this.categorizerRepository.deleteAll(realm);
+    this.feedRepository.deleteAll(realm);
+    this.feedEntityRepository.removeAll(realm);
   }
 }

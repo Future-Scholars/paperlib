@@ -70,6 +70,7 @@ export class EntityInteractor {
       );
     } catch (e) {
       console.error(e);
+      this.stateStore.logState.alertLog = `Failed to load paper entities`;
       entities = [] as PaperEntityResults;
     }
     // TODO: implement this

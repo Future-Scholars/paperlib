@@ -124,12 +124,11 @@ export class PaperEntityRepository {
     paperEntity: PaperEntity,
     paperTag: PaperTag[],
     paperFolder: PaperFolder[],
-    existingPaperEntity?: PaperEntity,
-    partition?: string
+    existingPaperEntity: PaperEntity | null,
+    partition: string
   ) {
-    let success = false;
     try {
-      realm.safeWrite(() => {
+      return realm.safeWrite(() => {
         if (existingPaperEntity) {
           // Update
           const updateObj = existingPaperEntity;
@@ -152,7 +151,6 @@ export class PaperEntityRepository {
           updateObj.publisher = paperEntity.publisher;
           updateObj.tags = paperTag;
           updateObj.folders = paperFolder;
-          success = true;
         } else {
           // Add
           const reduplicatedEntities = realm
@@ -178,17 +176,17 @@ export class PaperEntityRepository {
               addedObj.tags = paperTag;
               addedObj.folders = paperFolder;
             }
-            success = true;
           }
         }
+        return true;
       });
     } catch (error) {
       console.error(error);
       this.stateStore.logState.alertLog = `Failed to update database: ${
         error as string
       }`;
+      return false;
     }
-    return success;
   }
 
   // ========================
@@ -196,7 +194,7 @@ export class PaperEntityRepository {
   // ========================
   delete(realm: Realm, paperEntity?: PaperEntity, ids?: (ObjectId | string)[]) {
     try {
-      realm.safeWrite(() => {
+      return realm.safeWrite(() => {
         if (paperEntity) {
           realm.delete(paperEntity);
         } else if (ids) {
@@ -206,11 +204,11 @@ export class PaperEntityRepository {
           realm.delete(
             realm.objects<PaperEntity>("PaperEntity").filtered(`(${idsQuery})`)
           );
+          return true;
         } else {
           throw new Error("No paper entity or ids are given");
         }
       });
-      return true;
     } catch (error) {
       console.error(error);
       this.stateStore.logState.alertLog = `Failed to delete papers: ${

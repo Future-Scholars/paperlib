@@ -6,6 +6,7 @@ import vSelect from "vue-select";
 
 import { AppInteractor } from "@/interactors/app-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
+import { FeedInteractor } from "@/interactors/feed-interactor";
 import { RenderInteractor } from "@/interactors/render-interactor";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
@@ -64,6 +65,7 @@ const entityInteractor = new EntityInteractor(
   downloaderRepository
 );
 const renderInteractor = new RenderInteractor(preference);
+const feedInteractor = new FeedInteractor(stateStore, preference, dbRepository);
 
 console.timeEnd("Setup interactors and repositories");
 
@@ -73,5 +75,6 @@ console.timeEnd("Setup interactors and repositories");
 window.entityInteractor = entityInteractor;
 window.appInteractor = appInteractor;
 window.renderInteractor = renderInteractor;
+window.feedInteractor = feedInteractor;
 
 app.mount("#app");

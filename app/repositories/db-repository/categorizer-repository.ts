@@ -31,6 +31,9 @@ export class CategorizerRepository {
   // ========================
   // CRUD
   // ========================
+  // ========================
+  // Read
+  // ========================
   load(
     realm: Realm,
     type: CategorizerType,
@@ -63,6 +66,9 @@ export class CategorizerRepository {
     return objects;
   }
 
+  // ========================
+  // Delete
+  // ========================
   delete(
     realm: Realm,
     deleteAll = true,
@@ -70,33 +76,47 @@ export class CategorizerRepository {
     categorizer?: Categorizer,
     name?: string
   ) {
-    realm.safeWrite(() => {
-      let objects;
-      if (categorizer) {
-        objects = realm
-          .objects<Categorizer>(type)
-          .filtered(`name == "${categorizer.name}"`);
-      } else if (name) {
-        objects = realm
-          .objects<Categorizer>(type)
-          .filtered(`name == "${name}"`);
-      } else {
-        throw new Error(`Invalid arguments: ${categorizer}, ${name}, ${type}`);
-      }
+    try {
+      return realm.safeWrite(() => {
+        let objects;
+        if (categorizer) {
+          objects = realm
+            .objects<Categorizer>(type)
+            .filtered(`name == "${categorizer.name}"`);
+        } else if (name) {
+          objects = realm
+            .objects<Categorizer>(type)
+            .filtered(`name == "${name}"`);
+        } else {
+          throw new Error(
+            `Invalid arguments: ${categorizer}, ${name}, ${type}`
+          );
+        }
 
-      if (deleteAll) {
-        realm.delete(objects);
-      } else {
-        for (const object of objects) {
-          object.count -= 1;
-          if (object.count <= 0) {
-            realm.delete(object);
+        if (deleteAll) {
+          realm.delete(objects);
+        } else {
+          for (const object of objects) {
+            object.count -= 1;
+            if (object.count <= 0) {
+              realm.delete(object);
+            }
           }
         }
-      }
-    });
+        return true;
+      });
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to delete categorizer: ${
+        error as string
+      }`;
+      return false;
+    }
   }
 
+  // ========================
+  // Update
+  // ========================
   async colorize(
     realm: Realm,
     color: Colors,
@@ -142,60 +162,69 @@ export class CategorizerRepository {
   update(
     realm: Realm,
     existCategorizers: Categorizer[],
-    updatedCategorizers: Categorizer[],
+    updateCategorizers: Categorizer[],
     type: CategorizerType,
-    partition?: string
+    partition: string
   ) {
-    const newCategorizers: Categorizer[] = [];
-    realm.safeWrite(() => {
-      const existCategorizerNameList = existCategorizers.map((categorizer) => {
-        return categorizer.name;
-      });
-      const updatedCategorizerNameList = updatedCategorizers.map(
-        (categorizer) => {
-          return categorizer.name;
-        }
-      );
-
-      // Remove categorizer that is not in updated categorizers
-      for (const existCategorizer of existCategorizers) {
-        if (!updatedCategorizerNameList.includes(existCategorizer.name)) {
-          existCategorizer.count -= 1;
-          if (existCategorizer.count <= 0) {
-            realm.delete(existCategorizer);
+    try {
+      return realm.safeWrite(() => {
+        let newCategorizers = [];
+        const existCategorizerNameList = existCategorizers.map(
+          (categorizer) => {
+            return categorizer.name;
           }
-        }
-      }
+        );
+        const updatedCategorizerNameList = updateCategorizers.map(
+          (categorizer) => {
+            return categorizer.name;
+          }
+        );
 
-      // Add or Link categorizer
-      for (const name of updatedCategorizerNameList) {
-        const dbExistCategorizers = realm
-          .objects<Categorizer>(type)
-          .filtered(`name == "${name}"`);
-
-        if (!existCategorizerNameList.includes(name)) {
-          if (dbExistCategorizers.length > 0) {
-            const categorizer = dbExistCategorizers[0];
-            categorizer.count += 1;
-            newCategorizers.push(categorizer);
-          } else {
-            const categorizer =
-              type === "PaperTag"
-                ? new PaperTag(name, 1)
-                : new PaperFolder(name, 1);
-            if (partition) {
-              categorizer["_partition"] = partition;
+        // Remove categorizer that is not in updated categorizers
+        for (const existCategorizer of existCategorizers) {
+          if (!updatedCategorizerNameList.includes(existCategorizer.name)) {
+            existCategorizer.count -= 1;
+            if (existCategorizer.count <= 0) {
+              realm.delete(existCategorizer);
             }
-            realm.create(type, categorizer);
-            newCategorizers.push(categorizer);
           }
-        } else {
-          newCategorizers.push(dbExistCategorizers[0]);
         }
-      }
-    });
 
-    return newCategorizers;
+        // Add or Link categorizer
+        for (const name of updatedCategorizerNameList) {
+          const dbExistCategorizers = realm
+            .objects<Categorizer>(type)
+            .filtered(`name == "${name}"`);
+
+          if (!existCategorizerNameList.includes(name)) {
+            if (dbExistCategorizers.length > 0) {
+              const categorizer = dbExistCategorizers[0];
+              categorizer.count += 1;
+              newCategorizers.push(categorizer);
+            } else {
+              const categorizer =
+                type === "PaperTag"
+                  ? new PaperTag(name, 1)
+                  : new PaperFolder(name, 1);
+              if (partition) {
+                categorizer["_partition"] = partition;
+              }
+              realm.create(type, categorizer);
+              newCategorizers.push(categorizer);
+            }
+          } else {
+            newCategorizers.push(dbExistCategorizers[0]);
+          }
+        }
+        return newCategorizers;
+      });
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to update categorizers: ${
+        error as string
+      }`;
+      return [];
+    }
   }
 
   // ========================

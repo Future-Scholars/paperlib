@@ -234,15 +234,15 @@ const onSaveClicked = async () => {
               />
             </div>
           </div>
-          <div class="flex justify-end space-x-2">
+          <div class="flex justify-end space-x-2 py-1">
             <div
-              class="flex w-24 h-8 rounded-lg bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm"
+              class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm"
               @click="onCloseClicked"
             >
               <span class="m-auto text-xs">Cancel</span>
             </div>
             <div
-              class="flex w-24 h-8 rounded-lg bg-accentlight dark:bg-accentdark hover:shadow-sm"
+              class="flex w-20 h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm"
               @click="onSaveClicked"
             >
               <span class="m-auto text-xs text-white">Save</span>

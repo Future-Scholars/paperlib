@@ -29,4 +29,16 @@ export class Feed {
       this.id = this._id;
     }
   }
+
+  initialize(feed: Feed) {
+    this._id = feed._id;
+    this.id = feed.id;
+    this._partition = feed._partition;
+    this.name = feed.name;
+    this.count = feed.count;
+    this.color = feed.color;
+    this.url = feed.url;
+
+    return this;
+  }
 }

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import WindowControlBar from "./components/window-control-bar.vue";
-import SwitcherTitle from "./components/switcher-title.vue";
-import NotificationBar from "./components/notification-bar.vue";
-import SidebarLibraryView from "./sidebar-library-view.vue";
-// import SidebarFeedsView from "./sidebar-feeds-view.vue";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+
+import NotificationBar from "./components/notification-bar.vue";
+import SwitcherTitle from "./components/switcher-title.vue";
+import WindowControlBar from "./components/window-control-bar.vue";
+import SidebarFeedsView from "./sidebar-feeds-view.vue";
+import SidebarLibraryView from "./sidebar-library-view.vue";
 
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
@@ -28,19 +29,16 @@ const onViewContentSwitch = (view: number) => {
       :titles="['Library', 'Feeds']"
       @changed="onViewContentSwitch"
     />
+
     <SidebarLibraryView
       class="w-full h-[calc(100vh-5rem)] px-3 overflow-y-auto no-scrollbar"
       v-if="viewState.contentType === 'library'"
     />
-
-    <!-- 
     <SidebarFeedsView
       class="w-full h-[calc(100vh-5rem)] px-3 overflow-y-auto no-scrollbar"
-      :feeds="feeds"
-      :showSidebarCount="showSidebarCount"
-      :compact="compact"
-      v-if="selectedView === 1"
-    /> -->
+      v-if="viewState.contentType === 'feed'"
+    />
+
     <NotificationBar class="flex-none" />
   </div>
 </template>

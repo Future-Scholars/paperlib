@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { Ref, inject, ref, watch } from "vue";
 
+import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
+import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
+import FeedDataView from "./data-view/feed-data-view.vue";
 import PaperDataView from "./data-view/paper-data-view.vue";
+import FeedDetailView from "./detail-view/feed-detail-view.vue";
 import PaperDetailView from "./detail-view/paper-detail-view.vue";
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
-
-// import FeedDataView from "./data-view/feed-data-view.vue";
-// import FeedDetailView from "./detail-view/feed-detail-view.vue";
 
 // ================================
 // State
@@ -24,13 +25,13 @@ const prefState = MainRendererStateStore.usePreferenceState();
 // Data
 // ================================
 const selectedEntityPlaceHolder = ref(new PaperEntity(false));
+const selectedFeedEntityPlaceHolder = ref(new FeedEntity(false));
+
 const paperEntities = inject<Ref<PaperEntityResults>>("paperEntities");
+const feedEntities = inject<Ref<FeedEntityResults>>("feedEntities");
 
 const selectedPaperEntities = ref<Array<PaperEntity>>([]);
-// TODO: fix this type
-const selectedFeedEntities = ref<Array<PaperEntity>>([]);
-
-// const feedEntityAddingStatus = ref(0); // 0: not adding, 1: adding, 2: added
+const selectedFeedEntities = ref<Array<FeedEntity>>([]);
 
 // ================================
 // Event Handlers
@@ -41,10 +42,9 @@ const openSelectedEntities = () => {
       window.appInteractor.open(paperEntity.mainURL);
     });
   } else {
-    // TODO: uncomment this
-    // selectedFeedEntities.value.forEach((entity) => {
-    //   window.appInteractor.open(entity.mainURL);
-    // });
+    selectedFeedEntities.value.forEach((entity) => {
+      window.appInteractor.open(entity.mainURL);
+    });
   }
 };
 
@@ -82,7 +82,23 @@ const reloadSelectedEntities = () => {
       selectionState.selectedIds = tempSelectedIds;
     }
   } else {
-    // TODO: Feed
+    selectedFeedEntities.value = [];
+    let tempSelectedFeedEntities = [];
+    let tempSelectedIds = [];
+    if (feedEntities) {
+      for (const index of selectionState.selectedIndex) {
+        if (feedEntities.value.length > index) {
+          tempSelectedFeedEntities.push(feedEntities.value[index]);
+          tempSelectedIds.push(`${feedEntities.value[index].id}`);
+        } else if (selectionState.selectedIndex.length === 1) {
+          selectionState.selectedIndex = [];
+          selectionState.selectedIds = [];
+          break;
+        }
+      }
+      selectedFeedEntities.value = tempSelectedFeedEntities;
+      selectionState.selectedIds = tempSelectedIds;
+    }
   }
 };
 
@@ -155,29 +171,6 @@ const exportSelectedEntities = (format: string) => {
 //       JSON.stringify(feedEntityDrafts)
 //     );
 //     feedEntityAddingStatus.value = 2;
-//   }
-// };
-
-// const readSelectedFeedEntities = (read: boolean | null, clear = false) => {
-//   if (contentType.value === "feed") {
-//     const feedEntityDrafts = selectedFeedEntities.value
-//       .map((feedEntity) => {
-//         const feedEntityDraft = new FeedEntityDraft();
-//         feedEntityDraft.initialize(feedEntity);
-//         if (feedEntityDraft.read !== read) {
-//           feedEntityDraft.read = !feedEntityDraft.read;
-//           return feedEntityDraft;
-//         } else {
-//           return null;
-//         }
-//       })
-//       .filter((feedEntityDraft) => feedEntityDraft !== null);
-//     if (clear) {
-//       clearSelected();
-//     }
-//     void window.feedInteractor.updateFeedEntities(
-//       JSON.stringify(feedEntityDrafts)
-//     );
 //   }
 // };
 
@@ -459,7 +452,6 @@ watch(
     />
     <div class="grow flex divide-x dark:divide-neutral-700">
       <PaperDataView v-if="viewState.contentType === 'library'" />
-
       <Transition
         enter-active-class="transition ease-out duration-75"
         enter-from-class="transform opacity-0"
@@ -479,29 +471,25 @@ watch(
         />
       </Transition>
 
-      <!-- 
-      <FeedDataView
-        :entities="feedEntities"
-        :sortBy="sortBy"
-        :sortOrder="sortOrder"
-        :show-main-year="showMainYear"
-        :show-main-publication="showMainPublication"
-        :show-main-pub-type="showMainPubType"
-        v-if="contentType === 'feed'"
-      />
-
-      <FeedDetailView
-        :feedEntity="
-          selectedFeedEntities.length === 1 ? selectedFeedEntities[0] : null
-        "
-        :feedEntityAddingStatus="feedEntityAddingStatus"
-        v-show="selectedFeedEntities.length === 1"
-        v-if="contentType === 'feed'"
-        @add-clicked="addSelectedFeedEntities"
-        @read-timeout="readSelectedFeedEntities(true)"
-        @read-timeout-in-unread="readSelectedFeedEntities(true, true)"
-      />
--->
+      <FeedDataView v-if="viewState.contentType === 'feed'" />
+      <Transition
+        enter-active-class="transition ease-out duration-75"
+        enter-from-class="transform opacity-0"
+        enter-to-class="transform opacity-100"
+        leave-active-class="transition ease-in duration-75"
+        leave-from-class="transform opacity-100"
+        leave-to-class="transform opacity-0"
+      >
+        <FeedDetailView
+          :entity="
+            selectedFeedEntities.length === 1
+              ? selectedFeedEntities[0]
+              : selectedFeedEntityPlaceHolder
+          "
+          v-show="selectionState.selectedIndex.length === 1"
+          v-if="viewState.contentType === 'feed'"
+        />
+      </Transition>
     </div>
   </div>
 </template>

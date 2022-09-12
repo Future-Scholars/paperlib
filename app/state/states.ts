@@ -1,5 +1,6 @@
 import { ObjectId } from "bson";
 
+import { Feed } from "@/models/feed";
 import { PaperEntity } from "@/models/paper-entity";
 
 export interface LogState {
@@ -38,6 +39,7 @@ export interface ViewState {
 
 export interface BufferState {
   editingPaperEntityDraft: PaperEntity;
+  editingFeedDraft: Feed;
 }
 
 export interface DBState {
