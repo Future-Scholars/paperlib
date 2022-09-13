@@ -1,6 +1,12 @@
+import { Colors } from "@/models/categorizer";
+import { Feed } from "@/models/feed";
+import { FeedEntity } from "@/models/feed-entity";
+import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
+import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 export class FeedInteractor {
@@ -8,16 +14,22 @@ export class FeedInteractor {
   preference: Preference;
 
   dbRepository: DBRepository;
+  rssRepository: RSSRepository;
+  scraperRepository: ScraperRepository;
 
   constructor(
     stateStore: MainRendererStateStore,
     preference: Preference,
-    dbRepository: DBRepository
+    dbRepository: DBRepository,
+    rssRepository: RSSRepository,
+    scraperRepository: ScraperRepository
   ) {
     this.stateStore = stateStore;
     this.preference = preference;
 
     this.dbRepository = dbRepository;
+    this.rssRepository = rssRepository;
+    this.scraperRepository = scraperRepository;
   }
 
   // ========================
@@ -63,243 +75,181 @@ export class FeedInteractor {
     return await this.dbRepository.feeds(sortBy, sortOrder);
   }
 
-  // // ============================================================
-  // // Create
-  // async update(feeds: string) {
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) + 1
-  //   );
-  //   try {
-  //     let feedDrafts = JSON.parse(feeds) as FeedDraft[];
-  //     feedDrafts = feedDrafts.map((feedDraft) => {
-  //       const draft = new FeedDraft();
-  //       draft.initialize(feedDraft);
-  //       return draft;
-  //     });
-  //     await this.dbRepository.updateFeeds(feedDrafts);
+  // ========================
+  // Create
+  // ========================
+  async createFeed(feeds: Feed[]) {
+    this.stateStore.logState.infoLog = `Creating ${feeds.length} feeds...`;
+    this.stateStore.viewState.processingQueueCount += feeds.length;
 
-  //     for (const feedDraft of feedDrafts) {
-  //       await this.refresh(feedDraft.name);
-  //     }
-  //   } catch (error) {
-  //     this.sharedState.set(
-  //       "viewState.alertInformation",
-  //       `Update feed failed: ${error as string}`
-  //     );
-  //   }
+    try {
+      const successes = await this.dbRepository.updateFeeds(feeds);
 
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) - 1
-  //   );
-  // }
+      this.refresh(
+        feeds.filter((_, index) => successes[index]).map((feed) => feed.name)
+      );
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Add feeds failed: ${
+        error as string
+      }`;
+    }
+    this.stateStore.viewState.processingQueueCount -= feeds.length;
+  }
 
-  // colorizeFeed(feedName: string, color: string) {
-  //   void this.dbRepository.colorizeFeed(feedName, color);
-  // }
+  // ========================
+  // Update
+  // ========================
+  async refresh(feedNames: string[]) {
+    this.stateStore.logState.infoLog = `Refreshing ${feedNames.length} feeds...`;
+    this.stateStore.viewState.processingQueueCount += feedNames.length;
 
-  // async addFeedEntities(feedEntities: string) {
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) + 1
-  //   );
+    try {
+      let feedEntityDrafts: FeedEntity[] = [];
 
-  //   try {
-  //     let feedEntityDrafts = JSON.parse(feedEntities) as FeedEntityDraft[];
+      const feeds = await this.dbRepository.feeds("name", "asc");
+      feedEntityDrafts = (
+        await Promise.all(
+          feedNames.map((feedName) => {
+            const feed = feeds.filtered(`name = "${feedName}"`);
+            if (feed.length === 0) {
+              return Promise.resolve([] as FeedEntity[]);
+            } else {
+              return this.rssRepository.fetch(feed[0]);
+            }
+          })
+        )
+      ).flat();
 
-  //     const addPromise = async (feedEntityDraft: FeedEntityDraft) => {
-  //       const webContent = await this.webImporterRepository.getWebContent(
-  //         feedEntityDraft.mainURL
-  //       );
-  //       const importedPaperEntityDraft = await this.webImporterRepository.parse(
-  //         webContent
-  //       );
+      let paperEntityDrafts = feedEntityDrafts.map((feedEntityDraft) => {
+        const draft = new PaperEntity(false);
+        draft.fromFeed(feedEntityDraft);
+        return draft;
+      });
 
-  //       if (importedPaperEntityDraft) {
-  //         await this.entityInteractor.scrape(
-  //           JSON.stringify([importedPaperEntityDraft])
-  //         );
-  //       } else {
-  //         const paperEntityDraft = new PaperEntityDraft();
-  //         paperEntityDraft.fromFeed(feedEntityDraft);
-  //         await this.dbRepository.update([paperEntityDraft]);
-  //       }
-  //     };
+      const scrapePromise = async (entityDraft: PaperEntity) => {
+        return await this.scraperRepository.scrape(entityDraft, [
+          "cvf",
+          "dblp",
+          "ieee",
+          "openreview",
+          "pwc",
+          "googlescholar",
+          "pdf",
+          "crossref",
+        ]);
+      };
 
-  //     await Promise.all(
-  //       feedEntityDrafts.map((feedEntityDraft) => addPromise(feedEntityDraft))
-  //     );
-  //   } catch (error) {
-  //     this.sharedState.set(
-  //       "viewState.alertInformation",
-  //       `Add paper from feed failed: ${error as string}`
-  //     );
-  //   }
+      // Scrape every 5 papers
+      const n = paperEntityDrafts.length;
 
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) - 1
-  //   );
-  // }
+      let scrapedPaperEntityDrafts: PaperEntity[] = [];
+      for (let i = 0; i < n; i += 5) {
+        const paperEntityDraftsChunk = paperEntityDrafts.slice(i, i + 5);
+        const scrapedPaperEntityChunk = await Promise.all(
+          paperEntityDraftsChunk.map((paperEntityDraft) =>
+            scrapePromise(paperEntityDraft)
+          )
+        );
+        scrapedPaperEntityDrafts = scrapedPaperEntityDrafts.concat(
+          scrapedPaperEntityChunk
+        );
+      }
 
-  // async updateFeedEntities(feedEntities: string) {
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) + 1
-  //   );
+      for (const i in feedEntityDrafts) {
+        if (scrapedPaperEntityDrafts[i]) {
+          feedEntityDrafts[i].fromPaper(scrapedPaperEntityDrafts[i]);
+        }
+      }
 
-  //   try {
-  //     let feedEntityDrafts = JSON.parse(feedEntities) as FeedEntityDraft[];
+      await this.dbRepository.updateFeedEntities(feedEntityDrafts);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Refresh feeds failed: ${
+        error as string
+      }`;
+    }
+    this.stateStore.viewState.processingQueueCount -= feedNames.length;
+  }
 
-  //     await this.dbRepository.updateFeedEntities(feedEntityDrafts);
-  //   } catch (error) {
-  //     this.sharedState.set(
-  //       "viewState.alertInformation",
-  //       `Update feed failed: ${error as string}`
-  //     );
-  //   }
+  async updateFeeds(feeds: Feed[]) {
+    this.stateStore.logState.infoLog = `Updating ${feeds.length} feeds...`;
+    this.stateStore.viewState.processingQueueCount += feeds.length;
 
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) - 1
-  //   );
-  // }
+    try {
+      await this.dbRepository.updateFeeds(feeds);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Updating feeds failed: ${
+        error as string
+      }`;
+    }
+    this.stateStore.viewState.processingQueueCount -= feeds.length;
+  }
 
-  // // ============================================================
-  // // Delete
-  // async delete(feedName: string) {
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) + 1
-  //   );
+  async colorizeFeed(color: Colors, name?: string, feed?: Feed) {
+    this.stateStore.viewState.processingQueueCount += 1;
+    try {
+      await this.dbRepository.colorizeFeed(color, feed, name);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to colorize feed ${name} ${feed}`;
+    }
+    this.stateStore.viewState.processingQueueCount -= 1;
+  }
 
-  //   try {
-  //     await this.dbRepository.deleteFeeds([feedName]);
-  //   } catch (error) {
-  //     this.sharedState.set(
-  //       "viewState.alertInformation",
-  //       `Delete feed failed: ${error as string}`
-  //     );
-  //   }
+  async updateFeedEntities(feedEntities: FeedEntity[]) {
+    this.stateStore.logState.infoLog = `Updating ${feedEntities.length} feed entities...`;
+    this.stateStore.viewState.processingQueueCount += feedEntities.length;
 
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) - 1
-  //   );
-  // }
+    try {
+      await this.dbRepository.updateFeedEntities(feedEntities);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Updating feed entities failed: ${
+        error as string
+      }`;
+    }
+    this.stateStore.viewState.processingQueueCount -= feedEntities.length;
+  }
 
-  // async deleteOutdatedFeedEntities() {
-  //   this.dbRepository.deleteOutdatedFeedEntities();
-  // }
+  async addToLib(feedEntities: FeedEntity[]) {
+    this.stateStore.logState.infoLog = `Adding ${feedEntities.length} feed entities to library...`;
+    this.stateStore.viewState.processingQueueCount += feedEntities.length;
 
-  // // ============================================================
-  // // Update
-  // async refresh(feedName: string) {
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) + 1
-  //   );
-  //   try {
-  //     const feed = await this.dbRepository.feeds(feedName, "name", "desc");
-  //     let feedEntityDrafts: FeedEntityDraft[] = [];
-  //     if (feed.length !== 0) {
-  //       feedEntityDrafts = await this.rssRepository.parse(feed[0]);
-  //     }
+    try {
+      const addPromise = async (feedEntityDraft: FeedEntity) => {
+        let paperEntityDraft = new PaperEntity(true);
+        paperEntityDraft.fromFeed(feedEntityDraft);
+        return await this.scraperRepository.scrape(paperEntityDraft);
+      };
 
-  //     let paperEntityDrafts = feedEntityDrafts.map((feedEntityDraft) => {
-  //       const draft = new PaperEntityDraft();
-  //       draft.fromFeed(feedEntityDraft);
-  //       return draft;
-  //     });
+      const paperEntityDrafts = await Promise.all(
+        feedEntities.map((feedEntity) => addPromise(feedEntity))
+      );
 
-  //     const scrapePromise = async (entityDraft: PaperEntityDraft) => {
-  //       return await this.scraperRepository.scrape(entityDraft, [
-  //         "cvf",
-  //         "dblp",
-  //         "ieee",
-  //         "openreview",
-  //         "pwc",
-  //         "googlescholar",
-  //         "pdf",
-  //       ]);
-  //     };
+      // NOTE: here we decide to not download the PDFs when adding to library.
+      await this.dbRepository.updatePaperEntities(paperEntityDrafts);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Adding to library failed: ${
+        error as string
+      }`;
+    }
+    this.stateStore.viewState.processingQueueCount -= feedEntities.length;
+  }
 
-  //     // Scrape every 5 papers
-  //     const n = paperEntityDrafts.length;
-
-  //     let scrapedPaperEntityDrafts: PaperEntityDraft[] = [];
-  //     for (let i = 0; i < n; i += 5) {
-  //       const paperEntityDraftsChunk = paperEntityDrafts.slice(i, i + 5);
-  //       const scrapedPaperEntityChunk = await Promise.all(
-  //         paperEntityDraftsChunk.map((paperEntityDraft) =>
-  //           scrapePromise(paperEntityDraft)
-  //         )
-  //       );
-  //       scrapedPaperEntityDrafts = scrapedPaperEntityDrafts.concat(
-  //         scrapedPaperEntityChunk
-  //       );
-  //     }
-
-  //     for (const i in feedEntityDrafts) {
-  //       if (scrapedPaperEntityDrafts[i]) {
-  //         feedEntityDrafts[i].fromPaper(scrapedPaperEntityDrafts[i]);
-  //       }
-  //     }
-
-  //     await this.dbRepository.updateFeedEntities(feedEntityDrafts);
-  //   } catch (error) {
-  //     this.sharedState.set(
-  //       "viewState.alertInformation",
-  //       `Refresh feed failed: ${error as string}`
-  //     );
-  //   }
-
-  //   this.sharedState.set(
-  //     "viewState.processingQueueCount",
-  //     (this.sharedState.viewState.processingQueueCount.value as number) - 1
-  //   );
-  // }
-
-  // async routineRefresh() {
-  //   this.sharedState.set(
-  //     "viewState.processInformation",
-  //     "Routine feed refreshing..."
-  //   );
-  //   this.preference.set("lastFeedRefreshTime", Math.round(Date.now() / 1000));
-  //   const feeds = await this.dbRepository.feeds(null, "name", "desc");
-  //   for (const feed of feeds) {
-  //     await this.refresh(feed.name);
-  //   }
-  //   await this.deleteOutdatedFeedEntities();
-  // }
-
-  // setupRoutineScrapeScheduler() {
-  //   const lastFeedRefreshTime = this.preference.get(
-  //     "lastFeedRefreshTime"
-  //   ) as number;
-
-  //   if (Math.round(Date.now() / 1000) - lastFeedRefreshTime > 86400) {
-  //     void this.routineRefresh();
-  //   }
-
-  //   if (this.scheduler == null) {
-  //     this.scheduler = new ToadScheduler();
-  //   } else {
-  //     this.scheduler.stop();
-  //     this.scheduler.removeById("routineFeedRefresh");
-  //   }
-
-  //   const task = new Task("routineFeedRefresh", () => {
-  //     void this.routineRefresh();
-  //   });
-
-  //   const job = new SimpleIntervalJob(
-  //     { seconds: 86400, runImmediately: false },
-  //     task,
-  //     "routineFeedRefresh"
-  //   );
-
-  //   this.scheduler.addSimpleIntervalJob(job);
-  // }
+  // ========================
+  // Delete
+  // ========================
+  async deleteFeed(name?: string, feed?: Feed) {
+    this.stateStore.viewState.processingQueueCount += 1;
+    try {
+      await this.dbRepository.deleteFeed(true, feed, name);
+    } catch (e) {
+      console.error(e);
+      this.stateStore.logState.alertLog = `Failed to remove feed  ${name} ${feed}`;
+    }
+    this.stateStore.viewState.processingQueueCount -= 1;
+  }
 }

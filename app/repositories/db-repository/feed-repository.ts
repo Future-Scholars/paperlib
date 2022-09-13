@@ -1,3 +1,4 @@
+import { ObjectId } from "bson";
 import Realm, { Results } from "realm";
 
 import { Colors } from "@/models/categorizer";
@@ -41,6 +42,16 @@ export class FeedRepository {
       });
       this.listened = true;
     }
+    return objects;
+  }
+
+  loadByIds(realm: Realm, ids: (ObjectId | string)[]) {
+    const idsQuery = ids
+      .map((id) => `_id == oid(${id as string})`)
+      .join(" OR ");
+
+    let objects = realm.objects<Feed>("Feed").filtered(`(${idsQuery})`);
+
     return objects;
   }
 
@@ -98,6 +109,7 @@ export class FeedRepository {
         throw new Error(`Invalid arguments: ${feed}, ${name}`);
       }
       for (const object of objects) {
+        console.log(color);
         object.color = color;
       }
     });
@@ -132,7 +144,7 @@ export class FeedRepository {
         if (!existName && updateName) {
           const objects = realm
             .objects<Feed>("Feed")
-            .filtered(`name == "${existName}"`);
+            .filtered(`name == "${updateName}"`);
           if (objects.length > 0) {
             // Link
             const object = objects[0];

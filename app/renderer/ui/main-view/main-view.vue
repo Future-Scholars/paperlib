@@ -159,20 +159,36 @@ const exportSelectedEntities = (format: string) => {
   }
 };
 
-// const addSelectedFeedEntities = async () => {
-//   if (contentType.value === "feed") {
-//     feedEntityAddingStatus.value = 1;
-//     const feedEntityDrafts = selectedFeedEntities.value.map((entity) => {
-//       const feedEntityDraft = new FeedEntityDraft();
-//       feedEntityDraft.initialize(entity);
-//       return feedEntityDraft;
-//     });
-//     await window.feedInteractor.addFeedEntities(
-//       JSON.stringify(feedEntityDrafts)
-//     );
-//     feedEntityAddingStatus.value = 2;
-//   }
-// };
+const addSelectedFeedEntities = async () => {
+  if (viewState.contentType === "feed") {
+    viewState.feedEntityAddingStatus = 1;
+    const feedEntityDrafts = selectedFeedEntities.value.map((entity) => {
+      return new FeedEntity(false).initialize(entity);
+    });
+    await window.feedInteractor.addToLib(feedEntityDrafts);
+    viewState.feedEntityAddingStatus = 2;
+  }
+};
+
+const readSelectedFeedEntities = (read: boolean | null, clear = false) => {
+  if (viewState.contentType === "feed") {
+    const feedEntityDrafts = selectedFeedEntities.value
+      .map((feedEntity) => {
+        const feedEntityDraft = new FeedEntity(false).initialize(feedEntity);
+        if (feedEntityDraft.read !== read) {
+          feedEntityDraft.read = !feedEntityDraft.read;
+          return feedEntityDraft;
+        } else {
+          return null;
+        }
+      })
+      .filter((feedEntityDraft) => feedEntityDraft !== null) as FeedEntity[];
+    if (clear) {
+      clearSelected();
+    }
+    void window.feedInteractor.updateFeedEntities(feedEntityDrafts);
+  }
+};
 
 const switchViewType = (viewType: string) => {
   window.appInteractor.setPreference("mainviewType", viewType);
@@ -304,13 +320,13 @@ window.appInteractor.registerMainSignal(
   }
 );
 
-// window.appInteractor.registerMainSignal("feed-data-context-menu-add", () => {
-//   addSelectedFeedEntities();
-// });
+window.appInteractor.registerMainSignal("feed-data-context-menu-add", () => {
+  addSelectedFeedEntities();
+});
 
-// window.appInteractor.registerMainSignal("feed-data-context-menu-read", () => {
-//   readSelectedFeedEntities(null);
-// });
+window.appInteractor.registerMainSignal("feed-data-context-menu-read", () => {
+  readSelectedFeedEntities(null);
+});
 
 // // ========================================================
 // // Register Shortcut
@@ -488,6 +504,9 @@ watch(
           "
           v-show="selectionState.selectedIndex.length === 1"
           v-if="viewState.contentType === 'feed'"
+          @add-clicked="addSelectedFeedEntities"
+          @read-timeout="readSelectedFeedEntities(true)"
+          @read-timeout-in-unread="readSelectedFeedEntities(true, true)"
         />
       </Transition>
     </div>

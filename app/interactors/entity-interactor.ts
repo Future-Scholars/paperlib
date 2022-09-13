@@ -224,14 +224,14 @@ export class EntityInteractor {
   // ========================
   // Remove
   // ========================
-  deleteCategorizer(
+  async deleteCategorizer(
     type: CategorizerType,
     name?: string,
     categorizer?: Categorizer
   ) {
     this.stateStore.viewState.processingQueueCount += 1;
     try {
-      void this.dbRepository.deleteCategorizer(true, type, categorizer, name);
+      await this.dbRepository.deleteCategorizer(true, type, categorizer, name);
     } catch (e) {
       console.error(e);
       this.stateStore.logState.alertLog = `Failed to remove categorizer ${type} ${name} ${categorizer}`;
@@ -239,16 +239,16 @@ export class EntityInteractor {
     this.stateStore.viewState.processingQueueCount -= 1;
   }
 
-  deleteSup(paperEntity: PaperEntity, url: string) {
+  async deleteSup(paperEntity: PaperEntity, url: string) {
     this.stateStore.logState.processLog = `Removing supplementary file ${url}...`;
     this.stateStore.viewState.processingQueueCount += 1;
 
     try {
-      void this.fileRepository.removeFile(url);
+      await this.fileRepository.removeFile(url);
       paperEntity.supURLs = paperEntity.supURLs.filter(
         (supUrl) => supUrl !== path.basename(url)
       );
-      this.dbRepository.updatePaperEntities([paperEntity]);
+      await this.dbRepository.updatePaperEntities([paperEntity]);
     } catch (error) {
       console.error(error);
       this.stateStore.logState.alertLog = `Failed to remove supplementary file ${url}`;
@@ -389,7 +389,7 @@ export class EntityInteractor {
     this.stateStore.viewState.processingQueueCount -= ids.length;
   }
 
-  colorizeCategorizers(
+  async colorizeCategorizer(
     color: Colors,
     type: CategorizerType,
     name?: string,
@@ -397,7 +397,7 @@ export class EntityInteractor {
   ) {
     this.stateStore.viewState.processingQueueCount += 1;
     try {
-      void this.dbRepository.colorizeCategorizer(
+      await this.dbRepository.colorizeCategorizer(
         color,
         type,
         categorizer,

@@ -72,7 +72,8 @@ const onCategorizerNameChanged = (name: string) => {
     selectionState.editingCategorizer &&
     selectionState.editingCategorizer
       .replace("folder-", "")
-      .replace("tag-", "") !== name
+      .replace("tag-", "") !== name &&
+    viewState.contentType === "library"
   ) {
     window.entityInteractor.renameCategorizer(
       selectionState.editingCategorizer
@@ -97,22 +98,28 @@ const onCategorizerNameInputBlured = () => {
 window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
-    window.entityInteractor.deleteCategorizer(args[1], args[0]);
-    selectionState.selectedCategorizer = "lib-all";
+    if (viewState.contentType === "library") {
+      window.entityInteractor.deleteCategorizer(args[1], args[0]);
+      selectionState.selectedCategorizer = "lib-all";
+    }
   }
 );
 
 window.appInteractor.registerMainSignal(
   "sidebar-context-menu-color",
   (args) => {
-    window.entityInteractor.colorizeCategorizers(args[2], args[1], args[0]);
+    if (viewState.contentType === "library") {
+      window.entityInteractor.colorizeCategorizer(args[2], args[1], args[0]);
+    }
   }
 );
 
 window.appInteractor.registerMainSignal("sidebar-context-menu-edit", (args) => {
-  selectionState.editingCategorizer = `${
-    { PaperTag: "tag", PaperFolder: "folder" }[args[1] as string]
-  }-${args[0]}`;
+  if (viewState.contentType === "library") {
+    selectionState.editingCategorizer = `${
+      { PaperTag: "tag", PaperFolder: "folder" }[args[1] as string]
+    }-${args[0]}`;
+  }
 });
 
 watch(

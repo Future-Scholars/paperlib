@@ -50,7 +50,7 @@ const onConfirm = () => {
       >
         <div class="flex flex-col justify-center items-center w-full h-full">
           <div
-            class="m-auto flex flex-col justify-between px-3 pt-3 pb-4 border-[1px] dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 w-64 rounded-lg shadow-lg select-none space-y-5"
+            class="m-auto flex flex-col justify-between px-2 pt-3 pb-4 border-[1px] dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 w-60 rounded-lg shadow-lg select-none space-y-5"
             @click.stop=""
           >
             <div>

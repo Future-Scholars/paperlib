@@ -74,6 +74,7 @@ export class MainRendererStateStore extends RendererStateStore {
         contentType: "library",
         searchText: "",
         searchMode: "general",
+        feedEntityAddingStatus: 0,
 
         //
         inputFieldFocused: false,

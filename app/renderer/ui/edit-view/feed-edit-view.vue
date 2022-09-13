@@ -50,10 +50,9 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
-  // TOOD: Save the feed
-  // window.feedInteractor.update([
-  //   new Feed(false).initialize(editingFeedDraft.value),
-  // ]);
+  window.feedInteractor.createFeed([
+    new Feed(false).initialize(editingFeedDraft.value),
+  ]);
   onCloseClicked();
 };
 </script>

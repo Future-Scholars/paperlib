@@ -23,11 +23,11 @@ const emits = defineEmits([
   "read-timeout-in-unread",
 ]);
 
+const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const addingStatus = ref(0);
 
 const onAddClicked = () => {
-  if (addingStatus.value === 0) {
+  if (viewState.feedEntityAddingStatus === 0) {
     emits("add-clicked");
   }
 };
@@ -96,15 +96,24 @@ watch(props, (props, prevProps) => {
       class="flex mr-2 mb-4 h-8 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer hover:shadow-lg"
       @click="onAddClicked"
     >
-      <div class="m-auto h-8 flex space-x-1" v-if="addingStatus === 0">
+      <div
+        class="m-auto h-8 flex space-x-1"
+        v-if="viewState.feedEntityAddingStatus === 0"
+      >
         <BIconPlus class="my-auto" />
         <span class="my-auto text-xs select-none">Add to Library</span>
       </div>
-      <div class="m-auto h-8 flex space-x-2" v-if="addingStatus === 1">
+      <div
+        class="m-auto h-8 flex space-x-2"
+        v-if="viewState.feedEntityAddingStatus === 1"
+      >
         <Spinner class="my-auto" />
         <span class="my-auto text-xs select-none">Adding...</span>
       </div>
-      <div class="m-auto h-8 flex space-x-1" v-if="addingStatus === 2">
+      <div
+        class="m-auto h-8 flex space-x-1"
+        v-if="viewState.feedEntityAddingStatus === 2"
+      >
         <BIconCheck2 class="my-auto" />
         <span class="my-auto text-xs select-none">Added</span>
       </div>

@@ -457,6 +457,37 @@ export class DBRepository {
     return this.categorizerRepository.rename(realm, oldName, newName, type);
   }
 
+  async updateFeeds(feeds: Feed[]) {
+    const realm = await this.realm();
+
+    return realm.safeWrite(() => {
+      const successes: boolean[] = [];
+      for (const feed of feeds) {
+        let existingFeed = null;
+        if (feed._id) {
+          const existingObjs = this.feedRepository.loadByIds(realm, [feed._id]);
+          if (existingObjs.length > 0) {
+            existingFeed = existingObjs[0];
+          }
+        }
+        const success = this.feedRepository.update(
+          realm,
+          existingFeed,
+          feed,
+          this.getPartition()
+        );
+        successes.push(success !== null);
+      }
+
+      return successes;
+    });
+  }
+
+  async colorizeFeed(color: Colors, feed?: Feed, name?: string) {
+    const realm = await this.realm();
+    return this.feedRepository.colorize(realm, color, feed, name);
+  }
+
   async updateFeedEntities(feedEntities: FeedEntity[]) {
     const realm = await this.realm();
 
@@ -555,6 +586,29 @@ export class DBRepository {
   async deleteOutdatedFeedEntities() {
     const realm = await this.realm();
     return this.feedEntityRepository.deleteOutdate(realm);
+  }
+
+  async deleteFeed(deleteAll = true, feed?: Feed, name?: string) {
+    const realm = await this.realm();
+
+    const toBeDeletedName = feed ? feed.name : name;
+    const feedEntities = this.feedEntityRepository.load(
+      realm,
+      "",
+      toBeDeletedName || "",
+      false,
+      "addTime",
+      "desc"
+    );
+
+    return realm.safeWrite(async () => {
+      await this.feedEntityRepository.delete(
+        realm,
+        undefined,
+        feedEntities.map((entity) => entity._id)
+      );
+      return await this.feedRepository.delete(realm, deleteAll, feed, name);
+    });
   }
 
   // ========================

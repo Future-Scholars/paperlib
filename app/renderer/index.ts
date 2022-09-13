@@ -13,6 +13,7 @@ import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
+import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 
 import { MainRendererStateStore } from "../state/renderer/appstate";
@@ -49,6 +50,7 @@ const scraperRepository = new ScraperRepository(stateStore, preference);
 const fileRepository = new FileRepository(stateStore, preference);
 const referenceRepository = new ReferenceRepository(stateStore, preference);
 const downloaderRepository = new DownloaderRepository(stateStore, preference);
+const rssRepository = new RSSRepository(stateStore, preference);
 
 const appInteractor = new AppInteractor(
   stateStore,
@@ -65,7 +67,13 @@ const entityInteractor = new EntityInteractor(
   downloaderRepository
 );
 const renderInteractor = new RenderInteractor(preference);
-const feedInteractor = new FeedInteractor(stateStore, preference, dbRepository);
+const feedInteractor = new FeedInteractor(
+  stateStore,
+  preference,
+  dbRepository,
+  rssRepository,
+  scraperRepository
+);
 
 console.timeEnd("Setup interactors and repositories");
 

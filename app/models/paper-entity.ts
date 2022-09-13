@@ -1,6 +1,7 @@
 import { ObjectId } from "bson";
 
 import { PaperFolder, PaperTag } from "./categorizer";
+import { FeedEntity } from "./feed-entity";
 
 export class PaperEntity {
   static schema = {
@@ -113,6 +114,21 @@ export class PaperEntity {
     this.publisher = entity.publisher;
 
     return this;
+  }
+
+  fromFeed(feedEntity: FeedEntity) {
+    this.title = feedEntity.title;
+    this.authors = feedEntity.authors;
+    this.publication = feedEntity.publication;
+    this.pubTime = feedEntity.pubTime;
+    this.pubType = feedEntity.pubType;
+    this.doi = feedEntity.doi;
+    this.arxiv = feedEntity.arxiv;
+    this.mainURL = feedEntity.mainURL;
+    this.pages = feedEntity.pages;
+    this.volume = feedEntity.volume;
+    this.number = feedEntity.number;
+    this.publisher = feedEntity.publisher;
   }
 
   // =====================

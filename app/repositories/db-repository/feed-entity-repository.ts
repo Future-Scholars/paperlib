@@ -241,6 +241,32 @@ export class FeedEntityRepository {
     }
   }
 
+  delete(realm: Realm, feedEntity?: FeedEntity, ids?: (ObjectId | string)[]) {
+    try {
+      return realm.safeWrite(() => {
+        if (feedEntity) {
+          realm.delete(feedEntity);
+        } else if (ids) {
+          const idsQuery = ids
+            .map((id) => `_id == oid(${id as string})`)
+            .join(" OR ");
+          realm.delete(
+            realm.objects<FeedEntity>("FeedEntity").filtered(`(${idsQuery})`)
+          );
+          return true;
+        } else {
+          throw new Error("No feed entity or ids are given");
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to delete feed entities: ${
+        error as string
+      }`;
+      return false;
+    }
+  }
+
   // ==============================
   // Dev Functions
   // ==============================

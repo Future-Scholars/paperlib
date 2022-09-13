@@ -15,15 +15,15 @@ export function appendLoading() {
 
 .lds-dual-ring {
   display: inline-block;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   padding-top: 3px;
 }
 .lds-dual-ring:after {
   content: " ";
   display: block;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   margin: 8px;
   border-radius: 50%;
   border: 2px solid #232323;

@@ -22,6 +22,7 @@ export interface ViewState {
   contentType: string;
   searchText: string;
   searchMode: string;
+  feedEntityAddingStatus: number;
 
   inputFieldFocused: boolean;
 

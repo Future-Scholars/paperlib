@@ -62,6 +62,7 @@ export default defineConfig({
             "electron-store",
             "got",
             "hpagent",
+            "rss-parser",
           ];
         },
       },

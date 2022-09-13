@@ -1,6 +1,7 @@
 import { ObjectId } from "bson";
 
 import { Feed } from "./feed";
+import { PaperEntity } from "./paper-entity";
 
 export class FeedEntity {
   static schema = {
@@ -53,11 +54,59 @@ export class FeedEntity {
   publisher: string = "";
   read: boolean = false;
 
+  [Key: string]: unknown;
+
   constructor(initObjectId = false) {
     if (initObjectId) {
       this._id = new ObjectId();
       this.id = this._id;
     }
+  }
+
+  initialize(entity: FeedEntity) {
+    this._id = new ObjectId(entity._id);
+    this.id = new ObjectId(entity.id);
+    this._partition = entity._partition;
+    this.addTime = entity.addTime;
+    this.feed = entity.feed;
+    this.feedTime = entity.feedTime;
+    this.title = entity.title;
+    this.authors = entity.authors;
+    this.abstract = entity.abstract;
+    this.publication = entity.publication;
+    this.pubTime = entity.pubTime;
+    this.pubType = entity.pubType;
+    this.doi = entity.doi;
+    this.arxiv = entity.arxiv;
+    this.mainURL = entity.mainURL;
+    this.pages = entity.pages;
+    this.volume = entity.volume;
+    this.number = entity.number;
+    this.publisher = entity.publisher;
+    this.read = entity.read;
+
+    return this;
+  }
+
+  setValue(key: string, value: unknown, allowEmpty = false) {
+    if ((value || allowEmpty) && value !== "undefined") {
+      this[key] = value;
+    }
+  }
+
+  fromPaper(paperEntity: PaperEntity) {
+    this.title = paperEntity.title;
+    this.authors = paperEntity.authors;
+    this.publication = paperEntity.publication;
+    this.pubTime = paperEntity.pubTime;
+    this.pubType = paperEntity.pubType;
+    this.doi = paperEntity.doi;
+    this.arxiv = paperEntity.arxiv;
+    this.mainURL = paperEntity.mainURL;
+    this.pages = paperEntity.pages;
+    this.volume = paperEntity.volume;
+    this.number = paperEntity.number;
+    this.publisher = paperEntity.publisher;
   }
 
   // =====================

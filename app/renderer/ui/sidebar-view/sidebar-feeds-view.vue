@@ -55,25 +55,28 @@ const onAddNewFeedClicked = () => {
 window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
-    // TODO: Delete feed
-    // window.feedInteractor.deleteFeed(args[0]);
-    selectionState.selectedFeed = "feed-all";
+    if (viewState.contentType === "feed") {
+      window.feedInteractor.deleteFeed(args[0]);
+      selectionState.selectedFeed = "feed-all";
+    }
   }
 );
 
 window.appInteractor.registerMainSignal(
   "sidebar-context-menu-feed-refresh",
   (args) => {
-    // TODO: Refresh feed
-    // window.feedInteractor.refresh(args[0]);
+    if (viewState.contentType === "feed") {
+      window.feedInteractor.refresh([args[0]]);
+    }
   }
 );
 
 window.appInteractor.registerMainSignal(
   "sidebar-context-menu-color",
   (args) => {
-    // TODO: Colorize feed
-    // window.feedInteractor.colorizeFeed(args[3], args[0]);
+    if (viewState.contentType === "feed") {
+      window.feedInteractor.colorizeFeed(args[2], args[0]);
+    }
   }
 );
 
