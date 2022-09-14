@@ -1,66 +1,90 @@
-# electron-vite-vue
+<div align="center">
+<img src="./assets/icon.png" height="95" />
+<br />
+<img src="https://img.shields.io/badge/dynamic/json?label=Release&query=version&url=https://raw.githubusercontent.com/GeoffreyChen777/paperlib/electron/package.json" />
+<img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
+<img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />
+<h2><a href="https://paperlib.app/" > Paperlib </a></h2>
+An open-source academic paper management tool.
+</div>
 
-🥳 Really simple `Electron` + `Vue` + `Vite` boilerplate.
+<p align='center'>
+<a href='https://paperlib.app/en/'>Webpage</a> | <a href='https://paperlib.app/en/download/'>Download</a> | <a href='https://paperlib.app/en/blog/intro/'>Quick Start</a> | <a href='https://github.com/users/GeoffreyChen777/projects/1/views/1'>Roadmap</a>
+</p>
 
-[![awesome-vite](https://awesome.re/mentioned-badge.svg)](https://github.com/vitejs/awesome-vite)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/ae3863e3-1aec-4eb1-8f9f-1890af56929d/deploy-status)](https://app.netlify.com/sites/electron-vite/deploys)
-[![GitHub license](https://img.shields.io/github/license/caoxiemeihao/electron-vite-vue)](https://github.com/electron-vite/electron-vite-vue/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/caoxiemeihao/electron-vite-vue?color=fa6470)](https://github.com/electron-vite/electron-vite-vue)
-[![GitHub forks](https://img.shields.io/github/forks/caoxiemeihao/electron-vite-vue)](https://github.com/electron-vite/electron-vite-vue)
-[![GitHub Build](https://github.com/electron-vite/electron-vite-vue/actions/workflows/build.yml/badge.svg)](https://github.com/electron-vite/electron-vite-vue/actions/workflows/build.yml)
+![](./assets/ui.png)
 
-## Features
+---
 
-📦 Out of the box  
-🎯 Based on the official [template-vue-ts](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-vue-ts), less invasive  
-🌱 Extensible, really simple directory structure  
-💪 Support using Node.js API in Electron-Renderer  
-🔩 Support C/C++ native addons  
-🖥 It's easy to implement multiple windows  
+
+📣 **I'm looking for someone to work with me on developing Paperlib.** 📣
+
+ If you are interested please contact me. 
+
+## Introduction
+
+I'm a computer science PhD student. Conference papers are in major in my research community, which is different from other subjects. Without DOI, ISBN, metadata of a lot of conference papers are hard to lookup (e.g., NIPS, ICLR etc.). When I cite a publication in a draft paper, I need to manually search the publication information of it in Google Scholar or DBLP.
+
+**Why not Zotero, Mendely?**
+
+A good metadata scraping capability is one of the core function of a paper management tool. Unfortunately, there is no software in this world that does this well, not even commercial software.
+
+A modern UI. No extra useless features.
+
+What we need may be: import a paper, scrape the metadata of it as accurately as possible, simply organise the library, and export it to BibTex when we are writing our own papers.
+
+That is Paperlib.
+
+
+## Highlights
+
+-   Scrape paper’s metadata and **code repository** from arXiv, doi.org, DBLP, openreview.net, IEEE, Google Scholar, and PaperwithCode etc. Especially tailored for computer science. Support write your own metadata scrapers.
+-   Fulltext and advanced search.
+-   Rating, flag, tag, folder and markdown/plain text note.
+-   RSS feed subscription.
+-   Locate PDF files from web.
+-   Plugin like macOS spotlight to copy paste BibTex easily.
+-   Cloud sync, supports macOS and Windows.
+-   Beautiful and clean UI.
+
+## Download and Install
+
+<a href="https://paperlib.app/en/download/" style="font-size: 16px"> » Download Here « </a>
+
+### Windows
+
+You may notice that a warnning shows when you install Paperlib on Windows. The reason is that there is no code signing in Paperlib because it is so expensive. The source code of Paperlib can be found in the electron branch. It won't hurt your PC and will never collect any personal information. Please make sure you are using HTTPS and our official webpage or Github to download the installer. When you are installing 'latest.exe', in the Windows protected your PC window, please click 'More info' and 'Run anyway'.
+
+### macOS
+
+You may need to click the 'preference - Security & Privacy - run anyway'.
 
 ## Quick Start
 
-```sh
-npm create electron-vite
-```
+[Introduction (EN)](https://paperlib.app/en/blog/intro/)  
+[Introduction (CN)](https://paperlib.app/cn/blog/intro/)
 
-<!-- [![quick-start](https://asciinema.org/a/483731.svg)](https://asciinema.org/a/483731) -->
+## Donate
 
-![electron-vite-vue.gif](https://github.com/electron-vite/electron-vite-vue/blob/main/public/electron-vite-vue.gif?raw=true)
+<a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-## Debug
+<a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="./assets/wechat.png" alt="Buy Me A Coffee" height="174" width="174"></a>
 
-![electron-vite-react-debug.gif](https://github.com/electron-vite/electron-vite-react/blob/main/public/electron-vite-react-debug.gif?raw=true)
+## Sponsors
 
-## Directory
+### Apple Silicon Build
+<img src="https://user-images.githubusercontent.com/14183213/179353324-42ee9831-68a8-4816-97f5-cc7be7189ce8.png" style="width: 160px"/>
 
-```diff
-+ ├─┬ electron
-+ │ ├─┬ main
-+ │ │ └── index.ts    entry of Electron-Main
-+ │ └─┬ preload
-+ │   └── index.ts    entry of Preload-Scripts
-  ├─┬ src
-  │ └── main.ts       entry of Electron-Renderer
-  ├── index.html
-  ├── package.json
-  └── vite.config.ts
-```
 
-## Be aware
+## Contribute to Paperlib
 
-🚨 By default, this template integrates Node.js in the Renderer process. If you don't need it, you just remove the option below. [Because it will modify the default config of Vite](https://github.com/electron-vite/vite-plugin-electron/tree/main/packages/electron-renderer#config-presets-opinionated).
+### Metadata Scrapers
+My research topic is computer vision, which is only one piece of puzzle of the computer science. If the [builtin metadata scrapers](https://github.com/GeoffreyChen777/paperlib/tree/electron/packages/preload/repositories/scraper-repository/scrapers) are not suitable for your research, feel free to open an issue or pull request.
 
-```diff
-# vite.config.ts
+### New Features
 
-electron({
-- renderer: {}
-})
-```
+I'm open to any new feature request, we can discuss it in the issue.
 
-## FAQ
+## License
 
-- [dependencies vs devDependencies](https://github.com/electron-vite/vite-plugin-electron/tree/main/packages/electron-renderer#dependencies-vs-devdependencies)
-- [Using C/C++ native addons in Electron-Renderer](https://github.com/electron-vite/vite-plugin-electron/tree/main/packages/electron-renderer#load-nodejs-cc-native-modules)
-- [Node.js ESM packages](https://github.com/electron-vite/vite-plugin-electron/tree/main/packages/electron-renderer#nodejs-esm-packages) (e.g. `execa` `node-fetch`)
+[GPL-3.0 License](./LICENSE)

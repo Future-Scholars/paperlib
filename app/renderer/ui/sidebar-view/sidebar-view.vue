@@ -11,12 +11,16 @@ const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
 
 const onViewContentSwitch = (view: number) => {
-  viewState.contentType = ["library", "feed"][view];
   if (view === 0) {
+    selectionState.selectedIds = [];
+    selectionState.selectedIndex = [];
     selectionState.selectedCategorizer = "lib-all";
   } else {
+    selectionState.selectedIds = [];
+    selectionState.selectedIndex = [];
     selectionState.selectedFeed = "feed-all";
   }
+  viewState.contentType = ["library", "feed"][view];
 };
 </script>
 
