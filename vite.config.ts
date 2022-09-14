@@ -63,6 +63,7 @@ export default defineConfig({
             "got",
             "hpagent",
             "rss-parser",
+            "md5-file",
           ];
         },
       },

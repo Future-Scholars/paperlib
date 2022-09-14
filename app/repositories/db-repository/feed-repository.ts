@@ -228,4 +228,4 @@ export class FeedRepository {
   }
 }
 
-export type FeedResults = Results<Feed & Object> | Array<Feed>;
+export type FeedResults = Results<Feed & Realm.Object> | Array<Feed>;

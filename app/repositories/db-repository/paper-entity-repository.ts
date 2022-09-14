@@ -203,6 +203,7 @@ export class PaperEntityRepository {
       return realm.safeWrite(() => {
         if (paperEntity) {
           realm.delete(paperEntity);
+          return true;
         } else if (ids) {
           const idsQuery = ids
             .map((id) => `_id == oid(${id as string})`)
@@ -275,5 +276,5 @@ export class PaperEntityRepository {
 }
 
 export type PaperEntityResults =
-  | Results<PaperEntity & Object>
+  | Results<PaperEntity & Realm.Object>
   | Array<PaperEntity>;

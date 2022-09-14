@@ -252,5 +252,5 @@ export class CategorizerRepository {
 }
 
 export type CategorizerResults =
-  | Results<Categorizer & Object>
+  | Results<Categorizer & Realm.Object>
   | Array<Categorizer>;

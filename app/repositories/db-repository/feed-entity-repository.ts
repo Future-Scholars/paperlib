@@ -292,5 +292,5 @@ export class FeedEntityRepository {
 }
 
 export type FeedEntityResults =
-  | Results<FeedEntity & Object>
+  | Results<FeedEntity & Realm.Object>
   | Array<FeedEntity>;

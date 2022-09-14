@@ -11,6 +11,7 @@ import {
   RenderParameters,
 } from "pdfjs-dist/types/src/display/api";
 
+import { ThumbnailCache } from "@/models/paper-entity-cache";
 import { Preference } from "@/preference/preference";
 
 export class RenderInteractor {
@@ -75,7 +76,15 @@ export class RenderInteractor {
       transform: transform,
       viewport: viewport,
     } as RenderParameters;
+
     await page.render(renderContext).promise;
+
+    const blob = (await new Promise((resolve) => {
+      canvas.toBlob(async (blob) => {
+        resolve((await blob?.arrayBuffer()) || null);
+      }, "image/png");
+    })) as ArrayBuffer | null;
+
     if (
       this.preference.get("invertColor") &&
       (await ipcRenderer.invoke("getTheme"))
@@ -84,7 +93,29 @@ export class RenderInteractor {
       context.drawImage(canvas, 0, 0);
     }
     pdf.destroy();
-    return true;
+    return { blob: blob, width: canvas.width, height: canvas.height };
+  }
+
+  async renderCache(cachedThumbnail: ThumbnailCache) {
+    const url = URL.createObjectURL(new Blob([cachedThumbnail.blob]));
+    const img = new Image();
+    img.src = url;
+    var canvas = document.getElementById("preview-canvas") as HTMLCanvasElement;
+    canvas.width = cachedThumbnail.width;
+    canvas.height = cachedThumbnail.height;
+    var context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    img.onload = async () => {
+      if (
+        this.preference.get("invertColor") &&
+        (await ipcRenderer.invoke("getTheme"))
+      ) {
+        context.filter = "invert(0.9)";
+        context.drawImage(img, 0, 0);
+      } else {
+        context.drawImage(img, 0, 0);
+      }
+    };
   }
 
   async renderMarkdown(content: string) {

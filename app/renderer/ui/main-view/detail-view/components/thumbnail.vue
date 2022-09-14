@@ -7,11 +7,13 @@ import {
 } from "bootstrap-icons-vue";
 import { onMounted, ref, watch } from "vue";
 
+import { PaperEntity } from "@/models/paper-entity";
+import { ThumbnailCache } from "@/models/paper-entity-cache";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 const props = defineProps({
-  url: {
-    type: String,
+  entity: {
+    type: Object as () => PaperEntity,
     required: true,
   },
 });
@@ -23,9 +25,11 @@ const viewState = MainRendererStateStore.useViewState();
 const isRendering = ref(true);
 const fileExistingStatus = ref(1);
 
-const render = async () => {
-  isRendering.value = true;
-  const fileURL = await window.appInteractor.access(props.url, false);
+const renderFromFile = async () => {
+  const fileURL = await window.appInteractor.access(
+    props.entity.mainURL,
+    false
+  );
   if (fileURL.length === 0) {
     isRendering.value = false;
     fileExistingStatus.value = 1;
@@ -37,15 +41,47 @@ const render = async () => {
   } else {
     fileExistingStatus.value = 0;
   }
-  await window.renderInteractor.render(fileURL);
+  const thumbnailCache = await window.renderInteractor.render(fileURL);
   isRendering.value = false;
+
+  if (thumbnailCache.blob) {
+    // TODO: update after replace
+    window.entityInteractor.updateThumbnailCache(
+      props.entity,
+      thumbnailCache as ThumbnailCache
+    );
+  }
+};
+
+const render = async () => {
+  isRendering.value = true;
+  if (props.entity.mainURL) {
+    const cachedThumbnail = await window.entityInteractor.loadThumbnail(
+      props.entity
+    );
+    if (cachedThumbnail?.blob) {
+      try {
+        window.renderInteractor.renderCache(cachedThumbnail as ThumbnailCache);
+      } catch (e) {
+        console.error(e);
+        renderFromFile();
+      }
+      fileExistingStatus.value = 0;
+      isRendering.value = false;
+    } else {
+      renderFromFile();
+    }
+  }
 };
 
 const onClick = async (e: MouseEvent) => {
   e.preventDefault();
   e.stopPropagation();
 
-  const fileURL = await window.appInteractor.access(props.url, false);
+  const fileURL = await window.appInteractor.access(
+    props.entity.mainURL,
+    false
+  );
   window.appInteractor.open(fileURL);
 };
 
@@ -63,7 +99,7 @@ const locatePDF = async () => {
 // TODO: check this
 const onWebdavDownloadClicked = async () => {
   isRendering.value = true;
-  const fileURL = await window.appInteractor.access(props.url, true);
+  const fileURL = await window.appInteractor.access(props.entity.mainURL, true);
   isRendering.value = false;
   if (fileURL === "") {
     return;
@@ -75,7 +111,7 @@ const onWebdavDownloadClicked = async () => {
 const onRightClicked = (event: MouseEvent) => {
   window.appInteractor.showContextMenu(
     "show-thumbnail-context-menu",
-    props.url
+    props.entity.mainURL
   );
 };
 

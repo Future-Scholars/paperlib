@@ -14,8 +14,11 @@ import {
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
+import { ThumbnailCache } from "@/models/paper-entity-cache";
+import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
+import { CacheRepository } from "./cache-repository";
 import { CategorizerRepository } from "./categorizer-repository";
 import { migrate } from "./db-migration";
 import { FeedEntityRepository } from "./feed-entity-repository";
@@ -24,6 +27,7 @@ import { PaperEntityRepository } from "./paper-entity-repository";
 
 export class DBRepository {
   stateStore: MainRendererStateStore;
+  preference: Preference;
 
   _realm?: Realm;
   _schemaVersion: number;
@@ -40,14 +44,22 @@ export class DBRepository {
   feedEntityRepository: FeedEntityRepository;
   feedRepository: FeedRepository;
 
-  constructor(stateStore: MainRendererStateStore) {
+  cacheRepository: CacheRepository;
+
+  constructor(stateStore: MainRendererStateStore, preference: Preference) {
     this.stateStore = stateStore;
+    this.preference = preference;
 
     this.paperEntityRepository = new PaperEntityRepository(this.stateStore);
     this.categorizerRepository = new CategorizerRepository(this.stateStore);
 
     this.feedEntityRepository = new FeedEntityRepository(this.stateStore);
     this.feedRepository = new FeedRepository(this.stateStore);
+
+    this.cacheRepository = new CacheRepository(
+      this.stateStore,
+      this.preference
+    );
 
     this._schemaVersion = 9;
   }
@@ -281,6 +293,7 @@ export class DBRepository {
   // ========================
   // Sync Control
   // ========================
+  // TODO: Check this
   pauseSync() {
     if (this.syncSession) {
       this.syncSession.pause();
@@ -337,7 +350,13 @@ export class DBRepository {
     sortOrder: string
   ) {
     const realm = await this.realm();
-    return this.paperEntityRepository.load(
+
+    const _search = search;
+    if (this.stateStore.viewState.searchMode === "fulltext") {
+      search = "";
+    }
+
+    let paperEntities = this.paperEntityRepository.load(
       realm,
       search,
       flag,
@@ -346,6 +365,15 @@ export class DBRepository {
       sortBy,
       sortOrder
     );
+
+    if (this.stateStore.viewState.searchMode === "fulltext" && _search) {
+      paperEntities = await this.cacheRepository.fullTextFilter(
+        _search,
+        paperEntities
+      );
+    }
+
+    return paperEntities;
   }
 
   async paperEntitiesByIds(ids: (string | ObjectId)[]) {
@@ -384,6 +412,10 @@ export class DBRepository {
       sortBy,
       sortOrder
     );
+  }
+
+  async thumbnail(paperEntity: PaperEntity) {
+    return await this.cacheRepository.thumbnail(paperEntity);
   }
 
   // ========================
@@ -540,6 +572,17 @@ export class DBRepository {
     });
   }
 
+  async updatePaperEntitiesCacheFullText(paperEntities: PaperEntity[]) {
+    await this.cacheRepository.updateFullText(paperEntities);
+  }
+
+  async updatePaperEntityCacheThumbnail(
+    paperEntity: PaperEntity,
+    thumbnailCache: ThumbnailCache
+  ) {
+    await this.cacheRepository.updateThumbnail(paperEntity, thumbnailCache);
+  }
+
   // ========================
   // Delete
   // ========================
@@ -561,10 +604,10 @@ export class DBRepository {
 
   async deletePaperEntities(ids: (ObjectId | string)[]) {
     const realm = await this.realm();
-    const removeFileURLs: string[] = [];
 
     const toBeDeletedObjs = this.paperEntityRepository.loadByIds(realm, ids);
-    realm.safeWrite(() => {
+    const removeFileURLs = realm.safeWrite(() => {
+      const removeFileURLs: string[] = [];
       for (const obj of toBeDeletedObjs) {
         for (const tag of obj.tags) {
           this.categorizerRepository.delete(realm, false, "PaperTag", tag);
@@ -580,12 +623,14 @@ export class DBRepository {
 
         const objFileURLs = [obj.mainURL, ...obj.supURLs];
         const success = this.paperEntityRepository.delete(realm, obj);
-
         if (success) {
           removeFileURLs.push(...objFileURLs);
         }
       }
+      return removeFileURLs;
     });
+
+    await this.cacheRepository.delete(ids);
     return removeFileURLs;
   }
 
@@ -638,5 +683,6 @@ export class DBRepository {
     this.categorizerRepository.deleteAll(realm);
     this.feedRepository.deleteAll(realm);
     this.feedEntityRepository.removeAll(realm);
+    this.cacheRepository.removeAll();
   }
 }

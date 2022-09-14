@@ -45,7 +45,7 @@ const preference = new Preference();
 const stateStore = new MainRendererStateStore(preference);
 
 console.time("Setup interactors and repositories");
-const dbRepository = new DBRepository(stateStore);
+const dbRepository = new DBRepository(stateStore, preference);
 const scraperRepository = new ScraperRepository(stateStore, preference);
 const fileRepository = new FileRepository(stateStore, preference);
 const referenceRepository = new ReferenceRepository(stateStore, preference);

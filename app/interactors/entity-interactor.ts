@@ -13,6 +13,7 @@ import {
   PaperTag,
 } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
+import { ThumbnailCache } from "@/models/paper-entity-cache";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
@@ -90,10 +91,6 @@ export class EntityInteractor {
       this.stateStore.logState.alertLog = `Failed to load paper entities`;
       entities = [] as PaperEntityResults;
     }
-    // TODO: implement this
-    // if (this.sharedState.viewState.searchMode.get() === "fulltext" && search) {
-    //   entities = await this.cacheRepository.fullTextFilter(search, entities);
-    // }
     this.stateStore.viewState.processingQueueCount -= 1;
     return entities;
   }
@@ -104,6 +101,10 @@ export class EntityInteractor {
     sortOrder: string
   ) {
     return await this.dbRepository.categorizers(type, sortBy, sortOrder);
+  }
+
+  async loadThumbnail(paperEntity: PaperEntity) {
+    return await this.dbRepository.thumbnail(paperEntity);
   }
 
   // ========================
@@ -172,6 +173,11 @@ export class EntityInteractor {
         unsuccessfulEntityDrafts.map((entityDraft) =>
           this.fileRepository.remove(entityDraft)
         )
+      );
+
+      // 5. Create cache
+      await this.dbRepository.updatePaperEntitiesCacheFullText(
+        successfulEntityDrafts
       );
     } catch (error) {
       console.error(error);
@@ -451,6 +457,21 @@ export class EntityInteractor {
     // }
   }
 
+  async updateThumbnailCache(
+    paperEntity: PaperEntity,
+    thumbnailCache: ThumbnailCache
+  ) {
+    try {
+      await this.dbRepository.updatePaperEntityCacheThumbnail(
+        paperEntity,
+        thumbnailCache
+      );
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to update thumbnail cache for ${paperEntity.title}`;
+    }
+  }
+
   // ========================
   // Delete
   // ========================
@@ -459,11 +480,10 @@ export class EntityInteractor {
     this.stateStore.viewState.processingQueueCount += ids.length;
     try {
       const removeFileURLs = await this.dbRepository.deletePaperEntities(ids);
+      console.log(removeFileURLs);
       await Promise.all(
         removeFileURLs.map((url) => this.fileRepository.removeFile(url))
       );
-      //TODO: implement this
-      // void this.cacheRepository.remove(ids);
     } catch (error) {
       console.error(error);
       this.stateStore.logState.alertLog = `Delete paper failed: ${

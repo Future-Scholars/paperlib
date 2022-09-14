@@ -166,7 +166,7 @@ onMounted(() => {
     </Section>
     <Section title="Preview">
       <Thumbnail
-        :url="entity.mainURL"
+        :entity="entity"
         @modify-main-file="(value) => modifyMainFile(value)"
         @locate-main-file="locateMainFile"
       />
