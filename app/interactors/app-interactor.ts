@@ -221,7 +221,6 @@ export class AppInteractor {
   // =============================
   async initDB() {
     await this.dbRepository.initRealm(true);
-    this.stateStore.viewState.realmReinited = Date.now();
   }
 
   migrateLocaltoCloud() {

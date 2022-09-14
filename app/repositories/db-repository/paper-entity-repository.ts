@@ -116,6 +116,12 @@ export class PaperEntityRepository {
     return objects;
   }
 
+  loadPreprint(realm: Realm) {
+    const filterFormat =
+      'publication contains[c] "arXiv" OR publication contains[c] "openreview"';
+    return realm.objects<PaperEntity>("PaperEntity").filtered(filterFormat);
+  }
+
   // ========================
   // Update
   // ========================

@@ -2,6 +2,8 @@ import { ObjectId } from "bson";
 import { clipboard } from "electron";
 import { readFileSync } from "fs";
 import path from "path";
+import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
+import { watch } from "vue";
 
 import {
   Categorizer,
@@ -11,6 +13,7 @@ import {
   PaperTag,
 } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
+import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
@@ -22,6 +25,7 @@ import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";
 
 export class EntityInteractor {
   stateStore: MainRendererStateStore;
+  preference: Preference;
 
   dbRepository: DBRepository;
   scraperRepository: ScraperRepository;
@@ -29,8 +33,11 @@ export class EntityInteractor {
   referenceRepository: ReferenceRepository;
   downloaderRepository: DownloaderRepository;
 
+  scheduler: ToadScheduler;
+
   constructor(
     stateStore: MainRendererStateStore,
+    preference: Preference,
     dbRepository: DBRepository,
     scraperRepository: ScraperRepository,
     fileRepository: FileRepository,
@@ -38,11 +45,21 @@ export class EntityInteractor {
     downloaderRepository: DownloaderRepository
   ) {
     this.stateStore = stateStore;
+    this.preference = preference;
     this.dbRepository = dbRepository;
     this.scraperRepository = scraperRepository;
     this.fileRepository = fileRepository;
     this.referenceRepository = referenceRepository;
     this.downloaderRepository = downloaderRepository;
+
+    this.scheduler = new ToadScheduler();
+
+    watch(
+      () => this.stateStore.viewState.realmReinited,
+      () => {
+        window.entityInteractor.setupRoutineScrapeScheduler();
+      }
+    );
   }
 
   // ========================
@@ -555,6 +572,69 @@ export class EntityInteractor {
     }
 
     clipboard.writeText(copyStr);
+  }
+
+  // ========================
+  // Routine Task
+  // ========================
+  async routineScrape() {
+    const allowRoutineMatch = this.preference.get(
+      "allowRoutineMatch"
+    ) as boolean;
+    if (allowRoutineMatch) {
+      this.stateStore.logState.processLog = "Start routine scraping...";
+      this.stateStore.viewState.processingQueueCount += 1;
+      try {
+        this.preference.set("lastRematchTime", Math.round(Date.now() / 1000));
+        const preprintPaperEntities =
+          await this.dbRepository.preprintPaperEntities();
+
+        // Scrape every 5 papers
+        const n = preprintPaperEntities.length;
+
+        for (let i = 0; i < n; i += 5) {
+          const preprintPaperEntityDraftsChunk = preprintPaperEntities
+            .slice(i, i + 5)
+            .map((paperEntity) => {
+              return new PaperEntity(false).initialize(paperEntity);
+            });
+          await this.scrape(preprintPaperEntityDraftsChunk);
+        }
+      } catch (error) {
+        console.error(error);
+        this.stateStore.logState.alertLog = `Routine scrape failed: ${
+          error as string
+        }`;
+      }
+      this.stateStore.viewState.processingQueueCount -= 1;
+    }
+  }
+
+  setupRoutineScrapeScheduler() {
+    const lastRematchTime = this.preference.get("lastRematchTime") as number;
+
+    if (Math.round(Date.now() / 1000) - lastRematchTime > 86400 * 7) {
+      void this.routineScrape();
+    }
+
+    if (this.scheduler == null) {
+      this.scheduler = new ToadScheduler();
+    } else {
+      this.scheduler.stop();
+      this.scheduler.removeById("routineScrape");
+    }
+
+    const task = new Task("routineScrape", () => {
+      void this.routineScrape();
+    });
+
+    const job = new SimpleIntervalJob(
+      { seconds: 7 * 86400, runImmediately: false },
+      task,
+      "routineScrape"
+    );
+
+    this.scheduler.addSimpleIntervalJob(job);
   }
 
   // ========================

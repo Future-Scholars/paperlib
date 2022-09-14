@@ -60,6 +60,7 @@ const appInteractor = new AppInteractor(
 );
 const entityInteractor = new EntityInteractor(
   stateStore,
+  preference,
   dbRepository,
   scraperRepository,
   fileRepository,

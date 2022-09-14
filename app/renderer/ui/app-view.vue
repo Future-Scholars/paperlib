@@ -207,10 +207,15 @@ watch(
 
 watch(
   () => viewState.realmReinited,
-  (value) => {
-    reloadPaperEntities();
-    reloadTags();
-    reloadFolders();
+  async (value) => {
+    console.time("Reload Data");
+    await reloadPaperEntities();
+    await reloadTags();
+    await reloadFolders();
+    removeLoading();
+    reloadFeedEntities();
+    reloadFeeds();
+    console.timeEnd("Reload Data");
   }
 );
 
@@ -250,14 +255,7 @@ const log = () => {
 // ================================
 onMounted(async () => {
   nextTick(async () => {
-    console.time("Reload Data");
-    await reloadPaperEntities();
-    await reloadTags();
-    await reloadFolders();
-    console.timeEnd("Reload Data");
-    removeLoading();
-    reloadFeedEntities();
-    reloadFeeds();
+    window.appInteractor.initDB();
   });
 });
 </script>

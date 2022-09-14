@@ -1,3 +1,6 @@
+import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
+import { watch } from "vue";
+
 import { Colors } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
@@ -17,6 +20,8 @@ export class FeedInteractor {
   rssRepository: RSSRepository;
   scraperRepository: ScraperRepository;
 
+  scheduler: ToadScheduler;
+
   constructor(
     stateStore: MainRendererStateStore,
     preference: Preference,
@@ -30,6 +35,14 @@ export class FeedInteractor {
     this.dbRepository = dbRepository;
     this.rssRepository = rssRepository;
     this.scraperRepository = scraperRepository;
+
+    this.scheduler = new ToadScheduler();
+    watch(
+      () => this.stateStore.viewState.realmReinited,
+      () => {
+        window.feedInteractor.setupRoutineRefreshScheduler();
+      }
+    );
   }
 
   // ========================
@@ -251,5 +264,54 @@ export class FeedInteractor {
       this.stateStore.logState.alertLog = `Failed to remove feed  ${name} ${feed}`;
     }
     this.stateStore.viewState.processingQueueCount -= 1;
+  }
+
+  // ========================
+  // Routine Task
+  // ========================
+  async routineRefresh() {
+    this.stateStore.logState.processLog = "Routine feed refreshing...";
+    this.stateStore.viewState.processingQueueCount += 1;
+    try {
+      this.preference.set("lastFeedRefreshTime", Math.round(Date.now() / 1000));
+      const feeds = await this.dbRepository.feeds("name", "desc");
+      await this.refresh(feeds.map((feed) => feed.name));
+      await this.dbRepository.deleteOutdatedFeedEntities();
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Routine feed refreshing failed: ${
+        error as string
+      }`;
+    }
+    this.stateStore.viewState.processingQueueCount -= 1;
+  }
+
+  setupRoutineRefreshScheduler() {
+    const lastFeedRefreshTime = this.preference.get(
+      "lastFeedRefreshTime"
+    ) as number;
+
+    if (Math.round(Date.now() / 1000) - lastFeedRefreshTime > 86400) {
+      void this.routineRefresh();
+    }
+
+    if (this.scheduler == null) {
+      this.scheduler = new ToadScheduler();
+    } else {
+      this.scheduler.stop();
+      this.scheduler.removeById("routineFeedRefresh");
+    }
+
+    const task = new Task("routineFeedRefresh", () => {
+      void this.routineRefresh();
+    });
+
+    const job = new SimpleIntervalJob(
+      { seconds: 86400, runImmediately: false },
+      task,
+      "routineFeedRefresh"
+    );
+
+    this.scheduler.addSimpleIntervalJob(job);
   }
 }

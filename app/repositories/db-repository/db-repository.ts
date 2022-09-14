@@ -79,9 +79,8 @@ export class DBRepository {
 
       this.paperEntityRepository.removeListeners();
       this.categorizerRepository.removeListeners();
-      // TODO: Uncomment this
-      // this.feedsListenerInited = false;
-      // this.feedEntitiesListenerInited = false;
+      this.feedRepository.removeListeners();
+      this.feedEntityRepository.removeListeners();
     }
 
     if (this._realm) {
@@ -135,6 +134,8 @@ export class DBRepository {
     };
 
     this.stateStore.viewState.processingQueueCount -= 1;
+
+    this.stateStore.viewState.realmReinited = Date.now();
 
     return this._realm!;
   }
@@ -350,6 +351,11 @@ export class DBRepository {
   async paperEntitiesByIds(ids: (string | ObjectId)[]) {
     const realm = await this.realm();
     return this.paperEntityRepository.loadByIds(realm, ids);
+  }
+
+  async preprintPaperEntities() {
+    const realm = await this.realm();
+    return this.paperEntityRepository.loadPreprint(realm);
   }
 
   async categorizers(type: CategorizerType, sortBy: string, sortOrder: string) {
