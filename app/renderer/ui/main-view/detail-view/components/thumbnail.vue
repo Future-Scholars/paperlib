@@ -30,6 +30,7 @@ const renderFromFile = async () => {
     props.entity.mainURL,
     false
   );
+  console.log(fileURL.length);
   if (fileURL.length === 0) {
     isRendering.value = false;
     fileExistingStatus.value = 1;
@@ -45,7 +46,6 @@ const renderFromFile = async () => {
   isRendering.value = false;
 
   if (thumbnailCache.blob) {
-    // TODO: update after replace
     window.entityInteractor.updateThumbnailCache(
       props.entity,
       thumbnailCache as ThumbnailCache
@@ -71,6 +71,9 @@ const render = async () => {
     } else {
       renderFromFile();
     }
+  } else {
+    isRendering.value = false;
+    fileExistingStatus.value = 1;
   }
 };
 

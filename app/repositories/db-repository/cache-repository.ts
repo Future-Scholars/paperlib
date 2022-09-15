@@ -1,5 +1,5 @@
 import { ObjectId } from "bson";
-import { existsSync, promises } from "fs";
+import { existsSync, lstat, promises } from "fs";
 import md5 from "md5-file";
 import path from "path";
 // @ts-ignore
@@ -211,11 +211,16 @@ export class CacheRepository {
 
     const updatePromise = async (paperEntity: PaperEntity) => {
       const fulltext = await this.getPDFText(paperEntity.mainURL);
-      const md5String = await md5(
-        (
-          await window.appInteractor.access(paperEntity.mainURL, false)
-        ).replace("file://", "")
-      );
+      const filePath = (
+        await window.appInteractor.access(paperEntity.mainURL, false)
+      ).replace("file://", "");
+
+      // TODO: check with webdav
+      let md5String = "";
+      if (filePath && (await promises.lstat(filePath)).isFile()) {
+        md5String = await md5(filePath);
+      }
+
       realm.safeWrite(() => {
         realm.create<PaperEntityCache>(
           "PaperEntityCache",
@@ -239,11 +244,14 @@ export class CacheRepository {
   ) {
     const realm = await this.realm();
 
-    const md5String = await md5(
-      (
-        await window.appInteractor.access(paperEntity.mainURL, false)
-      ).replace("file://", "")
-    );
+    const filePath = (
+      await window.appInteractor.access(paperEntity.mainURL, false)
+    ).replace("file://", "");
+
+    let md5String = "";
+    if (filePath && (await promises.lstat(filePath)).isFile()) {
+      md5String = await md5(filePath);
+    }
 
     realm.safeWrite(() => {
       const object = realm.objectForPrimaryKey<PaperEntityCache>(
@@ -272,6 +280,9 @@ export class CacheRepository {
 
   async getPDFText(url: string): Promise<string> {
     try {
+      if (!url) {
+        return "";
+      }
       const pdf = await pdfjs.getDocument(
         constructFileURL(
           url,

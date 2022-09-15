@@ -195,11 +195,14 @@ watch(
     selectionState.selectedIds = [];
     selectionState.selectedIndex = [];
     selectionState.dragedIds = [];
-    // TODO: clear more
+    selectionState.pluginLinkedFolder = "";
+    selectionState.editingCategorizer = "";
 
     paperEntities.value = [];
     tags.value = [];
     folders.value = [];
+    feeds.value = [];
+    feedEntities.value = [];
 
     window.appInteractor.initDB();
   }
@@ -218,6 +221,14 @@ watch(
     console.timeEnd("Reload Data");
   }
 );
+
+window.appInteractor.registerMainSignal("window-lost-focus", (_: any) => {
+  void window.appInteractor.pauseSync();
+});
+
+window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
+  void window.appInteractor.resumeSync();
+});
 
 // ================================
 // Dev Functions

@@ -292,8 +292,7 @@ export class EntityInteractor {
       const updatePromise = async (paperEntityDrafts: PaperEntity[]) => {
         const movedPaperEntityDrafts = await Promise.all(
           paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
-            // FIXME: fix false
-            this.fileRepository.move(paperEntityDraft, false)
+            this.fileRepository.move(paperEntityDraft, true)
           )
         );
 
@@ -453,7 +452,6 @@ export class EntityInteractor {
       type
     );
 
-    // TODO: uncomment this
     if (
       type === "PaperFolder" &&
       this.stateStore.selectionState.pluginLinkedFolder === oldName &&

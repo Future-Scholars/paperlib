@@ -89,6 +89,7 @@ export class DownloaderRepository {
         }`;
       }
     }
+
     return entityDraft;
   }
 }

@@ -293,7 +293,6 @@ export class DBRepository {
   // ========================
   // Sync Control
   // ========================
-  // TODO: Check this
   pauseSync() {
     if (this.syncSession) {
       this.syncSession.pause();

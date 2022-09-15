@@ -19,7 +19,9 @@
     "@types/katex": "^0.14.0",
     "@types/markdown-it": "^12.2.3",
     "@types/splitpanes": "2.2.1",
+    "@types/tough-cookie": "^4.0.2",
     "@types/vue-select": "^3.16.2",
+    "@types/ws": "^8.5.3",
     "@vitejs/plugin-vue": "^3.0.3",
     "autoprefixer": "10.4.4",
     "cssnano": "5.1.7",
@@ -56,10 +58,12 @@
     "rss-parser": "^3.12.0",
     "splitpanes": "3.1.1",
     "toad-scheduler": "^1.6.0",
+    "tough-cookie": "^4.0.0",
     "vite": "^3.0.9",
     "vue-select": "^4.0.0-beta.3",
     "vue-virtual-scroller": "^2.0.0-alpha.1",
-    "webdav": "^4.9.0"
+    "webdav": "^4.9.0",
+    "ws": "^8.6.0"
   },
   "debug": {
     "env": {

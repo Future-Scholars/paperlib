@@ -5,6 +5,7 @@ import { createApp } from "vue";
 import vSelect from "vue-select";
 
 import { AppInteractor } from "@/interactors/app-interactor";
+import { BrowserExtensionInteractor } from "@/interactors/browser-extension-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
 import { FeedInteractor } from "@/interactors/feed-interactor";
 import { PluginMainInteractor } from "@/interactors/plugin-main-interactor";
@@ -16,6 +17,7 @@ import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
+import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 
 import { MainRendererStateStore } from "../state/renderer/appstate";
 import "./css/index.css";
@@ -52,6 +54,7 @@ const fileRepository = new FileRepository(stateStore, preference);
 const referenceRepository = new ReferenceRepository(stateStore, preference);
 const downloaderRepository = new DownloaderRepository(stateStore, preference);
 const rssRepository = new RSSRepository(stateStore, preference);
+const webImporterRepository = new WebImporterRepository(stateStore, preference);
 
 const appInteractor = new AppInteractor(
   stateStore,
@@ -80,6 +83,12 @@ const pluginMainInteractor = new PluginMainInteractor(
   stateStore,
   preference,
   referenceRepository
+);
+const browserExtensionInteractor = new BrowserExtensionInteractor(
+  stateStore,
+  preference,
+  webImporterRepository,
+  entityInteractor
 );
 
 console.timeEnd("Setup interactors and repositories");

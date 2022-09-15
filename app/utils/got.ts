@@ -1,13 +1,15 @@
-import got, { HTTPError } from "got";
 import { ipcRenderer } from "electron";
-import path from "path";
+import { createWriteStream } from "fs";
+import got, { HTTPError } from "got";
+import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import os from "os";
+import path from "path";
 import stream from "stream";
 import { promisify } from "util";
-import { createWriteStream } from "fs";
 
 import { constructFileURL } from "./path";
-import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
+
+// TODO: check all got request
 
 export async function safeGot(
   url: string,

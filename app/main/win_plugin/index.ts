@@ -67,11 +67,11 @@ export async function createPluginWindow(
   });
 
   winPlugin.on("blur", () => {
-    // FIXME: uncomment
-    // if (os.platform() === "win32") {
-    //   winPlugin?.minimize();
-    // }
-    // winPlugin?.hide();
+    // FIXME: Test on win
+    if (os.platform() === "win32") {
+      winPlugin?.minimize();
+    }
+    winPlugin?.hide();
 
     winPlugin?.setSize(600, 76);
   });

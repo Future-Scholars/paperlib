@@ -5,6 +5,7 @@ import { existsSync, readFileSync, readdirSync } from "fs";
 import keytar from "keytar";
 import os from "os";
 import path from "path";
+import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
 
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
@@ -19,6 +20,8 @@ export class AppInteractor {
   fileRepository: FileRepository;
   dbRepository: DBRepository;
 
+  scheduler: ToadScheduler;
+
   constructor(
     stateStore: MainRendererStateStore,
     preference: Preference,
@@ -30,6 +33,8 @@ export class AppInteractor {
 
     this.fileRepository = fileRepository;
     this.dbRepository = dbRepository;
+
+    this.scheduler = new ToadScheduler();
   }
 
   async version() {
@@ -124,7 +129,6 @@ export class AppInteractor {
         const viewerPath = this.preference.get(
           "selectedPDFViewerPath"
         ) as string;
-        // TODO: check this
         const exists = existsSync(viewerPath);
         if (!exists) {
           console.error("Viewer not found");
@@ -163,7 +167,10 @@ export class AppInteractor {
     return ipcRenderer.sendSync("userData");
   }
 
-  // ============================================================
+  // =============================
+  // Reference
+  // =============================
+  // TODO: move to reference interactor?
   async loadCSLStyles(): Promise<{ key: string; name: string }[]> {
     const CSLStyles = [
       {
@@ -224,6 +231,28 @@ export class AppInteractor {
   // =============================
   async initDB() {
     await this.dbRepository.initRealm(true);
+  }
+
+  // ============================================================
+  pauseSync() {
+    this.scheduler.removeById("pauseSync");
+    const task = new Task("pauseSync", () => {
+      void this.dbRepository.pauseSync();
+      this.scheduler.removeById("pauseSync");
+    });
+
+    const job = new SimpleIntervalJob(
+      { seconds: 3600, runImmediately: false },
+      task,
+      "pauseSync"
+    );
+
+    this.scheduler.addSimpleIntervalJob(job);
+  }
+
+  resumeSync() {
+    this.scheduler.removeById("pauseSync");
+    void this.dbRepository.resumeSync();
   }
 
   migrateLocaltoCloud() {

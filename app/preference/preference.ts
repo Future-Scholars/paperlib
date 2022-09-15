@@ -324,7 +324,6 @@ export class Preference {
   store: Store<PreferenceStore>;
 
   constructor() {
-    // TODO: path
     this.store = new Store<PreferenceStore>({});
 
     for (const key in defaultPreferences) {

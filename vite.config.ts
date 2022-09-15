@@ -64,6 +64,8 @@ export default defineConfig({
             "hpagent",
             "rss-parser",
             "md5-file",
+            "tough-cookie",
+            "ws",
           ];
         },
       },
