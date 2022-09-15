@@ -454,16 +454,14 @@ export class EntityInteractor {
     );
 
     // TODO: uncomment this
-    // if (
-    //   categorizerType === "PaperFolder" &&
-    //   this.stateStore.selectionState.pluginLinkedFolder.value ===
-    //     oldCategorizerName &&
-    //   success
-    // ) {
-    //   this.stateStore.selectionState.pluginLinkedFolder.value =
-    //     newCategorizerName;
-    //   this.preference.set("pluginLinkedFolder", newCategorizerName);
-    // }
+    if (
+      type === "PaperFolder" &&
+      this.stateStore.selectionState.pluginLinkedFolder === oldName &&
+      success
+    ) {
+      this.stateStore.selectionState.pluginLinkedFolder = newName;
+      this.preference.set("pluginLinkedFolder", newName);
+    }
   }
 
   async updateCache(paperEntities: PaperEntity[]) {

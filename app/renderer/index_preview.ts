@@ -4,11 +4,11 @@ import { createApp } from "vue";
 import { PreviewInteractor } from "@/interactors/preview-interactor";
 import { PreviewRendererStateStore } from "@/state/renderer/appstate";
 
-import Preview from "./Preview.vue";
 import "./css/index.css";
+import PreviewView from "./ui/preview-view.vue";
 
 const pinia = createPinia();
-const app = createApp(Preview);
+const app = createApp(PreviewView);
 app.use(pinia);
 
 // ====================================

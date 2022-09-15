@@ -76,6 +76,7 @@ export default defineConfig({
         // multiple entry
         index: path.join(__dirname, "index.html"),
         index_preview: path.join(__dirname, "index_preview.html"),
+        index_plugin: path.join(__dirname, "index_plugin.html"),
       },
     },
   },

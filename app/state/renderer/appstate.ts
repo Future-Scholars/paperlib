@@ -13,6 +13,7 @@ import {
   BufferState,
   DBState,
   LogState,
+  PluginSelectionState,
   PreviewViewState,
   SelectionState,
   ViewState,
@@ -140,7 +141,7 @@ export class MainRendererStateStore extends RendererStateStore {
 }
 
 export class PluginRendererStateStore extends RendererStateStore {
-  selectionState: Store;
+  selectionState: Store<string, PluginSelectionState>;
 
   constructor() {
     super();
@@ -150,13 +151,7 @@ export class PluginRendererStateStore extends RendererStateStore {
   static useSelectionState = defineStore("selectionState", {
     state: () => {
       return {
-        selectedIndex: [] as number[],
-        selectedIds: [] as (string | ObjectId)[],
-        selectedCategorizer: "lib-all",
-        selectedFeed: "feed-all",
-        dragedIds: [] as (string | ObjectId)[],
         pluginLinkedFolder: "",
-        editingCategorizer: "",
       };
     },
   });

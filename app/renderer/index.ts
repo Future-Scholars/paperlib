@@ -7,6 +7,7 @@ import vSelect from "vue-select";
 import { AppInteractor } from "@/interactors/app-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
 import { FeedInteractor } from "@/interactors/feed-interactor";
+import { PluginMainInteractor } from "@/interactors/plugin-main-interactor";
 import { RenderInteractor } from "@/interactors/render-interactor";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
@@ -17,9 +18,9 @@ import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 
 import { MainRendererStateStore } from "../state/renderer/appstate";
-import App from "./App.vue";
 import "./css/index.css";
 import "./css/katex.min.css";
+import AppView from "./ui/app-view.vue";
 
 // @ts-ignore
 vSelect.props.components.default = () => ({
@@ -29,7 +30,7 @@ vSelect.props.components.default = () => ({
 
 const pinia = createPinia();
 
-const app = createApp(App);
+const app = createApp(AppView);
 app.config.unwrapInjectedRef = true;
 
 app.use(pinia);
@@ -74,6 +75,11 @@ const feedInteractor = new FeedInteractor(
   dbRepository,
   rssRepository,
   scraperRepository
+);
+const pluginMainInteractor = new PluginMainInteractor(
+  stateStore,
+  preference,
+  referenceRepository
 );
 
 console.timeEnd("Setup interactors and repositories");

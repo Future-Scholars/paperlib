@@ -149,13 +149,14 @@ export class CategorizerRepository {
     newName: string,
     type: CategorizerType
   ) {
-    realm.safeWrite(() => {
+    return realm.safeWrite(() => {
       const objects = realm
         .objects<Categorizer>(type)
         .filtered(`name == "${oldName}"`);
       for (const object of objects) {
         object.name = newName;
       }
+      return true;
     });
   }
 

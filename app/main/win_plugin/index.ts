@@ -1,12 +1,13 @@
 import {
-  app,
   BrowserWindow,
-  shell,
-  screen,
   MessageChannelMain,
+  app,
+  screen,
+  shell,
 } from "electron";
 import os from "os";
 import { join } from "path";
+
 import { registerPluginWindowEvents } from "./event";
 
 export async function createPluginWindow(
@@ -26,10 +27,9 @@ export async function createPluginWindow(
     maxHeight: 394,
     useContentSize: true,
     webPreferences: {
-      preload: join(__dirname, "../preload/index_plugin.cjs"),
       webSecurity: false,
       nodeIntegration: true,
-      contextIsolation: true,
+      contextIsolation: false,
     },
     frame: false,
     vibrancy: "sidebar",
@@ -41,10 +41,9 @@ export async function createPluginWindow(
   }
 
   if (app.isPackaged) {
-    winPlugin.loadFile(join(__dirname, "../renderer/index_plugin.html"));
+    winPlugin.loadFile(join(__dirname, "../../index_plugin.html"));
   } else {
-    // 🚧 Use ['ENV_NAME'] avoid vite:define plugin
-    const url = `http://${process.env["VITE_DEV_SERVER_HOST"]}:${process.env["VITE_DEV_SERVER_PORT"]}/index_plugin.html`;
+    const url = `${process.env.VITE_DEV_SERVER_URL}/index_plugin.html`;
 
     winPlugin.loadURL(url);
     winPlugin.webContents.openDevTools();
@@ -68,10 +67,12 @@ export async function createPluginWindow(
   });
 
   winPlugin.on("blur", () => {
-    if (os.platform() === "win32") {
-      winPlugin?.minimize();
-    }
-    winPlugin?.hide();
+    // FIXME: uncomment
+    // if (os.platform() === "win32") {
+    //   winPlugin?.minimize();
+    // }
+    // winPlugin?.hide();
+
     winPlugin?.setSize(600, 76);
   });
 
