@@ -83,6 +83,8 @@ export async function createMainWindow(
 function setWindowsSpecificStyles(win: BrowserWindow | null) {
   if (os.platform() !== "darwin" && win) {
     win.webContents.insertCSS(`
+
+
 /* Track */
 ::-webkit-scrollbar-track {
   background: var(--q-bg-secondary);

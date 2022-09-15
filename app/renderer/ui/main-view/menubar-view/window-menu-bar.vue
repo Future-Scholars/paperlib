@@ -10,6 +10,12 @@ import {
   BIconPerson,
   BIconSortDown,
   BIconSortUp,
+  BIconX,
+  BIconDash,
+  BIconThreeDots,
+  BIconListUl,
+  BIconGrid3x2,
+  BIconGear,
 } from "bootstrap-icons-vue";
 
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -35,10 +41,25 @@ const emit = defineEmits(["click"]);
 // ================================
 const viewState = MainRendererStateStore.useViewState();
 const prefState = MainRendererStateStore.usePreferenceState();
+
+
+const onCloseClicked = () => {
+  window.appInteractor.close();
+};
+
+const onMinimizeClicked = () => {
+  window.appInteractor.minimize();
+};
+
+const onMaximizeClicked = () => {
+  window.appInteractor.maximize();
+};
 </script>
 
 <template>
-  <div class="flex w-full h-12 justify-between draggable-title">
+  <div class="flex w-full justify-between draggable-title" 
+    :class="viewState.os ==='darwin'? 'h-12': 'h-10 mb-1'"
+  >
     <div class="grow my-auto px-2 nodraggable-item">
       <SearchInput
         @focusin="viewState.inputFieldFocused = true"
@@ -47,7 +68,8 @@ const prefState = MainRendererStateStore.usePreferenceState();
     </div>
 
     <div
-      class="flex flex-none justify-end space-x-1 my-auto w-80 pl-8 pr-2 nodraggable-item"
+      class="flex flex-none justify-end space-x-1 my-auto  pr-2 nodraggable-item"
+      :class="viewState.os ==='darwin'? 'w-80 pl-8' : 'w-48 pl-2'"
     >
       <MenuBarBtn
         btnName="Rescrape"
@@ -72,6 +94,7 @@ const prefState = MainRendererStateStore.usePreferenceState();
       <div
         class="flex rounded-md hover:bg-neutral-100 hover:dark:bg-neutral-600"
         style="margin-left: 0.5rem !important; margin-right: 0.5rem !important"
+         v-if="viewState.os === 'darwin'"
       >
         <MenuBarBtn
           class="my-auto"
@@ -227,11 +250,92 @@ const prefState = MainRendererStateStore.usePreferenceState();
         </Transition>
       </Menu>
 
+      <Menu as="div" class="relative inline-block text-left">
+        <div>
+          <MenuButton
+            class="inline-flex justify-center w-7 h-6 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700 cursor-default"
+          >
+            <BIconThreeDots
+              class="text-sm m-auto text-neutral-700 dark:text-neutral-300"
+            />
+          </MenuButton>
+        </div>
+
+        <Transition
+          enter-active-class="transition ease-out duration-100"
+          enter-from-class="transform opacity-0 scale-95"
+          enter-to-class="transform opacity-100 scale-100"
+          leave-active-class="transition ease-in duration-75"
+          leave-from-class="transform opacity-100 scale-100"
+          leave-to-class="transform opacity-0 scale-95"
+        >
+          <MenuItems
+            class="origin-top-right z-50 absolute right-0 mt-2 w-40 rounded-md shadow-lg p-1 text-xs bg-white dark:bg-neutral-800 dark:drop-shadow-xl divide-y dark:divide-neutral-700 focus:outline-none"
+          >
+            <div class="pb-1">
+              <MenuItem
+                v-slot="{ active }"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
+                @click="emit('click', 'list-view')"
+              >
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconListUl class="my-auto" />
+                    <span>List View</span>
+                  </div>
+                  <BIconCheck2
+                    class="my-auto"
+                    v-if="prefState.mainviewType === 'list'"
+                  />
+                </div>
+              </MenuItem>
+              <MenuItem
+                v-slot="{ active }"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
+                @click="emit('click', 'table-view')"
+              >
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconGrid3x2 class="my-auto" />
+                    <span>Table View</span>
+                  </div>
+                  <BIconCheck2
+                    class="my-auto"
+                    v-if="prefState.mainviewType === 'table'"
+                  />
+                </div>
+              </MenuItem>
+              
+              <MenuItem
+                v-slot="{ active }"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
+                @click="emit('click', 'preference')"
+              >
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconGear class="my-auto" />
+                    <span>Preference</span>
+                  </div>
+                </div>
+              </MenuItem>
+            </div>
+          </MenuItems>
+        </Transition>
+      </Menu>
+
+
       <MenuBarBtn
         btnName="Preference"
         @click="emit('click', 'preference')"
         :with-tooltip="false"
+        v-if="viewState.os === 'darwin'"
       />
+    </div>
+
+    <div class="flex nodraggable-item mx-1">
+      <div class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out" @click="onMinimizeClicked"><BIconDash class="m-auto mt-2.5 text-lg"/></div>
+      <div class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out" @click="onMaximizeClicked"><div class="m-auto mt-[14px] w-[10px] h-[10px] border-[1.5px] border-neutral-500"></div></div>
+      <div class="flex w-10 h-8 hover:bg-red-600 transition ease-in-out hover:text-neutral-200" @click="onCloseClicked"><BIconX class="m-auto mt-2.5 text-lg"/></div>
     </div>
   </div>
 </template>

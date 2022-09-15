@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import NotificationBar from "./components/notification-bar.vue";
 import SwitcherTitle from "./components/switcher-title.vue";
 import WindowControlBar from "./components/window-control-bar.vue";
 import SidebarFeedsView from "./sidebar-feeds-view.vue";
 import SidebarLibraryView from "./sidebar-library-view.vue";
+
+
 
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
@@ -26,8 +28,8 @@ const onViewContentSwitch = (view: number) => {
 
 <template>
   <div class="flex-none flex flex-col w-full h-screen justify-between">
-    <WindowControlBar class="flex-none" v-if="viewState.os !== 'darwin'" />
-    <div class="h-4" v-if="viewState.os === 'darwin'"></div>
+    <WindowControlBar class="flex-none" v-if="viewState.os === 'darwin'" />
+    <div class="h-4 draggable-title" v-if="viewState.os !== 'darwin'"></div>
 
     <SwitcherTitle
       class="h-7"
