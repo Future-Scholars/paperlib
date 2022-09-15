@@ -15,6 +15,8 @@ export interface LogState {
 }
 
 export interface ViewState {
+  os: string;
+
   isDeleteConfirmShown: boolean;
   isEditViewShown: boolean;
   isPreferenceViewShown: boolean;

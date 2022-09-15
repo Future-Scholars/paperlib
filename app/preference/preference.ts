@@ -1,3 +1,4 @@
+import { app, ipcRenderer } from "electron";
 import Store from "electron-store";
 import os from "os";
 import path from "path";
@@ -323,8 +324,15 @@ export const defaultPreferences: PreferenceStore = {
 export class Preference {
   store: Store<PreferenceStore>;
 
-  constructor() {
-    this.store = new Store<PreferenceStore>({});
+  constructor(rendererProcess: boolean = false) {
+    if (rendererProcess) {
+      const appPath = ipcRenderer.sendSync("userData");
+      this.store = new Store({
+        cwd: appPath,
+      });
+    } else {
+      this.store = new Store<PreferenceStore>({});
+    }
 
     for (const key in defaultPreferences) {
       if (!this.store.has(key)) {

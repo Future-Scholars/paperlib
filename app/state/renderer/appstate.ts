@@ -65,6 +65,8 @@ export class MainRendererStateStore extends RendererStateStore {
   static useViewState = defineStore("viewState", {
     state: () => {
       return {
+        os: process.platform,
+
         // View Shown
         isDeleteConfirmShown: false,
         isEditViewShown: false,

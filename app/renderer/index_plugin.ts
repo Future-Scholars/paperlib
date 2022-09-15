@@ -16,7 +16,7 @@ plugin.use(pinia);
 // ====================================
 // Setup interactors and repositories
 // ====================================
-const preference = new Preference();
+const preference = new Preference(true);
 const pluginRendererStateStore = new PluginRendererStateStore();
 
 const pluginSideInteractor = new PluginSideInteractor(

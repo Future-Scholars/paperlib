@@ -45,7 +45,7 @@ app.component("v-select", vSelect);
 // ====================================
 // Setup interactors and repositories
 // ====================================
-const preference = new Preference();
+const preference = new Preference(true);
 const stateStore = new MainRendererStateStore(preference);
 
 console.time("Setup interactors and repositories");

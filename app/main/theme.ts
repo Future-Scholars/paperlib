@@ -1,6 +1,6 @@
 import { ipcMain, nativeTheme } from "electron";
 
-ipcMain.on("themeChanged", (event, arg) => {
+ipcMain.on("theme-change", (event, arg) => {
   nativeTheme.themeSource = arg;
 });
 

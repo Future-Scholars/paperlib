@@ -283,7 +283,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex text-neutral-700 dark:text-neutral-200">
-    <div class="flex space-x-2 fixed left-24 text-xs">
+    <!-- <div class="flex space-x-2 fixed left-24 text-xs">
       <button
         class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
         @click="reloadAll"
@@ -308,7 +308,7 @@ onMounted(async () => {
       >
         Log
       </button>
-    </div>
+    </div> -->
     <splitpanes @resized="onSidebarResized($event)">
       <pane :key="1" min-size="12" :size="viewState.sidebarWidth">
         <SidebarView class="sidebar-windows-bg" />

@@ -1,9 +1,9 @@
-import { app, BrowserWindow, shell } from "electron";
+import { BrowserWindow, app, nativeTheme, shell } from "electron";
 import os from "os";
 import { join } from "path";
 
-import { setMainMenu } from "./menu";
 import { Preference } from "../../preference/preference";
+import { setMainMenu } from "./menu";
 
 export async function createMainWindow(
   win: BrowserWindow | null,
@@ -48,6 +48,10 @@ export async function createMainWindow(
   });
 
   setMainMenu(win, preference);
+  nativeTheme.themeSource = preference.get("preferedTheme") as
+    | "dark"
+    | "light"
+    | "system";
 
   win.on("ready-to-show", () => {
     setWindowsSpecificStyles(win);

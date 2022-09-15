@@ -26,7 +26,8 @@ const onViewContentSwitch = (view: number) => {
 
 <template>
   <div class="flex-none flex flex-col w-full h-screen justify-between">
-    <WindowControlBar class="flex-none" />
+    <WindowControlBar class="flex-none" v-if="viewState.os !== 'darwin'" />
+    <div class="h-4" v-if="viewState.os === 'darwin'"></div>
 
     <SwitcherTitle
       class="h-7"
