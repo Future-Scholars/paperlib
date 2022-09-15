@@ -1,16 +1,17 @@
 <script setup lang="ts">
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+
 const props = defineProps({
   authors: String,
 });
 
+const viewState = MainRendererStateStore.useViewState();
+
 const onClick = (e: MouseEvent, author: string) => {
   e.preventDefault();
   e.stopPropagation();
-  window.appInteractor.setState("viewState.searchMode", "advanced");
-  window.appInteractor.setState(
-    "viewState.searchText",
-    `authors contains '${author}'`
-  );
+  viewState.searchMode = "advanced";
+  viewState.searchText = `authors contains '${author}'`;
 };
 
 const onRightClick = (e: MouseEvent, author: string) => {

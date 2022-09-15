@@ -59,7 +59,7 @@ const render = async () => {
     const cachedThumbnail = await window.entityInteractor.loadThumbnail(
       props.entity
     );
-    if (cachedThumbnail?.blob) {
+    if (cachedThumbnail?.blob && cachedThumbnail?.blob.byteLength > 0) {
       try {
         window.renderInteractor.renderCache(cachedThumbnail as ThumbnailCache);
       } catch (e) {

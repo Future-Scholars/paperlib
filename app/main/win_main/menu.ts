@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu } from "electron";
+import { BrowserWindow, Menu, app, ipcMain } from "electron";
 import { autoUpdater } from "electron-updater";
 
 import { Preference } from "../../preference/preference";

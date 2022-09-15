@@ -13,6 +13,7 @@ import {
   BufferState,
   DBState,
   LogState,
+  PreviewViewState,
   SelectionState,
   ViewState,
 } from "../states";
@@ -156,6 +157,23 @@ export class PluginRendererStateStore extends RendererStateStore {
         dragedIds: [] as (string | ObjectId)[],
         pluginLinkedFolder: "",
         editingCategorizer: "",
+      };
+    },
+  });
+}
+
+export class PreviewRendererStateStore extends RendererStateStore {
+  viewState: Store<string, PreviewViewState>;
+
+  constructor(pinia?: Pinia) {
+    super();
+    this.viewState = PreviewRendererStateStore.useViewState(pinia);
+  }
+
+  static useViewState = defineStore("viewState", {
+    state: () => {
+      return {
+        isRendering: true,
       };
     },
   });

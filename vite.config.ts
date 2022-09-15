@@ -69,6 +69,17 @@ export default defineConfig({
       },
     }),
   ],
+
+  build: {
+    rollupOptions: {
+      input: {
+        // multiple entry
+        index: path.join(__dirname, "index.html"),
+        index_preview: path.join(__dirname, "index_preview.html"),
+      },
+    },
+  },
+
   resolve: {
     alias: {
       "@": path.join(__dirname, "app") + "/",

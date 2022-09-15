@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { Switch } from "@headlessui/vue";
 import { PropType, ref } from "vue";
 
-import { ScraperPreference } from "../../../../../preload/utils/preference";
+import { ScraperPreference } from "@/preference/preference";
 
 const props = defineProps({
   scraperPref: {

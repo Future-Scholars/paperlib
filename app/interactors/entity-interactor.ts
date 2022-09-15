@@ -175,6 +175,7 @@ export class EntityInteractor {
         )
       );
 
+      this.stateStore.viewState.processingQueueCount -= urlList.length;
       // 5. Create cache
       await this.dbRepository.updatePaperEntitiesCacheFullText(
         successfulEntityDrafts
@@ -185,7 +186,6 @@ export class EntityInteractor {
         error as string
       }`;
     }
-    this.stateStore.viewState.processingQueueCount -= urlList.length;
     return successfulEntityDrafts;
   }
 
@@ -287,11 +287,13 @@ export class EntityInteractor {
     this.stateStore.logState.processLog = `Updating ${paperEntities.length} paper(s)...`;
     this.stateStore.viewState.processingQueueCount += paperEntities.length;
 
+    let updatedPaperEntities: PaperEntity[] = [];
     try {
       const updatePromise = async (paperEntityDrafts: PaperEntity[]) => {
         const movedPaperEntityDrafts = await Promise.all(
           paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
-            this.fileRepository.move(paperEntityDraft, true)
+            // FIXME: fix false
+            this.fileRepository.move(paperEntityDraft, false)
           )
         );
 
@@ -301,12 +303,18 @@ export class EntityInteractor {
           }
         }
 
-        await this.dbRepository.updatePaperEntities(
+        const successes = await this.dbRepository.updatePaperEntities(
           movedPaperEntityDrafts as PaperEntity[]
         );
+
+        const successfulPaperEntityDrafts = movedPaperEntityDrafts.filter(
+          (_, index) => successes[index]
+        ) as PaperEntity[];
+
+        return successfulPaperEntityDrafts;
       };
 
-      await updatePromise(paperEntities);
+      updatedPaperEntities = await updatePromise(paperEntities);
     } catch (error) {
       console.error(error);
       this.stateStore.logState.alertLog = `Update paper failed: ${
@@ -315,6 +323,7 @@ export class EntityInteractor {
     }
 
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
+    return updatedPaperEntities;
   }
 
   async scrape(paperEntities: PaperEntity[]) {
@@ -457,6 +466,24 @@ export class EntityInteractor {
     // }
   }
 
+  async updateCache(paperEntities: PaperEntity[]) {
+    try {
+      await this.dbRepository.updatePaperEntitiesCacheFullText(paperEntities);
+      for (const paperEntity of paperEntities) {
+        await this.dbRepository.updatePaperEntityCacheThumbnail(paperEntity, {
+          blob: new ArrayBuffer(0),
+          width: 0,
+          height: 0,
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Update cache failed: ${
+        error as string
+      }`;
+    }
+  }
+
   async updateThumbnailCache(
     paperEntity: PaperEntity,
     thumbnailCache: ThumbnailCache
@@ -480,7 +507,7 @@ export class EntityInteractor {
     this.stateStore.viewState.processingQueueCount += ids.length;
     try {
       const removeFileURLs = await this.dbRepository.deletePaperEntities(ids);
-      console.log(removeFileURLs);
+
       await Promise.all(
         removeFileURLs.map((url) => this.fileRepository.removeFile(url))
       );
@@ -504,6 +531,7 @@ export class EntityInteractor {
       return new PaperEntity(false).initialize(paperEntity);
     });
 
+    let updatedPaperEntities: PaperEntity[] = [];
     try {
       const downloadPromise = async (paperEntityDraft: PaperEntity) => {
         return await this.downloaderRepository.download(paperEntityDraft);
@@ -515,7 +543,7 @@ export class EntityInteractor {
         )
       );
 
-      await this.update(paperEntityDrafts);
+      updatedPaperEntities = await this.update(paperEntityDrafts);
     } catch (error) {
       console.error(error);
       this.stateStore.logState.alertLog = `Download paper failed: ${
@@ -524,6 +552,7 @@ export class EntityInteractor {
     }
 
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
+    return updatedPaperEntities;
   }
 
   async renameAll() {

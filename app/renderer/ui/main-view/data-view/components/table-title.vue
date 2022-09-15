@@ -14,7 +14,7 @@ const props = defineProps({
   },
 });
 
-const viewState = MainRendererStateStore.useViewState();
+const prefState = MainRendererStateStore.usePreferenceState();
 
 const onTitleClicked = (key: string) => {
   prefState.mainviewSortBy = key;

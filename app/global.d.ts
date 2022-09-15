@@ -4,6 +4,7 @@ import path from "path";
 import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
 import { FeedInteractor } from "./interactors/feed-interactor";
+import { PreviewInteractor } from "./interactors/preview-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
 
 declare global {
@@ -12,10 +13,7 @@ declare global {
     entityInteractor: EntityInteractor;
     renderInteractor: RenderInteractor;
     feedInteractor: FeedInteractor;
-
-    quicklookInteractor: { preview: () => void; closePreview: () => void };
-    fsAPI: typeof fs;
-    pathAPI: typeof path;
+    previewInteractor: PreviewInteractor;
   }
 
   interface Realm {

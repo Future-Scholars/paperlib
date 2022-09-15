@@ -116,7 +116,7 @@ export class CacheRepository {
   // ========================
   async fullTextFilter(query: string, paperEntities: PaperEntityResults) {
     // First check if all the paper entities are already cached.
-    await this.updateFullText(paperEntities);
+    await this.createFullText(paperEntities);
 
     const realm = await this.realm();
 
@@ -155,7 +155,7 @@ export class CacheRepository {
   // ========================
   // Create and Update
   // ========================
-  async updateFullText(paperEntities: PaperEntityResults) {
+  async createFullText(paperEntities: PaperEntityResults) {
     const realm = await this.realm();
 
     // 1. Pick out the entities that are not in the cache
@@ -166,7 +166,7 @@ export class CacheRepository {
       .filtered("_id IN $0", ids);
     const existObjIds = existObjs.map((e) => e._id);
 
-    let noCachePaperEntities: PaperEntityResults;
+    let noCachePaperEntities: PaperEntityResults = [];
 
     if (paperEntities instanceof Realm.Results) {
       noCachePaperEntities = paperEntities.filtered(
@@ -174,31 +174,66 @@ export class CacheRepository {
         existObjIds
       );
     } else {
+      const existObjStrIds = existObjIds.map((id) => `${id}`);
       noCachePaperEntities = paperEntities.filter(
-        (e) => !existObjIds.includes(e._id)
+        (p) => !existObjStrIds.includes(`${p._id}`)
       );
     }
-
     // 2. Update the cache
     if (pdfjs.GlobalWorkerOptions.workerPort === null) {
       const pdfWorker = new Worker("./pdf.worker.min.js");
       pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
     }
 
-    let i = 0;
-    for (const paperEntity of noCachePaperEntities) {
-      i++;
+    const createPromise = async (paperEntity: PaperEntity) => {
       const fulltext = await this.getPDFText(paperEntity.mainURL);
-
+      console.log(fulltext);
+      const md5String = await md5(
+        (
+          await window.appInteractor.access(paperEntity.mainURL, false)
+        ).replace("file://", "")
+      );
       realm.safeWrite(() => {
         realm.create<PaperEntityCache>("PaperEntityCache", {
           _id: new ObjectId(paperEntity._id),
           _partition: "",
           fulltext: fulltext,
-          md5: "",
+          md5: md5String,
         });
       });
+    };
+    await Promise.all(noCachePaperEntities.map((p) => createPromise(p)));
+  }
+
+  async updateFullText(paperEntities: PaperEntityResults) {
+    const realm = await this.realm();
+    if (pdfjs.GlobalWorkerOptions.workerPort === null) {
+      const pdfWorker = new Worker("./pdf.worker.min.js");
+      pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
     }
+
+    const updatePromise = async (paperEntity: PaperEntity) => {
+      const fulltext = await this.getPDFText(paperEntity.mainURL);
+      const md5String = await md5(
+        (
+          await window.appInteractor.access(paperEntity.mainURL, false)
+        ).replace("file://", "")
+      );
+      realm.safeWrite(() => {
+        realm.create<PaperEntityCache>(
+          "PaperEntityCache",
+          {
+            _id: new ObjectId(paperEntity._id),
+            _partition: "",
+            fulltext: fulltext,
+            md5: md5String,
+          },
+          Realm.UpdateMode.Modified
+        );
+      });
+    };
+
+    await Promise.all(paperEntities.map((p) => updatePromise(p)));
   }
 
   async updateThumbnail(

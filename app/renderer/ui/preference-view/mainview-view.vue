@@ -22,6 +22,7 @@ import MainSection from "./components/main-section.vue";
 const prefState = MainRendererStateStore.usePreferenceState();
 
 const item = ref(new PaperEntity(false));
+// @ts-ignore
 item.value.initialize({
   id: `${new ObjectId()}`,
   _id: `${new ObjectId()}`,
@@ -46,15 +47,6 @@ item.value.initialize({
   number: "",
   publisher: "",
   _partition: "",
-  setValue: function (key: string, value: unknown, allowEmpty?: boolean): void {
-    throw new Error("Function not implemented.");
-  },
-  initialize: function (entity: PaperEntity): PaperEntity {
-    throw new Error("Function not implemented.");
-  },
-  dummyFill: function (): PaperEntity {
-    throw new Error("Function not implemented.");
-  },
 });
 
 const updatePref = (key: string, value: unknown) => {

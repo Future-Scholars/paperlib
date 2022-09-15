@@ -52,7 +52,10 @@ const onDeleteCategorizer = (
 const modifyMainFile = async (url: string) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.mainURL = url;
-  await window.entityInteractor.update([paperEntityDraft]);
+  const updatedPaperEntity = await window.entityInteractor.update([
+    paperEntityDraft,
+  ]);
+  await window.entityInteractor.updateCache(updatedPaperEntity);
   setTimeout(() => {
     viewState.renderRequired = Date.now();
   }, 500);
@@ -60,7 +63,10 @@ const modifyMainFile = async (url: string) => {
 
 const locateMainFile = async () => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
-  await window.entityInteractor.locateMainFile([paperEntityDraft]);
+  const updatedPaperEntity = await window.entityInteractor.locateMainFile([
+    paperEntityDraft,
+  ]);
+  await window.entityInteractor.updateCache(updatedPaperEntity);
   viewState.renderRequired = Date.now();
 };
 

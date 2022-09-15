@@ -115,7 +115,10 @@ export class AppInteractor {
       shell.openExternal(url);
     } else {
       const accessedURL = (await this.access(url, true)).replace("file://", "");
-      if (this.preference.get("selectedPDFViewer") === "default") {
+      if (
+        this.preference.get("selectedPDFViewer") === "default" ||
+        !accessedURL.endsWith(".pdf")
+      ) {
         shell.openPath(accessedURL);
       } else {
         const viewerPath = this.preference.get(

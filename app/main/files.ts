@@ -1,4 +1,4 @@
-import { app, ipcMain, BrowserWindow, dialog, screen } from "electron";
+import { BrowserWindow, app, dialog, ipcMain, screen } from "electron";
 import { join } from "path";
 
 ipcMain.on("userData", (event, arg) => {
@@ -24,8 +24,9 @@ ipcMain.on("preview", (event, fileURL) => {
       fileURL.replace("file://", "")
     );
   } else {
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
+    const { x, y } = screen.getCursorScreenPoint();
+    const currentDisplay = screen.getDisplayNearestPoint({ x, y });
+    const { width, height } = currentDisplay.workAreaSize;
 
     if (!previewWin) {
       previewWin = new BrowserWindow({
@@ -35,25 +36,42 @@ ipcMain.on("preview", (event, fileURL) => {
         minWidth: Math.floor(height * 0.8 * 0.75),
         minHeight: Math.floor(height * 0.8),
         webPreferences: {
-          preload: join(__dirname, "../preload/index_preview.cjs"),
           webSecurity: false,
           nodeIntegration: true,
-          contextIsolation: true,
+          contextIsolation: false,
         },
         frame: false,
+        show: false,
       });
 
       if (app.isPackaged) {
-        previewWin.loadFile(join(__dirname, "../renderer/index_preview.html"));
+        previewWin.loadFile(join(__dirname, "../../index_preview.html"));
       } else {
         // 🚧 Use ['ENV_NAME'] avoid vite:define plugin
-        const url = `http://${process.env["VITE_DEV_SERVER_HOST"]}:${process.env["VITE_DEV_SERVER_PORT"]}/index_preview.html`;
+        const url = `${process.env.VITE_DEV_SERVER_URL}/index_preview.html`;
 
         previewWin.loadURL(url);
-        previewWin.webContents.openDevTools();
       }
     }
-    previewWin.once("ready-to-show", () => {
+
+    const bounds = currentDisplay.bounds;
+
+    const windowSize = previewWin?.getSize();
+    const windowWidth = windowSize?.[0] || 0;
+    const windowHeight = windowSize?.[1] || 0;
+
+    const centerx = bounds.x + (bounds.width - windowWidth) / 2;
+    const centery = bounds.y + (bounds.height - windowHeight) / 2;
+    previewWin?.setPosition(parseInt(`${centerx}`), parseInt(`${centery}`));
+
+    previewWin?.show();
+
+    previewWin.on("blur", () => {
+      previewWin?.close();
+      previewWin = null;
+    });
+
+    previewWin.webContents.on("dom-ready", () => {
       previewWin?.webContents.send("preview-file", fileURL);
     });
   }

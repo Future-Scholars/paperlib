@@ -60,3 +60,7 @@ export interface SelectionState {
   pluginLinkedFolder: string;
   editingCategorizer: string;
 }
+
+export interface PreviewViewState {
+  isRendering: boolean;
+}
