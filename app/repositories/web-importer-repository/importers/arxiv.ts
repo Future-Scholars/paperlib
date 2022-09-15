@@ -1,7 +1,6 @@
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { downloadPDFs } from "@/utils/got";
 
 import { WebContentType, WebImporter } from "./importer";
 
@@ -23,8 +22,9 @@ export class ArXivWebImporter extends WebImporter {
       entityDraft = new PaperEntity(true);
       const downloadURL = `https://arxiv.org/pdf/${arXivID}.pdf`;
 
-      this.stateStore.logState.processLog = `Downloading...`;
-      const downloadedFilePath = await downloadPDFs([downloadURL]);
+      const downloadedFilePath = await window.networkTool.downloadPDFs([
+        downloadURL,
+      ]);
 
       entityDraft.setValue("arxiv", arXivID);
       entityDraft.setValue("pubType", 0);

@@ -1,4 +1,4 @@
-import got, { Response } from "got";
+import { Response } from "got";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
@@ -77,14 +77,10 @@ async function scrapeImpl(
     ) as ScraperRequestType;
 
     if (enable) {
-      const agent = this.getProxyAgent();
-      let options = {
-        headers: headers,
-        retry: 1,
-        timeout: 10000,
-        agent: agent,
-      };
-      const response = await got(scrapeURL, options);
+      const response = (await window.networkTool.get(
+        scrapeURL,
+        headers
+      )) as Response<string>;
       return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
     } else {
       return paperEntityDraft;

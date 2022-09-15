@@ -7,6 +7,7 @@ import { FeedInteractor } from "./interactors/feed-interactor";
 import { PluginSideInteractor } from "./interactors/plugin-side-interactor";
 import { PreviewInteractor } from "./interactors/preview-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
+import { NetworkTool } from "./utils/got";
 
 declare global {
   interface Window {
@@ -16,6 +17,8 @@ declare global {
     feedInteractor: FeedInteractor;
     previewInteractor: PreviewInteractor;
     pluginSideInteractor: PluginSideInteractor;
+
+    networkTool: NetworkTool;
   }
 
   interface Realm {

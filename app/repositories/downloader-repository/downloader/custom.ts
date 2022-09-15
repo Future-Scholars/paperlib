@@ -2,7 +2,6 @@ import { PaperEntity } from "@/models/paper-entity";
 import { DownloaderPreference, Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
-import { downloadPDFs } from "../../../utils/got";
 import {
   Downloader,
   DownloaderRequestType,
@@ -89,15 +88,15 @@ async function downloadImpl(
     ) as DownloaderRequestType;
 
     if (enable) {
-      const agent = this.getProxyAgent();
       const downloadUrl = await this.queryProcess(
         queryUrl,
         headers,
         paperEntityDraft
       );
       if (downloadUrl) {
-        this.stateStore.logState.processLog = `Downloading...`;
-        const downloadedUrl = await downloadPDFs([downloadUrl], agent);
+        const downloadedUrl = await window.networkTool.downloadPDFs([
+          downloadUrl,
+        ]);
 
         if (downloadedUrl.length > 0) {
           paperEntityDraft.mainURL = downloadedUrl[0];

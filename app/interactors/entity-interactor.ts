@@ -245,8 +245,26 @@ export class EntityInteractor {
   }
 
   // ========================
-  // Remove
+  // Delete
   // ========================
+  async delete(ids: (ObjectId | string)[]) {
+    this.stateStore.logState.processLog = `Deleting ${ids.length} paper(s)...`;
+    this.stateStore.viewState.processingQueueCount += ids.length;
+    try {
+      const removeFileURLs = await this.dbRepository.deletePaperEntities(ids);
+
+      await Promise.all(
+        removeFileURLs.map((url) => this.fileRepository.removeFile(url))
+      );
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Delete paper failed: ${
+        error as string
+      }`;
+    }
+    this.stateStore.viewState.processingQueueCount -= ids.length;
+  }
+
   async deleteCategorizer(
     type: CategorizerType,
     name?: string,
@@ -493,27 +511,6 @@ export class EntityInteractor {
       console.error(error);
       this.stateStore.logState.alertLog = `Failed to update thumbnail cache for ${paperEntity.title}`;
     }
-  }
-
-  // ========================
-  // Delete
-  // ========================
-  async delete(ids: (ObjectId | string)[]) {
-    this.stateStore.logState.processLog = `Deleting ${ids.length} paper(s)...`;
-    this.stateStore.viewState.processingQueueCount += ids.length;
-    try {
-      const removeFileURLs = await this.dbRepository.deletePaperEntities(ids);
-
-      await Promise.all(
-        removeFileURLs.map((url) => this.fileRepository.removeFile(url))
-      );
-    } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Delete paper failed: ${
-        error as string
-      }`;
-    }
-    this.stateStore.viewState.processingQueueCount -= ids.length;
   }
 
   // ========================

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { Ref, ref, watch } from "vue";
 import {
   BIconArrowBarUp,
   BIconExclamationTriangle,
   BIconInfoCircle,
 } from "bootstrap-icons-vue";
+import { Ref, ref, watch } from "vue";
+
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 const logState = MainRendererStateStore.useLogState();
@@ -13,6 +14,9 @@ const viewState = MainRendererStateStore.useViewState();
 const isShown = ref(false);
 const isHistoryShown = ref(false);
 const historyMsgs = ref([]) as Ref<Array<Record<string, string | boolean>>>;
+const historyProgresses = ref([]) as Ref<
+  Array<Record<string, number | string | boolean>>
+>;
 
 watch(
   () => viewState.processingQueueCount,
@@ -25,31 +29,33 @@ watch(
   }
 );
 
-const pushToHistory = (type: string, msg: string) => {
-  historyMsgs.value.push({
-    type: type,
-    msg: `${new Date().getHours().toString().padStart(2, "0")}:${new Date()
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")} ${msg}`,
-    forceShow: type === "warning",
-  });
-  if (historyMsgs.value.length > 20) {
-    historyMsgs.value.shift();
+const pushMsgToHistory = (type: string, msg: string) => {
+  if (msg) {
+    historyMsgs.value.push({
+      type: type,
+      msg: `${new Date().getHours().toString().padStart(2, "0")}:${new Date()
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")} ${msg}`,
+      forceShow: type === "warning",
+    });
+    if (historyMsgs.value.length > 20) {
+      historyMsgs.value.shift();
+    }
   }
 };
 
 watch(
   () => logState.processLog,
   (value) => {
-    pushToHistory("info", value);
+    pushMsgToHistory("info", value);
   }
 );
 
 watch(
   () => logState.alertLog,
   (value) => {
-    pushToHistory("warning", value as string);
+    pushMsgToHistory("warning", value as string);
     isHistoryShown.value = true;
     debounce(() => {
       isHistoryShown.value = false;
@@ -57,6 +63,34 @@ watch(
         msg.forceShow = false;
         return msg;
       });
+    }, 3000)();
+  }
+);
+
+const pushProgressToHistory = (
+  progress: Record<string, number | string | boolean>
+) => {
+  for (let i = 0; i < historyProgresses.value.length; i++) {
+    if (historyProgresses.value[i].id === progress.id) {
+      historyProgresses.value[i] = progress;
+
+      if (progress.value === 100) {
+        historyProgresses.value.splice(i, 1);
+      }
+
+      return;
+    }
+  }
+  historyProgresses.value.push(progress);
+};
+
+watch(
+  () => logState.progressLog,
+  (value) => {
+    pushProgressToHistory(value);
+    isHistoryShown.value = true;
+    debounce(() => {
+      isHistoryShown.value = false;
     }, 3000)();
   }
 );
@@ -113,6 +147,19 @@ const onLeave = () => {
         class="flex flex-col justify-end fixed top-0 space-y-1 h-full pl-3 pb-8 w-64 pointer-events-none overflow-auto"
         v-show="isHistoryShown"
       >
+        <div
+          class="flex flex-col text-xxs py-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-y-1 pointer-events-auto"
+          v-for="progress of historyProgresses"
+        >
+          <div class="my-auto">{{ progress.msg }}</div>
+          <div class="rounded-full h-0.5">
+            <div
+              class="bg-accentlight h-0.5 rounded-full dark:bg-accentdark"
+              :style="`width: ${progress.value}%`"
+            ></div>
+          </div>
+        </div>
+
         <div
           class="flex text-xxs p-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto"
           v-for="historyMsg of historyMsgs"

@@ -1,10 +1,10 @@
-import got, { Response } from "got";
-import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
+import { Response } from "got";
 
-import { PDFFileResponseType } from "./pdf";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+
+import { PDFFileResponseType } from "./pdf";
 
 export interface ScraperRequestType {
   scrapeURL: string;
@@ -23,7 +23,6 @@ export interface ScraperType {
     entityDraft: PaperEntity
   ): PaperEntity | void;
   scrapeImpl: (_: PaperEntity, force?: boolean) => Promise<PaperEntity>;
-  getProxyAgent(): Record<string, HttpProxyAgent | HttpsProxyAgent | void>;
   getEnable(name: string): boolean;
 }
 
@@ -38,47 +37,6 @@ export class Scraper implements ScraperType {
 
   scrape(entityDraft: PaperEntity, force = false): Promise<PaperEntity> {
     return this.scrapeImpl(entityDraft, force);
-  }
-
-  getProxyAgent() {
-    const httpproxyUrl = this.preference.get("httpproxy") as string;
-    const httpsproxyUrl = this.preference.get("httpsproxy") as string;
-
-    let agnets = {};
-    if (httpproxyUrl || httpsproxyUrl) {
-      let validHttpproxyUrl, validHttpsproxyUrl;
-      if (httpproxyUrl) {
-        validHttpproxyUrl = httpproxyUrl;
-      } else {
-        validHttpproxyUrl = httpsproxyUrl;
-      }
-      if (httpsproxyUrl) {
-        validHttpsproxyUrl = httpsproxyUrl;
-      } else {
-        validHttpsproxyUrl = httpproxyUrl;
-      }
-      // @ts-ignore
-      agnets["http"] = new HttpProxyAgent({
-        keepAlive: true,
-        keepAliveMsecs: 1000,
-        maxSockets: 256,
-        maxFreeSockets: 256,
-        scheduling: "lifo",
-        proxy: validHttpproxyUrl,
-      });
-
-      // @ts-ignore
-      agnets["https"] = new HttpsProxyAgent({
-        keepAlive: true,
-        keepAliveMsecs: 1000,
-        maxSockets: 256,
-        maxFreeSockets: 256,
-        scheduling: "lifo",
-        proxy: validHttpsproxyUrl,
-      });
-    }
-
-    return agnets;
   }
 
   preProcess(_entityDraft: PaperEntity): ScraperRequestType | void {
@@ -113,14 +71,10 @@ async function scrapeImpl(
   ) as ScraperRequestType;
 
   if (enable || force) {
-    const agent = this.getProxyAgent();
-    let options = {
-      headers: headers,
-      retry: 1,
-      timeout: 10000,
-      agent: agent,
-    };
-    const response = await got(scrapeURL, options);
+    const response = (await window.networkTool.get(
+      scrapeURL,
+      headers
+    )) as Response<string>;
     return this.parsingProcess(response, entityDraft) as PaperEntity;
   } else {
     return entityDraft;

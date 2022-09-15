@@ -1,9 +1,6 @@
-import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
-
 import { PaperEntity } from "@/models/paper-entity";
 import { DownloaderPreference, Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { downloadPDFs } from "@/utils/got";
 
 export interface DownloaderRequestType {
   queryUrl: string;
@@ -22,7 +19,6 @@ export interface DownloaderType {
     paperEntityDraft: PaperEntity | null
   ): Promise<string>;
   downloadImpl: (_: PaperEntity) => Promise<PaperEntity | null>;
-  getProxyAgent(): Record<string, HttpProxyAgent | HttpsProxyAgent | void>;
   getEnable(name: string): boolean;
 }
 
@@ -37,47 +33,6 @@ export class Downloader implements DownloaderType {
 
   download(paperEntityDraft: PaperEntity): Promise<PaperEntity | null> {
     return this.downloadImpl(paperEntityDraft);
-  }
-
-  getProxyAgent() {
-    const httpproxyUrl = this.preference.get("httpproxy") as string;
-    const httpsproxyUrl = this.preference.get("httpsproxy") as string;
-
-    let agnets = {};
-    if (httpproxyUrl || httpsproxyUrl) {
-      let validHttpproxyUrl, validHttpsproxyUrl;
-      if (httpproxyUrl) {
-        validHttpproxyUrl = httpproxyUrl;
-      } else {
-        validHttpproxyUrl = httpsproxyUrl;
-      }
-      if (httpsproxyUrl) {
-        validHttpsproxyUrl = httpsproxyUrl;
-      } else {
-        validHttpsproxyUrl = httpproxyUrl;
-      }
-      // @ts-ignore
-      agnets["http"] = new HttpProxyAgent({
-        keepAlive: true,
-        keepAliveMsecs: 1000,
-        maxSockets: 256,
-        maxFreeSockets: 256,
-        scheduling: "lifo",
-        proxy: validHttpproxyUrl,
-      });
-
-      // @ts-ignore
-      agnets["https"] = new HttpsProxyAgent({
-        keepAlive: true,
-        keepAliveMsecs: 1000,
-        maxSockets: 256,
-        maxFreeSockets: 256,
-        scheduling: "lifo",
-        proxy: validHttpsproxyUrl,
-      });
-    }
-
-    return agnets;
   }
 
   preProcess(_paperEntityDraft: PaperEntity): DownloaderRequestType | void {
@@ -112,15 +67,15 @@ async function downloadImpl(
   ) as DownloaderRequestType;
 
   if (enable) {
-    const agent = this.getProxyAgent();
     const downloadUrl = await this.queryProcess(
       queryUrl,
       headers,
       paperEntityDraft
     );
     if (downloadUrl) {
-      this.stateStore.logState.processLog = "Downloading...";
-      const downloadedUrl = await downloadPDFs([downloadUrl], agent);
+      const downloadedUrl = await window.networkTool.downloadPDFs([
+        downloadUrl,
+      ]);
 
       if (downloadedUrl.length > 0) {
         paperEntityDraft.mainURL = downloadedUrl[0];

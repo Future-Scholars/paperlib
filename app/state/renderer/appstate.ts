@@ -53,6 +53,11 @@ export class MainRendererStateStore extends RendererStateStore {
         processLog: "",
         alertLog: "",
         infoLog: "",
+        progressLog: {
+          id: "",
+          value: 0,
+          msg: "",
+        },
       };
     },
   });

@@ -60,16 +60,13 @@ export class AppInteractor {
   // Theme
   // ===============================
   changeTheme(theme: string) {
+    // TODO: check when open
     ipcRenderer.send("themeChanged", theme);
   }
 
   // ===============================
   // Preference
   // ===============================
-  loadPreferences() {
-    return this.preference.store.store;
-  }
-
   setPreference(name: string, value: any, parse = false) {
     if (parse) {
       value = JSON.parse(value as string);

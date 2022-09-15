@@ -4,7 +4,6 @@ import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";
-import { safeGot } from "@/utils/got";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
@@ -18,8 +17,7 @@ async function scrapeImpl(
   ) as ScraperRequestType;
 
   if (enable) {
-    const agent = this.getProxyAgent();
-    const response = await safeGot(scrapeURL, headers, agent);
+    const response = await window.networkTool.get(scrapeURL, headers, 0, true);
 
     let bibtex = "";
 
@@ -56,10 +54,11 @@ async function scrapeImpl(
 
                     if (dataid) {
                       const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
-                      const citeResponse = await safeGot(
+                      const citeResponse = await window.networkTool.get(
                         citeUrl,
                         headers,
-                        agent
+                        0,
+                        true
                       );
                       if (citeResponse?.body) {
                         const citeRoot = parse(citeResponse?.body);
@@ -73,11 +72,13 @@ async function scrapeImpl(
                               // @ts-ignore
                               citeBibtexNode.attributes["href"];
                             if (citeBibtexUrl) {
-                              const citeBibtexResponse = await safeGot(
-                                citeBibtexUrl,
-                                headers,
-                                agent
-                              );
+                              const citeBibtexResponse =
+                                await window.networkTool.get(
+                                  citeBibtexUrl,
+                                  headers,
+                                  0,
+                                  true
+                                );
                               bibtex = citeBibtexResponse?.body;
                             }
                           }

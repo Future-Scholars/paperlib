@@ -1,4 +1,4 @@
-import { dialog, BrowserWindow } from "electron";
+import { BrowserWindow, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
 
 autoUpdater.checkForUpdates();
@@ -58,4 +58,11 @@ autoUpdater.on("update-downloaded", async (info) => {
   if (response.response === 0) {
     autoUpdater.quitAndInstall();
   }
+});
+
+autoUpdater.on("download-progress", (progressObj) => {
+  BrowserWindow.getFocusedWindow()?.webContents.send(
+    "update-download-progress",
+    progressObj.percent
+  );
 });

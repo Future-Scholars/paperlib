@@ -4,7 +4,6 @@ import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";
-import { downloadPDFs, safeGot } from "@/utils/got";
 
 import { WebContentType, WebImporter } from "./importer";
 
@@ -21,14 +20,14 @@ export class GoogleScholarWebImporter extends WebImporter {
     const paper = parse(webContent.document);
 
     if (paper) {
-      const agent = this.getProxyAgent();
       entityDraft = new PaperEntity(true);
       const fileUrlNode = paper.querySelector(".gs_or_ggsm")?.firstChild;
       // @ts-ignore
       const downloadURL = fileUrlNode?.attributes["href"];
       if (downloadURL) {
-        this.stateStore.logState.processLog = `Downloading...`;
-        const downloadedFilePath = await downloadPDFs([downloadURL]);
+        const downloadedFilePath = await window.networkTool.downloadPDFs([
+          downloadURL,
+        ]);
 
         if (downloadedFilePath) {
           if (downloadedFilePath.length > 0) {
@@ -52,12 +51,17 @@ export class GoogleScholarWebImporter extends WebImporter {
             " ",
             "+"
           )}`;
-          await safeGot(scrapeUrl, headers, agent);
+          await window.networkTool.get(scrapeUrl, headers, 0, true);
 
           const dataid = title.parentNode.parentNode.attributes["data-aid"];
           if (dataid) {
             const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
-            const citeResponse = await safeGot(citeUrl, headers, agent);
+            const citeResponse = await window.networkTool.get(
+              citeUrl,
+              headers,
+              0,
+              true
+            );
             if (citeResponse?.body) {
               const citeRoot = parse(citeResponse?.body);
               const citeBibtexNode = citeRoot.lastChild
@@ -66,10 +70,11 @@ export class GoogleScholarWebImporter extends WebImporter {
                 // @ts-ignore
                 const citeBibtexUrl = citeBibtexNode.attributes["href"];
                 if (citeBibtexUrl) {
-                  const citeBibtexResponse = await safeGot(
+                  const citeBibtexResponse = await window.networkTool.get(
                     citeBibtexUrl,
                     headers,
-                    agent
+                    0,
+                    true
                   );
                   const bibtexStr = citeBibtexResponse?.body;
                   if (bibtexStr) {

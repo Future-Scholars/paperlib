@@ -33,6 +33,7 @@ const viewState = MainRendererStateStore.useViewState();
 const dbState = MainRendererStateStore.useDBState();
 const selectionState = MainRendererStateStore.useSelectionState();
 const prefState = MainRendererStateStore.usePreferenceState();
+const logState = MainRendererStateStore.useLogState();
 
 // ================================
 // Data
@@ -228,6 +229,15 @@ window.appInteractor.registerMainSignal("window-lost-focus", (_: any) => {
 
 window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
   void window.appInteractor.resumeSync();
+});
+
+window.appInteractor.registerMainSignal("update-download-progress", (value) => {
+  console.log("update-download-progress", value);
+  logState.progressLog = {
+    id: "update-download-progress",
+    msg: "Downloading update...",
+    value: value,
+  };
 });
 
 // ================================

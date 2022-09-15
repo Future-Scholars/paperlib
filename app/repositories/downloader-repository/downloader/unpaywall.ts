@@ -1,4 +1,4 @@
-import got from "got";
+import { Response } from "got";
 import path from "path";
 
 import { PaperEntity } from "@/models/paper-entity";
@@ -48,15 +48,13 @@ export class UnpayWallDownloader extends Downloader {
     headers: Record<string, string>,
     paperEntityDraft: PaperEntity | null
   ): Promise<string> {
-    const agent = this.getProxyAgent();
-    let options = {
-      headers: headers,
-      retry: 1,
-      timeout: 10000,
-      agent: agent,
-    };
     try {
-      const response = await got(queryUrl, options);
+      const response = (await window.networkTool.get(
+        queryUrl,
+        headers,
+        0,
+        false
+      )) as Response<string>;
       const responseBody = JSON.parse(response.body);
 
       let downloadUrl = "";

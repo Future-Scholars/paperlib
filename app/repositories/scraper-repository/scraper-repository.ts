@@ -39,7 +39,7 @@ export class ScraperRepository {
     void got("https://paperlib.app/api/version");
 
     watch(
-      () => this.stateStore.viewState.storageBackendReinited,
+      () => this.stateStore.viewState.scraperReinited,
       () => {
         this.createScrapers();
       }

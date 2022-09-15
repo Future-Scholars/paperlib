@@ -7,6 +7,11 @@ export interface LogState {
   processLog: string;
   alertLog: string;
   infoLog: string;
+  progressLog: {
+    id: string;
+    value: number;
+    msg: string;
+  };
 }
 
 export interface ViewState {

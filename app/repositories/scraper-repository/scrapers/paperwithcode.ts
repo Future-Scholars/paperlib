@@ -1,4 +1,4 @@
-import got, { Response } from "got";
+import { Response } from "got";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { formatString } from "@/utils/string";
@@ -85,14 +85,10 @@ async function scrapeImpl(
   ) as ScraperRequestType;
 
   if (enable || force) {
-    const agent = this.getProxyAgent();
-    let options = {
-      headers: headers,
-      retry: 1,
-      timeout: 10000,
-      agent: agent,
-    };
-    const rawSearchResponse = await got(scrapeURL, options);
+    const rawSearchResponse = (await window.networkTool.get(
+      scrapeURL,
+      headers
+    )) as Response<string>;
 
     const searchResponse = JSON.parse(rawSearchResponse.body) as {
       count?: number;
@@ -132,10 +128,10 @@ async function scrapeImpl(
     }
 
     if (id) {
-      const rawRepoResponse = await got(
+      const rawRepoResponse = (await window.networkTool.get(
         `https://paperswithcode.com/api/v1/papers/${id}/repositories/`,
-        options
-      );
+        headers
+      )) as Response<string>;
 
       return this.parsingProcess(
         rawRepoResponse,

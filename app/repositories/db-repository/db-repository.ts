@@ -1,6 +1,5 @@
 import { ObjectId } from "bson";
 import { existsSync, promises } from "fs";
-import got from "got";
 import path from "path";
 import Realm from "realm";
 
@@ -239,9 +238,7 @@ export class DBRepository {
       });
     }
 
-    // TODO: Check this
-    const response = await got("https://httpbin.org/ip", { timeout: 5000 });
-    if (response.statusCode !== 200) {
+    if (!window.networkTool.connected()) {
       console.warn("No internet!");
       return this.app?.currentUser ?? null;
     }

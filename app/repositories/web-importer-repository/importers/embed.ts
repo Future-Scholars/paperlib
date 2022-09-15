@@ -1,7 +1,6 @@
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { downloadPDFs } from "@/utils/got";
 
 import { WebContentType, WebImporter } from "./importer";
 
@@ -46,8 +45,9 @@ export class EmbedWebImporter extends WebImporter {
             downloadURL = meta.content + ".pdf";
           }
 
-          this.stateStore.logState.processLog = `Downloading...`;
-          const downloadedFilePath = await downloadPDFs([downloadURL]);
+          const downloadedFilePath = await window.networkTool.downloadPDFs([
+            downloadURL,
+          ]);
           if (downloadedFilePath.length > 0) {
             entityDraft.setValue("mainURL", downloadedFilePath[0]);
           }

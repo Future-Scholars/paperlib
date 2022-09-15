@@ -18,6 +18,7 @@ import { ReferenceRepository } from "@/repositories/reference-repository/referen
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
+import { NetworkTool } from "@/utils/got";
 
 import { MainRendererStateStore } from "../state/renderer/appstate";
 import "./css/index.css";
@@ -91,6 +92,8 @@ const browserExtensionInteractor = new BrowserExtensionInteractor(
   entityInteractor
 );
 
+const networkTool = new NetworkTool(stateStore, preference);
+
 console.timeEnd("Setup interactors and repositories");
 
 // ====================================
@@ -100,5 +103,6 @@ window.entityInteractor = entityInteractor;
 window.appInteractor = appInteractor;
 window.renderInteractor = renderInteractor;
 window.feedInteractor = feedInteractor;
+window.networkTool = networkTool;
 
 app.mount("#app");

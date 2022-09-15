@@ -1,5 +1,4 @@
 import { createWriteStream } from "fs";
-import got from "got";
 import { parse } from "node-html-parser";
 import os from "os";
 import path from "path";
@@ -106,14 +105,12 @@ export class IEEEWebImporter extends WebImporter {
           if (!filename.endsWith(".pdf")) {
             filename += ".pdf";
           }
-          const targetUrl = path.join(os.homedir(), "Downloads", filename);
-          const pipeline = promisify(stream.pipeline);
-          await pipeline(
-            // TODO: check this
-            got.stream(url, options),
-            createWriteStream(constructFileURL(targetUrl, false, false))
-          );
-          entityDraft.mainURL = targetUrl;
+
+          // FIXME: check this
+          const targetUrl = await window.networkTool.downloadPDFs([url]);
+          if (targetUrl.length > 0) {
+            entityDraft.mainURL = targetUrl[0];
+          }
         } catch (e) {
           console.log(e);
         }

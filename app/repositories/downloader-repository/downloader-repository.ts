@@ -1,3 +1,5 @@
+import { watch } from "vue";
+
 import { PaperEntity } from "@/models/paper-entity";
 import { DownloaderPreference, Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -21,6 +23,13 @@ export class DownloaderRepository {
     this.downloaderList = [];
 
     this.createDownloaders();
+
+    watch(
+      () => this.stateStore.viewState.downloaderReinited,
+      () => {
+        this.createDownloaders();
+      }
+    );
   }
 
   async createDownloaders() {
