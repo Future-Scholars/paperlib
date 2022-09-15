@@ -105,8 +105,6 @@ export class PluginMainInteractor {
       this.stateStore.selectionState.pluginLinkedFolder;
 
     if (paperEntityDrafts.length > 0) {
-      console.log(paperEntityDrafts);
-
       paperEntityDrafts = paperEntityDrafts
         .filter((entityDraft) => entityDraft !== null)
         .map((entityDraft) => {

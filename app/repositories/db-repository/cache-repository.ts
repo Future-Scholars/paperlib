@@ -120,8 +120,6 @@ export class CacheRepository {
 
     const realm = await this.realm();
 
-    console.log(realm.objects<PaperEntityCache>("PaperEntityCache").toJSON());
-
     const ids = realm
       .objects<PaperEntityCache>("PaperEntityCache")
       .filtered(`(fulltext contains[c] \"${query}\")`)
@@ -187,7 +185,6 @@ export class CacheRepository {
 
     const createPromise = async (paperEntity: PaperEntity) => {
       const fulltext = await this.getPDFText(paperEntity.mainURL);
-      console.log(fulltext);
       const md5String = await md5(
         (
           await window.appInteractor.access(paperEntity.mainURL, false)

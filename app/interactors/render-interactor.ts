@@ -122,7 +122,7 @@ export class RenderInteractor {
     try {
       return this.markdownIt.render(content);
     } catch (e) {
-      console.log(e);
+      console.error(e);
       return "";
     }
   }
@@ -136,7 +136,7 @@ export class RenderInteractor {
       );
       return this.markdownIt.render(content);
     } catch (e) {
-      console.log(e);
+      console.error(e);
       return "";
     }
   }
