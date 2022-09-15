@@ -5,17 +5,17 @@ import {
   BIconCalendar3,
   BIconCheck2,
   BIconClock,
+  BIconDash,
   BIconFilterRight,
   BIconFonts,
+  BIconGear,
+  BIconGrid3x2,
+  BIconListUl,
   BIconPerson,
   BIconSortDown,
   BIconSortUp,
-  BIconX,
-  BIconDash,
   BIconThreeDots,
-  BIconListUl,
-  BIconGrid3x2,
-  BIconGear,
+  BIconX,
 } from "bootstrap-icons-vue";
 
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -42,7 +42,6 @@ const emit = defineEmits(["click"]);
 const viewState = MainRendererStateStore.useViewState();
 const prefState = MainRendererStateStore.usePreferenceState();
 
-
 const onCloseClicked = () => {
   window.appInteractor.close();
 };
@@ -57,8 +56,9 @@ const onMaximizeClicked = () => {
 </script>
 
 <template>
-  <div class="flex w-full justify-between draggable-title" 
-    :class="viewState.os ==='darwin'? 'h-12': 'h-10 mb-1'"
+  <div
+    class="flex w-full justify-between draggable-title"
+    :class="viewState.os === 'darwin' ? 'h-12' : 'h-10 mb-1'"
   >
     <div class="grow my-auto px-2 nodraggable-item">
       <SearchInput
@@ -68,8 +68,8 @@ const onMaximizeClicked = () => {
     </div>
 
     <div
-      class="flex flex-none justify-end space-x-1 my-auto  pr-2 nodraggable-item"
-      :class="viewState.os ==='darwin'? 'w-80 pl-8' : 'w-48 pl-2'"
+      class="flex flex-none justify-end space-x-1 my-auto pr-2 nodraggable-item"
+      :class="viewState.os === 'darwin' ? 'w-80 pl-8' : 'w-48 pl-2'"
     >
       <MenuBarBtn
         btnName="Rescrape"
@@ -94,7 +94,7 @@ const onMaximizeClicked = () => {
       <div
         class="flex rounded-md hover:bg-neutral-100 hover:dark:bg-neutral-600"
         style="margin-left: 0.5rem !important; margin-right: 0.5rem !important"
-         v-if="viewState.os === 'darwin'"
+        v-if="viewState.os === 'darwin'"
       >
         <MenuBarBtn
           class="my-auto"
@@ -250,7 +250,11 @@ const onMaximizeClicked = () => {
         </Transition>
       </Menu>
 
-      <Menu as="div" class="relative inline-block text-left">
+      <Menu
+        as="div"
+        class="relative inline-block text-left"
+        v-if="viewState.os !== 'darwin'"
+      >
         <div>
           <MenuButton
             class="inline-flex justify-center w-7 h-6 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700 cursor-default"
@@ -305,7 +309,7 @@ const onMaximizeClicked = () => {
                   />
                 </div>
               </MenuItem>
-              
+
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
@@ -323,7 +327,6 @@ const onMaximizeClicked = () => {
         </Transition>
       </Menu>
 
-
       <MenuBarBtn
         btnName="Preference"
         @click="emit('click', 'preference')"
@@ -332,10 +335,27 @@ const onMaximizeClicked = () => {
       />
     </div>
 
-    <div class="flex nodraggable-item mx-1">
-      <div class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out" @click="onMinimizeClicked"><BIconDash class="m-auto mt-2.5 text-lg"/></div>
-      <div class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out" @click="onMaximizeClicked"><div class="m-auto mt-[14px] w-[10px] h-[10px] border-[1.5px] border-neutral-500"></div></div>
-      <div class="flex w-10 h-8 hover:bg-red-600 transition ease-in-out hover:text-neutral-200" @click="onCloseClicked"><BIconX class="m-auto mt-2.5 text-lg"/></div>
+    <div class="flex nodraggable-item mx-1" v-if="viewState.os !== 'darwin'">
+      <div
+        class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out"
+        @click="onMinimizeClicked"
+      >
+        <BIconDash class="m-auto mt-2.5 text-lg" />
+      </div>
+      <div
+        class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out"
+        @click="onMaximizeClicked"
+      >
+        <div
+          class="m-auto mt-[14px] w-[10px] h-[10px] border-[1.5px] border-neutral-500"
+        ></div>
+      </div>
+      <div
+        class="flex w-10 h-8 hover:bg-red-600 transition ease-in-out hover:text-neutral-200"
+        @click="onCloseClicked"
+      >
+        <BIconX class="m-auto mt-2.5 text-lg" />
+      </div>
     </div>
   </div>
 </template>
