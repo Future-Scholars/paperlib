@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import { createWriteStream } from "fs";
-import got, { HTTPError, Response } from "got";
+import got, { HTTPError } from "got";
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import os from "os";
 import path from "path";

@@ -1,5 +1,5 @@
 import { ObjectId } from "bson";
-import Realm, { PrimaryKey, Results } from "realm";
+import Realm, { Results } from "realm";
 
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";

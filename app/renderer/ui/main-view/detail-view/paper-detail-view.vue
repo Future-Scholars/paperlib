@@ -78,7 +78,7 @@ const addSups = (urls: string[]) => {
 
 const onDeleteSup = (url: string) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
-  window.entityInteractor.deleteSup(props.entity, url);
+  window.entityInteractor.deleteSup(paperEntityDraft, url);
 };
 
 window.appInteractor.registerMainSignal("sup-context-menu-delete", (args) => {

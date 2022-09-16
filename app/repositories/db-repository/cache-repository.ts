@@ -1,5 +1,5 @@
 import { ObjectId } from "bson";
-import { existsSync, lstat, promises } from "fs";
+import { existsSync, promises } from "fs";
 import md5 from "md5-file";
 import path from "path";
 // @ts-ignore

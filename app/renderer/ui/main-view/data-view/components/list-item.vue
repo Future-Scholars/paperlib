@@ -140,7 +140,7 @@ const getPubTypeString = (pubType: any) => {
       <div class="flex space-x-2" v-if="showRating && item.rating > 0">
         <div>|</div>
         <div class="flex text-xxxs">
-          <BIconStarFill v-for="n in item.rating" class="my-auto mr-[1px]" />
+          <BIconStarFill v-for="_ in item.rating" class="my-auto mr-[1px]" />
         </div>
       </div>
 

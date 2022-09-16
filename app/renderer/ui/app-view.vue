@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import "splitpanes/dist/splitpanes.css";
-import {
-  Ref,
-  computed,
-  nextTick,
-  onBeforeMount,
-  onMounted,
-  provide,
-  ref,
-  watch,
-} from "vue";
+import { Ref, computed, nextTick, onMounted, provide, ref, watch } from "vue";
 
 import { removeLoading } from "@/preload/loading";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";

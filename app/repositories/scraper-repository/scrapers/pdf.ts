@@ -1,18 +1,19 @@
 import fs from "fs";
+// @ts-ignore
+import * as pdfjs from "pdfjs-dist/build/pdf";
 import {
   PDFDocumentProxy,
   PDFPageProxy,
   TextItem,
 } from "pdfjs-dist/types/src/display/api";
-// @ts-ignore
-import * as pdfjs from "pdfjs-dist/build/pdf";
 
-import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { constructFileURL } from "@/utils/path";
 import { formatString } from "@/utils/string";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { PaperEntity } from "@/models/paper-entity";
+
+import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 
 export class PDFScraper extends Scraper {
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
@@ -161,7 +162,7 @@ async function scrapeImpl(
   paperEntityDraft: PaperEntity,
   force = false
 ): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable } = this.preProcess(
+  const { scrapeURL, enable } = this.preProcess(
     paperEntityDraft
   ) as ScraperRequestType;
   if (enable || force) {

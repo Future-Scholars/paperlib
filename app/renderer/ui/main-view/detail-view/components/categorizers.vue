@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { BIconXLg } from "bootstrap-icons-vue";
-import { PropType } from "vue";
 
 import { Categorizer } from "@/models/categorizer";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
