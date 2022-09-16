@@ -30,9 +30,11 @@ const importFromZoteroCSVClicked = async () => {
 
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
-    <div class="text-base font-semibold mb-4">Import from a Folder</div>
+    <div class="text-base font-semibold mb-4">
+      {{ $t("preference.importfromafolder") }}
+    </div>
     <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-      Choose a folder to import all PDF paper files inside there.
+      {{ $t("preference.importfromafolderintro") }}
     </div>
     <div class="flex justify-between">
       <div
@@ -47,13 +49,14 @@ const importFromZoteroCSVClicked = async () => {
         class="flex h-8 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-600"
         @click="importFromFolderClicked"
       >
-        <span class="m-auto text-xs">Import</span>
+        <span class="m-auto text-xs"> {{ $t("preference.import") }}</span>
       </button>
     </div>
-    <div class="text-base font-semibold mb-4 mt-5">Import from Zotero CSV</div>
+    <div class="text-base font-semibold mb-4 mt-5">
+      {{ $t("preference.importfromzotero") }}
+    </div>
     <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-      Choose a CSV file exported from Zotero. To export it, click File - Export
-      Library - Format: CSV - Encoding: UTF-8 in the Zotero app.
+      {{ $t("preference.importfromzoterointro") }}
     </div>
     <div class="flex justify-between">
       <div
@@ -68,7 +71,7 @@ const importFromZoteroCSVClicked = async () => {
         class="flex h-8 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-600"
         @click="importFromZoteroCSVClicked"
       >
-        <span class="m-auto text-xs">Import</span>
+        <span class="m-auto text-xs"> {{ $t("preference.import") }}</span>
       </button>
     </div>
   </div>

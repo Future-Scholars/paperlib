@@ -63,11 +63,13 @@ const onClickGuide = () => {
 
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
-    <div class="text-base font-semibold mb-4">Metadata Scrapers</div>
+    <div class="text-base font-semibold mb-4">
+      Metadata {{ $t("preference.scraper") }}
+    </div>
     <div class="flex text-xxs font-semibold">
-      <div class="pl-4 w-[17%]">Scraper</div>
-      <div>Priority</div>
-      <div class="pl-4">Description</div>
+      <div class="pl-4 w-[17%]">{{ $t("preference.scraper") }}</div>
+      <div>{{ $t("preference.priority") }}</div>
+      <div class="pl-4">{{ $t("preference.description") }}</div>
     </div>
     <hr class="mx-2 mb-1 dark:border-neutral-600" />
     <div class="flex flex-col px-2 rounded-md max-h-[450px] overflow-scroll">
@@ -100,11 +102,13 @@ const onClickGuide = () => {
     </div>
 
     <hr class="mt-5 mb-5 dark:border-neutral-600" />
-    <div class="text-base font-semibold mb-4">Routine Scrape</div>
+    <div class="text-base font-semibold mb-4">
+      {{ $t("preference.routinescrape") }}
+    </div>
     <Toggle
       class="mb-3"
-      title="Enable Routine Rescraping"
-      info="Automatically rescrape the metadata of the preprint version papers, e.g., arXiv, every week."
+      :title="$t('preference.enableroutionscrape')"
+      :info="$t('preference.enableroutionscrapeintro')"
       :enable="prefState.allowRoutineMatch"
       @update="(value) => onUpdate('allowRoutineMatch', value)"
     />

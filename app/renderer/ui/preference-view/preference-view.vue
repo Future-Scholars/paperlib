@@ -88,77 +88,77 @@ watch(
             class="flex flex-col space-y-1 h-full w-36 rounded-l-lg px-2 py-14 border-r-[1px] dark:border-r-neutral-700"
           >
             <SectionItem
-              name="General"
+              :name="$t('preference.general')"
               :active="preferenceTab === 'general'"
               @click="preferenceTab = 'general'"
             >
               <BIconGearWideConnected class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="Sidebar"
+              :name="$t('preference.sidebar')"
               :active="preferenceTab === 'sidebar'"
               @click="preferenceTab = 'sidebar'"
             >
               <BIconLayoutSidebar class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="Mainview"
+              :name="$t('preference.mainview')"
               :active="preferenceTab === 'mainview'"
               @click="preferenceTab = 'mainview'"
             >
               <BIconViewList class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="Scraper"
+              :name="$t('preference.scraper')"
               :active="preferenceTab === 'scraper'"
               @click="preferenceTab = 'scraper'"
             >
               <BIconBinoculars class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="Downloader"
+              :name="$t('preference.downloader')"
               :active="preferenceTab === 'downloader'"
               @click="preferenceTab = 'downloader'"
             >
               <BIconDownload class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="Proxy"
+              :name="$t('preference.proxy')"
               :active="preferenceTab === 'proxy'"
               @click="preferenceTab = 'proxy'"
             >
               <BIconGlobe class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="Cloud"
+              :name="$t('preference.cloud')"
               :active="preferenceTab === 'cloud'"
               @click="preferenceTab = 'cloud'"
             >
               <BIconCloudArrowUp class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="Import"
+              :name="$t('preference.import')"
               :active="preferenceTab === 'import'"
               @click="preferenceTab = 'import'"
             >
               <BIconBoxArrowInDown class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="Export"
+              :name="$t('preference.export')"
               :active="preferenceTab === 'export'"
               @click="preferenceTab = 'export'"
             >
               <BIconBoxArrowDown class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="Hotkeys"
+              :name="$t('preference.hotkeys')"
               :active="preferenceTab === 'hotkey'"
               @click="preferenceTab = 'hotkey'"
             >
               <BIconKeyboard class="my-auto text-xs" />
             </SectionItem>
             <SectionItem
-              name="About"
+              :name="$t('preference.about')"
               :active="preferenceTab === 'about'"
               @click="preferenceTab = 'about'"
             >
@@ -183,7 +183,7 @@ watch(
                 class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm"
                 @click="onCloseClicked"
               >
-                <span class="m-auto text-xs">Close</span>
+                <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
               </div>
             </div>
           </div>

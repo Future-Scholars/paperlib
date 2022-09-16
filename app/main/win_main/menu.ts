@@ -1,10 +1,14 @@
-import { BrowserWindow, Menu, app, ipcMain } from "electron";
+import { BrowserWindow, Menu, app } from "electron";
 import { autoUpdater } from "electron-updater";
+
+import { loadLocales } from "@/locales/load";
 
 import { Preference } from "../../preference/preference";
 
 export function setMainMenu(mainWindow: BrowserWindow, preference: Preference) {
   const isMac = process.platform === "darwin";
+
+  const locales = loadLocales(preference.get("language") as string);
 
   const template = [
     ...(isMac
@@ -14,14 +18,14 @@ export function setMainMenu(mainWindow: BrowserWindow, preference: Preference) {
             submenu: [
               { role: "about" },
               {
-                label: "Preference",
+                label: locales.t("menu.preference"),
                 accelerator: "Cmd+,",
                 click: () => {
                   mainWindow.webContents.send("shortcut-Preference");
                 },
               },
               {
-                label: "Check for Updates",
+                label: locales.t("menu.checkforupdate"),
                 click: () => {
                   autoUpdater
                     .checkForUpdates()
@@ -51,12 +55,11 @@ export function setMainMenu(mainWindow: BrowserWindow, preference: Preference) {
           },
         ]
       : []),
-    // { role: 'fileMenu' }
     {
-      label: "File",
+      label: locales.t("menu.file"),
       submenu: [
         {
-          label: "Open",
+          label: locales.t("menu.open"),
           accelerator: preference.get("shortcutOpen") || "Enter",
           click: () => {
             mainWindow.webContents.send("shortcut-Enter");
@@ -64,7 +67,7 @@ export function setMainMenu(mainWindow: BrowserWindow, preference: Preference) {
         },
         { type: "separator" },
         {
-          label: "Copy Bibtex",
+          label: locales.t("menu.copybibtext"),
           accelerator:
             preference.get("shortcutCopy") || "CommandOrControl+Shift+C",
           click: () => {
@@ -72,7 +75,7 @@ export function setMainMenu(mainWindow: BrowserWindow, preference: Preference) {
           },
         },
         {
-          label: "Copy Bibtex Key",
+          label: locales.t("menu.copybibtextkey"),
           accelerator:
             preference.get("shortcutCopyKey") || "CommandOrControl+Shift+K",
           click: () => {
@@ -84,56 +87,37 @@ export function setMainMenu(mainWindow: BrowserWindow, preference: Preference) {
     },
     // { role: 'editMenu' }
     {
-      label: "Edit",
+      label: locales.t("menu.edit"),
       submenu: [
         {
-          label: "Scrape",
+          label: locales.t("menu.rescrape"),
           accelerator: preference.get("shortcutScrape") || "CommandOrControl+R",
           click: () => {
             mainWindow.webContents.send("shortcut-cmd-r");
           },
         },
         {
-          label: "Edit Metadata",
+          label: locales.t("menu.edit"),
           accelerator: preference.get("shortcutEdit") || "CommandOrControl+E",
           click: () => {
             mainWindow.webContents.send("shortcut-cmd-e");
           },
         },
         {
-          label: "Flag",
+          label: locales.t("menu.flag"),
           accelerator: preference.get("shortcutFlag") || "CommandOrControl+F",
           click: () => {
             mainWindow.webContents.send("shortcut-cmd-f");
           },
         },
-        { type: "separator" },
-        { role: "undo" },
-        { role: "redo" },
-        { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        ...(isMac
-          ? [
-              { role: "pasteAndMatchStyle" },
-              { role: "delete" },
-              { role: "selectAll" },
-              { type: "separator" },
-              {
-                label: "Speech",
-                submenu: [{ role: "startSpeaking" }, { role: "stopSpeaking" }],
-              },
-            ]
-          : [{ role: "delete" }, { type: "separator" }, { role: "selectAll" }]),
       ],
     },
     // { role: 'viewMenu' }
     {
-      label: "View",
+      label: locales.t("menu.view"),
       submenu: [
         {
-          label: "Preview",
+          label: locales.t("menu.preview"),
           accelerator: preference.get("shortcutPreview") || "Space",
           click: () => {
             mainWindow.webContents.send("shortcut-Space");
@@ -162,7 +146,6 @@ export function setMainMenu(mainWindow: BrowserWindow, preference: Preference) {
         { role: "toggleDevTools" },
       ],
     },
-    // { role: 'windowMenu' }
     {
       label: "Window",
       submenu: [

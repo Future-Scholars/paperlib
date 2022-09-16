@@ -230,7 +230,6 @@ export class AppInteractor {
     await this.dbRepository.initRealm(true);
   }
 
-  // ============================================================
   pauseSync() {
     this.scheduler.removeById("pauseSync");
     const task = new Task("pauseSync", () => {
@@ -254,5 +253,17 @@ export class AppInteractor {
 
   migrateLocaltoCloud() {
     void this.dbRepository.migrateLocaltoCloud();
+  }
+
+  // =============================
+  // What's New
+  // =============================
+  async shouldShowWhatsNew() {
+    const lastVersion = this.getPreference("lastVersion");
+    return lastVersion !== (await this.version());
+  }
+
+  async hideWhatsNew() {
+    this.preference.set("lastVersion", await this.version());
   }
 }

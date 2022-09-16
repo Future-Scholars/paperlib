@@ -61,7 +61,7 @@ const onApplyUpdate = () => {
           v-if="!showEdit"
           @click="showEdit = true"
         >
-          Edit
+          {{ $t("preference.edit") }}
         </div>
         <div v-if="downloaderPref.custom && !showEdit">|</div>
         <div
@@ -69,7 +69,7 @@ const onApplyUpdate = () => {
           v-if="downloaderPref.custom"
           @click="emit('delete', downloaderPref.name)"
         >
-          Remove
+          {{ $t("mainview.delete") }}
         </div>
         <input
           type="checkbox"

@@ -95,7 +95,7 @@ watch(
 <template>
   <div>
     <SectionItem
-      name="All Feeds"
+      :name="$t('mainview.allfeeds')"
       :count="viewState.feedEntitiesCount"
       :with-counter="prefState.showSidebarCount"
       :with-spinner="isSpinnerShown"
@@ -106,7 +106,7 @@ watch(
       <BIconRss class="text-sm my-auto text-blue-500 min-w-[1em]" />
     </SectionItem>
     <SectionItem
-      name="Unread"
+      :name="$t('mainview.unread')"
       :with-counter="false"
       :with-spinner="false"
       :compact="prefState.isSidebarCompact"
@@ -116,7 +116,11 @@ watch(
       <BIconAppIndicator class="text-sm my-auto text-blue-500 min-w-[1em]" />
     </SectionItem>
 
-    <CollopseGroup title="Feeds" :with-add="true" @add="onAddNewFeedClicked">
+    <CollopseGroup
+      :title="$t('mainview.feeds')"
+      :with-add="true"
+      @add="onAddNewFeedClicked"
+    >
       <SectionItem
         :name="feed.name"
         :count="feed.count"

@@ -1,21 +1,18 @@
-import { app, BrowserWindow, ipcMain, globalShortcut } from "electron";
-import { release, platform } from "os";
-import { join } from "path";
+import { BrowserWindow, app, globalShortcut, ipcMain } from "electron";
 import Store from "electron-store";
+import { platform, release } from "os";
 
+import { Preference } from "../preference/preference";
 import "./files.ts";
 import "./theme.ts";
 import "./update.ts";
-
+import { registerMainContextMenu } from "./win_main/contextmenu";
 import { createMainWindow } from "./win_main/index";
 import {
   createPluginWindow,
   setMainPluginCommunicationChannel,
 } from "./win_plugin/index";
 import { registerSideworkWindowEvents } from "./win_sidework/event";
-import { registerMainContextMenu } from "./win_main/contextmenu";
-
-import { Preference } from "../preference/preference";
 
 Store.initRenderer();
 const preference = new Preference();

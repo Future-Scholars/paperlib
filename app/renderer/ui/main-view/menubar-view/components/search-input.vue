@@ -15,9 +15,9 @@ const viewState = MainRendererStateStore.useViewState();
 // ================================
 const searchText = ref("");
 const searchModeLabel: Record<string, string> = {
-  general: "General Mode",
-  advanced: "Advanced Mode",
-  fulltext: "Fulltext Mode",
+  general: "mainview.generalsearch",
+  advanced: "mainview.advancedsearch",
+  fulltext: "mainview.fulltextsearch",
 };
 const searchDebounce = ref(300);
 
@@ -63,7 +63,7 @@ const onClearClicked = (payload: Event) => {
     <input
       class="grow py-2 my-auto nodraggable-item text-xs bg-transparent focus:outline-none peer"
       type="text"
-      placeholder="Search..."
+      :placeholder="`${$t('mainview.search')}...`"
       v-model="searchText"
       @input="onInput"
       @change="onSubmit"
@@ -116,7 +116,7 @@ const onClearClicked = (payload: Event) => {
       class="flex-none my-auto p-2 w-[100px] text-xxs bg-neutral-200 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-200 rounded-r-md invisible peer-focus:visible hover:visible hover:bg-neutral-300 hover:dark:bg-neutral-500"
       @click="onModeClicked"
     >
-      {{ searchModeLabel[viewState.searchMode] }}
+      {{ $t(searchModeLabel[viewState.searchMode]) }}
     </button>
   </div>
 </template>

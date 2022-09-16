@@ -59,7 +59,7 @@ const onApplyUpdate = () => {
           v-if="!showEdit"
           @click="showEdit = true"
         >
-          Edit
+          {{ $t("preference.edit") }}
         </div>
         <div v-if="scraperPref.custom && !showEdit">|</div>
         <div
@@ -67,7 +67,7 @@ const onApplyUpdate = () => {
           v-if="scraperPref.custom"
           @click="emit('delete', scraperPref.name)"
         >
-          Remove
+          {{ $t("mainview.delete") }}
         </div>
         <input
           type="checkbox"

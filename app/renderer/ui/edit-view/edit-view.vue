@@ -95,17 +95,17 @@ const onSaveClicked = async () => {
               :class="wideMode ? 'w-1/2' : 'w-full'"
             >
               <InputBox
-                placeholder="Title"
+                :placeholder="$t('mainview.title')"
                 :value="editingPaperEntityDraft.title"
                 @changed="(value) => (editingPaperEntityDraft.title = value)"
               />
               <InputBox
-                placeholder="Authors"
+                :placeholder="$t('mainview.authors')"
                 :value="editingPaperEntityDraft.authors"
                 @changed="(value) => (editingPaperEntityDraft.authors = value)"
               />
               <InputBox
-                placeholder="Publication"
+                :placeholder="$t('mainview.publicationtitle')"
                 :value="editingPaperEntityDraft.publication"
                 @changed="
                   (value) => (editingPaperEntityDraft.publication = value)
@@ -113,7 +113,7 @@ const onSaveClicked = async () => {
               />
               <div class="flex w-full space-x-2">
                 <InputBox
-                  placeholder="Pub Time"
+                  :placeholder="$t('mainview.publicationyear')"
                   class="w-1/2"
                   :value="editingPaperEntityDraft.pubTime"
                   @changed="
@@ -121,7 +121,7 @@ const onSaveClicked = async () => {
                   "
                 />
                 <SelectBox
-                  placeholder="Publication Type"
+                  :placeholder="$t('mainview.publicationtype')"
                   class="w-1/2"
                   :options="pubTypes"
                   :value="pubTypes[editingPaperEntityDraft.pubType]"
@@ -188,7 +188,7 @@ const onSaveClicked = async () => {
                 />
               </div>
               <MultiselectBox
-                placeholder="Tags"
+                :placeholder="$t('mainview.tags')"
                 :options="(tags ? tags : []).map((tag) => tag.name)"
                 :existValues="
                   editingPaperEntityDraft.tags.map((tag) => tag.name)
@@ -200,7 +200,7 @@ const onSaveClicked = async () => {
             "
               />
               <MultiselectBox
-                placeholder="Folders"
+                :placeholder="$t('mainview.folders')"
                 :options="(folders ? folders : []).map((folder) => folder.name)"
                 :existValues="
                   editingPaperEntityDraft.folders.map((folder) => folder.name)
@@ -212,7 +212,7 @@ const onSaveClicked = async () => {
             "
               />
               <InputField
-                placeholder="Note"
+                :placeholder="$t('mainview.note')"
                 class="h-28"
                 :value="editingPaperEntityDraft.note"
                 :is-expanded="wideMode"
@@ -239,13 +239,15 @@ const onSaveClicked = async () => {
               class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm"
               @click="onCloseClicked"
             >
-              <span class="m-auto text-xs">Cancel</span>
+              <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
             </div>
             <div
               class="flex w-20 h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm"
               @click="onSaveClicked"
             >
-              <span class="m-auto text-xs text-white">Save</span>
+              <span class="m-auto text-xs text-white">{{
+                $t("menu.save")
+              }}</span>
             </div>
           </div>
         </div>

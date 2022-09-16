@@ -50,6 +50,8 @@ export interface PreferenceStore {
   renamingFormat: "full" | "short" | "authortitle" | "custom";
   customRenamingFormat: string;
 
+  language: string;
+
   enableExportReplacement: boolean;
   exportReplacement: Array<{ from: string; to: string }>;
 
@@ -122,6 +124,8 @@ export const defaultPreferences: PreferenceStore = {
   sidebarSortOrder: "asce",
   renamingFormat: "full",
   customRenamingFormat: "",
+
+  language: "en-GB",
 
   enableExportReplacement: true,
   exportReplacement: [],

@@ -73,7 +73,9 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col text-neutral-800 dark:text-neutral-300 max-w-xl">
-    <div class="text-base font-semibold mb-4">Export</div>
+    <div class="text-base font-semibold mb-4">
+      {{ $t("preference.export") }}
+    </div>
 
     <div class="flex justify-between">
       <div class="flex flex-col max-w-[90%]">
@@ -81,7 +83,7 @@ onMounted(() => {
           CSL (Citation Style Language) Style
         </div>
         <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-          Choose a CSL style for the plaintext reference.
+          {{ $t("preference.cslstyleintro") }}
         </div>
       </div>
       <div>
@@ -96,7 +98,9 @@ onMounted(() => {
             }
           "
         >
-          <option value="import-from-folder">Import from a Folder</option>
+          <option value="import-from-folder">
+            {{ $t("preference.importfromafolder") }}
+          </option>
           <option :value="csl.key" v-for="csl of CSLStyles">
             {{ csl.name }}
           </option>
@@ -108,10 +112,8 @@ onMounted(() => {
 
     <Toggle
       class="mb-2"
-      title="Export Replacement"
-      info="Enable replacing the publication with a customed string when
-                exporting a paper. For example, replacing 'Conference on
-                Computer Vision and Pattern Recognition' by 'CVPR'."
+      :title="$t('preference.exportreplacement')"
+      :info="$t('preference.exportreplacementintro')"
       :enable="prefState.enableExportReplacement"
       @update="(value) => updatePref('enableExportReplacement', value)"
     />

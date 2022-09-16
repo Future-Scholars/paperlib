@@ -60,11 +60,13 @@ const onClickGuide = () => {
 
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
-    <div class="text-base font-semibold mb-4">Paper PDF File Downloaders</div>
+    <div class="text-base font-semibold mb-4">
+      Paper PDF File {{ $t("preference.downloader") }}
+    </div>
     <div class="flex text-xxs font-semibold">
-      <div class="pl-4 w-[17%]">Downloader</div>
-      <div>Priority</div>
-      <div class="pl-2">Description</div>
+      <div class="pl-4 w-[17%]">{{ $t("preference.downloader") }}</div>
+      <div>{{ $t("preference.priority") }}</div>
+      <div class="pl-2">{{ $t("preference.description") }}</div>
     </div>
     <hr class="mx-2 mb-1 dark:border-neutral-600" />
     <div class="flex flex-col px-2 rounded-md max-h-[450px] overflow-scroll">

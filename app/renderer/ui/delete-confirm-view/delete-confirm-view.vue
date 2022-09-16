@@ -59,10 +59,10 @@ const onConfirm = () => {
                 src="@/renderer/assets/icon.png"
               />
               <div class="mt-1 text-center text-sm font-semibold">
-                Confirmation
+                {{ $t("confirmation.title") }}
               </div>
               <div class="text-xxs mt-4 px-2 text-center overflow-hidden">
-                Are you sure to delete?
+                {{ $t("confirmation.message") }}
               </div>
             </div>
 
@@ -71,13 +71,17 @@ const onConfirm = () => {
                 class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20"
                 @click.stop="onCancel"
               >
-                <span class="m-auto text-xs">Cancel</span>
+                <span class="m-auto text-xs">
+                  {{ $t("confirmation.cancel") }}
+                </span>
               </div>
               <div
                 class="flex h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm w-20"
                 @click.stop="onConfirm"
               >
-                <span class="m-auto text-xs text-white">OK</span>
+                <span class="m-auto text-xs text-white">
+                  {{ $t("confirmation.ok") }}
+                </span>
               </div>
             </div>
           </div>

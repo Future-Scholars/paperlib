@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BIconGithub, BIconCodeSlash } from "bootstrap-icons-vue";
+import { BIconCodeSlash, BIconGithub } from "bootstrap-icons-vue";
 
 const props = defineProps({
   codes: Object as () => Array<string>,
@@ -10,7 +10,7 @@ const isOfficial = (codeJSONstr: string) => {
     url: string;
     isOfficial: boolean;
   };
-  const official = code.isOfficial ? "Official" : "Community";
+  const official = code.isOfficial ? "codeofficial" : "codecommunity";
   return official;
 };
 
@@ -33,7 +33,7 @@ const onClick = (codeJSONstr: string) => {
       <BIconGithub class="text-xs my-auto" v-if="code.includes('github')" />
       <BIconCodeSlash class="text-xs my-auto" v-if="!code.includes('github')" />
       <div class="text-xxs my-auto">
-        {{ isOfficial(code) }}
+        {{ $t(`mainview.${isOfficial(code)}`) }}
       </div>
     </div>
   </div>

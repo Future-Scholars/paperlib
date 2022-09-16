@@ -24,6 +24,7 @@ import FeedEditView from "./edit-view/feed-edit-view.vue";
 import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import SidebarView from "./sidebar-view/sidebar-view.vue";
+import WhatsNewView from "./whats-new-view.vue";
 
 // ================================
 // State
@@ -321,5 +322,6 @@ onMounted(async () => {
     <FeedEditView />
     <PreferenceView />
     <DeleteConfirmView />
+    <WhatsNewView />
   </div>
 </template>

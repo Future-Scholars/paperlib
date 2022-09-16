@@ -129,7 +129,7 @@ onMounted(() => {
     class="flex-none flex flex-col w-80 max-h-[calc(100vh-3rem)] pl-4 pr-2 pb-4 overflow-auto"
   >
     <div class="text-md font-bold" v-html="reanderedTitle"></div>
-    <Section title="Authors">
+    <Section :title="$t('mainview.authors')">
       <Authors :authors="entity.authors" />
     </Section>
     <PubDetails
@@ -139,12 +139,12 @@ onMounted(() => {
       :number="entity.number"
       :publisher="entity.publisher"
     />
-    <Section title="Publication Year">
+    <Section :title="$t('mainview.publicationyear')">
       <div class="text-xxs">
         {{ entity.pubTime }}
       </div>
     </Section>
-    <Section title="Tags" v-if="entity.tags.length > 0">
+    <Section :title="$t('mainview.tags')" v-if="entity.tags.length > 0">
       <Categorizers
         :categorizers="entity.tags"
         categorizerType="PaperTag"
@@ -153,7 +153,7 @@ onMounted(() => {
         "
       />
     </Section>
-    <Section title="Folders" v-if="entity.folders.length > 0">
+    <Section :title="$t('mainview.folders')" v-if="entity.folders.length > 0">
       <Categorizers
         :categorizers="entity.folders"
         categorizerType="PaperFolder"
@@ -162,15 +162,15 @@ onMounted(() => {
         "
       />
     </Section>
-    <Section title="Add Time">
+    <Section :title="$t('mainview.addtime')">
       <div class="text-xxs">
         {{ entity.addTime.toLocaleString() }}
       </div>
     </Section>
-    <Section title="Rating">
+    <Section :title="$t('mainview.rating')">
       <Rating :rating="entity.rating" @changed="onRatingChanged" />
     </Section>
-    <Section title="Preview">
+    <Section :title="$t('mainview.preview')">
       <Thumbnail
         :entity="entity"
         @modify-main-file="(value) => modifyMainFile(value)"
@@ -178,7 +178,7 @@ onMounted(() => {
       />
     </Section>
     <Section
-      title="Note"
+      :title="$t('mainview.note')"
       v-if="entity.note.length > 0 && !entity.note.startsWith('<md>')"
     >
       <div class="text-xxs">
@@ -186,14 +186,17 @@ onMounted(() => {
       </div>
     </Section>
     <Markdown
-      :title="'Note'"
+      :title="$t('mainview.note')"
       v-if="entity.note.length > 0 && entity.note.startsWith('<md>')"
       :content="entity.note"
     />
-    <Section title="Codes" v-if="entity.codes.length > 0">
+    <Section :title="$t('mainview.codes')" v-if="entity.codes.length > 0">
       <Code :codes="entity.codes" />
     </Section>
-    <Section title="Supplementaries" v-if="entity.supURLs.length > 0">
+    <Section
+      :title="$t('mainview.supplementaries')"
+      v-if="entity.supURLs.length > 0"
+    >
       <Supplementary :sups="entity.supURLs" />
     </Section>
     <Markdown :title="'Markdown'" :sups="entity.supURLs" />

@@ -56,7 +56,9 @@ const updatePref = (key: string, value: unknown) => {
 
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
-    <div class="text-base font-semibold mb-4">Mainview Preview</div>
+    <div class="text-base font-semibold mb-4">
+      {{ $t("preference.mainview") + " " + $t("mainview.preview") }}
+    </div>
     <ListItem
       class="bg-neutral-200 dark:bg-neutral-700 w-[800px] cursor-default"
       :item="item"

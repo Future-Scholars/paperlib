@@ -2,6 +2,7 @@ import { BIconChevronUp, BIconX } from "bootstrap-icons-vue";
 import { createPinia } from "pinia";
 import { Pane, Splitpanes } from "splitpanes";
 import { createApp } from "vue";
+import { createI18n } from "vue-i18n";
 import vSelect from "vue-select";
 
 import { AppInteractor } from "@/interactors/app-interactor";
@@ -10,6 +11,7 @@ import { EntityInteractor } from "@/interactors/entity-interactor";
 import { FeedInteractor } from "@/interactors/feed-interactor";
 import { PluginMainInteractor } from "@/interactors/plugin-main-interactor";
 import { RenderInteractor } from "@/interactors/render-interactor";
+import { loadLocales } from "@/locales/load";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
@@ -47,6 +49,17 @@ app.component("v-select", vSelect);
 // ====================================
 const preference = new Preference(true);
 const stateStore = new MainRendererStateStore(preference);
+
+const locales = loadLocales();
+
+const i18n = createI18n({
+  allowComposition: true,
+  locale: preference.get("language") as string,
+  fallbackLocale: "en-GB",
+  messages: locales,
+});
+
+app.use(i18n);
 
 console.time("Setup interactors and repositories");
 const dbRepository = new DBRepository(stateStore, preference);

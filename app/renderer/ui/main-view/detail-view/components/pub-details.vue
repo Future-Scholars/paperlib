@@ -15,7 +15,7 @@ const isExpanded = ref(false);
 <template>
   <div class="pt-3">
     <div class="text-xxs text-neutral-400 dark:text-neutral-500 select-none">
-      Publication
+      {{ $t("mainview.publicationtitle") }}
     </div>
     <div
       class="group text-xxs cursor-pointer"

@@ -89,13 +89,15 @@ const onSaveClicked = async () => {
               class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm"
               @click="onCloseClicked"
             >
-              <span class="m-auto text-xs">Cancel</span>
+              <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
             </div>
             <div
               class="flex w-20 h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm"
               @click="onSaveClicked"
             >
-              <span class="m-auto text-xs text-white">Save</span>
+              <span class="m-auto text-xs text-white">{{
+                $t("menu.save")
+              }}</span>
             </div>
           </div>
         </div>

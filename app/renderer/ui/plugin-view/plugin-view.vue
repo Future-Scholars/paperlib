@@ -24,8 +24,6 @@ const searchText = ref("");
 const searchDebounce = ref(300);
 const selectedIndex: Ref<number> = ref(0);
 
-const isNotificationShown = ref(false);
-
 const entities: Ref<PaperEntity[]> = ref([]);
 
 const onSearchTextChanged = debounce(async () => {
@@ -77,14 +75,10 @@ const exportSelectedEntity = (shiftKey: boolean, ctrlOrCmdKey: boolean) => {
         exportMode.value
       );
     }
-    isNotificationShown.value = true;
   }
-  debounce(() => {
-    isNotificationShown.value = false;
-    searchText.value = "";
-    entities.value = [];
-    window.pluginSideInteractor.hide();
-  }, 300)();
+  searchText.value = "";
+  entities.value = [];
+  window.pluginSideInteractor.hide();
 };
 
 function shortcutHandler(event: KeyboardEvent) {
@@ -102,7 +96,6 @@ function shortcutHandler(event: KeyboardEvent) {
     exportSelectedEntity(event.shiftKey, event.ctrlKey || event.metaKey);
   } else if (event.code === "Escape") {
     event.preventDefault();
-    isNotificationShown.value = false;
     searchText.value = "";
     entities.value = [];
     window.pluginSideInteractor.hide();
@@ -152,7 +145,7 @@ onMounted(() => {
         class="w-full h-12 text-sm px-3 bg-transparent focus:outline-none grow"
         type="text"
         autofocus
-        placeholder="Search in Paperlib..."
+        :placeholder="$t('plugin.searchinpaperlib')"
         v-model="searchText"
         @input="onInput"
       />
@@ -203,7 +196,9 @@ onMounted(() => {
           v-if="selectionState.pluginLinkedFolder === ''"
         >
           <BIconLink class="my-auto text-base" />
-          <span class="my-auto mr-1 select-none">Link Folder</span>
+          <span class="my-auto mr-1 select-none">{{
+            $t("plugin.linkfolder")
+          }}</span>
         </div>
         <div
           class="flex space-x-1"
@@ -224,7 +219,9 @@ onMounted(() => {
 
       <div class="flex my-auto space-x-4 right-2 fixed">
         <div class="flex">
-          <span class="my-auto mr-1 select-none">Cite Key</span>
+          <span class="my-auto mr-1 select-none">{{
+            $t("plugin.citekey")
+          }}</span>
           <div class="flex space-x-1">
             <BIconShift class="my-auto" /><BIconArrowReturnLeft
               class="my-auto"
@@ -232,26 +229,23 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex" v-if="selectionState.pluginLinkedFolder !== ''">
-          <span class="my-auto mr-1 select-none">All Refs</span>
+          <span class="my-auto mr-1 select-none">{{
+            $t("plugin.allref")
+          }}</span>
           <div class="flex space-x-1">
             <BIconCommand class="my-auto" />
             <BIconArrowReturnLeft class="my-auto" />
           </div>
         </div>
         <div class="flex">
-          <span class="my-auto mr-1 select-none">Single Ref</span>
+          <span class="my-auto mr-1 select-none">{{
+            $t("plugin.singleref")
+          }}</span>
           <div class="flex space-x-1">
             <BIconArrowReturnLeft class="my-auto" />
           </div>
         </div>
       </div>
-    </div>
-
-    <div
-      class="fixed right-2 bottom-2 rounded-md drop-shadow-lg bg-neutral-50 dark:bg-neutral-700 p-2 text-xs"
-      v-show="isNotificationShown"
-    >
-      Copied!
     </div>
   </div>
 </template>

@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import {
   BIconArrowCounterclockwise,
-  BIconTrash,
-  BIconPencilSquare,
   BIconFlag,
-  BIconListUl,
-  BIconGrid3x2,
   BIconGear,
+  BIconGrid3x2,
+  BIconListUl,
+  BIconPencilSquare,
+  BIconTrash,
 } from "bootstrap-icons-vue";
 
 defineProps({
@@ -28,13 +27,13 @@ defineProps({
 const emit = defineEmits(["click"]);
 
 const btnIcons: Record<string, any> = {
-  Rescrape: BIconArrowCounterclockwise,
-  Delete: BIconTrash,
-  Edit: BIconPencilSquare,
-  Flag: BIconFlag,
-  ListView: BIconListUl,
-  TableView: BIconGrid3x2,
-  Preference: BIconGear,
+  rescrape: BIconArrowCounterclockwise,
+  delete: BIconTrash,
+  edit: BIconPencilSquare,
+  flag: BIconFlag,
+  listview: BIconListUl,
+  tableview: BIconGrid3x2,
+  preference: BIconGear,
 };
 </script>
 
@@ -57,7 +56,7 @@ const btnIcons: Record<string, any> = {
       class="tooltip top-10 bg-neutral-200 dark:bg-neutral-700 p-1 rounded-md"
       v-if="withTooltip"
     >
-      {{ btnName }}
+      {{ $t(`menu.${btnName}`) }}
     </span>
   </button>
 </template>

@@ -68,7 +68,9 @@ const onWebdavDisconnectClicked = () => {
 
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
-    <div class="text-base font-semibold mb-1">Sync Metadata</div>
+    <div class="text-base font-semibold mb-1">
+      {{ $t("preference.cloud") }} Metadata
+    </div>
     <div class="text-xxs mb-3" @click="onClickGuide">
       <span
         class="underline hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
@@ -118,14 +120,14 @@ const onWebdavDisconnectClicked = () => {
               : 'text-neutral-400 '
           "
         >
-          <span class="m-auto">Login</span>
+          <span class="m-auto">{{ $t("preference.login") }}</span>
         </button>
         <button
           class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
           v-if="prefState.useSync"
           @click="onLogoutClicked"
         >
-          <span class="m-auto">Logout</span>
+          <span class="m-auto">{{ $t("preference.logout") }}</span>
         </button>
       </div>
     </div>
@@ -147,13 +149,15 @@ const onWebdavDisconnectClicked = () => {
 
     <hr class="mb-5 dark:border-neutral-600" />
 
-    <div class="text-base font-semibold mb-4">File Storage</div>
+    <div class="text-base font-semibold mb-4">
+      {{ $t("preference.filestorage") }}
+    </div>
     <Options
       class="mb-4"
-      title="Storage Backend"
-      info="Choose a backend to store the paper files such as PDF files."
+      :title="$t('preference.filestoragebackend')"
+      :info="$t('preference.filestoragebackendintro')"
       :selected="syncFileStorage"
-      :options="{ local: 'Local', webdav: 'WebDAV' }"
+      :options="{ local: $t('preference.local'), webdav: 'WebDAV' }"
       @update="
         (value) => {
           syncFileStorage = value;

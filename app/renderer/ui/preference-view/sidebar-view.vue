@@ -13,28 +13,34 @@ const updatePrefs = (key: string, value: unknown) => {
 
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
-    <div class="text-base font-semibold mb-4">Sidebar Options</div>
+    <div class="text-base font-semibold mb-4">
+      {{ $t("preference.sidebar") }}
+    </div>
 
     <Toggle
       class="mb-5"
-      title="Display Count Number"
-      info="Show the count badges in the sidebar."
+      :title="$t('preference.displaycountnumber')"
+      :info="$t('preference.displaycountnumberintro')"
       :enable="prefState.showSidebarCount"
       @update="(value) => updatePrefs('showSidebarCount', value)"
     />
     <Toggle
       class="mb-5"
-      title="Compact Sidebar"
-      info="Reduce the line height of the sidebar item."
+      :title="$t('preference.compactsidebar')"
+      :info="$t('preference.compactsidebarintro')"
       :enable="prefState.isSidebarCompact"
       @update="(value) => updatePrefs('isSidebarCompact', value)"
     />
     <Options
       class="mb-5"
-      title="Sort By"
-      info="Sort tags and folders in the sidebar by."
+      :title="$t('preference.sortby')"
+      :info="$t('preference.sortbyintro')"
       :selected="prefState.sidebarSortBy"
-      :options="{ name: 'Name', count: 'Count', color: 'Color' }"
+      :options="{
+        name: $t('preference.name'),
+        count: $t('preference.count'),
+        color: $t('preference.color'),
+      }"
       @update="
         (value) => {
           updatePrefs('sidebarSortBy', value);
@@ -43,10 +49,10 @@ const updatePrefs = (key: string, value: unknown) => {
     />
     <Options
       class="mb-8"
-      title="Sort Order"
-      info="The order of sorting tags and folders in the sidebar."
+      :title="$t('preference.sortorder')"
+      :info="$t('preference.sortorderintro')"
       :selected="prefState.sidebarSortOrder"
-      :options="{ asce: 'Ascending', desc: 'Descending' }"
+      :options="{ asce: $t('preference.asc'), desc: $t('preference.desc') }"
       @update="
         (value) => {
           updatePrefs('sidebarSortOrder', value);

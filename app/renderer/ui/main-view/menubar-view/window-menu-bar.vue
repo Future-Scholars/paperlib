@@ -72,22 +72,22 @@ const onMaximizeClicked = () => {
       :class="viewState.os === 'darwin' ? 'w-80 pl-8' : 'w-48 pl-2'"
     >
       <MenuBarBtn
-        btnName="Rescrape"
+        btnName="rescrape"
         @click="emit('click', 'rescrape')"
         :disabled="disableMultiBtn"
       />
       <MenuBarBtn
-        btnName="Delete"
+        btnName="delete"
         @click="emit('click', 'delete')"
         :disabled="disableMultiBtn"
       />
       <MenuBarBtn
-        btnName="Edit"
+        btnName="edit"
         @click="emit('click', 'edit')"
         :disabled="disableSingleBtn"
       />
       <MenuBarBtn
-        btnName="Flag"
+        btnName="flag"
         @click="emit('click', 'flag')"
         :disabled="disableMultiBtn"
       />
@@ -98,12 +98,12 @@ const onMaximizeClicked = () => {
       >
         <MenuBarBtn
           class="my-auto"
-          btnName="ListView"
+          btnName="listview"
           @click="emit('click', 'list-view')"
         />
         <MenuBarBtn
           class="my-auto"
-          btnName="TableView"
+          btnName="tableview"
           @click="emit('click', 'table-view')"
         />
       </div>
@@ -139,7 +139,7 @@ const onMaximizeClicked = () => {
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconFonts class="my-auto" />
-                    <span>Title</span>
+                    <span>{{ $t("menu.title") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -155,7 +155,7 @@ const onMaximizeClicked = () => {
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconPerson class="my-auto" />
-                    <span>Authors</span>
+                    <span>{{ $t("menu.authors") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -171,7 +171,7 @@ const onMaximizeClicked = () => {
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconCalendar3 class="my-auto" />
-                    <span>Year</span>
+                    <span>{{ $t("menu.year") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -187,7 +187,7 @@ const onMaximizeClicked = () => {
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconBook class="my-auto" />
-                    <span>Publication</span>
+                    <span>{{ $t("menu.publication") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -203,7 +203,7 @@ const onMaximizeClicked = () => {
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconClock class="my-auto" />
-                    <span>Add Time</span>
+                    <span>{{ $t("menu.addtime") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -221,7 +221,7 @@ const onMaximizeClicked = () => {
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconSortDown class="my-auto" />
-                    <span>Descending</span>
+                    <span>{{ $t("menu.desc") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -237,7 +237,7 @@ const onMaximizeClicked = () => {
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconSortUp class="my-auto" />
-                    <span>Ascending</span>
+                    <span>{{ $t("menu.asc") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -328,7 +328,7 @@ const onMaximizeClicked = () => {
       </Menu>
 
       <MenuBarBtn
-        btnName="Preference"
+        btnName="preference"
         @click="emit('click', 'preference')"
         :with-tooltip="false"
         v-if="viewState.os === 'darwin'"

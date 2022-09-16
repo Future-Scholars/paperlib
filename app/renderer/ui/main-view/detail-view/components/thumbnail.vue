@@ -30,7 +30,6 @@ const renderFromFile = async () => {
     props.entity.mainURL,
     false
   );
-  console.log(fileURL.length);
   if (fileURL.length === 0) {
     isRendering.value = false;
     fileExistingStatus.value = 1;
@@ -136,9 +135,12 @@ onMounted(() => {
   render();
 });
 
-watch(props, (props, prevProps) => {
-  render();
-});
+watch(
+  () => props.entity.mainURL,
+  (props, prevProps) => {
+    render();
+  }
+);
 </script>
 
 <template>

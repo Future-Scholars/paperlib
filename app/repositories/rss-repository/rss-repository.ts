@@ -19,7 +19,6 @@ export class RSSRepository {
   }
 
   async fetch(feed: Feed): Promise<FeedEntity[]> {
-    console.log(feed);
     const items = (await this.parser.parseURL(feed.url)).items;
     let feedEntityDrafts = [];
     for (const item of items) {

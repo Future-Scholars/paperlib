@@ -90,15 +90,22 @@ const getPDFViewerName = (pdfViewerPath: string) => {
     return pdfViewerPath.split("/").pop();
   }
 };
+
+const onChangeLanguage = (language: string) => {
+  updatePrefs("language", language);
+};
 </script>
 
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
-    <div class="text-base font-semibold mb-4">Paperlib Library</div>
-    <div class="text-xs font-semibold">Storage Folder</div>
+    <div class="text-base font-semibold mb-4">
+      Paperlib {{ $t("preference.library") }}
+    </div>
+    <div class="text-xs font-semibold">
+      {{ $t("preference.storagefolder") }}
+    </div>
     <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-      Choose a folder to store paper files (e.g., PDF etc.) and the database
-      files.
+      {{ $t("preference.storagefolderintro") }}
     </div>
     <div
       class="bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 hover:dark:bg-neutral-600 cursor-pointer rounded-md px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 mb-5"
@@ -111,15 +118,15 @@ const getPDFViewerName = (pdfViewerPath: string) => {
 
     <Toggle
       class="mb-5"
-      title="Delete Source File"
-      info="Automatically delete the source file of the imported papers."
+      :title="$t('preference.deletesourcefile')"
+      :info="$t('preference.deletesourcefileintro')"
       :enable="prefState.deleteSourceFile"
       @update="(value) => updatePrefs('deleteSourceFile', value)"
     />
 
     <Options
       class="mb-5"
-      title="Renaming Format"
+      :title="$t('preference.renamingformat')"
       info="Full: FullTitle_id.pdf; Short: FirstCharTitle_id.pdf; A-T: Author-Title_id.pdf"
       :selected="prefState.renamingFormat"
       :options="{
@@ -171,14 +178,47 @@ const getPDFViewerName = (pdfViewerPath: string) => {
     </div>
 
     <hr class="mt-5 mb-5 dark:border-neutral-600" />
-    <div class="text-base font-semibold mb-4">General Options</div>
+    <div class="text-base font-semibold mb-4">
+      {{ $t("preference.generaloptions") }}
+    </div>
+
+    <div class="flex justify-between mb-5">
+      <div class="flex flex-col max-w-[90%]">
+        <div class="text-xs font-semibold">
+          {{ $t("preference.language") }}
+        </div>
+        <div class="text-xxs text-neutral-600 dark:text-neutral-500">
+          {{ $t("preference.pleaserestart") }}
+        </div>
+      </div>
+      <div>
+        <select
+          id="language"
+          class="my-auto bg-gray-50 border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-28 h-6 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          v-model="prefState.language"
+          @change="
+            (e) => {
+              // @ts-ignore
+              onChangeLanguage(e.target.value);
+            }
+          "
+        >
+          <option value="en-GB">en-GB</option>
+          <option value="zh-CN">zh-CN</option>
+        </select>
+      </div>
+    </div>
 
     <Options
       class="mb-5"
-      title="Color Theme"
-      info="Choose a theme for Paperlib UI."
+      :title="$t('preference.colortheme')"
+      :info="$t('preference.colorthemeintro')"
       :selected="prefState.preferedTheme"
-      :options="{ light: 'Light', dark: 'Dark', system: 'System' }"
+      :options="{
+        light: $t('preference.light'),
+        dark: $t('preference.dark'),
+        system: $t('preference.system'),
+      }"
       @update="
         (value) => {
           onThemeUpdated(value);
@@ -188,17 +228,19 @@ const getPDFViewerName = (pdfViewerPath: string) => {
 
     <Toggle
       class="mb-5"
-      title="Invert Preview Color"
-      info="Invert PDF preview colors in the detail panel if the current theme is Dark."
+      :title="$t('preference.invertpreviewcolor')"
+      :info="$t('preference.invertpreviewcolorintro')"
       :enable="prefState.invertColor"
       @update="(value) => updatePrefs('invertColor', value)"
     />
 
     <div class="flex justify-between mb-5">
       <div class="flex flex-col max-w-[90%]">
-        <div class="text-xs font-semibold">Open PDF with</div>
+        <div class="text-xs font-semibold">
+          {{ $t("preference.openpdfwith") }}
+        </div>
         <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-          Use {{ prefState.selectedPDFViewer }} viewer to open PDF files.
+          {{ $t("preference.openpdfwithintro") }}
           {{ getPDFViewerName(prefState.selectedPDFViewerPath) }}
         </div>
       </div>
@@ -214,8 +256,8 @@ const getPDFViewerName = (pdfViewerPath: string) => {
             }
           "
         >
-          <option value="default">Default</option>
-          <option value="custom">Custom</option>
+          <option value="default">{{ $t("preference.default") }}</option>
+          <option value="custom">{{ $t("preference.custom") }}</option>
         </select>
       </div>
     </div>

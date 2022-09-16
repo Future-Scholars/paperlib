@@ -1,4 +1,6 @@
-import { ipcMain, Menu, BrowserWindow, nativeImage } from "electron";
+import { BrowserWindow, Menu, ipcMain, nativeImage } from "electron";
+
+import { loadLocales } from "@/locales/load";
 
 import { Preference, ScraperPreference } from "../../preference/preference";
 
@@ -24,6 +26,8 @@ let greenIcon = nativeImage.createFromBuffer(greenBuf, { width: 1, height: 1 });
 greenIcon = greenIcon.resize({ width: 3, height: 10 });
 
 export function registerMainContextMenu(preference: Preference) {
+  const locales = loadLocales(preference.get("language") as string);
+
   ipcMain.on("show-data-context-menu", (event, args) => {
     const scraperPrefs = preference.get("scrapers") as Array<ScraperPreference>;
 
@@ -43,21 +47,23 @@ export function registerMainContextMenu(preference: Preference) {
 
     const template = [
       {
-        label: "Open",
+        label: locales.t("menu.open"),
         accelerator: "Enter",
         click: () => {
           event.sender.send("data-context-menu-open");
         },
       },
       {
-        label: isMac ? "Show in Finder" : "Show in Explorer",
+        label: isMac
+          ? locales.t("menu.showinfinder")
+          : locales.t("menu.showinexplore"),
         click: () => {
           event.sender.send("data-context-menu-showinfinder");
         },
       },
       { type: "separator" },
       {
-        label: "Edit",
+        label: locales.t("menu.edit"),
         enabled: args,
         accelerator: isMac ? "cmd+e" : "ctrl+e",
         click: () => {
@@ -65,7 +71,7 @@ export function registerMainContextMenu(preference: Preference) {
         },
       },
       {
-        label: "Scrape",
+        label: locales.t("menu.rescrape"),
         accelerator: isMac ? "cmd+r" : "ctrl+r",
         click: () => {
           event.sender.send("data-context-menu-scrape");
@@ -73,18 +79,18 @@ export function registerMainContextMenu(preference: Preference) {
       },
 
       {
-        label: "Scrape from",
+        label: locales.t("menu.rescrapefrom"),
         submenu: scraperMenuTemplate,
       },
 
       {
-        label: "Delete",
+        label: locales.t("menu.delete"),
         click: () => {
           event.sender.send("data-context-menu-delete");
         },
       },
       {
-        label: "Toggle Flag",
+        label: locales.t("menu.toggleflag"),
         accelerator: isMac ? "cmd+f" : "ctrl+f",
         click: () => {
           event.sender.send("data-context-menu-flag");
@@ -92,7 +98,7 @@ export function registerMainContextMenu(preference: Preference) {
       },
       { type: "separator" },
       {
-        label: "Export",
+        label: locales.t("menu.export"),
         submenu: [
           {
             label: "BibTex",
@@ -102,14 +108,14 @@ export function registerMainContextMenu(preference: Preference) {
             },
           },
           {
-            label: "BibTex Key",
+            label: locales.t("menu.bibtexkey"),
             accelerator: isMac ? "cmd+shift+k" : "ctrl+shift+k",
             click: () => {
               event.sender.send("data-context-menu-export-bibtex-key");
             },
           },
           {
-            label: "Plain Text",
+            label: locales.t("menu.plaintext"),
             click: () => {
               event.sender.send("data-context-menu-export-plain");
             },
@@ -126,7 +132,7 @@ export function registerMainContextMenu(preference: Preference) {
   ipcMain.on("show-feed-data-context-menu", (event, args) => {
     const template = [
       {
-        label: "Open",
+        label: locales.t("menu.open"),
         accelerator: "Enter",
         click: () => {
           event.sender.send("data-context-menu-open");
@@ -134,13 +140,13 @@ export function registerMainContextMenu(preference: Preference) {
       },
       { type: "separator" },
       {
-        label: "Add to Library",
+        label: locales.t("menu.addtolibrary"),
         click: () => {
           event.sender.send("feed-data-context-menu-add");
         },
       },
       {
-        label: "Toggle Read / Unread",
+        label: locales.t("menu.toggleread"),
         click: () => {
           event.sender.send("feed-data-context-menu-read");
         },
@@ -194,7 +200,7 @@ export function registerMainContextMenu(preference: Preference) {
       },
       { type: "separator" },
       {
-        label: "Delete",
+        label: locales.t("menu.delete"),
         click: () => {
           event.sender.send("sidebar-context-menu-delete", [data, type]);
         },
@@ -202,14 +208,14 @@ export function registerMainContextMenu(preference: Preference) {
     ];
     if (type === "feed") {
       template.push({
-        label: "Refresh",
+        label: locales.t("menu.refresh"),
         click: () => {
           event.sender.send("sidebar-context-menu-feed-refresh", [data, type]);
         },
       });
     } else {
       template.push({
-        label: "Edit",
+        label: locales.t("menu.edit"),
         click: () => {
           event.sender.send("sidebar-context-menu-edit", [data, type]);
         },
@@ -224,7 +230,7 @@ export function registerMainContextMenu(preference: Preference) {
   ipcMain.on("show-sup-context-menu", (event, args) => {
     const template = [
       {
-        label: "Delete",
+        label: locales.t("menu.delete"),
         click: () => {
           event.sender.send("sup-context-menu-delete", args);
         },
@@ -239,7 +245,7 @@ export function registerMainContextMenu(preference: Preference) {
   ipcMain.on("show-thumbnail-context-menu", (event, args) => {
     const template = [
       {
-        label: "Replace",
+        label: locales.t("menu.replace"),
         click: () => {
           event.sender.send("thumbnail-context-menu-replace", args);
         },

@@ -146,7 +146,7 @@ watch(
 <template>
   <div>
     <SectionItem
-      name="All Papers"
+      :name="$t('mainview.allpapers')"
       :count="viewState.entitiesCount"
       :with-counter="prefState.showSidebarCount"
       :with-spinner="isSpinnerShown"
@@ -157,7 +157,7 @@ watch(
       <BIconCollection class="text-sm my-auto text-blue-500 min-w-[1em]" />
     </SectionItem>
     <SectionItem
-      name="Flags"
+      :name="$t('mainview.flags')"
       :with-counter="false"
       :with-spinner="false"
       :compact="prefState.isSidebarCompact"
@@ -167,7 +167,7 @@ watch(
       <BIconFlag class="text-sm my-auto text-blue-500 min-w-[1em]" />
     </SectionItem>
 
-    <CollopseGroup title="Tags">
+    <CollopseGroup :title="$t('mainview.tags')">
       <SectionItem
         :name="tag.name"
         :count="tag.count"
@@ -208,7 +208,7 @@ watch(
       </SectionItem>
     </CollopseGroup>
 
-    <CollopseGroup title="Folders">
+    <CollopseGroup :title="$t('mainview.folders')">
       <SectionItem
         :name="folder.name"
         :count="folder.count"

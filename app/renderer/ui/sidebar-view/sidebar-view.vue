@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
+
 import NotificationBar from "./components/notification-bar.vue";
 import SwitcherTitle from "./components/switcher-title.vue";
 import WindowControlBar from "./components/window-control-bar.vue";
 import SidebarFeedsView from "./sidebar-feeds-view.vue";
 import SidebarLibraryView from "./sidebar-library-view.vue";
-
-
 
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
@@ -33,7 +31,7 @@ const onViewContentSwitch = (view: number) => {
 
     <SwitcherTitle
       class="h-7"
-      :titles="['Library', 'Feeds']"
+      :titles="[$t('mainview.library'), $t('mainview.feeds')]"
       @changed="onViewContentSwitch"
     />
 

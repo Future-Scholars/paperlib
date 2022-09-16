@@ -60,9 +60,11 @@ const onUpdate = (key: string, value: string) => {
 
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
-    <div class="text-base font-semibold mb-2">Hotkeys</div>
+    <div class="text-base font-semibold mb-2">
+      {{ $t("preference.hotkeys") }}
+    </div>
     <div class="text-xs underline text-neutral-600 dark:text-neutral-500 mb-5">
-      ⚠️ Please restart Paperlib to take effect.
+      ⚠️ {{ $t("preference.pleaserestart") }}
     </div>
     <div class="flex flex-col space-y-2 mb-5">
       <HotkeyOption
