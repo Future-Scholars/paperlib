@@ -42,7 +42,6 @@ export class PaperlibScraper extends Scraper {
       pages: string;
       author: string;
     };
-    console.log(response);
     if (typeof response.year !== "undefined") {
       const pubTime = response.year;
       const publication = response.booktitle;

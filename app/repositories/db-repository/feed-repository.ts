@@ -109,7 +109,6 @@ export class FeedRepository {
         throw new Error(`Invalid arguments: ${feed}, ${name}`);
       }
       for (const object of objects) {
-        console.log(color);
         object.color = color;
       }
     });

@@ -63,7 +63,7 @@ export class FeedInteractor {
         this.stateStore.viewState.searchMode === "advanced") &&
       search
     ) {
-      this.stateStore.logState.alertLog = `Fulltext searching is not supported in the feeds view.`;
+      this.stateStore.logState.alertLog = `Fulltext or advanced searching is not supported in the feeds view.`;
       search = "";
     }
     try {

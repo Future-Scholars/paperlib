@@ -25,6 +25,8 @@ const onCancel = () => {
 
 const onConfirm = () => {
   window.entityInteractor.delete(selectionState.selectedIds);
+  selectionState.selectedIds = [];
+  selectionState.selectedIndex = [];
   onClick();
 };
 </script>

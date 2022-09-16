@@ -66,6 +66,8 @@ export default defineConfig({
             "md5-file",
             "tough-cookie",
             "ws",
+            "node-html-parser",
+            "citation-js",
           ];
         },
       },

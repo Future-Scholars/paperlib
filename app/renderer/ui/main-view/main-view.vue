@@ -6,6 +6,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { debounce } from "@/utils/misc";
 
 import FeedDataView from "./data-view/feed-data-view.vue";
 import PaperDataView from "./data-view/paper-data-view.vue";
@@ -167,6 +168,9 @@ const addSelectedFeedEntities = async () => {
     });
     await window.feedInteractor.addToLib(feedEntityDrafts);
     viewState.feedEntityAddingStatus = 2;
+    debounce(() => {
+      viewState.feedEntityAddingStatus = 0;
+    }, 1000)();
   }
 };
 

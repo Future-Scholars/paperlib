@@ -110,9 +110,13 @@ export class FileRepository {
           paperEntityDraft.setValue("pubType", pubType > -1 ? pubType : 2);
           const attachments = value["File Attachments"].split(";");
           const mainURL = attachments[0];
-          const supURLs = attachments.slice(1).map((url: string) => url.trim());
+          let supURLs = attachments.slice(1).map((url: string) => url.trim());
           if (mainURL) {
-            paperEntityDraft.setValue("mainURL", mainURL);
+            if (mainURL.endswith(".pdf")) {
+              paperEntityDraft.setValue("mainURL", mainURL);
+            } else {
+              supURLs.push(mainURL);
+            }
           }
           if (supURLs.length > 0) {
             paperEntityDraft.setValue("supURLs", supURLs);

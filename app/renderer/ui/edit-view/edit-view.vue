@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Ref, inject, ref, watch } from "vue";
 
-import { PaperFolder, PaperTag } from "@/models/categorizer";
+import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -56,6 +56,18 @@ const keyDownListener = (e: KeyboardEvent) => {
   e.preventDefault();
   if (e.key === "Escape") {
     onCloseClicked();
+  }
+};
+
+const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
+  if (type === "PaperTag") {
+    editingPaperEntityDraft.value.tags = names.map((name: string) => {
+      return new PaperTag(name, 1, "blue");
+    });
+  } else if (type === "PaperFolder") {
+    editingPaperEntityDraft.value.folders = names.map((name: string) => {
+      return new PaperFolder(name, 1, "blue");
+    });
   }
 };
 
@@ -194,10 +206,10 @@ const onSaveClicked = async () => {
                   editingPaperEntityDraft.tags.map((tag) => tag.name)
                 "
                 @changed="
-              (values) => {
-                editingPaperEntityDraft.tags = values.map((tag: string) => new PaperTag(tag, 1, 'blue'));
-              }
-            "
+                  (values) => {
+                    onCategorizerUpdated(values, 'PaperTag');
+                  }
+                "
               />
               <MultiselectBox
                 :placeholder="$t('mainview.folders')"
@@ -206,10 +218,10 @@ const onSaveClicked = async () => {
                   editingPaperEntityDraft.folders.map((folder) => folder.name)
                 "
                 @changed="
-              (values) => {
-                editingPaperEntityDraft.folders = values.map((folder: string) => new PaperFolder(folder, 1, 'blue'));
-              }
-            "
+                  (values) => {
+                    onCategorizerUpdated(values, 'PaperFolder');
+                  }
+                "
               />
               <InputField
                 :placeholder="$t('mainview.note')"

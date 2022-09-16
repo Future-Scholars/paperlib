@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconQuestionCircle, BIconSearch, BIconX } from "bootstrap-icons-vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { debounce } from "@/utils/misc";
@@ -24,6 +24,13 @@ const searchDebounce = ref(300);
 const onSearchTextChanged = debounce(() => {
   viewState.searchText = `${searchText.value}`;
 }, searchDebounce.value);
+
+watch(
+  () => viewState.searchText,
+  (newVal) => {
+    searchText.value = newVal;
+  }
+);
 
 const onInput = (payload: Event) => {
   if (viewState.searchMode === "advanced") {

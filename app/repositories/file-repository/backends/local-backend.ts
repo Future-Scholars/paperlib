@@ -1,3 +1,4 @@
+import { shell } from "electron";
 import { existsSync, promises as fsPromise } from "fs";
 import path from "path";
 
@@ -60,7 +61,9 @@ export class LocalFileBackend implements FileBackend {
       return false;
     }
     try {
-      await fsPromise.copyFile(_sourceURL, _targetURL);
+      if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
+        await fsPromise.copyFile(_sourceURL, _targetURL);
+      }
       if (
         ((this.preference.get("deleteSourceFile") as boolean) || forceDelete) &&
         _sourceURL.toLowerCase() !== _targetURL.toLowerCase()
@@ -69,6 +72,7 @@ export class LocalFileBackend implements FileBackend {
       }
       return true;
     } catch (error) {
+      console.error(error);
       this.stateStore.logState.alertLog = `Could not copy file: ${
         error as string
       }`;
@@ -215,7 +219,7 @@ export class LocalFileBackend implements FileBackend {
       if (stat.isDirectory()) {
         return false;
       }
-      await fsPromise.unlink(_sourceURL);
+      await shell.trashItem(_sourceURL);
       return true;
     } catch (error) {
       this.stateStore.logState.alertLog = `Could not remove file: ${

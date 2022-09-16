@@ -88,13 +88,13 @@ export class ReferenceRepository {
     };
 
     const predicateSingle = (paperEntityDraft: PaperEntity) => {
-      return paperEntityDraft.constructor.name === "PaperEntity";
+      return paperEntityDraft.codes !== undefined;
     };
 
     const predicateMulti = (paperEntityDrafts: PaperEntity[]) => {
       if (!!paperEntityDrafts?.[Symbol.iterator]) {
         return paperEntityDrafts.every((paperEntityDraft) => {
-          return paperEntityDraft.constructor.name === "PaperEntity";
+          return paperEntityDraft.codes !== undefined;
         });
       } else {
         return false;

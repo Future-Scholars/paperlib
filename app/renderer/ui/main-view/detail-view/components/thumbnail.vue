@@ -26,6 +26,7 @@ const isRendering = ref(true);
 const fileExistingStatus = ref(1);
 
 const renderFromFile = async () => {
+  isRendering.value = true;
   const fileURL = await window.appInteractor.access(
     props.entity.mainURL,
     false
@@ -54,7 +55,15 @@ const renderFromFile = async () => {
 
 const render = async () => {
   isRendering.value = true;
-  if (props.entity.mainURL) {
+  const fileURL = await window.appInteractor.access(
+    props.entity.mainURL,
+    false
+  );
+  if (
+    props.entity.mainURL &&
+    fileURL &&
+    !fileURL.startsWith("downloadRequired://")
+  ) {
     const cachedThumbnail = await window.entityInteractor.loadThumbnail(
       props.entity
     );
@@ -98,7 +107,6 @@ const locatePDF = async () => {
   emit("locateMainFile");
 };
 
-// TODO: check this
 const onWebdavDownloadClicked = async () => {
   isRendering.value = true;
   const fileURL = await window.appInteractor.access(props.entity.mainURL, true);
@@ -121,6 +129,13 @@ window.appInteractor.registerMainSignal(
   "thumbnail-context-menu-replace",
   (args) => {
     showFilePicker();
+  }
+);
+
+window.appInteractor.registerMainSignal(
+  "thumbnail-context-menu-refresh",
+  (args) => {
+    renderFromFile();
   }
 );
 

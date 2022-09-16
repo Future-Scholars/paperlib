@@ -148,19 +148,6 @@ const onLeave = () => {
         v-show="isHistoryShown"
       >
         <div
-          class="flex flex-col text-xxs py-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-y-1 pointer-events-auto"
-          v-for="progress of historyProgresses"
-        >
-          <div class="my-auto">{{ progress.msg }}</div>
-          <div class="rounded-full h-0.5">
-            <div
-              class="bg-accentlight h-0.5 rounded-full dark:bg-accentdark"
-              :style="`width: ${progress.value}%`"
-            ></div>
-          </div>
-        </div>
-
-        <div
           class="flex text-xxs p-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto"
           v-for="historyMsg of historyMsgs"
           v-show="historyMsg.forceShow"
@@ -182,6 +169,18 @@ const onLeave = () => {
             :class="historyMsg.type === 'warning' ? 'text-red-600' : ''"
             >{{ historyMsg.msg }}</span
           >
+        </div>
+        <div
+          class="flex flex-col text-xxs py-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-y-1 pointer-events-auto"
+          v-for="progress of historyProgresses"
+        >
+          <div class="my-auto">{{ progress.msg }}</div>
+          <div class="rounded-full h-0.5">
+            <div
+              class="bg-accentlight h-0.5 rounded-full dark:bg-accentdark"
+              :style="`width: ${progress.value}%`"
+            ></div>
+          </div>
         </div>
       </div>
     </Transition>

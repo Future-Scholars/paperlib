@@ -250,6 +250,12 @@ export function registerMainContextMenu(preference: Preference) {
           event.sender.send("thumbnail-context-menu-replace", args);
         },
       },
+      {
+        label: locales.t("menu.refresh"),
+        click: () => {
+          event.sender.send("thumbnail-context-menu-refresh", args);
+        },
+      },
     ];
     // @ts-ignore
     const menu = Menu.buildFromTemplate(template);

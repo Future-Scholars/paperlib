@@ -110,6 +110,16 @@ export function setMainMenu(mainWindow: BrowserWindow, preference: Preference) {
             mainWindow.webContents.send("shortcut-cmd-f");
           },
         },
+        { type: "separator" },
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+        ...(isMac
+          ? [{ role: "delete" }, { role: "selectAll" }]
+          : [{ role: "delete" }, { type: "separator" }, { role: "selectAll" }]),
       ],
     },
     // { role: 'viewMenu' }

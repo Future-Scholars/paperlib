@@ -55,17 +55,6 @@ export async function createPluginWindow(
     return { action: "deny" };
   });
 
-  winPlugin.on("ready-to-show", () => {
-    setWindowsSpecificStyles(winPlugin);
-
-    const { x, y } = screen.getCursorScreenPoint();
-    const currentDisplay = screen.getDisplayNearestPoint({ x, y });
-    const bounds = currentDisplay.bounds;
-    const centerx = bounds.x + (bounds.width - 600) / 2;
-    const centery = bounds.y + (bounds.height - 76) / 2;
-    winPlugin?.setPosition(parseInt(`${centerx}`), parseInt(`${centery}`));
-  });
-
   winPlugin.on("blur", () => {
     // FIXME: Test on win
     if (os.platform() === "win32") {
@@ -90,7 +79,7 @@ export async function createPluginWindow(
   return winPlugin;
 }
 
-function setWindowsSpecificStyles(win: BrowserWindow | null) {
+export function setWindowsSpecificStyles(win: BrowserWindow | null) {
   if (os.platform() !== "darwin" && win) {
     win.webContents.insertCSS(`
 /* Track */

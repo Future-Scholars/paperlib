@@ -1,4 +1,4 @@
-import { BrowserWindow, app, globalShortcut, ipcMain } from "electron";
+import { BrowserWindow, app, globalShortcut, ipcMain, screen } from "electron";
 import Store from "electron-store";
 import { platform, release } from "os";
 
@@ -11,6 +11,7 @@ import { createMainWindow } from "./win_main/index";
 import {
   createPluginWindow,
   setMainPluginCommunicationChannel,
+  setWindowsSpecificStyles,
 } from "./win_plugin/index";
 import { registerSideworkWindowEvents } from "./win_sidework/event";
 
@@ -46,8 +47,20 @@ async function createWindow() {
       // win?.blur();
       if (winPlugin === null || winPlugin?.isDestroyed()) {
         winPlugin = await createPluginWindow(winPlugin);
-        winPlugin.on("show", () => {
+        winPlugin.on("ready-to-show", () => {
           setMainPluginCommunicationChannel(win, winPlugin);
+
+          setWindowsSpecificStyles(winPlugin);
+
+          const { x, y } = screen.getCursorScreenPoint();
+          const currentDisplay = screen.getDisplayNearestPoint({ x, y });
+          const bounds = currentDisplay.bounds;
+          const centerx = bounds.x + (bounds.width - 600) / 2;
+          const centery = bounds.y + (bounds.height - 76) / 2;
+          winPlugin?.setPosition(
+            parseInt(`${centerx}`),
+            parseInt(`${centery}`)
+          );
         });
 
         winPlugin.on("hide", () => {
