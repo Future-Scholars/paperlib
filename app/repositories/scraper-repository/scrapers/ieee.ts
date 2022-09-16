@@ -27,7 +27,7 @@ export class IEEEScraper extends Scraper {
     requestTitle = requestTitle.replace(/ /g, "+");
     const scrapeURL =
       "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=" +
-      (this.preference.get("ieeeAPIKey") as string) +
+      ieeeAPIKey +
       "&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=" +
       requestTitle;
 

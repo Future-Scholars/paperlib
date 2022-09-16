@@ -1,18 +1,13 @@
-import { readFileSync, readdirSync } from "fs";
-import path from "path";
-
 export const loadLocales = (code?: string) => {
   const locales: Record<string, any> = {};
-  const files = readdirSync("./app/locales/locales");
-  console.log(files);
-  files.forEach((file) => {
-    const locale = JSON.parse(
-      readFileSync(path.join("./app/locales/locales", file), "utf8")
-    );
 
-    locales[locale.code] = locale;
-  });
+  const data = import.meta.glob("./locales/*.json", { eager: true });
 
+  for (const path in data) {
+    const local = data[path];
+    // @ts-ignore
+    locales[local.code] = JSON.parse(JSON.stringify(local));
+  }
   if (code) {
     const locale = locales[code];
     locale.t = (key: string) => {

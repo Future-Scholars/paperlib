@@ -12,7 +12,7 @@ export class PaperlibScraper extends Scraper {
       (paperEntityDraft.publication.toLowerCase().includes("arxiv") ||
         paperEntityDraft.publication.toLowerCase().includes("openreview") ||
         paperEntityDraft.publication === "") &&
-      this.getEnable("cvf");
+      this.getEnable("paperlib");
 
     const shortTitle = formatString({
       str: paperEntityDraft.title,
@@ -42,6 +42,7 @@ export class PaperlibScraper extends Scraper {
       pages: string;
       author: string;
     };
+    console.log(response);
     if (typeof response.year !== "undefined") {
       const pubTime = response.year;
       const publication = response.booktitle;
