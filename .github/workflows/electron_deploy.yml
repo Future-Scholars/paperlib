@@ -51,7 +51,6 @@ jobs:
         with:
           files: |
             ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg
-          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -118,7 +117,6 @@ jobs:
         with:
           files: |
             ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}_arm.dmg
-          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -191,9 +189,14 @@ jobs:
         with:
           files: |
             ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe
-          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to WinGet
+        uses: vedantmgoyal2009/winget-releaser@latest
+        with:
+          identifier: GeoffreyChen.Paperlib
+          token: ${{ secrets.WINGET_TOKEN }}
 
       - name: Install Oracle Cloud CLI
         run: |
