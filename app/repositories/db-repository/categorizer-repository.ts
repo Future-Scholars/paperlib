@@ -231,13 +231,12 @@ export class CategorizerRepository {
   // ========================
   // Dev Functions
   // ========================
-  async addDummyData(realm: Realm) {
+  async addDummyData(realm: Realm, partition: string) {
     const tag = new PaperTag("test-tag-1", 1);
     const folder = new PaperFolder("test-folder-1", 1);
-    realm.write(() => {
-      realm.create("PaperTag", tag);
-      realm.create("PaperFolder", folder);
-    });
+
+    this.update(realm, [], [tag], "PaperTag", partition);
+    this.update(realm, [], [folder], "PaperFolder", partition);
 
     return { tag, folder };
   }

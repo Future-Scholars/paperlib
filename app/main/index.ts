@@ -1,9 +1,18 @@
-import { BrowserWindow, app, globalShortcut, ipcMain, screen } from "electron";
+import {
+  BrowserWindow,
+  app,
+  globalShortcut,
+  ipcMain,
+  screen,
+  session,
+} from "electron";
+// @ts-ignore
 import Store from "electron-store";
 import { platform, release } from "os";
 
 import { Preference } from "../preference/preference";
 import "./files.ts";
+import "./proxy.ts";
 import "./theme.ts";
 import "./update.ts";
 import { registerMainContextMenu } from "./win_main/contextmenu";

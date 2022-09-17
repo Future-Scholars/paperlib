@@ -16,6 +16,11 @@ const onUpdate = (key: string, value: unknown) => {
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
     <div class="text-base font-semibold mb-1">{{ $t("preference.proxy") }}</div>
+
+    <div class="text-xs underline text-neutral-600 dark:text-neutral-500 mb-5">
+      ⚠️ {{ $t("preference.pleaserestart") }}
+    </div>
+
     <input
       class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none mb-2"
       type="text"

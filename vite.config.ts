@@ -68,6 +68,7 @@ export default defineConfig({
             "ws",
             "node-html-parser",
             "citation-js",
+            "electron-proxy-agent",
           ];
         },
       },

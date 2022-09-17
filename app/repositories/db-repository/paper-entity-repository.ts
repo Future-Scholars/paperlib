@@ -236,11 +236,17 @@ export class PaperEntityRepository {
     });
   }
 
-  addDummyData(tag: PaperTag, folder: PaperFolder, realm: Realm) {
+  addDummyData(
+    tag: PaperTag,
+    folder: PaperFolder,
+    realm: Realm,
+    partition: string
+  ) {
     const ids: Array<string | ObjectId> = [];
     realm.safeWrite(() => {
       for (let i = 0; i < 10000; i++) {
         const entity = new PaperEntity(true);
+        entity._partition = partition;
 
         entity.dummyFill();
 

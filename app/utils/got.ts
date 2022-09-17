@@ -25,15 +25,23 @@ export class NetworkTool {
     this.stateStore = stateStore;
     this.preference = preference;
 
-    this.agent = this.proxyAgent();
+    this.agent = {};
+
+    try {
+      this.checkSystemProxy();
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  proxyAgent() {
-    const httpproxyUrl = this.preference.get("httpproxy") as string;
-    const httpsproxyUrl = this.preference.get("httpsproxy") as string;
+  setProxyAgent(proxy: string = "") {
+    const httpproxyUrl = (this.preference.get("httpproxy") as string) || proxy;
+    const httpsproxyUrl =
+      (this.preference.get("httpsproxy") as string) || proxy;
 
     let agnets = {};
     if (httpproxyUrl || httpsproxyUrl) {
+      console.log(httpproxyUrl, httpsproxyUrl);
       let validHttpproxyUrl, validHttpsproxyUrl;
       if (httpproxyUrl) {
         validHttpproxyUrl = httpproxyUrl;
@@ -66,7 +74,26 @@ export class NetworkTool {
       });
     }
 
-    return agnets;
+    this.agent = agnets;
+  }
+
+  checkSystemProxy() {
+    const proxy = ipcRenderer.sendSync("get-system-proxy");
+
+    if (proxy !== "DIRECT") {
+      const proxyUrlComponents = proxy.split(":");
+
+      let proxyHost = proxyUrlComponents[0].split(" ")[1].trim();
+      const proxyPort = parseInt(proxyUrlComponents[1].trim(), 10);
+      if (
+        !proxyHost.startsWith("http://") &&
+        !proxyHost.startsWith("https://")
+      ) {
+        proxyHost = "http://" + proxyHost;
+      }
+
+      this.setProxyAgent(proxyHost + ":" + proxyPort);
+    }
   }
 
   async get(

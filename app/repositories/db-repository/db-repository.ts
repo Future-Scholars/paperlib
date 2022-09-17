@@ -671,12 +671,18 @@ export class DBRepository {
   async addDummyData() {
     const realm = await this.realm();
     const { tag, folder } = await this.categorizerRepository.addDummyData(
-      realm
+      realm,
+      this.getPartition()
     );
-    this.paperEntityRepository.addDummyData(tag, folder, realm);
+    this.paperEntityRepository.addDummyData(
+      tag,
+      folder,
+      realm,
+      this.getPartition()
+    );
 
-    const feed = await this.feedRepository.addDummyData(realm);
-    this.feedEntityRepository.addDummyData(feed, realm);
+    // const feed = await this.feedRepository.addDummyData(realm);
+    // this.feedEntityRepository.addDummyData(feed, realm);
   }
 
   async removeAll() {
