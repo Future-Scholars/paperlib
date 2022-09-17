@@ -142,7 +142,7 @@ export class FeedEntityRepository {
           updateObj.read = feedEntity.read;
           updateObj.feed = feed;
 
-          return true;
+          return "updated";
         } else {
           // Add
           const reduplicatedFeedEntities = realm
@@ -159,7 +159,7 @@ export class FeedEntityRepository {
             }
             realm.create("FeedEntity", feedEntity);
 
-            return true;
+            return "created";
           } else {
             const updateObj = reduplicatedFeedEntities[0];
             updateObj.feedTime = feedEntity.feedTime;
@@ -179,7 +179,7 @@ export class FeedEntityRepository {
             updateObj.read = feedEntity.read;
             updateObj.feed = feed;
 
-            return true;
+            return "updated";
           }
         }
       });
@@ -247,11 +247,8 @@ export class FeedEntityRepository {
         if (feedEntity) {
           realm.delete(feedEntity);
         } else if (ids) {
-          const idsQuery = ids
-            .map((id) => `_id == oid(${id as string})`)
-            .join(" OR ");
           realm.delete(
-            realm.objects<FeedEntity>("FeedEntity").filtered(`(${idsQuery})`)
+            realm.objects<FeedEntity>("FeedEntity").filtered("_id IN $0", ids)
           );
           return true;
         } else {

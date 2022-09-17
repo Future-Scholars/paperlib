@@ -560,6 +560,12 @@ export class DBRepository {
             existingFeedEntity,
             this.getPartition()
           );
+
+          if (success === "updated") {
+            this.feedRepository.delete(realm, false, feed);
+          }
+
+          success = success ? true : false;
         } else {
           success = false;
         }
