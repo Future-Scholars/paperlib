@@ -27,10 +27,12 @@ export class NetworkTool {
 
     this.agent = {};
 
-    try {
-      this.checkSystemProxy();
-    } catch (e) {
-      console.error(e);
+    if (this.preference.get("allowproxy")) {
+      try {
+        this.checkSystemProxy();
+      } catch (e) {
+        console.error(e);
+      }
     }
   }
 
@@ -41,7 +43,6 @@ export class NetworkTool {
 
     let agnets = {};
     if (httpproxyUrl || httpsproxyUrl) {
-      console.log(httpproxyUrl, httpsproxyUrl);
       let validHttpproxyUrl, validHttpsproxyUrl;
       if (httpproxyUrl) {
         validHttpproxyUrl = httpproxyUrl;

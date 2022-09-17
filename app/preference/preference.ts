@@ -74,6 +74,7 @@ export interface PreferenceStore {
   scrapers: Array<ScraperPreference>;
   downloaders: Array<DownloaderPreference>;
 
+  allowproxy: boolean;
   httpproxy: string;
   httpsproxy: string;
 
@@ -146,6 +147,7 @@ export const defaultPreferences: PreferenceStore = {
 
   lastFeedRefreshTime: Math.round(Date.now() / 1000),
 
+  allowproxy: true,
   httpproxy: "",
   httpsproxy: "",
 
