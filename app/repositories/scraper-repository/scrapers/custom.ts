@@ -1,5 +1,6 @@
 import { Response } from "got";
 
+import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -9,6 +10,9 @@ import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 export class CustomScraper extends Scraper {
   name = "";
 
+  tagClass: typeof PaperTag;
+  folderClass: typeof PaperFolder;
+
   constructor(
     stateStore: MainRendererStateStore,
     preference: Preference,
@@ -17,6 +21,8 @@ export class CustomScraper extends Scraper {
     super(stateStore, preference);
 
     this.name = name;
+    this.tagClass = PaperTag;
+    this.folderClass = PaperFolder;
   }
 
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
