@@ -182,8 +182,9 @@ export class EntityInteractor {
       );
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Add paper to library failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Add paper to library failed: ${
+        error as string
+      }`;
     }
     return successfulEntityDrafts;
   }
@@ -217,8 +218,9 @@ export class EntityInteractor {
       await this.dbRepository.updatePaperEntities(toBeUpdatedPaperEntityDrafts);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Add paper to library failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Add paper to library failed: ${
+        error as string
+      }`;
     }
 
     this.stateStore.viewState.processingQueueCount -= urlList.length;
@@ -256,8 +258,9 @@ export class EntityInteractor {
       );
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Delete paper failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Delete paper failed: ${
+        error as string
+      }`;
     }
     this.stateStore.viewState.processingQueueCount -= ids.length;
   }
@@ -331,8 +334,9 @@ export class EntityInteractor {
       updatedPaperEntities = await updatePromise(paperEntities);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Update paper failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Update paper failed: ${
+        error as string
+      }`;
     }
 
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
@@ -353,8 +357,9 @@ export class EntityInteractor {
       );
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Scrape paper failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Scrape paper failed: ${
+        error as string
+      }`;
     }
 
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
@@ -378,8 +383,9 @@ export class EntityInteractor {
       );
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Scrape paper failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Scrape paper failed: ${
+        error as string
+      }`;
     }
 
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
@@ -424,8 +430,9 @@ export class EntityInteractor {
       await this.dbRepository.updatePaperEntities(paperEntityDrafts);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Add paper to ${categorizer.name
-        } failed: ${error as string}`;
+      this.stateStore.logState.alertLog = `Add paper to ${
+        categorizer.name
+      } failed: ${error as string}`;
     }
 
     this.stateStore.viewState.processingQueueCount -= ids.length;
@@ -485,8 +492,9 @@ export class EntityInteractor {
       }
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Update cache failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Update cache failed: ${
+        error as string
+      }`;
     }
   }
 
@@ -531,8 +539,9 @@ export class EntityInteractor {
       updatedPaperEntities = await this.update(paperEntityDrafts);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Download paper failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Download paper failed: ${
+        error as string
+      }`;
     }
 
     this.stateStore.viewState.processingQueueCount -= paperEntities.length;
@@ -572,8 +581,9 @@ export class EntityInteractor {
       );
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Rename all paper failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Rename all paper failed: ${
+        error as string
+      }`;
     }
 
     this.stateStore.viewState.processingQueueCount -= 1;
@@ -624,7 +634,7 @@ export class EntityInteractor {
         // Scrape every 5 papers
         const n = preprintPaperEntities.length;
         this.stateStore.logState.progressLog = {
-          id: 'routine-scrape',
+          id: "routine-scrape",
           value: 0,
           msg: `Scraping preprint...`,
         };
@@ -637,21 +647,21 @@ export class EntityInteractor {
           await this.scrape(preprintPaperEntityDraftsChunk);
 
           this.stateStore.logState.progressLog = {
-            id: 'routine-scrape',
-            value: i / n * 100,
+            id: "routine-scrape",
+            value: (i / n) * 100,
             msg: `Scraping preprint...`,
           };
-
         }
         this.stateStore.logState.progressLog = {
-          id: 'routine-scrape',
+          id: "routine-scrape",
           value: 100,
           msg: `Scraping preprint...`,
         };
       } catch (error) {
         console.error(error);
-        this.stateStore.logState.alertLog = `Routine scrape failed: ${error as string
-          }`;
+        this.stateStore.logState.alertLog = `Routine scrape failed: ${
+          error as string
+        }`;
       }
       this.stateStore.viewState.processingQueueCount -= 1;
     }

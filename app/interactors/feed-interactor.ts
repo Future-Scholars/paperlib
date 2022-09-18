@@ -142,6 +142,7 @@ export class FeedInteractor {
 
       const scrapePromise = async (entityDraft: PaperEntity) => {
         return await this.scraperRepository.scrape(entityDraft, [
+          "paperlib",
           "cvf",
           "dblp",
           "ieee",
