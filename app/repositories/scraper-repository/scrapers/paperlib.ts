@@ -8,10 +8,8 @@ import { Scraper, ScraperRequestType } from "./scraper";
 export class PaperlibScraper extends Scraper {
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const enable =
-      paperEntityDraft.title !== "" &&
-      (paperEntityDraft.publication.toLowerCase().includes("arxiv") ||
-        paperEntityDraft.publication.toLowerCase().includes("openreview") ||
-        paperEntityDraft.publication === "") &&
+      (paperEntityDraft.title !== "" ||
+        paperEntityDraft.arxiv !== "" || paperEntityDraft.doi !== "") &&
       this.getEnable("paperlib");
 
     const shortTitle = formatString({
@@ -19,12 +17,23 @@ export class PaperlibScraper extends Scraper {
       removeWhite: true,
       removeStr: "&amp",
     });
-    const scrapeURL = `https://paperlib.app/api/cvf/${shortTitle}`;
+    let scrapeURL = `https://api.paperlib.app/pubs/query?`;
+    const queryParams = []
+    if (shortTitle) {
+      queryParams.push(`title=${shortTitle}`);
+    }
+    if (paperEntityDraft.arxiv) {
+      queryParams.push(`arxiv=${paperEntityDraft.arxiv}`);
+    }
+    if (paperEntityDraft.doi) {
+      queryParams.push(`doi=${paperEntityDraft.doi}`);
+    }
+    scrapeURL += queryParams.join("&");
 
     const headers = {};
 
     if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from the Paperlib Qeury Server...`;
+      this.stateStore.logState.processLog = `Scraping from Paperlib Qeury Service...`;
     }
 
     return { scrapeURL, headers, enable };
@@ -35,45 +44,45 @@ export class PaperlibScraper extends Scraper {
     paperEntityDraft: PaperEntity
   ): PaperEntity {
     const response = JSON.parse(rawResponse.body) as {
-      year: string;
-      booktitle: string;
-      type: string;
-      ENTRYTYPE: string;
-      pages: string;
-      author: string;
-    };
-    if (typeof response.year !== "undefined") {
-      const pubTime = response.year;
-      const publication = response.booktitle;
-      let pubType;
-      if (
-        response.type === "inproceedings" ||
-        response.ENTRYTYPE === "inproceedings"
-      ) {
-        pubType = 1;
-      } else if (
-        response.type === "article" ||
-        response.ENTRYTYPE === "article"
-      ) {
-        pubType = 0;
-      } else {
-        pubType = 2;
-      }
-      paperEntityDraft.setValue("pubTime", `${pubTime}`);
-      paperEntityDraft.setValue("pubType", pubType);
-      paperEntityDraft.setValue("publication", publication);
-      paperEntityDraft.setValue("pages", response.pages || "");
+      "count": number,
+      "results": {
+        "_id": string,
+        "_partition": string,
+        "addTime": Date,
+        "title": string,
+        "minifiedtitle": string,
+        "authors": string,
+        "publication": string,
+        "pubTime": string,
+        "pubType": number,
+        "doi": string,
+        "arxiv": string,
+        "pages": string,
+        "volume": string,
+        "number": string,
+        "publisher": string,
+        "source": string,
+        "hits": number,
+        "permission": number
+      }[]
+    }
 
-      if (response.author) {
-        const authorList = response.author.split("and").map((author) => {
-          const first_last = author
-            .trim()
-            .split(",")
-            .map((v) => v.trim());
-          return `${first_last[1]} ${first_last[0]}`;
-        });
-        paperEntityDraft.setValue("authors", authorList.join(", "));
-      }
+    if (response.count && response.count > 0) {
+
+      const hotestResult = response.results.sort((a, b) => b.hits - a.hits)[0];
+
+      paperEntityDraft.setValue("title", hotestResult.title, false);
+      paperEntityDraft.setValue("authors", hotestResult.authors, false);
+      paperEntityDraft.setValue("publication", hotestResult.publication, false);
+      paperEntityDraft.setValue("pubTime", hotestResult.pubTime, false);
+      paperEntityDraft.setValue("pubType", hotestResult.pubType, false);
+      paperEntityDraft.setValue("doi", hotestResult.doi, false);
+      paperEntityDraft.setValue("arxiv", hotestResult.arxiv, false);
+      paperEntityDraft.setValue("pages", hotestResult.pages, false);
+      paperEntityDraft.setValue("volume", hotestResult.volume, false);
+      paperEntityDraft.setValue("number", hotestResult.number, false);
+      paperEntityDraft.setValue("publisher", hotestResult.publisher, false);
+
     }
     return paperEntityDraft;
   }

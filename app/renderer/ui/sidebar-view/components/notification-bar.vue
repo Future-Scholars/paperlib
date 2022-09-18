@@ -92,7 +92,8 @@ watch(
     debounce(() => {
       isHistoryShown.value = false;
     }, 3000)();
-  }
+  },
+  { deep: true }
 );
 
 const timeoutID = ref();

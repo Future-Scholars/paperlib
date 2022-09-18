@@ -95,9 +95,8 @@ export class PaperEntityRepository {
         objects = objects.filtered(filterPattern);
       } catch (error) {
         console.error(error);
-        this.stateStore.logState.alertLog = `Filter pattern is invalid: ${
-          error as string
-        }`;
+        this.stateStore.logState.alertLog = `Filter pattern is invalid: ${error as string
+          }`;
       }
     }
 
@@ -118,7 +117,7 @@ export class PaperEntityRepository {
 
   loadPreprint(realm: Realm) {
     const filterFormat =
-      'publication contains[c] "arXiv" OR publication contains[c] "openreview"';
+      '(publication contains[c] "arXiv") OR (publication contains[c] "openreview") OR publication == ""';
     return realm.objects<PaperEntity>("PaperEntity").filtered(filterFormat);
   }
 
@@ -188,9 +187,8 @@ export class PaperEntityRepository {
       });
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Failed to update database: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Failed to update database: ${error as string
+        }`;
       return false;
     }
   }
@@ -218,9 +216,8 @@ export class PaperEntityRepository {
       });
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Failed to delete papers: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Failed to delete papers: ${error as string
+        }`;
       return false;
     }
   }
