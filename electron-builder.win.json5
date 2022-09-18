@@ -8,20 +8,26 @@
   publish: [
     {
       provider: "generic",
-      url: "https://paperlib.app/distribution/electron-mac/",
+      url: "https://paperlib.app/distribution/electron-win/",
     },
   ],
   directories: {
     output: "release/${version}",
   },
   files: ["dist"],
-  mac: {
-    icon: "./icons/icon.icns",
+  win: {
+    target: [
+      {
+        target: "nsis",
+        arch: ["x64"],
+      },
+    ],
     artifactName: "${productName}_${version}.${ext}",
-    target: ["dmg"],
-    releaseInfo: {
-      releaseNotesFile: "./release-notes.md",
-    },
+  },
+  nsis: {
+    oneClick: false,
+    createDesktopShortcut: "always",
+    allowToChangeInstallationDirectory: true,
   },
   files: [
     "!node_modules/realm/react-native${/*}",
