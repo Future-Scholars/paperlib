@@ -29,10 +29,13 @@ export function registerMainContextMenu(preference: Preference) {
   const locales = loadLocales(preference.get("language") as string);
 
   ipcMain.on("show-data-context-menu", (event, args) => {
-    const scraperPrefs = preference.get("scrapers") as Array<ScraperPreference>;
+    const scraperPrefs = preference.get("scrapers") as Record<
+      string,
+      ScraperPreference
+    >;
 
     let scraperMenuTemplate: Record<string, any> = [];
-    for (const scraperPref of scraperPrefs) {
+    for (const [name, scraperPref] of Object.entries(scraperPrefs)) {
       if (scraperPref.enable) {
         scraperMenuTemplate.push({
           label: scraperPref.name,

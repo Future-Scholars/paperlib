@@ -4,6 +4,7 @@ import { Pane, Splitpanes } from "splitpanes";
 import { createApp } from "vue";
 import { createI18n } from "vue-i18n";
 import vSelect from "vue-select";
+import draggable from "vuedraggable";
 
 import { AppInteractor } from "@/interactors/app-interactor";
 import { BrowserExtensionInteractor } from "@/interactors/browser-extension-interactor";
@@ -43,6 +44,7 @@ app.use(pinia);
 app.component("Splitpanes", Splitpanes);
 app.component("Pane", Pane);
 app.component("v-select", vSelect);
+app.component("draggable", draggable);
 
 // ====================================
 // Setup interactors and repositories

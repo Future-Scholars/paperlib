@@ -49,100 +49,123 @@ export class ScraperRepository {
   async createScrapers() {
     this.scraperList = [];
 
-    const scraperPrefs = (
-      this.preference.get("scrapers") as Array<ScraperPreference>
-    ).sort((a, b) => b.priority - a.priority);
+    const scraperPrefs = this.preference.get("scrapers") as Record<
+      string,
+      ScraperPreference
+    >;
 
-    for (const scraper of scraperPrefs) {
-      if (scraper.name === "dblp") {
-        const dblpScraper = new DBLPScraper(this.stateStore, this.preference);
-        const dblpByTimeScraper0 = new DBLPbyTimeScraper(
-          this.stateStore,
-          this.preference,
-          0
-        );
-        const dblpbyTimeScraper1 = new DBLPbyTimeScraper(
-          this.stateStore,
-          this.preference,
-          1
-        );
-        const dblpVenueScraper = new DBLPVenueScraper(
-          this.stateStore,
-          this.preference
-        );
-        this.scraperList.push({
-          name: "dblp",
-          scraper: dblpScraper,
-        });
-        this.scraperList.push({
-          name: "dblp-by-time-0",
-          scraper: dblpByTimeScraper0,
-        });
-        this.scraperList.push({
-          name: "dblp-by-time-1",
-          scraper: dblpbyTimeScraper1,
-        });
-        this.scraperList.push({
-          name: "dblp-venue",
-          scraper: dblpVenueScraper,
-        });
-      } else {
-        let scraperInstance: ScraperType | undefined;
-        switch (scraper.name) {
-          case "pdf":
-            scraperInstance = new PDFScraper(this.stateStore, this.preference);
-            break;
-          case "crossref":
-            scraperInstance = new CrossRefScraper(
-              this.stateStore,
-              this.preference
-            );
-            break;
-          case "doi":
-            scraperInstance = new DOIScraper(this.stateStore, this.preference);
-            break;
-          case "arxiv":
-            scraperInstance = new ArXivScraper(
-              this.stateStore,
-              this.preference
-            );
-            break;
-          case "ieee":
-            scraperInstance = new IEEEScraper(this.stateStore, this.preference);
-            break;
-          case "paperlib":
-            scraperInstance = new PaperlibScraper(
-              this.stateStore,
-              this.preference
-            );
-            break;
-          case "pwc":
-            scraperInstance = new PwCScraper(this.stateStore, this.preference);
-            break;
-          case "openreview":
-            scraperInstance = new OpenreviewScraper(
-              this.stateStore,
-              this.preference
-            );
-            break;
-          case "googlescholar":
-            scraperInstance = new GoogleScholarScraper(
-              this.stateStore,
-              this.preference
-            );
-            break;
-          default:
-            scraperInstance = new CustomScraper(
-              this.stateStore,
-              this.preference,
-              scraper.name
-            );
-        }
-        if (scraperInstance !== undefined) {
+    const sortedScraperPrefs = [];
+    for (const [name, scraperPref] of Object.entries(scraperPrefs)) {
+      if (scraperPref.enable) {
+        sortedScraperPrefs.push(scraperPref);
+      }
+    }
+    sortedScraperPrefs.sort((a, b) => b.priority - a.priority);
+
+    for (const scraperPref of sortedScraperPrefs) {
+      if (scraperPref.enable) {
+        if (scraperPref.name === "dblp") {
+          const dblpScraper = new DBLPScraper(this.stateStore, this.preference);
+          const dblpByTimeScraper0 = new DBLPbyTimeScraper(
+            this.stateStore,
+            this.preference,
+            0
+          );
+          const dblpbyTimeScraper1 = new DBLPbyTimeScraper(
+            this.stateStore,
+            this.preference,
+            1
+          );
+          const dblpVenueScraper = new DBLPVenueScraper(
+            this.stateStore,
+            this.preference
+          );
           this.scraperList.push({
-            name: scraper.name,
-            scraper: scraperInstance,
+            name: "dblp",
+            scraper: dblpScraper,
           });
+          this.scraperList.push({
+            name: "dblp-by-time-0",
+            scraper: dblpByTimeScraper0,
+          });
+          this.scraperList.push({
+            name: "dblp-by-time-1",
+            scraper: dblpbyTimeScraper1,
+          });
+          this.scraperList.push({
+            name: "dblp-venue",
+            scraper: dblpVenueScraper,
+          });
+        } else {
+          let scraperInstance: ScraperType | undefined;
+          switch (scraperPref.name) {
+            case "pdf":
+              scraperInstance = new PDFScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "crossref":
+              scraperInstance = new CrossRefScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "doi":
+              scraperInstance = new DOIScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "arxiv":
+              scraperInstance = new ArXivScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "ieee":
+              scraperInstance = new IEEEScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "paperlib":
+              scraperInstance = new PaperlibScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "pwc":
+              scraperInstance = new PwCScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "openreview":
+              scraperInstance = new OpenreviewScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "googlescholar":
+              scraperInstance = new GoogleScholarScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            default:
+              scraperInstance = new CustomScraper(
+                this.stateStore,
+                this.preference,
+                scraperPref.name
+              );
+          }
+          if (scraperInstance !== undefined) {
+            this.scraperList.push({
+              name: scraperPref.name,
+              scraper: scraperInstance,
+            });
+          }
         }
       }
     }
@@ -175,7 +198,10 @@ export class ScraperRepository {
     for (const scraper of this.scraperList) {
       if (scraper.name === scraperName) {
         try {
-          paperEntityDraft = await scraper.scraper.scrape(paperEntityDraft);
+          paperEntityDraft = await scraper.scraper.scrape(
+            paperEntityDraft,
+            true
+          );
         } catch (error) {
           console.error(error);
           this.stateStore.logState.alertLog = `${scraper.name} error: ${

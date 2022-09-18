@@ -14,6 +14,7 @@ import EditView from "./edit-view/edit-view.vue";
 import FeedEditView from "./edit-view/feed-edit-view.vue";
 import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
+import PresettingView from "./presetting-view/presetting-view.vue";
 import SidebarView from "./sidebar-view/sidebar-view.vue";
 import WhatsNewView from "./whats-new-view.vue";
 
@@ -313,6 +314,7 @@ onMounted(async () => {
     <FeedEditView />
     <PreferenceView />
     <DeleteConfirmView />
+    <PresettingView />
     <WhatsNewView />
   </div>
 </template>

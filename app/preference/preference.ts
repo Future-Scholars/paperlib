@@ -5,6 +5,7 @@ import path from "path";
 
 export interface ScraperPreference {
   name: string;
+  category: string;
   description: string;
   enable: boolean;
   custom: boolean;
@@ -71,7 +72,7 @@ export interface PreferenceStore {
 
   lastFeedRefreshTime: number;
 
-  scrapers: Array<ScraperPreference>;
+  scrapers: Record<string, ScraperPreference>;
   downloaders: Array<DownloaderPreference>;
 
   allowproxy: boolean;
@@ -99,6 +100,10 @@ export interface PreferenceStore {
 
   selectedPDFViewer: string;
   selectedPDFViewerPath: string;
+
+  showPresettingLang: boolean;
+  showPresettingDB: boolean;
+  showPresettingScraper: boolean;
 
   [Key: string]: unknown;
 }
@@ -168,9 +173,10 @@ export const defaultPreferences: PreferenceStore = {
   mainviewSortOrder: "desc",
   mainviewType: "list",
 
-  scrapers: [
-    {
+  scrapers: {
+    pdf: {
       name: "pdf",
+      category: "general",
       description: "PDF builtin scraper",
       enable: true,
       custom: false,
@@ -180,8 +186,21 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-    {
+    paperlib: {
+      name: "paperlib",
+      category: "official",
+      description: "The Paperlib query service.",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 9.5,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
+    arxiv: {
       name: "arxiv",
+      category: "general",
       description: "arXiv.org",
       enable: true,
       custom: false,
@@ -191,8 +210,9 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-    {
+    crossref: {
       name: "crossref",
+      category: "general",
       description: "crossref.org",
       enable: false,
       custom: false,
@@ -202,8 +222,9 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-    {
+    doi: {
       name: "doi",
+      category: "general",
       description: "DOI.org",
       enable: true,
       custom: false,
@@ -213,8 +234,9 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-    {
+    dblp: {
       name: "dblp",
+      category: "cs",
       description: "DBLP.org",
       enable: true,
       custom: false,
@@ -224,8 +246,9 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-    {
+    openreview: {
       name: "openreview",
+      category: "general",
       description: "OpenReview.net",
       enable: true,
       custom: false,
@@ -235,19 +258,9 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-    {
-      name: "paperlib",
-      description: "The Paperlib query service.",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 5,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    {
+    ieee: {
       name: "ieee",
+      category: "ee",
       description: "args: IEEE API Key. https://developer.ieee.org/",
       enable: false,
       custom: false,
@@ -257,8 +270,9 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-    {
+    pwc: {
       name: "pwc",
+      category: "cs",
       description: "paperwithcode.com",
       enable: true,
       custom: false,
@@ -268,8 +282,9 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-    {
+    googlescholar: {
       name: "googlescholar",
+      category: "general",
       description: "Google Scholar",
       enable: true,
       custom: false,
@@ -279,7 +294,7 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-  ],
+  },
 
   downloaders: [
     {
@@ -325,6 +340,10 @@ export const defaultPreferences: PreferenceStore = {
 
   selectedCSLStyle: "apa",
   importedCSLStylesPath: "",
+
+  showPresettingLang: true,
+  showPresettingDB: true,
+  showPresettingScraper: true,
 };
 
 export class Preference {
@@ -340,21 +359,25 @@ export class Preference {
       this.store = new Store<PreferenceStore>({});
     }
 
+    const existingScraperArray = this.store.get(
+      "scrapers"
+    ) as unknown as ScraperPreference[];
+
+    if (!!existingScraperArray[Symbol.iterator]) {
+      this.store.set("scrapers", defaultPreferences.scrapers);
+      const newScraperRecord = this.store.get("scrapers");
+
+      for (const existingScraper of existingScraperArray) {
+        newScraperRecord[existingScraper.name] = existingScraper;
+        newScraperRecord[existingScraper.name].category =
+          defaultPreferences.scrapers[existingScraper.name]?.category ||
+          "custom";
+      }
+      this.store.set("scrapers", newScraperRecord);
+    }
     for (const key in defaultPreferences) {
       if (!this.store.has(key)) {
         this.store.set(key, defaultPreferences[key]);
-      }
-    }
-
-    const existingScrapers = this.store
-      .get("scrapers")
-      .map((scraper) => scraper.name);
-
-    for (const defaultPref of defaultPreferences.scrapers) {
-      if (!existingScrapers.includes(defaultPref.name)) {
-        const existingPreference = this.store.get("scrapers");
-        existingPreference.push(defaultPref);
-        this.store.set("scrapers", existingPreference);
       }
     }
   }

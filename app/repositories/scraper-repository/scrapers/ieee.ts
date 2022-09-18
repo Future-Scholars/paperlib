@@ -9,9 +9,9 @@ import { Scraper, ScraperRequestType } from "./scraper";
 export class IEEEScraper extends Scraper {
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const ieeeAPIKey =
-      (this.preference.get("scrapers") as Array<ScraperPreference>).find(
-        (scraperPref) => scraperPref.name === "ieee"
-      )?.args ?? "";
+      (this.preference.get("scrapers") as Record<string, ScraperPreference>)[
+        "ieee"
+      ]?.args ?? "";
     const enable =
       paperEntityDraft.title !== "" &&
       (paperEntityDraft.publication === "" ||

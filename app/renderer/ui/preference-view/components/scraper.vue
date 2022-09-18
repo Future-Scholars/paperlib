@@ -12,78 +12,22 @@ const props = defineProps({
 
 const scraperPrefDraft = ref(JSON.parse(JSON.stringify(props.scraperPref)));
 
-const showEdit = ref(false);
-
-const emit = defineEmits(["update", "delete"]);
+const emit = defineEmits(["update", "delete", "hide"]);
 const enabled = ref(props.scraperPref.enable);
 
 const onApplyUpdate = () => {
-  showEdit.value = false;
-  emit(
-    "update",
-    props.scraperPref.name,
-    JSON.parse(JSON.stringify(scraperPrefDraft.value))
-  );
+  emit("update", scraperPrefDraft.value);
 };
 </script>
 
 <template>
   <div
-    class="flex flex-col rounded-md text-xs"
-    :class="showEdit ? 'bg-neutral-200 dark:bg-neutral-700 my-2' : ''"
+    class="flex flex-col rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 my-2"
   >
     <div class="flex justify-between py-1 px-2">
-      <div class="flex w-[80%] space-x-2">
-        <div
-          class="font-semibold w-[22%] overflow-hidden text-ellipsis pr-1 my-auto"
-        >
-          {{ scraperPref.name }}
-        </div>
-
-        <div
-          class="text-right text-neutral-600 w-[6%] dark:text-neutral-500 overflow-hidden text-ellipsis pr-1 my-auto"
-        >
-          {{ scraperPref.priority }}
-        </div>
-
-        <div
-          class="w-[70%] text-neutral-600 dark:text-neutral-500 overflow-hidden text-ellipsis pr-1"
-        >
-          {{ scraperPref.description }}
-        </div>
-      </div>
-
-      <div class="flex space-x-2 my-auto">
-        <div
-          class="hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
-          v-if="!showEdit"
-          @click="showEdit = true"
-        >
-          {{ $t("preference.edit") }}
-        </div>
-        <div v-if="scraperPref.custom && !showEdit">|</div>
-        <div
-          class="hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
-          v-if="scraperPref.custom"
-          @click="emit('delete', scraperPref.name)"
-        >
-          {{ $t("mainview.delete") }}
-        </div>
-        <input
-          type="checkbox"
-          value=""
-          :checked="enabled"
-          class="w-[14px] h-[14px] my-auto accent-neutral-500"
-          @change="
-            () => {
-              scraperPrefDraft.enable = !scraperPrefDraft.enable;
-              onApplyUpdate();
-            }
-          "
-        />
-      </div>
+      <div class="flex space-x-2 my-auto"></div>
     </div>
-    <div class="py-1 px-2 mb-2 flex flex-col space-y-1" v-if="showEdit">
+    <div class="py-1 px-2 mb-2 flex flex-col space-y-1">
       <div class="flex" v-if="scraperPref.custom">
         <div class="w-[30%]">Name:</div>
         <input
@@ -106,14 +50,6 @@ const onApplyUpdate = () => {
           class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm"
           type="text"
           v-model="scraperPrefDraft.args"
-        />
-      </div>
-      <div class="flex">
-        <div class="w-[30%]">Priority: (restart required)</div>
-        <input
-          class="bg-neutral-100 dark:bg-neutral-600 focus:outline-none w-[70%] px-1 rounded-sm"
-          type="number"
-          v-model="scraperPrefDraft.priority"
         />
       </div>
       <div class="flex" v-if="scraperPref.custom">
@@ -143,7 +79,15 @@ const onApplyUpdate = () => {
       <div class="flex justify-end space-x-2 pt-1">
         <div
           class="hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
-          @click="showEdit = false"
+          v-if="scraperPref.custom"
+          @click="emit('delete', scraperPref.name)"
+        >
+          {{ $t("menu.delete") }}
+        </div>
+
+        <div
+          class="hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
+          @click="emit('hide')"
         >
           Close
         </div>

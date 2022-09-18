@@ -24,8 +24,8 @@ export class CustomScraper extends Scraper {
     let scrapeURL = `https://httpbin.org/get`;
     let headers = {};
     const preProcessCode = (
-      this.preference.get("scrapers") as Array<ScraperPreference>
-    ).find((scraperPref) => scraperPref.name === this.name)?.preProcessCode;
+      this.preference.get("scrapers") as Record<string, ScraperPreference>
+    )[this.name]?.preProcessCode;
 
     if (preProcessCode) {
       eval(preProcessCode);
@@ -45,8 +45,8 @@ export class CustomScraper extends Scraper {
     paperEntityDraft: PaperEntity
   ): PaperEntity {
     const parsingProcessCode = (
-      this.preference.get("scrapers") as Array<ScraperPreference>
-    ).find((scraperPref) => scraperPref.name === this.name)?.parsingProcessCode;
+      this.preference.get("scrapers") as Record<string, ScraperPreference>
+    )[this.name]?.parsingProcessCode;
 
     if (parsingProcessCode) {
       eval(parsingProcessCode);
@@ -62,10 +62,10 @@ async function scrapeImpl(
   paperEntityDraft: PaperEntity
 ): Promise<PaperEntity> {
   let scrapeImplCode =
-    (this.preference.get("scrapers") as Array<ScraperPreference>).find(
+    (this.preference.get("scrapers") as Record<string, ScraperPreference>)[
       // @ts-ignore
-      (scraperPref) => scraperPref.name === this.name
-    )?.scrapeImplCode || "";
+      this.name
+    ]?.scrapeImplCode || "";
 
   scrapeImplCode = scrapeImplCode.replaceAll("return", "paperEntityDraft = ");
 

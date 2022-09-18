@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { BIconPlus } from "bootstrap-icons-vue";
+import { BIconGear, BIconGripVertical, BIconPlus } from "bootstrap-icons-vue";
+import { Ref, onMounted, ref, watch } from "vue";
 
 import { ScraperPreference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -9,10 +10,64 @@ import Toggle from "./components/toggle.vue";
 
 const prefState = MainRendererStateStore.usePreferenceState();
 const viewState = MainRendererStateStore.useViewState();
+const presetSelection = ref("");
 
+const enabledScraperList: Ref<ScraperPreference[]> = ref([]);
+const disabledScraperList: Ref<ScraperPreference[]> = ref([]);
+const editingScraper: Ref<ScraperPreference | null> = ref(null);
+
+const splitEnabledDisabledScraper = () => {
+  enabledScraperList.value = [];
+  disabledScraperList.value = [];
+  for (const [name, scraper] of Object.entries(prefState.scrapers)) {
+    if (scraper.enable) {
+      enabledScraperList.value.push(scraper);
+    } else {
+      disabledScraperList.value.push(scraper);
+    }
+  }
+  enabledScraperList.value.sort((a, b) => b.priority - a.priority);
+  disabledScraperList.value.sort((a, b) => (b.category > a.category ? 1 : -1));
+};
+
+const categoryColor = (category: string) => {
+  switch (category) {
+    case "cs":
+      return "text-blue-600";
+    case "ee":
+      return "text-blue-400";
+    case "official":
+      return "text-red-700";
+    default:
+      return "";
+  }
+};
+
+const onDisabledChanged = (change: any) => {};
+
+const onEnabledChanged = (change: any) => {
+  let scraperPrefs = prefState.scrapers;
+  for (const [index, enabledScraper] of enabledScraperList.value.entries()) {
+    scraperPrefs[enabledScraper.name].priority = 1000 - index;
+    scraperPrefs[enabledScraper.name].enable = true;
+  }
+  for (const disabledScraper of disabledScraperList.value) {
+    scraperPrefs[disabledScraper.name].enable = false;
+  }
+  window.appInteractor.setPreference(
+    "scrapers",
+    JSON.parse(JSON.stringify(scraperPrefs))
+  );
+  viewState.scraperReinited = Date.now();
+};
+
+const onEditClicked = (scraper: ScraperPreference) => {
+  editingScraper.value = scraper;
+};
 const onAddNewScraperClicked = () => {
   const newScraperPref = {
     name: "newscraper" + Math.floor(Math.random() * 100),
+    category: "custom",
     description: "a custom scraper",
     enable: false,
     custom: true,
@@ -24,34 +79,62 @@ const onAddNewScraperClicked = () => {
   };
 
   let scraperPrefs = prefState.scrapers;
-  if (!scraperPrefs.find((item) => item.name === newScraperPref.name)) {
-    scraperPrefs.push(newScraperPref);
+  if (!scraperPrefs[newScraperPref.name]) {
+    scraperPrefs[newScraperPref.name] = newScraperPref;
+    window.appInteractor.setPreference("scrapers", scraperPrefs);
+    viewState.scraperReinited = Date.now();
   }
-  window.appInteractor.setPreference("scrapers", scraperPrefs);
-  viewState.scraperReinited = Date.now();
 };
 
-const onDeleteScraper = (name: string) => {
+const onDeleteScraper = () => {
   let scraperPrefs = prefState.scrapers;
-  scraperPrefs = scraperPrefs.filter((item) => item.name !== name);
-  window.appInteractor.setPreference("scrapers", scraperPrefs);
-  viewState.scraperReinited = Date.now();
-};
-
-const onUpdateScraper = (name: string, scraperPref: ScraperPreference) => {
-  let scraperPrefs = prefState.scrapers;
-  scraperPrefs = scraperPrefs.map((item) => {
-    if (item.name === name) {
-      return scraperPref;
+  const newScrapers: Record<string, ScraperPreference> = {};
+  for (const [name, scraper] of Object.entries(scraperPrefs)) {
+    if (name !== editingScraper.value?.name) {
+      newScrapers[name] = scraper;
     }
-    return item;
-  });
+  }
+  prefState.scrapers = {};
+  window.appInteractor.setPreference("scrapers", newScrapers);
+  viewState.scraperReinited = Date.now();
+  editingScraper.value = null;
+};
+
+const onUpdateScraper = (scraperPref: ScraperPreference) => {
+  let scraperPrefs = prefState.scrapers;
+  scraperPrefs[scraperPref.name] = scraperPref;
   window.appInteractor.setPreference("scrapers", scraperPrefs);
   viewState.scraperReinited = Date.now();
+  editingScraper.value = null;
 };
 
 const onUpdate = (key: string, value: unknown) => {
   window.appInteractor.setPreference(key, value);
+};
+
+const presets = {
+  cs: [
+    "pdf",
+    "paperlib",
+    "arxiv",
+    "crossref",
+    "doi",
+    "dblp",
+    "openreview",
+    "googlescholar",
+    "pwc",
+  ],
+  default: ["pdf", "paperlib", "arxiv", "crossref", "doi", "googlescholar"],
+};
+
+const onChangePreset = (preset: "cs" | "default") => {
+  let scraperPrefs = prefState.scrapers;
+  for (const [name, scraper] of Object.entries(scraperPrefs)) {
+    scraper.enable = presets[preset].includes(name);
+    scraper.priority = 1000 - preset.indexOf(name);
+  }
+  window.appInteractor.setPreference("scrapers", scraperPrefs);
+  viewState.scraperReinited = Date.now();
 };
 
 const onClickGuide = () => {
@@ -59,58 +142,187 @@ const onClickGuide = () => {
     "https://github.com/GeoffreyChen777/paperlib/wiki/"
   );
 };
+
+watch(
+  () => prefState.scrapers,
+  () => {
+    splitEnabledDisabledScraper();
+  },
+  { deep: true }
+);
+
+onMounted(() => {
+  splitEnabledDisabledScraper();
+});
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col w-full text-neutral-800 dark:text-neutral-300 max-w-xl"
+  >
     <div class="text-base font-semibold mb-4">
       Metadata {{ $t("preference.scraper") }}
     </div>
-    <div class="flex text-xxs font-semibold">
-      <div class="pl-4 w-[17%]">{{ $t("preference.scraper") }}</div>
-      <div>{{ $t("preference.priority") }}</div>
-      <div class="pl-4">{{ $t("preference.description") }}</div>
-    </div>
-    <hr class="mx-2 mb-1 dark:border-neutral-600" />
-    <div class="flex flex-col px-2 rounded-md max-h-[450px] overflow-scroll">
-      <ScraperItem
-        v-for="(scraperPref, index) in prefState.scrapers"
-        :key="index"
-        :scraperPref="scraperPref"
-        class="even:bg-neutral-200 even:dark:bg-neutral-700"
-        @delete="onDeleteScraper(scraperPref.name)"
-        @update="
-          (name, scraperPref) => {
-            onUpdateScraper(name, scraperPref);
-          }
-        "
-      />
-    </div>
-    <div class="flex justify-end mt-2 px-2 space-x-2">
-      <div
-        class="text-xxs my-auto underline hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
-        @click="onClickGuide"
-      >
-        Guide: Custom Scraper
+
+    <div class="flex justify-between mb-5">
+      <div class="flex flex-col max-w-[90%]">
+        <div class="text-xs font-semibold">
+          {{ $t("preference.preset") }}
+        </div>
+        <div class="text-xxs text-neutral-600 dark:text-neutral-500">
+          {{ $t("preference.presetintro") }}
+        </div>
       </div>
-      <div
-        class="flex w-8 h-6 my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500 text-xs cursor-pointer"
-        @click="onAddNewScraperClicked"
-      >
-        <BIconPlus class="m-auto text-lg" />
+      <div>
+        <select
+          id="countries"
+          class="my-auto bg-gray-50 border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-28 h-6 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          v-model="presetSelection"
+          @change="
+            (e) => {
+              // @ts-ignore
+              onChangePreset(e.target.value);
+            }
+          "
+        >
+          <option value="default">Default</option>
+          <option value="cs">Computer Science</option>
+        </select>
       </div>
     </div>
 
-    <hr class="mt-5 mb-5 dark:border-neutral-600" />
-    <div class="text-base font-semibold mb-4">
-      {{ $t("preference.routinescrape") }}
+    <div class="flex flex-col max-h-[520px] overflow-scroll px-2 mb-5">
+      <div class="flex space-x-2 mb-1">
+        <div class="w-1/2 text-center text-sm font-semibold">
+          {{ $t("preference.available") }}
+        </div>
+        <div class="w-1/2 text-center text-sm font-semibold">
+          {{ $t("preference.enabled") }}
+        </div>
+      </div>
+
+      <div class="flex space-x-2">
+        <div
+          class="p-2 max-h-[335px] overflow-scroll w-1/2 bg-neutral-200 rounded-md"
+        >
+          <draggable
+            class="space-y-1 min-h-[332px]"
+            :list="disabledScraperList"
+            group="scrapers"
+            itemKey="name"
+            @change="onDisabledChanged"
+          >
+            <template #item="{ element, index }">
+              <div class="flex bg-neutral-100 rounded-md pr-2 group">
+                <BIconGripVertical
+                  class="my-auto text-neutral-400 w-[15px] flex-none"
+                />
+                <BIconGear
+                  class="text-xs cursor-pointer my-auto h-full w-[12px] mr-1 text-neutral-400 hidden group-hover:block"
+                  @click="onEditClicked(element)"
+                />
+                <div class="flex flex-col grow">
+                  <div class="flex justify-between text-xxs">
+                    <div class="text-xxs uppercase font-semibold">
+                      {{ element.name }}
+                    </div>
+                    <div
+                      class="uppercase"
+                      :class="categoryColor(element.category)"
+                    >
+                      {{ element.category }}
+                    </div>
+                  </div>
+                  <div
+                    class="truncate overflow-ellipsis w-48 text-xxs text-neutral-500"
+                    :title="element.description"
+                  >
+                    {{ element.description }}
+                  </div>
+                </div>
+              </div>
+            </template>
+          </draggable>
+        </div>
+
+        <div
+          class="p-2 max-h-[335px] overflow-scroll w-1/2 bg-neutral-200 rounded-md"
+        >
+          <draggable
+            class="space-y-1 min-h-[332px]"
+            :list="enabledScraperList"
+            group="scrapers"
+            itemKey="name"
+            @change="onEnabledChanged"
+          >
+            <template #item="{ element, index }">
+              <div class="flex bg-neutral-100 rounded-md pr-2 group">
+                <BIconGripVertical
+                  class="my-auto text-neutral-400 w-[15px] flex-none"
+                />
+                <BIconGear
+                  class="text-xs cursor-pointer my-auto h-full w-[12px] mr-1 text-neutral-400 hidden group-hover:block"
+                  @click="onEditClicked(element)"
+                />
+                <div class="flex flex-col grow">
+                  <div class="flex justify-between text-xxs">
+                    <div class="text-xxs uppercase font-semibold">
+                      {{ element.name }}
+                    </div>
+                    <div
+                      class="uppercase"
+                      :class="categoryColor(element.category)"
+                    >
+                      {{ element.category }}
+                    </div>
+                  </div>
+                  <div
+                    class="truncate overflow-ellipsis w-48 text-xxs text-neutral-500"
+                    :title="element.description"
+                  >
+                    {{ element.description }}
+                  </div>
+                </div>
+              </div>
+            </template>
+          </draggable>
+        </div>
+      </div>
+
+      <ScraperItem
+        :scraperPref="editingScraper"
+        v-if="editingScraper"
+        @hide="editingScraper = null"
+        @delete="onDeleteScraper"
+        @update="onUpdateScraper"
+      />
+
+      <div class="flex justify-end mt-2 px-2 space-x-2">
+        <div
+          class="text-xxs my-auto underline hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
+          @click="onClickGuide"
+        >
+          Guide: Custom Scraper
+        </div>
+        <div
+          class="flex w-8 h-6 my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500 text-xs cursor-pointer"
+          @click="onAddNewScraperClicked"
+        >
+          <BIconPlus class="m-auto text-lg" />
+        </div>
+      </div>
+
+      <hr class="mt-5 mb-5 dark:border-neutral-600" />
+      <div class="text-base font-semibold mb-4">
+        {{ $t("preference.routinescrape") }}
+      </div>
+      <Toggle
+        class="mb-3"
+        :title="$t('preference.enableroutionscrape')"
+        :info="$t('preference.enableroutionscrapeintro')"
+        :enable="prefState.allowRoutineMatch"
+        @update="(value) => onUpdate('allowRoutineMatch', value)"
+      />
     </div>
-    <Toggle
-      class="mb-3"
-      :title="$t('preference.enableroutionscrape')"
-      :info="$t('preference.enableroutionscrapeintro')"
-      :enable="prefState.allowRoutineMatch"
-      @update="(value) => onUpdate('allowRoutineMatch', value)"
-    />
   </div>
 </template>

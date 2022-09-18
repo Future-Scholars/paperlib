@@ -149,6 +149,13 @@ ipcMain.on("close", (e) => {
   }
 });
 
+ipcMain.on("force-close", (e) => {
+  win?.close();
+  winPlugin?.close();
+  winSidework?.close();
+  app.quit();
+});
+
 ipcMain.handle("version", () => {
   return app.getVersion();
 });

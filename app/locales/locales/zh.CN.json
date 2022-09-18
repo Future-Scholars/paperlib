@@ -112,6 +112,10 @@
     "asc": "升序",
     "desc": "降序",
 
+    "available": "可用",
+    "enabled": "已启用",
+    "preset": "预设规则",
+    "presetintro": "根据你的学科选择一个预设的规则。排序分先后，依次进行检索，欢迎任何人在 Github issue 贡献自己的规则。",
     "priority": "优先级",
     "description": "描述",
     "edit": "编辑",
@@ -155,5 +159,17 @@
     "singleref": "单个引用",
     "allref": "所有引用",
     "citekey": "引用键"
+  },
+  "presetting": {
+    "restart": "重启 Paperlib",
+    "continue": "继续",
+
+    "langintro": "选择你使用的语言",
+
+    "dbintro": "设置数据库",
+    "cloudintro": "云同步相关设置请之后在设置面板进行设置。",
+
+    "scraperintro": "设置元数据搜寻器",
+    "scraperintrosub": "元数据搜寻器是 Paperlib 很重要的组成部分，Paperlib 会在这些数据库里为你的论文匹配元数据。不同学科有不同的组合，我们也在不断为不同学科增加相应的搜寻器，选择适当的搜寻器可以提高匹配的准确性并节省搜索时间。"
   }
 }

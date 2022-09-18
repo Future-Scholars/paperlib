@@ -56,6 +56,10 @@ export class AppInteractor {
     ipcRenderer.send("close");
   }
 
+  forceclose() {
+    ipcRenderer.send("force-close");
+  }
+
   // ===============================
   // Theme
   // ===============================

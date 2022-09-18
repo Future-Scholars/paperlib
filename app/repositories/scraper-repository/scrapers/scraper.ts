@@ -54,9 +54,9 @@ export class Scraper implements ScraperType {
 
   getEnable(name: string) {
     return (
-      (this.preference.get("scrapers") as Array<ScraperPreference>).find(
-        (scraperPref) => scraperPref.name === name
-      )?.enable ?? false
+      (this.preference.get("scrapers") as Record<string, ScraperPreference>)[
+        name
+      ]?.enable ?? false
     );
   }
 }
