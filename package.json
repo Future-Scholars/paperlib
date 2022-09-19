@@ -1,8 +1,8 @@
 {
-  "name": "paperlibv2",
+  "name": "paperlib",
   "version": "2.0.0",
   "main": "dist/app/main/index.js",
-  "description": "A simple academic paper management tool for CSer.",
+  "description": "A simple academic paper management tool.",
   "author": "Geoffrey Chen <geoffreychen777@gmail.com>",
   "license": "GPL-3.0",
   "private": true,
@@ -63,7 +63,7 @@
     "vue-i18n": "9.2.2",
     "vue-select": "4.0.0-beta.3",
     "vue-virtual-scroller": "2.0.0-alpha.1",
-    "vuedraggable": "^4.1.0",
+    "vuedraggable": "4.1.0",
     "webdav": "4.9.0",
     "ws": "8.6.0"
   },
