@@ -140,7 +140,9 @@ export class WebDavFileBackend implements FileBackend {
   ): Promise<boolean> {
     const _sourceURL = sourceURL.replace("webdav://", "/paperlib/");
     const _targetURL = targetURL.replace("webdav://", "/paperlib/");
-    await this.webdavClient?.moveFile(_sourceURL, _targetURL);
+    if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
+      await this.webdavClient?.moveFile(_sourceURL, _targetURL);
+    }
     return true;
   }
 
@@ -155,7 +157,9 @@ export class WebDavFileBackend implements FileBackend {
       return false;
     }
     try {
-      await fsPromise.copyFile(_sourceURL, _targetURL);
+      if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
+        await fsPromise.copyFile(_sourceURL, _targetURL);
+      }
       return true;
     } catch (error) {
       this.stateStore.logState.alertLog = `Could not copy file: ${
