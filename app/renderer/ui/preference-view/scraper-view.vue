@@ -226,7 +226,7 @@ onMounted(() => {
                 class="flex bg-neutral-100 dark:bg-neutral-800 rounded-md pr-2 group"
               >
                 <BIconGripVertical
-                  class="my-auto text-neutral-400 w-[15px] flex-none"
+                  class="my-auto text-neutral-400 dark:text-neutral-500 w-[15px] flex-none"
                 />
                 <BIconGear
                   class="text-xs cursor-pointer my-auto h-full w-[12px] mr-1 text-neutral-400 hidden group-hover:block"
@@ -271,7 +271,7 @@ onMounted(() => {
                 class="flex bg-neutral-100 dark:bg-neutral-800 rounded-md pr-2 group"
               >
                 <BIconGripVertical
-                  class="my-auto text-neutral-400 w-[15px] flex-none"
+                  class="my-auto text-neutral-400 dark:text-neutral-500 w-[15px] flex-none"
                 />
                 <BIconGear
                   class="text-xs cursor-pointer my-auto h-full w-[12px] mr-1 text-neutral-400 hidden group-hover:block"

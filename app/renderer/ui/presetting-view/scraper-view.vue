@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BIconGripVertical } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref, watch } from "vue";
 
 import { ScraperPreference } from "@/preference/preference";
@@ -64,14 +65,23 @@ const presets = {
     "pdf",
     "paperlib",
     "arxiv",
-    "crossref",
     "doi",
     "dblp",
     "openreview",
+    "semanticscholar",
+    "crossref",
     "googlescholar",
     "pwc",
   ],
-  default: ["pdf", "paperlib", "arxiv", "crossref", "doi", "googlescholar"],
+  default: [
+    "pdf",
+    "paperlib",
+    "arxiv",
+    "doi",
+    "semanticscholar",
+    "crossref",
+    "googlescholar",
+  ],
 };
 
 const onChangePreset = (preset: "cs" | "default") => {
@@ -166,7 +176,7 @@ onMounted(() => {
                     class="flex bg-neutral-100 dark:bg-neutral-800 rounded-md pr-2"
                   >
                     <BIconGripVertical
-                      class="my-auto text-neutral-400 w-[15px] flex-none"
+                      class="my-auto text-neutral-400 dark:text-neutral-500 w-[15px] flex-none"
                     />
 
                     <div class="flex flex-col grow">
@@ -208,7 +218,7 @@ onMounted(() => {
                     class="flex bg-neutral-100 dark:bg-neutral-800 rounded-md pr-2"
                   >
                     <BIconGripVertical
-                      class="my-auto text-neutral-400 w-[15px] flex-none"
+                      class="my-auto text-neutral-400 dark:text-neutral-500 w-[15px] flex-none"
                     />
                     <div class="flex flex-col grow">
                       <div class="flex justify-between text-xxs">

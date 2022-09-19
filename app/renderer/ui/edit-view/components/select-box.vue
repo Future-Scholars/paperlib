@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import "vue-select/dist/vue-select.css";
 
-defineProps({
+const props = defineProps({
   placeholder: {
     type: String,
     required: true,
@@ -17,6 +18,7 @@ defineProps({
 });
 
 const emit = defineEmits(["changed"]);
+const selectedValue = ref(props.value);
 
 const onChanged = (value: string) => {
   emit("changed", value);
@@ -91,7 +93,7 @@ const onChanged = (value: string) => {
     </label>
     <v-select
       :options="options"
-      v-model="value"
+      v-model="selectedValue"
       class="vue-select text-xs dark:text-neutral-300"
       transition="none"
       :clearable="false"

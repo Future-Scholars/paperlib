@@ -35,7 +35,7 @@ const renderFromFile = async () => {
     isRendering.value = false;
     fileExistingStatus.value = 1;
     return;
-  } else if (fileURL.startsWith("donwloadRequired://")) {
+  } else if (fileURL.startsWith("downloadRequired://")) {
     isRendering.value = false;
     fileExistingStatus.value = 2;
     return;
@@ -81,7 +81,11 @@ const render = async () => {
     }
   } else {
     isRendering.value = false;
-    fileExistingStatus.value = 1;
+    if (fileURL.startsWith("downloadRequired://")) {
+      fileExistingStatus.value = 2;
+    } else {
+      fileExistingStatus.value = 1;
+    }
   }
 };
 
@@ -163,11 +167,14 @@ watch(
     class="relative mt-1"
     :class="fileExistingStatus !== 0 ? 'w-fit h-fit' : 'w-40 h-52'"
   >
-    <BIconCloudArrowDown
-      class="text-md"
+    <div
+      class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer text-md"
       v-show="fileExistingStatus === 2"
       @click="onWebdavDownloadClicked"
-    />
+    >
+      <BIconCloudArrowDown class="text-xs my-auto" />
+      <div class="text-xxs my-auto">webdav</div>
+    </div>
     <div class="flex space-x-2" v-show="fileExistingStatus === 1">
       <div
         class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer"

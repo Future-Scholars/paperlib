@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { PropType } from "vue";
 import { BIconFlagFill } from "bootstrap-icons-vue";
+import { PropType } from "vue";
+
 import { PaperEntity } from "@/models/paper-entity";
 
 const props = defineProps({
@@ -10,6 +11,10 @@ const props = defineProps({
   },
   active: Boolean,
   striped: Boolean,
+  read: {
+    type: Boolean,
+    default: true,
+  },
 });
 </script>
 
@@ -23,6 +28,11 @@ const props = defineProps({
       (active ? 'bg-accentlight dark:bg-accentdark dark:bg-opacity-100' : '')
     "
   >
+    <div
+      class="my-auto h-1.5 w-1.5 rounded-md"
+      :class="active ? 'bg-red-400' : 'bg-red-500 '"
+      v-if="!read"
+    />
     <div
       class="truncate overflow-hidden w-[45%] m-auto"
       :class="active ? 'text-white' : ''"

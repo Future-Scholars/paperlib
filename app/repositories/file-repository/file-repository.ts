@@ -121,7 +121,7 @@ export class FileRepository {
           const mainURL = attachments[0];
           let supURLs = attachments.slice(1).map((url: string) => url.trim());
           if (mainURL) {
-            if (mainURL.endswith(".pdf")) {
+            if (mainURL.endsWith(".pdf")) {
               paperEntityDraft.setValue("mainURL", mainURL);
             } else {
               supURLs.push(mainURL);

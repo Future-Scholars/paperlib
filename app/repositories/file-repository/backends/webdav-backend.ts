@@ -84,7 +84,7 @@ export class WebDavFileBackend implements FileBackend {
             constructFileURL(basename, false, true, "", "webdav://")
           )
         ) {
-          return "donwloadRequired://";
+          return "downloadRequired://";
         } else {
           return "";
         }

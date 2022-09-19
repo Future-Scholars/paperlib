@@ -129,6 +129,7 @@ onMounted(() => {});
         :item="item"
         :active="selectedIndex.indexOf(index) >= 0"
         :striped="index % 2 === 0"
+        :read="item.read"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
