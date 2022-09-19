@@ -39,7 +39,7 @@ const categoryColor = (category: string) => {
     case "official":
       return "text-red-700";
     default:
-      return "";
+      return "text-gray-400";
   }
 };
 
@@ -203,7 +203,7 @@ onMounted(() => {
 
       <div class="flex space-x-2">
         <div
-          class="p-2 max-h-[335px] overflow-scroll w-1/2 bg-neutral-200 rounded-md"
+          class="p-1 max-h-[335px] overflow-scroll w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-md"
         >
           <draggable
             class="space-y-1 min-h-[332px]"
@@ -213,7 +213,9 @@ onMounted(() => {
             @change="onDisabledChanged"
           >
             <template #item="{ element, index }">
-              <div class="flex bg-neutral-100 rounded-md pr-2 group">
+              <div
+                class="flex bg-neutral-100 dark:bg-neutral-800 rounded-md pr-2 group"
+              >
                 <BIconGripVertical
                   class="my-auto text-neutral-400 w-[15px] flex-none"
                 />
@@ -246,7 +248,7 @@ onMounted(() => {
         </div>
 
         <div
-          class="p-2 max-h-[335px] overflow-scroll w-1/2 bg-neutral-200 rounded-md"
+          class="p-1 max-h-[335px] overflow-scroll w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-md"
         >
           <draggable
             class="space-y-1 min-h-[332px]"
@@ -256,7 +258,9 @@ onMounted(() => {
             @change="onEnabledChanged"
           >
             <template #item="{ element, index }">
-              <div class="flex bg-neutral-100 rounded-md pr-2 group">
+              <div
+                class="flex bg-neutral-100 dark:bg-neutral-800 rounded-md pr-2 group"
+              >
                 <BIconGripVertical
                   class="my-auto text-neutral-400 w-[15px] flex-none"
                 />

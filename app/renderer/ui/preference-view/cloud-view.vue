@@ -134,16 +134,18 @@ const onWebdavDisconnectClicked = () => {
 
     <div class="flex justify-between mb-5" v-if="prefState.useSync">
       <div class="flex flex-col">
-        <div class="text-xs font-semibold">Migrate local database to cloud</div>
+        <div class="text-xs font-semibold">
+          {{ $t("preference.migratetitle") }}
+        </div>
         <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-          Migrate local database to cloud
+          {{ $t("preference.migrateintro") }}
         </div>
       </div>
       <button
         class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
         @click="onMigrateClicked"
       >
-        <span class="m-auto text-xs">Migrate</span>
+        <span class="m-auto text-xs">{{ $t("preference.migrate") }}</span>
       </button>
     </div>
 
@@ -199,14 +201,14 @@ const onWebdavDisconnectClicked = () => {
             v-if="!viewState.syncFileStorageAvaliable"
             @click="onWebdavConnectClicked"
           >
-            <span class="m-auto">Connect</span>
+            <span class="m-auto">{{ $t("preference.connect") }}</span>
           </div>
           <div
             class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500"
             v-if="viewState.syncFileStorageAvaliable"
             @click="onWebdavDisconnectClicked"
           >
-            <span class="m-auto">Disconnect</span>
+            <span class="m-auto">{{ $t("preference.disconnect") }}</span>
           </div>
         </div>
       </div>

@@ -111,6 +111,12 @@ const networkTool = new NetworkTool(stateStore, preference);
 
 console.timeEnd("Setup interactors and repositories");
 
+window
+  .matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", (event) => {
+    stateStore.viewState.renderRequired = Date.now();
+  });
+
 // ====================================
 // Inject
 // ====================================

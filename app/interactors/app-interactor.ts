@@ -65,7 +65,6 @@ export class AppInteractor {
   // ===============================
   changeTheme(theme: string) {
     ipcRenderer.send("theme-change", theme);
-    this.stateStore.viewState.renderRequired = Date.now();
   }
 
   // ===============================
