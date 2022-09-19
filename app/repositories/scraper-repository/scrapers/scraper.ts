@@ -71,11 +71,11 @@ export class Scraper implements ScraperType {
 
 async function scrapeImpl(
   this: ScraperType,
-  entityDraft: PaperEntity,
+  paperEntityDraft: PaperEntity,
   force = false
 ): Promise<PaperEntity> {
   const { scrapeURL, headers, enable } = this.preProcess(
-    entityDraft
+    paperEntityDraft
   ) as ScraperRequestType;
 
   if (enable || force) {
@@ -83,8 +83,8 @@ async function scrapeImpl(
       scrapeURL,
       headers
     )) as Response<string>;
-    return this.parsingProcess(response, entityDraft) as PaperEntity;
+    return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
   } else {
-    return entityDraft;
+    return paperEntityDraft;
   }
 }
