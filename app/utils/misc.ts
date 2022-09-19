@@ -1,5 +1,5 @@
-import { EntityInteractor } from "@/interactors/entity-interactor";
 import { AppInteractor } from "@/interactors/app-interactor";
+import { EntityInteractor } from "@/interactors/entity-interactor";
 
 export function createInteractorProxy(
   interactor: AppInteractor | EntityInteractor
@@ -56,4 +56,10 @@ export function debounce(fn: Function, delay: number) {
       fn.apply(that, args);
     }, delay);
   };
+}
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

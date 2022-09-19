@@ -16,6 +16,7 @@ export class WebDavFileBackend implements FileBackend {
   preference: Preference;
 
   webdavClient: WebDAVClient | null;
+  watcher?: chokidar.FSWatcher;
 
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
     this.stateStore = stateStore;
@@ -23,36 +24,8 @@ export class WebDavFileBackend implements FileBackend {
 
     this.webdavClient = null;
 
-    chokidar
-      .watch(this.preference.get("appLibFolder") as string)
-      .on("change", async (filePath) => {
-        if (
-          filePath &&
-          !filePath.endsWith(".realm") &&
-          !filePath.endsWith(".realm.lock") &&
-          !filePath.endsWith(".write.mx") &&
-          !filePath.endsWith(".control.mx")
-        ) {
-          try {
-            await this._local2serverMove(
-              filePath,
-              constructFileURL(
-                path.basename(filePath),
-                false,
-                true,
-                "",
-                "webdav://"
-              )
-            );
-          } catch (error) {
-            console.error(error);
-            this.stateStore.logState.alertLog = `Could not upload file to webdav: ${
-              error as string
-            }`;
-          }
-        }
-      });
     void this.check();
+    this.startWatch();
   }
 
   async check() {
@@ -126,6 +99,44 @@ export class WebDavFileBackend implements FileBackend {
     return Promise.resolve(
       constructFileURL(localURL, false, true, "", "file://")
     );
+  }
+
+  startWatch() {
+    this.watcher = chokidar.watch(
+      this.preference.get("appLibFolder") as string
+    );
+
+    this.watcher.on("change", async (filePath) => {
+      if (
+        filePath &&
+        !filePath.endsWith(".realm") &&
+        !filePath.endsWith(".realm.lock") &&
+        !filePath.endsWith(".write.mx") &&
+        !filePath.endsWith(".control.mx")
+      ) {
+        try {
+          await this._local2serverMove(
+            filePath,
+            constructFileURL(
+              path.basename(filePath),
+              false,
+              true,
+              "",
+              "webdav://"
+            )
+          );
+        } catch (error) {
+          console.error(error);
+          this.stateStore.logState.alertLog = `Could not upload file to webdav: ${
+            error as string
+          }`;
+        }
+      }
+    });
+  }
+
+  async stopWatch(): Promise<void> {
+    await this.watcher?.close();
   }
 
   async _serverExists(url: string): Promise<boolean> {

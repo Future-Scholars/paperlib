@@ -45,6 +45,12 @@ export class LocalFileBackend implements FileBackend {
     }
   }
 
+  startWatch() {}
+
+  async stopWatch(): Promise<void> {
+    return Promise.resolve();
+  }
+
   async _move(
     sourceURL: string,
     targetURL: string,

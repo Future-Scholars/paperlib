@@ -77,6 +77,9 @@ export class DBRepository {
     this.stateStore.viewState.processingQueueCount += 1;
     this.stateStore.logState.processLog = "Database Initializing...";
 
+    // Stop watch file to release lock
+    await window.appInteractor.fileRepository.stopWatch();
+
     if (this._realm || reinit) {
       Realm.defaultPath = window.appInteractor.getUserDataPath();
       if (this._realm) {
@@ -143,6 +146,9 @@ export class DBRepository {
         return this._realm!.write(callback);
       }
     };
+
+    // Start watch file
+    window.appInteractor.fileRepository.startWatch();
 
     this.stateStore.viewState.processingQueueCount -= 1;
 

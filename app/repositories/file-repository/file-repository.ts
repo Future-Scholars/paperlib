@@ -37,6 +37,15 @@ export class FileRepository {
   async access(url: string, download: boolean): Promise<string> {
     return await this.backend.access(url, download);
   }
+
+  startWatch() {
+    this.backend.startWatch();
+  }
+
+  async stopWatch() {
+    await this.backend.stopWatch();
+  }
+
   async move(
     paperEntity: PaperEntity,
     fourceDelete = false
