@@ -66,15 +66,105 @@ onMounted(() => {
       <div class="w-[45rem] px-3 mx-auto my-20">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 1.10.2
+          What's New in Paperlib 2.0.0
         </p>
-        <p class="mt-10 mb-4"><b>New Features</b></p>
-        <ul class="list-disc mb-20">
-          <li>New metadata scraper: crossref.org</li>
+
+        <ul class="list-disc mb-5">
+          <li>
+            Rewrite the database related code to optimise the response time. For
+            example, the resorting time for 10K paper items is decreased from 3s
+            to 30ms.
+          </li>
+          <li>
+            重写数据库代码，优化响应时间。例如，对于 10K 篇文献，排序时间从 3s
+            降低到 30ms。
+          </li>
         </ul>
-        <p class="mt-10 mb-4"><b>Improvements and fixed Bugs</b></p>
-        <ul class="list-disc mb-20">
-          <li>Fixed some bugs in the sync cloud login.</li>
+        <ul class="list-disc mb-5">
+          <li>
+            Cache the preview image to optimise the rendering speed of paper
+            preview.
+          </li>
+          <li>优化预览渲染速度，缓存文献预览图。</li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>
+            Multi language support. Currently, English and Chinese are
+            supported.
+          </li>
+          <li>多语言支持，目前支持英文和中文。</li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>Redesigned the UI of Windows version.</li>
+          <li>重新设计了部分 Windows 版本的 UI。</li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>Automatically detect and use the system proxy.</li>
+          <li>
+            自动检测和使用系统默认代理。中国大陆地区推荐设置代理来加速个别数据库的访问速度。我们会持续尽力优化对于无代理的大陆用户的体验。
+          </li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>Added some guidance pages.</li>
+          <li>增加了导引界面。</li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>
+            Redesigned the metadata scrapper pipeline and setting UI. For users
+            who already used a custom scraper, you may need to modify the code
+            of your scraper slightly. See Github for details.
+          </li>
+          <li>
+            重新设计了元数据搜寻器的流程以及设置界面。对于已经使用了自定义搜寻器的用户，您可能需要稍微修改一下您的自定义代码。详情请见
+            Github。
+          </li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>
+            Added two new scrapers: Paperlib Query Service (the server backend
+            is still in progress), Semantic Scholar. We are constantly adding
+            new scrapers, please contact me directly if you would like to
+            optimise Paperlib for your research topic.
+          </li>
+          <li>
+            增加了两个新的元数据搜寻器：Paperlib Query Service
+            (后端仍在设计实现中), Semantic
+            Scholar。我们仍在不断添加新的搜寻器，如果你想为你的学科优化 Paperlib
+            的元数据搜索能力，请直接联系我。
+          </li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>Optimise the launching speed, memory usage.</li>
+          <li>优化程序启动速度、占用内存等。</li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>Optimise the performance of some metadata scrapers.</li>
+          <li>优化部分元数据搜寻器的性能。</li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>Moving files to trash instead of deleting files.</li>
+          <li>删除的文件会首先移入回收站而不是直接删除。</li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>
+            Add a progress bar to show some notifications such as downloading
+            progress.
+          </li>
+          <li>添加了一个进度条来显示如下载的进度。</li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>
+            Now adding a paper in a subscribed feed will not download its PDF
+            file.
+          </li>
+          <li>
+            添加一个 RSS
+            订阅的论文到库的时候不会自动下载论文了，以此来提高添加速度。
+          </li>
+        </ul>
+        <ul class="list-disc mb-5">
+          <li>Fixed some bugs.</li>
+          <li>修复了很多 Bug。</li>
         </ul>
 
         <div
