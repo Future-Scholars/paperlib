@@ -5,7 +5,7 @@ import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
-import { Scraper, ScraperRequestType } from "./scraper";
+import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 
 export class CrossRefScraper extends Scraper {
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
@@ -16,10 +16,14 @@ export class CrossRefScraper extends Scraper {
     const enable =
       this.getEnable("crossref") &&
       paperEntityDraft.title !== "" &&
-      paperEntityDraft.doi === "" &&
       this.isPreprint(paperEntityDraft);
 
-    const scrapeURL = `https://api.crossref.org/works?query.bibliographic=${paperEntityDraft.title}&rows=2&mailto=crossref@paperlib.app`;
+    const scrapeURL = encodeURI(
+      `https://api.crossref.org/works?query.bibliographic=${formatString({
+        str: paperEntityDraft.title,
+        whiteSymbol: true,
+      })}&rows=10&mailto=crossref@paperlib.app`
+    );
 
     const headers = {};
     if (enable) {
@@ -38,7 +42,15 @@ export class CrossRefScraper extends Scraper {
         items: [
           {
             title: string[];
-            DOI: string;
+            DOI?: string;
+            publisher?: string;
+            type?: string;
+            page?: string;
+            author?: { given: string; family: string }[];
+            "container-title"?: string[];
+            published?: { "date-parts": number[][] };
+            issue: string;
+            volume: string;
           }
         ];
       };
@@ -58,16 +70,70 @@ export class CrossRefScraper extends Scraper {
         lowercased: true,
       });
 
-      if (
-        plainHitTitle === existTitle &&
-        item.DOI &&
-        paperEntityDraft.doi === ""
-      ) {
-        paperEntityDraft.doi = item.DOI;
+      if (plainHitTitle === existTitle) {
+        paperEntityDraft.setValue("doi", item.DOI, false);
+        paperEntityDraft.setValue("publisher", item.publisher, false);
+
+        if (item.type?.includes("journal")) {
+          paperEntityDraft.setValue("type", 0, false);
+        } else if (item.type?.includes("book")) {
+          paperEntityDraft.setValue("type", 3, false);
+        } else if (item.type?.includes("proceedings")) {
+          paperEntityDraft.setValue("type", 1, false);
+        } else {
+          paperEntityDraft.setValue("type", 2, false);
+        }
+
+        paperEntityDraft.setValue("pages", item.page, false);
+        paperEntityDraft.setValue(
+          "publication",
+          item["container-title"]?.join(" "),
+          false
+        );
+        paperEntityDraft.setValue(
+          "pubTime",
+          `${item.published?.["date-parts"]?.[0]?.[0]}`,
+          false
+        );
+        paperEntityDraft.setValue(
+          "authors",
+          item.author
+            ?.map((author) => `${author.given} ${author.family}`)
+            .join(", "),
+          false
+        );
+        paperEntityDraft.setValue("number", item.issue, false);
+        paperEntityDraft.setValue("volume", item.volume, false);
+
         break;
       }
     }
 
     return paperEntityDraft;
+  }
+
+  scrapeImpl = scrapeImpl;
+}
+
+async function scrapeImpl(
+  this: ScraperType,
+  entityDraft: PaperEntity,
+  force = false
+): Promise<PaperEntity> {
+  const { scrapeURL, headers, enable } = this.preProcess(
+    entityDraft
+  ) as ScraperRequestType;
+
+  if (enable || force) {
+    const response = (await window.networkTool.get(
+      scrapeURL,
+      headers,
+      1,
+      false,
+      10000
+    )) as Response<string>;
+    return this.parsingProcess(response, entityDraft) as PaperEntity;
+  } else {
+    return entityDraft;
   }
 }

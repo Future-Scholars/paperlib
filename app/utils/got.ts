@@ -101,13 +101,14 @@ export class NetworkTool {
     url: string,
     headers?: Record<string, string>,
     retry = 1,
-    safe = false
+    safe = false,
+    timeout = 5000
   ) {
     const options = {
       headers: headers,
       retry: retry,
       timeout: {
-        request: 5000,
+        request: timeout,
       },
       agent: this.agent,
     };

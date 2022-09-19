@@ -7,7 +7,10 @@ import { Scraper, ScraperRequestType } from "./scraper";
 
 export class DOIScraper extends Scraper {
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable = paperEntityDraft.doi !== "" && this.getEnable("doi");
+    const enable =
+      paperEntityDraft.doi !== "" &&
+      this.getEnable("doi") &&
+      this.isPreprint(paperEntityDraft);
     const doiID = formatString({
       str: paperEntityDraft.doi,
       removeNewline: true,

@@ -17,7 +17,10 @@ export class ArXivScraper extends Scraper {
   }
 
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable = this.getEnable("arxiv") && paperEntityDraft.arxiv !== "";
+    const enable =
+      this.getEnable("arxiv") &&
+      paperEntityDraft.arxiv !== "" &&
+      this.isPreprint(paperEntityDraft);
 
     const arxivID = formatString({
       str: paperEntityDraft.arxiv,

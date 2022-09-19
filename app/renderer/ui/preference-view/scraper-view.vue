@@ -117,14 +117,23 @@ const presets = {
     "pdf",
     "paperlib",
     "arxiv",
-    "crossref",
     "doi",
     "dblp",
     "openreview",
+    "semanticscholar",
+    "crossref",
     "googlescholar",
     "pwc",
   ],
-  default: ["pdf", "paperlib", "arxiv", "crossref", "doi", "googlescholar"],
+  default: [
+    "pdf",
+    "paperlib",
+    "arxiv",
+    "doi",
+    "semanticscholar",
+    "crossref",
+    "googlescholar",
+  ],
 };
 
 const onChangePreset = (preset: "cs" | "default") => {

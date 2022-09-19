@@ -168,7 +168,10 @@ export class DBLPbyTimeScraper extends Scraper {
     }).replace("—", "-");
     dblpQuery += " " + `year:${year + this.offset}`;
 
-    const enable = dblpQuery !== "" && this.getEnable("dblp");
+    const enable =
+      dblpQuery !== "" &&
+      this.getEnable("dblp") &&
+      this.isPreprint(paperEntityDraft);
     const scrapeURL =
       "https://dblp.org/search/publ/api?q=" + dblpQuery + "&format=json";
 

@@ -6,6 +6,7 @@ export interface formatStringParams {
   removeStr?: string | null;
   lowercased?: boolean;
   trimWhite?: boolean;
+  whiteSymbol?: boolean;
 }
 
 export const formatString = ({
@@ -16,6 +17,7 @@ export const formatString = ({
   removeStr = null,
   lowercased = false,
   trimWhite = false,
+  whiteSymbol = false,
 }: formatStringParams): string => {
   if (!str) {
     return "";
@@ -39,6 +41,9 @@ export const formatString = ({
     }
     if (lowercased) {
       formatted = formatted.toLowerCase();
+    }
+    if (whiteSymbol) {
+      formatted = formatted.replace(/[^a-zA-Z0-9]/g, " ");
     }
     return formatted;
   } else {

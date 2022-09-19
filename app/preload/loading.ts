@@ -73,6 +73,14 @@ export function removeLoading() {
     "app-loading-style"
   ) as HTMLStyleElement;
   const oDiv = document.getElementById("app-loading-wrap") as HTMLDivElement;
-  document.head.removeChild(oStyle);
-  document.body.removeChild(oDiv);
+  try {
+    if (oStyle) {
+      document.head.removeChild(oStyle);
+    }
+    if (oDiv) {
+      document.body.removeChild(oDiv);
+    }
+  } catch (e) {
+    console.error(e);
+  }
 }

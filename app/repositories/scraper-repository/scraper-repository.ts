@@ -21,6 +21,7 @@ import { PaperlibScraper } from "./scrapers/paperlib";
 import { PwCScraper } from "./scrapers/paperwithcode";
 import { PDFScraper } from "./scrapers/pdf";
 import { ScraperType } from "./scrapers/scraper";
+import { SemanticScholarScraper } from "./scrapers/semanticscholar";
 
 export class ScraperRepository {
   stateStore: MainRendererStateStore;
@@ -149,6 +150,12 @@ export class ScraperRepository {
               break;
             case "googlescholar":
               scraperInstance = new GoogleScholarScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "semanticscholar":
+              scraperInstance = new SemanticScholarScraper(
                 this.stateStore,
                 this.preference
               );
