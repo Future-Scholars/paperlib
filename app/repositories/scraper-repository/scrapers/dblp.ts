@@ -125,7 +125,10 @@ export class DBLPScraper extends Scraper {
       removeStr: "&",
     }).replace("—", "-");
 
-    const enable = dblpQuery !== "" && this.getEnable("dblp");
+    const enable =
+      dblpQuery !== "" &&
+      this.isPreprint(paperEntityDraft) &&
+      this.getEnable("dblp");
     const scrapeURL =
       "https://dblp.org/search/publ/api?q=" + dblpQuery + "&format=json";
     const headers = {};

@@ -16,11 +16,11 @@ export interface ScraperType {
   stateStore: MainRendererStateStore;
   preference: Preference;
 
-  scrape(entityDraft: PaperEntity, force?: boolean): Promise<PaperEntity>;
-  preProcess(entityDraft: PaperEntity): ScraperRequestType | void;
+  scrape(paperEntityDraft: PaperEntity, force?: boolean): Promise<PaperEntity>;
+  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType | void;
   parsingProcess(
     rawResponse: Response<string> | PDFFileResponseType | string,
-    entityDraft: PaperEntity
+    paperEntityDraft: PaperEntity
   ): PaperEntity | void;
   scrapeImpl: (_: PaperEntity, force?: boolean) => Promise<PaperEntity>;
   getEnable(name: string): boolean;
@@ -35,17 +35,17 @@ export class Scraper implements ScraperType {
     this.preference = preference;
   }
 
-  scrape(entityDraft: PaperEntity, force = false): Promise<PaperEntity> {
-    return this.scrapeImpl(entityDraft, force);
+  scrape(paperEntityDraft: PaperEntity, force = false): Promise<PaperEntity> {
+    return this.scrapeImpl(paperEntityDraft, force);
   }
 
-  preProcess(_entityDraft: PaperEntity): ScraperRequestType | void {
+  preProcess(_paperEntityDraft: PaperEntity): ScraperRequestType | void {
     throw new Error("Method not implemented.");
   }
 
   parsingProcess(
     _rawResponse: Response<string> | PDFFileResponseType | string,
-    _entityDraft: PaperEntity
+    _paperEntityDraft: PaperEntity
   ): PaperEntity | void {
     throw new Error("Method not implemented.");
   }
@@ -57,6 +57,14 @@ export class Scraper implements ScraperType {
       (this.preference.get("scrapers") as Record<string, ScraperPreference>)[
         name
       ]?.enable ?? false
+    );
+  }
+
+  isPreprint(paperEntityDraft: PaperEntity) {
+    return (
+      !paperEntityDraft.publication ||
+      paperEntityDraft.publication.toLowerCase().includes("rxiv") ||
+      paperEntityDraft.publication.toLowerCase().includes("openreview")
     );
   }
 }

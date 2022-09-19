@@ -16,7 +16,8 @@ export class CrossRefScraper extends Scraper {
     const enable =
       this.getEnable("crossref") &&
       paperEntityDraft.title !== "" &&
-      paperEntityDraft.doi === "";
+      paperEntityDraft.doi === "" &&
+      this.isPreprint(paperEntityDraft);
 
     const scrapeURL = `https://api.crossref.org/works?query.bibliographic=${paperEntityDraft.title}&rows=2&mailto=crossref@paperlib.app`;
 

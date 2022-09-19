@@ -107,9 +107,7 @@ export class GoogleScholarScraper extends Scraper {
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const enable =
       paperEntityDraft.title !== "" &&
-      (paperEntityDraft.publication === "" ||
-        paperEntityDraft.publication.toLowerCase().includes("arxiv") ||
-        paperEntityDraft.publication.toLowerCase().includes("openreview")) &&
+      this.isPreprint(paperEntityDraft) &&
       this.getEnable("googlescholar");
 
     const query = paperEntityDraft.title.replace(/ /g, "+");
