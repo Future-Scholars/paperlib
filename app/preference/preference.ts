@@ -381,6 +381,9 @@ export class Preference {
       const newScraperRecord = this.store.get("scrapers");
 
       for (const existingScraper of existingScraperArray) {
+        if (existingScraper.name === "cvf") {
+          continue;
+        }
         newScraperRecord[existingScraper.name] = existingScraper;
         newScraperRecord[existingScraper.name].category =
           defaultPreferences.scrapers[existingScraper.name]?.category ||

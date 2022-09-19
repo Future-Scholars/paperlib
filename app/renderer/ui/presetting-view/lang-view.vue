@@ -60,7 +60,7 @@ const onRestartClicked = () => {
             class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20"
             @click.stop="emit('close')"
           >
-            <span class="m-auto text-xs selection-none">
+            <span class="m-auto text-xs cursor-pointer">
               {{ $t("presetting.continue") }}
             </span>
           </div>
@@ -69,7 +69,7 @@ const onRestartClicked = () => {
             class="flex h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm px-2"
             @click.stop="onRestartClicked"
           >
-            <span class="m-auto text-xs text-white select-none">
+            <span class="m-auto text-xs text-white cursor-pointer">
               {{ $t("presetting.restart") }}
             </span>
           </div>

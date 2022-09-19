@@ -56,7 +56,7 @@ const onPickerClicked = async () => {
             class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20 selection-none"
             @click.stop="emit('close')"
           >
-            <span class="m-auto text-xs selection-none">
+            <span class="m-auto text-xs cursor-pointer">
               {{ $t("presetting.continue") }}
             </span>
           </div>

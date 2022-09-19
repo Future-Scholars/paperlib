@@ -61,7 +61,6 @@ const onSidebarResized = (event: any) => {
 // Data load
 // ================================
 const reloadPaperEntities = async () => {
-  console.log("Reload paper entities...");
   let flaged = false;
 
   let tag = "";
@@ -81,7 +80,6 @@ const reloadPaperEntities = async () => {
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
-  console.log(`Paper entities (${paperEntities.value.length}) loaded!`);
 };
 watch(
   () => dbState.entitiesUpdated,
@@ -89,7 +87,6 @@ watch(
 );
 
 const reloadTags = async () => {
-  console.log("Reload tags...");
   tags.value = await window.entityInteractor.loadCategorizers(
     "PaperTag",
     prefState.sidebarSortBy,
@@ -102,7 +99,6 @@ watch(
 );
 
 const reloadFolders = async () => {
-  console.log("Reload folders...");
   folders.value = await window.entityInteractor.loadCategorizers(
     "PaperFolder",
     prefState.sidebarSortBy,
@@ -115,7 +111,6 @@ watch(
 );
 
 const reloadFeeds = async () => {
-  console.log("Reload feeds...");
   const results = await window.feedInteractor.loadFeeds(
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
@@ -128,7 +123,6 @@ watch(
 );
 
 const reloadFeedEntities = async () => {
-  console.log("Reload feed entities...");
   let feed = "";
   let unread = false;
 
@@ -225,7 +219,6 @@ window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
 });
 
 window.appInteractor.registerMainSignal("update-download-progress", (value) => {
-  console.log("update-download-progress", value);
   logState.progressLog = {
     id: "update-download-progress",
     msg: "Downloading update...",

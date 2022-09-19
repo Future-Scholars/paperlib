@@ -247,7 +247,7 @@ onMounted(() => {
 
           <div class="flex justify-end space-x-2 mt-5">
             <div
-              class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20 selection-none"
+              class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20 cursor-pointer"
               @click.stop="emit('close')"
             >
               <span class="m-auto text-xs selection-none">
