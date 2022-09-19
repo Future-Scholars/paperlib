@@ -15,6 +15,7 @@ const presetSelection = ref("");
 const enabledScraperList: Ref<ScraperPreference[]> = ref([]);
 const disabledScraperList: Ref<ScraperPreference[]> = ref([]);
 const editingScraper: Ref<ScraperPreference | null> = ref(null);
+const editingScraperName: Ref<string> = ref("");
 
 const splitEnabledDisabledScraper = () => {
   enabledScraperList.value = [];
@@ -63,6 +64,7 @@ const onEnabledChanged = (change: any) => {
 
 const onEditClicked = (scraper: ScraperPreference) => {
   editingScraper.value = scraper;
+  editingScraperName.value = scraper.name;
 };
 const onAddNewScraperClicked = () => {
   const newScraperPref = {
@@ -90,7 +92,7 @@ const onDeleteScraper = () => {
   let scraperPrefs = prefState.scrapers;
   const newScrapers: Record<string, ScraperPreference> = {};
   for (const [name, scraper] of Object.entries(scraperPrefs)) {
-    if (name !== editingScraper.value?.name) {
+    if (name !== editingScraperName.value) {
       newScrapers[name] = scraper;
     }
   }
@@ -102,6 +104,7 @@ const onDeleteScraper = () => {
 
 const onUpdateScraper = (scraperPref: ScraperPreference) => {
   let scraperPrefs = prefState.scrapers;
+  delete scraperPrefs[editingScraperName.value];
   scraperPrefs[scraperPref.name] = scraperPref;
   window.appInteractor.setPreference("scrapers", scraperPrefs);
   viewState.scraperReinited = Date.now();
