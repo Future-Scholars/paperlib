@@ -27,7 +27,7 @@ const hide = (key: string) => {
       v-if="
         prefState.showPresettingLang ||
         prefState.showPresettingScraper ||
-        prefState.showPresettingDb
+        prefState.showPresettingDB
       "
     >
       <LangView
@@ -35,11 +35,15 @@ const hide = (key: string) => {
         @close="hide('showPresettingLang')"
       />
       <DbView
-        v-if="prefState.showPresettingDB"
+        v-if="!prefState.showPresettingLang && prefState.showPresettingDB"
         @close="hide('showPresettingDB')"
       />
       <ScraperView
-        v-if="prefState.showPresettingScraper"
+        v-if="
+          !prefState.showPresettingLang &&
+          !prefState.showPresettingDB &&
+          prefState.showPresettingScraper
+        "
         @close="hide('showPresettingScraper')"
       />
     </div>

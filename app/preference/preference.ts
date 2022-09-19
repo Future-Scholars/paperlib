@@ -363,7 +363,7 @@ export class Preference {
       "scrapers"
     ) as unknown as ScraperPreference[];
 
-    if (!!existingScraperArray[Symbol.iterator]) {
+    if (existingScraperArray && !!existingScraperArray[Symbol.iterator]) {
       this.store.set("scrapers", defaultPreferences.scrapers);
       const newScraperRecord = this.store.get("scrapers");
 
