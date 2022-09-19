@@ -56,10 +56,6 @@ export async function createPluginWindow(
   });
 
   winPlugin.on("blur", () => {
-    // FIXME: Test on win
-    if (os.platform() === "win32") {
-      winPlugin?.minimize();
-    }
     winPlugin?.hide();
 
     winPlugin?.setSize(600, 76);

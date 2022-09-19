@@ -340,7 +340,7 @@ const onMaximizeClicked = () => {
         class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out"
         @click="onMinimizeClicked"
       >
-        <BIconDash class="m-auto mt-2.5 text-lg" />
+        <BIconDash class="m-auto mt-2.5 text-lg text-neutral-500" />
       </div>
       <div
         class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out"
@@ -351,7 +351,7 @@ const onMaximizeClicked = () => {
         ></div>
       </div>
       <div
-        class="flex w-10 h-8 hover:bg-red-600 transition ease-in-out hover:text-neutral-200"
+        class="flex w-10 h-8 text-neutral-500 hover:bg-red-600 transition ease-in-out hover:text-neutral-200"
         @click="onCloseClicked"
       >
         <BIconX class="m-auto mt-2.5 text-lg" />

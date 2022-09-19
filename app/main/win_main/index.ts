@@ -103,6 +103,12 @@ function setWindowsSpecificStyles(win: BrowserWindow | null) {
   width: 4px;
 }
 
+::-webkit-scrollbar-corner {
+  background: transparent;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .sidebar-windows-bg {
   background-color: #efefef;
 }
