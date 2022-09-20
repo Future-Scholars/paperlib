@@ -1,7 +1,7 @@
 <div align="center">
 <img src="./assets/icon.png" height="95" />
 <br />
-<img src="https://img.shields.io/badge/dynamic/json?label=Release&query=version&url=https://raw.githubusercontent.com/GeoffreyChen777/paperlib/electron/package.json" />
+<img src="https://img.shields.io/badge/dynamic/json?label=Release&query=version&url=https://raw.githubusercontent.com/GeoffreyChen777/paperlib/master/package.json" />
 <img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
 <img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />
 <h2><a href="https://paperlib.app/" > Paperlib </a></h2>
