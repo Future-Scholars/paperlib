@@ -85,23 +85,70 @@ export class CacheRepository {
 
   async getConfig(): Promise<Realm.Configuration> {
     if (
-      !existsSync(window.appInteractor.getPreference("appLibFolder") as string)
+      existsSync(
+        path.join(
+          window.appInteractor.getPreference("appLibFolder") as string,
+          "cache.realm"
+        )
+      )
     ) {
-      await promises.mkdir(
-        window.appInteractor.getPreference("appLibFolder") as string,
-        {
-          recursive: true,
+      const userDataPath = window.appInteractor.getUserDataPath();
+      try {
+        if (path.join(userDataPath, "cache.realm")) {
+          await promises.unlink(path.join(userDataPath, "cache.realm"));
         }
-      );
+        if (path.join(userDataPath, "cache.realm.lock")) {
+          await promises.unlink(path.join(userDataPath, "cache.realm.lock"));
+        }
+        if (path.join(userDataPath, "cache.realm.management")) {
+          await promises.unlink(
+            path.join(userDataPath, "cache.realm.management")
+          );
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      try {
+        await promises.rename(
+          path.join(
+            window.appInteractor.getPreference("appLibFolder") as string,
+            "cache.realm"
+          ),
+          path.join(userDataPath, "cache.realm")
+        );
+      } catch (err) {
+        console.error(err);
+      }
+
+      try {
+        await promises.rename(
+          path.join(
+            window.appInteractor.getPreference("appLibFolder") as string,
+            "cache.realm.lock"
+          ),
+          path.join(userDataPath, "cache.realm.lock")
+        );
+      } catch (err) {
+        console.error(err);
+      }
+
+      try {
+        await promises.rename(
+          path.join(
+            window.appInteractor.getPreference("appLibFolder") as string,
+            "cache.realm.management"
+          ),
+          path.join(userDataPath, "cache.realm.management")
+        );
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     const config = {
       schema: [PaperEntityCache.schema],
       schemaVersion: this._schemaVersion,
-      path: path.join(
-        window.appInteractor.getPreference("appLibFolder") as string,
-        "cache.realm"
-      ),
+      path: path.join(window.appInteractor.getUserDataPath(), "cache.realm"),
     };
     this.config = config;
     return config;
@@ -215,7 +262,6 @@ export class CacheRepository {
         await window.appInteractor.access(paperEntity.mainURL, false)
       ).replace("file://", "");
 
-      // TODO: check with webdav
       let md5String = "";
       if (filePath && (await promises.lstat(filePath)).isFile()) {
         md5String = await md5(filePath);
