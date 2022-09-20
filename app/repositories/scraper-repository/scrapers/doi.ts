@@ -52,11 +52,14 @@ export class DOIScraper extends Scraper {
       })
       .join(", ");
     const pubTime = response.published["date-parts"]["0"][0];
+    // FIXME: for book.
     let pubType;
     if (response.type == "proceedings-article") {
       pubType = 1;
     } else if (response.type == "journal-article") {
       pubType = 0;
+    } else if (response.type.includes("book")) {
+      pubType = 3;
     } else {
       pubType = 2;
     }
