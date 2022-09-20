@@ -1,3 +1,7 @@
+## v2.0.1 Sep 20 2022
+
+1. Fixed a bug.
+
 ## v2.0.0 Sep 19 2022
 
 1. Rewrite the database related code to optimise the response time. For example, the resorting time for 10K paper items is decreased from 3s to 30ms.

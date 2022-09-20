@@ -100,7 +100,6 @@ export class IEEEWebImporter extends WebImporter {
             filename += ".pdf";
           }
 
-          // FIXME: check this
           const targetUrl = await window.networkTool.downloadPDFs([url]);
           if (targetUrl.length > 0) {
             entityDraft.mainURL = targetUrl[0];

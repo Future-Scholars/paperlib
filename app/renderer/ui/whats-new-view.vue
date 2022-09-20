@@ -66,6 +66,15 @@ onMounted(() => {
       <div class="w-[45rem] px-3 mx-auto my-20">
         <img class="w-20 mx-auto mb-2" src="../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
+          What's New in Paperlib 2.0.1
+        </p>
+
+        <ul class="list-disc mb-5">
+          <li>Fixed a bug.</li>
+          <li>修复一个 Bug。</li>
+        </ul>
+
+        <p class="text-center text-2xl font-bold mb-8">
           What's New in Paperlib 2.0.0
         </p>
 
