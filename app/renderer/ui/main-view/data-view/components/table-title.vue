@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { BIconArrowDown, BIconArrowUp } from "bootstrap-icons-vue";
+import { onBeforeMount, ref, watch } from "vue";
 
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+
+import TableTitleItem from "./table-title-item.vue";
 
 const props = defineProps({
   sortBy: {
@@ -11,6 +14,38 @@ const props = defineProps({
   sortOrder: {
     type: String,
     required: true,
+  },
+  showPubTime: {
+    type: Boolean,
+    default: true,
+  },
+  showPublication: {
+    type: Boolean,
+    default: true,
+  },
+  showRating: {
+    type: Boolean,
+    default: false,
+  },
+  showPubType: {
+    type: Boolean,
+    default: false,
+  },
+  showTags: {
+    type: Boolean,
+    default: false,
+  },
+  showFolders: {
+    type: Boolean,
+    default: false,
+  },
+  showFlag: {
+    type: Boolean,
+    default: true,
+  },
+  showNote: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -23,67 +58,123 @@ const onTitleClicked = (key: string) => {
   window.appInteractor.setPreference("sortBy", key);
   window.appInteractor.setPreference("sortOrder", sortOrder);
 };
+
+const titleWidth = ref(0);
+const pubWidth = ref(0);
+
+const getColumnWidth = () => {
+  let oneWidthColumn = 1;
+  if (props.showPubTime) oneWidthColumn += 0.6;
+  if (props.showRating) oneWidthColumn += 0.8;
+  if (props.showPubType) oneWidthColumn += 0.5;
+  if (props.showTags) oneWidthColumn += 1.5;
+  if (props.showFolders) oneWidthColumn += 1.5;
+  if (props.showFlag) oneWidthColumn += 0.3;
+  if (props.showNote) oneWidthColumn += 1;
+
+  const otherColumnWidth = 10 - oneWidthColumn;
+  const width = otherColumnWidth / 2;
+  titleWidth.value = width * 10;
+  pubWidth.value = width * 10;
+};
+
+watch(
+  () => [
+    props.showPubTime,
+    props.showRating,
+    props.showPubType,
+    props.showTags,
+    props.showFolders,
+    props.showFlag,
+    props.showNote,
+  ],
+  getColumnWidth
+);
+
+onBeforeMount(() => {
+  getColumnWidth();
+});
 </script>
 
 <template>
   <div
-    class="flex w-full font-semibold text-xs rounded-md select-none cursor-pointer"
+    class="flex w-full font-semibold text-xs rounded-md select-none cursor-pointer pr-2"
   >
-    <div
-      class="flex h-6 px-2 truncate overflow-hidden w-[calc(45%-1rem)] my-auto rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700"
-      @click="onTitleClicked('title')"
-    >
-      <span class="my-auto"> Title </span>
-      <BIconArrowDown
-        class="my-auto ml-1 text-xxs"
-        v-if="sortBy == 'title' && sortOrder === 'desc'"
-      />
-      <BIconArrowUp
-        class="my-auto ml-1 text-xxs"
-        v-if="sortBy == 'title' && sortOrder === 'asce'"
-      />
-    </div>
-    <div
-      class="flex h-6 px-2 truncate overflow-hidden w-[calc(15%)] my-auto rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700"
-      @click="onTitleClicked('authors')"
-    >
-      <span class="my-auto"> Authors </span>
-      <BIconArrowDown
-        class="my-auto ml-1 text-xxs"
-        v-if="sortBy == 'authors' && sortOrder === 'desc'"
-      />
-      <BIconArrowUp
-        class="my-auto ml-1 text-xxs"
-        v-if="sortBy == 'authors' && sortOrder === 'asce'"
-      />
-    </div>
-    <div
-      class="flex h-6 px-2 truncate overflow-hidden w-[calc(33%-0.5rem)] my-auto rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700"
-      @click="onTitleClicked('publication')"
-    >
-      <span class="my-auto"> Publication </span>
-      <BIconArrowDown
-        class="my-auto ml-1 text-xxs"
-        v-if="sortBy == 'publication' && sortOrder === 'desc'"
-      />
-      <BIconArrowUp
-        class="my-auto ml-1 text-xxs"
-        v-if="sortBy == 'publication' && sortOrder === 'asce'"
-      />
-    </div>
-    <div
-      class="flex h-6 px-2 w-[calc(7%)] my-auto rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700"
-      @click="onTitleClicked('pubTime')"
-    >
-      <span class="my-auto">Year</span>
-      <BIconArrowDown
-        class="my-auto text-xxs"
-        v-if="sortBy == 'pubTime' && sortOrder === 'desc'"
-      />
-      <BIconArrowUp
-        class="my-auto ml-1 text-xxs"
-        v-if="sortBy == 'pubTime' && sortOrder === 'asce'"
-      />
-    </div>
+    <TableTitleItem
+      :style="`width: ${titleWidth}%`"
+      :sort-by="sortBy == 'title'"
+      :sort-order="sortOrder"
+      title="Title"
+      @title-clicked="onTitleClicked('title')"
+    />
+    <TableTitleItem
+      class="w-[10%]"
+      :sort-by="sortBy == 'authors'"
+      :sort-order="sortOrder"
+      title="Authors"
+      @title-clicked="onTitleClicked('authors')"
+    />
+    <TableTitleItem
+      :style="`width: ${pubWidth}%`"
+      :sort-by="sortBy == 'publication'"
+      :sort-order="sortOrder"
+      title="Publication"
+      @title-clicked="onTitleClicked('publication')"
+      v-if="showPublication"
+    />
+    <TableTitleItem
+      class="w-[6%]"
+      :sort-by="sortBy == 'pubTime'"
+      :sort-order="sortOrder"
+      title="Year"
+      @title-clicked="onTitleClicked('pubTime')"
+      v-if="showPubTime"
+    />
+    <TableTitleItem
+      class="w-[5%]"
+      :sort-by="sortBy == 'pubType'"
+      :sort-order="sortOrder"
+      title="Type"
+      @title-clicked="onTitleClicked('pubType')"
+      v-if="showPubType"
+    />
+    <TableTitleItem
+      class="w-[15%]"
+      :sort-by="sortBy == 'tags'"
+      :sort-order="sortOrder"
+      title="Tags"
+      v-if="showTags"
+    />
+    <TableTitleItem
+      class="w-[15%]"
+      :sort-by="sortBy == 'folders'"
+      :sort-order="sortOrder"
+      title="Folders"
+      v-if="showFolders"
+    />
+    <TableTitleItem
+      class="w-[10%]"
+      :sort-by="sortBy == 'note'"
+      :sort-order="sortOrder"
+      title="Note"
+      @title-clicked="onTitleClicked('note')"
+      v-if="showNote"
+    />
+    <TableTitleItem
+      class="w-[8%]"
+      :sort-by="sortBy == 'rating'"
+      :sort-order="sortOrder"
+      title="Rating"
+      @title-clicked="onTitleClicked('rating')"
+      v-if="showRating"
+    />
+    <TableTitleItem
+      class="w-[2%]"
+      :sort-by="sortBy == 'flag'"
+      :sort-order="sortOrder"
+      title=""
+      @title-clicked="onTitleClicked('flag')"
+      v-if="showFlag"
+    />
   </div>
 </template>
