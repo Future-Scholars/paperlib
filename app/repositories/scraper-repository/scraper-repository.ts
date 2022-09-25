@@ -202,8 +202,14 @@ export class ScraperRepository {
     paperEntityDraft: PaperEntity,
     scraperName: string
   ): Promise<PaperEntity> {
+    const scraperList = [scraperName];
+    if (scraperName === "dblp") {
+      scraperList.push("dblp-by-time-0");
+      scraperList.push("dblp-by-time-1");
+      scraperList.push("dblp-venue");
+    }
     for (const scraper of this.scraperList) {
-      if (scraper.name === scraperName) {
+      if (scraperList.includes(scraper.name)) {
         try {
           paperEntityDraft = await scraper.scraper.scrape(
             paperEntityDraft,
