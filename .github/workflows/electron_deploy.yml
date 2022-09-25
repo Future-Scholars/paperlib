@@ -35,6 +35,14 @@ jobs:
           security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: GeoffreyChen777/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
+
+
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
         with:
@@ -98,6 +106,13 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./electron-builder.mac.arm.json5 ./electron-builder.json5
+
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: GeoffreyChen777/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
@@ -172,6 +187,13 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./electron-builder.win.json5 ./electron-builder.json5
+
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: GeoffreyChen777/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
