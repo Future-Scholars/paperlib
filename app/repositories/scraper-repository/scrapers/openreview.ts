@@ -97,6 +97,7 @@ export class OpenreviewScraper extends Scraper {
     paperEntityDraft.setValue("title", title);
     paperEntityDraft.setValue("authors", authors);
 
+    this.uploadCache(paperEntityDraft, "openreview");
     return paperEntityDraft;
   }
 }

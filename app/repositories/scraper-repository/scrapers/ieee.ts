@@ -126,6 +126,7 @@ export class IEEEScraper extends Scraper {
             paperEntityDraft.setValue("publisher", article.publisher);
           }
           break;
+          this.uploadCache(paperEntityDraft, "ieee");
         }
       }
     }

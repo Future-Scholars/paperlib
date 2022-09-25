@@ -8,6 +8,7 @@ import { formatString } from "@/utils/string";
 import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 
 function parsingProcess(
+  this: ScraperType,
   rawResponse: Response<string>,
   paperEntityDraft: PaperEntity
 ): PaperEntity {
@@ -106,6 +107,7 @@ function parsingProcess(
             paperEntityDraft.setValue("publisher", article.publisher);
           }
         }
+
         break;
       }
     }
@@ -224,6 +226,7 @@ export class DBLPVenueScraper extends Scraper {
         if (venueInfo["url"].includes(venueID)) {
           const venue = venueInfo["venue"];
           paperEntityDraft.setValue("publication", venue);
+          this.uploadCache(paperEntityDraft, "dblp");
           break;
         } else {
           paperEntityDraft.setValue("publication", "", true);

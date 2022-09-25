@@ -105,6 +105,8 @@ export class CrossRefScraper extends Scraper {
         paperEntityDraft.setValue("number", item.issue, false);
         paperEntityDraft.setValue("volume", item.volume, false);
 
+        this.uploadCache(paperEntityDraft, "doi");
+
         break;
       }
     }

@@ -87,6 +87,7 @@ export class DOIScraper extends Scraper {
           : response.publisher
       );
     }
+    this.uploadCache(paperEntityDraft, "crossref");
     return paperEntityDraft;
   }
 }
