@@ -225,7 +225,20 @@ export class LocalFileBackend implements FileBackend {
       if (stat.isDirectory()) {
         return false;
       }
-      await shell.trashItem(_sourceURL);
+      // TODO: https://github.com/electron/electron/issues/35786
+      try {
+        await shell.trashItem(_sourceURL);
+      } catch (error) {
+        try {
+          await fsPromise.unlink(_sourceURL);
+        } catch (error) {
+          console.error(error);
+          this.stateStore.logState.alertLog = `Could not remove file: ${
+            error as string
+          }`;
+          return false;
+        }
+      }
       return true;
     } catch (error) {
       this.stateStore.logState.alertLog = `Could not remove file: ${
