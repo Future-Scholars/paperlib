@@ -152,6 +152,25 @@ export class NetworkTool {
     }
   }
 
+  async post(
+    url: string,
+    data: Record<string, any>,
+    headers?: Record<string, string>,
+    retry = 1,
+    timeout = 5000
+  ) {
+    const options = {
+      json: data,
+      headers: headers,
+      retry: retry,
+      timeout: {
+        request: timeout,
+      },
+      agent: this.agent,
+    };
+    return await got.post(url, options);
+  }
+
   async downloadPDFs(urlList: string[]): Promise<string[]> {
     this.stateStore.logState.processLog = "";
     const _download = async (url: string): Promise<string> => {

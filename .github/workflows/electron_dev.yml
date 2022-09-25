@@ -38,6 +38,13 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: GeoffreyChen777/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
+
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
         with:
@@ -87,6 +94,13 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./electron-builder.mac.arm.dev.json5 ./electron-builder.json5
+
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: GeoffreyChen777/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2

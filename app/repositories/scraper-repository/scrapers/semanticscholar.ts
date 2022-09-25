@@ -101,6 +101,7 @@ export class SemanticScholarScraper extends Scraper {
         paperEntityDraft.setValue("arxiv", item.externalIds?.ArXiv, false);
         paperEntityDraft.setValue("doi", item.externalIds?.DOI, false);
 
+        this.uploadCache(paperEntityDraft, "semanticscholar");
         break;
       }
     }

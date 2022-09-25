@@ -15,6 +15,7 @@ import { ref } from "vue";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import ListItem from "@/renderer/ui/main-view/data-view/components/list-item.vue";
+import TableItem from "@/renderer/ui/main-view/data-view/components/table-item.vue";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import MainSection from "./components/main-section.vue";
@@ -61,6 +62,20 @@ const updatePref = (key: string, value: unknown) => {
     </div>
     <ListItem
       class="bg-neutral-200 dark:bg-neutral-700 w-[800px] cursor-default"
+      :item="item"
+      :showPubTime="prefState.showMainYear"
+      :showPublication="prefState.showMainPublication"
+      :showRating="prefState.showMainRating"
+      :showPubType="prefState.showMainPubType"
+      :showTags="prefState.showMainTags"
+      :showFolders="prefState.showMainFolders"
+      :showNote="prefState.showMainNote"
+      :showFlag="prefState.showMainFlag"
+      :read="true"
+    />
+
+    <TableItem
+      class="bg-neutral-200 dark:bg-neutral-700 w-[800px] cursor-default mt-5"
       :item="item"
       :showPubTime="prefState.showMainYear"
       :showPublication="prefState.showMainPublication"

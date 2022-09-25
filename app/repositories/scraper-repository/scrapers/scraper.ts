@@ -1,8 +1,10 @@
 import { Response } from "got";
 
+import { APICache } from "@/models/apicache";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { cryptoAndSign } from "@/utils/crypto/crypto";
 
 import { PDFFileResponseType } from "./pdf";
 
@@ -24,6 +26,7 @@ export interface ScraperType {
   ): PaperEntity | void;
   scrapeImpl: (_: PaperEntity, force?: boolean) => Promise<PaperEntity>;
   getEnable(name: string): boolean;
+  uploadCache(paperEntity: PaperEntity, scraperName: string): Promise<void>;
 }
 
 export class Scraper implements ScraperType {
@@ -66,6 +69,24 @@ export class Scraper implements ScraperType {
       paperEntityDraft.publication.toLowerCase().includes("rxiv") ||
       paperEntityDraft.publication.toLowerCase().includes("openreview")
     );
+  }
+
+  async uploadCache(
+    paperEntityDraft: PaperEntity,
+    scraperName: string
+  ): Promise<void> {
+    if (!this.isPreprint(paperEntityDraft)) {
+      const apiCache = new APICache(true).initialize(
+        paperEntityDraft,
+        scraperName
+      );
+      const signedData = cryptoAndSign(apiCache);
+
+      await window.networkTool.post(
+        "https://api.paperlib.app/cache/",
+        signedData
+      );
+    }
   }
 }
 

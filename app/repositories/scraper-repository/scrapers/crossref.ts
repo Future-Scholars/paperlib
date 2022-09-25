@@ -22,7 +22,7 @@ export class CrossRefScraper extends Scraper {
       `https://api.crossref.org/works?query.bibliographic=${formatString({
         str: paperEntityDraft.title,
         whiteSymbol: true,
-      })}&rows=10&mailto=crossref@paperlib.app`
+      })}&rows=5&mailto=hi@paperlib.app`
     );
 
     const headers = {};
@@ -104,6 +104,8 @@ export class CrossRefScraper extends Scraper {
         );
         paperEntityDraft.setValue("number", item.issue, false);
         paperEntityDraft.setValue("volume", item.volume, false);
+
+        this.uploadCache(paperEntityDraft, "doi");
 
         break;
       }

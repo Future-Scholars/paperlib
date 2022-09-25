@@ -16,7 +16,7 @@ import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import PresettingView from "./presetting-view/presetting-view.vue";
 import SidebarView from "./sidebar-view/sidebar-view.vue";
-import WhatsNewView from "./whats-new-view.vue";
+import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 
 // ================================
 // State

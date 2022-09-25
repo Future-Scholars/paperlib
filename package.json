@@ -1,6 +1,6 @@
 {
   "name": "paperlib",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "main": "dist/app/main/index.js",
   "description": "A simple academic paper management tool.",
   "author": "Geoffrey Chen <geoffreychen777@gmail.com>",
