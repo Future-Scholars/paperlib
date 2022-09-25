@@ -214,12 +214,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to WinGet
-        uses: vedantmgoyal2009/winget-releaser@latest
-        with:
-          identifier: GeoffreyChen.Paperlib
-          token: ${{ secrets.WINGET_TOKEN }}
-
       - name: Install Oracle Cloud CLI
         run: |
           pip install cffi
