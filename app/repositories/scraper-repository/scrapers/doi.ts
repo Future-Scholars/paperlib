@@ -24,7 +24,6 @@ export class DOIScraper extends Scraper {
     if (enable) {
       this.stateStore.logState.processLog = `Scraping metadata by DOI ...`;
     }
-
     return { scrapeURL, headers, enable };
   }
 
@@ -32,9 +31,13 @@ export class DOIScraper extends Scraper {
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
+    if (rawResponse.body.startsWith("<")) {
+      return paperEntityDraft;
+    }
+
     const response = JSON.parse(rawResponse.body) as {
       title: string;
-      author: { given: string; family: string }[];
+      author: { given?: string; family?: string; name?: string }[];
       published: {
         "date-parts": { "0": string[] };
       };
@@ -48,7 +51,11 @@ export class DOIScraper extends Scraper {
     const title = response.title;
     const authors = response.author
       .map((author) => {
-        return author.given.trim() + " " + author.family.trim();
+        if (author.name) {
+          return author.name;
+        } else {
+          return author.given?.trim() + " " + author.family?.trim();
+        }
       })
       .join(", ");
     const pubTime = response.published["date-parts"]["0"][0];

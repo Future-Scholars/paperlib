@@ -1,15 +1,21 @@
 import { Response } from "got";
+import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
+import { DOIScraper } from "./doi";
 import { Scraper, ScraperRequestType } from "./scraper";
 
 export class SemanticScholarScraper extends Scraper {
+  doiScraper: DOIScraper;
+
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
     super(stateStore, preference);
+
+    this.doiScraper = new DOIScraper(stateStore, preference);
   }
 
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
@@ -45,6 +51,7 @@ export class SemanticScholarScraper extends Scraper {
           venue?: string;
           year?: string;
           journal?: {
+            name?: string;
             pages?: string;
             volume?: string;
           };
@@ -70,23 +77,28 @@ export class SemanticScholarScraper extends Scraper {
         lowercased: true,
       });
 
-      if (plainHitTitle === existTitle) {
-        paperEntityDraft.setValue("doi", item.externalIds?.DOI, false);
-
-        if (item.publicationTypes?.[0]?.toLowerCase().includes("journal")) {
+      const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
+      if (sim > 0.95) {
+        if (item.publicationTypes?.[-1]?.toLowerCase().includes("journal")) {
           paperEntityDraft.setValue("type", 0, false);
-        } else if (item.publicationTypes?.[0]?.toLowerCase().includes("book")) {
+        } else if (
+          item.publicationTypes?.[-1]?.toLowerCase().includes("book")
+        ) {
           paperEntityDraft.setValue("type", 3, false);
         } else if (
-          item.publicationTypes?.[0]?.toLowerCase().includes("conference")
+          item.publicationTypes?.[-1]?.toLowerCase().includes("conference")
         ) {
           paperEntityDraft.setValue("type", 1, false);
         } else {
           paperEntityDraft.setValue("type", 2, false);
         }
 
-        paperEntityDraft.setValue("pages", item.journal?.pages, false);
-        paperEntityDraft.setValue("publication", item.venue, false);
+        if (item.journal?.name) {
+          paperEntityDraft.setValue("publication", item.journal.name, false);
+        } else {
+          paperEntityDraft.setValue("publication", item.venue, false);
+        }
+
         paperEntityDraft.setValue(
           "pubTime",
           item.year ? `${item.year}` : "",
@@ -98,6 +110,8 @@ export class SemanticScholarScraper extends Scraper {
           false
         );
         paperEntityDraft.setValue("volume", item.journal?.volume, false);
+        paperEntityDraft.setValue("pages", item.journal?.pages, false);
+
         paperEntityDraft.setValue("arxiv", item.externalIds?.ArXiv, false);
         paperEntityDraft.setValue("doi", item.externalIds?.DOI, false);
 
@@ -106,6 +120,55 @@ export class SemanticScholarScraper extends Scraper {
       }
     }
 
+    return paperEntityDraft;
+  }
+
+  // @ts-ignore
+  scrapeImpl = scrapeImpl;
+}
+
+async function scrapeImpl(
+  this: SemanticScholarScraper,
+  paperEntityDraft: PaperEntity,
+  force = false
+): Promise<PaperEntity> {
+  const { scrapeURL, headers, enable, content } = this.preProcess(
+    paperEntityDraft
+  ) as ScraperRequestType;
+
+  if (enable || force) {
+    const response = (await window.networkTool.get(
+      scrapeURL,
+      headers,
+      1,
+      false,
+      5000
+    )) as Response<string>;
+    paperEntityDraft = this.parsingProcess(
+      response,
+      paperEntityDraft
+    ) as PaperEntity;
+
+    const authorListfromSemanticScholar = paperEntityDraft.authors.split(", ");
+
+    paperEntityDraft = await this.doiScraper.scrape(paperEntityDraft, true);
+
+    // Sometimes DOI returns incomplete author list, so we use Semantic Scholar's author list if it is longer
+    if (
+      paperEntityDraft.authors.split(", ").length <
+      authorListfromSemanticScholar.length
+    ) {
+      paperEntityDraft.setValue(
+        "authors",
+        authorListfromSemanticScholar.join(", "),
+        false
+      );
+    }
+
+    this.uploadCache(paperEntityDraft, "semanticscholar");
+
+    return paperEntityDraft;
+  } else {
     return paperEntityDraft;
   }
 }

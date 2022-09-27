@@ -69,6 +69,7 @@ export default defineConfig({
             "node-html-parser",
             "citation-js",
             "electron-proxy-agent",
+            "string-similarity",
           ];
         },
       },

@@ -20,6 +20,7 @@ import { OpenreviewScraper } from "./scrapers/openreview";
 import { PaperlibScraper } from "./scrapers/paperlib";
 import { PwCScraper } from "./scrapers/paperwithcode";
 import { PDFScraper } from "./scrapers/pdf";
+import { ScopusScraper } from "./scrapers/scopus";
 import { ScraperType } from "./scrapers/scraper";
 import { SemanticScholarScraper } from "./scrapers/semanticscholar";
 
@@ -156,6 +157,12 @@ export class ScraperRepository {
               break;
             case "semanticscholar":
               scraperInstance = new SemanticScholarScraper(
+                this.stateStore,
+                this.preference
+              );
+              break;
+            case "scopus":
+              scraperInstance = new ScopusScraper(
                 this.stateStore,
                 this.preference
               );

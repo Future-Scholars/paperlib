@@ -12,6 +12,7 @@ export interface ScraperRequestType {
   scrapeURL: string;
   headers: Record<string, string>;
   enable: boolean;
+  content?: Record<string, any>;
 }
 
 export interface ScraperType {
@@ -102,7 +103,10 @@ async function scrapeImpl(
   if (enable || force) {
     const response = (await window.networkTool.get(
       scrapeURL,
-      headers
+      headers,
+      1,
+      false,
+      10000
     )) as Response<string>;
     return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
   } else {

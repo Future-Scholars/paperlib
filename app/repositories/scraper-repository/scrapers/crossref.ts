@@ -1,4 +1,5 @@
 import { Response } from "got";
+import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
@@ -22,7 +23,7 @@ export class CrossRefScraper extends Scraper {
       `https://api.crossref.org/works?query.bibliographic=${formatString({
         str: paperEntityDraft.title,
         whiteSymbol: true,
-      })}&rows=5&mailto=hi@paperlib.app`
+      })}&rows=2&mailto=hi@paperlib.app`
     );
 
     const headers = {};
@@ -70,7 +71,9 @@ export class CrossRefScraper extends Scraper {
         lowercased: true,
       });
 
-      if (plainHitTitle === existTitle) {
+      const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
+      if (sim > 0.95) {
+        paperEntityDraft.setValue("title", item.title[0], false);
         paperEntityDraft.setValue("doi", item.DOI, false);
         paperEntityDraft.setValue("publisher", item.publisher, false);
 

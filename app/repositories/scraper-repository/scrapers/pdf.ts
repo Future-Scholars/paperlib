@@ -67,23 +67,27 @@ export class PDFScraper extends Scraper {
     };
     const firstPageText = rawResponse.firstPageText;
 
+    let metaDataTitle = "";
     if (paperEntityDraft.title === "") {
-      paperEntityDraft.setValue("title", metaData.info.Title || "");
+      metaDataTitle = metaData.info.Title || "";
+      if (metaDataTitle === "untitled") {
+        metaDataTitle = "";
+      }
     }
 
-    let authors;
-    if (metaData.info.Author?.includes(";")) {
-      authors = metaData.info.Author.split(";")
-        .map((author) => {
-          return author.trim();
-        })
-        .join(", ");
-    } else {
-      authors = metaData.info.Author || "";
-    }
-    if (paperEntityDraft.authors === "") {
-      paperEntityDraft.setValue("authors", authors);
-    }
+    // let authors;
+    // if (metaData.info.Author?.includes(";")) {
+    //   authors = metaData.info.Author.split(";")
+    //     .map((author) => {
+    //       return author.trim();
+    //     })
+    //     .join(", ");
+    // } else {
+    //   authors = metaData.info.Author || "";
+    // }
+    // if (paperEntityDraft.authors === "") {
+    //   paperEntityDraft.setValue("authors", authors);
+    // }
 
     // Extract arXiv ID
     const arxivIds = firstPageText.match(
@@ -119,7 +123,15 @@ export class PDFScraper extends Scraper {
       })
       .filter((doi) => doi !== "");
     if (dois.length > 0) {
-      const doi = formatString({ str: dois[0], removeWhite: true });
+      // Vote for the most common DOI
+      const doi = formatString({
+        str: dois.sort(
+          (a, b) =>
+            dois.filter((v) => v === a).length -
+            dois.filter((v) => v === b).length
+        )[dois.length - 1],
+        removeWhite: true,
+      });
       if (paperEntityDraft.doi === "") {
         paperEntityDraft.setValue("doi", doi);
       }
@@ -139,17 +151,19 @@ export class PDFScraper extends Scraper {
       }
     }
 
-    if (paperEntityDraft.doi.endsWith(",")) {
+    if (
+      paperEntityDraft.doi.endsWith(",") ||
+      paperEntityDraft.doi.endsWith(".")
+    ) {
       paperEntityDraft.setValue("doi", paperEntityDraft.doi.slice(0, -1));
     }
 
     // Largest String as Title
-    if (
-      paperEntityDraft.title === "" ||
-      paperEntityDraft.title === "untitled"
-    ) {
-      paperEntityDraft.setValue("title", rawResponse.largestText.slice(0, 400));
-    }
+    const largestText = rawResponse.largestText.slice(0, 400);
+    paperEntityDraft.setValue(
+      "title",
+      metaDataTitle.length > largestText.length ? metaDataTitle : largestText
+    );
 
     return paperEntityDraft;
   }

@@ -307,6 +307,18 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
+    scopus: {
+      name: "scopus",
+      category: "general",
+      description: "Elsevier Scopus",
+      enable: false,
+      custom: false,
+      args: "",
+      priority: 1,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
   },
 
   downloaders: [
