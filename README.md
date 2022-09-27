@@ -38,7 +38,9 @@ That is Paperlib.
 
 ## Highlights
 
--   Scrape paper’s metadata and **code repository** from arXiv, doi.org, DBLP, openreview.net, IEEE, Google Scholar, and PaperwithCode etc. Especially tailored for computer science. Support write your own metadata scrapers.
+-   Scrape paper’s metadata and **code repository** from arXiv, doi.org, DBLP, openreview.net, IEEE, Google Scholar, and PaperwithCode etc. Support write your own metadata scrapers. Especially tailored for:
+    - [x] Computer Science
+    - [ ] Earth Science (in progress...)
 -   Fulltext and advanced search.
 -   Rating, flag, tag, folder and markdown/plain text note.
 -   RSS feed subscription.
