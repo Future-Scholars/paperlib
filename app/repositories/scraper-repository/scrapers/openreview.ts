@@ -64,6 +64,9 @@ export class OpenreviewScraper extends Scraper {
     const title = response.content.title;
     const authors = response.content.authors.join(", ");
 
+    paperEntityDraft.setValue("title", title);
+    paperEntityDraft.setValue("authors", authors);
+
     if (response.content.venue) {
       if (
         !response.content.venue.includes("Submitted") &&
@@ -81,6 +84,8 @@ export class OpenreviewScraper extends Scraper {
 
         paperEntityDraft.setValue("pubTime", `${pubTime}`);
         paperEntityDraft.setValue("publication", publication);
+
+        this.uploadCache(paperEntityDraft, "openreview");
       }
     } else {
       if (
@@ -94,10 +99,7 @@ export class OpenreviewScraper extends Scraper {
       paperEntityDraft.setValue("publication", "openreview.net");
     }
 
-    paperEntityDraft.setValue("title", title);
-    paperEntityDraft.setValue("authors", authors);
 
-    this.uploadCache(paperEntityDraft, "openreview");
     return paperEntityDraft;
   }
 }

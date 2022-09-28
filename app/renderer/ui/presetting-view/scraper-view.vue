@@ -73,6 +73,15 @@ const presets = {
     "googlescholar",
     "pwc",
   ],
+  es: [
+    "pdf",
+    "paperlib",
+    "doi",
+    "semanticscholar",
+    "scopus",
+    "crossref",
+    "googlescholar",
+  ],
   default: [
     "pdf",
     "paperlib",

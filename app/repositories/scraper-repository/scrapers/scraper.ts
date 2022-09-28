@@ -77,16 +77,20 @@ export class Scraper implements ScraperType {
     scraperName: string
   ): Promise<void> {
     if (!this.isPreprint(paperEntityDraft)) {
-      const apiCache = new APICache(true).initialize(
-        paperEntityDraft,
-        scraperName
-      );
-      const signedData = cryptoAndSign(apiCache);
+      try {
+        const apiCache = new APICache(true).initialize(
+          paperEntityDraft,
+          scraperName
+        );
+        const signedData = cryptoAndSign(apiCache);
 
-      await window.networkTool.post(
-        "https://api.paperlib.app/cache/",
-        signedData
-      );
+        await window.networkTool.post(
+          "https://api.paperlib.app/cache/",
+          signedData
+        );
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 }

@@ -40,7 +40,7 @@ export class APICache {
 
   initialize(entity: PaperEntity, source: string) {
     this._id = new ObjectId(entity._id);
-    this.addTime = entity.addTime;
+    this.addTime = new Date();
     this.title = entity.title;
     this.minifiedtitle = this.title
       .toLowerCase()
@@ -50,7 +50,7 @@ export class APICache {
     this.pubTime = entity.pubTime;
     this.pubType = entity.pubType;
     this.doi = entity.doi;
-    this.arxiv = "arxiv:" + entity.arxiv.toLowerCase().replaceAll("arxiv:", "");
+    this.arxiv = entity.arxiv ? "arxiv:" + entity.arxiv.toLowerCase().replaceAll("arxiv:", "") : "";
     this.pages = entity.pages;
     this.volume = entity.volume;
     this.number = entity.number;

@@ -6,16 +6,16 @@ import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
-import { DOIScraper } from "./doi";
 import { Scraper, ScraperRequestType } from "./scraper";
+import { DOIInnerScraper } from "./doi-inner";
 
 export class SemanticScholarScraper extends Scraper {
-  doiScraper: DOIScraper;
+  doiScraper: DOIInnerScraper;
 
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
     super(stateStore, preference);
 
-    this.doiScraper = new DOIScraper(stateStore, preference);
+    this.doiScraper = new DOIInnerScraper(stateStore, preference);
   }
 
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
@@ -115,7 +115,6 @@ export class SemanticScholarScraper extends Scraper {
         paperEntityDraft.setValue("arxiv", item.externalIds?.ArXiv, false);
         paperEntityDraft.setValue("doi", item.externalIds?.DOI, false);
 
-        this.uploadCache(paperEntityDraft, "semanticscholar");
         break;
       }
     }
@@ -132,7 +131,7 @@ async function scrapeImpl(
   paperEntityDraft: PaperEntity,
   force = false
 ): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable, content } = this.preProcess(
+  const { scrapeURL, headers, enable } = this.preProcess(
     paperEntityDraft
   ) as ScraperRequestType;
 
@@ -151,7 +150,7 @@ async function scrapeImpl(
 
     const authorListfromSemanticScholar = paperEntityDraft.authors.split(", ");
 
-    paperEntityDraft = await this.doiScraper.scrape(paperEntityDraft, true);
+    paperEntityDraft = await this.doiScraper.scrape(paperEntityDraft);
 
     // Sometimes DOI returns incomplete author list, so we use Semantic Scholar's author list if it is longer
     if (

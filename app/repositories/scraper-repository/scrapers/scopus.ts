@@ -7,16 +7,16 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { cryptoAndSign } from "@/utils/crypto/crypto";
 import { formatString } from "@/utils/string";
 
-import { DOIScraper } from "./doi";
 import { Scraper, ScraperRequestType } from "./scraper";
+import { DOIInnerScraper } from "./doi-inner";
 
 export class ScopusScraper extends Scraper {
-  doiScraper: DOIScraper;
+  doiScraper: DOIInnerScraper;
 
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
     super(stateStore, preference);
 
-    this.doiScraper = new DOIScraper(stateStore, preference);
+    this.doiScraper = new DOIInnerScraper(stateStore, preference);
   }
 
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
@@ -25,8 +25,7 @@ export class ScopusScraper extends Scraper {
       paperEntityDraft.title !== "" &&
       this.isPreprint(paperEntityDraft);
 
-    // FIXME: Scopus API.
-    const scrapeURL = `http://127.0.0.1:3000/publicdb/query`;
+    const scrapeURL = `https://api.paperlib.app/publicdb/query`;
     const headers = {};
     if (enable) {
       this.stateStore.logState.processLog = `Scraping metadata from Elseivier Scopus...`;
@@ -47,7 +46,6 @@ export class ScopusScraper extends Scraper {
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    console.log(rawResponse.body);
     const parsedResponse = JSON.parse(rawResponse.body) as {
       "search-results": {
         entry: [
@@ -149,7 +147,7 @@ async function scrapeImpl(
       paperEntityDraft
     ) as PaperEntity;
 
-    paperEntityDraft = await this.doiScraper.scrape(paperEntityDraft, true);
+    paperEntityDraft = await this.doiScraper.scrape(paperEntityDraft);
     this.uploadCache(paperEntityDraft, "scopus");
 
     return paperEntityDraft;

@@ -5,12 +5,9 @@ import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 
-export class DOIScraper extends Scraper {
+export class DOIInnerScraper extends Scraper {
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      paperEntityDraft.doi !== "" &&
-      this.getEnable("doi") &&
-      this.isPreprint(paperEntityDraft);
+    const enable = paperEntityDraft.doi !== ""
     const doiID = formatString({
       str: paperEntityDraft.doi,
       removeNewline: true,
@@ -21,9 +18,6 @@ export class DOIScraper extends Scraper {
       Accept: "application/json",
     };
 
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata by DOI ...`;
-    }
     return { scrapeURL, headers, enable };
   }
 
@@ -94,7 +88,6 @@ export class DOIScraper extends Scraper {
           : response.publisher
       );
     }
-    this.uploadCache(paperEntityDraft, "doi");
     return paperEntityDraft;
   }
 }

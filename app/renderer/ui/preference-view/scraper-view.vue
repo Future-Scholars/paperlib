@@ -128,6 +128,15 @@ const presets = {
     "googlescholar",
     "pwc",
   ],
+  es: [
+    "pdf",
+    "paperlib",
+    "doi",
+    "semanticscholar",
+    "scopus",
+    "crossref",
+    "googlescholar",
+  ],
   default: [
     "pdf",
     "paperlib",
@@ -199,6 +208,7 @@ onMounted(() => {
         >
           <option value="default">Default</option>
           <option value="cs">Computer Science</option>
+          <option value="es">Earth Science</option>
         </select>
       </div>
     </div>

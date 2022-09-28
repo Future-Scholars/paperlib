@@ -16,15 +16,20 @@ export class CrossRefScraper extends Scraper {
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const enable =
       this.getEnable("crossref") &&
-      paperEntityDraft.title !== "" &&
+      (paperEntityDraft.title !== "" || paperEntityDraft.doi !== "") &&
       this.isPreprint(paperEntityDraft);
 
-    const scrapeURL = encodeURI(
-      `https://api.crossref.org/works?query.bibliographic=${formatString({
-        str: paperEntityDraft.title,
-        whiteSymbol: true,
-      })}&rows=2&mailto=hi@paperlib.app`
-    );
+    let scrapeURL
+    if (paperEntityDraft.doi !== "") {
+      scrapeURL = `https://api.crossref.org/works/${encodeURIComponent(paperEntityDraft.doi)}`;
+    } else {
+      scrapeURL = encodeURI(
+        `https://api.crossref.org/works?query.bibliographic=${formatString({
+          str: paperEntityDraft.title,
+          whiteSymbol: true,
+        })}&rows=2&mailto=hi@paperlib.app`
+      );
+    }
 
     const headers = {};
     if (enable) {
@@ -36,92 +41,101 @@ export class CrossRefScraper extends Scraper {
 
   parsingProcess(
     rawResponse: Response<string>,
-    paperEntityDraft: PaperEntity
+    paperEntityDraft: PaperEntity,
+    fromDOI = false
   ): PaperEntity {
-    const parsedResponse = JSON.parse(rawResponse.body) as {
-      message: {
-        items: [
-          {
-            title: string[];
-            DOI?: string;
-            publisher?: string;
-            type?: string;
-            page?: string;
-            author?: { given: string; family: string }[];
-            "container-title"?: string[];
-            published?: { "date-parts": number[][] };
-            issue: string;
-            volume: string;
-          }
-        ];
+    let parsedResponse;
+
+    if (fromDOI) {
+      parsedResponse = JSON.parse(rawResponse.body) as {
+        message: HitItem
       };
-    };
-    for (const item of parsedResponse.message.items) {
-      const plainHitTitle = formatString({
-        str: item.title[0],
-        removeStr: "&amp",
-        removeSymbol: true,
-        lowercased: true,
-      });
+    } else {
+      parsedResponse = JSON.parse(rawResponse.body) as {
+        message: {
+          items: HitItem[];
+        };
+      };
+    }
 
-      const existTitle = formatString({
-        str: paperEntityDraft.title,
-        removeStr: "&amp",
-        removeSymbol: true,
-        lowercased: true,
-      });
+    let hitItem;
 
-      const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
-      if (sim > 0.95) {
-        paperEntityDraft.setValue("title", item.title[0], false);
-        paperEntityDraft.setValue("doi", item.DOI, false);
-        paperEntityDraft.setValue("publisher", item.publisher, false);
+    if (fromDOI) {
+      hitItem = parsedResponse.message as HitItem;
+    } else {
+      const hitItems = parsedResponse.message as { items: HitItem[] };
+      for (const item of hitItems.items) {
+        const plainHitTitle = formatString({
+          str: item.title[0],
+          removeStr: "&amp",
+          removeSymbol: true,
+          lowercased: true,
+        });
 
-        if (item.type?.includes("journal")) {
-          paperEntityDraft.setValue("type", 0, false);
-        } else if (item.type?.includes("book")) {
-          paperEntityDraft.setValue("type", 3, false);
-        } else if (item.type?.includes("proceedings")) {
-          paperEntityDraft.setValue("type", 1, false);
-        } else {
-          paperEntityDraft.setValue("type", 2, false);
+        const existTitle = formatString({
+          str: paperEntityDraft.title,
+          removeStr: "&amp",
+          removeSymbol: true,
+          lowercased: true,
+        });
+
+        const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
+        if (sim > 0.95) {
+          hitItem = item;
+          break;
         }
-
-        paperEntityDraft.setValue("pages", item.page, false);
-        paperEntityDraft.setValue(
-          "publication",
-          item["container-title"]?.join(" "),
-          false
-        );
-        paperEntityDraft.setValue(
-          "pubTime",
-          `${item.published?.["date-parts"]?.[0]?.[0]}`,
-          false
-        );
-        paperEntityDraft.setValue(
-          "authors",
-          item.author
-            ?.map((author) => `${author.given} ${author.family}`)
-            .join(", "),
-          false
-        );
-        paperEntityDraft.setValue("number", item.issue, false);
-        paperEntityDraft.setValue("volume", item.volume, false);
-
-        this.uploadCache(paperEntityDraft, "doi");
-
-        break;
       }
+    }
+
+    if (hitItem) {
+      paperEntityDraft.setValue("title", hitItem.title[0], false);
+      paperEntityDraft.setValue("doi", hitItem.DOI, false);
+      paperEntityDraft.setValue("publisher", hitItem.publisher, false);
+
+      if (hitItem.type?.includes("journal")) {
+        paperEntityDraft.setValue("type", 0, false);
+      } else if (hitItem.type?.includes("book")) {
+        paperEntityDraft.setValue("type", 3, false);
+      } else if (hitItem.type?.includes("proceedings")) {
+        paperEntityDraft.setValue("type", 1, false);
+      } else {
+        paperEntityDraft.setValue("type", 2, false);
+      }
+
+      paperEntityDraft.setValue("pages", hitItem.page, false);
+      paperEntityDraft.setValue(
+        "publication",
+        hitItem["container-title"]?.join(" "),
+        false
+      );
+      paperEntityDraft.setValue(
+        "pubTime",
+        `${hitItem.published?.["date-parts"]?.[0]?.[0]}`,
+        false
+      );
+      paperEntityDraft.setValue(
+        "authors",
+        hitItem.author
+          ?.map((author) => `${author.given} ${author.family}`)
+          .join(", "),
+        false
+      );
+      paperEntityDraft.setValue("number", hitItem.issue, false);
+      paperEntityDraft.setValue("volume", hitItem.volume, false);
+
+      this.uploadCache(paperEntityDraft, "crossref");
+
     }
 
     return paperEntityDraft;
   }
 
+  // @ts-ignore
   scrapeImpl = scrapeImpl;
 }
 
 async function scrapeImpl(
-  this: ScraperType,
+  this: CrossRefScraper,
   entityDraft: PaperEntity,
   force = false
 ): Promise<PaperEntity> {
@@ -137,8 +151,22 @@ async function scrapeImpl(
       false,
       10000
     )) as Response<string>;
-    return this.parsingProcess(response, entityDraft) as PaperEntity;
+    return this.parsingProcess(response, entityDraft, !scrapeURL.includes('bibliographic')) as PaperEntity;
   } else {
     return entityDraft;
   }
+}
+
+
+interface HitItem {
+  title: string[];
+  DOI?: string;
+  publisher?: string;
+  type?: string;
+  page?: string;
+  author?: { given: string; family: string }[];
+  "container-title"?: string[];
+  published?: { "date-parts": number[][] };
+  issue: string;
+  volume: string;
 }

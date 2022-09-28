@@ -32,5 +32,8 @@
     "!node_modules/realm/scripts${/*}",
     "!node_modules/realm/src${/*}",
     "!node_modules/realm/vendor${/*}",
+    "!app",
+    "!assets",
+    "!certificate.p12",
   ],
 }
