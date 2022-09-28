@@ -20,7 +20,7 @@ import {
 } from "../states";
 
 export class RendererStateStore {
-  constructor() {}
+  constructor() { }
 }
 
 export class MainRendererStateStore extends RendererStateStore {
@@ -84,6 +84,7 @@ export class MainRendererStateStore extends RendererStateStore {
         searchText: "",
         searchMode: "general",
         feedEntityAddingStatus: 0,
+        detailsOnDragging: false,
 
         //
         inputFieldFocused: false,

@@ -56,18 +56,22 @@ export class RSSRepository {
       feedEntityDraft.setValue("title", item.title, false);
       feedEntityDraft.setValue("mainURL", item.link, false);
 
-      let rawAuthor = item['dc:creator']
-      let author;
-      if (rawAuthor && Array.isArray(rawAuthor)) {
-        author = (rawAuthor as string[]).join(', ').replaceAll(/<[^>]*>/g, '');
+      if (item.authors) {
+        feedEntityDraft.setValue("authors", `${item.authors}`, false);
       } else {
-        author = (item['dc:creator'] as string)?.replaceAll(/<[^>]*>/g, '') || "";
+        let rawAuthor = item['dc:creator']
+        let author;
+        if (rawAuthor && Array.isArray(rawAuthor)) {
+          author = (rawAuthor as string[]).join(', ').replaceAll(/<[^>]*>/g, '');
+        } else {
+          author = (item['dc:creator'] as string)?.replaceAll(/<[^>]*>/g, '') || "";
+        }
+        feedEntityDraft.setValue("authors", author, false);
       }
-      feedEntityDraft.setValue("authors", author, false);
-
       const dcDescription = item['dc:description'] || '';
+      const descriptionProps = item.description || {};
       // @ts-ignore
-      const description = item.description['#text'] ? item.description['#text'] : item.description || '';
+      const description = descriptionProps['#text'] ? descriptionProps['#text'] : `${item.description}`;
       feedEntityDraft.setValue("abstract", dcDescription.length > description.length ? dcDescription : description, false);
 
       feedEntityDraft.setValue(
@@ -172,16 +176,17 @@ interface RSSItem {
   'dc:date'?: string
   'dc:type'?: string
   'dc:description'?: string
-  'description'?: string | { "#text": string, "@_rdf:parseType": string }
-  'link'?: string
+  description?: string | { "#text": string, "@_rdf:parseType": string }
+  link?: string
   'prism:coverDate'?: string
   'prism:doi'?: string
   'prism:number'?: number
   'prism:publicationName'?: string
   'prism:url'?: string
   'prism:volume'?: number
-  'title'?: string
-  'pubDate'?: string
+  title?: string
+  pubDate?: string
+  authors?: string
 }
 
 interface AtomItem {

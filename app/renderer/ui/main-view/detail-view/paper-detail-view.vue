@@ -52,9 +52,10 @@ const onDeleteCategorizer = (
 const modifyMainFile = async (url: string) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.mainURL = url;
-  const updatedPaperEntity = await window.entityInteractor.update([
-    paperEntityDraft,
-  ]);
+  const updatedPaperEntity = await window.entityInteractor.update(
+    [paperEntityDraft],
+    false
+  );
   await window.entityInteractor.updateCache(updatedPaperEntity);
   setTimeout(() => {
     viewState.renderRequired = Date.now();
@@ -73,7 +74,7 @@ const locateMainFile = async () => {
 const addSups = (urls: string[]) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.supURLs = [...paperEntityDraft.supURLs, ...urls];
-  void window.entityInteractor.update([paperEntityDraft]);
+  void window.entityInteractor.update([paperEntityDraft], false);
 };
 
 const onDeleteSup = (url: string) => {
@@ -87,7 +88,24 @@ window.appInteractor.registerMainSignal("sup-context-menu-delete", (args) => {
 
 const registerDropHandler = () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  dragDrop("#detail-view", {
+  dragDrop("#main-file-drag-area", {
+    // @ts-ignore
+    onDrop: (files, pos, fileList, directories) => {
+      // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      files.forEach((file) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        modifyMainFile(file.path);
+      });
+      dragAreaOpacity.value = 0;
+      dragCount.value = 0;
+      mainFileDragAreaHovered.value = false;
+      supFileDragAreaHovered.value = false;
+    },
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  dragDrop("#sup-file-drag-area", {
     // @ts-ignore
     onDrop: (files, pos, fileList, directories) => {
       const filePaths: string[] = [];
@@ -98,8 +116,52 @@ const registerDropHandler = () => {
         filePaths.push(file.path);
       });
       addSups(filePaths);
+      dragAreaOpacity.value = 0;
+      dragCount.value = 0;
+      mainFileDragAreaHovered.value = false;
+      supFileDragAreaHovered.value = false;
     },
   });
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  dragDrop("#detail-view", {
+    // @ts-ignore
+    onDrop: (files, pos, fileList, directories) => {
+      console.log("drop");
+      dragAreaOpacity.value = 0;
+      dragCount.value = 0;
+      mainFileDragAreaHovered.value = false;
+      supFileDragAreaHovered.value = false;
+    },
+  });
+};
+
+const dragAreaOpacity = ref(0);
+const dragCount = ref(0);
+const mainFileDragAreaHovered = ref(false);
+const supFileDragAreaHovered = ref(false);
+
+const onDragEnter = (_: MouseEvent, id?: string) => {
+  if (id === "main-file-drag-area") {
+    mainFileDragAreaHovered.value = true;
+  } else if (id === "sup-file-drag-area") {
+    supFileDragAreaHovered.value = true;
+  }
+
+  dragAreaOpacity.value = 100;
+  dragCount.value += 1;
+};
+const onDragLeave = (_: MouseEvent, id?: string) => {
+  if (id === "main-file-drag-area") {
+    mainFileDragAreaHovered.value = false;
+  } else if (id === "sup-file-drag-area") {
+    supFileDragAreaHovered.value = false;
+  }
+
+  dragCount.value -= 1;
+  if (dragCount.value === 0) {
+    dragAreaOpacity.value = 0;
+  }
 };
 
 const reanderedTitle = ref("");
@@ -127,6 +189,8 @@ onMounted(() => {
   <div
     id="detail-view"
     class="flex-none flex flex-col w-80 max-h-[calc(100vh-3rem)] pl-4 pr-2 pb-4 overflow-auto"
+    @dragenter="onDragEnter"
+    @dragleave="onDragLeave"
   >
     <div class="text-md font-bold" v-html="reanderedTitle"></div>
     <Section :title="$t('mainview.authors')">
@@ -204,5 +268,43 @@ onMounted(() => {
     <div
       class="fixed bottom-0 w-80 h-10 bg-gradient-to-t from-white dark:from-neutral-800"
     ></div>
+
+    <div
+      id="drag-area"
+      class="fixed bottom-0 w-80 h-24 flex space-x-2 pr-8 pb-5 text-xs text-neutral-400 bg-white dark:bg-neutral-800 pt-5 transition-all duration-150"
+      :class="
+        `opacity-${dragAreaOpacity}` +
+        (dragAreaOpacity > 0 ? '' : ' pointer-events-none')
+      "
+    >
+      <div
+        id="main-file-drag-area"
+        class="w-1/2 h-full border-[1px] border-neutral-400 dark:border-neutral-500 rounded-lg flex"
+        :class="
+          mainFileDragAreaHovered
+            ? 'border-solid border-neutral-500 text-neutral-500 dark:border-neutral-400 dark:text-neutral-300'
+            : 'border-dashed'
+        "
+        @dragenter="onDragEnter($event, 'main-file-drag-area')"
+        @dragleave="onDragLeave($event, 'main-file-drag-area')"
+      >
+        <span class="m-auto select-none pointer-events-none">Main File</span>
+      </div>
+      <div
+        id="sup-file-drag-area"
+        class="w-1/2 h-full border-[1px] border-neutral-400 dark:border-neutral-500 rounded-lg flex"
+        :class="
+          supFileDragAreaHovered
+            ? 'border-solid border-neutral-500 text-neutral-500 dark:border-neutral-400 dark:text-neutral-300'
+            : 'border-dashed'
+        "
+        @dragenter="onDragEnter($event, 'sup-file-drag-area')"
+        @dragleave="onDragLeave($event, 'sup-file-drag-area')"
+      >
+        <span class="m-auto select-none pointer-events-none"
+          >Supplementary Files</span
+        >
+      </div>
+    </div>
   </div>
 </template>

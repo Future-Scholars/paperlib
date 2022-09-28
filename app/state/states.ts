@@ -30,6 +30,7 @@ export interface ViewState {
   searchText: string;
   searchMode: string;
   feedEntityAddingStatus: number;
+  detailsOnDragging: boolean;
 
   inputFieldFocused: boolean;
 
