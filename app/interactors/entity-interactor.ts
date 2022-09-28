@@ -114,69 +114,29 @@ export class EntityInteractor {
     this.stateStore.viewState.processingQueueCount += urlList.length;
     let successfulEntityDrafts: PaperEntity[] = [];
     try {
-      const pdfUrls = urlList.filter((url) => path.extname(url) === ".pdf");
+      // 1. Create from .bib files
       const bibUrls = urlList.filter((url) => path.extname(url) === ".bib");
-      // 1.1 PDF Metadata scraping.
-      const pdfScrapingPromise = async (url: string) => {
-        let paperEntityDraft = new PaperEntity(true);
-        paperEntityDraft.setValue("mainURL", url);
-        paperEntityDraft = await this.scraperRepository.scrape(
-          paperEntityDraft
-        );
-        return paperEntityDraft;
-      };
-      let paperEntityDraftsFromPDFs = await Promise.all(
-        pdfUrls.map((url) => pdfScrapingPromise(url))
-      );
-      // 1.2 BibTeX scraping.
-      const bibScrapingPromise = async (url: string) => {
-        const bibtexStr = readFileSync(url.replace("file://", ""), "utf8");
-        const bibtexes = bibtex2json(bibtexStr);
-        const paperEntityDrafts = [];
-        for (const bibtex of bibtexes) {
-          let paperEntityDraft = new PaperEntity(true);
-          paperEntityDraft = bibtex2paperEntityDraft(bibtex, paperEntityDraft);
-          paperEntityDrafts.push(paperEntityDraft);
-        }
-        return paperEntityDrafts;
-      };
-      let paperEntityDraftsFromBibTexes = (
-        await Promise.all(bibUrls.map((url) => bibScrapingPromise(url)))
-      ).flat();
-      // 2. File moving.
-      paperEntityDraftsFromPDFs = (await Promise.all(
-        paperEntityDraftsFromPDFs.map((paperEntityDraft) =>
-          this.fileRepository.move(paperEntityDraft)
-        )
-      )) as PaperEntity[];
-      paperEntityDraftsFromPDFs = paperEntityDraftsFromPDFs.filter(
-        (paperEntityDraft) => paperEntityDraft !== null
-      );
-      // 3. Merge PDF and BibTeX scraping results.
-      const paperEntityDrafts = paperEntityDraftsFromPDFs.concat(
-        paperEntityDraftsFromBibTexes
-      );
-      // 4. DB insertion.
-      const dbSuccesses = await this.dbRepository.updatePaperEntities(
-        paperEntityDrafts
-      );
-      // - find unsuccessful entities.
-      const unsuccessfulEntityDrafts = paperEntityDrafts.filter(
-        (_, index) => !dbSuccesses[index]
-      );
-      // - find successful entities.
-      successfulEntityDrafts = paperEntityDrafts.filter(
-        (_, index) => dbSuccesses[index]
-      );
-      // - remove files of unsuccessful entities.
-      await Promise.all(
-        unsuccessfulEntityDrafts.map((entityDraft) =>
-          this.fileRepository.remove(entityDraft)
-        )
-      );
+      const paperEntityDraftsFromBib = [];
+      for (const bibUrl of bibUrls) {
+        const paperEntityDrafts = await this._createFromUrl(bibUrl) as PaperEntity[] || [];
+        paperEntityDraftsFromBib.push(...paperEntityDrafts);
+      }
+      const successfulPaperEntityDraftsFromBib = await this._createPostProcess(paperEntityDraftsFromBib);
+
+      // 2. Create from .pdf files
+      const pdfUrls = urlList.filter((url) => path.extname(url) === ".pdf");
+      const successfulPaperEntityDraftsFromPDF = [];
+      // Scrape 5 PDFs at a time.
+      for (let i = 0; i < pdfUrls.length; i += 5) {
+        const pdfUrlsChunk = pdfUrls.slice(i, i + 5);
+        const paperEntityDraftsFromPDF = (await Promise.all(pdfUrlsChunk.map((url) => this._createFromUrl(url)))).filter((e) => e) as PaperEntity[];
+        successfulPaperEntityDraftsFromPDF.push(...await this._createPostProcess(paperEntityDraftsFromPDF));
+      }
+
+      const successfulEntityDrafts = [...successfulPaperEntityDraftsFromBib, ...successfulPaperEntityDraftsFromPDF];
 
       this.stateStore.viewState.processingQueueCount -= urlList.length;
-      // 5. Create cache
+      // 3. Create cache
       await this.dbRepository.updatePaperEntitiesCacheFullText(
         successfulEntityDrafts
       );
@@ -185,6 +145,56 @@ export class EntityInteractor {
       this.stateStore.logState.alertLog = `Add paper to library failed: ${error as string
         }`;
     }
+    return successfulEntityDrafts;
+  }
+
+  async _createFromUrl(url: string): Promise<PaperEntity | PaperEntity[] | null> {
+    if (path.extname(url) !== '.pdf' && path.extname(url) !== '.bib') {
+      return null;
+    }
+
+    if (path.extname(url) === '.pdf') {
+      let paperEntityDraft = new PaperEntity(true);
+      paperEntityDraft.setValue("mainURL", url);
+      paperEntityDraft = await this.scraperRepository.scrape(
+        paperEntityDraft
+      );
+      return await this.fileRepository.move(paperEntityDraft);
+    } else if (path.extname(url) === '.bib') {
+      const bibtexStr = readFileSync(url.replace("file://", ""), "utf8");
+      const bibtexes = bibtex2json(bibtexStr);
+      const paperEntityDrafts = [];
+      for (const bibtex of bibtexes) {
+        let paperEntityDraft = new PaperEntity(true);
+        paperEntityDraft = bibtex2paperEntityDraft(bibtex, paperEntityDraft);
+        paperEntityDrafts.push(paperEntityDraft);
+      }
+      return paperEntityDrafts;
+    } else {
+      return null;
+    }
+  }
+
+  async _createPostProcess(paperEntityDrafts: PaperEntity[]) {
+    // DB insertion.
+    const dbSuccesses = await this.dbRepository.updatePaperEntities(
+      paperEntityDrafts
+    );
+    // - find unsuccessful entities.
+    const unsuccessfulEntityDrafts = paperEntityDrafts.filter(
+      (_, index) => !dbSuccesses[index]
+    );
+    // - find successful entities.
+    const successfulEntityDrafts = paperEntityDrafts.filter(
+      (_, index) => dbSuccesses[index]
+    );
+    // - remove files of unsuccessful entities.
+    await Promise.all(
+      unsuccessfulEntityDrafts.map((entityDraft) =>
+        this.fileRepository.remove(entityDraft)
+      )
+    );
+
     return successfulEntityDrafts;
   }
 
