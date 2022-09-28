@@ -128,6 +128,15 @@ export class EntityInteractor {
       const successfulPaperEntityDraftsFromPDF = [];
       // Scrape 5 PDFs at a time.
       for (let i = 0; i < pdfUrls.length; i += 5) {
+
+        if (pdfUrls.length > 5) {
+          this.stateStore.logState.progressLog = {
+            id: "chunk-scrape",
+            value: (i / pdfUrls.length) * 100,
+            msg: `Scraping...`,
+          };
+        }
+
         const pdfUrlsChunk = pdfUrls.slice(i, i + 5);
         const paperEntityDraftsFromPDF = (await Promise.all(pdfUrlsChunk.map((url) => this._createFromUrl(url)))).filter((e) => e) as PaperEntity[];
         successfulPaperEntityDraftsFromPDF.push(...await this._createPostProcess(paperEntityDraftsFromPDF));
@@ -136,6 +145,13 @@ export class EntityInteractor {
       const successfulEntityDrafts = [...successfulPaperEntityDraftsFromBib, ...successfulPaperEntityDraftsFromPDF];
 
       this.stateStore.viewState.processingQueueCount -= urlList.length;
+      if (pdfUrls.length > 5) {
+        this.stateStore.logState.progressLog = {
+          id: "chunk-scrape",
+          value: 100,
+          msg: `Scraping...`,
+        };
+      }
       // 3. Create cache
       await this.dbRepository.updatePaperEntitiesCacheFullText(
         successfulEntityDrafts

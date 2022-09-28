@@ -20,11 +20,15 @@ const onCSVPickerClicked = async () => {
 };
 
 const importFromFolderClicked = async () => {
-  window.entityInteractor.createFromWholeFolder(pickedFolderPath.value);
+  if (pickedFolderPath.value) {
+    window.entityInteractor.createFromWholeFolder(pickedFolderPath.value);
+  }
 };
 
 const importFromZoteroCSVClicked = async () => {
-  window.entityInteractor.createFromZoteroCSV(zoteroCSVPath.value);
+  if (zoteroCSVPath.value) {
+    window.entityInteractor.createFromZoteroCSV(zoteroCSVPath.value);
+  }
 };
 </script>
 
