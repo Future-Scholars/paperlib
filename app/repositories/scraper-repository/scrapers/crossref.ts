@@ -6,7 +6,7 @@ import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
-import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { Scraper, ScraperRequestType } from "./scraper";
 
 export class CrossRefScraper extends Scraper {
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
@@ -22,7 +22,13 @@ export class CrossRefScraper extends Scraper {
     let scrapeURL
     if (paperEntityDraft.doi !== "") {
       scrapeURL = `https://api.crossref.org/works/${encodeURIComponent(paperEntityDraft.doi)}`;
-    } else {
+    } else if (paperEntityDraft.title !== "" && paperEntityDraft.authors !== "") {
+
+      scrapeURL = `https://doi.crossref.org/servlet/query?usr=hi@paperlib.app&qdata=<?xml version = "1.0" encoding="UTF-8"?><query_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0" xmlns="http://www.crossref.org/qschema/2.0"  xsi:schemaLocation="http://www.crossref.org/qschema/2.0 http://www.crossref.org/qschema/crossref_query_input2.0.xsd"><head><email_address>support@crossref.org</email_address><doi_batch_id>ABC_123_fff</doi_batch_id> </head> <body> <query enable-multiple-hits="false" secondary-query="author-title" key="key1"> <article_title match="fuzzy">${paperEntityDraft.title}</article_title> <author search-all-authors="true">${paperEntityDraft.authors.split(',')[0].trim().split(
+        ' '
+      ).pop()}</author> </query></body></query_batch>`
+    }
+    else {
       scrapeURL = encodeURI(
         `https://api.crossref.org/works?query.bibliographic=${formatString({
           str: paperEntityDraft.title,
@@ -113,7 +119,7 @@ export class CrossRefScraper extends Scraper {
 
       paperEntityDraft.setValue(
         "publication",
-        publication,
+        publication?.replaceAll('&amp;', '&') || '',
         false
       );
       paperEntityDraft.setValue(
@@ -144,24 +150,66 @@ export class CrossRefScraper extends Scraper {
 
 async function scrapeImpl(
   this: CrossRefScraper,
-  entityDraft: PaperEntity,
+  paperEntityDraft: PaperEntity,
   force = false
 ): Promise<PaperEntity> {
   const { scrapeURL, headers, enable } = this.preProcess(
-    entityDraft
+    paperEntityDraft
   ) as ScraperRequestType;
 
   if (enable || force) {
-    const response = (await window.networkTool.get(
-      scrapeURL,
-      headers,
-      1,
-      false,
-      10000
-    )) as Response<string>;
-    return this.parsingProcess(response, entityDraft, !scrapeURL.includes('bibliographic')) as PaperEntity;
+    if (scrapeURL.startsWith('https://api.crossref.org')) {
+      const response = (await window.networkTool.get(
+        scrapeURL,
+        headers,
+        1,
+        false,
+        10000
+      )) as Response<string>;
+      return this.parsingProcess(response, paperEntityDraft, !scrapeURL.includes('bibliographic')) as PaperEntity;
+    } else {
+      const response = (await window.networkTool.get(
+        scrapeURL,
+        headers,
+        1,
+        false,
+        10000
+      )) as Response<string>;
+
+      const potentialDOI = response.body.split('|').pop()?.match(new RegExp(
+        "(?:" +
+        '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' +
+        ")",
+        "g"
+      ))
+      if (!potentialDOI) {
+        const fallbackScrapeURL = encodeURI(
+          `https://api.crossref.org/works?query.bibliographic=${formatString({
+            str: paperEntityDraft.title,
+            whiteSymbol: true,
+          })}&rows=2&mailto=hi@paperlib.app`
+        );
+        const response = (await window.networkTool.get(
+          fallbackScrapeURL,
+          headers,
+          1,
+          false,
+          10000
+        )) as Response<string>;
+        return this.parsingProcess(response, paperEntityDraft, false) as PaperEntity;
+      } else {
+        const response = (await window.networkTool.get(
+          `https://api.crossref.org/works/${potentialDOI[0]}`,
+          headers,
+          1,
+          false,
+          10000
+        )) as Response<string>;
+        return this.parsingProcess(response, paperEntityDraft, true) as PaperEntity;
+      }
+    }
   } else {
-    return entityDraft;
+    return paperEntityDraft;
   }
 }
 
