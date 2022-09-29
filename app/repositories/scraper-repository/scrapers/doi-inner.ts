@@ -67,13 +67,13 @@ export class DOIInnerScraper extends Scraper {
 
     let publication
     if (response.type.includes('monograph')) {
-      publication = response.publisher;
+      publication = response.publisher.replaceAll('&amp;', '&');
     } else {
       publication = response["container-title"];
       if (Array.isArray(publication)) {
-        publication = publication.join(', ');
+        publication = publication.join(', ').replaceAll('&amp;', '&');
       } else {
-        publication = publication;
+        publication = publication.replaceAll('&amp;', '&');
       }
     }
 

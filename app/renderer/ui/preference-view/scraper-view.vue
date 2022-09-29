@@ -147,6 +147,7 @@ const presets = {
   phys: [
     "pdf",
     "paperlib",
+    "arxiv",
     "doi",
     "semanticscholar",
     "adsabs",

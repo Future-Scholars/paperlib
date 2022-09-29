@@ -94,9 +94,9 @@ export class SemanticScholarScraper extends Scraper {
         }
 
         if (item.journal?.name) {
-          paperEntityDraft.setValue("publication", item.journal.name, false);
+          paperEntityDraft.setValue("publication", item.journal.name.replaceAll('&amp;', '&'), false);
         } else {
-          paperEntityDraft.setValue("publication", item.venue, false);
+          paperEntityDraft.setValue("publication", item.venue?.replaceAll('&amp;', '&'), false);
         }
 
         paperEntityDraft.setValue(
