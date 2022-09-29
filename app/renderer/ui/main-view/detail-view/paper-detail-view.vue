@@ -127,7 +127,6 @@ const registerDropHandler = () => {
   dragDrop("#detail-view", {
     // @ts-ignore
     onDrop: (files, pos, fileList, directories) => {
-      console.log("drop");
       dragAreaOpacity.value = 0;
       dragCount.value = 0;
       mainFileDragAreaHovered.value = false;

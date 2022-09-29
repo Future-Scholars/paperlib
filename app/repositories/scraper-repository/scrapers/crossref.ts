@@ -94,7 +94,7 @@ export class CrossRefScraper extends Scraper {
 
       if (hitItem.type?.includes("journal")) {
         paperEntityDraft.setValue("type", 0, false);
-      } else if (hitItem.type?.includes("book")) {
+      } else if (hitItem.type?.includes("book") || hitItem.type?.includes("monograph")) {
         paperEntityDraft.setValue("type", 3, false);
       } else if (hitItem.type?.includes("proceedings")) {
         paperEntityDraft.setValue("type", 1, false);
@@ -103,9 +103,17 @@ export class CrossRefScraper extends Scraper {
       }
 
       paperEntityDraft.setValue("pages", hitItem.page, false);
+
+      let publication
+      if (hitItem.type?.includes('monograph')) {
+        publication = hitItem.publisher;
+      } else {
+        publication = hitItem["container-title"]?.join(', ');
+      }
+
       paperEntityDraft.setValue(
         "publication",
-        hitItem["container-title"]?.join(" "),
+        publication,
         false
       );
       paperEntityDraft.setValue(

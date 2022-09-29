@@ -23,6 +23,9 @@ import { PDFScraper } from "./scrapers/pdf";
 import { ScopusScraper } from "./scrapers/scopus";
 import { ScraperType } from "./scrapers/scraper";
 import { SemanticScholarScraper } from "./scrapers/semanticscholar";
+import { AdsabsScraper } from "./scrapers/adsabs";
+import { SpringerScraper } from "./scrapers/springer";
+import { SPIEScraper } from "./scrapers/spie";
 
 export class ScraperRepository {
   stateStore: MainRendererStateStore;
@@ -167,6 +170,24 @@ export class ScraperRepository {
                 this.preference
               );
               break;
+            case "adsabs":
+              scraperInstance = new AdsabsScraper(
+                this.stateStore,
+                this.preference,
+              );
+              break;
+            case "springer":
+              scraperInstance = new SpringerScraper(
+                this.stateStore,
+                this.preference,
+              );
+              break;
+            case "spie":
+              scraperInstance = new SPIEScraper(
+                this.stateStore,
+                this.preference,
+              );
+              break;
             default:
               scraperInstance = new CustomScraper(
                 this.stateStore,
@@ -197,9 +218,8 @@ export class ScraperRepository {
         paperEntityDraft = await scraper.scraper.scrape(paperEntityDraft);
       } catch (error) {
         console.error(error);
-        this.stateStore.logState.alertLog = `${scraper.name} error: ${
-          error as string
-        }`;
+        this.stateStore.logState.alertLog = `${scraper.name} error: ${error as string
+          }`;
       }
     }
     return paperEntityDraft;
@@ -224,9 +244,8 @@ export class ScraperRepository {
           );
         } catch (error) {
           console.error(error);
-          this.stateStore.logState.alertLog = `${scraper.name} error: ${
-            error as string
-          }`;
+          this.stateStore.logState.alertLog = `${scraper.name} error: ${error as string
+            }`;
         }
       }
     }

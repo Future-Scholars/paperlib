@@ -43,7 +43,6 @@ export class XHubDownloader extends Downloader {
     if (enable) {
       this.stateStore.logState.processLog = `Downloading PDF from X-hub ...`;
     }
-    console.log(queryUrl)
     return { queryUrl, headers, enable };
   }
 

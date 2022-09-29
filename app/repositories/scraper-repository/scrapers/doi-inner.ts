@@ -53,17 +53,29 @@ export class DOIInnerScraper extends Scraper {
       })
       .join(", ");
     const pubTime = response.published["date-parts"]["0"][0];
+
     let pubType;
     if (response.type == "proceedings-article") {
       pubType = 1;
     } else if (response.type == "journal-article") {
       pubType = 0;
-    } else if (response.type.includes("book")) {
+    } else if (response.type.includes("book") || response.type.includes("monograph")) {
       pubType = 3;
     } else {
       pubType = 2;
     }
-    const publication = response["container-title"];
+
+    let publication
+    if (response.type.includes('monograph')) {
+      publication = response.publisher;
+    } else {
+      publication = response["container-title"];
+      if (Array.isArray(publication)) {
+        publication = publication.join(', ');
+      } else {
+        publication = publication;
+      }
+    }
 
     paperEntityDraft.setValue("title", title);
     paperEntityDraft.setValue("authors", authors);

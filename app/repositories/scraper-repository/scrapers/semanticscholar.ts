@@ -28,7 +28,7 @@ export class SemanticScholarScraper extends Scraper {
         str: paperEntityDraft.title,
         whiteSymbol: true,
       }
-    )}&limit=3&fields=externalIds,authors,title,venue,year,publicationTypes,journal`;
+    )}&limit=10&fields=externalIds,authors,title,venue,year,publicationTypes,journal`;
 
     const headers = {};
     if (enable) {
@@ -114,7 +114,6 @@ export class SemanticScholarScraper extends Scraper {
 
         paperEntityDraft.setValue("arxiv", item.externalIds?.ArXiv, false);
         paperEntityDraft.setValue("doi", item.externalIds?.DOI, false);
-
         break;
       }
     }

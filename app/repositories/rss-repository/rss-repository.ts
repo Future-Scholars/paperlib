@@ -35,7 +35,6 @@ export class RSSRepository {
 
   parse(rawResponse: Response<string>) {
     const parsedXML = this.xmlParser.parse(rawResponse.body);
-    console.log(parsedXML)
     if (parsedXML['rdf:RDF']) {
       return this.parseRSSItems((parsedXML as RSS1)['rdf:RDF'].item);
     } else if (

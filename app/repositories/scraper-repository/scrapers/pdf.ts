@@ -70,7 +70,7 @@ export class PDFScraper extends Scraper {
     let metaDataTitle = "";
     if (paperEntityDraft.title === "") {
       metaDataTitle = metaData.info.Title || "";
-      if (metaDataTitle === "untitled") {
+      if (metaDataTitle === "untitled" || metaDataTitle.includes('.docx') || metaDataTitle.includes('.doc')) {
         metaDataTitle = "";
       }
     }
@@ -90,16 +90,25 @@ export class PDFScraper extends Scraper {
     // }
 
     // Extract arXiv ID
-    const arxivIds = firstPageText.match(
+    let arxivIds = firstPageText.match(
       new RegExp(
         "arXiv:(\\d{4}.\\d{4,5}|[a-z\\-] (\\.[A-Z]{2})?\\/\\d{7})(v\\d )?",
         "g"
       )
     );
     if (arxivIds) {
+      arxivIds[0] = arxivIds[0].replace("arXiv:", "");
+    }
+    // if not start with number, should be arXiv ID before 2007
+    if (!arxivIds || (arxivIds?.length > 0 && !arxivIds[0].slice(0, 1).match(/\d/))) {
+      arxivIds = firstPageText.match(
+        new RegExp("arXiv:(.*\/\\d{7})(v\\d )?", "g")
+      );
+    }
+    if (arxivIds) {
       const arxivId = formatString({ str: arxivIds[0], removeWhite: true });
       if (paperEntityDraft.arxiv === "") {
-        paperEntityDraft.setValue("arxiv", arxivId);
+        paperEntityDraft.setValue("arxiv", arxivId.replace('arXiv:', ''));
       }
     }
 
@@ -110,8 +119,8 @@ export class PDFScraper extends Scraper {
           const doi = url.match(
             new RegExp(
               "(?:" +
-                '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' +
-                ")",
+              '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' +
+              ")",
               "g"
             )
           );
@@ -241,7 +250,7 @@ async function _renderPage(
   let largestTextList: string[] = [];
   let secondLargestTextList: string[] = [];
 
-  if ((textContent.items[0] as TextItem).str.slice(0, 100).includes("ICLR")) {
+  if ((textContent.items[0] as TextItem | undefined)?.str.slice(0, 100).includes("ICLR")) {
     for (let item of textContent.items.slice(1)) {
       item = item as TextItem;
       if (item.height === 17.2154) {
@@ -286,7 +295,7 @@ async function _renderPage(
     );
     secondLargestText = secondLargestTextList.join(" ");
 
-    if (largestText.length === 1) {
+    if (largestText.length === 1 || !largestText.includes(' ')) {
       largestText = secondLargestText;
     }
   }
