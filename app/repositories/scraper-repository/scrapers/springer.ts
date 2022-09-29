@@ -20,7 +20,7 @@ export class SpringerScraper extends Scraper {
       paperEntityDraft.title !== "" &&
       this.isPreprint(paperEntityDraft);
 
-    const scrapeURL = `http://127.0.0.1:3000/publicdb/query`;
+    const scrapeURL = `https://api.paperlib.app/publicdb/query`;
     const headers = {};
     if (enable) {
       this.stateStore.logState.processLog = `Scraping metadata from Springer...`;
