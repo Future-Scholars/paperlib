@@ -251,16 +251,24 @@ async function _renderPage(
   let secondLargestTextList: string[] = [];
 
   if ((textContent.items[0] as TextItem | undefined)?.str.slice(0, 100).includes("ICLR")) {
+    const largestTextList = []
+    let largestWord = ""
     for (let item of textContent.items.slice(1)) {
       item = item as TextItem;
       if (item.height === 17.2154) {
-        largestText += item.str;
+        largestWord += item.str;
       } else if (item.height === 13.7723 || item.height === 0) {
-        largestText += item.str.toLowerCase();
+        largestWord += item.str.toLowerCase();
+
+        if (largestWord !== "") {
+          largestTextList.push(largestWord.trim())
+          largestWord = ""
+        }
       } else {
         break;
       }
     }
+    largestText = largestTextList.filter(w => w).join(" ")
   } else {
     for (let item of textContent.items) {
       item = item as TextItem;

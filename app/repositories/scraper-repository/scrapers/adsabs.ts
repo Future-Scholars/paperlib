@@ -47,7 +47,7 @@ export class AdsabsScraper extends Scraper {
         "docs": [
           {
             "author": string[],
-            "doi": string[],
+            "doi"?: string[],
             "issue": string,
             "page": string[],
             "pub": string,
@@ -79,7 +79,9 @@ export class AdsabsScraper extends Scraper {
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
         paperEntityDraft.setValue("title", item.title.join(' ') || "", false);
-        paperEntityDraft.setValue("doi", item.doi[0] || "", false);
+        if (item.doi) {
+          paperEntityDraft.setValue("doi", item.doi[0] || "", false);
+        }
 
         if (item.doctype.includes("journal")) {
           paperEntityDraft.setValue("type", 0, false);

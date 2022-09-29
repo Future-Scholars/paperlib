@@ -21,11 +21,11 @@ function parsingProcess(
             title: string;
             authors: {
               author:
-                | {
-                    "@pid": string;
-                    text: string;
-                  }
-                | { text: string }[];
+              | {
+                "@pid": string;
+                text: string;
+              }
+              | { text: string }[];
             };
             year: string;
             type: string;
