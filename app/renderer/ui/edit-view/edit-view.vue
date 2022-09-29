@@ -81,6 +81,13 @@ const onSaveClicked = async () => {
   ]);
   onCloseClicked();
 };
+
+const onSaveAndScrapeClicked = async () => {
+  const savedPaperEntityDraft = await window.entityInteractor.update([
+    new PaperEntity(false).initialize(editingPaperEntityDraft.value),
+  ]);
+  window.entityInteractor.scrape(savedPaperEntityDraft);
+};
 </script>
 
 <template>
@@ -246,20 +253,28 @@ const onSaveClicked = async () => {
               />
             </div>
           </div>
-          <div class="flex justify-end space-x-2 py-1">
+          <div class="flex justify-between space-x-2 py-1">
             <div
-              class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm"
-              @click="onCloseClicked"
+              class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm my-auto"
+              @click="onSaveAndScrapeClicked"
             >
-              <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
+              <span class="m-auto text-xs">{{ $t("menu.rescrape") }}</span>
             </div>
-            <div
-              class="flex w-20 h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm"
-              @click="onSaveClicked"
-            >
-              <span class="m-auto text-xs text-white">{{
-                $t("menu.save")
-              }}</span>
+            <div class="flex space-x-2 py-1">
+              <div
+                class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm"
+                @click="onCloseClicked"
+              >
+                <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
+              </div>
+              <div
+                class="flex w-20 h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm"
+                @click="onSaveClicked"
+              >
+                <span class="m-auto text-xs text-white">{{
+                  $t("menu.save")
+                }}</span>
+              </div>
             </div>
           </div>
         </div>

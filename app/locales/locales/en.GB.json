@@ -77,7 +77,6 @@
     "export": "Export",
     "hotkeys": "Hotkeys",
     "about": "About",
-
     "library": "Library",
     "storagefolder": "Storage Folder",
     "storagefolderintro": " Choose a folder to store paper files (e.g., PDF etc.) and the database files.",
@@ -97,7 +96,6 @@
     "default": "Default",
     "custom": "Custom",
     "language": "Language",
-
     "displaycountnumber": "Display Count Number",
     "displaycountnumberintro": "Show the count badges in the sidebar.",
     "compactsidebar": "Compact Sidebar",
@@ -111,7 +109,6 @@
     "color": "Color",
     "asc": "Ascending",
     "desc": "Descending",
-
     "available": "Available",
     "enabled": "Enabled",
     "preset": "Preset Scraper Rules",
@@ -122,7 +119,6 @@
     "routinescrape": "Routine Scrape",
     "enableroutionscrape": "Enable Routine Rescraping",
     "enableroutionscrapeintro": "Automatically rescrape the metadata of the preprint version papers, e.g., arXiv, every week.",
-
     "login": "Login",
     "logout": "Logout",
     "filestorage": "File Storage",
@@ -134,19 +130,15 @@
     "migrateintro": "Migrate local database to cloud. This will merge the existing local database with the one on the cloud.",
     "connect": "Connect",
     "disconnect": "Disconnect",
-
     "importfromafolder": "Import from a Folder",
     "importfromafolderintro": "Choose a folder to import all PDF paper files inside there.",
     "importfromzotero": "Import from Zotero CSV",
     "importfromzoterointro": " Choose a CSV file exported from Zotero. To export it, click File - Export Library - Format: CSV - Encoding: UTF-8 in the Zotero app.",
-
     "cslstyleintro": "Choose a CSL style for the plaintext reference.",
     "exportreplacement": "Export Replacement",
     "exportreplacementintro": "Enable replacing the publication with a customed string when exporting a paper. For example, replacing 'Conference on Computer Vision and Pattern Recognition' by 'CVPR'.",
-
     "pleaserestart": "Please restart Paperlib to take effect.",
     "openquickreferenceplugin": "Open Quick Reference Plugin",
-
     "allowproxy": "Allow Proxy",
     "allowproxyintro": "Enable proxy to access the web source. Paperlib will use the system proxy settings by default. Or you can set a custom proxy. If you are in some regions such as China mainland, you can try to set a proxy to accelarate the web connection."
   },
@@ -167,12 +159,9 @@
   "presetting": {
     "restart": "Close Paperlib",
     "continue": "Continue",
-
     "langintro": "Choose Your Prefered Language",
-
     "dbintro": "Setup Your Library",
     "cloudintro": "If you wish to use the cloud sync, please setup it later in the preference panel.",
-
     "scraperintro": "Choose Your Prefered Metadata Scrapers",
     "scraperintrosub": "The metadata scraper is one of the most important part of Paperlib，Paperlib query your paper's metadata from these database. We are continually adding more scrapers for different subjects. Different combinations fit different research topics. Choosing a suitable scraper combination can improve matching accuracy and reduce query time."
   }

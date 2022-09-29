@@ -81,6 +81,11 @@ const reloadSelectedEntities = () => {
       }
       selectedPaperEntities.value = tempSelectedPaperEntities;
       selectionState.selectedIds = tempSelectedIds;
+      if (tempSelectedPaperEntities.length > 0) {
+        bufferState.editingPaperEntityDraft = new PaperEntity(false).initialize(
+          tempSelectedPaperEntities[0]
+        );
+      }
     }
   } else {
     selectedFeedEntities.value = [];

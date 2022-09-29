@@ -15,11 +15,10 @@ const props = defineProps({
 });
 const emit = defineEmits(["changed"]);
 
-const value = ref(props.value);
 const viewState = MainRendererStateStore.useViewState();
 
 const onInput = (payload: Event) => {
-  emit("changed", value.value);
+  emit("changed", (payload.target as HTMLInputElement).value);
 };
 </script>
 
