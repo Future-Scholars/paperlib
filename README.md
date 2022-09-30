@@ -23,13 +23,13 @@ An open-source academic paper management tool.
 
 ## Introduction
 
-I'm a computer science PhD student. Conference papers are in major in my research community, which is different from other subjects. Without DOI, ISBN, metadata of a lot of conference papers are hard to lookup (e.g., NIPS, ICLR etc.). When I cite a publication in a draft paper, I need to manually search the publication information of it in Google Scholar or DBLP.
+I'm a computer science PhD student. Conference papers are in major in my research community, which is different from other disciplines. Without DOI, ISBN, metadata of a lot of conference papers are hard to lookup (e.g., NIPS, ICLR etc.). When I cite a publication in a draft paper, I need to manually search the publication information of it in Google Scholar or DBLP over and over again.
 
 **Why not Zotero, Mendely?**
 
-A good metadata scraping capability is one of the core function of a paper management tool. Unfortunately, there is no software in this world that does this well, not even commercial software.
+- A good metadata scraping capability is one of the core function of a paper management tool. Unfortunately, there is no software in this world that does this well, not even commercial software.
 
-A modern UI. No extra useless features.
+- A modern UI. No extra useless features.
 
 What we need may be: import a paper, scrape the metadata of it as accurately as possible, simply organise the library, and export it to BibTex when we are writing our own papers.
 
@@ -37,15 +37,30 @@ That is Paperlib.
 
 
 ## Highlights
-
--   Scrape paper’s metadata and **code repository** from arXiv, doi.org, DBLP, openreview.net, IEEE, Google Scholar, and PaperwithCode etc. Support write your own metadata scrapers. Especially tailored for:
-    - [x] Computer Science
-    - [ ] Earth Science (in progress...)
+-   Scrape paper’s metadata with many scrapers. Support write your own metadata scrapers. Tailored for many disciplines (still growing):
+    - [x] **General**
+        - [x] arXiv
+        - [x] doi.org
+        - [x] Semantic Scholar
+        - [x] Crossref
+        - [x] Google Scholar
+        - [ ] Springer (🚧 in progress...)
+        - [ ] Elseivier Scopus (🚧 in progress...)
+    - [x] **Computer Science and Electronic Engineering**
+        - [x] openreview.net
+        - [x] IEEE
+        - [x] DBLP
+        - [x] Paper with Code (scrape avaliable code repository)
+    - [ ] **Earth Science** (🚧in progress...)
+    - [ ] **Physics** (🚧in progress...)
+        - [ ] NASA Astrophysics Data System (🚧in progress...)
+        - [ ] SPIE: Inte. Society for Optics and Photonics (🚧in progress...)
+    - ...
 -   Fulltext and advanced search.
 -   Rating, flag, tag, folder and markdown/plain text note.
--   RSS feed subscription.
--   Locate PDF files from web.
--   Plugin like macOS spotlight to copy paste BibTex easily.
+-   RSS feed subscription to follow the newest publications in your research topic.
+-   Locate and download PDF files from web.
+-   MacOS spotlight-like plugin to copy paste reference easily when writing a draft paper.
 -   Cloud sync, supports macOS and Windows.
 -   Beautiful and clean UI.
 
@@ -55,11 +70,11 @@ That is Paperlib.
 
 ### Windows
 
-You may notice that a warnning shows when you install Paperlib on Windows. The reason is that there is no code signing in Paperlib because it is so expensive. The source code of Paperlib can be found in the electron branch. It won't hurt your PC and will never collect any personal information. Please make sure you are using HTTPS and our official webpage or Github to download the installer. When you are installing 'latest.exe', in the Windows protected your PC window, please click 'More info' and 'Run anyway'.
+⚠️ You may notice that a warnning shows when you install Paperlib on Windows. The reason is that there is no code signing in Paperlib because it is so expensive. The source code of Paperlib can be found in the electron branch. It won't hurt your PC and will never collect any personal information. Please make sure you are using HTTPS and our official webpage or Github to download the installer. When you are installing 'latest.exe', in the Windows protected your PC window, please click 'More info' and 'Run anyway'.
 
 ### macOS
 
-You may need to click the 'preference - Security & Privacy - run anyway'.
+⚠️ You may need to click the 'preference - Security & Privacy - run anyway'.
 
 ## Quick Start
 
@@ -81,7 +96,7 @@ You may need to click the 'preference - Security & Privacy - run anyway'.
 ## Contribute to Paperlib
 
 ### Metadata Scrapers
-My research topic is computer vision, which is only one piece of puzzle of the computer science. If the [builtin metadata scrapers](https://github.com/GeoffreyChen777/paperlib/tree/electron/packages/preload/repositories/scraper-repository/scrapers) are not suitable for your research, feel free to open an issue or pull request.
+My research topic is computer vision, which is only one piece of puzzle of the computer science. I tried to contact some friends to provide information about the paper matadata database in different disciplines. However, However, it does not cover all disciplines. If the [builtin metadata scrapers](https://github.com/GeoffreyChen777/paperlib/tree/master/app/repositories/scraper-repository/scrapers) are not suitable for your research, feel free to open an issue or a pull request.
 
 ### New Features
 
