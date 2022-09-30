@@ -169,10 +169,12 @@ export class PDFScraper extends Scraper {
 
     // Largest String as Title
     const largestText = rawResponse.largestText.slice(0, 400);
-    paperEntityDraft.setValue(
-      "title",
-      metaDataTitle.length > largestText.length ? metaDataTitle : largestText
-    );
+    if (paperEntityDraft.title === "") {
+      paperEntityDraft.setValue(
+        "title",
+        metaDataTitle.length > largestText.length ? metaDataTitle : largestText
+      );
+    }
 
     return paperEntityDraft;
   }

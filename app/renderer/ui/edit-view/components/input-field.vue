@@ -27,10 +27,8 @@ const viewState = MainRendererStateStore.useViewState();
 const isExpanded = ref(props.isExpanded);
 const emit = defineEmits(["changed", "expand"]);
 
-const value = ref(props.value);
-
 const onInput = (payload: Event) => {
-  emit("changed", value.value);
+  emit("changed", (payload.target as HTMLTextAreaElement).value);
 };
 </script>
 
