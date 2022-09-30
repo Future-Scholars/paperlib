@@ -66,9 +66,8 @@ export class CacheRepository {
       this._realm = new Realm(this.config);
     } catch (err) {
       console.error(err);
-      this.stateStore.logState.alertLog = `Open local cache faild: ${
-        err as string
-      }`;
+      this.stateStore.logState.alertLog = `Open local cache faild: ${err as string
+        }`;
     }
 
     this._realm!.safeWrite = (callback) => {
@@ -226,7 +225,7 @@ export class CacheRepository {
     }
     // 2. Update the cache
     if (pdfjs.GlobalWorkerOptions.workerPort === null) {
-      const pdfWorker = new Worker("./pdf.worker.min.js");
+      const pdfWorker = new Worker("./build/pdf.worker.min.js");
       pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
     }
 
@@ -252,7 +251,7 @@ export class CacheRepository {
   async updateFullText(paperEntities: PaperEntityResults) {
     const realm = await this.realm();
     if (pdfjs.GlobalWorkerOptions.workerPort === null) {
-      const pdfWorker = new Worker("./pdf.worker.min.js");
+      const pdfWorker = new Worker("./build/pdf.worker.min.js");
       pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
     }
 

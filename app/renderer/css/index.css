@@ -44,6 +44,10 @@
   min-width: 2px !important;
 }
 
+.splitpanes--horizontal>.splitpanes__splitter {
+  min-height: 5px !important;
+}
+
 #detail-markdown-preview h1 {
     font-size: 0.9rem;
     font-weight: 700;

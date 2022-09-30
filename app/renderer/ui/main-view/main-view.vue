@@ -231,6 +231,9 @@ const onMenuButtonClicked = (command: string) => {
     case "table-view":
       switchViewType("table");
       break;
+    case "tableandpreview-view":
+      switchViewType("tableandpreview");
+      break;
     case "sort-by-title":
     case "sort-by-authors":
     case "sort-by-addTime":

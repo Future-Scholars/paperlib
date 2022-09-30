@@ -19,7 +19,7 @@ export class PDFScraper extends Scraper {
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
     super(stateStore, preference);
 
-    const worker = new Worker("./pdf.worker.min.js");
+    const worker = new Worker("./build/pdf.worker.min.js");
     pdfjs.GlobalWorkerOptions.workerPort = worker;
   }
 
