@@ -78,7 +78,7 @@ onMounted(() => {
             <li>SPIE: Inte. Society for Optics and Photonics</li>
           </ul>
           <li>一个新的视图，可以直接在 Paperlib 内浏览 PDF。</li>
-          <img src="1.jpg" />
+          <img src="./1.jpg" />
           <li>优化了 Crossref 的搜寻速度。</li>
           <li>优化了 RSS 订阅的解析效果，支持更多格式。</li>
           <li>优化了 添加附件拖拽时的 UI。</li>

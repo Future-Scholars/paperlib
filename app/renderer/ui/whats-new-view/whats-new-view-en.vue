@@ -81,7 +81,7 @@ onMounted(() => {
             <li>SPIE: Inte. Society for Optics and Photonics</li>
           </ul>
           <li>A new view mode to view PDF in Paperlib.</li>
-          <img src="1.jpg" />
+          <img src="./1.jpg" />
           <li>Optimised the scraping speed of Crossref.</li>
           <li>RSS feed now supports more website.</li>
           <li>Better UI for adding a supplementary.</li>
