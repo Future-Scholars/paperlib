@@ -113,11 +113,11 @@ const presets = {
   ],
 };
 
-const onChangePreset = (preset: "cs" | "default") => {
+const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
   let scraperPrefs = prefState.scrapers;
   for (const [name, scraper] of Object.entries(scraperPrefs)) {
     scraper.enable = presets[preset].includes(name);
-    scraper.priority = 1000 - preset.indexOf(name);
+    scraper.priority = 1000 - presets[preset].indexOf(name);
   }
   window.appInteractor.setPreference("scrapers", scraperPrefs);
   viewState.scraperReinited = Date.now();
