@@ -116,9 +116,7 @@ export class AdsabsScraper extends Scraper {
         );
         paperEntityDraft.setValue("volume", item.volume, false);
 
-
-        // FIXME:
-        // this.uploadCache(paperEntityDraft, "adsabs");
+        this.uploadCache(paperEntityDraft, "adsabs");
 
         break;
       }

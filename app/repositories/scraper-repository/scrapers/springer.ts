@@ -120,8 +120,7 @@ export class SpringerScraper extends Scraper {
         paperEntityDraft.setValue("publisher", item.publisher, false);
 
 
-        // FIXME:
-        // this.uploadCache(paperEntityDraft, "adsabs");
+        this.uploadCache(paperEntityDraft, "springer");
 
         break;
       }

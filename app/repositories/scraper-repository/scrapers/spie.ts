@@ -108,9 +108,7 @@ export class SPIEScraper extends Scraper {
           paperEntityDraft.setValue("volume", item.VolumeNumber, false);
           paperEntityDraft.setValue("publisher", item.PublisherName, false);
 
-
-          // FIXME:
-          // this.uploadCache(paperEntityDraft, "adsabs");
+          this.uploadCache(paperEntityDraft, "spie");
 
           break;
         }
