@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import {
+  BIconAspectRatio,
   BIconBook,
   BIconCalendar3,
   BIconCheck2,
@@ -305,12 +306,28 @@ const onMaximizeClicked = () => {
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
-                    <BIconGrid3x2 class="my-auto" />
+                    <BIconAspectRatio class="my-auto" />
                     <span>Table View</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
                     v-if="prefState.mainviewType === 'table'"
+                  />
+                </div>
+              </MenuItem>
+              <MenuItem
+                v-slot="{ active }"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
+                @click="emit('click', 'tableandpreview-view')"
+              >
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconGrid3x2 class="my-auto" />
+                    <span>Table and Reader View</span>
+                  </div>
+                  <BIconCheck2
+                    class="my-auto"
+                    v-if="prefState.mainviewType === 'tableandpreview'"
                   />
                 </div>
               </MenuItem>

@@ -66,22 +66,30 @@ onMounted(() => {
       <div class="w-[45rem] px-3 mx-auto my-20">
         <img class="w-20 mx-auto mb-2" src="../../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.0.2
+          What's New in Paperlib 2.0.3
         </p>
 
         <ul class="list-disc mb-5">
           <li>
-            Now you can choose which columns are displayed in the table view.
+            Added some new metadata scrapers for Physics and Earth Science. Also
+            provide a recommended presetting.
           </li>
+          <ul class="list-disc ml-5 mb-5">
+            <li>Springer Nature</li>
+            <li>Elseivier Scopus</li>
+            <li>NASA Astrophysics Data System</li>
+            <li>SPIE: Inte. Society for Optics and Photonics</li>
+          </ul>
+          <li>A new view mode to view PDF in Paperlib.</li>
+          <img src="1.jpg" />
+          <li>Optimised the scraping speed of Crossref.</li>
+          <li>RSS feed now supports more website.</li>
+          <li>Better UI for adding a supplementary.</li>
           <li>
-            Add a global shared metadata cache layer for all users. All the
-            successfully scraped metadata will be cached and shared with other
-            users to speed up scraping of popular papers. About privacy, this
-            feature only share the metadata from the public builtin scrapers.
+            When importing a large number of papers at once, scrape them in
+            batch.
           </li>
-          <li>Add an alternative API url for DBLP.</li>
-          <li>Fixed a bug in the file operation of Onedrive.</li>
-          <li>Fixed a bug when refreshing RSS feeds.</li>
+          <li>Added a rescrape button in the edit view.</li>
         </ul>
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
