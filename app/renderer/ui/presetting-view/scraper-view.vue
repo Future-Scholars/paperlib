@@ -35,10 +35,16 @@ const categoryColor = (category: string) => {
       return "text-blue-600";
     case "ee":
       return "text-blue-400";
+    case "es":
+      return "text-gray-500";
+    case "phys":
+      return "text-blue-900";
+    case "astron / phys":
+      return "text-blue-900";
     case "official":
       return "text-red-700";
     default:
-      return "";
+      return "text-gray-400";
   }
 };
 
@@ -79,6 +85,20 @@ const presets = {
     "doi",
     "semanticscholar",
     "scopus",
+    "springer",
+    "crossref",
+    "googlescholar",
+  ],
+  phys: [
+    "pdf",
+    "paperlib",
+    "arxiv",
+    "doi",
+    "semanticscholar",
+    "adsabs",
+    "springer",
+    "scopus",
+    "spie",
     "crossref",
     "googlescholar",
   ],
@@ -155,6 +175,8 @@ onMounted(() => {
             >
               <option value="default">Default</option>
               <option value="cs">Computer Science</option>
+              <option value="es">Earth Science</option>
+              <option value="phys">Physics</option>
             </select>
           </div>
         </div>
