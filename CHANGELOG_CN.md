@@ -1,3 +1,13 @@
+## v2.0.3 02/10 2022
+
+1. 为物理学和地球科学增添优化了元数据搜寻器以及预设推荐选择。Springer Nature, Elseivier Scopus, NASA Astrophysics Data System, SPIE: Inte. Society for Optics and Photonics.
+2. 一个新的视图，可以直接在 Paperlib 内浏览 PDF。
+3. 优化了 Crossref 的搜寻速度。
+4. 优化了 RSS 订阅的解析效果，支持更多格式。
+5. 优化了 添加附件拖拽时的 UI。
+6. 一次性导入大量论文时分批次进行，防止超出 API 请求速率限制。
+7. 编辑界面添加了直接重新搜寻元数据的按钮。
+
 ## v2.0.2 26/09 2022
 
 1. 现在可以配置表格视图下显示哪些列了。

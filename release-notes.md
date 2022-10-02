@@ -1,5 +1,7 @@
-1. Now you can choose which columns are displayed in the table view.
-2. Add a global shared metadata cache layer for all users. All the successfully scraped metadata will be cached and shared with other users to speed up scraping of popular papers. About privacy, this feature only share the metadata from the public builtin scrapers.
-3. Add an alternative API url for DBLP.
-4. Fixed a bug in the file operation of Onedrive.
-5. Fixed a bug when refreshing RSS feeds.
+1. Added some new metadata scrapers for Physics and Earth Science. Also provide a recommended presetting. Springer Nature, Elseivier Scopus, NASA Astrophysics Data System, SPIE: Inte. Society for Optics and Photonics
+2. A new view mode to view PDF in Paperlib.
+3. Optimised the scraping speed of Crossref.
+4. RSS feed now supports more website.
+5. Better UI for adding a supplementary.
+6. When importing a large number of papers at once, scrape them in batch.
+7. Added a rescrape button in the edit view.
