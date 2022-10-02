@@ -45,7 +45,7 @@ export class ArXivScraper extends Scraper {
   ): PaperEntity {
     const parsedResponse = this.xmlParser.parse(rawResponse.body) as {
       feed: {
-        entry: {
+        entry?: {
           title: string;
           author: { name: string }[] | { name: string };
           published: string;
@@ -53,26 +53,28 @@ export class ArXivScraper extends Scraper {
       };
     };
     const arxivResponse = parsedResponse.feed.entry;
-    const title = arxivResponse.title;
-    const authorList = arxivResponse.author;
-    let authors;
-    if (Array.isArray(authorList)) {
-      authors = authorList
-        .map((author) => {
-          return author.name.trim();
-        })
-        .join(", ");
-    } else {
-      authors = authorList.name.trim();
+
+    if (arxivResponse) {
+      const title = arxivResponse.title;
+      const authorList = arxivResponse.author;
+      let authors;
+      if (Array.isArray(authorList)) {
+        authors = authorList
+          .map((author) => {
+            return author.name.trim();
+          })
+          .join(", ");
+      } else {
+        authors = authorList.name.trim();
+      }
+
+      const pubTime = arxivResponse.published.substring(0, 4);
+      paperEntityDraft.setValue("title", title);
+      paperEntityDraft.setValue("authors", authors);
+      paperEntityDraft.setValue("pubTime", pubTime);
+      paperEntityDraft.setValue("pubType", 0);
+      paperEntityDraft.setValue("publication", "arXiv");
     }
-
-    const pubTime = arxivResponse.published.substring(0, 4);
-    paperEntityDraft.setValue("title", title);
-    paperEntityDraft.setValue("authors", authors);
-    paperEntityDraft.setValue("pubTime", pubTime);
-    paperEntityDraft.setValue("pubType", 0);
-    paperEntityDraft.setValue("publication", "arXiv");
-
     return paperEntityDraft;
   }
 }

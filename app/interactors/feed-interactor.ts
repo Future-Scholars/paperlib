@@ -180,7 +180,7 @@ export class FeedInteractor {
       //   }
       // }
 
-      await this.dbRepository.updateFeedEntities(feedEntityDrafts);
+      await this.dbRepository.updateFeedEntities(feedEntityDrafts, true);
     } catch (error) {
       console.error(error);
       this.stateStore.logState.alertLog = `Refresh feeds failed: ${error as string

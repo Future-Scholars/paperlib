@@ -106,7 +106,7 @@ export class AdsabsScraper extends Scraper {
         );
         paperEntityDraft.setValue(
           "authors",
-          item.author.join(', '),
+          item.author.map(a => a.split(',').map(n => n.trim()).reverse().join(' ')).join(', '),
           false
         );
         paperEntityDraft.setValue(

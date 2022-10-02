@@ -89,9 +89,8 @@ export class FeedEntityRepository {
         objects = objects.filtered(filterPattern);
       } catch (error) {
         console.error(error);
-        this.stateStore.logState.alertLog = `Filter pattern is invalid: ${
-          error as string
-        }`;
+        this.stateStore.logState.alertLog = `Filter pattern is invalid: ${error as string
+          }`;
       }
     }
 
@@ -118,6 +117,7 @@ export class FeedEntityRepository {
     feedEntity: FeedEntity,
     feed: Feed,
     existingFeedEntity: FeedEntity | null,
+    ignoreReadState: boolean,
     partition: string
   ) {
     try {
@@ -139,7 +139,9 @@ export class FeedEntityRepository {
           updateObj.volume = feedEntity.volume;
           updateObj.number = feedEntity.number;
           updateObj.publisher = feedEntity.publisher;
-          updateObj.read = feedEntity.read;
+          if (!ignoreReadState) {
+            updateObj.read = feedEntity.read;
+          }
           updateObj.feed = feed;
 
           return "updated";
@@ -176,7 +178,9 @@ export class FeedEntityRepository {
             updateObj.volume = feedEntity.volume;
             updateObj.number = feedEntity.number;
             updateObj.publisher = feedEntity.publisher;
-            updateObj.read = feedEntity.read;
+            if (!ignoreReadState) {
+              updateObj.read = feedEntity.read;
+            }
             updateObj.feed = feed;
 
             return "updated";
@@ -185,9 +189,8 @@ export class FeedEntityRepository {
       });
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Failed to update database: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Failed to update database: ${error as string
+        }`;
       return false;
     }
   }
@@ -234,9 +237,8 @@ export class FeedEntityRepository {
       });
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Failed to delete database: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Failed to delete database: ${error as string
+        }`;
       return {};
     }
   }
@@ -257,9 +259,8 @@ export class FeedEntityRepository {
       });
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Failed to delete feed entities: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Failed to delete feed entities: ${error as string
+        }`;
       return false;
     }
   }
