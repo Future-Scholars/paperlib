@@ -104,21 +104,21 @@ onBeforeMount(() => {
       :style="`width: ${titleWidth}%`"
       :sort-by="sortBy == 'title'"
       :sort-order="sortOrder"
-      title="Title"
+      :title="$t('mainview.title')"
       @title-clicked="onTitleClicked('title')"
     />
     <TableTitleItem
       class="w-[10%]"
       :sort-by="sortBy == 'authors'"
       :sort-order="sortOrder"
-      title="Authors"
+      :title="$t('mainview.authors')"
       @title-clicked="onTitleClicked('authors')"
     />
     <TableTitleItem
       :style="`width: ${pubWidth}%`"
       :sort-by="sortBy == 'publication'"
       :sort-order="sortOrder"
-      title="Publication"
+      :title="$t('mainview.publicationtitle')"
       @title-clicked="onTitleClicked('publication')"
       v-if="showPublication"
     />
@@ -126,7 +126,7 @@ onBeforeMount(() => {
       class="w-[6%]"
       :sort-by="sortBy == 'pubTime'"
       :sort-order="sortOrder"
-      title="Year"
+      :title="$t('mainview.pubyear')"
       @title-clicked="onTitleClicked('pubTime')"
       v-if="showPubTime"
     />
@@ -134,7 +134,7 @@ onBeforeMount(() => {
       class="w-[5%]"
       :sort-by="sortBy == 'pubType'"
       :sort-order="sortOrder"
-      title="Type"
+      :title="$t('mainview.pubtype')"
       @title-clicked="onTitleClicked('pubType')"
       v-if="showPubType"
     />
@@ -142,21 +142,21 @@ onBeforeMount(() => {
       class="w-[15%]"
       :sort-by="sortBy == 'tags'"
       :sort-order="sortOrder"
-      title="Tags"
+      :title="$t('mainview.tags')"
       v-if="showTags"
     />
     <TableTitleItem
       class="w-[15%]"
       :sort-by="sortBy == 'folders'"
       :sort-order="sortOrder"
-      title="Folders"
+      :title="$t('mainview.folders')"
       v-if="showFolders"
     />
     <TableTitleItem
       class="w-[10%]"
       :sort-by="sortBy == 'note'"
       :sort-order="sortOrder"
-      title="Note"
+      :title="$t('mainview.note')"
       @title-clicked="onTitleClicked('note')"
       v-if="showNote"
     />
@@ -164,7 +164,7 @@ onBeforeMount(() => {
       class="w-[8%]"
       :sort-by="sortBy == 'rating'"
       :sort-order="sortOrder"
-      title="Rating"
+      :title="$t('mainview.rating')"
       @title-clicked="onTitleClicked('rating')"
       v-if="showRating"
     />

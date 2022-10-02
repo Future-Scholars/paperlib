@@ -178,7 +178,7 @@ const onLeave = () => {
           <div class="my-auto">{{ progress.msg }}</div>
           <div class="rounded-full h-0.5">
             <div
-              class="bg-accentlight h-0.5 rounded-full dark:bg-accentdark"
+              class="bg-accentlight h-0.5 rounded-full dark:bg-accentdark transition-all duration-100"
               :style="`width: ${progress.value}%`"
             ></div>
           </div>

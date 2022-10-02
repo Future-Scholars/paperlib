@@ -12,6 +12,7 @@ export interface ScraperRequestType {
   scrapeURL: string;
   headers: Record<string, string>;
   enable: boolean;
+  content?: Record<string, any>;
 }
 
 export interface ScraperType {
@@ -76,16 +77,20 @@ export class Scraper implements ScraperType {
     scraperName: string
   ): Promise<void> {
     if (!this.isPreprint(paperEntityDraft)) {
-      const apiCache = new APICache(true).initialize(
-        paperEntityDraft,
-        scraperName
-      );
-      const signedData = cryptoAndSign(apiCache);
+      try {
+        const apiCache = new APICache(true).initialize(
+          paperEntityDraft,
+          scraperName
+        );
+        const signedData = cryptoAndSign(apiCache);
 
-      await window.networkTool.post(
-        "https://api.paperlib.app/cache/",
-        signedData
-      );
+        await window.networkTool.post(
+          "https://api.paperlib.app/cache/",
+          signedData
+        );
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 }
@@ -102,7 +107,10 @@ async function scrapeImpl(
   if (enable || force) {
     const response = (await window.networkTool.get(
       scrapeURL,
-      headers
+      headers,
+      1,
+      false,
+      10000
     )) as Response<string>;
     return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
   } else {

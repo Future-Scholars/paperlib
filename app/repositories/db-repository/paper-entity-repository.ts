@@ -181,6 +181,8 @@ export class PaperEntityRepository {
               addedObj.tags = paperTag;
               addedObj.folders = paperFolder;
             }
+          } else {
+            return false
           }
         }
         return true;

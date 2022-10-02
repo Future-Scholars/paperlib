@@ -16,8 +16,10 @@
     "title": "标题",
     "authors": "作者",
     "publicationyear": "出版年份",
+    "pubyear": "年份",
     "publicationtitle": "出版处",
     "publicationtype": "出版类型",
+    "pubtype": "类型",
     "addtime": "添加时间",
     "rating": "评分",
     "preview": "预览",
@@ -50,7 +52,8 @@
     "showinexplore": "在资源管理器中显示",
     "bibtexkey": "BibTeX 键",
     "plaintext": "CSL 纯文本",
-    "replace": "替换",
+    "replace": "替换主文件",
+    "addsup": "添加附件",
     "checkforupdate": "检查更新",
     "about": "关于",
     "file": "文件",
@@ -77,7 +80,6 @@
     "export": "导出",
     "hotkeys": "快捷键",
     "about": "关于",
-
     "library": "文献库",
     "storagefolder": "存储文件夹",
     "storagefolderintro": "选择存储文件夹来存储 PDF 文件以及本地数据库（如果不使用云同步）。",
@@ -97,7 +99,6 @@
     "default": "默认",
     "custom": "自定义",
     "language": "语言",
-
     "displaycountnumber": "显示数量",
     "displaycountnumberintro": "在侧边栏中显示数量。",
     "compactsidebar": "紧凑侧边栏",
@@ -111,7 +112,6 @@
     "color": "颜色",
     "asc": "升序",
     "desc": "降序",
-
     "available": "可用",
     "enabled": "已启用",
     "preset": "预设规则",
@@ -122,7 +122,6 @@
     "routinescrape": "定时搜寻元数据",
     "enableroutionscrape": "启用定时搜寻元数据",
     "enableroutionscrapeintro": "自动为预印本论文每周搜索元数据。",
-
     "login": "登录",
     "logout": "登出",
     "filestorage": "文件存储",
@@ -134,23 +133,18 @@
     "migrateintro": "上传本地数据库数据与云端数据合并。",
     "connect": "连接",
     "disconnect": "断开",
-
     "importfromafolder": "从文件夹导入",
     "importfromafolderintro": "从文件夹导入所有 PDF 文件。",
     "importfromzotero": "从 Zotero 导入",
     "importfromzoterointro": "从 Zotero CSV 导入所有数据。在 Zotero 中点击文件-导出库-格式 CSV-编码 UTF8。",
-
     "cslstyleintro": "选择 CSL 样式。",
     "exportreplacement": "导出替换",
     "exportreplacementintro": "在导出时替换文献库中的条目的发表信息。",
-
     "pleaserestart": "请重启应用程序以应用更改。",
     "openquickreferenceplugin": "打开快速插入参考插件",
-
     "allowproxy": "启用代理",
     "allowproxyintro": "是否启用代理来访问网络资源。Paperlib 默认使用系统代理设置。你也可以在这里设置代理。对于中国大陆等地区的用户来说，你可能需要启用代理来访问 Google Scholar 等 scraper 来避免请求超时。"
   },
-
   "confirmation": {
     "title": "确认",
     "message": "你确定要删除这个条目吗？",
@@ -168,12 +162,9 @@
   "presetting": {
     "restart": "重启 Paperlib",
     "continue": "继续",
-
     "langintro": "选择你使用的语言",
-
     "dbintro": "设置数据库",
     "cloudintro": "云同步相关设置请之后在设置面板进行设置。",
-
     "scraperintro": "设置元数据搜寻器",
     "scraperintrosub": "元数据搜寻器是 Paperlib 很重要的组成部分，Paperlib 会在这些数据库里为你的论文匹配元数据。不同学科有不同的组合，我们也在不断为不同学科增加相应的搜寻器，选择适当的搜寻器可以提高匹配的准确性并节省搜索时间。"
   }

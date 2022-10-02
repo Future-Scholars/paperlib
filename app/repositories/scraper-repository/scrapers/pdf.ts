@@ -19,7 +19,7 @@ export class PDFScraper extends Scraper {
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
     super(stateStore, preference);
 
-    const worker = new Worker("./pdf.worker.min.js");
+    const worker = new Worker("./build/pdf.worker.min.js");
     pdfjs.GlobalWorkerOptions.workerPort = worker;
   }
 
@@ -67,35 +67,48 @@ export class PDFScraper extends Scraper {
     };
     const firstPageText = rawResponse.firstPageText;
 
+    let metaDataTitle = "";
     if (paperEntityDraft.title === "") {
-      paperEntityDraft.setValue("title", metaData.info.Title || "");
+      metaDataTitle = metaData.info.Title || "";
+      if (metaDataTitle === "untitled" || metaDataTitle.includes('.docx') || metaDataTitle.includes('.doc')) {
+        metaDataTitle = "";
+      }
     }
 
-    let authors;
-    if (metaData.info.Author?.includes(";")) {
-      authors = metaData.info.Author.split(";")
-        .map((author) => {
-          return author.trim();
-        })
-        .join(", ");
-    } else {
-      authors = metaData.info.Author || "";
-    }
-    if (paperEntityDraft.authors === "") {
-      paperEntityDraft.setValue("authors", authors);
-    }
+    // let authors;
+    // if (metaData.info.Author?.includes(";")) {
+    //   authors = metaData.info.Author.split(";")
+    //     .map((author) => {
+    //       return author.trim();
+    //     })
+    //     .join(", ");
+    // } else {
+    //   authors = metaData.info.Author || "";
+    // }
+    // if (paperEntityDraft.authors === "") {
+    //   paperEntityDraft.setValue("authors", authors);
+    // }
 
     // Extract arXiv ID
-    const arxivIds = firstPageText.match(
+    let arxivIds = firstPageText.match(
       new RegExp(
         "arXiv:(\\d{4}.\\d{4,5}|[a-z\\-] (\\.[A-Z]{2})?\\/\\d{7})(v\\d )?",
         "g"
       )
     );
     if (arxivIds) {
+      arxivIds[0] = arxivIds[0].replace("arXiv:", "");
+    }
+    // if not start with number, should be arXiv ID before 2007
+    if (!arxivIds || (arxivIds?.length > 0 && !arxivIds[0].slice(0, 1).match(/\d/))) {
+      arxivIds = firstPageText.match(
+        new RegExp("arXiv:(.*\/\\d{7})(v\\d )?", "g")
+      );
+    }
+    if (arxivIds) {
       const arxivId = formatString({ str: arxivIds[0], removeWhite: true });
       if (paperEntityDraft.arxiv === "") {
-        paperEntityDraft.setValue("arxiv", arxivId);
+        paperEntityDraft.setValue("arxiv", arxivId.replace('arXiv:', ''));
       }
     }
 
@@ -106,8 +119,8 @@ export class PDFScraper extends Scraper {
           const doi = url.match(
             new RegExp(
               "(?:" +
-                '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' +
-                ")",
+              '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' +
+              ")",
               "g"
             )
           );
@@ -119,7 +132,15 @@ export class PDFScraper extends Scraper {
       })
       .filter((doi) => doi !== "");
     if (dois.length > 0) {
-      const doi = formatString({ str: dois[0], removeWhite: true });
+      // Vote for the most common DOI
+      const doi = formatString({
+        str: dois.sort(
+          (a, b) =>
+            dois.filter((v) => v === a).length -
+            dois.filter((v) => v === b).length
+        )[dois.length - 1],
+        removeWhite: true,
+      });
       if (paperEntityDraft.doi === "") {
         paperEntityDraft.setValue("doi", doi);
       }
@@ -139,16 +160,20 @@ export class PDFScraper extends Scraper {
       }
     }
 
-    if (paperEntityDraft.doi.endsWith(",")) {
+    if (
+      paperEntityDraft.doi.endsWith(",") ||
+      paperEntityDraft.doi.endsWith(".")
+    ) {
       paperEntityDraft.setValue("doi", paperEntityDraft.doi.slice(0, -1));
     }
 
     // Largest String as Title
-    if (
-      paperEntityDraft.title === "" ||
-      paperEntityDraft.title === "untitled"
-    ) {
-      paperEntityDraft.setValue("title", rawResponse.largestText.slice(0, 400));
+    const largestText = rawResponse.largestText.slice(0, 400);
+    if (paperEntityDraft.title === "") {
+      paperEntityDraft.setValue(
+        "title",
+        metaDataTitle.length > largestText.length ? metaDataTitle : largestText
+      );
     }
 
     return paperEntityDraft;
@@ -227,17 +252,25 @@ async function _renderPage(
   let largestTextList: string[] = [];
   let secondLargestTextList: string[] = [];
 
-  if ((textContent.items[0] as TextItem).str.slice(0, 100).includes("ICLR")) {
+  if ((textContent.items[0] as TextItem | undefined)?.str.slice(0, 100).includes("ICLR")) {
+    const largestTextList = []
+    let largestWord = ""
     for (let item of textContent.items.slice(1)) {
       item = item as TextItem;
       if (item.height === 17.2154) {
-        largestText += item.str;
+        largestWord += item.str;
       } else if (item.height === 13.7723 || item.height === 0) {
-        largestText += item.str.toLowerCase();
+        largestWord += item.str.toLowerCase();
+
+        if (largestWord !== "") {
+          largestTextList.push(largestWord.trim())
+          largestWord = ""
+        }
       } else {
         break;
       }
     }
+    largestText = largestTextList.filter(w => w).join(" ")
   } else {
     for (let item of textContent.items) {
       item = item as TextItem;
@@ -272,7 +305,7 @@ async function _renderPage(
     );
     secondLargestText = secondLargestTextList.join(" ");
 
-    if (largestText.length === 1) {
+    if (largestText.length === 1 || !largestText.includes(' ')) {
       largestText = secondLargestText;
     }
   }

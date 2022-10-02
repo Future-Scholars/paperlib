@@ -88,6 +88,17 @@ const dragHandler = (event: DragEvent) => {
   selectionState.dragedIds = [el.id];
 };
 
+const showingUrl = ref("");
+const accessMainFile = async (index: number) => {
+  const paperEntity = paperEntities?.value[index];
+  if (paperEntity) {
+    const url = await window.appInteractor.access(paperEntity!.mainURL, false);
+    showingUrl.value = `./viewer/viewer.html?file=${url}`;
+  } else {
+    showingUrl.value = "";
+  }
+};
+
 watch(
   () => selectionState.selectedIndex,
   (newSelectedIndex) => {
@@ -99,6 +110,21 @@ watch(
 
     if (newSelectedIndex.length === 0) {
       selectedIndex.value = [];
+    }
+
+    if (prefState.mainviewType === "tableandpreview") {
+      accessMainFile(newSelectedIndex[0]);
+    }
+  }
+);
+
+watch(
+  () => prefState.mainviewType,
+  (newMainviewType) => {
+    if (newMainviewType === "tableandpreview") {
+      if (selectionState.selectedIndex.length === 1) {
+        accessMainFile(selectionState.selectedIndex[0]);
+      }
     }
   }
 );
@@ -152,37 +178,60 @@ onMounted(() => {
       :showFolders="prefState.showMainFolders"
       :showNote="prefState.showMainNote"
       :showFlag="prefState.showMainFlag"
-      v-if="prefState.mainviewType === 'table'"
+      v-if="
+        prefState.mainviewType === 'table' ||
+        prefState.mainviewType === 'tableandpreview'
+      "
     />
-    <RecycleScroller
-      class="scroller pr-2 max-h-[calc(100vh-5rem)]"
-      :items="paperEntities"
-      :item-size="28"
-      key-field="id"
-      v-slot="{ item, index }"
-      :buffer="500"
-      v-if="prefState.mainviewType === 'table'"
-    >
-      <TableItem
-        :id="item.id"
-        :item="item"
-        :active="selectedIndex.indexOf(index) >= 0"
-        :showPubTime="prefState.showMainYear"
-        :showPublication="prefState.showMainPublication"
-        :showRating="prefState.showMainRating"
-        :showPubType="prefState.showMainPubType"
-        :showTags="prefState.showMainTags"
-        :showFolders="prefState.showMainFolders"
-        :showNote="prefState.showMainNote"
-        :showFlag="prefState.showMainFlag"
-        :read="true"
-        :striped="index % 2 === 0"
-        @click="(e: MouseEvent) => {onItemClicked(e, index)}"
-        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
-        @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
-        draggable="true"
-        v-on:dragstart="dragHandler"
-      />
-    </RecycleScroller>
+
+    <splitpanes horizontal class="max-h-[calc(100vh-5rem)]">
+      <pane :key="1" min-size="12">
+        <RecycleScroller
+          class="scroller pr-2 h-full pb-4"
+          :items="paperEntities"
+          :item-size="28"
+          key-field="id"
+          v-slot="{ item, index }"
+          :buffer="500"
+          v-if="
+            prefState.mainviewType === 'table' ||
+            prefState.mainviewType === 'tableandpreview'
+          "
+        >
+          <TableItem
+            :id="item.id"
+            :item="item"
+            :active="selectedIndex.indexOf(index) >= 0"
+            :showPubTime="prefState.showMainYear"
+            :showPublication="prefState.showMainPublication"
+            :showRating="prefState.showMainRating"
+            :showPubType="prefState.showMainPubType"
+            :showTags="prefState.showMainTags"
+            :showFolders="prefState.showMainFolders"
+            :showNote="prefState.showMainNote"
+            :showFlag="prefState.showMainFlag"
+            :read="true"
+            :striped="index % 2 === 0"
+            @click="(e: MouseEvent) => {onItemClicked(e, index)}"
+            @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
+            @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
+            draggable="true"
+            v-on:dragstart="dragHandler"
+          />
+        </RecycleScroller>
+      </pane>
+      <pane
+        :key="1"
+        min-size="12"
+        v-if="
+          prefState.mainviewType === 'tableandpreview' &&
+          selectedIndex.length === 1
+        "
+      >
+        <div class="w-full h-full pr-2">
+          <iframe class="w-full h-full rounded-lg" :src="showingUrl" />
+        </div>
+      </pane>
+    </splitpanes>
   </div>
 </template>

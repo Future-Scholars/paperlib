@@ -4,11 +4,11 @@ import {
   globalShortcut,
   ipcMain,
   screen,
-  session,
 } from "electron";
 // @ts-ignore
 import Store from "electron-store";
 import { platform, release } from "os";
+import path from "path";
 
 import { Preference } from "../preference/preference";
 import "./files.ts";
@@ -36,6 +36,14 @@ if (process.platform === "win32") app.setAppUserModelId(app.getName());
 if (!app.requestSingleInstanceLock()) {
   app.quit();
   process.exit(0);
+}
+
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('paperlib', process.execPath, [path.resolve(process.argv[1])])
+  }
+} else {
+  app.setAsDefaultProtocolClient('paperlib')
 }
 
 // Remove electron security warnings
@@ -120,6 +128,10 @@ app.on("activate", () => {
     createWindow();
   }
 });
+
+app.on('open-url', (event, url) => {
+  console.log(url)
+})
 
 ipcMain.on("minimize", () => {
   win?.minimize();

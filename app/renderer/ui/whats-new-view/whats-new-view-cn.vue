@@ -66,17 +66,24 @@ onMounted(() => {
       <div class="w-[45rem] px-3 mx-auto my-20">
         <img class="w-20 mx-auto mb-2" src="../../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.0.2 更新内容
+          Paperlib 2.0.3 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>现在可以配置表格视图下显示哪些列了。</li>
-          <li>
-            增加了元数据搜寻结果缓存，每个成功的搜寻结果（仅公共数据库返回结果）将会对其他用户共享缓存，加快热门文章搜寻的速度。
-          </li>
-          <li>DBLP 搜寻器增加了一个备用 API 地址。</li>
-          <li>修复一个在使用 Onedrive 作为文件夹时候删除文件的 Bug。</li>
-          <li>修复一个 RSS 订阅刷新时的 Bug。</li>
+          <li>为物理学和地球科学增添优化了元数据搜寻器以及预设推荐选择。</li>
+          <ul class="list-disc ml-5 mb-5">
+            <li>Springer Nature</li>
+            <li>Elseivier Scopus</li>
+            <li>NASA Astrophysics Data System</li>
+            <li>SPIE: Inte. Society for Optics and Photonics</li>
+          </ul>
+          <li>一个新的视图，可以直接在 Paperlib 内浏览 PDF。</li>
+          <img src="./1.jpg" />
+          <li>优化了 Crossref 的搜寻速度。</li>
+          <li>优化了 RSS 订阅的解析效果，支持更多格式。</li>
+          <li>优化了 添加附件拖拽时的 UI。</li>
+          <li>一次性导入大量论文时分批次进行，防止超出 API 请求速率限制。</li>
+          <li>编辑界面添加了直接重新搜寻元数据的按钮。</li>
         </ul>
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

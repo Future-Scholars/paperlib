@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
 import {
+  BIconAspectRatio,
   BIconBook,
   BIconCalendar3,
   BIconCheck2,
@@ -105,6 +106,11 @@ const onMaximizeClicked = () => {
           class="my-auto"
           btnName="tableview"
           @click="emit('click', 'table-view')"
+        />
+        <MenuBarBtn
+          class="my-auto"
+          btnName="aspectratio"
+          @click="emit('click', 'tableandpreview-view')"
         />
       </div>
 
@@ -274,7 +280,7 @@ const onMaximizeClicked = () => {
           leave-to-class="transform opacity-0 scale-95"
         >
           <MenuItems
-            class="origin-top-right z-50 absolute right-0 mt-2 w-40 rounded-md shadow-lg p-1 text-xs bg-white dark:bg-neutral-800 dark:drop-shadow-xl divide-y dark:divide-neutral-700 focus:outline-none"
+            class="origin-top-right z-50 absolute right-0 mt-2 w-48 rounded-md shadow-lg p-1 text-xs bg-white dark:bg-neutral-800 dark:drop-shadow-xl divide-y dark:divide-neutral-700 focus:outline-none"
           >
             <div class="pb-1">
               <MenuItem
@@ -300,12 +306,28 @@ const onMaximizeClicked = () => {
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
-                    <BIconGrid3x2 class="my-auto" />
+                    <BIconGrid3x2  class="my-auto" />
                     <span>Table View</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
                     v-if="prefState.mainviewType === 'table'"
+                  />
+                </div>
+              </MenuItem>
+              <MenuItem
+                v-slot="{ active }"
+                class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
+                @click="emit('click', 'tableandpreview-view')"
+              >
+                <div class="flex justify-between px-2">
+                  <div class="flex space-x-2">
+                    <BIconAspectRatio class="my-auto" />
+                    <span>Table and Reader View</span>
+                  </div>
+                  <BIconCheck2
+                    class="my-auto"
+                    v-if="prefState.mainviewType === 'tableandpreview'"
                   />
                 </div>
               </MenuItem>

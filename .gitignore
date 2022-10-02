@@ -24,3 +24,5 @@ dist-ssr
 release
 .vscode/.debug.env
 mongodb-realm
+
+crypto

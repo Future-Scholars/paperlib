@@ -32,7 +32,7 @@ export class PreviewInteractor {
     if (this.pdfWorker) {
       this.pdfWorker.terminate();
     }
-    this.pdfWorker = new Worker("./pdf.worker.min.js");
+    this.pdfWorker = new Worker("./build/pdf.worker.min.js");
     pdfjs.GlobalWorkerOptions.workerPort = this.pdfWorker;
 
     if (this.renderingPage) {

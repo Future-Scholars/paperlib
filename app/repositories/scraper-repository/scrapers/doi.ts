@@ -24,7 +24,6 @@ export class DOIScraper extends Scraper {
     if (enable) {
       this.stateStore.logState.processLog = `Scraping metadata by DOI ...`;
     }
-
     return { scrapeURL, headers, enable };
   }
 
@@ -32,14 +31,18 @@ export class DOIScraper extends Scraper {
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
+    if (rawResponse.body.startsWith("<")) {
+      return paperEntityDraft;
+    }
+
     const response = JSON.parse(rawResponse.body) as {
       title: string;
-      author: { given: string; family: string }[];
+      author: { given?: string; family?: string; name?: string }[];
       published: {
         "date-parts": { "0": string[] };
       };
       type: string;
-      "container-title": string;
+      "container-title": string | string[];
       publisher: string;
       page: string;
       volume: string;
@@ -48,7 +51,11 @@ export class DOIScraper extends Scraper {
     const title = response.title;
     const authors = response.author
       .map((author) => {
-        return author.given.trim() + " " + author.family.trim();
+        if (author.name) {
+          return author.name;
+        } else {
+          return author.given?.trim() + " " + author.family?.trim();
+        }
       })
       .join(", ");
     const pubTime = response.published["date-parts"]["0"][0];
@@ -57,12 +64,23 @@ export class DOIScraper extends Scraper {
       pubType = 1;
     } else if (response.type == "journal-article") {
       pubType = 0;
-    } else if (response.type.includes("book")) {
+    } else if (response.type.includes("book") || response.type.includes("monograph")) {
       pubType = 3;
     } else {
       pubType = 2;
     }
-    const publication = response["container-title"];
+
+    let publication
+    if (response.type.includes('monograph')) {
+      publication = response.publisher.replaceAll('&amp;', '&');
+    } else {
+      publication = response["container-title"];
+      if (Array.isArray(publication)) {
+        publication = publication.join(', ').replaceAll('&amp;', '&');
+      } else {
+        publication = publication.replaceAll('&amp;', '&');
+      }
+    }
 
     paperEntityDraft.setValue("title", title);
     paperEntityDraft.setValue("authors", authors);
@@ -87,7 +105,7 @@ export class DOIScraper extends Scraper {
           : response.publisher
       );
     }
-    this.uploadCache(paperEntityDraft, "crossref");
+    this.uploadCache(paperEntityDraft, "doi");
     return paperEntityDraft;
   }
 }

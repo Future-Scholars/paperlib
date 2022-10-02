@@ -4,15 +4,26 @@ import { PaperEntity } from "@/models/paper-entity";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
+import { DBLPVenueScraper } from "./dblp";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { Preference } from "@/preference/preference";
+import stringSimilarity from "string-similarity";
 
 export class OpenreviewScraper extends Scraper {
+  dblpVenueScraper: DBLPVenueScraper
+
+  constructor(stateStore: MainRendererStateStore, preference: Preference) {
+    super(stateStore, preference);
+    this.dblpVenueScraper = new DBLPVenueScraper(stateStore, preference);
+  }
+
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const enable =
       paperEntityDraft.title !== "" &&
       this.isPreprint(paperEntityDraft) &&
       this.getEnable("openreview");
 
-    const scrapeURL = `https://api.openreview.net/notes/search?term=${paperEntityDraft.title}`;
+    const scrapeURL = `https://api.openreview.net/notes/search?content=all&group=all&limit=10&source=forum&term=${paperEntityDraft.title}&type=terms`
 
     const headers = {
       Accept: "application/json",
@@ -29,7 +40,7 @@ export class OpenreviewScraper extends Scraper {
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const response = (
+    const notes = (
       JSON.parse(rawResponse.body) as {
         notes: {
           content: {
@@ -41,63 +52,106 @@ export class OpenreviewScraper extends Scraper {
           };
         }[];
       }
-    ).notes[0];
+    ).notes;
 
-    const plainHitTitle = formatString({
-      str: response.content.title,
-      removeStr: "&amp",
-      removeSymbol: true,
-      lowercased: true,
-    });
+    for (const note of notes) {
+      const plainHitTitle = formatString({
+        str: note.content.title,
+        removeStr: "&amp",
+        removeSymbol: true,
+        lowercased: true,
+      });
 
-    const existTitle = formatString({
-      str: paperEntityDraft.title,
-      removeStr: "&amp",
-      removeSymbol: true,
-      lowercased: true,
-    });
+      const existTitle = formatString({
+        str: paperEntityDraft.title,
+        removeStr: "&amp",
+        removeSymbol: true,
+        lowercased: true,
+      });
 
-    if (plainHitTitle !== existTitle) {
-      return paperEntityDraft;
+      const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
+      if (sim > 0.95) {
+        const title = note.content.title;
+        const authors = note.content.authors.join(", ");
+
+        paperEntityDraft.setValue("title", title);
+        paperEntityDraft.setValue("authors", authors);
+
+        if (note.content.venue) {
+          if (
+            !note.content.venue.includes("Submitted") &&
+            !note.content.venue.includes("CoRR")
+          ) {
+            let publication
+            if (note.content.venueid.includes("dblp")) {
+              const type = note.content.venueid.includes("conf")
+                ? "conf"
+                : "journals";
+              publication = `dblp://${type}/${note.content.venueid
+                .split("/")[2]
+                .toLowerCase()}`;
+            } else {
+              publication = note.content.venue;
+            }
+
+            const pubTimeReg = note.content.venueid.match(/\d{4}/g);
+            const pubTime = pubTimeReg ? pubTimeReg[0] : "";
+
+            paperEntityDraft.setValue("pubTime", `${pubTime}`);
+            paperEntityDraft.setValue("publication", publication);
+          }
+        } else {
+          if (
+            note.content._bibtex &&
+            note.content._bibtex.includes("year={")
+          ) {
+            const pubTimeReg = note.content._bibtex.match(/year={(\d{4})/);
+            const pubTime = pubTimeReg ? pubTimeReg[1] : "";
+            paperEntityDraft.setValue("pubTime", `${pubTime}`);
+          }
+          paperEntityDraft.setValue("publication", "openreview.net");
+        }
+
+        break;
+      }
     }
 
-    const title = response.content.title;
-    const authors = response.content.authors.join(", ");
+    return paperEntityDraft;
+  }
 
-    if (response.content.venue) {
-      if (
-        !response.content.venue.includes("Submitted") &&
-        !response.content.venue.includes("CoRR")
-      ) {
-        const type = response.content.venueid.includes("Conference")
-          ? "conf"
-          : "journals";
-        const publication = `dblp://${type}/${response.content.venueid
-          .split("/")[0]
-          .split(".")[0]
-          .toLowerCase()}`;
-        const pubTimeReg = response.content.venueid.match(/\d{4}/g);
-        const pubTime = pubTimeReg ? pubTimeReg[0] : "";
+  // @ts-ignore
+  scrapeImpl = scrapeImpl;
+}
 
-        paperEntityDraft.setValue("pubTime", `${pubTime}`);
-        paperEntityDraft.setValue("publication", publication);
-      }
-    } else {
-      if (
-        response.content._bibtex &&
-        response.content._bibtex.includes("year={")
-      ) {
-        const pubTimeReg = response.content._bibtex.match(/year={(\d{4})/);
-        const pubTime = pubTimeReg ? pubTimeReg[1] : "";
-        paperEntityDraft.setValue("pubTime", `${pubTime}`);
-      }
-      paperEntityDraft.setValue("publication", "openreview.net");
+async function scrapeImpl(
+  this: OpenreviewScraper,
+  paperEntityDraft: PaperEntity,
+  force = false
+): Promise<PaperEntity> {
+  const { scrapeURL, headers, enable } = this.preProcess(
+    paperEntityDraft
+  ) as ScraperRequestType;
+
+  if (enable || force) {
+    const response = (await window.networkTool.get(
+      scrapeURL,
+      headers,
+      1,
+      false,
+      5000
+    )) as Response<string>;
+    paperEntityDraft = this.parsingProcess(response, paperEntityDraft);
+
+    if (paperEntityDraft.publication.includes("dblp")) {
+      paperEntityDraft = await this.dblpVenueScraper.scrape(
+        paperEntityDraft,
+      );
     }
 
-    paperEntityDraft.setValue("title", title);
-    paperEntityDraft.setValue("authors", authors);
+    this.uploadCache(paperEntityDraft, 'openreview');
 
-    this.uploadCache(paperEntityDraft, "openreview");
+    return paperEntityDraft;
+  } else {
     return paperEntityDraft;
   }
 }

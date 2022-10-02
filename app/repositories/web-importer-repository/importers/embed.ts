@@ -1,6 +1,7 @@
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { readFileSync } from "fs";
 
 import { WebContentType, WebImporter } from "./importer";
 
@@ -49,7 +50,11 @@ export class EmbedWebImporter extends WebImporter {
             downloadURL,
           ]);
           if (downloadedFilePath.length > 0) {
-            entityDraft.setValue("mainURL", downloadedFilePath[0]);
+
+            const fileContent = readFileSync(downloadedFilePath[0]);
+            if (fileContent.subarray(0, 5).toString() === '%PDF-' && fileContent.subarray(-5).toString() === '%%EOF') {
+              entityDraft.setValue("mainURL", downloadedFilePath[0]);
+            }
           }
         }
       }

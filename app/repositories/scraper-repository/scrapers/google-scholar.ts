@@ -136,6 +136,8 @@ export class GoogleScholarScraper extends Scraper {
       );
       for (const bibtex of bibtexs) {
         paperEntityDraft = bibtex2paperEntityDraft(bibtex, paperEntityDraft);
+
+        this.uploadCache(paperEntityDraft, "googlescholar");
         break;
       }
     }

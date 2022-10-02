@@ -28,5 +28,10 @@
     "!node_modules/realm/scripts${/*}",
     "!node_modules/realm/src${/*}",
     "!node_modules/realm/vendor${/*}",
+    "!node_modules/esbuild${/*}",
+    "!node_modules/esbuild-darwin-64${/*}",
+    "!app",
+    "!assets",
+    "!certificate.p12",
   ],
 }

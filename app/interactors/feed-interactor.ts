@@ -92,7 +92,7 @@ export class FeedInteractor {
   // Create
   // ========================
   async createFeed(feeds: Feed[]) {
-    this.stateStore.logState.infoLog = `Creating ${feeds.length} feeds...`;
+    this.stateStore.logState.processLog = `Creating ${feeds.length} feeds...`;
     this.stateStore.viewState.processingQueueCount += feeds.length;
 
     try {
@@ -103,9 +103,8 @@ export class FeedInteractor {
       );
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Add feeds failed: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Add feeds failed: ${error as string
+        }`;
     }
     this.stateStore.viewState.processingQueueCount -= feeds.length;
   }
@@ -114,7 +113,7 @@ export class FeedInteractor {
   // Update
   // ========================
   async refresh(feedNames: string[]) {
-    this.stateStore.logState.infoLog = `Refreshing ${feedNames.length} feeds...`;
+    this.stateStore.logState.processLog = `Refreshing ${feedNames.length} feeds...`;
     this.stateStore.viewState.processingQueueCount += feedNames.length;
 
     try {
@@ -134,73 +133,72 @@ export class FeedInteractor {
         )
       ).flat();
 
-      let paperEntityDrafts = feedEntityDrafts.map((feedEntityDraft) => {
-        const draft = new PaperEntity(false);
-        draft.fromFeed(feedEntityDraft);
-        return draft;
-      });
 
-      const scrapePromise = async (entityDraft: PaperEntity) => {
-        return await this.scraperRepository.scrape(entityDraft, [
-          "paperlib",
-          "cvf",
-          "dblp",
-          "dblp-by-time-0",
-          "dblp-by-time-1",
-          "dblp-venue",
-          "ieee",
-          "openreview",
-          "pwc",
-          "googlescholar",
-          "semanticscholar",
-          "pdf",
-          "crossref",
-        ]);
-      };
+      // let paperEntityDrafts = feedEntityDrafts.map((feedEntityDraft) => {
+      //   const draft = new PaperEntity(false);
+      //   draft.fromFeed(feedEntityDraft);
+      //   return draft;
+      // });
 
-      // Scrape every 5 papers
-      const n = paperEntityDrafts.length;
+      // const scrapePromise = async (entityDraft: PaperEntity) => {
+      //   return await this.scraperRepository.scrape(entityDraft, [
+      //     "paperlib",
+      //     "cvf",
+      //     "dblp",
+      //     "dblp-by-time-0",
+      //     "dblp-by-time-1",
+      //     "dblp-venue",
+      //     "ieee",
+      //     "openreview",
+      //     "pwc",
+      //     "googlescholar",
+      //     "pdf",
+      //     "crossref",
+      //     "scopus",
+      //   ]);
+      // };
 
-      let scrapedPaperEntityDrafts: PaperEntity[] = [];
-      for (let i = 0; i < n; i += 5) {
-        const paperEntityDraftsChunk = paperEntityDrafts.slice(i, i + 5);
-        const scrapedPaperEntityChunk = await Promise.all(
-          paperEntityDraftsChunk.map((paperEntityDraft) =>
-            scrapePromise(paperEntityDraft)
-          )
-        );
-        scrapedPaperEntityDrafts = scrapedPaperEntityDrafts.concat(
-          scrapedPaperEntityChunk
-        );
-      }
+      // // Scrape every 5 papers
+      // const n = paperEntityDrafts.length;
 
-      for (const i in feedEntityDrafts) {
-        if (scrapedPaperEntityDrafts[i]) {
-          feedEntityDrafts[i].fromPaper(scrapedPaperEntityDrafts[i]);
-        }
-      }
+      // let scrapedPaperEntityDrafts: PaperEntity[] = [];
+      // for (let i = 0; i < n; i += 5) {
+      //   const paperEntityDraftsChunk = paperEntityDrafts.slice(i, i + 5);
+      //   const scrapedPaperEntityChunk = await Promise.all(
+      //     paperEntityDraftsChunk.map((paperEntityDraft) =>
+      //       scrapePromise(paperEntityDraft)
+      //     )
+      //   );
+      //   scrapedPaperEntityDrafts = scrapedPaperEntityDrafts.concat(
+      //     scrapedPaperEntityChunk
+      //   );
+      // }
 
-      await this.dbRepository.updateFeedEntities(feedEntityDrafts);
+      // for (const i in feedEntityDrafts) {
+      //   if (paperEntityDrafts[i]) {
+      //     feedEntityDrafts[i].fromPaper(paperEntityDrafts[i]);
+      //   }
+      // }
+
+      await this.dbRepository.updateFeedEntities(feedEntityDrafts, true);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Refresh feeds failed: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Refresh feeds failed: ${error as string
+        }`;
     }
     this.stateStore.viewState.processingQueueCount -= feedNames.length;
   }
 
   async updateFeeds(feeds: Feed[]) {
-    this.stateStore.logState.infoLog = `Updating ${feeds.length} feeds...`;
+    this.stateStore.logState.processLog = `Updating ${feeds.length} feeds...`;
     this.stateStore.viewState.processingQueueCount += feeds.length;
 
     try {
       await this.dbRepository.updateFeeds(feeds);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Updating feeds failed: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Updating feeds failed: ${error as string
+        }`;
     }
     this.stateStore.viewState.processingQueueCount -= feeds.length;
   }
@@ -217,22 +215,21 @@ export class FeedInteractor {
   }
 
   async updateFeedEntities(feedEntities: FeedEntity[]) {
-    this.stateStore.logState.infoLog = `Updating ${feedEntities.length} feed entities...`;
+    this.stateStore.logState.processLog = `Updating ${feedEntities.length} feed entities...`;
     this.stateStore.viewState.processingQueueCount += feedEntities.length;
 
     try {
       await this.dbRepository.updateFeedEntities(feedEntities);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Updating feed entities failed: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Updating feed entities failed: ${error as string
+        }`;
     }
     this.stateStore.viewState.processingQueueCount -= feedEntities.length;
   }
 
   async addToLib(feedEntities: FeedEntity[]) {
-    this.stateStore.logState.infoLog = `Adding ${feedEntities.length} feed entities to library...`;
+    this.stateStore.logState.processLog = `Adding ${feedEntities.length} feed entities to library...`;
     this.stateStore.viewState.processingQueueCount += feedEntities.length;
 
     try {
@@ -250,9 +247,8 @@ export class FeedInteractor {
       await this.dbRepository.updatePaperEntities(paperEntityDrafts);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Adding to library failed: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Adding to library failed: ${error as string
+        }`;
     }
     this.stateStore.viewState.processingQueueCount -= feedEntities.length;
   }
@@ -284,9 +280,8 @@ export class FeedInteractor {
       await this.dbRepository.deleteOutdatedFeedEntities();
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Routine feed refreshing failed: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Routine feed refreshing failed: ${error as string
+        }`;
     }
     this.stateStore.viewState.processingQueueCount -= 1;
   }

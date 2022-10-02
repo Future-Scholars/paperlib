@@ -37,6 +37,12 @@ const categoryColor = (category: string) => {
       return "text-blue-600";
     case "ee":
       return "text-blue-400";
+    case "es":
+      return "text-gray-500";
+    case "phys":
+      return "text-blue-900";
+    case "astron / phys":
+      return "text-blue-900";
     case "official":
       return "text-red-700";
     default:
@@ -128,6 +134,29 @@ const presets = {
     "googlescholar",
     "pwc",
   ],
+  es: [
+    "pdf",
+    "paperlib",
+    "doi",
+    "semanticscholar",
+    "scopus",
+    "springer",
+    "crossref",
+    "googlescholar",
+  ],
+  phys: [
+    "pdf",
+    "paperlib",
+    "arxiv",
+    "doi",
+    "semanticscholar",
+    "adsabs",
+    "springer",
+    "scopus",
+    "spie",
+    "crossref",
+    "googlescholar",
+  ],
   default: [
     "pdf",
     "paperlib",
@@ -139,11 +168,11 @@ const presets = {
   ],
 };
 
-const onChangePreset = (preset: "cs" | "default") => {
+const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
   let scraperPrefs = prefState.scrapers;
   for (const [name, scraper] of Object.entries(scraperPrefs)) {
     scraper.enable = presets[preset].includes(name);
-    scraper.priority = 1000 - preset.indexOf(name);
+    scraper.priority = 1000 - presets[preset].indexOf(name);
   }
   window.appInteractor.setPreference("scrapers", scraperPrefs);
   viewState.scraperReinited = Date.now();
@@ -199,6 +228,8 @@ onMounted(() => {
         >
           <option value="default">Default</option>
           <option value="cs">Computer Science</option>
+          <option value="es">Earth Science</option>
+          <option value="phys">Physics</option>
         </select>
       </div>
     </div>

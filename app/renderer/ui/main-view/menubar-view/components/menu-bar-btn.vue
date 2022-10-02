@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   BIconArrowCounterclockwise,
+  BIconAspectRatio,
   BIconFlag,
   BIconGear,
   BIconGrid3x2,
@@ -34,6 +35,7 @@ const btnIcons: Record<string, any> = {
   listview: BIconListUl,
   tableview: BIconGrid3x2,
   preference: BIconGear,
+  aspectratio: BIconAspectRatio,
 };
 </script>
 
