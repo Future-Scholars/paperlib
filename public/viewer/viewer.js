@@ -3918,6 +3918,7 @@
         let file;
         const queryString = document.location.search.substring(1);
         const params = (0, _ui_utils.parseQueryString)(queryString);
+
         file = params.get("file") ?? _app_options.AppOptions.get("defaultUrl");
         validateFileURL(file);
         const fileInput = appConfig.openFileInput;
@@ -3992,6 +3993,12 @@
         try {
           if (file) {
             PDFViewerApplication.open(file);
+            if (params.get("search")) {
+              PDFViewerApplication.findBar.toggle();
+              PDFViewerApplication.findBar.findField.value =
+                params.get("search");
+              PDFViewerApplication.findBar.dispatchEvent("");
+            }
           } else {
             PDFViewerApplication._hideViewBookmark();
           }

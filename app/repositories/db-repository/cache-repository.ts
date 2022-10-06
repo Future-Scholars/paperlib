@@ -162,7 +162,11 @@ export class CacheRepository {
   // ========================
   async fullTextFilter(query: string, paperEntities: PaperEntityResults) {
     // First check if all the paper entities are already cached.
-    await this.createFullText(paperEntities);
+    try {
+      await this.createFullText(paperEntities);
+    } catch (err) {
+      console.error(err);
+    }
 
     const realm = await this.realm();
 
@@ -230,20 +234,24 @@ export class CacheRepository {
     }
 
     const createPromise = async (paperEntity: PaperEntity) => {
-      const fulltext = await this.getPDFText(paperEntity.mainURL);
-      const md5String = await md5(
-        (
-          await window.appInteractor.access(paperEntity.mainURL, false)
-        ).replace("file://", "")
-      );
-      realm.safeWrite(() => {
-        realm.create<PaperEntityCache>("PaperEntityCache", {
-          _id: new ObjectId(paperEntity._id),
-          _partition: "",
-          fulltext: fulltext,
-          md5: md5String,
+      try {
+        const fulltext = await this.getPDFText(paperEntity.mainURL);
+        const md5String = await md5(
+          (
+            await window.appInteractor.access(paperEntity.mainURL, false)
+          ).replace("file://", "")
+        );
+        realm.safeWrite(() => {
+          realm.create<PaperEntityCache>("PaperEntityCache", {
+            _id: new ObjectId(paperEntity._id),
+            _partition: "",
+            fulltext: fulltext,
+            md5: md5String,
+          });
         });
-      });
+      } catch (err) {
+        console.error(err);
+      }
     };
     await Promise.all(noCachePaperEntities.map((p) => createPromise(p)));
   }

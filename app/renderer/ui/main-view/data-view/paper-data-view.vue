@@ -15,6 +15,7 @@ import TableTitle from "./components/table-title.vue";
 // ================================
 // State
 // ================================
+const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
 const prefState = MainRendererStateStore.usePreferenceState();
 
@@ -93,7 +94,12 @@ const accessMainFile = async (index: number) => {
   const paperEntity = paperEntities?.value[index];
   if (paperEntity) {
     const url = await window.appInteractor.access(paperEntity!.mainURL, false);
-    showingUrl.value = `./viewer/viewer.html?file=${url}`;
+
+    if (viewState.searchMode === "fulltext" && viewState.searchText !== "") {
+      showingUrl.value = `./viewer/viewer.html?file=${url}&search=${viewState.searchText}`;
+    } else {
+      showingUrl.value = `./viewer/viewer.html?file=${url}`;
+    }
   } else {
     showingUrl.value = "";
   }

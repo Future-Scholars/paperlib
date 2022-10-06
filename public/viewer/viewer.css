@@ -1754,8 +1754,6 @@ select {
 }
 
 #findResultsCount {
-  background-color: rgba(217, 217, 217, 1);
-  color: rgba(82, 82, 82, 1);
   text-align: center;
   padding: 4px 5px;
   margin: 5px;
