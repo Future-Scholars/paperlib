@@ -68,7 +68,8 @@ export class Scraper implements ScraperType {
     return (
       !paperEntityDraft.publication ||
       paperEntityDraft.publication.toLowerCase().includes("rxiv") ||
-      paperEntityDraft.publication.toLowerCase().includes("openreview")
+      paperEntityDraft.publication.toLowerCase().includes("openreview") ||
+      paperEntityDraft.publication.includes("CoRR")
     );
   }
 
