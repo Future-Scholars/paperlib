@@ -1253,63 +1253,6 @@ select {
   position: relative;
 }
 
-[dir="ltr"] #sidebarContainer {
-  left: calc(-1 * var(--sidebar-width));
-}
-
-[dir="rtl"] #sidebarContainer {
-  right: calc(-1 * var(--sidebar-width));
-}
-
-[dir="ltr"] #sidebarContainer {
-  border-right: var(--doorhanger-border-color-whcm);
-}
-
-[dir="rtl"] #sidebarContainer {
-  border-left: var(--doorhanger-border-color-whcm);
-}
-
-[dir="ltr"] #sidebarContainer {
-  transition-property: left;
-}
-
-[dir="rtl"] #sidebarContainer {
-  transition-property: right;
-}
-
-#sidebarContainer {
-  position: absolute;
-  top: 32px;
-  bottom: 0;
-  inset-inline-start: calc(-1 * var(--sidebar-width));
-  width: var(--sidebar-width);
-  visibility: hidden;
-  z-index: 100;
-  border-top: 1px solid rgba(51, 51, 51, 1);
-  -webkit-border-end: var(--doorhanger-border-color-whcm);
-  border-inline-end: var(--doorhanger-border-color-whcm);
-  transition-property: inset-inline-start;
-  transition-duration: var(--sidebar-transition-duration);
-  transition-timing-function: var(--sidebar-transition-timing-function);
-}
-
-#outerContainer.sidebarMoving #sidebarContainer,
-#outerContainer.sidebarOpen #sidebarContainer {
-  visibility: visible;
-}
-
-[dir="ltr"] #outerContainer.sidebarOpen #sidebarContainer {
-  left: 0;
-}
-
-[dir="rtl"] #outerContainer.sidebarOpen #sidebarContainer {
-  right: 0;
-}
-
-#outerContainer.sidebarOpen #sidebarContainer {
-  inset-inline-start: 0;
-}
-
 #mainContainer {
   position: absolute;
   top: 0;
@@ -1351,27 +1294,6 @@ select {
 #viewerContainer:not(.pdfPresentationMode) {
   transition-duration: var(--sidebar-transition-duration);
   transition-timing-function: var(--sidebar-transition-timing-function);
-}
-
-[dir="ltr"] #outerContainer.sidebarOpen #viewerContainer:not(.pdfPresentationMode) {
-  left: var(--sidebar-width);
-}
-
-[dir="rtl"] #outerContainer.sidebarOpen #viewerContainer:not(.pdfPresentationMode) {
-  right: var(--sidebar-width);
-}
-
-[dir="ltr"] #outerContainer.sidebarOpen #viewerContainer:not(.pdfPresentationMode) {
-  transition-property: left;
-}
-
-[dir="rtl"] #outerContainer.sidebarOpen #viewerContainer:not(.pdfPresentationMode) {
-  transition-property: right;
-}
-
-#outerContainer.sidebarOpen #viewerContainer:not(.pdfPresentationMode) {
-  inset-inline-start: var(--sidebar-width);
-  transition-property: inset-inline-start;
 }
 
 .toolbar {
@@ -1454,18 +1376,6 @@ select {
   transition-property: inset-inline-start;
   transition-duration: var(--sidebar-transition-duration);
   transition-timing-function: var(--sidebar-transition-timing-function);
-}
-
-[dir="ltr"] #outerContainer.sidebarOpen #loadingBar {
-  left: var(--sidebar-width);
-}
-
-[dir="rtl"] #outerContainer.sidebarOpen #loadingBar {
-  right: var(--sidebar-width);
-}
-
-#outerContainer.sidebarOpen #loadingBar {
-  inset-inline-start: var(--sidebar-width);
 }
 
 #loadingBar .progress {
@@ -2943,24 +2853,6 @@ dialog :link {
     left: auto;
     position: inherit;
     transform: none;
-  }
-}
-
-@media all and (max-width: 840px) {
-  #sidebarContainer {
-    background-color: var(--sidebar-narrow-bg-color);
-  }
-
-  [dir="ltr"] #outerContainer.sidebarOpen #viewerContainer {
-    left: 0 !important;
-  }
-
-  [dir="rtl"] #outerContainer.sidebarOpen #viewerContainer {
-    right: 0 !important;
-  }
-
-  #outerContainer.sidebarOpen #viewerContainer {
-    inset-inline-start: 0 !important;
   }
 }
 
