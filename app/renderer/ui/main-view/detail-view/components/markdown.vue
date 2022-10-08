@@ -21,43 +21,41 @@ const renderedHTML = ref("");
 const isExpanded = ref(false);
 const isOverflow = ref(true);
 
-const render = async () => {
+const render = async (renderFull = false) => {
   let rendered = false;
 
   if (props.content) {
-    renderedHTML.value = await window.renderInteractor.renderMarkdown(
-      props.content.slice(4) || ""
-    );
+    const { renderedStr, overflow } =
+      await window.renderInteractor.renderMarkdown(
+        props.content.slice(4) || "",
+        renderFull
+      );
+    renderedHTML.value = renderedStr;
     rendered = true;
+    isOverflow.value = overflow;
   } else {
     for (const url of props.sups || []) {
       if (url.endsWith(".md") || url.endsWith(".markdown")) {
-        const mdURL = await window.appInteractor.access(url, false);
-        renderedHTML.value = await window.renderInteractor.renderMarkdownFile(
-          mdURL
-        );
+        const mdURL = await window.appInteractor.access(url, true);
+        const { renderedStr, overflow } =
+          await window.renderInteractor.renderMarkdownFile(mdURL, renderFull);
+        renderedHTML.value = renderedStr;
         rendered = true;
+        isOverflow.value = overflow;
       }
     }
   }
   if (!rendered) {
     renderedHTML.value = "";
+    isOverflow.value = false;
   }
-
-  nextTick(() => {
-    isOverflow.value = renderedHTML.value.length > 0;
-    checkOverflow();
-  });
 };
 
 const markdownArea = ref();
-const checkOverflow = () => {
-  const el = markdownArea.value;
-  if (el) {
-    const height = el.offsetHeight;
-    const scrollHeight = el.scrollHeight;
-    isOverflow.value = height < scrollHeight;
-  }
+
+const onExpandClicked = async () => {
+  await render(!isExpanded.value);
+  isExpanded.value = !isExpanded.value;
 };
 
 onMounted(() => {
@@ -80,14 +78,7 @@ watch(props, (props, prevProps) => {
 
       <div
         class="invisible group-hover:visible hover:bg-neutral-300 hover:dark:bg-neutral-700 hover:drop-shadow-sm rounded-md p-1 cursor-pointer my-auto"
-        @click="
-          () => {
-            isExpanded = !isExpanded;
-            $nextTick(() => {
-              checkOverflow();
-            });
-          }
-        "
+        @click="onExpandClicked"
       >
         <BIconArrowsExpand
           class="text-xxs text-neutral-400 dark:text-neutral-500"

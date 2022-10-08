@@ -89,9 +89,6 @@ export class MainRendererStateStore extends RendererStateStore {
         //
         inputFieldFocused: false,
 
-        // Sidebar
-        sidebarWidth: 20,
-
         // Update Signal
         realmReiniting: 0,
         realmReinited: 0,

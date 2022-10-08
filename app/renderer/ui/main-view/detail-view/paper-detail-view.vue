@@ -187,7 +187,7 @@ onMounted(() => {
 <template>
   <div
     id="detail-view"
-    class="flex-none flex flex-col w-80 max-h-[calc(100vh-3rem)] pl-4 pr-2 pb-4 overflow-auto"
+    class="flex-none flex flex-col max-h-[calc(100vh-3rem)] pl-4 pr-2 pb-4 overflow-auto"
     @dragenter="onDragEnter"
     @dragleave="onDragLeave"
   >

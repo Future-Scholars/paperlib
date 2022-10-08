@@ -92,6 +92,7 @@ export interface PreferenceStore {
   shortcutCopyKey: string;
 
   sidebarWidth: number;
+  detailPanelWidth: number;
   mainviewSortBy: string;
   mainviewSortOrder: string;
   mainviewType: string;
@@ -169,6 +170,7 @@ export const defaultPreferences: PreferenceStore = {
   shortcutCopyKey: "CommandOrControl+Shift+K",
 
   sidebarWidth: 20,
+  detailPanelWidth: 75,
   mainviewSortBy: "addTime",
   mainviewSortOrder: "desc",
   mainviewType: "list",

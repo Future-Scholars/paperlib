@@ -74,9 +74,11 @@ onMounted(() => {
             Fulltext search mode: the highlights of the search results will be
             displayed in the PDF preview view.
           </li>
+          <li>Adjustable width of the detail panel.</li>
           <li>Better rules for preprint papers.</li>
-          <li>Fix a bug in the PDF preview view.</li>
-          <li>Fix a compatibility issue in MacOS Catalina.</li>
+          <li>Fixed a bug in the PDF preview view.</li>
+          <li>Fixed a bug in the markdown preview.</li>
+          <li>Fixed a compatibility issue in MacOS Catalina.</li>
         </ul>
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

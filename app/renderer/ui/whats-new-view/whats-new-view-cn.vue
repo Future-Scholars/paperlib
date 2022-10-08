@@ -71,8 +71,10 @@ onMounted(() => {
 
         <ul class="list-disc mb-5">
           <li>全文搜索的高亮结果可以显示在 PDF 预览视图下。</li>
+          <li>可调整详情面板的宽度。</li>
           <li>优化了对于预印本论文的判断规则。</li>
           <li>修复了内置 PDF 浏览视图下可能出现的遮挡 Bug。</li>
+          <li>修复了 Markdown 渲染超出视图，以及无法渲然 HTML 图片的 Bug。</li>
           <li>修复了 MacOS Catalina 的兼容性 Bug。</li>
         </ul>
         <div

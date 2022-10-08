@@ -34,8 +34,6 @@ export interface ViewState {
 
   inputFieldFocused: boolean;
 
-  sidebarWidth: number;
-
   realmReiniting: number;
   realmReinited: number;
   scraperReinited: number;

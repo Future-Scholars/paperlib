@@ -118,27 +118,33 @@ export class RenderInteractor {
     };
   }
 
-  async renderMarkdown(content: string) {
+  async renderMarkdown(content: string, renderFull = false) {
     try {
-      return this.markdownIt.render(content);
+      let renderContent;
+      let overflow;
+      if (!renderFull) {
+        const lines = content.split("\n");
+        const renderLines = lines.slice(0, 10)
+        overflow = lines.length > 10;
+        renderContent = renderLines.join("\n");
+      } else {
+        overflow = false;
+        renderContent = content;
+      }
+      return { renderedStr: this.markdownIt.render(renderContent), overflow: overflow };
     } catch (e) {
       console.error(e);
-      return "";
+      return { renderedStr: "", overflow: false };
     }
   }
 
-  async renderMarkdownFile(url: string) {
-    // Read content from file
-    try {
-      const content = await fsPromise.readFile(
-        url.replace("file://", ""),
-        "utf8"
-      );
-      return this.markdownIt.render(content);
-    } catch (e) {
-      console.error(e);
-      return "";
-    }
+  async renderMarkdownFile(url: string, renderFull = false) {
+    const content = await fsPromise.readFile(
+      url.replace("file://", ""),
+      "utf8"
+    );
+
+    return await this.renderMarkdown(content, renderFull);
   }
 
   async renderMath(content: string) {

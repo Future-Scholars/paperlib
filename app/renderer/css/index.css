@@ -138,3 +138,17 @@ ol {
   margin-top: 15px;
   margin-bottom: 15px;
 }
+
+
+#main-view .splitpanes--vertical>.splitpanes__splitter {
+  min-width: 4px !important;
+  border-right: 1px solid rgb(229 229 229);
+}
+
+@media (prefers-color-scheme: dark) {
+  #main-view .splitpanes--vertical>.splitpanes__splitter {
+    border-right: 1px solid rgb(64, 64, 64);
+  }
+}
+
+.splitpanes .splitpanes__pane {transition: none !important;}
