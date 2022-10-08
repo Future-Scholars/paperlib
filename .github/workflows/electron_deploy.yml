@@ -201,7 +201,7 @@ jobs:
           node-version: ${{ matrix.node-versions }}
 
       - name: 'Install Node Module'
-        run: npm install --force
+        run: cp ./package.win.temp.json ./package.json && npm install --force
 
       - name: 'Build and Package'
         run: npm run build
