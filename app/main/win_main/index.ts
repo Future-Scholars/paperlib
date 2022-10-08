@@ -101,6 +101,7 @@ function setWindowsSpecificStyles(win: BrowserWindow | null) {
 }
 ::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-corner {
