@@ -287,7 +287,9 @@ onMounted(() => {
         @dragenter="onDragEnter($event, 'main-file-drag-area')"
         @dragleave="onDragLeave($event, 'main-file-drag-area')"
       >
-        <span class="m-auto select-none pointer-events-none">{{ $t('menu.replace') }}</span>
+        <span class="m-auto select-none pointer-events-none">{{
+          $t("menu.replace")
+        }}</span>
       </div>
       <div
         id="sup-file-drag-area"
@@ -300,9 +302,9 @@ onMounted(() => {
         @dragenter="onDragEnter($event, 'sup-file-drag-area')"
         @dragleave="onDragLeave($event, 'sup-file-drag-area')"
       >
-        <span class="m-auto select-none pointer-events-none"
-          >{{ $t('menu.addsup') }}</span
-        >
+        <span class="m-auto select-none pointer-events-none">{{
+          $t("menu.addsup")
+        }}</span>
       </div>
     </div>
   </div>

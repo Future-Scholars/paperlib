@@ -133,3 +133,8 @@ ol {
 #detail-markdown-preview a {
   text-decoration: underline;
 }
+
+#detail-markdown-preview img {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}

@@ -31,7 +31,7 @@ export class RenderInteractor {
     this.renderingPDF = null;
     this.createPDFWorker();
 
-    this.markdownIt = new MarkdownIt().use(tm, {
+    this.markdownIt = new MarkdownIt({ html: true }).use(tm, {
       engine: require("katex"),
       delimiters: "dollars",
       katexOptions: { macros: { "\\RR": "\\mathbb{R}" } },
