@@ -110,6 +110,9 @@ const reloadSelectedEntities = () => {
 
 const clearSelected = () => {
   selectionState.selectedIndex = [];
+  selectionState.selectedIds = [];
+  selectedFeedEntities.value = [];
+  selectedPaperEntities.value = [];
 };
 
 const scrapeSelectedEntities = () => {
@@ -484,36 +487,36 @@ watch(
       :disableSingleBtn="selectionState.selectedIndex.length !== 1"
       :disableMultiBtn="selectionState.selectedIndex.length === 0"
     />
-    <div id="main-view">
+    <div id="main-view" class="h-full w-full">
       <splitpanes @resized="onDetailPanelResized($event)">
         <pane
           :key="1"
           :size="
-            selectedPaperEntities.length === 1
+            selectedPaperEntities.length === 1 ||
+            selectedFeedEntities.length === 1
               ? prefState.detailPanelWidth
               : 100
           "
         >
-          <PaperDataView v-if="viewState.contentType === 'library'" />
+          <PaperDataView
+            v-if="viewState.contentType === 'library'"
+            class="h-full w-full"
+          />
 
-          <FeedDataView v-if="viewState.contentType === 'feed'" />
+          <FeedDataView
+            v-if="viewState.contentType === 'feed'"
+            class="h-full w-full"
+          />
         </pane>
         <pane
           :key="2"
           :size="
-            selectedPaperEntities.length === 1
+            selectedPaperEntities.length === 1 ||
+            selectedFeedEntities.length === 1
               ? 100 - prefState.detailPanelWidth
               : 0
           "
         >
-          <!-- <Transition
-            enter-active-class="transition ease-out duration-75"
-            enter-from-class="transform opacity-0"
-            enter-to-class="transform opacity-100"
-            leave-active-class="transition ease-in duration-75"
-            leave-from-class="transform opacity-100"
-            leave-to-class="transform opacity-0"
-          > -->
           <PaperDetailView
             :entity="
               selectedPaperEntities.length === 1
@@ -523,16 +526,7 @@ watch(
             v-show="selectionState.selectedIndex.length === 1"
             v-if="viewState.contentType === 'library'"
           />
-          <!-- </Transition>
 
-          <Transition
-            enter-active-class="transition ease-out duration-75"
-            enter-from-class="transform opacity-0"
-            enter-to-class="transform opacity-100"
-            leave-active-class="transition ease-in duration-75"
-            leave-from-class="transform opacity-100"
-            leave-to-class="transform opacity-0"
-          > -->
           <FeedDetailView
             :entity="
               selectedFeedEntities.length === 1
@@ -545,7 +539,6 @@ watch(
             @read-timeout="readSelectedFeedEntities(true)"
             @read-timeout-in-unread="readSelectedFeedEntities(true, true)"
           />
-          <!-- </Transition> -->
         </pane>
       </splitpanes>
     </div>

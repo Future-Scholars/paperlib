@@ -141,7 +141,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="data-view" class="grow pl-2">
+  <div id="data-view" class="pl-2">
     <RecycleScroller
       class="scroller pr-2 max-h-[calc(100vh-3rem)]"
       :items="paperEntities"
