@@ -1,3 +1,12 @@
+# v2.0.4 Oct 08 2022
+
+1. Fulltext search mode: the highlights of the search results will be displayed in the PDF preview view.
+2. Adjustable width of the detail panel.
+3. Better rules for preprint papers.
+4. Fixed a bug in the PDF preview view.
+5. Fixed a bug in the markdown preview.
+6. Fixed a compatibility issue in MacOS Catalina.
+
 ## v2.0.3 Oct 02 2022
 
 1. Added some new metadata scrapers for Physics and Earth Science. Also provide a recommended presetting. Springer Nature, Elseivier Scopus, NASA Astrophysics Data System, SPIE: Inte. Society for Optics and Photonics
