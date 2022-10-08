@@ -187,98 +187,93 @@ onMounted(() => {
 <template>
   <div
     id="detail-view"
-    class="flex-none flex flex-col w-80 max-h-[calc(100vh-3rem)] pl-4 pr-2 pb-4 overflow-auto"
+    class="flex-none flex flex-col h-[calc(100vh-3rem)] pl-4 pr-2 pb-4"
     @dragenter="onDragEnter"
     @dragleave="onDragLeave"
   >
-    <div class="text-md font-bold" v-html="reanderedTitle"></div>
-    <Section :title="$t('mainview.authors')">
-      <Authors :authors="entity.authors" />
-    </Section>
-    <PubDetails
-      :publication="entity.publication"
-      :volume="entity.volume"
-      :pages="entity.pages"
-      :number="entity.number"
-      :publisher="entity.publisher"
-    />
-    <Section :title="$t('mainview.publicationyear')">
-      <div class="text-xxs">
-        {{ entity.pubTime }}
-      </div>
-    </Section>
-    <Section :title="$t('mainview.tags')" v-if="entity.tags.length > 0">
-      <Categorizers
-        :categorizers="entity.tags"
-        categorizerType="PaperTag"
-        @delete-categorizer="
-          (categorizer) => onDeleteCategorizer(categorizer, 'PaperTag')
-        "
+    <div class="flex flex-col grow overflow-auto">
+      <div class="text-md font-bold" v-html="reanderedTitle"></div>
+      <Section :title="$t('mainview.authors')">
+        <Authors :authors="entity.authors" />
+      </Section>
+      <PubDetails
+        :publication="entity.publication"
+        :volume="entity.volume"
+        :pages="entity.pages"
+        :number="entity.number"
+        :publisher="entity.publisher"
       />
-    </Section>
-    <Section :title="$t('mainview.folders')" v-if="entity.folders.length > 0">
-      <Categorizers
-        :categorizers="entity.folders"
-        categorizerType="PaperFolder"
-        @delete-categorizer="
-          (categorizer) => onDeleteCategorizer(categorizer, 'PaperFolder')
-        "
+      <Section :title="$t('mainview.publicationyear')">
+        <div class="text-xxs">
+          {{ entity.pubTime }}
+        </div>
+      </Section>
+      <Section :title="$t('mainview.tags')" v-if="entity.tags.length > 0">
+        <Categorizers
+          :categorizers="entity.tags"
+          categorizerType="PaperTag"
+          @delete-categorizer="
+            (categorizer) => onDeleteCategorizer(categorizer, 'PaperTag')
+          "
+        />
+      </Section>
+      <Section :title="$t('mainview.folders')" v-if="entity.folders.length > 0">
+        <Categorizers
+          :categorizers="entity.folders"
+          categorizerType="PaperFolder"
+          @delete-categorizer="
+            (categorizer) => onDeleteCategorizer(categorizer, 'PaperFolder')
+          "
+        />
+      </Section>
+      <Section :title="$t('mainview.addtime')">
+        <div class="text-xxs">
+          {{ entity.addTime.toLocaleString() }}
+        </div>
+      </Section>
+      <Section :title="$t('mainview.rating')">
+        <Rating :rating="entity.rating" @changed="onRatingChanged" />
+      </Section>
+      <Section :title="$t('mainview.preview')">
+        <Thumbnail
+          :entity="entity"
+          @modify-main-file="(value) => modifyMainFile(value)"
+          @locate-main-file="locateMainFile"
+        />
+      </Section>
+      <Section
+        :title="$t('mainview.note')"
+        v-if="entity.note.length > 0 && !entity.note.startsWith('<md>')"
+      >
+        <div class="text-xxs">
+          {{ entity.note }}
+        </div>
+      </Section>
+      <Markdown
+        :title="$t('mainview.note')"
+        v-if="entity.note.length > 0 && entity.note.startsWith('<md>')"
+        :content="entity.note"
       />
-    </Section>
-    <Section :title="$t('mainview.addtime')">
-      <div class="text-xxs">
-        {{ entity.addTime.toLocaleString() }}
-      </div>
-    </Section>
-    <Section :title="$t('mainview.rating')">
-      <Rating :rating="entity.rating" @changed="onRatingChanged" />
-    </Section>
-    <Section :title="$t('mainview.preview')">
-      <Thumbnail
-        :entity="entity"
-        @modify-main-file="(value) => modifyMainFile(value)"
-        @locate-main-file="locateMainFile"
-      />
-    </Section>
-    <Section
-      :title="$t('mainview.note')"
-      v-if="entity.note.length > 0 && !entity.note.startsWith('<md>')"
-    >
-      <div class="text-xxs">
-        {{ entity.note }}
-      </div>
-    </Section>
-    <Markdown
-      :title="$t('mainview.note')"
-      v-if="entity.note.length > 0 && entity.note.startsWith('<md>')"
-      :content="entity.note"
-    />
-    <Section :title="$t('mainview.codes')" v-if="entity.codes.length > 0">
-      <Code :codes="entity.codes" />
-    </Section>
-    <Section
-      :title="$t('mainview.supplementaries')"
-      v-if="entity.supURLs.length > 0"
-    >
-      <Supplementary :sups="entity.supURLs" />
-    </Section>
-    <Markdown :title="'Markdown'" :sups="entity.supURLs" />
-    <div class="w-40 h-10">&nbsp;</div>
-    <div
-      class="fixed bottom-0 w-80 h-10 bg-gradient-to-t from-white dark:from-neutral-800"
-    ></div>
+      <Section :title="$t('mainview.codes')" v-if="entity.codes.length > 0">
+        <Code :codes="entity.codes" />
+      </Section>
+      <Section
+        :title="$t('mainview.supplementaries')"
+        v-if="entity.supURLs.length > 0"
+      >
+        <Supplementary :sups="entity.supURLs" />
+      </Section>
+      <Markdown :title="'Markdown'" :sups="entity.supURLs" />
+    </div>
 
     <div
       id="drag-area"
-      class="fixed bottom-0 w-80 h-24 flex space-x-2 pr-8 pb-5 text-xs text-neutral-400 bg-white dark:bg-neutral-800 pt-5 transition-all duration-150"
-      :class="
-        `opacity-${dragAreaOpacity}` +
-        (dragAreaOpacity > 0 ? '' : ' pointer-events-none')
-      "
+      class="h-16 flex-none flex space-x-2 text-xs text-neutral-400 bg-white dark:bg-neutral-800 pt-3 transition-all duration-150"
+      v-show="dragAreaOpacity > 0"
     >
       <div
         id="main-file-drag-area"
-        class="w-1/2 h-full border-[1px] border-neutral-400 dark:border-neutral-500 rounded-lg flex"
+        class="w-1/2 h-full border-[1px] border-neutral-400 dark:border-neutral-500 rounded-lg flex p-2 overflow-hidden"
         :class="
           mainFileDragAreaHovered
             ? 'border-solid border-neutral-500 text-neutral-500 dark:border-neutral-400 dark:text-neutral-300'
@@ -287,11 +282,13 @@ onMounted(() => {
         @dragenter="onDragEnter($event, 'main-file-drag-area')"
         @dragleave="onDragLeave($event, 'main-file-drag-area')"
       >
-        <span class="m-auto select-none pointer-events-none">{{ $t('menu.replace') }}</span>
+        <span class="m-auto select-none pointer-events-none">{{
+          $t("menu.replace")
+        }}</span>
       </div>
       <div
         id="sup-file-drag-area"
-        class="w-1/2 h-full border-[1px] border-neutral-400 dark:border-neutral-500 rounded-lg flex"
+        class="w-1/2 h-full border-[1px] border-neutral-400 dark:border-neutral-500 rounded-lg flex p-2 overflow-hidden"
         :class="
           supFileDragAreaHovered
             ? 'border-solid border-neutral-500 text-neutral-500 dark:border-neutral-400 dark:text-neutral-300'
@@ -300,9 +297,9 @@ onMounted(() => {
         @dragenter="onDragEnter($event, 'sup-file-drag-area')"
         @dragleave="onDragLeave($event, 'sup-file-drag-area')"
       >
-        <span class="m-auto select-none pointer-events-none"
-          >{{ $t('menu.addsup') }}</span
-        >
+        <span class="m-auto select-none pointer-events-none">{{
+          $t("menu.addsup")
+        }}</span>
       </div>
     </div>
   </div>

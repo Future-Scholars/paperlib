@@ -66,24 +66,16 @@ onMounted(() => {
       <div class="w-[45rem] px-3 mx-auto my-20">
         <img class="w-20 mx-auto mb-2" src="../../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.0.3 更新内容
+          Paperlib 2.0.4 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>为物理学和地球科学增添优化了元数据搜寻器以及预设推荐选择。</li>
-          <ul class="list-disc ml-5 mb-5">
-            <li>Springer Nature</li>
-            <li>Elseivier Scopus</li>
-            <li>NASA Astrophysics Data System</li>
-            <li>SPIE: Inte. Society for Optics and Photonics</li>
-          </ul>
-          <li>一个新的视图，可以直接在 Paperlib 内浏览 PDF。</li>
-          <img src="./1.jpg" />
-          <li>优化了 Crossref 的搜寻速度。</li>
-          <li>优化了 RSS 订阅的解析效果，支持更多格式。</li>
-          <li>优化了 添加附件拖拽时的 UI。</li>
-          <li>一次性导入大量论文时分批次进行，防止超出 API 请求速率限制。</li>
-          <li>编辑界面添加了直接重新搜寻元数据的按钮。</li>
+          <li>全文搜索的高亮结果可以显示在 PDF 预览视图下。</li>
+          <li>可调整详情面板的宽度。</li>
+          <li>优化了对于预印本论文的判断规则。</li>
+          <li>修复了内置 PDF 浏览视图下可能出现的遮挡 Bug。</li>
+          <li>修复了 Markdown 渲染超出视图，以及无法渲然 HTML 图片的 Bug。</li>
+          <li>修复了 MacOS Catalina 的兼容性 Bug。</li>
         </ul>
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

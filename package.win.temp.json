@@ -55,7 +55,7 @@
     "md5-file": "5.0.0",
     "node-html-parser": "5.3.3",
     "pinia": "2.0.21",
-    "realm": "10.21.1",
+    "realm": "10.20.0",
     "splitpanes": "3.1.1",
     "string-similarity": "4.0.4",
     "toad-scheduler": "1.6.0",

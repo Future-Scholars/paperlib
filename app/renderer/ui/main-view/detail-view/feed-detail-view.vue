@@ -90,7 +90,7 @@ watch(props, (props, prevProps) => {
 <template>
   <div
     id="detail-view"
-    class="flex-none flex flex-col w-80 max-h-[calc(100vh-3rem)] pl-4 pr-2 pb-4 overflow-auto"
+    class="flex-none flex flex-col w-full max-h-[calc(100vh-3rem)] pl-4 pr-2 pb-4 overflow-auto"
   >
     <div
       class="flex mr-2 mb-4 h-8 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer hover:shadow-lg"

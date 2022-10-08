@@ -15,6 +15,7 @@ import TableTitle from "./components/table-title.vue";
 // ================================
 // State
 // ================================
+const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
 const prefState = MainRendererStateStore.usePreferenceState();
 
@@ -93,7 +94,12 @@ const accessMainFile = async (index: number) => {
   const paperEntity = paperEntities?.value[index];
   if (paperEntity) {
     const url = await window.appInteractor.access(paperEntity!.mainURL, false);
-    showingUrl.value = `./viewer/viewer.html?file=${url}`;
+
+    if (viewState.searchMode === "fulltext" && viewState.searchText !== "") {
+      showingUrl.value = `./viewer/viewer.html?file=${url}&search=${viewState.searchText}`;
+    } else {
+      showingUrl.value = `./viewer/viewer.html?file=${url}`;
+    }
   } else {
     showingUrl.value = "";
   }
@@ -135,7 +141,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="data-view" class="grow pl-2">
+  <div id="data-view" class="pl-2">
     <RecycleScroller
       class="scroller pr-2 max-h-[calc(100vh-3rem)]"
       :items="paperEntities"

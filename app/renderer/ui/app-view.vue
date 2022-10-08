@@ -296,7 +296,7 @@ onMounted(async () => {
       </button>
     </div> -->
     <splitpanes @resized="onSidebarResized($event)">
-      <pane :key="1" min-size="12" :size="viewState.sidebarWidth">
+      <pane :key="1" min-size="12" :size="prefState.sidebarWidth">
         <SidebarView class="sidebar-windows-bg" />
       </pane>
       <pane :key="2">

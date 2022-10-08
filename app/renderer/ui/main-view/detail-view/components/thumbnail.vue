@@ -175,23 +175,23 @@ watch(
       <BIconCloudArrowDown class="text-xs my-auto" />
       <div class="text-xxs my-auto">webdav</div>
     </div>
-    <div class="flex space-x-2" v-show="fileExistingStatus === 1">
+    <div class="flex flex-wrap" v-show="fileExistingStatus === 1">
       <div
-        class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer"
+        class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
         @click="showFilePicker"
       >
         <BIconPlus class="text-xs my-auto" />
         <div class="text-xxs my-auto">Choose</div>
       </div>
       <div
-        class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer"
+        class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
         @click="render"
       >
         <BIconArrowClockwise class="text-xs my-auto" />
         <div class="text-xxs my-auto">Refresh</div>
       </div>
       <div
-        class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer"
+        class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
         @click="locatePDF"
       >
         <BIconSearch class="text-xs my-auto" />

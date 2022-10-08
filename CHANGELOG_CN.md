@@ -1,3 +1,12 @@
+## v2.0.4 08/10 2022
+
+1. 全文搜索的高亮结果可以显示在 PDF 预览视图下。
+2. 可调整详情面板的宽度。
+3. 优化了对于预印本论文的判断规则。
+4. 修复了内置 PDF 浏览视图下可能出现的遮挡 Bug。
+5. 修复了 Markdown 渲染超出视图，以及无法渲然 HTML 图片的 Bug。
+6. 修复了 MacOS Catalina 的兼容性 Bug。
+
 ## v2.0.3 02/10 2022
 
 1. 为物理学和地球科学增添优化了元数据搜寻器以及预设推荐选择。Springer Nature, Elseivier Scopus, NASA Astrophysics Data System, SPIE: Inte. Society for Optics and Photonics.

@@ -110,6 +110,9 @@ const reloadSelectedEntities = () => {
 
 const clearSelected = () => {
   selectionState.selectedIndex = [];
+  selectionState.selectedIds = [];
+  selectedFeedEntities.value = [];
+  selectedPaperEntities.value = [];
 };
 
 const scrapeSelectedEntities = () => {
@@ -272,6 +275,11 @@ const onArrowDownPressed = () => {
   if (!viewState.isEditViewShown && !viewState.isPreferenceViewShown) {
     selectionState.selectedIndex = [newIndex];
   }
+};
+
+const onDetailPanelResized = (event: any) => {
+  const width = event[0].size ? event[0].size : 80;
+  window.appInteractor.setPreference("detailPanelWidth", width);
 };
 
 // ========================================================
@@ -478,49 +486,60 @@ watch(
       :disableSingleBtn="selectionState.selectedIndex.length !== 1"
       :disableMultiBtn="selectionState.selectedIndex.length === 0"
     />
-    <div class="grow flex divide-x dark:divide-neutral-700">
-      <PaperDataView v-if="viewState.contentType === 'library'" />
-      <Transition
-        enter-active-class="transition ease-out duration-75"
-        enter-from-class="transform opacity-0"
-        enter-to-class="transform opacity-100"
-        leave-active-class="transition ease-in duration-75"
-        leave-from-class="transform opacity-100"
-        leave-to-class="transform opacity-0"
-      >
-        <PaperDetailView
-          :entity="
-            selectedPaperEntities.length === 1
-              ? selectedPaperEntities[0]
-              : selectedEntityPlaceHolder
-          "
-          v-show="selectionState.selectedIndex.length === 1"
-          v-if="viewState.contentType === 'library'"
-        />
-      </Transition>
-
-      <FeedDataView v-if="viewState.contentType === 'feed'" />
-      <Transition
-        enter-active-class="transition ease-out duration-75"
-        enter-from-class="transform opacity-0"
-        enter-to-class="transform opacity-100"
-        leave-active-class="transition ease-in duration-75"
-        leave-from-class="transform opacity-100"
-        leave-to-class="transform opacity-0"
-      >
-        <FeedDetailView
-          :entity="
+    <div id="main-view" class="h-full w-full">
+      <splitpanes @resized="onDetailPanelResized($event)">
+        <pane
+          :key="1"
+          :size="
+            selectedPaperEntities.length === 1 ||
             selectedFeedEntities.length === 1
-              ? selectedFeedEntities[0]
-              : selectedFeedEntityPlaceHolder
+              ? prefState.detailPanelWidth
+              : 100
           "
-          v-show="selectionState.selectedIndex.length === 1"
-          v-if="viewState.contentType === 'feed'"
-          @add-clicked="addSelectedFeedEntities"
-          @read-timeout="readSelectedFeedEntities(true)"
-          @read-timeout-in-unread="readSelectedFeedEntities(true, true)"
-        />
-      </Transition>
+        >
+          <PaperDataView
+            v-if="viewState.contentType === 'library'"
+            class="h-full w-full"
+          />
+
+          <FeedDataView
+            v-if="viewState.contentType === 'feed'"
+            class="h-full w-full"
+          />
+        </pane>
+        <pane
+          :key="2"
+          :size="
+            selectedPaperEntities.length === 1 ||
+            selectedFeedEntities.length === 1
+              ? 100 - prefState.detailPanelWidth
+              : 0
+          "
+        >
+          <PaperDetailView
+            :entity="
+              selectedPaperEntities.length === 1
+                ? selectedPaperEntities[0]
+                : selectedEntityPlaceHolder
+            "
+            v-show="selectionState.selectedIndex.length === 1"
+            v-if="viewState.contentType === 'library'"
+          />
+
+          <FeedDetailView
+            :entity="
+              selectedFeedEntities.length === 1
+                ? selectedFeedEntities[0]
+                : selectedFeedEntityPlaceHolder
+            "
+            v-show="selectionState.selectedIndex.length === 1"
+            v-if="viewState.contentType === 'feed'"
+            @add-clicked="addSelectedFeedEntities"
+            @read-timeout="readSelectedFeedEntities(true)"
+            @read-timeout-in-unread="readSelectedFeedEntities(true, true)"
+          />
+        </pane>
+      </splitpanes>
     </div>
   </div>
 </template>
