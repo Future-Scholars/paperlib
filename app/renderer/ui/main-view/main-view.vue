@@ -279,7 +279,6 @@ const onArrowDownPressed = () => {
 
 const onDetailPanelResized = (event: any) => {
   const width = event[0].size ? event[0].size : 80;
-  console.log(width);
   window.appInteractor.setPreference("detailPanelWidth", width);
 };
 
