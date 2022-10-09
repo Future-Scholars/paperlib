@@ -2,13 +2,13 @@
  * @see https://www.electron.build/configuration/configuration
  */
 {
-  appId: "dev.paperlibdev.app",
-  productName: "PaperlibDev",
+  appId: "dev.paperlib.app",
+  productName: "Paperlib",
   asar: true,
   publish: [
     {
       provider: "generic",
-      url: "https://paperlib.app/distribution/linux_dev_channel/",
+      url: "https://paperlib.app/distribution/electron-linux/",
     },
   ],
   directories: {
