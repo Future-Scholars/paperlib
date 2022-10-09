@@ -18,7 +18,7 @@
   linux: {
     icon: "./icons/icon.icns",
     artifactName: "${productName}_${version}.${ext}",
-    target: ["deb", "rpm"],
+    target: ["AppImage"],
   },
   files: [
     "!node_modules/realm/react-native${/*}",
