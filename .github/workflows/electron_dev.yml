@@ -135,3 +135,59 @@ jobs:
       - name: Clean Up
         run: |
           rm -rf ./*
+
+
+  linux_develop:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-versions: ['16.16.0']
+
+    steps:
+      - name: 'Checkout Project'
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          sudo apt-get install -y jq
+          VERSION=$(cat package.json | jq .version)
+          export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
+          export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
+          cp ./electron-builder.linux.dev.json5 ./electron-builder.json5
+
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: GeoffreyChen777/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
+
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: 'Install Node Module'
+        run: npm install --force
+
+      - name: 'Build and Package'
+        run: npm run build
+
+      - name: Install Oracle Cloud CLI
+        run: |
+          bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)"
+          mkdir ~/.oci
+          echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
+          mv config ~/.oci
+          echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode --output oraclekey.cer
+          mv oraclekey.cer ~/.oci
+
+      - name: Upload to Oracle Storage
+        run: |
+          oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/linux_dev_channel/
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/PaperlibDev_${{ env.VERSION }}.deb --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/linux_dev_channel/PaperlibDev_${{ env.VERSION }}.deb
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/PaperlibDev_${{ env.VERSION }}.deb.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/linux_dev_channel/PaperlibDev_${{ env.VERSION }}.deb.blockmap
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/dev-linux.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/linux_dev_channel/dev-linux.yml
