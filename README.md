@@ -44,17 +44,17 @@ That is Paperlib.
         - [x] Semantic Scholar
         - [x] Crossref
         - [x] Google Scholar
-        - [ ] Springer (🚧 in progress...)
-        - [ ] Elseivier Scopus (🚧 in progress...)
+        - [x] Springer
+        - [x] Elseivier Scoops
     - [x] **Computer Science and Electronic Engineering**
         - [x] openreview.net
         - [x] IEEE
         - [x] DBLP
         - [x] Paper with Code (scrape avaliable code repository)
-    - [ ] **Earth Science** (🚧in progress...)
-    - [ ] **Physics** (🚧in progress...)
-        - [ ] NASA Astrophysics Data System (🚧in progress...)
-        - [ ] SPIE: Inte. Society for Optics and Photonics (🚧in progress...)
+    - [x] **Earth Science**
+    - [x] **Physics**
+        - [x] NASA Astrophysics Data System
+        - [x] SPIE: Inte. Society for Optics and Photonics
     - ...
 -   Fulltext and advanced search.
 -   Rating, flag, tag, folder and markdown/plain text note.
