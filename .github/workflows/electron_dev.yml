@@ -185,10 +185,11 @@ jobs:
           mv config ~/.oci
           echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode > oraclekey.cer
           mv oraclekey.cer ~/.oci
-          source ~/.bashrc
 
       - name: Upload to Oracle Storage
         run: |
+          exec -l $SHELL
+          source ~/.bashrc
           oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/linux_dev_channel/
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/PaperlibDev_${{ env.VERSION }}.deb --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/linux_dev_channel/PaperlibDev_${{ env.VERSION }}.deb
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/PaperlibDev_${{ env.VERSION }}.deb.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/linux_dev_channel/PaperlibDev_${{ env.VERSION }}.deb.blockmap
