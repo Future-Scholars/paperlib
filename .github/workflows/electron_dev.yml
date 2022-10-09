@@ -178,7 +178,8 @@ jobs:
 
       - name: Install Oracle Cloud CLI
         run: |
-          bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)"
+          curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
+          ./install.sh --accept-all-defaults
           mkdir ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
           mv config ~/.oci
