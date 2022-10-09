@@ -2,8 +2,8 @@
  * @see https://www.electron.build/configuration/configuration
  */
 {
-  appId: "dev.paperlib.app",
-  productName: "Paperlib",
+  appId: "dev.paperlibdev.app",
+  productName: "PaperlibDev",
   asar: true,
   publish: [
     {
