@@ -59,7 +59,7 @@ const onMaximizeClicked = () => {
 <template>
   <div
     class="flex w-full justify-between draggable-title"
-    :class="viewState.os === 'darwin' ? 'h-12' : 'h-10 mb-1'"
+    :class="viewState.os !== 'win32' ? 'h-12' : 'h-10 mb-1'"
   >
     <div class="grow my-auto px-2 nodraggable-item">
       <SearchInput
@@ -70,7 +70,7 @@ const onMaximizeClicked = () => {
 
     <div
       class="flex flex-none justify-end space-x-1 my-auto pr-2 nodraggable-item"
-      :class="viewState.os === 'darwin' ? 'w-80 pl-8' : 'w-48 pl-2'"
+      :class="viewState.os !== 'win32' ? 'w-80 pl-8' : 'w-48 pl-2'"
     >
       <MenuBarBtn
         btnName="rescrape"
@@ -95,7 +95,7 @@ const onMaximizeClicked = () => {
       <div
         class="flex rounded-md hover:bg-neutral-100 hover:dark:bg-neutral-600"
         style="margin-left: 0.5rem !important; margin-right: 0.5rem !important"
-        v-if="viewState.os === 'darwin'"
+        v-if="viewState.os !== 'win32'"
       >
         <MenuBarBtn
           class="my-auto"
@@ -259,7 +259,7 @@ const onMaximizeClicked = () => {
       <Menu
         as="div"
         class="relative inline-block text-left"
-        v-if="viewState.os !== 'darwin'"
+        v-if="viewState.os === 'win32'"
       >
         <div>
           <MenuButton
@@ -353,11 +353,11 @@ const onMaximizeClicked = () => {
         btnName="preference"
         @click="emit('click', 'preference')"
         :with-tooltip="false"
-        v-if="viewState.os === 'darwin'"
+        v-if="viewState.os !== 'win32'"
       />
     </div>
 
-    <div class="flex nodraggable-item mx-1" v-if="viewState.os !== 'darwin'">
+    <div class="flex nodraggable-item mx-1" v-if="viewState.os === 'win32'">
       <div
         class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out"
         @click="onMinimizeClicked"
