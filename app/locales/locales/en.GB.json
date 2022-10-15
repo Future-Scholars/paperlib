@@ -19,6 +19,7 @@
     "pubyear": "Year",
     "publicationtitle": "Publication",
     "publicationtype": "Publication Type",
+    "pubtype": "Type",
     "addtime": "Add Time",
     "rating": "Rating",
     "preview": "Preview",
@@ -137,12 +138,16 @@
     "importfromzotero": "Import from Zotero CSV",
     "importfromzoterointro": " Choose a CSV file exported from Zotero. To export it, click File - Export Library - Format: CSV - Encoding: UTF-8 in the Zotero app.",
     "cslstyleintro": "Choose a CSL style for the plaintext reference.",
-    "exportreplacement": "Export Replacement",
+    "exportreplacement": "Publication Abbreviation",
     "exportreplacementintro": "Enable replacing the publication with a customed string when exporting a paper. For example, replacing 'Conference on Computer Vision and Pattern Recognition' by 'CVPR'.",
     "pleaserestart": "Please restart Paperlib to take effect.",
     "openquickreferenceplugin": "Open Quick Reference Plugin",
     "allowproxy": "Allow Proxy",
-    "allowproxyintro": "Enable proxy to access the web source. Paperlib will use the system proxy settings by default. Or you can set a custom proxy. If you are in some regions such as China mainland, you can try to set a proxy to accelarate the web connection."
+    "allowproxyintro": "Enable proxy to access the web source. Paperlib will use the system proxy settings by default. Or you can set a custom proxy. If you are in some regions such as China mainland, you can try to set a proxy to accelarate the web connection.",
+    "mswordaddintitle": "Microsoft Word Add-in",
+    "mswordaddinintro": "Install the Microsoft Word Add-in to insert citations and bibliographies in Word.",
+    "install": "Install",
+    "installdone": "Done"
   },
   "confirmation": {
     "title": "Confirmation",

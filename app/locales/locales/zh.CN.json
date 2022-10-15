@@ -143,7 +143,11 @@
     "pleaserestart": "请重启应用程序以应用更改。",
     "openquickreferenceplugin": "打开快速插入参考插件",
     "allowproxy": "启用代理",
-    "allowproxyintro": "是否启用代理来访问网络资源。Paperlib 默认使用系统代理设置。你也可以在这里设置代理。对于中国大陆等地区的用户来说，你可能需要启用代理来访问 Google Scholar 等 scraper 来避免请求超时。"
+    "allowproxyintro": "是否启用代理来访问网络资源。Paperlib 默认使用系统代理设置。你也可以在这里设置代理。对于中国大陆等地区的用户来说，你可能需要启用代理来访问 Google Scholar 等 scraper 来避免请求超时。",
+    "mswordaddintitle": "Microsoft Word 插件",
+    "mswordaddinintro": "安装 Microsoft Word 插件。",
+    "install": "安装",
+    "installdone": "完成"
   },
   "confirmation": {
     "title": "确认",

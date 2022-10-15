@@ -64,7 +64,7 @@ const onClearClicked = (payload: Event) => {
 
 <template>
   <div
-    class="flex transition ease-in-out duration-75 w-full rounded-md pl-2 space-x-2 justify-between focus-within:bg-neutral-100 focus-within:dark:bg-neutral-700 hover:bg-neutral-100 hover:dark:bg-neutral-700"
+    class="flex transition ease-in-out duration-75 w-full rounded-md pl-2 space-x-2 justify-between focus-within:bg-neutral-100 focus-within:dark:bg-neutral-700 hover:bg-neutral-100 hover:dark:bg-neutral-700 group"
   >
     <BIconSearch class="flex-none my-auto inline-block text-xs" />
     <input
@@ -116,11 +116,11 @@ const onClearClicked = (payload: Event) => {
       </div>
     </div>
     <BIconX
-      class="my-auto text-neutral-400 invisible dark:text-neutral-500 hover:text-neutral-800 hover:dark:text-neutral-300 cursor-pointer peer-focus:visible hover:visible"
+      class="my-auto text-neutral-400 invisible dark:text-neutral-500 hover:text-neutral-800 hover:dark:text-neutral-300 cursor-pointer peer-focus:visible hover:visible group-hover:visible"
       @click="onClearClicked"
     />
     <button
-      class="flex-none my-auto p-2 w-[100px] text-xxs bg-neutral-200 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-200 rounded-r-md invisible peer-focus:visible hover:visible hover:bg-neutral-300 hover:dark:bg-neutral-500"
+      class="flex-none my-auto p-2 w-[100px] text-xxs bg-neutral-200 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-200 rounded-r-md invisible peer-focus:visible group-hover:visible hover:visible hover:bg-neutral-300 hover:dark:bg-neutral-500"
       @click="onModeClicked"
     >
       {{ $t(searchModeLabel[viewState.searchMode]) }}
