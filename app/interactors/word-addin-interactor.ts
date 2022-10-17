@@ -3,7 +3,7 @@ import { createServer } from 'https'
 import path from "path";
 import os from "os"
 import { promises as fsPromise } from "fs";
-import { exec } from "child_process";
+import sudo from "sudo-prompt";
 
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -81,11 +81,15 @@ export class WordAddinInteractor {
     if (os.platform() === 'darwin') {
       fsPromise.copyFile(manifestPath, path.join(os.homedir(), "Library/Containers/com.microsoft.Word/Data/Documents/wef/paperlib.manifest.xml"));
     } else if (os.platform() === 'win32') {
-      const helperUrl = "https://paperlib.app/distribution/word_addin/oasideloader.exe";
-      const helperPath = path.join(os.tmpdir(), "oasideloader.exe");
+      const helperUrl = "https://paperlib.app/distribution/word_addin/oaloader.exe";
+      const helperPath = path.join(os.tmpdir(), "oaloader.exe");
       await window.networkTool.download(helperUrl, helperPath);
 
-      const child = exec(`runas /profile /user:administrator "${helperPath}" add "${manifestPath}"`);
+      sudo.exec(`${helperPath} add ${manifestPath}`, { name: "PaperLib" }, (error, stdout, stderr) => {
+        if (error) {
+          console.log(error);
+        }
+      });
     } else {
       console.log("Not support platform")
     }

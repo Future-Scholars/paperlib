@@ -69,6 +69,7 @@ export default defineConfig({
             "citation-js",
             "electron-proxy-agent",
             "string-similarity",
+            "sudo-prompt",
           ];
         },
       },
