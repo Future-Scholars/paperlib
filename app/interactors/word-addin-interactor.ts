@@ -79,7 +79,8 @@ export class WordAddinInteractor {
     await window.networkTool.download(manifestUrl, manifestPath);
 
     if (os.platform() === 'darwin') {
-      fsPromise.copyFile(manifestPath, path.join(os.homedir(), "Library/Containers/com.microsoft.Word/Data/Documents/wef/paperlib.manifest.xml"));
+      await fsPromise.mkdir(path.join(os.homedir(), "Library/Containers/com.microsoft.Word/Data/Documents/wef/"), { recursive: true })
+      await fsPromise.copyFile(manifestPath, path.join(os.homedir(), "Library/Containers/com.microsoft.Word/Data/Documents/wef/paperlib.manifest.xml"));
     } else if (os.platform() === 'win32') {
       const helperUrl = "https://paperlib.app/distribution/word_addin/oaloader.exe";
       const helperPath = path.join(os.tmpdir(), "oaloader.exe");
