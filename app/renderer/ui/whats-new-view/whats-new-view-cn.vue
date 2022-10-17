@@ -30,6 +30,10 @@ const loadHistoryReleaseNote = () => {
   xhr.send();
 };
 
+const openIntro = () => {
+  window.appInteractor.open("https://paperlib.app/cn/blog/word-addin/");
+};
+
 onMounted(() => {
   loadHistoryReleaseNote();
   checkShouldShow();
@@ -66,16 +70,20 @@ onMounted(() => {
       <div class="w-[45rem] px-3 mx-auto my-20">
         <img class="w-20 mx-auto mb-2" src="../../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.0.4 更新内容
+          Paperlib 2.0.5 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>全文搜索的高亮结果可以显示在 PDF 预览视图下。</li>
-          <li>可调整详情面板的宽度。</li>
-          <li>优化了对于预印本论文的判断规则。</li>
-          <li>修复了内置 PDF 浏览视图下可能出现的遮挡 Bug。</li>
-          <li>修复了 Markdown 渲染超出视图，以及无法渲然 HTML 图片的 Bug。</li>
-          <li>修复了 MacOS Catalina 的兼容性 Bug。</li>
+          <li>
+            Microsoft Word 插件的测试版发布了，使用方法详见：
+            <span @click="openIntro" class="underline cursor-pointer">
+              https://paperlib.app/cn/blog/word-addin/</span
+            >
+          </li>
+          <li>支持了 Linux 系统。</li>
+          <li>代码仓库元数据现在可以编辑了。</li>
+          <li>更好的搜索栏鼠标悬浮体验。</li>
+          <li>修复漏洞。</li>
         </ul>
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
