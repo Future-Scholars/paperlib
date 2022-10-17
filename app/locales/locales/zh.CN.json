@@ -66,7 +66,8 @@
     "refresh": "刷新",
     "close": "关闭",
     "ok": "确定",
-    "save": "保存"
+    "save": "保存",
+    "advanced": "高级"
   },
   "preference": {
     "general": "通用",
