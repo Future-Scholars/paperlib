@@ -1,9 +1,9 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { createServer } from 'https'
-import got from "got";
 import path from "path";
 import os from "os"
-import { writeFileSync, promises as fsPromise } from "fs";
+import { promises as fsPromise } from "fs";
+import { exec } from "child_process";
 
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -74,17 +74,18 @@ export class WordAddinInteractor {
   }
 
   async installWordAddin() {
-    const url = "https://paperlib.app/distribution/word_addin/manifest.xml";
-    const response = await got(url)
-
-    const manifest = response.body
+    const manifestUrl = "https://paperlib.app/distribution/word_addin/manifest.xml";
     const manifestPath = path.join(os.tmpdir(), "manifest.xml");
-    writeFileSync(manifestPath, manifest);
+    await window.networkTool.download(manifestUrl, manifestPath);
 
     if (os.platform() === 'darwin') {
       fsPromise.copyFile(manifestPath, path.join(os.homedir(), "Library/Containers/com.microsoft.Word/Data/Documents/wef/paperlib.manifest.xml"));
     } else if (os.platform() === 'win32') {
-      console.log("Not support platform")
+      const helperUrl = "https://paperlib.app/distribution/word_addin/oasideloader.exe";
+      const helperPath = path.join(os.tmpdir(), "oasideloader.exe");
+      await window.networkTool.download(helperUrl, helperPath);
+
+      const child = exec(`runas /profile /user:administrator "${helperPath}" add "${manifestPath}"`);
     } else {
       console.log("Not support platform")
     }
