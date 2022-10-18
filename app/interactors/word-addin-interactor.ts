@@ -79,16 +79,20 @@ export class WordAddinInteractor {
 
   async loadCSLNames() {
     const cslDir = this.preference.get("importedCSLStylesPath") as string
-    const cslFiles = await fsPromise.readdir(cslDir)
-    const csls = (await Promise.all(cslFiles.map(async (cslFile) => {
-      if (cslFile.endsWith(".csl")) {
-        return cslFile.replace('.csl', '')
-      } else {
-        return ""
-      }
-    }))).filter((csl) => csl !== "")
+    if (existsSync(cslDir)) {
+      const cslFiles = await fsPromise.readdir(cslDir)
+      const csls = (await Promise.all(cslFiles.map(async (cslFile) => {
+        if (cslFile.endsWith(".csl")) {
+          return cslFile.replace('.csl', '')
+        } else {
+          return ""
+        }
+      }))).filter((csl) => csl !== "")
 
-    this.ws?.send(JSON.stringify({ type: "csl-names", response: csls }));
+      this.ws?.send(JSON.stringify({ type: "csl-names", response: csls }));
+    } else {
+      this.ws?.send(JSON.stringify({ type: "csl-names", response: [] }));
+    }
   }
 
   async loadCSL(name: string) {
