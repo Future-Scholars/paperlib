@@ -1,6 +1,5 @@
-1. Fulltext search mode: the highlights of the search results will be displayed in the PDF preview view.
-2. Adjustable width of the detail panel.
-3. Better rules for preprint papers.
-4. Fixed a bug in the PDF preview view.
-5. Fixed a bug in the markdown preview.
-6. Fixed a compatibility issue in MacOS Catalina.
+1. The beta version of the Microsoft Word Add-in is released. 
+2. Linux build is avaliable now.
+3. The code repository metadata is editable now.
+4. Better hover experience of the search bar.
+5. Fixed some bugs.
