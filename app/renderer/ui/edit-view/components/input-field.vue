@@ -20,6 +20,10 @@ const props = defineProps({
     type: Boolean,
     required: false,
   },
+  canExpand: {
+    type: Boolean,
+    required: true,
+  },
 });
 
 const viewState = MainRendererStateStore.useViewState();
@@ -45,7 +49,7 @@ const onInput = (payload: Event) => {
       </label>
       <BIconArrowsAngleContract
         class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 cursor-pointer"
-        v-if="isExpanded"
+        v-if="isExpanded && canExpand"
         @click="
           () => {
             isExpanded = false;
@@ -55,7 +59,7 @@ const onInput = (payload: Event) => {
       />
       <BIconArrowsAngleExpand
         class="text-xs text-neutral-500 dark:text-neutral-400 mt-1 cursor-pointer"
-        v-if="!isExpanded"
+        v-if="!isExpanded && canExpand"
         @click="
           () => {
             isExpanded = true;

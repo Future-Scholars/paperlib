@@ -7,6 +7,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
+import CodesInput from "./components/codes-input.vue";
 import InputBox from "./components/input-box.vue";
 import InputField from "./components/input-field.vue";
 import MultiselectBox from "./components/multiselect-box.vue";
@@ -16,6 +17,7 @@ import SelectBox from "./components/select-box.vue";
 // State
 // ==============================
 const wideMode = ref(false);
+const advancedMode = ref(false);
 const editingPaperEntityDraft = ref(new PaperEntity(false));
 const viewState = MainRendererStateStore.useViewState();
 const bufferState = MainRendererStateStore.useBufferState();
@@ -109,7 +111,7 @@ const onSaveAndScrapeClicked = async () => {
           class="m-auto flex flex-col p-2 border-[1px] dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 rounded-lg shadow-lg select-none space-y-2"
           :class="wideMode ? 'w-[800px]' : 'w-[500px]'"
         >
-          <div class="flex space-x-2">
+          <div class="flex space-x-2" v-show="!advancedMode">
             <div
               class="flex flex-col space-y-2"
               :class="wideMode ? 'w-1/2' : 'w-full'"
@@ -152,10 +154,7 @@ const onSaveAndScrapeClicked = async () => {
                   "
                 />
               </div>
-              <div
-                class="flex flex-row space-x-2"
-                v-if="editingPaperEntityDraft.pubType === 0"
-              >
+              <div class="flex flex-row space-x-2">
                 <div class="basis-1/2 flex space-x-2">
                   <InputBox
                     class="basis-1/2 w-8"
@@ -236,6 +235,7 @@ const onSaveAndScrapeClicked = async () => {
                 class="h-28"
                 :value="editingPaperEntityDraft.note"
                 :is-expanded="wideMode"
+                :can-expand="true"
                 @changed="(value) => (editingPaperEntityDraft.note = value)"
                 v-if="!wideMode"
                 @expand="(expanded) => (wideMode = expanded)"
@@ -248,14 +248,32 @@ const onSaveAndScrapeClicked = async () => {
                 class="h-full w-full"
                 :value="editingPaperEntityDraft.note"
                 :is-expanded="wideMode"
+                :can-expand="true"
                 @changed="(value) => (editingPaperEntityDraft.note = value)"
                 v-if="wideMode"
                 @expand="(expanded) => (wideMode = expanded)"
               />
             </div>
           </div>
+
+          <div class="flex" v-show="advancedMode">
+            <CodesInput
+              class="max-h-40 w-full"
+              :codes="editingPaperEntityDraft.codes"
+              @changed="(codes) => (editingPaperEntityDraft.codes = codes)"
+            />
+          </div>
+
           <div class="flex justify-between space-x-2 py-1">
             <div class="flex space-x-2 py-1">
+              <div
+                class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm my-auto"
+                @click="advancedMode = !advancedMode"
+              >
+                <span class="m-auto text-xs">{{
+                  advancedMode ? $t("menu.close") : $t("menu.advanced")
+                }}</span>
+              </div>
               <div
                 class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm my-auto"
                 @click="onSaveAndScrapeClicked"

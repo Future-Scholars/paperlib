@@ -30,6 +30,10 @@ const loadHistoryReleaseNote = () => {
   xhr.send();
 };
 
+const openIntro = () => {
+  window.appInteractor.open("https://paperlib.app/en/blog/word-addin/");
+};
+
 onMounted(() => {
   loadHistoryReleaseNote();
   checkShouldShow();
@@ -66,19 +70,21 @@ onMounted(() => {
       <div class="w-[45rem] px-3 mx-auto my-20">
         <img class="w-20 mx-auto mb-2" src="../../assets/icon.png" />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.0.4
+          What's New in Paperlib 2.0.5
         </p>
 
         <ul class="list-disc mb-5">
           <li>
-            Fulltext search mode: the highlights of the search results will be
-            displayed in the PDF preview view.
+            The beta version of the Microsoft Word Add-in is released. Learn
+            more about it:
+            <span @click="openIntro" class="underline cursor-pointer">
+              https://paperlib.app/en/blog/word-addin/</span
+            >
           </li>
-          <li>Adjustable width of the detail panel.</li>
-          <li>Better rules for preprint papers.</li>
-          <li>Fixed a bug in the PDF preview view.</li>
-          <li>Fixed a bug in the markdown preview.</li>
-          <li>Fixed a compatibility issue in MacOS Catalina.</li>
+          <li>Linux build is avaliable now.</li>
+          <li>The code repository metadata is editable now.</li>
+          <li>Better hover experience of the search bar.</li>
+          <li>Fixed some bugs.</li>
         </ul>
         <div
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

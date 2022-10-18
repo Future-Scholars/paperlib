@@ -141,9 +141,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="data-view" class="pl-2">
+  <div id="data-view" class="px-2">
     <RecycleScroller
-      class="scroller pr-2 max-h-[calc(100vh-3rem)]"
+      class="scroller max-h-[calc(100vh-3rem)]"
       :items="paperEntities"
       :item-size="64"
       key-field="id"
@@ -193,7 +193,7 @@ onMounted(() => {
     <splitpanes horizontal class="max-h-[calc(100vh-5rem)]">
       <pane :key="1" min-size="12">
         <RecycleScroller
-          class="scroller pr-2 h-full pb-4"
+          class="scroller h-full pb-4"
           :items="paperEntities"
           :item-size="28"
           key-field="id"
@@ -234,7 +234,7 @@ onMounted(() => {
           selectedIndex.length === 1
         "
       >
-        <div class="w-full h-full pr-2">
+        <div class="w-full h-full">
           <iframe class="w-full h-full rounded-lg" :src="showingUrl" />
         </div>
       </pane>

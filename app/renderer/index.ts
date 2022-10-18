@@ -6,14 +6,15 @@ import { createI18n } from "vue-i18n";
 import vSelect from "vue-select";
 import draggable from "vuedraggable";
 
+
 import { AppInteractor } from "@/interactors/app-interactor";
 import { BrowserExtensionInteractor } from "@/interactors/browser-extension-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
 import { FeedInteractor } from "@/interactors/feed-interactor";
 import { PluginMainInteractor } from "@/interactors/plugin-main-interactor";
 import { RenderInteractor } from "@/interactors/render-interactor";
-import { loadLocales } from "@/locales/load";
-import { Preference } from "@/preference/preference";
+import { WordAddinInteractor } from "@/interactors/word-addin-interactor";
+
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
@@ -23,6 +24,8 @@ import { ScraperRepository } from "@/repositories/scraper-repository/scraper-rep
 import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 import { NetworkTool } from "@/utils/got";
 
+import { loadLocales } from "@/locales/load";
+import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "../state/renderer/appstate";
 import "./css/index.css";
 import "./css/katex.min.css";
@@ -106,6 +109,11 @@ const browserExtensionInteractor = new BrowserExtensionInteractor(
   webImporterRepository,
   entityInteractor
 );
+const wordAddinInteractor = new WordAddinInteractor(
+  stateStore,
+  preference,
+  entityInteractor
+);
 
 const networkTool = new NetworkTool(stateStore, preference);
 
@@ -124,6 +132,7 @@ window.entityInteractor = entityInteractor;
 window.appInteractor = appInteractor;
 window.renderInteractor = renderInteractor;
 window.feedInteractor = feedInteractor;
+window.wordAddinInteractor = wordAddinInteractor;
 window.networkTool = networkTool;
 
 app.mount("#app");

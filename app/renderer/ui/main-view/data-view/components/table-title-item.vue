@@ -29,11 +29,11 @@ const emits = defineEmits(["title-clicked"]);
   >
     <span class="my-auto"> {{ title }} </span>
     <BIconArrowDown
-      class="my-auto ml-1 text-xxs"
+      class="my-auto ml-1 text-xxs min-w-[12px]"
       v-if="sortBy && sortOrder === 'desc'"
     />
     <BIconArrowUp
-      class="my-auto ml-1 text-xxs"
+      class="my-auto ml-1 text-xxs min-w-[12px]"
       v-if="sortBy && sortOrder === 'asce'"
     />
   </div>

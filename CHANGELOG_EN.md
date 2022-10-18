@@ -1,3 +1,11 @@
+# v2.0.5 Oct 18 2022
+
+1. The beta version of the Microsoft Word Add-in is released. 
+2. Linux build is avaliable now.
+3. The code repository metadata is editable now.
+4. Better hover experience of the search bar.
+5. Fixed some bugs.
+
 # v2.0.4 Oct 08 2022
 
 1. Fulltext search mode: the highlights of the search results will be displayed in the PDF preview view.

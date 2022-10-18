@@ -7,6 +7,7 @@ import { FeedInteractor } from "./interactors/feed-interactor";
 import { PluginSideInteractor } from "./interactors/plugin-side-interactor";
 import { PreviewInteractor } from "./interactors/preview-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
+import { WordAddinInteractor } from "./interactors/word-addin-interactor";
 import { NetworkTool } from "./utils/got";
 
 declare global {
@@ -17,6 +18,7 @@ declare global {
     feedInteractor: FeedInteractor;
     previewInteractor: PreviewInteractor;
     pluginSideInteractor: PluginSideInteractor;
+    wordAddinInteractor: WordAddinInteractor;
 
     networkTool: NetworkTool;
   }

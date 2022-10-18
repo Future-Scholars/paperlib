@@ -66,6 +66,13 @@ const loadCSLStyles = async () => {
   CSLStyles.value = await window.appInteractor.loadCSLStyles();
 };
 
+const installstate = ref(0);
+
+const installWordAddinClicked = async () => {
+  await window.wordAddinInteractor.installWordAddin();
+  installstate.value = 1;
+};
+
 onMounted(() => {
   loadCSLStyles();
 });
@@ -110,6 +117,29 @@ onMounted(() => {
 
     <hr class="my-5 dark:border-neutral-600" />
 
+    <div class="flex justify-between">
+      <div class="flex flex-col">
+        <div class="text-xs font-semibold">
+          {{ $t("preference.mswordaddintitle") }}
+        </div>
+        <div class="text-xxs text-neutral-600 dark:text-neutral-500">
+          {{ $t("preference.mswordaddinintro") }}
+        </div>
+      </div>
+      <button
+        class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
+        @click="installWordAddinClicked"
+      >
+        <span class="m-auto text-xs">{{
+          installstate === 0
+            ? $t("preference.install")
+            : $t("preference.installdone")
+        }}</span>
+      </button>
+    </div>
+
+    <hr class="my-5 dark:border-neutral-600" />
+
     <Toggle
       class="mb-2"
       :title="$t('preference.exportreplacement')"
@@ -141,7 +171,7 @@ onMounted(() => {
     </div>
 
     <div
-      class="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md h-[22rem] overflow-auto mb-5"
+      class="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md h-54 overflow-auto mb-5"
     >
       <Replacement
         :from="replacement.from"

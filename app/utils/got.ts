@@ -171,45 +171,52 @@ export class NetworkTool {
     return await got.post(url, options);
   }
 
+  async download(
+    url: string,
+    targetPath: string,
+  ) {
+    try {
+      const pipeline = promisify(stream.pipeline);
+      const headers = {
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
+      };
+      await pipeline(
+        got
+          .stream(url, {
+            headers: headers,
+            rejectUnauthorized: false,
+            agent: this.agent,
+          })
+          .on("downloadProgress", (progress) => {
+            const percent = progress.percent;
+            this.stateStore.logState.progressLog = {
+              id: path.basename(targetPath),
+              value: percent * 100,
+              msg: `Downloading...`,
+            };
+          }),
+        createWriteStream(constructFileURL(targetPath, false, false))
+      );
+      return targetPath;
+    } catch (e) {
+      console.log(e);
+      return "";
+    }
+  }
+
   async downloadPDFs(urlList: string[]): Promise<string[]> {
     this.stateStore.logState.processLog = "";
-    const _download = async (url: string): Promise<string> => {
-      try {
-        let filename = url.split("/").pop() as string;
-        filename = filename.slice(0, 100);
-        if (!filename.endsWith(".pdf")) {
-          filename += ".pdf";
-        }
-        const targetUrl = path.join(os.homedir(), "Downloads", filename);
-        const pipeline = promisify(stream.pipeline);
-        const headers = {
-          "user-agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-        };
-        await pipeline(
-          got
-            .stream(url, {
-              headers: headers,
-              rejectUnauthorized: false,
-              agent: this.agent,
-            })
-            .on("downloadProgress", (progress) => {
-              const percent = progress.percent;
-              this.stateStore.logState.progressLog = {
-                id: filename,
-                value: percent * 100,
-                msg: `Downloading...`,
-              };
-            }),
-          createWriteStream(constructFileURL(targetUrl, false, false))
-        );
-        return targetUrl;
-      } catch (e) {
-        console.log(e);
-        return "";
+
+    const downloadedUrls = (await Promise.all(urlList.map(url => {
+      let filename = url.split("/").pop() as string;
+      filename = filename.slice(0, 100);
+      if (!filename.endsWith(".pdf")) {
+        filename += ".pdf";
       }
-    };
-    const downloadedUrls = (await Promise.all(urlList.map(_download))).filter(
+      const targetPath = path.join(os.homedir(), "Downloads", filename);
+      return this.download(url, targetPath);
+    }))).filter(
       (url) => url !== ""
     );
 
