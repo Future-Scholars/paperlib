@@ -293,5 +293,7 @@ jobs:
 
       - name: Upload to Oracle Storage
         run: |
-          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.AppImage --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/linux_dev_channel/Paperlib_${{ env.VERSION }}.AppImage
-          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/lates-linux.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/linux_dev_channel/latest-linux.yml
+          cp ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.AppImage ./release/${{ env.VERSION }}/Paperlib_latest.AppImage
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.AppImage --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-linux/Paperlib_${{ env.VERSION }}.AppImage
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_latest.AppImage --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-linux/Paperlib_latest.AppImage
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/latest-linux.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-linux/latest-linux.yml
