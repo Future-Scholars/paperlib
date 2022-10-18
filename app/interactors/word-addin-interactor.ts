@@ -2,7 +2,7 @@ import { WebSocket, WebSocketServer } from "ws";
 import { createServer } from 'https'
 import path from "path";
 import os from "os"
-import { promises as fsPromise } from "fs";
+import { promises as fsPromise, existsSync } from "fs";
 import sudo from "sudo-prompt";
 
 import { Preference } from "@/preference/preference";
@@ -54,9 +54,13 @@ export class WordAddinInteractor {
       case "search":
         await this.search(message.params);
         break;
+      case "csl-names":
+        await this.loadCSLNames()
+        break;
+      case "load-csl":
+        await this.loadCSL(message.params)
+        break;
     }
-
-    this.ws?.send(JSON.stringify({ response: "no-avaliable-importer" }));
   }
 
   async search(params: SearchParams) {
@@ -71,6 +75,31 @@ export class WordAddinInteractor {
 
     const responseResult = result.slice(0, 10)
     this.ws?.send(JSON.stringify({ type: "search", response: responseResult }));
+  }
+
+  async loadCSLNames() {
+    const cslDir = this.preference.get("importedCSLStylesPath") as string
+    const cslFiles = await fsPromise.readdir(cslDir)
+    const csls = (await Promise.all(cslFiles.map(async (cslFile) => {
+      if (cslFile.endsWith(".csl")) {
+        return cslFile.replace('.csl', '')
+      } else {
+        return ""
+      }
+    }))).filter((csl) => csl !== "")
+
+    this.ws?.send(JSON.stringify({ type: "csl-names", response: csls }));
+  }
+
+  async loadCSL(name: string) {
+    const cslDir = this.preference.get("importedCSLStylesPath") as string
+    const cslPath = path.join(cslDir, `${name}.csl`)
+    if (existsSync(cslPath)) {
+      const csl = await fsPromise.readFile(cslPath, "utf8")
+      this.ws?.send(JSON.stringify({ type: "load-csl", response: csl }));
+    } else {
+      this.ws?.send(JSON.stringify({ type: "load-csl", response: "" }));
+    }
   }
 
   async installWordAddin() {
