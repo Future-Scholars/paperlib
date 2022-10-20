@@ -177,10 +177,8 @@ async function scrapeImpl(
       )) as Response<string>;
 
       const potentialDOI = response.body.split('|').pop()?.match(new RegExp(
-        "(?:" +
-        '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' +
-        ")",
-        "g"
+        "^10.\d{4,9}/[-._;()/:A-Z0-9]+$",
+        "gi"
       ))
       if (!potentialDOI) {
         const fallbackScrapeURL = encodeURI(
