@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconCoin, BIconGithub, BIconGlobe } from "bootstrap-icons-vue";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 const version = ref("");
 window.appInteractor.version().then((v) => {
@@ -10,11 +10,26 @@ window.appInteractor.version().then((v) => {
 const onLinkClicked = (url: string) => {
   window.appInteractor.open(url);
 };
+
+const darkMode = ref(false);
+onMounted(() => {
+  if (
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+  ) {
+    darkMode.value = true;
+  }
+});
 </script>
 
 <template>
   <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
-    <img src="../../assets/icon.png" class="w-14 mb-2" />
+    <img
+      src="../../assets/logo-dark.png"
+      class="w-8 mb-2 ml-1"
+      v-if="darkMode"
+    />
+    <img src="../../assets/logo-light.png" class="w-8 mb-2 ml-1" v-else />
     <div class="text-base font-semibold mb-4">Paperlib</div>
     <div class="text-xs mb-4">
       created by Geo, a simple academic paper management tool.

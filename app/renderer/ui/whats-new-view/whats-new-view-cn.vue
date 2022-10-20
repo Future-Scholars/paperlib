@@ -34,9 +34,16 @@ const openIntro = () => {
   window.appInteractor.open("https://paperlib.app/cn/blog/word-addin/");
 };
 
+const darkMode = ref(false);
 onMounted(() => {
   loadHistoryReleaseNote();
   checkShouldShow();
+  if (
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+  ) {
+    darkMode.value = true;
+  }
 });
 </script>
 
@@ -68,7 +75,16 @@ onMounted(() => {
       v-if="show"
     >
       <div class="w-[45rem] px-3 mx-auto my-20">
-        <img class="w-20 mx-auto mb-2" src="../../assets/icon.png" />
+        <img
+          class="w-12 mx-auto mb-6"
+          src="../../assets/logo-dark.png"
+          v-if="darkMode"
+        />
+        <img
+          class="w-10 mx-auto mb-6"
+          src="../../assets/logo-light.png"
+          v-else
+        />
         <p class="text-center text-2xl font-bold mb-8">
           Paperlib 2.0.5 更新内容
         </p>

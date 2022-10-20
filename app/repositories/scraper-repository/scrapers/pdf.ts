@@ -118,10 +118,8 @@ export class PDFScraper extends Scraper {
         if (url) {
           const doi = url.match(
             new RegExp(
-              "(?:" +
-              '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' +
-              ")",
-              "g"
+              "^10.\d{4,9}/[-._;()/:A-Z0-9]+$",
+              "gi"
             )
           );
           if (doi) {
@@ -146,10 +144,11 @@ export class PDFScraper extends Scraper {
       }
     } else {
       // Extract DOI from first page
+      console.log(firstPageText)
       const dois = firstPageText.match(
         new RegExp(
-          "(?:" + '(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![%"#? ])\\S)+)' + ")",
-          "g"
+          "^10.\d{4,9}/[-._;()/:A-Z0-9]+$",
+          "ig"
         )
       );
       if (dois) {
