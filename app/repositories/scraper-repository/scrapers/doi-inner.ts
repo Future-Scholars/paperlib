@@ -41,8 +41,9 @@ export class DOIInnerScraper extends Scraper {
       page: string;
       volume: string;
       issue: string;
+      subtitle: string[];
     };
-    const title = response.title;
+    const title = [response.title, response.subtitle.join(' ')].filter(t => t !== '').join(" - ");
     const authors = response.author
       .map((author) => {
         if (author.name) {
