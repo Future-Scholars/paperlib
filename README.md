@@ -55,6 +55,11 @@ That is Paperlib.
     - [x] **Physics**
         - [x] NASA Astrophysics Data System
         - [x] SPIE: Inte. Society for Optics and Photonics
+    - [ ] **Chemistry**
+        - [x] ChemRxiv
+    - [ ] **Biology**
+        - [x] BioRxiv / MedRxiv
+
     - ...
 -   Fulltext and advanced search.
 -   Rating, flag, tag, folder and markdown/plain text note.
