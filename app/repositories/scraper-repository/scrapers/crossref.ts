@@ -176,7 +176,7 @@ async function scrapeImpl(
         10000
       )) as Response<string>;
 
-      const potentialDOI = response.body.split('|').pop()?.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+$/gi)
+      const potentialDOI = response.body.split('|').pop()?.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/gim)
       if (!potentialDOI) {
         const fallbackScrapeURL = encodeURI(
           `https://api.crossref.org/works?query.bibliographic=${formatString({

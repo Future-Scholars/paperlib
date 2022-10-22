@@ -116,7 +116,7 @@ export class PDFScraper extends Scraper {
     const dois = rawResponse.urls
       .map((url) => {
         if (url) {
-          const doi = url.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+$/gi);
+          const doi = url.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/gim);
           if (doi) {
             return doi[0];
           }
@@ -139,7 +139,7 @@ export class PDFScraper extends Scraper {
       }
     } else {
       // Extract DOI from first page
-      const dois = firstPageText.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+$/gi);
+      const dois = firstPageText.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/gim);
       if (dois) {
         const doi = formatString({ str: dois[0], removeWhite: true });
         if (paperEntityDraft.doi === "") {
