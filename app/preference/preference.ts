@@ -357,6 +357,30 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
+    biomedrxiv: {
+      name: 'biomedrxiv',
+      category: 'bio / med',
+      description: 'Bio/MedRxiv.org',
+      enable: false,
+      custom: false,
+      args: '',
+      priority: 1,
+      preProcessCode: '',
+      parsingProcessCode: '',
+      scrapeImplCode: '',
+    },
+    chemrxiv: {
+      name: 'chemrxiv',
+      category: 'chem',
+      description: 'ChemRxiv.org',
+      enable: false,
+      custom: false,
+      args: '',
+      priority: 1,
+      preProcessCode: '',
+      parsingProcessCode: '',
+      scrapeImplCode: '',
+    }
   },
 
   downloaders: [

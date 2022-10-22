@@ -67,7 +67,10 @@ export class Scraper implements ScraperType {
   isPreprint(paperEntityDraft: PaperEntity) {
     return (
       !paperEntityDraft.publication ||
-      paperEntityDraft.publication.toLowerCase().includes("rxiv") ||
+      paperEntityDraft.publication.toLowerCase().includes("arxiv") ||
+      paperEntityDraft.publication.toLowerCase().includes("biorxiv") ||
+      paperEntityDraft.publication.toLowerCase().includes("medrxiv") ||
+      paperEntityDraft.publication.toLowerCase().includes("chemrxiv") ||
       paperEntityDraft.publication.toLowerCase().includes("openreview") ||
       paperEntityDraft.publication.includes("CoRR")
     );

@@ -1,3 +1,10 @@
+# v2.0.6 Oct 23 2022
+
+1. New Scrapers: bioRxiv, medRxiv, and chemRxiv.
+2. Better DOI regex.
+3. New icon.
+4. Fixed some bugs.
+
 # v2.0.5 Oct 18 2022
 
 1. The beta version of the Microsoft Word Add-in is released. 

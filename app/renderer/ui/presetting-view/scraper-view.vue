@@ -43,6 +43,10 @@ const categoryColor = (category: string) => {
       return "text-blue-900";
     case "official":
       return "text-red-700";
+    case "bio / med":
+      return "text-pink-600";
+    case "chem":
+      return "text-orange-600";
     default:
       return "text-gray-400";
   }

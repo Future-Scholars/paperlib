@@ -86,19 +86,13 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.0.5 更新内容
+          Paperlib 2.0.6 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>
-            Microsoft Word 插件的测试版发布了，使用方法详见：
-            <span @click="openIntro" class="underline cursor-pointer">
-              https://paperlib.app/cn/blog/word-addin/</span
-            >
-          </li>
-          <li>支持了 Linux 系统。</li>
-          <li>代码仓库元数据现在可以编辑了。</li>
-          <li>更好的搜索栏鼠标悬浮体验。</li>
+          <li>新的元数据搜寻器: bioRxiv, medRxiv, and chemRxiv。</li>
+          <li>优化 DOI 正则表达式。</li>
+          <li>新的图标。</li>
           <li>修复漏洞。</li>
         </ul>
         <div

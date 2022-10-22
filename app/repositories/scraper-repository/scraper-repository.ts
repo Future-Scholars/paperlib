@@ -26,6 +26,8 @@ import { SemanticScholarScraper } from "./scrapers/semanticscholar";
 import { AdsabsScraper } from "./scrapers/adsabs";
 import { SpringerScraper } from "./scrapers/springer";
 import { SPIEScraper } from "./scrapers/spie";
+import { BioRxivScraper, MedRxivScraper } from "./scrapers/boimedrxiv";
+import { ChemRxivScraper } from "./scrapers/chemrxiv";
 
 export class ScraperRepository {
   stateStore: MainRendererStateStore;
@@ -100,6 +102,17 @@ export class ScraperRepository {
           this.scraperList.push({
             name: "dblp-venue",
             scraper: dblpVenueScraper,
+          });
+        } else if (scraperPref.name === 'biomedrxiv') {
+          const bioRxivScraper = new BioRxivScraper(this.stateStore, this.preference);
+          const medRxivScraper = new MedRxivScraper(this.stateStore, this.preference);
+          this.scraperList.push({
+            name: "biomedrxiv",
+            scraper: bioRxivScraper,
+          });
+          this.scraperList.push({
+            name: "biomedrxiv",
+            scraper: medRxivScraper,
           });
         } else {
           let scraperInstance: ScraperType | undefined;
@@ -184,6 +197,12 @@ export class ScraperRepository {
               break;
             case "spie":
               scraperInstance = new SPIEScraper(
+                this.stateStore,
+                this.preference,
+              );
+              break;
+            case "chemrxiv":
+              scraperInstance = new ChemRxivScraper(
                 this.stateStore,
                 this.preference,
               );

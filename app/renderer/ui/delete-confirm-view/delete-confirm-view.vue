@@ -57,7 +57,7 @@ const onConfirm = () => {
           >
             <div>
               <img
-                class="mx-auto mt-2 w-16 h-16"
+                class="mx-auto mt-2 w-14 h-14"
                 src="@/renderer/assets/icon.png"
               />
               <div class="mt-1 text-center text-sm font-semibold">

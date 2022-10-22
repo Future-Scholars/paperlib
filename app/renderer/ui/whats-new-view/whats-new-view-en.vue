@@ -86,20 +86,13 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.0.5
+          What's New in Paperlib 2.0.6
         </p>
 
         <ul class="list-disc mb-5">
-          <li>
-            The beta version of the Microsoft Word Add-in is released. Learn
-            more about it:
-            <span @click="openIntro" class="underline cursor-pointer">
-              https://paperlib.app/en/blog/word-addin/</span
-            >
-          </li>
-          <li>Linux build is avaliable now.</li>
-          <li>The code repository metadata is editable now.</li>
-          <li>Better hover experience of the search bar.</li>
+          <li>New Scrapers: bioRxiv, medRxiv, and chemRxiv.</li>
+          <li>Better DOI regex.</li>
+          <li>New icon.</li>
           <li>Fixed some bugs.</li>
         </ul>
         <div
