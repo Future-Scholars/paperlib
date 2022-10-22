@@ -38,6 +38,9 @@ export class EmbedWebImporter extends WebImporter {
         if (meta.name === "citation_publication_date") {
           entityDraft.setValue("pubTime", meta.content.split("/")[0]);
         }
+        if (meta.name === "citation_doi") {
+          entityDraft.setValue("doi", meta.content);
+        }
         if (meta.name === "citation_pdf_url") {
           let downloadURL;
           if (meta.content.endsWith(".pdf")) {
@@ -52,7 +55,8 @@ export class EmbedWebImporter extends WebImporter {
           if (downloadedFilePath.length > 0) {
 
             const fileContent = readFileSync(downloadedFilePath[0]);
-            if (fileContent.subarray(0, 5).toString() === '%PDF-' && fileContent.subarray(-5).toString() === '%%EOF') {
+            console.log(fileContent.subarray(0, 5).toString(), fileContent.subarray(-4).toString(), fileContent.subarray(0, 5).toString() === '%PDF-', fileContent.subarray(-5).toString().includes('EOF'))
+            if (fileContent.subarray(0, 5).toString() === '%PDF-' && fileContent.subarray(-5).toString().includes('EOF')) {
               entityDraft.setValue("mainURL", downloadedFilePath[0]);
             }
           }

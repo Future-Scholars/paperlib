@@ -27,6 +27,7 @@ import { AdsabsScraper } from "./scrapers/adsabs";
 import { SpringerScraper } from "./scrapers/springer";
 import { SPIEScraper } from "./scrapers/spie";
 import { BioRxivScraper, MedRxivScraper } from "./scrapers/boimedrxiv";
+import { ChemRxivScraper } from "./scrapers/chemrxiv";
 
 export class ScraperRepository {
   stateStore: MainRendererStateStore;
@@ -196,6 +197,12 @@ export class ScraperRepository {
               break;
             case "spie":
               scraperInstance = new SPIEScraper(
+                this.stateStore,
+                this.preference,
+              );
+              break;
+            case "chemrxiv":
+              scraperInstance = new ChemRxivScraper(
                 this.stateStore,
                 this.preference,
               );
