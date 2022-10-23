@@ -44,7 +44,7 @@ export class APICache {
     this.title = entity.title;
     this.minifiedtitle = this.title
       .toLowerCase()
-      .replaceAll(/[^a-zA-Z0-9]/g, "");
+      .replaceAll(/[^\p{L}]/gu, "");
     this.authors = entity.authors;
     this.publication = entity.publication;
     this.pubTime = entity.pubTime;

@@ -55,7 +55,13 @@ export class RenderInteractor {
     if (this.renderingPDF) {
       this.renderingPDF.destroy();
     }
-    const pdf = await pdfjs.getDocument(fileURL).promise;
+    const pdf = await pdfjs.getDocument(
+      {
+        url: fileURL,
+        useWorkerFetch: true,
+        cMapUrl: "../viewer/cmaps/",
+      }
+    ).promise;
     this.renderingPDF = pdf;
 
     const page = await pdf.getPage(1);

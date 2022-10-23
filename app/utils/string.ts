@@ -34,7 +34,7 @@ export const formatString = ({
       formatted = formatted.replace(/\s/g, "");
     }
     if (removeSymbol) {
-      formatted = formatted.replace(/[^a-zA-Z0-9]/g, "");
+      formatted = formatted.replace(/[^\p{L}|\s]/gu, "");
     }
     if (removeStr) {
       formatted = formatted.replace(new RegExp(removeStr, "g"), "");
@@ -43,7 +43,7 @@ export const formatString = ({
       formatted = formatted.toLowerCase();
     }
     if (whiteSymbol) {
-      formatted = formatted.replace(/[^a-zA-Z0-9]/g, " ");
+      formatted = formatted.replace(/[^\p{L}]/gu, " ");
     }
     return formatted;
   } else {

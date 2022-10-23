@@ -853,7 +853,7 @@
           kind: OptionKind.API,
         },
         cMapUrl: {
-          value: "../web/cmaps/",
+          value: "../viewer/cmaps/",
           kind: OptionKind.API,
         },
         disableAutoFetch: {

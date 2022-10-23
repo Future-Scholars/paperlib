@@ -73,9 +73,8 @@ export class WebDavFileBackend implements FileBackend {
           );
         } catch (error) {
           console.error(error);
-          this.stateStore.logState.alertLog = `Could not download file from webdav: ${
-            error as string
-          }`;
+          this.stateStore.logState.alertLog = `Could not download file from webdav: ${error as string
+            }`;
           return "";
         }
       } else {
@@ -127,9 +126,8 @@ export class WebDavFileBackend implements FileBackend {
           );
         } catch (error) {
           console.error(error);
-          this.stateStore.logState.alertLog = `Could not upload file to webdav: ${
-            error as string
-          }`;
+          this.stateStore.logState.alertLog = `Could not upload file to webdav: ${error as string
+            }`;
         }
       }
     });
@@ -173,9 +171,8 @@ export class WebDavFileBackend implements FileBackend {
       }
       return true;
     } catch (error) {
-      this.stateStore.logState.alertLog = `Could not copy file: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Could not copy file: ${error as string
+        }`;
       return false;
     }
   }
@@ -242,9 +239,8 @@ export class WebDavFileBackend implements FileBackend {
       return success;
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Could not upload file to webdav: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Could not upload file to webdav: ${error as string
+        }`;
       return false;
     }
   }
@@ -256,7 +252,7 @@ export class WebDavFileBackend implements FileBackend {
     await this.check();
 
     let title =
-      paperEntity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") ||
+      paperEntity.title.replace(/[^\p{L}|\s]/gu, "").replace(/\s/g, "_") ||
       "untitled";
     const firstCharTitle =
       title
@@ -426,9 +422,8 @@ export class WebDavFileBackend implements FileBackend {
       return true;
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Could not remove file on webdav: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Could not remove file on webdav: ${error as string
+        }`;
       return false;
     }
   }
@@ -468,9 +463,8 @@ export class WebDavFileBackend implements FileBackend {
       return await this._remove(fileURL);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Could not remove file on webdav: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Could not remove file on webdav: ${error as string
+        }`;
       return false;
     }
   }

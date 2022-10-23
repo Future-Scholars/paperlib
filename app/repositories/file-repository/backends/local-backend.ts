@@ -45,7 +45,7 @@ export class LocalFileBackend implements FileBackend {
     }
   }
 
-  startWatch() {}
+  startWatch() { }
 
   async stopWatch(): Promise<void> {
     return Promise.resolve();
@@ -79,9 +79,8 @@ export class LocalFileBackend implements FileBackend {
       return true;
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Could not copy file: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Could not copy file: ${error as string
+        }`;
       return false;
     }
   }
@@ -91,7 +90,7 @@ export class LocalFileBackend implements FileBackend {
     forceDelete: boolean = false
   ): Promise<PaperEntity | null> {
     let title =
-      paperEntity.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s/g, "_") ||
+      paperEntity.title.replace(/[^\p{L}|\s]/gu, "").replace(/\s/g, "_") ||
       "untitled";
     const firstCharTitle =
       title
@@ -233,17 +232,15 @@ export class LocalFileBackend implements FileBackend {
           await fsPromise.unlink(_sourceURL);
         } catch (error) {
           console.error(error);
-          this.stateStore.logState.alertLog = `Could not remove file: ${
-            error as string
-          }`;
+          this.stateStore.logState.alertLog = `Could not remove file: ${error as string
+            }`;
           return false;
         }
       }
       return true;
     } catch (error) {
-      this.stateStore.logState.alertLog = `Could not remove file: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Could not remove file: ${error as string
+        }`;
       return false;
     }
   }
@@ -289,9 +286,8 @@ export class LocalFileBackend implements FileBackend {
       }
       return true;
     } catch (error) {
-      this.stateStore.logState.alertLog = `Could not remove file: ${
-        error as string
-      }`;
+      this.stateStore.logState.alertLog = `Could not remove file: ${error as string
+        }`;
       return false;
     }
   }
