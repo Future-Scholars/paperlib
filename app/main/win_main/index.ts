@@ -34,7 +34,7 @@ export async function createMainWindow(
     visualEffectState: "active",
   });
 
-  if (app.isPackaged) {
+  if (app.isPackaged || process.env.NODE_ENV === "vitest") {
     win.loadFile(join(__dirname, "../../index.html"));
   } else {
     win.loadURL(process.env.VITE_DEV_SERVER_URL as string);

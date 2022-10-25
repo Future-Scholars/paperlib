@@ -143,6 +143,7 @@ onMounted(() => {
 <template>
   <div id="data-view" class="px-2">
     <RecycleScroller
+      id="list-data-view"
       class="scroller max-h-[calc(100vh-3rem)]"
       :items="paperEntities"
       :item-size="64"
@@ -193,6 +194,7 @@ onMounted(() => {
     <splitpanes horizontal class="max-h-[calc(100vh-5rem)]">
       <pane :key="1" min-size="12">
         <RecycleScroller
+          id="table-data-view"
           class="scroller h-full pb-4"
           :items="paperEntities"
           :item-size="28"

@@ -96,6 +96,7 @@ onMounted(() => {
           <li>Fixed some bugs.</li>
         </ul>
         <div
+          id="whats-new-close-btn"
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
           @click="hide"
         >
