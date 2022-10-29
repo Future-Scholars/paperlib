@@ -210,6 +210,7 @@ const onSaveAndScrapeClicked = async () => {
                 />
               </div>
               <MultiselectBox
+                id="paper-edit-view-tags-input"
                 :placeholder="$t('mainview.tags')"
                 :options="(tags ? tags : []).map((tag) => tag.name)"
                 :existValues="
@@ -222,6 +223,7 @@ const onSaveAndScrapeClicked = async () => {
                 "
               />
               <MultiselectBox
+                id="paper-edit-view-folders-input"
                 :placeholder="$t('mainview.folders')"
                 :options="(folders ? folders : []).map((folder) => folder.name)"
                 :existValues="

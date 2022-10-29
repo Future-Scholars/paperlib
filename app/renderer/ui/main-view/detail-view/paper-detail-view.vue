@@ -208,7 +208,11 @@ onMounted(() => {
           {{ entity.pubTime }}
         </div>
       </Section>
-      <Section :title="$t('mainview.tags')" v-if="entity.tags.length > 0">
+      <Section
+        id="detail-tag-section"
+        :title="$t('mainview.tags')"
+        v-if="entity.tags.length > 0"
+      >
         <Categorizers
           :categorizers="entity.tags"
           categorizerType="PaperTag"
@@ -217,7 +221,11 @@ onMounted(() => {
           "
         />
       </Section>
-      <Section :title="$t('mainview.folders')" v-if="entity.folders.length > 0">
+      <Section
+        id="detail-folder-section"
+        :title="$t('mainview.folders')"
+        v-if="entity.folders.length > 0"
+      >
         <Categorizers
           :categorizers="entity.folders"
           categorizerType="PaperFolder"

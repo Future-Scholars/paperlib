@@ -308,6 +308,7 @@ onMounted(async () => {
         Add two test
       </button>
       <button
+        id="dev-delete-all-btn"
         class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
         @click="removeAll"
       >

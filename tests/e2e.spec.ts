@@ -11,6 +11,15 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  const page = await electronApp.firstWindow()
+  await page.locator('#list-view-btn').click()
+  const e = await (page.locator("#dev-btn-bar")).elementHandle()
+  await e?.evaluate((e) => {
+    e.style.display = "flex"
+  })
+  await page.locator('#dev-delete-all-btn').click();
+  await page.waitForTimeout(1000)
+
   await electronApp.close();
 });
 
@@ -77,26 +86,6 @@ test('Drag PDF to Import', async () => {
 
 }, 10000)
 
-test('Flag Paper', async () => {
-  const page = await electronApp.firstWindow()
-
-  const dataview = page.locator('#list-data-view').first()
-  const paperItem = dataview.locator('div').first()
-  await paperItem.click()
-
-  await page.locator('#flag-selected-btn').click();
-
-  const dataTextList = await dataview.allInnerTexts()
-  const targetText =
-    'Balanced Meta-Softmax for Long-Tailed Visual Recognition.\n' +
-    'Jiawei Ren, Cunjun Yu, Shunan Sheng, Xiao Ma, Haiyu Zhao, Shuai Yi, Hongsheng Li\n' +
-    '2020\n' +
-    '|\n' +
-    'Conference on Neural Information Processing Systems (NeurIPS)\n' +
-    '|'
-  expect(dataTextList[0]).toBe(targetText)
-})
-
 test('Rating Paper', async () => {
   const page = await electronApp.firstWindow()
 
@@ -113,7 +102,6 @@ test('Rating Paper', async () => {
     '2020\n' +
     '|\n' +
     'Conference on Neural Information Processing Systems (NeurIPS)\n' +
-    '|\n' +
     '|'
   expect(dataTextList[0]).toBe(targetText)
 })
@@ -139,7 +127,6 @@ test('Edit Paper', async () => {
     '2020\n' +
     '|\n' +
     'arxiv\n' +
-    '|\n' +
     '|'
   expect(dataTextList[0]).toBe(targetText)
 })
@@ -161,7 +148,6 @@ test('Scrape Paper', async () => {
     '2020\n' +
     '|\n' +
     'Conference on Neural Information Processing Systems (NeurIPS)\n' +
-    '|\n' +
     '|'
   expect(dataTextList[0]).toBe(targetText)
 }, 10000)
@@ -184,7 +170,7 @@ test('Delete Paper', async () => {
 
 })
 
-test('General Search', async () => {
+test('Import Multiple PDFs', async () => {
   const page = await electronApp.firstWindow()
 
   const e = await (page.locator("#dev-btn-bar")).elementHandle()
@@ -199,6 +185,89 @@ test('General Search', async () => {
   const dataviewHeightBeforeSearch = (await dataview.boundingBox())?.height
   expect(dataviewHeightBeforeSearch).toBe(128)
 
+}, 10000)
+
+test('Sort', async () => {
+  const page = await electronApp.firstWindow()
+
+  await page.locator('#list-view-btn').click()
+  await page.locator('#sort-menu-btn').click()
+  await page.locator('#sort-asce-btn').click()
+  await page.waitForTimeout(1000)
+
+  const dataview = page.locator('#list-data-view').first()
+  const asceTranslate = await dataview.locator('div').first().locator('div').first().evaluate((e) => e.style.transform)
+
+  await page.locator('#sort-menu-btn').click()
+  await page.locator('#sort-desc-btn').click()
+  await page.waitForTimeout(1000)
+
+  const descTranslate = await dataview.locator('div').first().locator('div').first().evaluate((e) => e.style.transform)
+
+  expect(asceTranslate !== descTranslate).toBeTruthy()
+
+}, 5000)
+
+test('Flag Paper and Filter by Flag', async () => {
+  const page = await electronApp.firstWindow()
+  const dataview = page.locator('#list-data-view').first()
+
+  const dataviewHeightBeforeFilter = (await dataview.boundingBox())?.height
+  expect(dataviewHeightBeforeFilter).toBe(128)
+
+  const paperItem = dataview.locator('div').first()
+  await paperItem.click()
+
+  await page.locator('#flag-selected-btn').click();
+  await page.locator('#sidebar-flag-section').click()
+  await page.waitForTimeout(1000)
+
+  const dataviewHeightAfterFilter = (await dataview.boundingBox())?.height
+  expect(dataviewHeightAfterFilter).toBe(64)
+
+  await page.locator('#sidebar-library-section').click()
+  await page.waitForTimeout(1000)
+
+  const dataviewHeightRestore = (await dataview.boundingBox())?.height
+  expect(dataviewHeightRestore).toBe(128)
+})
+
+test('Tag Paper and Filter by Tag', async () => {
+  const page = await electronApp.firstWindow()
+
+  const dataview = page.locator('#list-data-view').first()
+  const paperItem = dataview.locator('div').first()
+  await paperItem.click()
+
+  await page.locator('#edit-selected-btn').click();
+  await page.waitForSelector('#paper-edit-view', { state: 'visible' })
+
+  await page.locator('#paper-edit-view-tags-input input').fill('test1')
+  await page.keyboard.press('Enter')
+  await page.locator('#paper-edit-view-save-btn').click();
+  await page.waitForTimeout(1000)
+
+  const tagInDetail = await page.locator('#detail-tag-section > div').count()
+  expect(tagInDetail).toBe(2)
+
+  await page.locator('.sidebar-tag-item').first().click()
+  await page.waitForTimeout(1000)
+
+  const dataviewHeightAfterFilter = (await dataview.boundingBox())?.height
+  expect(dataviewHeightAfterFilter).toBe(64)
+
+  await page.locator('#sidebar-library-section').click()
+  await page.waitForTimeout(1000)
+
+  const dataviewHeightRestore = (await dataview.boundingBox())?.height
+  expect(dataviewHeightRestore).toBe(128)
+
+}, 10000)
+
+test('General Search', async () => {
+  const page = await electronApp.firstWindow()
+
+  const dataview = page.locator('#list-data-view').first()
   await page.locator('#search-input > input').fill('correlation')
   await page.waitForTimeout(1000)
   const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height
@@ -242,8 +311,25 @@ test('Advanced Search', async () => {
   await page.waitForTimeout(1000)
   await page.keyboard.press('Enter')
   await page.keyboard.press('Enter')
-  await page.waitForTimeout(2000)
+  await page.waitForTimeout(1000)
   const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height
   expect(dataviewHeightAfterSearch).toBe(64)
 
 }, 10000)
+
+test('List Table View', async () => {
+  const page = await electronApp.firstWindow()
+
+  await page.locator('#table-view-btn').click()
+  await page.waitForTimeout(1000)
+  await page.waitForSelector('#table-data-view', { state: 'visible' })
+
+  await page.locator('#table-reader-view-btn').click()
+  await page.waitForTimeout(1000)
+  const dataview = page.locator('#table-data-view').first()
+  const paperItem = dataview.locator('div').first()
+  await paperItem.click()
+
+  await page.waitForSelector('#table-reader-data-view', { state: 'visible' })
+
+})

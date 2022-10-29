@@ -229,6 +229,7 @@ onMounted(() => {
         </RecycleScroller>
       </pane>
       <pane
+        id="table-reader-data-view"
         :key="1"
         min-size="12"
         v-if="
