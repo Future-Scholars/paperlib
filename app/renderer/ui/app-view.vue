@@ -237,6 +237,12 @@ const addTestData = async () => {
     `${process.cwd()}/tests/pdfs/cs/1.pdf`,
   ]);
 };
+const addTwoTestData = async () => {
+  await window.entityInteractor.create([
+    `${process.cwd()}/tests/pdfs/cs/1.pdf`,
+    `${process.cwd()}/tests/pdfs/cs/2.pdf`,
+  ]);
+};
 const removeAll = async () => {
   await window.entityInteractor.removeAll();
 };
@@ -293,6 +299,13 @@ onMounted(async () => {
         @click="addTestData"
       >
         Add test
+      </button>
+      <button
+        id="dev-add-two-test-data-btn"
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="addTwoTestData"
+      >
+        Add two test
       </button>
       <button
         class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"

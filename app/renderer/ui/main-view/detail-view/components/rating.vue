@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
 import { BIconStar, BIconStarFill } from "bootstrap-icons-vue";
+import { ref, watch } from "vue";
 
 const props = defineProps({
   rating: {
@@ -28,8 +28,16 @@ watch(props, (props, prevProps) => {
 
 <template>
   <div class="flex text-xs space-x-1 mt-1">
-    <BIconStarFill @click="emit('changed', n)" v-for="n in rating" />
-    <div @click="emit('changed', n + rating)" v-for="n in 5 - rating">
+    <BIconStarFill
+      :id="`rating-${n}-btn`"
+      @click="emit('changed', n)"
+      v-for="n in rating"
+    />
+    <div
+      :id="`rating-${n}-btn`"
+      @click="emit('changed', n + rating)"
+      v-for="n in 5 - rating"
+    >
       <BIconStar
         :class="n + rating <= hoverRating ? 'hidden' : 'block'"
         v-on:mouseover="onHover(n + rating)"

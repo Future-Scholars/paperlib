@@ -63,6 +63,7 @@ const onMaximizeClicked = () => {
   >
     <div class="grow my-auto px-2 nodraggable-item">
       <SearchInput
+        id="search-input"
         @focusin="viewState.inputFieldFocused = true"
         @focusout="viewState.inputFieldFocused = false"
       />
@@ -73,21 +74,25 @@ const onMaximizeClicked = () => {
       :class="viewState.os !== 'win32' ? 'w-80 pl-8' : 'w-48 pl-2'"
     >
       <MenuBarBtn
+        id="scrape-selected-btn"
         btnName="rescrape"
         @click="emit('click', 'rescrape')"
         :disabled="disableMultiBtn"
       />
       <MenuBarBtn
+        id="delete-selected-btn"
         btnName="delete"
         @click="emit('click', 'delete')"
         :disabled="disableMultiBtn"
       />
       <MenuBarBtn
+        id="edit-selected-btn"
         btnName="edit"
         @click="emit('click', 'edit')"
         :disabled="disableSingleBtn"
       />
       <MenuBarBtn
+        id="flag-selected-btn"
         btnName="flag"
         @click="emit('click', 'flag')"
         :disabled="disableMultiBtn"
@@ -306,7 +311,7 @@ const onMaximizeClicked = () => {
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
-                    <BIconGrid3x2  class="my-auto" />
+                    <BIconGrid3x2 class="my-auto" />
                     <span>Table View</span>
                   </div>
                   <BIconCheck2

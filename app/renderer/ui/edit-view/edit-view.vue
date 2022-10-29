@@ -103,6 +103,7 @@ const onSaveAndScrapeClicked = async () => {
     leave-to-class="transform opacity-0"
   >
     <div
+      id="paper-edit-view"
       class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-800 dark:bg-neutral-900 bg-opacity-50 dark:bg-opacity-80"
       v-if="viewState.isEditViewShown"
     >
@@ -122,11 +123,13 @@ const onSaveAndScrapeClicked = async () => {
                 @changed="(value) => (editingPaperEntityDraft.title = value)"
               />
               <InputBox
+                id="paper-edit-view-author-input"
                 :placeholder="$t('mainview.authors')"
                 :value="editingPaperEntityDraft.authors"
                 @changed="(value) => (editingPaperEntityDraft.authors = value)"
               />
               <InputBox
+                id="paper-edit-view-publication-input"
                 :placeholder="$t('mainview.publicationtitle')"
                 :value="editingPaperEntityDraft.publication"
                 @changed="
@@ -297,6 +300,7 @@ const onSaveAndScrapeClicked = async () => {
                 <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
               </div>
               <div
+                id="paper-edit-view-save-btn"
                 class="flex w-20 h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm"
                 @click="onSaveClicked"
               >
