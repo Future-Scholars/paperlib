@@ -5,7 +5,6 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "jsx": "preserve",
-    "allowJs": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "sourceMap": true,
@@ -18,5 +17,6 @@
     "skipLibCheck": true
   },
   "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.ts", "app/**/*.vue"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [{ "path": "./tsconfig.node.json" }],
+  "exclude": ["app/renderer/thirdparty/**/*"]
 }

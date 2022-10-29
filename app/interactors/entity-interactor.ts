@@ -324,7 +324,7 @@ export class EntityInteractor {
   // ========================
   // Update
   // ========================
-  async update(paperEntities: PaperEntity[], forceDelete = true) {
+  async update(paperEntities: PaperEntity[], forceDelete = true, forceNotLink = false) {
     this.stateStore.logState.processLog = `Updating ${paperEntities.length} paper(s)...`;
     this.stateStore.viewState.processingQueueCount += paperEntities.length;
 
@@ -333,7 +333,7 @@ export class EntityInteractor {
       const updatePromise = async (paperEntityDrafts: PaperEntity[]) => {
         const movedPaperEntityDrafts = await Promise.all(
           paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
-            this.fileRepository.move(paperEntityDraft, forceDelete)
+            this.fileRepository.move(paperEntityDraft, forceDelete, forceNotLink)
           )
         );
 
@@ -554,7 +554,7 @@ export class EntityInteractor {
         )
       );
 
-      updatedPaperEntities = await this.update(paperEntityDrafts);
+      updatedPaperEntities = await this.update(paperEntityDrafts, false, true);
     } catch (error) {
       console.error(error);
       this.stateStore.logState.alertLog = `Download paper failed: ${error as string

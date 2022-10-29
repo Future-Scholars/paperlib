@@ -48,9 +48,10 @@ export class FileRepository {
 
   async move(
     paperEntity: PaperEntity,
-    fourceDelete = false
+    fourceDelete = false,
+    forceNotLink = false
   ): Promise<PaperEntity | null> {
-    return await this.backend.move(paperEntity, fourceDelete);
+    return await this.backend.move(paperEntity, fourceDelete, forceNotLink);
   }
   async remove(paperEntity: PaperEntity): Promise<boolean> {
     return await this.backend.remove(paperEntity);

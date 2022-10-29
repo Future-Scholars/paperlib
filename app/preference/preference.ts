@@ -30,7 +30,8 @@ export interface DownloaderPreference {
 
 export interface PreferenceStore {
   appLibFolder: string;
-  deleteSourceFile: boolean;
+  deleteSourceFile: boolean;  // deprecated, use sourceFileOperation = 'cut'
+  sourceFileOperation: "cut" | "copy" | "link";
 
   showSidebarCount: boolean;
   isSidebarCompact: boolean;
@@ -112,6 +113,7 @@ export interface PreferenceStore {
 export const defaultPreferences: PreferenceStore = {
   appLibFolder: path.join(os.homedir(), "Documents", "paperlib"),
   deleteSourceFile: false,
+  sourceFileOperation: "copy",
 
   showSidebarCount: true,
   isSidebarCompact: false,
@@ -469,6 +471,11 @@ export class Preference {
       if (!this.store.has(key)) {
         this.store.set(key, defaultPreferences[key]);
       }
+    }
+
+    // migrate old preference
+    if (this.store.has("deleteSourceFile") && this.store.get("deleteSourceFile")) {
+      this.store.set('sourceFileOperation', 'cut')
     }
   }
 

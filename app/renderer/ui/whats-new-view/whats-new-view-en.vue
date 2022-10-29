@@ -86,14 +86,15 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.0.6
+          What's New in Paperlib 2.0.7
         </p>
 
         <ul class="list-disc mb-5">
-          <li>New Scrapers: bioRxiv, medRxiv, and chemRxiv.</li>
-          <li>Better DOI regex.</li>
-          <li>New icon.</li>
-          <li>Fixed some bugs.</li>
+          <li>Optimised PDF processing for papers in Chinese.</li>
+          <li>
+            A new option to symlink the file when import it rather than moving
+            or copying it. Thus, you can keep files in the original location.
+          </li>
         </ul>
         <div
           id="whats-new-close-btn"

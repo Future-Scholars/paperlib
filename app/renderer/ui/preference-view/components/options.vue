@@ -25,16 +25,18 @@ const emit = defineEmits(["update"]);
   <div class="flex justify-between">
     <div class="flex flex-col">
       <div class="text-xs font-semibold">{{ title }}</div>
-      <div class="text-xxs text-neutral-600 dark:text-neutral-500">
+      <div
+        class="text-xxs text-neutral-600 dark:text-neutral-500 max-w-[400px]"
+      >
         {{ info }}
       </div>
     </div>
     <div
-      class="flex bg-neutral-200 dark:bg-neutral-700 rounded-md"
+      class="flex bg-neutral-200 dark:bg-neutral-700 rounded-md h-6 my-auto"
       :class="Object.entries(options).length < 4 ? 'w-40' : 'w-48'"
     >
       <div
-        class="flex h-full w-full my-auto text-center text-xs rounded-md cursor-pointer"
+        class="flex h-full w-full my-auto text-center text-xxs rounded-md cursor-pointer"
         :class="
           selected === optionKey
             ? 'bg-neutral-500 text-neutral-100'

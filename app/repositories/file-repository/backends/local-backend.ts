@@ -37,7 +37,11 @@ export class LocalFileBackend implements FileBackend {
       const pathStat = await fsPromise.lstat(fileURL.replace("file://", ""));
       if (pathStat.isFile()) {
         return Promise.resolve(fileURL);
-      } else {
+      } else if (pathStat.isSymbolicLink()) {
+        const realPath = await fsPromise.realpath(fileURL.replace("file://", ""));
+        return Promise.resolve(`file://${realPath}`);
+      }
+      else {
         return Promise.resolve("");
       }
     } else {
@@ -54,7 +58,8 @@ export class LocalFileBackend implements FileBackend {
   async _move(
     sourceURL: string,
     targetURL: string,
-    forceDelete: boolean = false
+    forceDelete: boolean = false,
+    forceNotLink: boolean = false
   ): Promise<boolean> {
     const _sourceURL = sourceURL.replace("file://", "");
     const _targetURL = targetURL.replace("file://", "");
@@ -68,10 +73,28 @@ export class LocalFileBackend implements FileBackend {
     }
     try {
       if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
-        await fsPromise.copyFile(_sourceURL, _targetURL);
+        if (this.preference.get('sourceFileOperation') as string === 'link' && !forceNotLink) {
+          try {
+            const stat = await fsPromise.lstat(_targetURL);
+            if (!existsSync(_targetURL) && stat.isSymbolicLink()) {
+              await fsPromise.unlink(_targetURL);
+            }
+          } catch (error) {
+          }
+
+          const sourcePathStat = await fsPromise.lstat(_sourceURL.replace("file://", ""));
+          if (sourcePathStat.isFile()) {
+            await fsPromise.symlink(_sourceURL, _targetURL);
+          } else if (sourcePathStat.isSymbolicLink()) {
+            const realPath = await fsPromise.realpath(_sourceURL.replace("file://", ""));
+            await fsPromise.symlink(realPath, _targetURL);
+          }
+        } else {
+          await fsPromise.copyFile(_sourceURL, _targetURL);
+        }
       }
       if (
-        ((this.preference.get("deleteSourceFile") as boolean) || forceDelete) &&
+        ((this.preference.get("sourceFileOperation") as string) === 'cut' || forceDelete) &&
         _sourceURL.toLowerCase() !== _targetURL.toLowerCase()
       ) {
         await fsPromise.unlink(sourceURL);
@@ -87,7 +110,8 @@ export class LocalFileBackend implements FileBackend {
 
   async move(
     paperEntity: PaperEntity,
-    forceDelete: boolean = false
+    forceDelete: boolean = false,
+    forceNotLink: boolean = false
   ): Promise<PaperEntity | null> {
     let title =
       paperEntity.title.replace(/[^\p{L}|\s]/gu, "").replace(/\s/g, "_") ||
@@ -161,7 +185,8 @@ export class LocalFileBackend implements FileBackend {
     const mainSuccess = await this._move(
       sourceMainURL,
       targetMainURL,
-      forceDelete
+      forceDelete,
+      forceNotLink
     );
     if (mainSuccess) {
       paperEntity.mainURL = path.basename(targetMainURL);
@@ -187,7 +212,8 @@ export class LocalFileBackend implements FileBackend {
       const supSuccess = await this._move(
         sourceSupURL,
         targetSupURL,
-        forceDelete
+        forceDelete,
+        forceNotLink
       );
       if (supSuccess) {
         return path.basename(targetSupURL);

@@ -86,14 +86,15 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.0.6 更新内容
+          Paperlib 2.0.7 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>新的元数据搜寻器: bioRxiv, medRxiv, and chemRxiv。</li>
-          <li>优化 DOI 正则表达式。</li>
-          <li>新的图标。</li>
-          <li>修复漏洞。</li>
+          <li>优化了中文论文的 PDF 文件处理。</li>
+          <li>
+            一个新的选项使得导入论文时可以链接文件而不是复制或者剪切文件。使用户可以保持源
+            PDF 位置不变。
+          </li>
         </ul>
         <div
           id="whats-new-close-btn"

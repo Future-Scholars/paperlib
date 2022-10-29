@@ -16,7 +16,8 @@ export interface FileBackend {
   stopWatch(): Promise<void>;
   move(
     paperEntity: PaperEntity,
-    fourceDelete: boolean
+    fourceDelete: boolean,
+    forceNotLink: boolean
   ): Promise<PaperEntity | null>;
   remove(paperEntity: PaperEntity): Promise<boolean>;
   removeFile(url: string): Promise<boolean>;

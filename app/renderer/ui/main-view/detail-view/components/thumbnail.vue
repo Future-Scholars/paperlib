@@ -181,21 +181,21 @@ watch(
         @click="showFilePicker"
       >
         <BIconPlus class="text-xs my-auto" />
-        <div class="text-xxs my-auto">Choose</div>
+        <div class="text-xxs my-auto">{{ $t("menu.choose") }}</div>
       </div>
       <div
         class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
         @click="render"
       >
         <BIconArrowClockwise class="text-xs my-auto" />
-        <div class="text-xxs my-auto">Refresh</div>
+        <div class="text-xxs my-auto">{{ $t("menu.refresh") }}</div>
       </div>
       <div
         class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
         @click="locatePDF"
       >
         <BIconSearch class="text-xs my-auto" />
-        <div class="text-xxs my-auto">Locate</div>
+        <div class="text-xxs my-auto">{{ $t("menu.locate") }}</div>
       </div>
     </div>
     <canvas
