@@ -32,11 +32,11 @@ const emit = defineEmits(["update"]);
       </div>
     </div>
     <div
-      class="flex bg-neutral-200 dark:bg-neutral-700 rounded-md h-8"
+      class="flex bg-neutral-200 dark:bg-neutral-700 rounded-md h-6 my-auto"
       :class="Object.entries(options).length < 4 ? 'w-40' : 'w-48'"
     >
       <div
-        class="flex h-full w-full my-auto text-center text-xs rounded-md cursor-pointer"
+        class="flex h-full w-full my-auto text-center text-xxs rounded-md cursor-pointer"
         :class="
           selected === optionKey
             ? 'bg-neutral-500 text-neutral-100'

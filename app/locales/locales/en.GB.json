@@ -87,7 +87,7 @@
     "storagefolder": "Storage Folder",
     "storagefolderintro": " Choose a folder to store paper files (e.g., PDF etc.) and the database files.",
     "sourcefileopration": "Source File",
-    "sourcefileoprationintro": "Copy/Cut/Link the source file of the imported papers to the Paperlib folder. (Symlink is not available with webdav storage.)",
+    "sourcefileoprationintro": "Copy/Cut/Link the source file of the imported papers to the Paperlib folder. (Symlink is not available with the WebDAV storage backend. For Windows user, it is required to turn on the Developer Mode in the system settings to use Symlink.)",
     "renamingformat": "Renaming Format",
     "generaloptions": "General Options",
     "colortheme": "Color Theme",
