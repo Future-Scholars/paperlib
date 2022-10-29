@@ -37,7 +37,11 @@ export class LocalFileBackend implements FileBackend {
       const pathStat = await fsPromise.lstat(fileURL.replace("file://", ""));
       if (pathStat.isFile()) {
         return Promise.resolve(fileURL);
-      } else {
+      } else if (pathStat.isSymbolicLink()) {
+        const realPath = await fsPromise.realpath(fileURL.replace("file://", ""));
+        return Promise.resolve(`file://${realPath}`);
+      }
+      else {
         return Promise.resolve("");
       }
     } else {
@@ -68,10 +72,20 @@ export class LocalFileBackend implements FileBackend {
     }
     try {
       if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
-        await fsPromise.copyFile(_sourceURL, _targetURL);
+        if (this.preference.get('sourceFileOperation') as string === 'link') {
+          const pathStat = await fsPromise.lstat(_sourceURL.replace("file://", ""));
+          if (pathStat.isFile()) {
+            await fsPromise.symlink(_sourceURL, _targetURL);
+          } else if (pathStat.isSymbolicLink()) {
+            const realPath = await fsPromise.realpath(_sourceURL.replace("file://", ""));
+            await fsPromise.symlink(realPath, _targetURL);
+          }
+        } else {
+          await fsPromise.copyFile(_sourceURL, _targetURL);
+        }
       }
       if (
-        ((this.preference.get("deleteSourceFile") as boolean) || forceDelete) &&
+        ((this.preference.get("sourceFileOperation") as string) === 'cut' || forceDelete) &&
         _sourceURL.toLowerCase() !== _targetURL.toLowerCase()
       ) {
         await fsPromise.unlink(sourceURL);

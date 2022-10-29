@@ -219,13 +219,13 @@ export class WebDavFileBackend implements FileBackend {
       if (sourceURL.startsWith("file://")) {
         success = await this._local2localMove(sourceURL, targetCacheURL);
         success = await this._local2serverMove(sourceURL, targetURL);
-        if (this.preference.get("deleteSourceFile") as boolean) {
+        if (this.preference.get("sourceFileOperation") as string === 'cut') {
           await fsPromise.unlink(sourceURL);
         }
       } else if (sourceURL.startsWith("webdav://")) {
         success = await this._server2serverMove(sourceURL, targetURL);
         if (
-          ((this.preference.get("deleteSourceFile") as boolean) ||
+          ((this.preference.get("sourceFileOperation") as string) === 'cut' ||
             forceDelete) &&
           sourceURL.toLowerCase() !== targetURL.toLowerCase()
         ) {
