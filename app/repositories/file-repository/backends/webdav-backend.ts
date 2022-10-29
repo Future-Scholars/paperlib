@@ -247,7 +247,8 @@ export class WebDavFileBackend implements FileBackend {
 
   async move(
     paperEntity: PaperEntity,
-    forceDelete: boolean = false
+    forceDelete: boolean = false,
+    forceNotLink: boolean = false
   ): Promise<PaperEntity | null> {
     await this.check();
 

@@ -67,7 +67,9 @@
     "close": "关闭",
     "ok": "确定",
     "save": "保存",
-    "advanced": "高级"
+    "advanced": "高级",
+    "choose": "选择",
+    "locate": "搜寻"
   },
   "preference": {
     "general": "通用",

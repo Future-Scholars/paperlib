@@ -67,7 +67,9 @@
     "close": "Close",
     "ok": "OK",
     "save": "Save",
-    "advanced": "Advanced"
+    "advanced": "Advanced",
+    "choose": "Choose",
+    "locate": "Locate"
   },
   "preference": {
     "general": "General",
