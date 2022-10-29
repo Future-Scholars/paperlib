@@ -1,3 +1,8 @@
+# v2.0.7 Oct 29 2022
+
+1. Optimised PDF processing for papers in Chinese.
+2. A new option to symlink the file when import it rather than moving or copying it. Thus, you can keep files in the original location.
+
 # v2.0.6 Oct 23 2022
 
 1. New Scrapers: bioRxiv, medRxiv, and chemRxiv.

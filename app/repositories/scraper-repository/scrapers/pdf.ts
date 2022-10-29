@@ -6,6 +6,8 @@ import {
   PDFPageProxy,
   TextItem,
 } from "pdfjs-dist/types/src/display/api";
+import { franc } from 'franc'
+
 
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
@@ -158,10 +160,21 @@ export class PDFScraper extends Scraper {
     // Largest String as Title
     const largestText = rawResponse.largestText.slice(0, 400);
     if (paperEntityDraft.title === "") {
-      paperEntityDraft.setValue(
-        "title",
-        metaDataTitle.length > largestText.length ? metaDataTitle : largestText
-      );
+
+      const metaDataTitleLang = franc(metaDataTitle);
+      const largestTextLang = franc(largestText);
+
+      if (metaDataTitleLang === largestTextLang) {
+        paperEntityDraft.setValue(
+          "title",
+          metaDataTitle.length > largestText.length ? metaDataTitle : largestText
+        );
+      } else {
+        paperEntityDraft.setValue(
+          "title",
+          largestText
+        );
+      }
     }
 
     return paperEntityDraft;
@@ -181,7 +194,11 @@ async function scrapeImpl(
   if (enable || force) {
     try {
       const pdf = await pdfjs.getDocument(
-        constructFileURL(scrapeURL, false, true)
+        {
+          url: constructFileURL(scrapeURL, false, true),
+          useWorkerFetch: true,
+          cMapUrl: "../viewer/cmaps/",
+        }
       ).promise;
       const metaData = await pdf.getMetadata();
       const urls = await _getPDFURL(pdf);
@@ -293,7 +310,9 @@ async function _renderPage(
     );
     secondLargestText = secondLargestTextList.join(" ");
 
-    if (largestText.length === 1 || !largestText.includes(' ')) {
+    const lang = franc(largestText);
+
+    if (largestText.length === 1 || (lang !== 'cmn' && lang !== 'jpn' && !largestText.includes(' '))) {
       largestText = secondLargestText;
     }
   }

@@ -116,12 +116,21 @@ const onChangeLanguage = (language: string) => {
       </span>
     </div>
 
-    <Toggle
+    <Options
       class="mb-5"
-      :title="$t('preference.deletesourcefile')"
-      :info="$t('preference.deletesourcefileintro')"
-      :enable="prefState.deleteSourceFile"
-      @update="(value) => updatePrefs('deleteSourceFile', value)"
+      :title="$t('preference.sourcefileopration')"
+      :info="$t('preference.sourcefileoprationintro')"
+      :selected="prefState.sourceFileOperation"
+      :options="{
+        cut: 'Cut',
+        copy: 'Copy',
+        link: 'Symlink',
+      }"
+      @update="
+        (value) => {
+          updatePrefs('sourceFileOperation', value);
+        }
+      "
     />
 
     <Options
