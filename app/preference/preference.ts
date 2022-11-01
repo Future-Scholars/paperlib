@@ -398,6 +398,18 @@ export const defaultPreferences: PreferenceStore = {
       downloadImplCode: "",
     },
     {
+      name: "semanticscholar",
+      description:
+        "semanticscholar.org",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 9,
+      preProcessCode: "",
+      queryProcessCode: "",
+      downloadImplCode: "",
+    },
+    {
       name: "x-hub",
       description: "XXX-hub, fill the url in args.",
       enable: false,
@@ -467,6 +479,22 @@ export class Preference {
       }
       this.store.set("scrapers", newScraperRecord);
     }
+
+    const existingDownloaderArray = this.store.get(
+      "downloaders"
+    ) as unknown as DownloaderPreference[];
+
+    for (const defaultDownloader of defaultPreferences.downloaders) {
+      if (
+        !existingDownloaderArray.find(
+          (downloader) => downloader.name === defaultDownloader.name
+        )
+      ) {
+        existingDownloaderArray.push(defaultDownloader);
+      }
+    }
+    this.store.set("downloaders", existingDownloaderArray);
+
     for (const key in defaultPreferences) {
       if (!this.store.has(key)) {
         this.store.set(key, defaultPreferences[key]);

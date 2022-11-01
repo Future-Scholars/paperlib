@@ -11,7 +11,7 @@ export class UnpayWallDownloader extends Downloader {
     const authEmail =
       (this.preference.get("downloaders") as Array<DownloaderPreference>).find(
         (downloaderPref) => downloaderPref.name === "unpaywall"
-      )?.args || "unpaywall@paperlib.app";
+      )?.args || "hi@paperlib.app";
     const enable =
       (paperEntityDraft.doi !== "" || paperEntityDraft.title !== "") &&
       this.getEnable("unpaywall");

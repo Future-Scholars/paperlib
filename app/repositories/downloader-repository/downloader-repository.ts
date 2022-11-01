@@ -9,6 +9,7 @@ import { CustomDownloader } from "./downloader/custom";
 import { DownloaderType } from "./downloader/downloader";
 import { UnpayWallDownloader } from "./downloader/unpaywall";
 import { XHubDownloader } from "./downloader/xhub";
+import { SemanticScholarDownloader } from "./downloader/semanticscholar";
 
 export class DownloaderRepository {
   stateStore: MainRendererStateStore;
@@ -60,12 +61,19 @@ export class DownloaderRepository {
             this.preference
           );
           break;
+        case "semanticscholar":
+          downloaderInstance = new SemanticScholarDownloader(
+            this.stateStore,
+            this.preference
+          );
+          break;
         default:
           downloaderInstance = new CustomDownloader(
             this.stateStore,
             this.preference,
             downloader.name
           );
+          break;
       }
       if (downloaderInstance !== undefined) {
         this.downloaderList.push({
@@ -93,9 +101,8 @@ export class DownloaderRepository {
         }
       } catch (error) {
         console.log(error);
-        this.stateStore.logState.alertLog = `${downloader.name} error: ${
-          error as string
-        }`;
+        this.stateStore.logState.alertLog = `${downloader.name} error: ${error as string
+          }`;
       }
     }
 
