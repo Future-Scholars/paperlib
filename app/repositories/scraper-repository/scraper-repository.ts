@@ -28,12 +28,14 @@ import { SpringerScraper } from "./scrapers/springer";
 import { SPIEScraper } from "./scrapers/spie";
 import { BioRxivScraper, MedRxivScraper } from "./scrapers/boimedrxiv";
 import { ChemRxivScraper } from "./scrapers/chemrxiv";
+import { CitationCountScraper } from "./scrapers/citation-count";
 
 export class ScraperRepository {
   stateStore: MainRendererStateStore;
   preference: Preference;
 
   scraperList: Array<{ name: string; scraper: ScraperType }>;
+  citationCountScraper: CitationCountScraper;
 
   constructor(stateStore: MainRendererStateStore, preference: Preference) {
     this.stateStore = stateStore;
@@ -51,6 +53,8 @@ export class ScraperRepository {
         this.createScrapers();
       }
     );
+
+    this.citationCountScraper = new CitationCountScraper(this.stateStore, this.preference)
   }
 
   async createScrapers() {
@@ -269,5 +273,16 @@ export class ScraperRepository {
       }
     }
     return paperEntityDraft;
+  }
+
+  async scrapeCitationCount(
+    paperEntityDraft: PaperEntity
+  ): Promise<Record<'semanticscholarId' | 'citationCount' | 'influentialCitationCount', string>> {
+    try {
+      const citationCount = await this.citationCountScraper.scrape(paperEntityDraft)
+      return citationCount as Record<string, string>
+    } catch (error) {
+      return { semanticscholarId: '', citationCount: "N/A", influentialCitationCount: "N/A" }
+    }
   }
 }

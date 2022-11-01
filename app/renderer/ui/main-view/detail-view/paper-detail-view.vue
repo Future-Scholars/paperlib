@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // @ts-ignore
 import dragDrop from "drag-drop";
-import { onBeforeUpdate, onMounted, ref } from "vue";
+import { Ref, onBeforeUpdate, onMounted, ref, watch } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
@@ -9,6 +9,7 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Authors from "./components/authors.vue";
 import Categorizers from "./components/categorizers.vue";
+import CitationCount from "./components/citationcount.vue";
 import Code from "./components/code.vue";
 import Markdown from "./components/markdown.vue";
 import PubDetails from "./components/pub-details.vue";
@@ -175,9 +176,43 @@ const renderTitle = async () => {
   }
 };
 
-onBeforeUpdate(() => {
-  renderTitle();
-});
+const citationCount = ref({}) as Ref<
+  Record<
+    "semanticscholarId" | "citationCount" | "influentialCitationCount",
+    string
+  >
+>;
+const requestCitationCount = async () => {
+  citationCount.value = {
+    semanticscholarId: "",
+    citationCount: "N/A",
+    influentialCitationCount: "N/A",
+  };
+  const responseCitationCount = await window.entityInteractor.loadCitationCount(
+    props.entity
+  );
+  citationCount.value.semanticscholarId =
+    responseCitationCount.semanticscholarId;
+  citationCount.value.citationCount = responseCitationCount.citationCount;
+  citationCount.value.influentialCitationCount =
+    responseCitationCount.influentialCitationCount;
+};
+
+watch(
+  () => props.entity._id,
+  () => {
+    renderTitle();
+    requestCitationCount();
+  }
+);
+
+const onCitationCountClicked = (semanticscholarId: string) => {
+  if (semanticscholarId) {
+    window.appInteractor.open(
+      `https://www.semanticscholar.org/paper/${semanticscholarId}`
+    );
+  }
+};
 
 onMounted(() => {
   registerDropHandler();
@@ -207,6 +242,13 @@ onMounted(() => {
         <div class="text-xxs">
           {{ entity.pubTime }}
         </div>
+      </Section>
+      <Section title="Citation Count">
+        <CitationCount
+          :citation-count="citationCount.citationCount"
+          :influential-citation-count="citationCount.influentialCitationCount"
+          @click="onCitationCountClicked(citationCount.semanticscholarId)"
+        />
       </Section>
       <Section
         id="detail-tag-section"
