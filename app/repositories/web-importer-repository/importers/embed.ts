@@ -43,10 +43,14 @@ export class EmbedWebImporter extends WebImporter {
         }
         if (meta.name === "citation_pdf_url") {
           let downloadURL;
-          if (meta.content.endsWith(".pdf")) {
-            downloadURL = meta.content;
+          if (webContent.url.includes('adsabs.harvard.edu')) {
+            downloadURL = `https://ui.adsabs.harvard.edu${meta.content}`;
           } else {
-            downloadURL = meta.content + ".pdf";
+            if (meta.content.endsWith(".pdf")) {
+              downloadURL = meta.content;
+            } else {
+              downloadURL = meta.content + ".pdf";
+            }
           }
 
           const downloadedFilePath = await window.networkTool.downloadPDFs([
@@ -55,7 +59,6 @@ export class EmbedWebImporter extends WebImporter {
           if (downloadedFilePath.length > 0) {
 
             const fileContent = readFileSync(downloadedFilePath[0]);
-            console.log(fileContent.subarray(0, 5).toString(), fileContent.subarray(-4).toString(), fileContent.subarray(0, 5).toString() === '%PDF-', fileContent.subarray(-5).toString().includes('EOF'))
             if (fileContent.subarray(0, 5).toString() === '%PDF-' && fileContent.subarray(-5).toString().includes('EOF')) {
               entityDraft.setValue("mainURL", downloadedFilePath[0]);
             }
