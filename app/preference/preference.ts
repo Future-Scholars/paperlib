@@ -44,6 +44,19 @@ export interface PreferenceStore {
   showMainTags: boolean;
   showMainFolders: boolean;
   showMainNote: boolean;
+  showMainAddTime: boolean;
+
+  mainTitleWidth: number;
+  mainAuthorsWidth: number;
+  mainYearWidth: number;
+  mainPublicationWidth: number;
+  mainPubTypeWidth: number;
+  mainRatingWidth: number;
+  mainFlagWidth: number;
+  mainTagsWidth: number;
+  mainFoldersWidth: number;
+  mainNoteWidth: number;
+  mainAddTimeWidth: number;
 
   preferedTheme: "light" | "dark" | "system";
   invertColor: boolean;
@@ -126,6 +139,19 @@ export const defaultPreferences: PreferenceStore = {
   showMainTags: false,
   showMainFolders: false,
   showMainNote: false,
+  showMainAddTime: false,
+
+  mainTitleWidth: -1,
+  mainAuthorsWidth: -1,
+  mainYearWidth: -1,
+  mainPublicationWidth: -1,
+  mainPubTypeWidth: -1,
+  mainRatingWidth: -1,
+  mainFlagWidth: -1,
+  mainTagsWidth: -1,
+  mainFoldersWidth: -1,
+  mainNoteWidth: -1,
+  mainAddTimeWidth: -1,
 
   preferedTheme: "light",
   invertColor: true,

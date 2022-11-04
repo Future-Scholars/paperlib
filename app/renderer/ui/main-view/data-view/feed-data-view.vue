@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Ref, inject, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
 import RecycleScroller from "@/renderer/thirdparty/virutalscroll/src/components/RecycleScroller.vue";
@@ -7,14 +8,14 @@ import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repo
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";
-import TableItem from "./components/table-item.vue";
-import TableTitle from "./components/table-title.vue";
+import TableComponent from "./components/table/table-component.vue";
 
 // ================================
 // State
 // ================================
 const selectionState = MainRendererStateStore.useSelectionState();
 const prefState = MainRendererStateStore.usePreferenceState();
+const i18n = useI18n();
 
 // ================================
 // Data
@@ -23,6 +24,158 @@ const feedEntities = inject<Ref<FeedEntityResults>>("feedEntities");
 
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedLastSingleIndex = ref(-1);
+
+const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
+  ref({});
+
+const resetTableTitleColumns = () => {
+  let totalWidth =
+    (prefState.mainTitleWidth === -1 ? 0 : prefState.mainTitleWidth) +
+    (prefState.mainAuthorsWidth === -1 ? 0 : prefState.mainAuthorsWidth);
+  let emptyWidthCount =
+    (prefState.mainTitleWidth === -1 ? 1 : 0) +
+    (prefState.mainAuthorsWidth === -1 ? 1 : 0);
+
+  var newTitleColumns = {
+    title: { name: i18n.t("mainview.title"), width: prefState.mainTitleWidth },
+    authors: {
+      name: i18n.t("mainview.authors"),
+      width: prefState.mainAuthorsWidth,
+    },
+  } as Record<string, { name: string; width: number }>;
+
+  if (prefState.showMainPublication) {
+    newTitleColumns["publication"] = {
+      name: i18n.t("mainview.publicationtitle"),
+      width: prefState.mainPublicationWidth,
+    };
+    totalWidth +=
+      prefState.mainPublicationWidth === -1
+        ? 0
+        : prefState.mainPublicationWidth;
+    emptyWidthCount += prefState.mainPublicationWidth === -1 ? 1 : 0;
+  }
+  if (prefState.showMainYear) {
+    newTitleColumns["pubTime"] = {
+      name: i18n.t("mainview.pubyear"),
+      width: prefState.mainYearWidth,
+    };
+    totalWidth += prefState.mainYearWidth === -1 ? 0 : prefState.mainYearWidth;
+    emptyWidthCount += prefState.mainYearWidth === -1 ? 1 : 0;
+  }
+  if (prefState.showMainPubType) {
+    newTitleColumns["pubType"] = {
+      name: i18n.t("mainview.pubtype"),
+      width: prefState.mainPubTypeWidth,
+    };
+    totalWidth +=
+      prefState.mainPubTypeWidth === -1 ? 0 : prefState.mainPubTypeWidth;
+    emptyWidthCount += prefState.mainPubTypeWidth === -1 ? 1 : 0;
+  }
+  if (prefState.showMainTags) {
+    newTitleColumns["tags"] = {
+      name: i18n.t("mainview.tags"),
+      width: prefState.mainTagsWidth,
+    };
+    totalWidth += prefState.mainTagsWidth === -1 ? 0 : prefState.mainTagsWidth;
+    emptyWidthCount += prefState.mainTagsWidth === -1 ? 1 : 0;
+  }
+  if (prefState.showMainFolders) {
+    newTitleColumns["folders"] = {
+      name: i18n.t("mainview.folders"),
+      width: prefState.mainFoldersWidth,
+    };
+    totalWidth +=
+      prefState.mainFoldersWidth === -1 ? 0 : prefState.mainFoldersWidth;
+    emptyWidthCount += prefState.mainFoldersWidth === -1 ? 1 : 0;
+  }
+  if (prefState.showMainNote) {
+    newTitleColumns["note"] = {
+      name: i18n.t("mainview.note"),
+      width: prefState.mainNoteWidth,
+    };
+    totalWidth += prefState.mainNoteWidth === -1 ? 0 : prefState.mainNoteWidth;
+    emptyWidthCount += prefState.mainNoteWidth === -1 ? 1 : 0;
+  }
+  if (prefState.showMainRating) {
+    newTitleColumns["rating"] = {
+      name: i18n.t("mainview.rating"),
+      width: prefState.mainRatingWidth,
+    };
+    totalWidth +=
+      prefState.mainRatingWidth === -1 ? 0 : prefState.mainRatingWidth;
+    emptyWidthCount += prefState.mainRatingWidth === -1 ? 1 : 0;
+  }
+  if (prefState.showMainFlag) {
+    newTitleColumns["flag"] = {
+      name: i18n.t("mainview.flag"),
+      width: prefState.mainFlagWidth,
+    };
+    totalWidth += prefState.mainFlagWidth === -1 ? 0 : prefState.mainFlagWidth;
+    emptyWidthCount += prefState.mainFlagWidth === -1 ? 1 : 0;
+  }
+  if (prefState.showMainAddTime) {
+    newTitleColumns["addTime"] = {
+      name: i18n.t("mainview.addtime"),
+      width: prefState.mainAddTimeWidth,
+    };
+    totalWidth +=
+      prefState.mainAddTimeWidth === -1 ? 0 : prefState.mainAddTimeWidth;
+    emptyWidthCount += prefState.mainAddTimeWidth === -1 ? 1 : 0;
+  }
+
+  // Calculate the width percentage of each column
+  Object.keys(newTitleColumns).forEach((key) => {
+    if (newTitleColumns[key].width === -1) {
+      newTitleColumns[key].width = (100 - totalWidth) / emptyWidthCount;
+    }
+  });
+
+  let remainingWidth = 0;
+  Object.keys(newTitleColumns).forEach((key) => {
+    remainingWidth += newTitleColumns[key].width;
+  });
+  remainingWidth = 100 - remainingWidth;
+
+  if (remainingWidth !== 0) {
+    newTitleColumns["title"].width += remainingWidth;
+  }
+
+  tableTitleColumns.value = newTitleColumns;
+};
+
+const onTableTitleClicked = (key: string) => {
+  prefState.mainviewSortBy = key;
+  prefState.mainviewSortOrder =
+    prefState.mainviewSortOrder === "asce" ? "desc" : "asce";
+  window.appInteractor.setPreference("sortBy", key);
+  window.appInteractor.setPreference("sortOrder", prefState.mainviewSortOrder);
+};
+
+const onTableTitleWidthChanged = (
+  changedWidths: { key: string; width: number }[]
+) => {
+  const keyPrefMap = {
+    title: "mainTitleWidth",
+    authors: "mainAuthorsWidth",
+    publication: "mainPublicationWidth",
+    pubTime: "mainYearWidth",
+    pubType: "mainPubTypeWidth",
+    tags: "mainTagsWidth",
+    folders: "mainFoldersWidth",
+    note: "mainNoteWidth",
+    rating: "mainRatingWidth",
+    flag: "mainFlagWidth",
+    addTime: "mainAddTimeWidth",
+  } as Record<string, string>;
+  for (const changedWidth of changedWidths) {
+    tableTitleColumns.value[changedWidth.key].width = changedWidth.width;
+    window.appInteractor.setPreference(
+      keyPrefMap[changedWidth.key],
+      changedWidth.width
+    );
+  }
+};
 
 const onItemClicked = (event: MouseEvent, index: number) => {
   if (event.shiftKey) {
@@ -76,11 +229,28 @@ watch(
   }
 );
 
-onMounted(() => {});
+watch(
+  () => [
+    prefState.showMainYear,
+    prefState.showMainPublication,
+    prefState.showMainPubType,
+    prefState.showMainTags,
+    prefState.showMainFolders,
+    prefState.showMainNote,
+    prefState.showMainRating,
+    prefState.showMainFlag,
+    prefState.showMainAddTime,
+  ],
+  resetTableTitleColumns
+);
+
+onMounted(() => {
+  resetTableTitleColumns();
+});
 </script>
 
 <template>
-  <div id="data-view" class="grow pl-2">
+  <div id="feed-view" class="grow pl-2">
     <RecycleScroller
       class="scroller pr-2 max-h-[calc(100vh-3rem)]"
       :items="feedEntities"
@@ -109,47 +279,15 @@ onMounted(() => {});
       />
     </RecycleScroller>
 
-    <TableTitle
-      class="mb-1"
-      :sortBy="prefState.mainviewSortBy"
-      :sortOrder="prefState.mainviewSortOrder"
-      :showPubTime="true"
-      :showPublication="true"
-      :showRating="false"
-      :showPubType="false"
-      :showTags="false"
-      :showFolders="false"
-      :showNote="false"
-      :showFlag="false"
-      v-if="prefState.mainviewType === 'table'"
+    <TableComponent
+      :title-columns="tableTitleColumns"
+      :data-rows="feedEntities || []"
+      :show-read="true"
+      @title-clicked="onTableTitleClicked"
+      @title-width-changed="onTableTitleWidthChanged"
+      @row-clicked="onItemClicked"
+      @row-right-clicked="onItemRightClicked"
+      @row-double-clicked="onItemDoubleClicked"
     />
-    <RecycleScroller
-      class="scroller pr-2 max-h-[calc(100vh-5rem)]"
-      :items="feedEntities"
-      :item-size="28"
-      key-field="id"
-      v-slot="{ item, index }"
-      :buffer="500"
-      v-if="prefState.mainviewType === 'table'"
-    >
-      <TableItem
-        :id="item.id"
-        :item="item"
-        :active="selectedIndex.indexOf(index) >= 0"
-        :showPubTime="true"
-        :showPublication="true"
-        :showRating="false"
-        :showPubType="false"
-        :showTags="false"
-        :showFolders="false"
-        :showNote="false"
-        :showFlag="false"
-        :striped="index % 2 === 0"
-        :read="item.read"
-        @click="(e: MouseEvent) => {onItemClicked(e, index)}"
-        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
-        @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index, item.mainURL)}"
-      />
-    </RecycleScroller>
   </div>
 </template>
