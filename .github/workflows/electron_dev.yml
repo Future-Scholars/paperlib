@@ -185,7 +185,8 @@ jobs:
 
       - name: Set env
         run: |
-          release_version=${GITHUB_REF#refs/*/}
+          curl -L -o /usr/bin/jq.exe https://github.com/stedolan/jq/releases/latest/download/jq-win64.exe
+          VERSION=$(cat package.json | jq .version)
           export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
           export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
@@ -244,7 +245,9 @@ jobs:
 
       - name: Set env
         run: |
-          release_version=${GITHUB_REF#refs/*/}
+          apt update
+          apt install jq
+          VERSION=$(cat package.json | jq .version)
           export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
           export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
