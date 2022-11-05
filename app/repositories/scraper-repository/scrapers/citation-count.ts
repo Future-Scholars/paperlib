@@ -4,7 +4,7 @@ import stringSimilarity from "string-similarity";
 import { PaperEntity } from "@/models/paper-entity";
 import { formatString } from "@/utils/string";
 
-import { Scraper, ScraperRequestType } from "./scraper";
+import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 
 export class CitationCountScraper extends Scraper {
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
@@ -91,5 +91,30 @@ export class CitationCountScraper extends Scraper {
 
     return citationCount;
   }
+  scrapeImpl = scrapeImpl
+}
 
+
+async function scrapeImpl(
+  this: ScraperType,
+  paperEntityDraft: PaperEntity,
+  force = false
+): Promise<PaperEntity> {
+  const { scrapeURL, headers, enable } = this.preProcess(
+    paperEntityDraft
+  ) as ScraperRequestType;
+
+  if (enable || force) {
+    const response = (await window.networkTool.get(
+      scrapeURL,
+      headers,
+      0,
+      false,
+      5000,
+      true
+    )) as Response<string>;
+    return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
+  } else {
+    return paperEntityDraft;
+  }
 }
