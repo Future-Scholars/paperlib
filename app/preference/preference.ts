@@ -58,6 +58,13 @@ export interface PreferenceStore {
   mainNoteWidth: number;
   mainAddTimeWidth: number;
 
+  feedTitleWidth: number;
+  feedAuthorsWidth: number;
+  feedYearWidth: number;
+  feedPublicationWidth: number;
+  feedPubTypeWidth: number;
+  feedAddTimeWidth: number;
+
   preferedTheme: "light" | "dark" | "system";
   invertColor: boolean;
   sidebarSortBy: "name" | "count" | "color";
@@ -152,6 +159,13 @@ export const defaultPreferences: PreferenceStore = {
   mainFoldersWidth: -1,
   mainNoteWidth: -1,
   mainAddTimeWidth: -1,
+
+  feedTitleWidth: -1,
+  feedAuthorsWidth: -1,
+  feedYearWidth: -1,
+  feedPublicationWidth: -1,
+  feedPubTypeWidth: -1,
+  feedAddTimeWidth: -1,
 
   preferedTheme: "light",
   invertColor: true,

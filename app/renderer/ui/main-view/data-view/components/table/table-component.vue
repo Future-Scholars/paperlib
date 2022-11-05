@@ -18,7 +18,7 @@ const props = defineProps({
     type: Object as () => PaperEntityResults | FeedEntityResults,
     required: true,
   },
-  showRead: {
+  isFeedTable: {
     type: Boolean,
     required: false,
   },
@@ -90,14 +90,14 @@ const dragHandler = (event: DragEvent) => {
         :active="selectionState.selectedIndex.indexOf(index) >= 0"
         :showPubTime="prefState.showMainYear"
         :showPublication="prefState.showMainPublication"
-        :showRating="prefState.showMainRating"
+        :showRating="isFeedTable ? false : prefState.showMainRating"
         :showPubType="prefState.showMainPubType"
-        :showTags="prefState.showMainTags"
-        :showFolders="prefState.showMainFolders"
-        :showNote="prefState.showMainNote"
-        :showFlag="prefState.showMainFlag"
+        :showTags="isFeedTable ? false : prefState.showMainTags"
+        :showFolders="isFeedTable ? false : prefState.showMainFolders"
+        :showNote="isFeedTable ? false : prefState.showMainNote"
+        :showFlag="isFeedTable ? false : prefState.showMainFlag"
         :showAddTime="prefState.showMainAddTime"
-        :read="showRead ? item.read : true"
+        :read="isFeedTable ? item.read : true"
         :striped="index % 2 === 0"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"

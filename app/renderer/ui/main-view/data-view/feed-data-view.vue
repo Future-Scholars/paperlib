@@ -28,100 +28,86 @@ const selectedLastSingleIndex = ref(-1);
 const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
   ref({});
 
-const resetTableTitleColumns = () => {
+const resetTableTitleColumns = (reset = false) => {
+  if (reset) {
+    const prefKeys = [
+      "mainTitleWidth",
+      "mainAuthorsWidth",
+      "mainPublicationWidth",
+      "mainYearWidth",
+      "mainPubTypeWidth",
+      "mainTagsWidth",
+      "mainFoldersWidth",
+      "mainNoteWidth",
+      "mainRatingWidth",
+      "mainFlagWidth",
+      "mainAddTimeWidth",
+      "feedTitleWidth",
+      "feedAuthorsWidth",
+      "feedYearWidth",
+      "feedPublicationWidth",
+      "feedPubTypeWidth",
+      "feedAddTimeWidth",
+    ];
+    for (const key of prefKeys) {
+      prefState[key] = -1;
+    }
+    for (const key of prefKeys) {
+      window.appInteractor.setPreferenceAsync(key, -1);
+    }
+  }
+
   let totalWidth =
-    (prefState.mainTitleWidth === -1 ? 0 : prefState.mainTitleWidth) +
-    (prefState.mainAuthorsWidth === -1 ? 0 : prefState.mainAuthorsWidth);
+    (prefState.feedTitleWidth === -1 ? 0 : prefState.feedTitleWidth) +
+    (prefState.feedAuthorsWidth === -1 ? 0 : prefState.feedAuthorsWidth);
   let emptyWidthCount =
-    (prefState.mainTitleWidth === -1 ? 1 : 0) +
-    (prefState.mainAuthorsWidth === -1 ? 1 : 0);
+    (prefState.feedTitleWidth === -1 ? 1 : 0) +
+    (prefState.feedAuthorsWidth === -1 ? 1 : 0);
 
   var newTitleColumns = {
-    title: { name: i18n.t("mainview.title"), width: prefState.mainTitleWidth },
+    title: { name: i18n.t("mainview.title"), width: prefState.feedTitleWidth },
     authors: {
       name: i18n.t("mainview.authors"),
-      width: prefState.mainAuthorsWidth,
+      width: prefState.feedAuthorsWidth,
     },
   } as Record<string, { name: string; width: number }>;
 
   if (prefState.showMainPublication) {
     newTitleColumns["publication"] = {
       name: i18n.t("mainview.publicationtitle"),
-      width: prefState.mainPublicationWidth,
+      width: prefState.feedPublicationWidth,
     };
     totalWidth +=
-      prefState.mainPublicationWidth === -1
+      prefState.feedPublicationWidth === -1
         ? 0
-        : prefState.mainPublicationWidth;
-    emptyWidthCount += prefState.mainPublicationWidth === -1 ? 1 : 0;
+        : prefState.feedPublicationWidth;
+    emptyWidthCount += prefState.feedPublicationWidth === -1 ? 1 : 0;
   }
   if (prefState.showMainYear) {
     newTitleColumns["pubTime"] = {
       name: i18n.t("mainview.pubyear"),
-      width: prefState.mainYearWidth,
+      width: prefState.feedYearWidth,
     };
-    totalWidth += prefState.mainYearWidth === -1 ? 0 : prefState.mainYearWidth;
-    emptyWidthCount += prefState.mainYearWidth === -1 ? 1 : 0;
+    totalWidth += prefState.feedYearWidth === -1 ? 0 : prefState.feedYearWidth;
+    emptyWidthCount += prefState.feedYearWidth === -1 ? 1 : 0;
   }
   if (prefState.showMainPubType) {
     newTitleColumns["pubType"] = {
       name: i18n.t("mainview.pubtype"),
-      width: prefState.mainPubTypeWidth,
+      width: prefState.feedPubTypeWidth,
     };
     totalWidth +=
-      prefState.mainPubTypeWidth === -1 ? 0 : prefState.mainPubTypeWidth;
-    emptyWidthCount += prefState.mainPubTypeWidth === -1 ? 1 : 0;
-  }
-  if (prefState.showMainTags) {
-    newTitleColumns["tags"] = {
-      name: i18n.t("mainview.tags"),
-      width: prefState.mainTagsWidth,
-    };
-    totalWidth += prefState.mainTagsWidth === -1 ? 0 : prefState.mainTagsWidth;
-    emptyWidthCount += prefState.mainTagsWidth === -1 ? 1 : 0;
-  }
-  if (prefState.showMainFolders) {
-    newTitleColumns["folders"] = {
-      name: i18n.t("mainview.folders"),
-      width: prefState.mainFoldersWidth,
-    };
-    totalWidth +=
-      prefState.mainFoldersWidth === -1 ? 0 : prefState.mainFoldersWidth;
-    emptyWidthCount += prefState.mainFoldersWidth === -1 ? 1 : 0;
-  }
-  if (prefState.showMainNote) {
-    newTitleColumns["note"] = {
-      name: i18n.t("mainview.note"),
-      width: prefState.mainNoteWidth,
-    };
-    totalWidth += prefState.mainNoteWidth === -1 ? 0 : prefState.mainNoteWidth;
-    emptyWidthCount += prefState.mainNoteWidth === -1 ? 1 : 0;
-  }
-  if (prefState.showMainRating) {
-    newTitleColumns["rating"] = {
-      name: i18n.t("mainview.rating"),
-      width: prefState.mainRatingWidth,
-    };
-    totalWidth +=
-      prefState.mainRatingWidth === -1 ? 0 : prefState.mainRatingWidth;
-    emptyWidthCount += prefState.mainRatingWidth === -1 ? 1 : 0;
-  }
-  if (prefState.showMainFlag) {
-    newTitleColumns["flag"] = {
-      name: i18n.t("mainview.flag"),
-      width: prefState.mainFlagWidth,
-    };
-    totalWidth += prefState.mainFlagWidth === -1 ? 0 : prefState.mainFlagWidth;
-    emptyWidthCount += prefState.mainFlagWidth === -1 ? 1 : 0;
+      prefState.feedPubTypeWidth === -1 ? 0 : prefState.feedPubTypeWidth;
+    emptyWidthCount += prefState.feedPubTypeWidth === -1 ? 1 : 0;
   }
   if (prefState.showMainAddTime) {
     newTitleColumns["addTime"] = {
       name: i18n.t("mainview.addtime"),
-      width: prefState.mainAddTimeWidth,
+      width: prefState.feedAddTimeWidth,
     };
     totalWidth +=
-      prefState.mainAddTimeWidth === -1 ? 0 : prefState.mainAddTimeWidth;
-    emptyWidthCount += prefState.mainAddTimeWidth === -1 ? 1 : 0;
+      prefState.feedAddTimeWidth === -1 ? 0 : prefState.feedAddTimeWidth;
+    emptyWidthCount += prefState.feedAddTimeWidth === -1 ? 1 : 0;
   }
 
   // Calculate the width percentage of each column
@@ -156,17 +142,12 @@ const onTableTitleWidthChanged = (
   changedWidths: { key: string; width: number }[]
 ) => {
   const keyPrefMap = {
-    title: "mainTitleWidth",
-    authors: "mainAuthorsWidth",
-    publication: "mainPublicationWidth",
-    pubTime: "mainYearWidth",
-    pubType: "mainPubTypeWidth",
-    tags: "mainTagsWidth",
-    folders: "mainFoldersWidth",
-    note: "mainNoteWidth",
-    rating: "mainRatingWidth",
-    flag: "mainFlagWidth",
-    addTime: "mainAddTimeWidth",
+    title: "feedTitleWidth",
+    authors: "feedAuthorsWidth",
+    publication: "feedPublicationWidth",
+    pubTime: "feedYearWidth",
+    pubType: "feedPubTypeWidth",
+    addTime: "feedAddTimeWidth",
   } as Record<string, string>;
   for (const changedWidth of changedWidths) {
     tableTitleColumns.value[changedWidth.key].width = changedWidth.width;
@@ -241,7 +222,7 @@ watch(
     prefState.showMainFlag,
     prefState.showMainAddTime,
   ],
-  resetTableTitleColumns
+  () => resetTableTitleColumns(true)
 );
 
 onMounted(() => {
@@ -282,7 +263,7 @@ onMounted(() => {
     <TableComponent
       :title-columns="tableTitleColumns"
       :data-rows="feedEntities || []"
-      :show-read="true"
+      :is-feed-table="true"
       @title-clicked="onTableTitleClicked"
       @title-width-changed="onTableTitleWidthChanged"
       @row-clicked="onItemClicked"

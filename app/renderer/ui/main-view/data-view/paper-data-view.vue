@@ -31,7 +31,35 @@ const selectedLastSingleIndex = ref(-1);
 const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
   ref({});
 
-const resetTableTitleColumns = () => {
+const resetTableTitleColumns = (reset = false) => {
+  if (reset) {
+    const prefKeys = [
+      "mainTitleWidth",
+      "mainAuthorsWidth",
+      "mainPublicationWidth",
+      "mainYearWidth",
+      "mainPubTypeWidth",
+      "mainTagsWidth",
+      "mainFoldersWidth",
+      "mainNoteWidth",
+      "mainRatingWidth",
+      "mainFlagWidth",
+      "mainAddTimeWidth",
+      "feedTitleWidth",
+      "feedAuthorsWidth",
+      "feedYearWidth",
+      "feedPublicationWidth",
+      "feedPubTypeWidth",
+      "feedAddTimeWidth",
+    ];
+    for (const key of prefKeys) {
+      prefState[key] = -1;
+    }
+    for (const key of prefKeys) {
+      window.appInteractor.setPreferenceAsync(key, -1);
+    }
+  }
+
   let totalWidth =
     (prefState.mainTitleWidth === -1 ? 0 : prefState.mainTitleWidth) +
     (prefState.mainAuthorsWidth === -1 ? 0 : prefState.mainAuthorsWidth);
@@ -300,7 +328,7 @@ watch(
     prefState.showMainFlag,
     prefState.showMainAddTime,
   ],
-  resetTableTitleColumns
+  () => resetTableTitleColumns(true)
 );
 
 onMounted(() => {

@@ -62,7 +62,6 @@ const props = defineProps({
     default: true,
   },
 });
-
 const getPubTypeString = (pubType: any) => {
   switch (pubType) {
     case 0:

@@ -80,6 +80,13 @@ export class AppInteractor {
     this.stateStore.preferenceState.$patch(patch);
   }
 
+  setPreferenceAsync(name: string, value: any, parse = false) {
+    return new Promise<void>((resolve) => {
+      this.setPreference(name, value, parse);
+      resolve();
+    });
+  }
+
   getPreference(name: string) {
     return this.preference.get(name);
   }

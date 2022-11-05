@@ -11,7 +11,7 @@ import {
   BIconTag,
 } from "bootstrap-icons-vue";
 import { ObjectId } from "bson";
-import { Ref, onMounted, ref } from "vue";
+import { Ref, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { PaperFolder, PaperTag } from "@/models/categorizer";
@@ -125,6 +125,21 @@ const resetTableTitleColumns = () => {
 const updatePref = (key: string, value: unknown) => {
   window.appInteractor.setPreference(key, value);
 };
+
+watch(
+  () => [
+    prefState.showMainYear,
+    prefState.showMainPublication,
+    prefState.showMainPubType,
+    prefState.showMainTags,
+    prefState.showMainFolders,
+    prefState.showMainNote,
+    prefState.showMainRating,
+    prefState.showMainFlag,
+    prefState.showMainAddTime,
+  ],
+  resetTableTitleColumns
+);
 
 onMounted(() => {
   resetTableTitleColumns();
