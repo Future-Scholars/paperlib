@@ -10,10 +10,12 @@ const onClick = () => {
 
 const keyDownListener = (e: KeyboardEvent) => {
   e.preventDefault();
-  if (e.key === "Enter") {
-    onConfirm();
-  } else if (e.key === "Escape") {
-    onCancel();
+  if (viewState.isDeleteConfirmShown) {
+    if (e.key === "Enter") {
+      onConfirm();
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
   }
 };
 
@@ -78,6 +80,7 @@ const onConfirm = () => {
                 </span>
               </div>
               <div
+                id="delete-confirm-btn"
                 class="flex h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm w-20"
                 @click.stop="onConfirm"
               >

@@ -63,6 +63,7 @@ const onMaximizeClicked = () => {
   >
     <div class="grow my-auto px-2 nodraggable-item">
       <SearchInput
+        id="search-input"
         @focusin="viewState.inputFieldFocused = true"
         @focusout="viewState.inputFieldFocused = false"
       />
@@ -73,21 +74,25 @@ const onMaximizeClicked = () => {
       :class="viewState.os !== 'win32' ? 'w-80 pl-8' : 'w-48 pl-2'"
     >
       <MenuBarBtn
+        id="scrape-selected-btn"
         btnName="rescrape"
         @click="emit('click', 'rescrape')"
         :disabled="disableMultiBtn"
       />
       <MenuBarBtn
+        id="delete-selected-btn"
         btnName="delete"
         @click="emit('click', 'delete')"
         :disabled="disableMultiBtn"
       />
       <MenuBarBtn
+        id="edit-selected-btn"
         btnName="edit"
         @click="emit('click', 'edit')"
         :disabled="disableSingleBtn"
       />
       <MenuBarBtn
+        id="flag-selected-btn"
         btnName="flag"
         @click="emit('click', 'flag')"
         :disabled="disableMultiBtn"
@@ -98,16 +103,19 @@ const onMaximizeClicked = () => {
         v-if="viewState.os !== 'win32'"
       >
         <MenuBarBtn
+          id="list-view-btn"
           class="my-auto"
           btnName="listview"
           @click="emit('click', 'list-view')"
         />
         <MenuBarBtn
+          id="table-view-btn"
           class="my-auto"
           btnName="tableview"
           @click="emit('click', 'table-view')"
         />
         <MenuBarBtn
+          id="table-reader-view-btn"
           class="my-auto"
           btnName="aspectratio"
           @click="emit('click', 'tableandpreview-view')"
@@ -117,6 +125,7 @@ const onMaximizeClicked = () => {
       <Menu as="div" class="relative inline-block text-left">
         <div>
           <MenuButton
+            id="sort-menu-btn"
             class="inline-flex justify-center w-7 h-6 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700 cursor-default"
           >
             <BIconFilterRight
@@ -138,6 +147,7 @@ const onMaximizeClicked = () => {
           >
             <div class="pb-1">
               <MenuItem
+                id="sort-by-title-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-by-title')"
@@ -220,6 +230,7 @@ const onMaximizeClicked = () => {
             </div>
             <div class="pt-1">
               <MenuItem
+                id="sort-desc-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-order-desc')"
@@ -236,6 +247,7 @@ const onMaximizeClicked = () => {
                 </div>
               </MenuItem>
               <MenuItem
+                id="sort-asce-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'sort-order-asce')"
@@ -306,7 +318,7 @@ const onMaximizeClicked = () => {
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
-                    <BIconGrid3x2  class="my-auto" />
+                    <BIconGrid3x2 class="my-auto" />
                     <span>Table View</span>
                   </div>
                   <BIconCheck2

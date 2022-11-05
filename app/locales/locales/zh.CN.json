@@ -24,10 +24,12 @@
     "rating": "评分",
     "preview": "预览",
     "note": "笔记",
+    "flag": "标记",
     "codes": "代码仓库",
     "codeofficial": "官方",
     "codecommunity": "社区",
-    "supplementaries": "附件"
+    "supplementaries": "附件",
+    "citationcount": "被引次数"
   },
   "menu": {
     "rescrape": "搜寻元数据",

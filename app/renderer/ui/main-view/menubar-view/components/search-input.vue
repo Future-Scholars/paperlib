@@ -116,6 +116,7 @@ const onClearClicked = (payload: Event) => {
       </div>
     </div>
     <BIconX
+      id="search-clear-btn"
       class="my-auto text-neutral-400 invisible dark:text-neutral-500 hover:text-neutral-800 hover:dark:text-neutral-300 cursor-pointer peer-focus:visible hover:visible group-hover:visible"
       @click="onClearClicked"
     />

@@ -13,7 +13,7 @@ import RecycleScroller from "@/renderer/thirdparty/virutalscroll/src/components/
 import { PluginRendererStateStore } from "@/state/renderer/appstate";
 import { debounce } from "@/utils/misc";
 
-import PluginTableItem from ".//components/table-item.vue";
+import PluginTableItem from "./components/table-item.vue";
 
 const selectionState = PluginRendererStateStore.useSelectionState();
 

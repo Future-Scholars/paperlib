@@ -232,6 +232,17 @@ window.appInteractor.registerMainSignal("update-download-progress", (value) => {
 const addDummyData = async () => {
   await window.entityInteractor.addDummyData();
 };
+const addTestData = async () => {
+  await window.entityInteractor.create([
+    `${process.cwd()}/tests/pdfs/cs/1.pdf`,
+  ]);
+};
+const addTwoTestData = async () => {
+  await window.entityInteractor.create([
+    `${process.cwd()}/tests/pdfs/cs/1.pdf`,
+    `${process.cwd()}/tests/pdfs/cs/2.pdf`,
+  ]);
+};
 const removeAll = async () => {
   await window.entityInteractor.removeAll();
 };
@@ -269,7 +280,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex text-neutral-700 dark:text-neutral-200">
-    <!-- <div class="flex space-x-2 fixed left-24 text-xs">
+    <div id="dev-btn-bar" class="space-x-2 fixed left-24 text-xs hidden">
       <button
         class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
         @click="reloadAll"
@@ -283,6 +294,21 @@ onMounted(async () => {
         Add dummy
       </button>
       <button
+        id="dev-add-test-data-btn"
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="addTestData"
+      >
+        Add test
+      </button>
+      <button
+        id="dev-add-two-test-data-btn"
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="addTwoTestData"
+      >
+        Add two test
+      </button>
+      <button
+        id="dev-delete-all-btn"
         class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
         @click="removeAll"
       >
@@ -294,7 +320,7 @@ onMounted(async () => {
       >
         Log
       </button>
-    </div> -->
+    </div>
     <splitpanes @resized="onSidebarResized($event)">
       <pane :key="1" min-size="12" :size="prefState.sidebarWidth">
         <SidebarView class="sidebar-windows-bg" />

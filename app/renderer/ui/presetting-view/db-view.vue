@@ -53,6 +53,7 @@ const onPickerClicked = async () => {
 
         <div class="flex justify-end space-x-2">
           <div
+            id="presetting-db-continue-btn"
             class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20 selection-none"
             @click.stop="emit('close')"
           >

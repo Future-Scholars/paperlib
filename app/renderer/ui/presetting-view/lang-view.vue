@@ -57,6 +57,7 @@ const onRestartClicked = () => {
         </div>
         <div class="flex justify-end space-x-2">
           <div
+            id="presetting-lang-continue-btn"
             class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20"
             @click.stop="emit('close')"
           >

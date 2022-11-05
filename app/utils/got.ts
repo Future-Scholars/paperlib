@@ -12,6 +12,32 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import { constructFileURL } from "./path";
 
+
+const cache = new Map();
+
+const gotWithCache = got.extend({
+  handlers: [
+    (options, next) => {
+      if (options.isStream) {
+        return next(options);
+      }
+
+      const pending = cache.get(options.url.href);
+      if (pending) {
+        if (pending.ttl < Date.now()) {
+          cache.delete(options.url.href);
+        } else {
+          return pending.response;
+        }
+      }
+
+      const promise = next(options);
+      cache.set(options.url.href, { response: promise, ttl: Date.now() + 1000 * 60 * 60 * 24 });
+      return promise;
+    }
+  ]
+});
+
 export class NetworkTool {
   stateStore: MainRendererStateStore;
   preference: Preference;
@@ -102,7 +128,8 @@ export class NetworkTool {
     headers?: Record<string, string>,
     retry = 1,
     safe = false,
-    timeout = 5000
+    timeout = 5000,
+    cache = false
   ) {
     const options = {
       headers: headers,
@@ -148,7 +175,11 @@ export class NetworkTool {
 
       return response;
     } else {
-      return await got(url, options);
+      if (cache) {
+        return gotWithCache(url, options);
+      } else {
+        return await got(url, options);
+      }
     }
   }
 

@@ -44,6 +44,26 @@ export interface PreferenceStore {
   showMainTags: boolean;
   showMainFolders: boolean;
   showMainNote: boolean;
+  showMainAddTime: boolean;
+
+  mainTitleWidth: number;
+  mainAuthorsWidth: number;
+  mainYearWidth: number;
+  mainPublicationWidth: number;
+  mainPubTypeWidth: number;
+  mainRatingWidth: number;
+  mainFlagWidth: number;
+  mainTagsWidth: number;
+  mainFoldersWidth: number;
+  mainNoteWidth: number;
+  mainAddTimeWidth: number;
+
+  feedTitleWidth: number;
+  feedAuthorsWidth: number;
+  feedYearWidth: number;
+  feedPublicationWidth: number;
+  feedPubTypeWidth: number;
+  feedAddTimeWidth: number;
 
   preferedTheme: "light" | "dark" | "system";
   invertColor: boolean;
@@ -126,6 +146,26 @@ export const defaultPreferences: PreferenceStore = {
   showMainTags: false,
   showMainFolders: false,
   showMainNote: false,
+  showMainAddTime: false,
+
+  mainTitleWidth: -1,
+  mainAuthorsWidth: -1,
+  mainYearWidth: -1,
+  mainPublicationWidth: -1,
+  mainPubTypeWidth: -1,
+  mainRatingWidth: -1,
+  mainFlagWidth: -1,
+  mainTagsWidth: -1,
+  mainFoldersWidth: -1,
+  mainNoteWidth: -1,
+  mainAddTimeWidth: -1,
+
+  feedTitleWidth: -1,
+  feedAuthorsWidth: -1,
+  feedYearWidth: -1,
+  feedPublicationWidth: -1,
+  feedPubTypeWidth: -1,
+  feedAddTimeWidth: -1,
 
   preferedTheme: "light",
   invertColor: true,
@@ -398,6 +438,18 @@ export const defaultPreferences: PreferenceStore = {
       downloadImplCode: "",
     },
     {
+      name: "semanticscholar",
+      description:
+        "semanticscholar.org",
+      enable: true,
+      custom: false,
+      args: "",
+      priority: 9,
+      preProcessCode: "",
+      queryProcessCode: "",
+      downloadImplCode: "",
+    },
+    {
       name: "x-hub",
       description: "XXX-hub, fill the url in args.",
       enable: false,
@@ -467,6 +519,22 @@ export class Preference {
       }
       this.store.set("scrapers", newScraperRecord);
     }
+
+    const existingDownloaderArray = this.store.get(
+      "downloaders"
+    ) as unknown as DownloaderPreference[];
+
+    for (const defaultDownloader of defaultPreferences.downloaders) {
+      if (
+        !existingDownloaderArray.find(
+          (downloader) => downloader.name === defaultDownloader.name
+        )
+      ) {
+        existingDownloaderArray.push(defaultDownloader);
+      }
+    }
+    this.store.set("downloaders", existingDownloaderArray);
+
     for (const key in defaultPreferences) {
       if (!this.store.has(key)) {
         this.store.set(key, defaultPreferences[key]);

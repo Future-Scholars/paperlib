@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   BIconBook,
+  BIconCalendar2,
   BIconCalendarDate,
   BIconCardHeading,
   BIconFlag,
@@ -10,17 +11,19 @@ import {
   BIconTag,
 } from "bootstrap-icons-vue";
 import { ObjectId } from "bson";
-import { ref } from "vue";
+import { Ref, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import ListItem from "@/renderer/ui/main-view/data-view/components/list-item.vue";
-import TableItem from "@/renderer/ui/main-view/data-view/components/table-item.vue";
+import TableItem from "@/renderer/ui/main-view/data-view/components/table/table-item.vue";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import MainSection from "./components/main-section.vue";
 
 const prefState = MainRendererStateStore.usePreferenceState();
+const i18n = useI18n();
 
 const item = ref(new PaperEntity(false));
 // @ts-ignore
@@ -50,13 +53,101 @@ item.value.initialize({
   _partition: "",
 });
 
+const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
+  ref({});
+
+const resetTableTitleColumns = () => {
+  var newTitleColumns = {
+    title: { name: i18n.t("mainview.title"), width: -1 },
+    authors: { name: i18n.t("mainview.authors"), width: -1 },
+  } as Record<string, { name: string; width: number }>;
+
+  if (prefState.showMainPublication) {
+    newTitleColumns["publication"] = {
+      name: i18n.t("mainview.publicationtitle"),
+      width: -1,
+    };
+  }
+  if (prefState.showMainYear) {
+    newTitleColumns["pubTime"] = {
+      name: i18n.t("mainview.pubyear"),
+      width: -1,
+    };
+  }
+  if (prefState.showMainPubType) {
+    newTitleColumns["pubType"] = {
+      name: i18n.t("mainview.pubtype"),
+      width: -1,
+    };
+  }
+  if (prefState.showMainTags) {
+    newTitleColumns["tags"] = {
+      name: i18n.t("mainview.tags"),
+      width: -1,
+    };
+  }
+  if (prefState.showMainFolders) {
+    newTitleColumns["folders"] = {
+      name: i18n.t("mainview.folders"),
+      width: -1,
+    };
+  }
+  if (prefState.showMainNote) {
+    newTitleColumns["note"] = {
+      name: i18n.t("mainview.note"),
+      width: -1,
+    };
+  }
+  if (prefState.showMainRating) {
+    newTitleColumns["rating"] = {
+      name: i18n.t("mainview.rating"),
+      width: -1,
+    };
+  }
+  if (prefState.showMainFlag) {
+    newTitleColumns["flag"] = { name: i18n.t("mainview.flag"), width: -1 };
+  }
+  if (prefState.showMainAddTime) {
+    newTitleColumns["addTime"] = {
+      name: i18n.t("mainview.addtime"),
+      width: -1,
+    };
+  }
+
+  // Calculate the width percentage of each column
+  Object.keys(newTitleColumns).forEach((key) => {
+    newTitleColumns[key].width = 100 / Object.keys(newTitleColumns).length;
+  });
+
+  tableTitleColumns.value = newTitleColumns;
+};
+
 const updatePref = (key: string, value: unknown) => {
   window.appInteractor.setPreference(key, value);
 };
+
+watch(
+  () => [
+    prefState.showMainYear,
+    prefState.showMainPublication,
+    prefState.showMainPubType,
+    prefState.showMainTags,
+    prefState.showMainFolders,
+    prefState.showMainNote,
+    prefState.showMainRating,
+    prefState.showMainFlag,
+    prefState.showMainAddTime,
+  ],
+  resetTableTitleColumns
+);
+
+onMounted(() => {
+  resetTableTitleColumns();
+});
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+  <div class="flex flex-col w-[800px] text-neutral-800 dark:text-neutral-300">
     <div class="text-base font-semibold mb-4">
       {{ $t("preference.mainview") + " " + $t("mainview.preview") }}
     </div>
@@ -77,6 +168,7 @@ const updatePref = (key: string, value: unknown) => {
     <TableItem
       class="bg-neutral-200 dark:bg-neutral-700 w-[800px] cursor-default mt-5"
       :item="item"
+      :titles="tableTitleColumns"
       :showPubTime="prefState.showMainYear"
       :showPublication="prefState.showMainPublication"
       :showRating="prefState.showMainRating"
@@ -85,7 +177,10 @@ const updatePref = (key: string, value: unknown) => {
       :showFolders="prefState.showMainFolders"
       :showNote="prefState.showMainNote"
       :showFlag="prefState.showMainFlag"
+      :showAddTime="prefState.showMainAddTime"
       :read="true"
+      :active="false"
+      :striped="false"
     />
 
     <div class="flex mt-6 flex-wrap">
@@ -146,6 +241,13 @@ const updatePref = (key: string, value: unknown) => {
         @click="updatePref('showMainNote', !prefState.showMainNote)"
       >
         <BIconCardHeading class="my-auto text-xs" />
+      </MainSection>
+      <MainSection
+        description="Add Time"
+        :enable="prefState.showMainAddTime"
+        @click="updatePref('showMainAddTime', !prefState.showMainAddTime)"
+      >
+        <BIconCalendar2 class="my-auto text-xs" />
       </MainSection>
     </div>
   </div>

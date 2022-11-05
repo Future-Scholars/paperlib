@@ -107,6 +107,11 @@ export class EntityInteractor {
     return await this.dbRepository.thumbnail(paperEntity);
   }
 
+  async loadCitationCount(paperEntity: PaperEntity) {
+    const citationCount = await this.scraperRepository.scrapeCitationCount(paperEntity);
+    return citationCount;
+  }
+
   // ========================
   // Create
   // ========================
