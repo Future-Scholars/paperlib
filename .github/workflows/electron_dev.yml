@@ -4,10 +4,47 @@ on:
   push:
     branches:
       - electron-dev 
+    tags: [rc-electron*]
 
 jobs:
+  e2e_test:
+    runs-on: self-hosted
+
+    strategy:
+      matrix:
+        node-versions: ['16.16.0']
+
+    steps:
+      - name: 'Checkout Project'
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          cp ./build_configs/electron-builder.mac.arm.dev.json5 ./electron-builder.json5
+
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: GeoffreyChen777/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
+
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-versions }}
+
+      - name: 'Install Node Module'
+        run: |
+          node -v
+          npm install --force
+
+      - name: "End-to-End Testing"
+        run: npm run test:e2e
+
   mac_x86_develop:
     runs-on: macos-latest
+    needs: e2e_test
 
     strategy:
       matrix:
@@ -53,9 +90,6 @@ jobs:
       - name: 'Install Node Module'
         run: npm install --force
 
-      - name: "End-to-End Testing"
-        run: npm run test:e2e
-
       - name: 'Build and Package'
         run: npm run build
 
@@ -76,6 +110,7 @@ jobs:
 
   mac_arm_develop:
     runs-on: self-hosted
+    needs: e2e_test
 
     strategy:
       matrix:
@@ -112,9 +147,6 @@ jobs:
           node -v
           npm install --force
 
-      - name: "End-to-End Testing"
-        run: npm run test:e2e
-
       - name: 'Build and Package'
         run: npm run build
 
@@ -139,6 +171,7 @@ jobs:
 
   win_develop:
     runs-on: windows-latest
+    needs: e2e_test
 
     defaults:
       run:
@@ -176,9 +209,6 @@ jobs:
       - name: 'Install Node Module'
         run: npm install --force
 
-      - name: "End-to-End Testing"
-        run: npm run test:e2e
-
       - name: 'Build and Package'
         run: npm run build
 
@@ -204,6 +234,7 @@ jobs:
 
   linux_develop:
     runs-on: ubuntu-latest
+    needs: e2e_test
 
     strategy:
       matrix:
@@ -236,9 +267,6 @@ jobs:
 
       - name: 'Install Node Module'
         run: npm install --force
-
-      - name: "End-to-End Testing"
-        run: npm run test:e2e
 
       - name: 'Build and Package'
         run: npm run build
