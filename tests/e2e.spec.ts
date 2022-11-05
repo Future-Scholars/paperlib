@@ -8,7 +8,7 @@ let electronApp: ElectronApplication;
 beforeAll(async () => {
   process.env.NODE_ENV = 'vitest';
   electronApp = await electron.launch({ args: ['.'] });
-});
+}, 200000);
 
 afterAll(async () => {
   const page = await electronApp.firstWindow()
