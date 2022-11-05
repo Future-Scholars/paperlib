@@ -370,7 +370,14 @@ onMounted(() => {
       />
     </RecycleScroller>
 
-    <splitpanes horizontal class="max-h-[calc(100vh-4rem)]">
+    <splitpanes
+      horizontal
+      class="max-h-[calc(100vh-4rem)]"
+      v-if="
+        prefState.mainviewType === 'table' ||
+        prefState.mainviewType === 'tableandpreview'
+      "
+    >
       <pane :key="1" min-size="12">
         <TableComponent
           id="table-data-view"

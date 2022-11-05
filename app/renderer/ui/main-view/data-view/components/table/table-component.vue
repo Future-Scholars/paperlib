@@ -81,7 +81,7 @@ const dragHandler = (event: DragEvent) => {
       :item-size="28"
       key-field="id"
       v-slot="{ item, index }"
-      :buffer="500"
+      :buffer="200"
     >
       <TableItem
         :id="item.id"
