@@ -1,0 +1,43 @@
+/**
+ * @see https://www.electron.build/configuration/configuration
+ */
+{
+  appId: "dev.paperlibdev.app",
+  productName: "PaperlibDev",
+  asar: true,
+  publish: [
+    {
+      provider: "generic",
+      url: "https://paperlib.app/distribution/win_dev_channel/",
+    },
+  ],
+  directories: {
+    output: "release/${version}",
+  },
+  files: ["dist"],
+  win: {
+    target: [
+      {
+        target: "nsis",
+        arch: ["x64"],
+      },
+    ],
+    artifactName: "${productName}_${version}.${ext}",
+  },
+  nsis: {
+    oneClick: false,
+    createDesktopShortcut: "always",
+    allowToChangeInstallationDirectory: true,
+  },
+  files: [
+    "!node_modules/realm/react-native${/*}",
+    "!node_modules/realm/scripts${/*}",
+    "!node_modules/realm/src${/*}",
+    "!node_modules/realm/vendor${/*}",
+    "!node_modules/esbuild${/*}",
+    "!node_modules/esbuild-darwin-64${/*}",
+    "!app",
+    "!assets",
+    "!certificate.p12",
+  ],
+}
