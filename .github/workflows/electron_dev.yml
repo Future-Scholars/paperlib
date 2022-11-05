@@ -2,8 +2,6 @@ name: Development Testing and Build
 
 on:
   push:
-    branches:
-      - electron-dev 
     tags: [rc-electron*]
 
 jobs:
