@@ -3,6 +3,8 @@ import { BIconFlagFill, BIconStarFill } from "bootstrap-icons-vue";
 import { PropType } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { getCategorizerString, getPubTypeString } from "@/utils/string";
 
 const props = defineProps({
   item: {
@@ -62,20 +64,8 @@ const props = defineProps({
     default: true,
   },
 });
-const getPubTypeString = (pubType: any) => {
-  switch (pubType) {
-    case 0:
-      return "Article";
-    case 1:
-      return "Conference";
-    case 2:
-      return "Others";
-    case 3:
-      return "Book";
-    default:
-      return "Others";
-  }
-};
+
+const prefState = MainRendererStateStore.usePreferenceState();
 </script>
 
 <template>
@@ -138,7 +128,13 @@ const getPubTypeString = (pubType: any) => {
       :style="`width: ${titles['tags']?.width || 0}%`"
       v-if="showTags"
     >
-      {{ item.tags.map((tag) => tag.name).join(" / ") }}
+      {{
+        getCategorizerString(
+          item.tags,
+          prefState.sidebarSortBy,
+          prefState.sidebarSortOrder
+        )
+      }}
     </div>
 
     <div
@@ -146,7 +142,13 @@ const getPubTypeString = (pubType: any) => {
       :style="`width: ${titles['folders']?.width || 0}%`"
       v-if="showFolders"
     >
-      {{ item.folders.map((folder) => folder.name).join(" / ") }}
+      {{
+        getCategorizerString(
+          item.folders,
+          prefState.sidebarSortBy,
+          prefState.sidebarSortOrder
+        )
+      }}
     </div>
 
     <div

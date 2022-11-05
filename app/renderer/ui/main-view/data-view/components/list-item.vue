@@ -8,6 +8,8 @@ import {
 import { PropType } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { getCategorizerString, getPubTypeString } from "@/utils/string";
 
 const props = defineProps({
   item: {
@@ -53,20 +55,7 @@ const props = defineProps({
   },
 });
 
-const getPubTypeString = (pubType: any) => {
-  switch (pubType) {
-    case 0:
-      return "Article";
-    case 1:
-      return "Conference";
-    case 2:
-      return "Others";
-    case 3:
-      return "Book";
-    default:
-      return "Others";
-  }
-};
+const prefState = MainRendererStateStore.usePreferenceState();
 </script>
 
 <template>
@@ -121,7 +110,13 @@ const getPubTypeString = (pubType: any) => {
           style="margin-right: -5px !important"
         />
         <div class="truncate overflow-hidden">
-          {{ item.tags.map((tag) => tag.name).join(" / ") }}
+          {{
+            getCategorizerString(
+              item.tags,
+              prefState.sidebarSortBy,
+              prefState.sidebarSortOrder
+            )
+          }}
         </div>
       </div>
 
@@ -133,7 +128,13 @@ const getPubTypeString = (pubType: any) => {
           style="margin-right: -5px !important"
         />
         <div class="truncate overflow-hidden">
-          {{ item.folders.map((folder) => folder.name).join(" / ") }}
+          {{
+            getCategorizerString(
+              item.folders,
+              prefState.sidebarSortBy,
+              prefState.sidebarSortOrder
+            )
+          }}
         </div>
       </div>
 

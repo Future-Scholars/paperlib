@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build && electron-builder",
-    "dev-build": "vite build && electron-builder"
+    "dev-build": "vite build && electron-builder",
+    "e2e-test": "vue-tsc --noEmit && vite build && vitest run"
   },
   "engines": {
     "node": "^14.18.0 || >=16.0.0"

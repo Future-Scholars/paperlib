@@ -167,7 +167,7 @@ onMounted(() => {
           </div>
           <div>
             <select
-              id="countries"
+              id="presetting-scrapers-preset-select"
               class="my-auto bg-gray-50 border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-28 h-6 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               v-model="presetSelection"
               @change="
@@ -282,6 +282,7 @@ onMounted(() => {
 
           <div class="flex justify-end space-x-2 mt-5">
             <div
+              id="presetting-scraper-continue-btn"
               class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20 cursor-pointer"
               @click.stop="emit('close')"
             >

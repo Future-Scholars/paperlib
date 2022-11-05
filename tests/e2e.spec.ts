@@ -46,6 +46,39 @@ test('Main Window State', async () => {
 
 });
 
+test('Presetting Language', async () => {
+  const page = await electronApp.firstWindow()
+
+  if (await page.isVisible("#presetting-lang-view")) {
+    await page.locator('#presetting-lang-continue-btn').click();
+    await page.waitForSelector('#presetting-lang-view', { state: 'hidden' })
+  }
+})
+
+test('Presetting DB', async () => {
+  const page = await electronApp.firstWindow()
+
+  if (await page.isVisible("#presetting-db-view")) {
+    await page.locator('#presetting-db-continue-btn').click();
+    await page.waitForSelector('#presetting-db-view', { state: 'hidden' })
+  }
+})
+
+test('Presetting Scraper', async () => {
+  const page = await electronApp.firstWindow()
+
+  if (await page.isVisible("#presetting-scraper-view")) {
+
+    const scrapersSelect = page.locator('#presetting-scrapers-preset-select')
+    await scrapersSelect.selectOption({ label: 'Computer Science' })
+
+    await page.locator('#presetting-scraper-continue-btn').click();
+    await page.waitForSelector('#presetting-scraper-view', { state: 'hidden' })
+  }
+})
+
+
+
 test('Try to Close Whats New', async () => {
   const page = await electronApp.firstWindow()
 
@@ -326,10 +359,10 @@ test('List Table View', async () => {
 
   await page.locator('#table-reader-view-btn').click()
   await page.waitForTimeout(1000)
-  const dataview = page.locator('#table-data-view').first()
-  const paperItem = dataview.locator('div').first()
+  const dataview = page.locator('#table-data-view > .table-body').first()
+  const paperItem = dataview.locator('div').nth(1)
   await paperItem.click()
 
   await page.waitForSelector('#table-reader-data-view', { state: 'visible' })
 
-})
+}, 10000)

@@ -75,13 +75,12 @@ const dragHandler = (event: DragEvent) => {
       "
     />
     <RecycleScroller
-      id="table-data-view"
-      class="scroller h-full"
+      class="scroller h-full table-body"
       :items="dataRows"
       :item-size="28"
       key-field="id"
       v-slot="{ item, index }"
-      :buffer="200"
+      :buffer="300"
     >
       <TableItem
         :id="item.id"
