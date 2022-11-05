@@ -1,2 +1,6 @@
-1. Optimised PDF processing for papers in Chinese.
-2. A new option to symlink the file when import it rather than moving or copying it. Thus, you can keep files in the original location.
+1. Add citation count in the details panel.
+2. PDFs will be automatically downloaded when importing papers from adsabs.harvard.edu.
+3. A new PDF downloader: semanticscholar.org.
+4. Add AddTime column in the table view.
+5. Tags / Folders in the mainview is sorted.
+6. The column width of the table view is adjustable now!

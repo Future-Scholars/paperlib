@@ -243,7 +243,7 @@ onMounted(() => {
           {{ entity.pubTime }}
         </div>
       </Section>
-      <Section title="Citation Count">
+      <Section :title="$t('mainview.citationcount')">
         <CitationCount
           :citation-count="citationCount.citationCount"
           :influential-citation-count="citationCount.influentialCitationCount"

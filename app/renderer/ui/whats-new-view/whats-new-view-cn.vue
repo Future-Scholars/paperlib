@@ -86,16 +86,21 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.0.7 更新内容
+          Paperlib 2.1.0 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>优化了中文论文的 PDF 文件处理。</li>
-          <li>
-            一个新的选项使得导入论文时可以链接文件而不是复制或者剪切文件。使用户可以保持源
-            PDF 位置不变。
-          </li>
+          <li>文章详情面板添加了引用计数。</li>
+          <li>从 adsabs.harvard.edu 导入时可以自动下载 PDF。</li>
+          <li>一个新的 PDF 下载器: semanticscholar.org.</li>
+          <li>在表格视图添加 AddTime 列。</li>
+          <li>标签 / 组在主视图中排序显示。</li>
+          <li>⭐ 表格试图的列宽可以调整了！</li>
         </ul>
+        <img
+          class="w-[400px] mx-auto shadow-lg"
+          src="../../assets/whatsnew-1.png"
+        />
         <div
           id="whats-new-close-btn"
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

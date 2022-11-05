@@ -28,7 +28,8 @@
     "codes": "Codes",
     "codeofficial": "Official",
     "codecommunity": "Community",
-    "supplementaries": "Supplementaries"
+    "supplementaries": "Supplementaries",
+    "citationcount": "Citation Count"
   },
   "menu": {
     "rescrape": "Scrape",

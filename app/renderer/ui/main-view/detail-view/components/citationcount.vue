@@ -12,7 +12,7 @@ const props = defineProps({
     <div class="text-xxs group" title="All">
       {{ citationCount }}
     </div>
-    <div class="text-xxs dark:text-neutral-400 group" title="Influential">
+    <div class="text-xxs text-neutral-400 group" title="Influential">
       ({{ influentialCitationCount }})
     </div>
   </div>

@@ -86,16 +86,24 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.0.7
+          What's New in Paperlib 2.1.0
         </p>
 
         <ul class="list-disc mb-5">
-          <li>Optimised PDF processing for papers in Chinese.</li>
+          <li>Add citation count in the details panel.</li>
           <li>
-            A new option to symlink the file when import it rather than moving
-            or copying it. Thus, you can keep files in the original location.
+            PDFs will be automatically downloaded when importing papers from
+            adsabs.harvard.edu.
           </li>
+          <li>A new PDF downloader: semanticscholar.org.</li>
+          <li>Add AddTime column in the table view.</li>
+          <li>Tags / Folders in the mainview is sorted.</li>
+          <li>⭐ The column width of the table view is adjustable now!</li>
         </ul>
+        <img
+          class="w-[400px] mx-auto shadow-lg"
+          src="../../assets/whatsnew-1.png"
+        />
         <div
           id="whats-new-close-btn"
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
