@@ -245,8 +245,7 @@ jobs:
 
       - name: Set env
         run: |
-          apt update
-          apt install jq
+          sudo apt install -y jq
           VERSION=$(cat package.json | jq .version)
           export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
           export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
