@@ -30,5 +30,6 @@
     "!app",
     "!assets",
     "!certificate.p12",
+    "!tests"
   ],
 }
