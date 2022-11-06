@@ -524,16 +524,18 @@ export class Preference {
       "downloaders"
     ) as unknown as DownloaderPreference[];
 
-    for (const defaultDownloader of defaultPreferences.downloaders) {
-      if (
-        !existingDownloaderArray.find(
-          (downloader) => downloader.name === defaultDownloader.name
-        )
-      ) {
-        existingDownloaderArray.push(defaultDownloader);
+    if (existingDownloaderArray) {
+      for (const defaultDownloader of defaultPreferences.downloaders) {
+        if (
+          !existingDownloaderArray.find(
+            (downloader) => downloader.name === defaultDownloader.name
+          )
+        ) {
+          existingDownloaderArray.push(defaultDownloader);
+        }
       }
+      this.store.set("downloaders", existingDownloaderArray);
     }
-    this.store.set("downloaders", existingDownloaderArray);
 
     for (const key in defaultPreferences) {
       if (!this.store.has(key)) {
