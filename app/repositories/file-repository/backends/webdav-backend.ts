@@ -220,7 +220,7 @@ export class WebDavFileBackend implements FileBackend {
         success = await this._local2localMove(sourceURL, targetCacheURL);
         success = await this._local2serverMove(sourceURL, targetURL);
         if (this.preference.get("sourceFileOperation") as string === 'cut') {
-          await fsPromise.unlink(sourceURL);
+          await fsPromise.unlink(sourceURL.replace("file://", ""));
         }
       } else if (sourceURL.startsWith("webdav://")) {
         success = await this._server2serverMove(sourceURL, targetURL);
