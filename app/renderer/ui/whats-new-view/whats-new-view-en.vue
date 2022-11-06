@@ -86,10 +86,11 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.1.0
+          What's New in Paperlib 2.1.0 - 2.1.1
         </p>
 
         <ul class="list-disc mb-5">
+          <li>Fixed a fatal bug for new users.</li>
           <li>Add citation count in the details panel.</li>
           <li>
             PDFs will be automatically downloaded when importing papers from

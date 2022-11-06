@@ -86,10 +86,11 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.1.0 更新内容
+          Paperlib 2.1.0 - 2.1.1 更新内容
         </p>
 
         <ul class="list-disc mb-5">
+          <li>修复了一个针对新用户的重要 Bug。</li>
           <li>文章详情面板添加了引用计数。</li>
           <li>从 adsabs.harvard.edu 导入时可以自动下载 PDF。</li>
           <li>一个新的 PDF 下载器: semanticscholar.org.</li>

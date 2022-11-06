@@ -1,3 +1,7 @@
+# v2.1.1 Nov 06 2022
+
+1. Fixed a bug.
+
 # v2.1.0 Nov 05 2022
 
 1. Add citation count in the details panel.
