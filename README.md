@@ -65,8 +65,8 @@ That is Paperlib.
 -   Rating, flag, tag, folder and markdown/plain text note.
 -   RSS feed subscription to follow the newest publications on your research topic.
 -   Locate and download PDF files from the web.
--   macOS spotlight-like plugin to copy-paste references easily when writing a draft paper.
--   Cloud sync, supports macOS and Windows.
+-   macOS spotlight-like plugin to copy-paste references easily when writing a draft paper. Also supports MS Word.
+-   Cloud sync, supports macOS, Linux, and Windows.
 -   Beautiful and clean UI.
 
 ## Download and Install
@@ -80,6 +80,10 @@ That is Paperlib.
 ### macOS
 
 ⚠️ You may need to click the `preference` - `Security & Privacy` - `run anyway`.
+
+### Linux
+
+See [here](https://paperlib.app/en/blog/linux-install/).
 
 ## Quick Start
 
