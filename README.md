@@ -9,7 +9,7 @@ An open-source academic paper management tool.
 </div>
 
 <p align='center'>
-<a href='https://paperlib.app/en/'>Webpage</a> | <a href='https://paperlib.app/en/download/'>Download</a> | <a href='https://paperlib.app/en/doc/getting-started.html'>Quick Start</a> | <a href='https://github.com/users/GeoffreyChen777/projects/1/views/1'>Roadmap</a>
+<a href='https://paperlib.app/en/'>Webpage</a> | <a href='https://paperlib.app/en/download.html'>Download</a> | <a href='https://paperlib.app/en/doc/getting-started.html'>Quick Start</a> | <a href='https://github.com/users/GeoffreyChen777/projects/1/views/1'>Roadmap</a>
 </p>
 
 ![](./assets/ui.png)
@@ -71,7 +71,7 @@ That is Paperlib.
 
 ## Download and Install
 
-<a href="https://paperlib.app/en/download/" style="font-size: 16px"> » Download Here « </a>
+<a href="https://paperlib.app/en/download.html" style="font-size: 16px"> » Download Here « </a>
 
 ### Windows
 
@@ -83,7 +83,7 @@ That is Paperlib.
 
 ### Linux
 
-See [here](https://paperlib.app/en/blog/linux-install/).
+See [here](https://paperlib.app/en/download-linux.html).
 
 ## Quick Start
 
