@@ -3,6 +3,7 @@ import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import { ArXivWebImporter } from "./importers/arxiv";
+import { CNKIWebImporter } from "./importers/cnki";
 import { EmbedWebImporter } from "./importers/embed";
 import { GoogleScholarWebImporter } from "./importers/google-scholar";
 import { IEEEWebImporter } from "./importers/ieee";
@@ -28,6 +29,7 @@ export class WebImporterRepository {
       ieee: new IEEEWebImporter(this.stateStore, this.preference),
       embed: new EmbedWebImporter(this.stateStore, this.preference),
       pdfurl: new PDFUrlWebImporter(this.stateStore, this.preference),
+      cnki: new CNKIWebImporter(this.stateStore, this.preference),
     };
   }
 
@@ -37,9 +39,8 @@ export class WebImporterRepository {
       try {
         parsed = await importer.parse(webContent);
       } catch (error) {
-        this.stateStore.logState.alertLog = `Web importer ${name} error: ${
-          error as string
-        }`;
+        this.stateStore.logState.alertLog = `Web importer ${name} error: ${error as string
+          }`;
       }
       if (parsed) {
         break;

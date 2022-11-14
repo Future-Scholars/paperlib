@@ -202,6 +202,25 @@ export class NetworkTool {
     return await got.post(url, options);
   }
 
+  async postForm(
+    url: string,
+    data: FormData,
+    headers?: Record<string, string>,
+    retry = 1,
+    timeout = 5000
+  ) {
+    const options = {
+      form: data,
+      headers: headers,
+      retry: retry,
+      timeout: {
+        request: timeout,
+      },
+      agent: this.agent,
+    };
+    return await got.post(url, options);
+  }
+
   async download(
     url: string,
     targetPath: string,
