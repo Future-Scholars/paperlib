@@ -1,11 +1,12 @@
 import { Response } from "got";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
+import { Preference, ScraperPreference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { DOIInnerScraper } from "./doi-inner";
 
 function parsingProcess(
   this: ScraperType,
@@ -34,6 +35,7 @@ function parsingProcess(
             pages: string;
             number: string;
             publisher: string;
+            doi?: string;
           };
         }[];
       };
@@ -88,6 +90,9 @@ function parsingProcess(
         const pubKey = article.key.split("/").slice(0, 2).join("/");
 
         if (pubKey != "journals/corr") {
+          if (article.doi) {
+            paperEntityDraft.setValue("doi", article.doi);
+          }
           paperEntityDraft.setValue("title", title);
           paperEntityDraft.setValue("authors", authors);
           paperEntityDraft.setValue("pubTime", `${pubTime}`);
@@ -187,7 +192,51 @@ export class DBLPbyTimeScraper extends Scraper {
   scrapeImpl = scrapeImpl;
 }
 
+async function scrapeImpl(
+  this: ScraperType,
+  paperEntityDraft: PaperEntity,
+  force = false
+): Promise<PaperEntity> {
+  const { scrapeURL, headers, enable } = this.preProcess(
+    paperEntityDraft
+  ) as ScraperRequestType;
+
+  if (enable || force) {
+    let response: Response<string> | null;
+    try {
+      response = (await window.networkTool.get(
+        scrapeURL,
+        headers
+      )) as Response<string>;
+    } catch (e) {
+      console.error(e);
+      response = null;
+    }
+
+    if (!response) {
+      // Try an alternative URL
+      const alternativeURL = scrapeURL.replace("dblp.org", "dblp.uni-trier.de");
+      response = (await window.networkTool.get(
+        alternativeURL,
+        headers
+      )) as Response<string>;
+    }
+
+    return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
+  } else {
+    return paperEntityDraft;
+  }
+}
+
 export class DBLPVenueScraper extends Scraper {
+  doiScraper: DOIInnerScraper;
+
+  constructor(stateStore: MainRendererStateStore, preference: Preference) {
+    super(stateStore, preference);
+
+    this.doiScraper = new DOIInnerScraper(stateStore, preference);
+  }
+
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const enable = paperEntityDraft.publication.startsWith("dblp://");
 
@@ -238,41 +287,53 @@ export class DBLPVenueScraper extends Scraper {
     return paperEntityDraft;
   }
 
-  scrapeImpl = scrapeImpl;
+  // @ts-ignore
+  scrapeImpl = venueScrapeImpl;
 }
 
-async function scrapeImpl(
-  this: ScraperType,
+
+async function venueScrapeImpl(
+  this: DBLPVenueScraper,
   paperEntityDraft: PaperEntity,
   force = false
 ): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
 
-  if (enable || force) {
-    let response: Response<string> | null;
-    try {
-      response = (await window.networkTool.get(
-        scrapeURL,
-        headers
-      )) as Response<string>;
-    } catch (e) {
-      console.error(e);
-      response = null;
-    }
+  const useDOIforVenue = (this.preference.get("scrapers") as Record<string, ScraperPreference>)[
+    "dblp"
+  ]?.args
 
-    if (!response) {
-      // Try an alternative URL
-      const alternativeURL = scrapeURL.replace("dblp.org", "dblp.uni-trier.de");
-      response = (await window.networkTool.get(
-        alternativeURL,
-        headers
-      )) as Response<string>;
-    }
-
-    return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
-  } else {
+  if (paperEntityDraft.doi && useDOIforVenue !== 'use-dblp') {
+    paperEntityDraft = await this.doiScraper.scrape(paperEntityDraft, force);
     return paperEntityDraft;
+  } else {
+    const { scrapeURL, headers, enable } = this.preProcess(
+      paperEntityDraft
+    ) as ScraperRequestType;
+
+    if (enable || force) {
+      let response: Response<string> | null;
+      try {
+        response = (await window.networkTool.get(
+          scrapeURL,
+          headers
+        )) as Response<string>;
+      } catch (e) {
+        console.error(e);
+        response = null;
+      }
+
+      if (!response) {
+        // Try an alternative URL
+        const alternativeURL = scrapeURL.replace("dblp.org", "dblp.uni-trier.de");
+        response = (await window.networkTool.get(
+          alternativeURL,
+          headers
+        )) as Response<string>;
+      }
+
+      return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
+    } else {
+      return paperEntityDraft;
+    }
   }
 }
