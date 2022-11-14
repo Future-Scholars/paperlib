@@ -51,6 +51,7 @@ test('Presetting Language', async () => {
   await page.waitForTimeout(1000)
   if (await page.isVisible("#presetting-lang-view")) {
     await page.locator('#presetting-lang-continue-btn').click();
+    await page.waitForTimeout(1000)
     await page.waitForSelector('#presetting-lang-view', { state: 'hidden' })
   }
 })
@@ -61,6 +62,7 @@ test('Presetting DB', async () => {
   await page.waitForTimeout(1000)
   if (await page.isVisible("#presetting-db-view")) {
     await page.locator('#presetting-db-continue-btn').click();
+    await page.waitForTimeout(1000)
     await page.waitForSelector('#presetting-db-view', { state: 'hidden' })
   }
 })
@@ -73,8 +75,10 @@ test('Presetting Scraper', async () => {
 
     const scrapersSelect = page.locator('#presetting-scrapers-preset-select')
     await scrapersSelect.selectOption({ label: 'Computer Science' })
+    await page.waitForTimeout(1000)
 
     await page.locator('#presetting-scraper-continue-btn').click();
+    await page.waitForTimeout(1000)
     await page.waitForSelector('#presetting-scraper-view', { state: 'hidden' })
   }
 })
