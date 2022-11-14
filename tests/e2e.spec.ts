@@ -46,7 +46,7 @@ test('Main Window State', async () => {
 
 });
 
-test('Presetting Language', async () => {
+test('Presetting', async () => {
   const page = await electronApp.firstWindow()
   await page.waitForTimeout(1000)
   if (await page.isVisible("#presetting-lang-view")) {
@@ -54,23 +54,11 @@ test('Presetting Language', async () => {
     await page.waitForTimeout(1000)
     await page.waitForSelector('#presetting-lang-view', { state: 'hidden' })
   }
-})
-
-test('Presetting DB', async () => {
-  const page = await electronApp.firstWindow()
-
-  await page.waitForTimeout(1000)
   if (await page.isVisible("#presetting-db-view")) {
     await page.locator('#presetting-db-continue-btn').click();
     await page.waitForTimeout(1000)
     await page.waitForSelector('#presetting-db-view', { state: 'hidden' })
   }
-})
-
-test('Presetting Scraper', async () => {
-  const page = await electronApp.firstWindow()
-
-  await page.waitForTimeout(1000)
   if (await page.isVisible("#presetting-scraper-view")) {
 
     const scrapersSelect = page.locator('#presetting-scrapers-preset-select')
@@ -82,8 +70,6 @@ test('Presetting Scraper', async () => {
     await page.waitForSelector('#presetting-scraper-view', { state: 'hidden' })
   }
 })
-
-
 
 test('Try to Close Whats New', async () => {
   const page = await electronApp.firstWindow()
