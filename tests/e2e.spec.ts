@@ -69,7 +69,7 @@ test('Presetting', async () => {
     await page.waitForTimeout(1000)
     await page.waitForSelector('#presetting-scraper-view', { state: 'hidden' })
   }
-})
+}, 10000)
 
 test('Try to Close Whats New', async () => {
   const page = await electronApp.firstWindow()
