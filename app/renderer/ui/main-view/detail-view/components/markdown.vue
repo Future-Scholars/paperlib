@@ -92,7 +92,7 @@ watch(props, (props, prevProps) => {
     </div>
     <div
       id="detail-markdown-preview"
-      class="text-xs pr-2 overflow-hidden"
+      class="text-xs pr-2 overflow-hidden break-words"
       :class="isExpanded ? '' : 'max-h-96'"
       v-html="renderedHTML"
       ref="markdownArea"

@@ -295,7 +295,7 @@ onMounted(() => {
         :title="$t('mainview.note')"
         v-if="entity.note.length > 0 && !entity.note.startsWith('<md>')"
       >
-        <div class="text-xxs">
+        <div class="text-xxs break-words">
           {{ entity.note }}
         </div>
       </Section>

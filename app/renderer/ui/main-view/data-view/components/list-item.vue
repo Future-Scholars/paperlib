@@ -88,7 +88,7 @@ const prefState = MainRendererStateStore.usePreferenceState();
     >
       <div v-if="showPubTime">{{ item.pubTime }}</div>
       <div
-        class="flex space-x-2 max-w-[60%] text-ellipsis overflow-hidden flex-none"
+        class="flex space-x-2 text-ellipsis overflow-hidden shrink"
         v-if="showPublication"
       >
         <div>|</div>
