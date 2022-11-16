@@ -60,7 +60,6 @@ test('Presetting', async () => {
     await page.waitForSelector('#presetting-db-view', { state: 'hidden' })
   }
   if (await page.isVisible("#presetting-scraper-view")) {
-
     const scrapersSelect = page.locator('#presetting-scrapers-preset-select')
     await scrapersSelect.selectOption({ label: 'Computer Science' })
     await page.waitForTimeout(1000)
@@ -69,7 +68,7 @@ test('Presetting', async () => {
     await page.waitForTimeout(1000)
     await page.waitForSelector('#presetting-scraper-view', { state: 'hidden' })
   }
-}, 10000)
+}, 20000)
 
 test('Try to Close Whats New', async () => {
   const page = await electronApp.firstWindow()
