@@ -275,6 +275,7 @@ const onMaximizeClicked = () => {
       >
         <div>
           <MenuButton
+            id="win-more-menu-btn"
             class="inline-flex justify-center w-7 h-6 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700 cursor-default"
           >
             <BIconThreeDots
@@ -296,6 +297,7 @@ const onMaximizeClicked = () => {
           >
             <div class="pb-1">
               <MenuItem
+                id="list-view-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'list-view')"
@@ -312,6 +314,7 @@ const onMaximizeClicked = () => {
                 </div>
               </MenuItem>
               <MenuItem
+                id="table-view-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'table-view')"
@@ -328,6 +331,7 @@ const onMaximizeClicked = () => {
                 </div>
               </MenuItem>
               <MenuItem
+                id="table-reader-view-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
                 @click="emit('click', 'tableandpreview-view')"

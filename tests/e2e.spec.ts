@@ -2,7 +2,6 @@
 import { ElectronApplication, _electron as electron } from "playwright";
 import { afterAll, beforeAll, expect, test } from 'vitest';
 
-
 let electronApp: ElectronApplication;
 
 beforeAll(async () => {
@@ -11,17 +10,8 @@ beforeAll(async () => {
 }, 200000);
 
 afterAll(async () => {
-  const page = await electronApp.firstWindow()
-  await page.locator('#list-view-btn').click()
-  const e = await (page.locator("#dev-btn-bar")).elementHandle()
-  await e?.evaluate((e) => {
-    e.style.display = "flex"
-  })
-  await page.locator('#dev-delete-all-btn').click();
-  await page.waitForTimeout(1000)
-
   await electronApp.close();
-});
+}, 200000);
 
 test('Main Window State', async () => {
   const windowState: { isVisible: boolean; isDevToolsOpened: boolean; isCrashed: boolean } =
@@ -44,46 +34,42 @@ test('Main Window State', async () => {
   expect(windowState.isCrashed, 'The app has crashed').toBeFalsy();
   expect(windowState.isVisible, 'The main window was not visible').toBeTruthy();
 
-});
+}, 100000);
 
-test('Presetting', async () => {
+test('Loading Removed in 10s', async () => {
   const page = await electronApp.firstWindow()
-  await page.waitForTimeout(1000)
-  if (await page.isVisible("#presetting-lang-view")) {
-    await page.locator('#presetting-lang-continue-btn').click();
-    await page.waitForTimeout(1000)
-    await page.waitForSelector('#presetting-lang-view', { state: 'hidden' })
-  }
-  if (await page.isVisible("#presetting-db-view")) {
-    await page.locator('#presetting-db-continue-btn').click();
-    await page.waitForTimeout(1000)
-    await page.waitForSelector('#presetting-db-view', { state: 'hidden' })
-  }
-  if (await page.isVisible("#presetting-scraper-view")) {
-    const scrapersSelect = page.locator('#presetting-scrapers-preset-select')
-    await scrapersSelect.selectOption({ label: 'Computer Science' })
-    await page.waitForTimeout(1000)
 
-    await page.locator('#presetting-scraper-continue-btn').click();
-    await page.waitForTimeout(1000)
-    await page.waitForSelector('#presetting-scraper-view', { state: 'hidden' })
-  }
-}, 20000)
+  await page.waitForSelector('#app-loading-wrap', { state: 'hidden' })
+}, 100000)
 
 test('Try to Close Whats New', async () => {
   const page = await electronApp.firstWindow()
 
   if (await page.isVisible("#whats-new-view")) {
     await page.locator('#whats-new-close-btn').click();
-    await page.waitForSelector('#whats-new-view', { state: 'hidden' })
+    await page.waitForSelector('#whats-new-view', { state: 'detached' })
   }
-})
+}, 100000)
 
-test('Loading Removed in 10s', async () => {
+test('Presetting', async () => {
   const page = await electronApp.firstWindow()
+  await page.waitForSelector('#presetting-lang-view', { state: 'visible' })
+  await page.waitForSelector('#presetting-lang-continue-btn', { state: 'visible' })
+  await page.locator('#presetting-lang-continue-btn').click();
+  await page.waitForSelector('#presetting-lang-view', { state: 'detached' })
 
-  await page.waitForSelector('#app-loading-wrap', { state: 'hidden' })
-}, 11000)
+  await page.waitForSelector('#presetting-db-view', { state: 'visible' })
+  await page.waitForSelector('#presetting-db-continue-btn', { state: 'visible' })
+  await page.locator('#presetting-db-continue-btn').click();
+  await page.waitForSelector('#presetting-db-view', { state: 'detached' })
+
+  await page.waitForSelector("#presetting-scraper-view", { state: 'visible' })
+  await page.waitForSelector("#presetting-scrapers-preset-select", { state: 'visible' })
+  const scrapersSelect = page.locator('#presetting-scrapers-preset-select')
+  await scrapersSelect.selectOption({ label: 'Computer Science' })
+  await page.locator('#presetting-scraper-continue-btn').click();
+  await page.waitForSelector('#presetting-scraper-view', { state: 'detached' })
+}, 300000)
 
 test('Drag PDF to Import', async () => {
   const page = await electronApp.firstWindow()
@@ -108,7 +94,7 @@ test('Drag PDF to Import', async () => {
     'Conference on Neural Information Processing Systems (NeurIPS)'
   expect(dataTextList[0]).toBe(targetText)
 
-}, 10000)
+}, 100000)
 
 test('Rating Paper', async () => {
   const page = await electronApp.firstWindow()
@@ -128,7 +114,7 @@ test('Rating Paper', async () => {
     'Conference on Neural Information Processing Systems (NeurIPS)\n' +
     '|'
   expect(dataTextList[0]).toBe(targetText)
-})
+}, 100000)
 
 test('Edit Paper', async () => {
   const page = await electronApp.firstWindow()
@@ -153,7 +139,7 @@ test('Edit Paper', async () => {
     'arxiv\n' +
     '|'
   expect(dataTextList[0]).toBe(targetText)
-})
+}, 100000)
 
 test('Scrape Paper', async () => {
   const page = await electronApp.firstWindow()
@@ -174,7 +160,7 @@ test('Scrape Paper', async () => {
     'Conference on Neural Information Processing Systems (NeurIPS)\n' +
     '|'
   expect(dataTextList[0]).toBe(targetText)
-}, 10000)
+}, 100000)
 
 test('Delete Paper', async () => {
   const page = await electronApp.firstWindow()
@@ -192,7 +178,7 @@ test('Delete Paper', async () => {
   const dataviewHeight = (await dataview.boundingBox())?.height
   expect(dataviewHeight).toBe(0)
 
-})
+}, 100000)
 
 test('Import Multiple PDFs', async () => {
   const page = await electronApp.firstWindow()
@@ -209,11 +195,14 @@ test('Import Multiple PDFs', async () => {
   const dataviewHeightBeforeSearch = (await dataview.boundingBox())?.height
   expect(dataviewHeightBeforeSearch).toBe(128)
 
-}, 10000)
+}, 100000)
 
 test('Sort', async () => {
   const page = await electronApp.firstWindow()
 
+  if (await page.locator('#win-more-menu-btn').isVisible()) {
+    await page.locator('#win-more-menu-btn').click();
+  }
   await page.locator('#list-view-btn').click()
   await page.locator('#sort-menu-btn').click()
   await page.locator('#sort-asce-btn').click()
@@ -230,7 +219,7 @@ test('Sort', async () => {
 
   expect(asceTranslate !== descTranslate).toBeTruthy()
 
-}, 5000)
+}, 100000)
 
 test('Flag Paper and Filter by Flag', async () => {
   const page = await electronApp.firstWindow()
@@ -254,7 +243,7 @@ test('Flag Paper and Filter by Flag', async () => {
 
   const dataviewHeightRestore = (await dataview.boundingBox())?.height
   expect(dataviewHeightRestore).toBe(128)
-})
+}, 100000)
 
 test('Tag Paper and Filter by Tag', async () => {
   const page = await electronApp.firstWindow()
@@ -286,7 +275,7 @@ test('Tag Paper and Filter by Tag', async () => {
   const dataviewHeightRestore = (await dataview.boundingBox())?.height
   expect(dataviewHeightRestore).toBe(128)
 
-}, 10000)
+}, 100000)
 
 test('General Search', async () => {
   const page = await electronApp.firstWindow()
@@ -297,7 +286,7 @@ test('General Search', async () => {
   const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height
   expect(dataviewHeightAfterSearch).toBe(64)
 
-}, 10000)
+}, 100000)
 
 test('Fulltext Search', async () => {
   const page = await electronApp.firstWindow()
@@ -316,7 +305,7 @@ test('Fulltext Search', async () => {
   const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height
   expect(dataviewHeightAfterSearch).toBe(64)
 
-}, 10000)
+}, 100000)
 
 test('Advanced Search', async () => {
   const page = await electronApp.firstWindow()
@@ -339,15 +328,21 @@ test('Advanced Search', async () => {
   const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height
   expect(dataviewHeightAfterSearch).toBe(64)
 
-}, 10000)
+}, 100000)
 
 test('List Table View', async () => {
   const page = await electronApp.firstWindow()
 
+  if (await page.locator('#win-more-menu-btn').isVisible()) {
+    await page.locator('#win-more-menu-btn').click();
+  }
   await page.locator('#table-view-btn').click()
   await page.waitForTimeout(1000)
   await page.waitForSelector('#table-data-view', { state: 'visible' })
 
+  if (await page.locator('#win-more-menu-btn').isVisible()) {
+    await page.locator('#win-more-menu-btn').click();
+  }
   await page.locator('#table-reader-view-btn').click()
   await page.waitForTimeout(1000)
   const dataview = page.locator('#table-data-view > .table-body').first()
@@ -356,4 +351,4 @@ test('List Table View', async () => {
 
   await page.waitForSelector('#table-reader-data-view', { state: 'visible' })
 
-}, 10000)
+}, 100000)
