@@ -86,22 +86,17 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.1.0 - 2.1.1 更新内容
+          Paperlib 2.1.2 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>修复了一个针对新用户的重要 Bug。</li>
-          <li>文章详情面板添加了引用计数。</li>
-          <li>从 adsabs.harvard.edu 导入时可以自动下载 PDF。</li>
-          <li>一个新的 PDF 下载器: semanticscholar.org.</li>
-          <li>在表格视图添加 AddTime 列。</li>
-          <li>标签 / 组在主视图中排序显示。</li>
-          <li>⭐ 表格试图的列宽可以调整了！</li>
+          <li>浏览器插件支持 CNKI (中国知网)。</li>
+          <li>
+            如果 DBLP 返回元数据带有 DOI，那么优先使用此 DOI 获取其余元数据。
+          </li>
+          <li>修复搜索栏动画的问题。</li>
+          <li>修复在 PDF 浏览器里点击链接时，无法在外部浏览器打开的问题。</li>
         </ul>
-        <img
-          class="w-[400px] mx-auto shadow-lg"
-          src="../../assets/whatsnew-1.png"
-        />
         <div
           id="whats-new-close-btn"
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

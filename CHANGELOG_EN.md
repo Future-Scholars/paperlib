@@ -1,8 +1,15 @@
-# v2.1.1 Nov 06 2022
+## v2.1.2 Nov 20 2022
+
+1. Browser extension now supports CNKI (中国知网).
+2. If DBLP returns metadata with a doi, then use this DOI first to get metadata.
+3. Fixed an animation bug of the search bar.
+4. Fixed a bug occured when clicking a URL link in the PDF reader view.
+
+## v2.1.1 Nov 06 2022
 
 1. Fixed a bug.
 
-# v2.1.0 Nov 05 2022
+## v2.1.0 Nov 05 2022
 
 1. Add citation count in the details panel.
 2. PDFs will be automatically downloaded when importing papers from adsabs.harvard.edu.
@@ -11,19 +18,19 @@
 5. Tags / Folders in the mainview is sorted.
 6. The column width of the table view is adjustable now!
 
-# v2.0.7 Oct 29 2022
+## v2.0.7 Oct 29 2022
 
 1. Optimised PDF processing for papers in Chinese.
 2. A new option to symlink the file when import it rather than moving or copying it. Thus, you can keep files in the original location.
 
-# v2.0.6 Oct 23 2022
+## v2.0.6 Oct 23 2022
 
 1. New Scrapers: bioRxiv, medRxiv, and chemRxiv.
 2. Better DOI regex.
 3. New icon.
 4. Fixed some bugs.
 
-# v2.0.5 Oct 18 2022
+## v2.0.5 Oct 18 2022
 
 1. The beta version of the Microsoft Word Add-in is released. 
 2. Linux build is avaliable now.
@@ -31,7 +38,7 @@
 4. Better hover experience of the search bar.
 5. Fixed some bugs.
 
-# v2.0.4 Oct 08 2022
+## v2.0.4 Oct 08 2022
 
 1. Fulltext search mode: the highlights of the search results will be displayed in the PDF preview view.
 2. Adjustable width of the detail panel.

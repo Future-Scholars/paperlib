@@ -37,6 +37,11 @@ jobs:
           node -v
           npm install --force
 
+      - name: 'Cleanup Env'
+        run: |
+          rm -rf ~/Documents/paperlib
+          rm -rf ~/Library/Application\ Support/paperlib 
+
       - name: "End-to-End Testing"
         run: npm run test:e2e
 

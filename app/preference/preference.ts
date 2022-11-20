@@ -141,7 +141,7 @@ export const defaultPreferences: PreferenceStore = {
   showMainYear: true,
   showMainPublication: true,
   showMainPubType: false,
-  showMainRating: false,
+  showMainRating: true,
   showMainFlag: true,
   showMainTags: false,
   showMainFolders: false,

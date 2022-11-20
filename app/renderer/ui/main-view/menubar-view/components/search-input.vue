@@ -117,11 +117,11 @@ const onClearClicked = (payload: Event) => {
     </div>
     <BIconX
       id="search-clear-btn"
-      class="my-auto text-neutral-400 invisible dark:text-neutral-500 hover:text-neutral-800 hover:dark:text-neutral-300 cursor-pointer peer-focus:visible hover:visible group-hover:visible"
+      class="my-auto text-neutral-400 dark:text-neutral-500 hover:text-neutral-800 hover:dark:text-neutral-300 cursor-pointer opacity-0 peer-focus:opacity-100 hover:opacity-100 group-hover:opacity-100 transition ease-in-out duration-75"
       @click="onClearClicked"
     />
     <button
-      class="flex-none my-auto p-2 w-[100px] text-xxs bg-neutral-200 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-200 rounded-r-md invisible peer-focus:visible group-hover:visible hover:visible hover:bg-neutral-300 hover:dark:bg-neutral-500"
+      class="flex-none my-auto p-2 w-[100px] text-xxs bg-neutral-200 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-200 rounded-r-md opacity-0 transition ease-in-out duration-75 peer-focus:opacity-100 group-hover:opacity-100 hover:opacity-100 hover:bg-neutral-300 hover:dark:bg-neutral-500"
       @click="onModeClicked"
     >
       {{ $t(searchModeLabel[viewState.searchMode]) }}
