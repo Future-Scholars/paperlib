@@ -86,20 +86,19 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.1.0 - 2.1.1
+          What's New in Paperlib 2.1.2
         </p>
 
         <ul class="list-disc mb-5">
-          <li>Fixed a fatal bug for new users.</li>
-          <li>Add citation count in the details panel.</li>
+          <li>Browser extension now supports CNKI (中国知网).</li>
           <li>
-            PDFs will be automatically downloaded when importing papers from
-            adsabs.harvard.edu.
+            If DBLP returns metadata with a doi, then use this DOI first to get
+            metadata.
           </li>
-          <li>A new PDF downloader: semanticscholar.org.</li>
-          <li>Add AddTime column in the table view.</li>
-          <li>Tags / Folders in the mainview is sorted.</li>
-          <li>⭐ The column width of the table view is adjustable now!</li>
+          <li>Fixed an animation bug of the search bar.</li>
+          <li>
+            Fixed a bug occured when clicking a URL link in the PDF reader view.
+          </li>
         </ul>
         <img
           class="w-[400px] mx-auto shadow-lg"
