@@ -100,10 +100,6 @@ onMounted(() => {
             Fixed a bug occured when clicking a URL link in the PDF reader view.
           </li>
         </ul>
-        <img
-          class="w-[400px] mx-auto shadow-lg"
-          src="../../assets/whatsnew-1.png"
-        />
         <div
           id="whats-new-close-btn"
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

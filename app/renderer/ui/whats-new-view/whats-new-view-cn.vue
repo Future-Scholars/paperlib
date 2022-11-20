@@ -97,10 +97,6 @@ onMounted(() => {
           <li>修复搜索栏动画的问题。</li>
           <li>修复在 PDF 浏览器里点击链接时，无法在外部浏览器打开的问题。</li>
         </ul>
-        <img
-          class="w-[400px] mx-auto shadow-lg"
-          src="../../assets/whatsnew-1.png"
-        />
         <div
           id="whats-new-close-btn"
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
