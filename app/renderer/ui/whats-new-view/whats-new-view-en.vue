@@ -86,19 +86,12 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.1.2
+          What's New in Paperlib 2.1.3
         </p>
 
         <ul class="list-disc mb-5">
-          <li>Browser extension now supports CNKI (中国知网).</li>
-          <li>
-            If DBLP returns metadata with a doi, then use this DOI first to get
-            metadata.
-          </li>
-          <li>Fixed an animation bug of the search bar.</li>
-          <li>
-            Fixed a bug occured when clicking a URL link in the PDF reader view.
-          </li>
+          <li>Update the MS Word add-in cert.</li>
+          <li>Happy Holiday!</li>
         </ul>
         <div
           id="whats-new-close-btn"

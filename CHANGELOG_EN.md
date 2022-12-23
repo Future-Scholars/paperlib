@@ -1,3 +1,8 @@
+## v2.1.3 Dec 23 2022
+
+1. Update the MS Word add-in cert.
+
+
 ## v2.1.2 Nov 20 2022
 
 1. Browser extension now supports CNKI (中国知网).

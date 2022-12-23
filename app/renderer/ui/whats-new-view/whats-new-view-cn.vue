@@ -86,16 +86,11 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.1.2 更新内容
+          Paperlib 2.1.3 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>浏览器插件支持 CNKI (中国知网)。</li>
-          <li>
-            如果 DBLP 返回元数据带有 DOI，那么优先使用此 DOI 获取其余元数据。
-          </li>
-          <li>修复搜索栏动画的问题。</li>
-          <li>修复在 PDF 浏览器里点击链接时，无法在外部浏览器打开的问题。</li>
+          <li>更新 Word 插件证书。</li>
         </ul>
         <div
           id="whats-new-close-btn"
