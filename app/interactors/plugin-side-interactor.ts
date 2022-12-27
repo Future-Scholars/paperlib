@@ -110,6 +110,7 @@ export class PluginSideInteractor {
   }
 
   linkedFolder(): string {
+    this.pluginLinkFolder(this.preference.get("pluginLinkedFolder") as string);
     return this.preference.get("pluginLinkedFolder") as string;
   }
 
