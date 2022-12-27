@@ -28,6 +28,7 @@ function parsingProcess(
               }
               | { text: string }[];
             };
+            venue: string;
             year: string;
             type: string;
             key: string;
@@ -49,6 +50,8 @@ function parsingProcess(
         str: article.title,
         removeStr: "&amp",
         removeSymbol: true,
+        removeNewline: true,
+        removeWhite: true,
         lowercased: true,
       });
 
@@ -56,9 +59,10 @@ function parsingProcess(
         str: paperEntityDraft.title,
         removeStr: "&amp",
         removeSymbol: true,
+        removeNewline: true,
+        removeWhite: true,
         lowercased: true,
       });
-
       if (plainHitTitle != existTitle) {
         continue;
       } else {
@@ -88,8 +92,9 @@ function parsingProcess(
           pubType = 2;
         }
         const pubKey = article.key.split("/").slice(0, 2).join("/");
+        const venueKey = article.venue;
 
-        if (pubKey != "journals/corr") {
+        if ((pubKey != "journals/corr") || (pubKey == "journals/corr" && venueKey != "CoRR")) {
           if (article.doi) {
             paperEntityDraft.setValue("doi", article.doi);
           }
@@ -97,7 +102,11 @@ function parsingProcess(
           paperEntityDraft.setValue("authors", authors);
           paperEntityDraft.setValue("pubTime", `${pubTime}`);
           paperEntityDraft.setValue("pubType", pubType);
-          paperEntityDraft.setValue("publication", "dblp://" + pubKey);
+          if (pubKey == "journals/corr") {
+            paperEntityDraft.setValue("publication", "dblp://" + venueKey);
+          } else {
+            paperEntityDraft.setValue("publication", "dblp://" + pubKey);
+          }
 
           if (article.volume) {
             paperEntityDraft.setValue("volume", article.volume);
@@ -112,7 +121,6 @@ function parsingProcess(
             paperEntityDraft.setValue("publisher", article.publisher);
           }
         }
-
         break;
       }
     }
@@ -244,7 +252,6 @@ export class DBLPVenueScraper extends Scraper {
       "https://dblp.org/search/venue/api?q=" +
       paperEntityDraft.publication.replace("dblp://", "") +
       "&format=json";
-
     const headers = {};
     return { scrapeURL, headers, enable };
   }
@@ -272,7 +279,7 @@ export class DBLPVenueScraper extends Scraper {
       const hits = response.result.hits.hit;
       for (const hit of hits) {
         const venueInfo = hit["info"];
-        if (venueInfo["url"].includes(venueID)) {
+        if (venueInfo["url"].includes(venueID.toLowerCase())) {
           const venue = venueInfo["venue"];
           paperEntityDraft.setValue("publication", venue);
           this.uploadCache(paperEntityDraft, "dblp");
