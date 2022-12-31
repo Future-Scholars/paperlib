@@ -1,3 +1,8 @@
+## v2.1.4 Dec 31 2022
+
+1. Enhance the DBLP scaper for ICLR 2016.
+2. Fixed some bugs.
+
 ## v2.1.3 Dec 23 2022
 
 1. Update the MS Word add-in cert.

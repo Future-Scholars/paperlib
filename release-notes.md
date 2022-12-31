@@ -1,2 +1,2 @@
-1. Update the MS Word add-in cert.
- 
+1. Enhance the DBLP scaper for ICLR 2016.
+2. Fixed some bugs.
