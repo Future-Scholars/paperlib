@@ -17,6 +17,7 @@ export class PluginSideInteractor {
     ipcRenderer.on("plugin-comm-port", (event) => {
       const [port] = event.ports;
       this.port = port;
+      this.pluginLinkFolder(this.preference.get("pluginLinkedFolder") as string);
     });
   }
 

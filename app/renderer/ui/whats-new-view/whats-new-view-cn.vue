@@ -86,11 +86,13 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.1.3 更新内容
+          Paperlib 2.1.4 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>更新 Word 插件证书。</li>
+          <li>优化 DBLP scaper 对 ICLR 2016 的检索结果。</li>
+          <li>修复一些 Bug。</li>
+          <li>新年快乐！</li>
         </ul>
         <div
           id="whats-new-close-btn"
