@@ -105,6 +105,7 @@ export class ScraperRepository {
           });
           this.scraperList.push({
             name: "dblp-venue",
+            // @ts-ignore
             scraper: dblpVenueScraper,
           });
         } else if (scraperPref.name === 'biomedrxiv') {

@@ -66,14 +66,14 @@ export class SpringerScraper extends Scraper {
     for (const item of parsedResponse.records) {
       const plainHitTitle = formatString({
         str: item.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });
 
       const existTitle = formatString({
         str: paperEntityDraft.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });

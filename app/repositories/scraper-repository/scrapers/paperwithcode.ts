@@ -11,7 +11,7 @@ export class PwCScraper extends Scraper {
 
     const connectedTitle = formatString({
       str: paperEntityDraft.title,
-      removeStr: "&amp",
+      removeStr: "&amp;",
       lowercased: true,
       trimWhite: true,
     })
@@ -105,7 +105,7 @@ async function scrapeImpl(
     };
     const targetTitle = formatString({
       str: paperEntityDraft.title,
-      removeStr: "&amp",
+      removeStr: "&amp;",
       removeSymbol: true,
       lowercased: true,
     });
@@ -115,7 +115,7 @@ async function scrapeImpl(
       for (const result of searchResponse.results) {
         const hitTitle = formatString({
           str: result.paper.title,
-          removeStr: "&amp",
+          removeStr: "&amp;",
           removeSymbol: true,
           lowercased: true,
         });

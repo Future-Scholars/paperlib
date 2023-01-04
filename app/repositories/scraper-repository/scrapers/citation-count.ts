@@ -66,14 +66,14 @@ export class CitationCountScraper extends Scraper {
     for (const item of itemList) {
       const plainHitTitle = formatString({
         str: item.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });
 
       const existTitle = formatString({
         str: paperEntityDraft.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });

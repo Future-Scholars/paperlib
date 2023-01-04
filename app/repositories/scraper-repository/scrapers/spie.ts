@@ -55,14 +55,14 @@ export class SPIEScraper extends Scraper {
       for (const item of results.Items) {
         const plainHitTitle = formatString({
           str: item.Title,
-          removeStr: "&amp",
+          removeStr: "&amp;",
           removeSymbol: true,
           lowercased: true,
         });
 
         const existTitle = formatString({
           str: paperEntityDraft.title,
-          removeStr: "&amp",
+          removeStr: "&amp;",
           removeSymbol: true,
           lowercased: true,
         });

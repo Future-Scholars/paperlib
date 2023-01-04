@@ -73,14 +73,14 @@ export class CrossRefScraper extends Scraper {
       for (const item of hitItems.items) {
         const plainHitTitle = formatString({
           str: item.title[0],
-          removeStr: "&amp",
+          removeStr: "&amp;",
           removeSymbol: true,
           lowercased: true,
         });
 
         const existTitle = formatString({
           str: paperEntityDraft.title,
-          removeStr: "&amp",
+          removeStr: "&amp;",
           removeSymbol: true,
           lowercased: true,
         });

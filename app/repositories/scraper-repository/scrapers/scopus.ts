@@ -66,14 +66,14 @@ export class ScopusScraper extends Scraper {
     for (const item of parsedResponse["search-results"].entry) {
       const plainHitTitle = formatString({
         str: item["dc:title"],
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });
 
       const existTitle = formatString({
         str: paperEntityDraft.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });

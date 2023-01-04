@@ -56,14 +56,14 @@ export class ChemRxivScraper extends Scraper {
     for (const response of chemRxivResponses) {
       const plainHitTitle = formatString({
         str: response.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });
 
       const existTitle = formatString({
         str: paperEntityDraft.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });

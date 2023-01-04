@@ -57,14 +57,16 @@ export class OpenreviewScraper extends Scraper {
     for (const note of notes) {
       const plainHitTitle = formatString({
         str: note.content.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });
 
+      console.log(note)
+
       const existTitle = formatString({
         str: paperEntityDraft.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });
@@ -87,9 +89,15 @@ export class OpenreviewScraper extends Scraper {
               const type = note.content.venueid.includes("conf")
                 ? "conf"
                 : "journals";
-              publication = `dblp://${type}/${note.content.venueid
-                .split("/")[2]
-                .toLowerCase()}`;
+
+              const venueID = type + '/' + note.content.venueid.split("/")[2].toLowerCase();
+              if (!venueID.includes("journals/corr")) {
+                publication = `dblp://${JSON.stringify({ 'venueID': venueID, 'paperKey': '' })}`;
+              } else {
+                publication = "";
+              }
+
+
             } else {
               publication = note.content.venue;
             }
@@ -97,7 +105,7 @@ export class OpenreviewScraper extends Scraper {
             const pubTimeReg = note.content.venueid.match(/\d{4}/g);
             const pubTime = pubTimeReg ? pubTimeReg[0] : "";
 
-            paperEntityDraft.setValue("pubTime", `${pubTime}`);
+            paperEntityDraft.setValue("pubTime", `${pubTime} `);
             paperEntityDraft.setValue("publication", publication);
           }
         } else {
@@ -107,7 +115,7 @@ export class OpenreviewScraper extends Scraper {
           ) {
             const pubTimeReg = note.content._bibtex.match(/year={(\d{4})/);
             const pubTime = pubTimeReg ? pubTimeReg[1] : "";
-            paperEntityDraft.setValue("pubTime", `${pubTime}`);
+            paperEntityDraft.setValue("pubTime", `${pubTime} `);
           }
           paperEntityDraft.setValue("publication", "openreview.net");
         }
