@@ -49,7 +49,7 @@ export class DOIScraper extends Scraper {
       issue: string;
       subtitle: string[];
     };
-    const title = [response.title, response.subtitle.join(' ')].filter(t => t !== '').join(" - ");
+    const title = [response.title, response.subtitle.join(' ')].filter(t => t !== '').join(" - ").replaceAll('&amp;', '&');
     const authors = response.author
       .map((author) => {
         if (author.name) {

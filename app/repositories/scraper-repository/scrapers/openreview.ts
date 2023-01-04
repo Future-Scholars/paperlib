@@ -71,7 +71,7 @@ export class OpenreviewScraper extends Scraper {
 
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
-        const title = note.content.title;
+        const title = note.content.title.replaceAll('&amp;', '&');
         const authors = note.content.authors.join(", ");
 
         paperEntityDraft.setValue("title", title);
