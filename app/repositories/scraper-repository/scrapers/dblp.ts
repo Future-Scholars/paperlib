@@ -104,9 +104,7 @@ function parsingProcess(
           paperEntityDraft.setValue("authors", authors);
           paperEntityDraft.setValue("pubTime", `${pubTime}`);
           paperEntityDraft.setValue("pubType", pubType);
-          if (pubKey == "journals/corr") {
-            paperEntityDraft.setValue("publication", "dblp://" + JSON.stringify({ 'venueID': pubKey == "journals/corr" ? venueKey : pubKey, 'paperKey': paperKey }));
-          }
+          paperEntityDraft.setValue("publication", "dblp://" + JSON.stringify({ 'venueID': pubKey == "journals/corr" ? venueKey : pubKey, 'paperKey': paperKey }));
 
           if (article.volume) {
             paperEntityDraft.setValue("volume", article.volume);
@@ -331,9 +329,7 @@ async function venueScrapeImpl(
   }
 
   if (dblpVenueIdPaperKey.startsWith("dblp://") && (paperEntityDraft.publication === "" || paperEntityDraft.publication === dblpVenueIdPaperKey)) {
-    console.log(dblpVenueIdPaperKey)
     const { venueID, paperKey } = JSON.parse(dblpVenueIdPaperKey.replace("dblp://", "")) as { venueID: string, paperKey: string }
-    console.log(venueID, paperKey)
 
     paperEntityDraft.publication = venueID
     const { scrapeURL, headers, enable } = this.preProcess(

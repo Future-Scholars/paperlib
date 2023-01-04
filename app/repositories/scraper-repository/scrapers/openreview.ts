@@ -62,8 +62,6 @@ export class OpenreviewScraper extends Scraper {
         lowercased: true,
       });
 
-      console.log(note)
-
       const existTitle = formatString({
         str: paperEntityDraft.title,
         removeStr: "&amp;",
