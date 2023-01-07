@@ -32,6 +32,7 @@ export interface ViewState {
   feedEntityAddingStatus: number;
   detailsOnDragging: boolean;
 
+  mainViewFocused: boolean;
   inputFieldFocused: boolean;
 
   realmReiniting: number;

@@ -88,6 +88,7 @@ export class MainRendererStateStore extends RendererStateStore {
 
         //
         inputFieldFocused: false,
+        mainViewFocused: true,
 
         // Update Signal
         realmReiniting: 0,

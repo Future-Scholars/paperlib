@@ -356,6 +356,7 @@ window.appInteractor.registerMainSignal("shortcut-Preference", () => {
 
 window.appInteractor.registerMainSignal("shortcut-Enter", () => {
   if (
+    viewState.mainViewFocused &&
     !viewState.inputFieldFocused &&
     (selectedPaperEntities.value.length >= 1 ||
       selectedFeedEntities.value.length >= 1) &&
@@ -369,6 +370,7 @@ window.appInteractor.registerMainSignal("shortcut-Enter", () => {
 
 window.appInteractor.registerMainSignal("shortcut-Space", () => {
   if (
+    viewState.mainViewFocused &&
     !viewState.inputFieldFocused &&
     selectedPaperEntities.value.length >= 1 &&
     !viewState.isDeleteConfirmShown &&
@@ -380,6 +382,9 @@ window.appInteractor.registerMainSignal("shortcut-Space", () => {
 });
 
 function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
+  if (!viewState.mainViewFocused) {
+    return true;
+  }
   if (
     event.code === "Space" ||
     event.code === "ArrowDown" ||
