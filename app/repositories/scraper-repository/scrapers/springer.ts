@@ -66,21 +66,21 @@ export class SpringerScraper extends Scraper {
     for (const item of parsedResponse.records) {
       const plainHitTitle = formatString({
         str: item.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });
 
       const existTitle = formatString({
         str: paperEntityDraft.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });
 
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
-        paperEntityDraft.setValue("title", item.title, false);
+        paperEntityDraft.setValue("title", item.title.replaceAll('&amp;', '&'), false);
         paperEntityDraft.setValue("doi", item.doi, false);
 
         if (item.contentType.toLowerCase().includes("journal")) {

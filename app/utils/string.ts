@@ -26,6 +26,9 @@ export const formatString = ({
   }
   let formatted = str;
   if (formatted) {
+    if (removeStr) {
+      formatted = formatted.replaceAll(removeStr, "");
+    }
     if (removeNewline) {
       formatted = formatted.replace(/(\r\n|\n|\r)/gm, "");
     }
@@ -38,9 +41,7 @@ export const formatString = ({
     if (removeSymbol) {
       formatted = formatted.replace(/[^\p{L}|\s]/gu, "");
     }
-    if (removeStr) {
-      formatted = formatted.replace(new RegExp(removeStr, "g"), "");
-    }
+
     if (lowercased) {
       formatted = formatted.toLowerCase();
     }

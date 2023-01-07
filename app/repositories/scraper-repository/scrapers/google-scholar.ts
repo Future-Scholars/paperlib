@@ -36,14 +36,14 @@ async function scrapeImpl(
                 if (titleStr) {
                   const plainHitTitle = formatString({
                     str: titleStr,
-                    removeStr: "&amp",
+                    removeStr: "&amp;",
                     removeSymbol: true,
                     lowercased: true,
                   });
 
                   const existTitle = formatString({
                     str: paperEntityDraft.title,
-                    removeStr: "&amp",
+                    removeStr: "&amp;",
                     removeSymbol: true,
                     lowercased: true,
                   });

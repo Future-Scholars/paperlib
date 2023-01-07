@@ -65,14 +65,14 @@ export class SemanticScholarScraper extends Scraper {
     for (const item of parsedResponse.data) {
       const plainHitTitle = formatString({
         str: item.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });
 
       const existTitle = formatString({
         str: paperEntityDraft.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         lowercased: true,
       });

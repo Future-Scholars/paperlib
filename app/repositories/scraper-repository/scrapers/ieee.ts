@@ -66,14 +66,14 @@ export class IEEEScraper extends Scraper {
       for (const article of response.articles) {
         const plainHitTitle = formatString({
           str: article.title,
-          removeStr: "&amp",
+          removeStr: "&amp;",
           removeSymbol: true,
           lowercased: true,
         });
 
         const existTitle = formatString({
           str: paperEntityDraft.title,
-          removeStr: "&amp",
+          removeStr: "&amp;",
           removeSymbol: true,
           lowercased: true,
         });

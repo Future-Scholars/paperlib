@@ -1,3 +1,9 @@
+## v2.1.5 Jan 07 2023
+
+1. Enhance the DBLP scaper for some workshop papers.
+2. Fixed the bibtex output for special char.
+3. Fixed some bugs
+
 ## v2.1.4 Dec 31 2022
 
 1. Enhance the DBLP scaper for ICLR 2016.

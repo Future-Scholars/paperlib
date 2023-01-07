@@ -9,6 +9,11 @@ import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
+function escapeLaTexString(str: string) {
+  const out = str.replaceAll("&", "\\&").replaceAll("%", "\\%").replaceAll("$", "\\$").replaceAll("#", "\\#");
+  return out
+}
+
 export class ReferenceRepository {
   stateStore: MainRendererStateStore;
   preference: Preference;
@@ -49,7 +54,7 @@ export class ReferenceRepository {
       for (const word of titleArray) {
         if (
           word.toLocaleLowerCase() !== "the" ||
-          word.toLocaleLowerCase() !== "a"
+          word.toLocaleLowerCase() !== "a" || word.toLocaleLowerCase() !== "an" || word.length <= 3
         ) {
           citeKey += formatString({
             str: word.toLowerCase(),
@@ -159,7 +164,7 @@ export class ReferenceRepository {
   }
 
   exportBibTexBody(cite: Cite): string {
-    return cite.format("bibtex");
+    return escapeLaTexString(cite.format("bibtex"));
   }
 
   async exportPlainText(cite: Cite): Promise<string> {

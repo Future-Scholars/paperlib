@@ -15,7 +15,7 @@ export class PaperlibScraper extends Scraper {
     const shortTitle = formatString({
       str: paperEntityDraft.title,
       removeWhite: true,
-      removeStr: "&amp",
+      removeStr: "&amp;",
     });
     let scrapeURL = `https://api.paperlib.app/pubs/query?`;
     const queryParams = []

@@ -211,10 +211,12 @@ watch(
 );
 
 window.appInteractor.registerMainSignal("window-lost-focus", (_: any) => {
+  viewState.mainViewFocused = false;
   void window.appInteractor.pauseSync();
 });
 
 window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
+  viewState.mainViewFocused = true;
   void window.appInteractor.resumeSync();
 });
 

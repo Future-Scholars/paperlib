@@ -7,6 +7,7 @@ import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
 import { DOIInnerScraper } from "./doi-inner";
+import { bibtex2json } from "@/utils/bibtex";
 
 function parsingProcess(
   this: ScraperType,
@@ -48,7 +49,7 @@ function parsingProcess(
 
       const plainHitTitle = formatString({
         str: article.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         removeNewline: true,
         removeWhite: true,
@@ -57,7 +58,7 @@ function parsingProcess(
 
       const existTitle = formatString({
         str: paperEntityDraft.title,
-        removeStr: "&amp",
+        removeStr: "&amp;",
         removeSymbol: true,
         removeNewline: true,
         removeWhite: true,
@@ -91,6 +92,7 @@ function parsingProcess(
         } else {
           pubType = 2;
         }
+        const paperKey = article.key;
         const pubKey = article.key.split("/").slice(0, 2).join("/");
         const venueKey = article.venue;
 
@@ -102,11 +104,7 @@ function parsingProcess(
           paperEntityDraft.setValue("authors", authors);
           paperEntityDraft.setValue("pubTime", `${pubTime}`);
           paperEntityDraft.setValue("pubType", pubType);
-          if (pubKey == "journals/corr") {
-            paperEntityDraft.setValue("publication", "dblp://" + venueKey);
-          } else {
-            paperEntityDraft.setValue("publication", "dblp://" + pubKey);
-          }
+          paperEntityDraft.setValue("publication", "dblp://" + JSON.stringify({ 'venueID': pubKey == "journals/corr" ? venueKey : pubKey, 'paperKey': paperKey }));
 
           if (article.volume) {
             paperEntityDraft.setValue("volume", article.volume);
@@ -133,7 +131,7 @@ export class DBLPScraper extends Scraper {
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     let dblpQuery = formatString({
       str: paperEntityDraft.title,
-      removeStr: "&amp",
+      removeStr: "&amp;",
     });
     dblpQuery = formatString({
       str: dblpQuery,
@@ -176,7 +174,7 @@ export class DBLPbyTimeScraper extends Scraper {
 
     let dblpQuery = formatString({
       str: paperEntityDraft.title,
-      removeStr: "&amp",
+      removeStr: "&amp;",
     });
     dblpQuery = formatString({
       str: dblpQuery,
@@ -246,21 +244,24 @@ export class DBLPVenueScraper extends Scraper {
   }
 
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable = paperEntityDraft.publication.startsWith("dblp://");
+    const enable = this.getEnable("dblp") && paperEntityDraft.publication !== "";
 
     const scrapeURL =
       "https://dblp.org/search/venue/api?q=" +
-      paperEntityDraft.publication.replace("dblp://", "") +
+      paperEntityDraft.publication +
       "&format=json";
     const headers = {};
     return { scrapeURL, headers, enable };
   }
 
+  // @ts-ignore
   parsingProcess(
-    rawResponse: Response<string>,
+    rawResponse: Record<string, Response<string>>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const response = JSON.parse(rawResponse.body) as {
+    const { apiResponse, bibResponse } = rawResponse;
+
+    const response = JSON.parse(apiResponse.body) as {
       result: {
         hits: {
           "@sent": number;
@@ -274,7 +275,7 @@ export class DBLPVenueScraper extends Scraper {
       };
     };
 
-    const venueID = paperEntityDraft.publication.replace("dblp://", "") + "/";
+    const venueID = paperEntityDraft.publication;
     if (response.result.hits["@sent"] > 0) {
       const hits = response.result.hits.hit;
       for (const hit of hits) {
@@ -288,6 +289,17 @@ export class DBLPVenueScraper extends Scraper {
           paperEntityDraft.setValue("publication", "", true);
         }
       }
+
+      // handle workshop
+      try {
+        const bibtex = bibtex2json(bibResponse.body);
+        if (bibtex[0]["container-title"].toLowerCase().includes('workshop')) {
+          paperEntityDraft.setValue("publication", paperEntityDraft.publication + " Workshop");
+        }
+      } catch (e) {
+      }
+
+
     } else {
       paperEntityDraft.setValue("publication", "", true);
     }
@@ -307,12 +319,19 @@ async function venueScrapeImpl(
 
   const useDOIforVenue = (this.preference.get("scrapers") as Record<string, ScraperPreference>)[
     "dblp"
-  ]?.args
+  ]?.args !== 'use-dblp'
 
-  if (paperEntityDraft.doi && useDOIforVenue !== 'use-dblp') {
+  const dblpVenueIdPaperKey = paperEntityDraft.publication
+
+  if (paperEntityDraft.doi && useDOIforVenue) {
+    paperEntityDraft.publication = ""
     paperEntityDraft = await this.doiScraper.scrape(paperEntityDraft, force);
-    return paperEntityDraft;
-  } else {
+  }
+
+  if (dblpVenueIdPaperKey.startsWith("dblp://") && (paperEntityDraft.publication === "" || paperEntityDraft.publication === dblpVenueIdPaperKey)) {
+    const { venueID, paperKey } = JSON.parse(dblpVenueIdPaperKey.replace("dblp://", "")) as { venueID: string, paperKey: string }
+
+    paperEntityDraft.publication = venueID
     const { scrapeURL, headers, enable } = this.preProcess(
       paperEntityDraft
     ) as ScraperRequestType;
@@ -338,9 +357,26 @@ async function venueScrapeImpl(
         )) as Response<string>;
       }
 
-      return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
-    } else {
-      return paperEntityDraft;
+      // Try to fetch bib to handel workshop papers
+      const bibURL = `https://${response ? 'dblp.org' : 'dblp.uni-trier.de'}/rec/${paperKey}.bib?param=1`
+      const bibResponse = (await window.networkTool.get(
+        bibURL,
+        headers
+      )) as Response<string>;
+
+      paperEntityDraft = this.parsingProcess(
+        {
+          'apiResponse': response,
+          'bibResponse': bibResponse
+        },
+        paperEntityDraft) as PaperEntity;
     }
+
+    if (paperEntityDraft.publication === venueID) {
+      paperEntityDraft.publication = ""
+    }
+
   }
+
+  return paperEntityDraft;
 }
