@@ -176,6 +176,9 @@ const resetTableTitleColumns = (reset = false) => {
 };
 
 const onTableTitleClicked = (key: string) => {
+  if (key === "tags" || key === "folders") {
+    return;
+  }
   prefState.mainviewSortBy = key;
   prefState.mainviewSortOrder =
     prefState.mainviewSortOrder === "asce" ? "desc" : "asce";
