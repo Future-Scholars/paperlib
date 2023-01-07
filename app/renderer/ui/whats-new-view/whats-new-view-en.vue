@@ -86,13 +86,13 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.1.4
+          What's New in Paperlib 2.1.5
         </p>
 
         <ul class="list-disc mb-5">
-          <li>Enhance the DBLP scaper for ICLR 2016.</li>
-          <li>Fixed some bugs.</li>
-          <li>Happy New Year!</li>
+          <li>Enhance the DBLP scaper for some workshop papers.</li>
+          <li>Fixed the bibtex output for special char.</li>
+          <li>Fixed some bugs</li>
         </ul>
         <div
           id="whats-new-close-btn"
