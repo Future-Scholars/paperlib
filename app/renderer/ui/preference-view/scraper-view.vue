@@ -184,7 +184,7 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
 
 const onClickGuide = () => {
   window.appInteractor.open(
-    "https://github.com/GeoffreyChen777/paperlib/wiki/"
+    "https://github.com/Future-Scholars/paperlib/wiki/"
   );
 };
 
