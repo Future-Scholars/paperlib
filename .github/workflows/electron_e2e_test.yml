@@ -24,7 +24,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
@@ -64,7 +64,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
@@ -104,7 +104,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
