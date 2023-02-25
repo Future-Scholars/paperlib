@@ -71,7 +71,7 @@ export class PaperlibScraper extends Scraper {
 
       const hotestResult = response.results.sort((a, b) => b.hits - a.hits)[0];
 
-      paperEntityDraft.setValue("title", hotestResult.title, false);
+      paperEntityDraft.setValue("title", hotestResult.title, false, true);
       paperEntityDraft.setValue("authors", hotestResult.authors, false);
       paperEntityDraft.setValue("publication", hotestResult.publication, false);
       paperEntityDraft.setValue("pubTime", hotestResult.pubTime, false);

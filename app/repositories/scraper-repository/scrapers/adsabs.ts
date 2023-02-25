@@ -78,7 +78,7 @@ export class AdsabsScraper extends Scraper {
 
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
-        paperEntityDraft.setValue("title", item.title.join(' ') || "", false);
+        paperEntityDraft.setValue("title", item.title.join(' ') || "", false, true);
         if (item.doi) {
           paperEntityDraft.setValue("doi", item.doi[0] || "", false);
         }

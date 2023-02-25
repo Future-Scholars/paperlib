@@ -94,7 +94,7 @@ export class CrossRefScraper extends Scraper {
     }
 
     if (hitItem) {
-      paperEntityDraft.setValue("title", hitItem.title[0], false);
+      paperEntityDraft.setValue("title", hitItem.title[0], false, true);
       paperEntityDraft.setValue("doi", hitItem.DOI, false);
       paperEntityDraft.setValue("publisher", hitItem.publisher, false);
 

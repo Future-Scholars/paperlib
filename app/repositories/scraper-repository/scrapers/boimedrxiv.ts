@@ -56,7 +56,7 @@ export class BioRxivScraper extends Scraper {
     if (biomedRxivResponse.length > 0) {
       for (const response of biomedRxivResponse) {
         if (response.preprint_doi === paperEntityDraft.doi) {
-          paperEntityDraft.setValue("title", response.preprint_title, false);
+          paperEntityDraft.setValue("title", response.preprint_title, false, true);
           paperEntityDraft.setValue("authors", response.preprint_authors.split(';').map(a => a.trim()).join(', '), false);
           paperEntityDraft.setValue("date", response.preprint_date.slice(0, 4), false);
           paperEntityDraft.setValue("doi", response.published_doi, false);

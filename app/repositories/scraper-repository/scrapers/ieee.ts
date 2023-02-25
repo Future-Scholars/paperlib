@@ -105,7 +105,7 @@ export class IEEEScraper extends Scraper {
           }
 
           const publication = article.publication_title;
-          paperEntityDraft.setValue("title", title);
+          paperEntityDraft.setValue("title", title, false, true);
           paperEntityDraft.setValue("authors", authors);
           paperEntityDraft.setValue("pubTime", `${pubTime}`);
           paperEntityDraft.setValue("pubType", pubType);

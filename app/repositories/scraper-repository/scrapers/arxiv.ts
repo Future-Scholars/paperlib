@@ -69,7 +69,7 @@ export class ArXivScraper extends Scraper {
       }
 
       const pubTime = arxivResponse.published.substring(0, 4);
-      paperEntityDraft.setValue("title", title);
+      paperEntityDraft.setValue("title", title, false, true);
       paperEntityDraft.setValue("authors", authors);
       paperEntityDraft.setValue("pubTime", pubTime);
       paperEntityDraft.setValue("pubType", 0);

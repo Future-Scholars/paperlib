@@ -71,7 +71,7 @@ export class ChemRxivScraper extends Scraper {
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
 
       if (response.doi === paperEntityDraft.doi || sim > 0.95) {
-        paperEntityDraft.setValue("title", response.title, false);
+        paperEntityDraft.setValue("title", response.title, false, true);
         paperEntityDraft.setValue("authors", response.authors.map(a => `${a.firstName} ${a.lastName}`).join(', '), false);
         paperEntityDraft.setValue("date", response.statusDate.slice(0, 4), false);
         if (response.vor) {

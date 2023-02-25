@@ -83,7 +83,7 @@ export class DOIScraper extends Scraper {
       }
     }
 
-    paperEntityDraft.setValue("title", title);
+    paperEntityDraft.setValue("title", title, false, true);
     paperEntityDraft.setValue("authors", authors);
     paperEntityDraft.setValue("pubTime", `${pubTime}`);
     paperEntityDraft.setValue("pubType", pubType);
