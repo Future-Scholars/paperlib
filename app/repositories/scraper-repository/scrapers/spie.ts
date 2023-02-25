@@ -69,7 +69,7 @@ export class SPIEScraper extends Scraper {
 
         const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
         if (sim > 0.95) {
-          paperEntityDraft.setValue("title", item.Title.replaceAll('&amp;', '&'), false);
+          paperEntityDraft.setValue("title", item.Title.replaceAll('&amp;', '&'), false, true);
           paperEntityDraft.setValue("doi", item.DOI, false);
 
           if (item.PublicationType.toLowerCase().includes("journal")) {

@@ -74,7 +74,7 @@ export class OpenreviewScraper extends Scraper {
         const title = note.content.title.replaceAll('&amp;', '&');
         const authors = note.content.authors.join(", ");
 
-        paperEntityDraft.setValue("title", title);
+        paperEntityDraft.setValue("title", title, false, true);
         paperEntityDraft.setValue("authors", authors);
 
         if (note.content.venue) {

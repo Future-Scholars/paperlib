@@ -100,7 +100,7 @@ function parsingProcess(
           if (article.doi) {
             paperEntityDraft.setValue("doi", article.doi);
           }
-          paperEntityDraft.setValue("title", title);
+          paperEntityDraft.setValue("title", title, false, true);
           paperEntityDraft.setValue("authors", authors);
           paperEntityDraft.setValue("pubTime", `${pubTime}`);
           paperEntityDraft.setValue("pubType", pubType);

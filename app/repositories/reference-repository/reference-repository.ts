@@ -10,7 +10,7 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
 function escapeLaTexString(str: string) {
-  const out = str.replaceAll("&", "\\&").replaceAll("%", "\\%").replaceAll("$", "\\$").replaceAll("#", "\\#");
+  const out = str.replaceAll("&", "\\&").replaceAll("%", "\\%").replaceAll("#", "\\#");
   return out
 }
 
@@ -164,7 +164,30 @@ export class ReferenceRepository {
   }
 
   exportBibTexBody(cite: Cite): string {
-    return escapeLaTexString(cite.format("bibtex"));
+
+    const mathEnvStrs = []
+    let idx = 0;
+    for (const i in cite.data) {
+      let title = cite.data[i].title
+      const envRegex = /\$(.*?)\$/g;
+      const envs = title.match(envRegex);
+      if (envs) {
+        for (const env of envs) {
+          mathEnvStrs.push(env)
+          title = title.replace(env, `MATHENVDOLLAR{i}`);
+          idx += 1;
+        }
+        cite.data[i].title = title;
+      }
+    }
+
+    let bibtexBody = escapeLaTexString(cite.format("bibtex"));
+
+    for (const i in mathEnvStrs) {
+      bibtexBody = bibtexBody.replace(`MATHENVDOLLAR{i}`, mathEnvStrs[i]).replace(`{MATHENVDOLLAR}{i}`, mathEnvStrs[i]);
+    }
+
+    return bibtexBody;
   }
 
   async exportPlainText(cite: Cite): Promise<string> {
