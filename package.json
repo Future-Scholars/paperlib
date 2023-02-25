@@ -3,7 +3,7 @@
   "version": "2.1.5",
   "main": "dist/app/main/index.js",
   "description": "A simple academic paper management tool.",
-  "author": "Geoffrey Chen <geoffreychen777@gmail.com>",
+  "author": "Future Scholars <hi@paperlib.app>",
   "license": "GPL-3.0",
   "private": true,
   "scripts": {

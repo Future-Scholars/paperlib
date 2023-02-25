@@ -32,13 +32,13 @@ onMounted(() => {
     <img src="../../assets/logo-light.png" class="w-8 mb-2 ml-1" v-else />
     <div class="text-base font-semibold mb-4">Paperlib</div>
     <div class="text-xs mb-4">
-      created by Geo, a simple academic paper management tool.
+      created by Future Scholars, a simple academic paper management tool.
     </div>
     <div class="text-xs mb-4">Version {{ version }}</div>
     <div class="flex space-x-2">
       <div
         class="flex space-x-2 text-base mb-4 bg-neutral-200 dark:bg-neutral-600 w-20 justify-center p-2 rounded-md hover:bg-neutral-300 hover:dark:bg-neutral-500 cursor-pointer"
-        @click="onLinkClicked('https://github.com/GeoffreyChen777/paperlib')"
+        @click="onLinkClicked('https://github.com/Future-Scholars/paperlib')"
       >
         <BIconGithub class="my-auto" />
         <span class="my-auto text-xs">Github</span>
