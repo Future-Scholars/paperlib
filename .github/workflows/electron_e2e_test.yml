@@ -1,8 +1,11 @@
 name: End-to-End Testing
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened]
+    branches:
+      - master
+      - electron-dev
 
 jobs:
   e2e_test_mac_arm:
