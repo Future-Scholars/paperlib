@@ -1,9 +1,11 @@
 name: End-to-End Testing
 
 on:
-  push:
+  pull_request_target:
+    types: [opened, reopened]
     branches:
-      - electron-dev 
+      - master
+      - electron-dev
 
 jobs:
   e2e_test_mac_arm:
@@ -24,7 +26,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
@@ -64,7 +66,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
@@ -104,7 +106,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 

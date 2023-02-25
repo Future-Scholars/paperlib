@@ -5,46 +5,6 @@ on:
     tags: [rc-electron*]
 
 jobs:
-  e2e_test:
-    runs-on: self-hosted
-
-    strategy:
-      matrix:
-        node-versions: ['16.16.0']
-
-    steps:
-      - name: 'Checkout Project'
-        uses: actions/checkout@v2
-
-      - name: Set env
-        run: |
-          cp ./build_configs/electron-builder.mac.arm.dev.json5 ./electron-builder.json5
-
-      - name: 'Clone Private Repository'
-        uses: actions/checkout@v2
-        with:
-          repository: GeoffreyChen777/paperlib-crypto
-          token: ${{ secrets.CRYPTO_REPO_KEY }}
-          path: ./app/utils/crypto
-
-      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-versions }}
-
-      - name: 'Install Node Module'
-        run: |
-          node -v
-          npm install --force
-
-      - name: 'Cleanup Env'
-        run: |
-          rm -rf ~/Documents/paperlib
-          rm -rf ~/Library/Application\ Support/paperlib 
-
-      - name: "End-to-End Testing"
-        run: npm run test:e2e
-
   mac_x86_develop:
     runs-on: macos-latest
     needs: e2e_test
@@ -81,7 +41,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
@@ -138,7 +98,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
@@ -205,7 +165,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
@@ -266,7 +226,7 @@ jobs:
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
         with:
-          repository: GeoffreyChen777/paperlib-crypto
+          repository: Future-Scholars/paperlib-crypto
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
