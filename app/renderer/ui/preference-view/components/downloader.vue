@@ -75,7 +75,7 @@ const onApplyUpdate = () => {
           type="checkbox"
           value=""
           :checked="enabled"
-          class="w-[14px] h-[14px] my-auto accent-neutral-500"
+          class="w-[14px] h-[14px] my-auto accent-neutral-500 cursor-pointer"
           @change="
             () => {
               downloaderPrefDraft.enable = !downloaderPrefDraft.enable;
