@@ -89,7 +89,7 @@ const onWebdavDisconnectClicked = () => {
       <input
         class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
         type="text"
-        placeholder="Usearname"
+        placeholder="Username"
         v-model="syncEmail"
         :disabled="prefState.useSync"
         :class="prefState.useSync ? 'text-neutral-400' : ''"
@@ -182,7 +182,7 @@ const onWebdavDisconnectClicked = () => {
         <input
           class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
           type="text"
-          placeholder="Usearname"
+          placeholder="Username"
           v-model="webdavUsername"
           :disabled="viewState.syncFileStorageAvaliable"
           :class="viewState.syncFileStorageAvaliable ? 'text-neutral-400' : ''"

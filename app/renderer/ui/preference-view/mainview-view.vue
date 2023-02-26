@@ -147,12 +147,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-[800px] text-neutral-800 dark:text-neutral-300">
+  <div class="flex flex-col w-[600px] text-neutral-800 dark:text-neutral-300">
     <div class="text-base font-semibold mb-4">
       {{ $t("preference.mainview") + " " + $t("mainview.preview") }}
     </div>
     <ListItem
-      class="bg-neutral-200 dark:bg-neutral-700 w-[800px] cursor-default"
+      class="bg-neutral-200 dark:bg-neutral-700 w-[600px] cursor-default"
       :item="item"
       :showPubTime="prefState.showMainYear"
       :showPublication="prefState.showMainPublication"
@@ -166,7 +166,7 @@ onMounted(() => {
     />
 
     <TableItem
-      class="bg-neutral-200 dark:bg-neutral-700 w-[800px] cursor-default mt-5"
+      class="bg-neutral-200 dark:bg-neutral-700 w-[600px] cursor-default mt-5"
       :item="item"
       :titles="tableTitleColumns"
       :showPubTime="prefState.showMainYear"
@@ -183,7 +183,7 @@ onMounted(() => {
       :striped="false"
     />
 
-    <div class="flex mt-6 flex-wrap">
+    <div class="flex mt-6 flex-wrap w-[600px]">
       <MainSection
         description="Year"
         :enable="prefState.showMainYear"
