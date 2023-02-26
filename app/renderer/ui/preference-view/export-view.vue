@@ -171,7 +171,7 @@ onMounted(() => {
     </div>
 
     <div
-      class="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md h-54 overflow-auto mb-5"
+      class="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md h-[240px] max-h-[240px] overflow-scroll mb-5"
     >
       <Replacement
         :from="replacement.from"
