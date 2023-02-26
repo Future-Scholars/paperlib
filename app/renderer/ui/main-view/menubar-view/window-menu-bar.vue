@@ -122,11 +122,11 @@ const onMaximizeClicked = () => {
         />
       </div>
 
-      <Menu as="div" class="relative inline-block text-left">
+      <Menu as="div" class="relative inline-block text-left cursor-pointer">
         <div>
           <MenuButton
             id="sort-menu-btn"
-            class="inline-flex justify-center w-7 h-6 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700 cursor-default"
+            class="inline-flex justify-center w-7 h-6 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700 cursor-pointer"
           >
             <BIconFilterRight
               class="text-sm m-auto text-neutral-700 dark:text-neutral-300"
@@ -270,7 +270,7 @@ const onMaximizeClicked = () => {
 
       <Menu
         as="div"
-        class="relative inline-block text-left"
+        class="relative inline-block text-left cursor-pointer"
         v-if="viewState.os === 'win32'"
       >
         <div>
