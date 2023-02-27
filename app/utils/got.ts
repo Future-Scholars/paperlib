@@ -11,6 +11,7 @@ import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import { constructFileURL } from "./path";
+import { CookieJar } from "tough-cookie";
 
 
 const cache = new Map();
@@ -224,6 +225,7 @@ export class NetworkTool {
   async download(
     url: string,
     targetPath: string,
+    cookies?: CookieJar
   ) {
     try {
       const pipeline = promisify(stream.pipeline);
@@ -237,6 +239,7 @@ export class NetworkTool {
             headers: headers,
             rejectUnauthorized: false,
             agent: this.agent,
+            cookieJar: cookies,
           })
           .on("downloadProgress", (progress) => {
             const percent = progress.percent;
@@ -255,7 +258,7 @@ export class NetworkTool {
     }
   }
 
-  async downloadPDFs(urlList: string[]): Promise<string[]> {
+  async downloadPDFs(urlList: string[], cookies?: CookieJar): Promise<string[]> {
     this.stateStore.logState.processLog = "";
 
     const downloadedUrls = (await Promise.all(urlList.map(url => {
@@ -265,7 +268,7 @@ export class NetworkTool {
         filename += ".pdf";
       }
       const targetPath = path.join(os.homedir(), "Downloads", filename);
-      return this.download(url, targetPath);
+      return this.download(url, targetPath, cookies);
     }))).filter(
       (url) => url !== ""
     );

@@ -69,7 +69,6 @@ export class IEEEWebImporter extends WebImporter {
           "iel7",
           "ielx7"
         )}`;
-
         for (const cookie of webContent.cookies) {
           if (cookie) {
             await cookieJar.setCookie(
@@ -80,27 +79,13 @@ export class IEEEWebImporter extends WebImporter {
             );
           }
         }
-        const headers = {
-          "user-agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-          "Content-Type": "application/pdf",
-        };
-        const options = {
-          headers: headers,
-          retry: 0,
-          timeout: {
-            request: 5000,
-          },
-          rejectUnauthorized: false,
-          cookieJar,
-        };
         try {
           let filename = url.split("/").pop() as string;
           if (!filename.endsWith(".pdf")) {
             filename += ".pdf";
           }
 
-          const targetUrl = await window.networkTool.downloadPDFs([url]);
+          const targetUrl = await window.networkTool.downloadPDFs([url], cookieJar);
           if (targetUrl.length > 0) {
             entityDraft.mainURL = targetUrl[0];
           }
