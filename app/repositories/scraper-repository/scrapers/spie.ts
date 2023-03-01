@@ -73,13 +73,13 @@ export class SPIEScraper extends Scraper {
           paperEntityDraft.setValue("doi", item.DOI, false);
 
           if (item.PublicationType.toLowerCase().includes("journal")) {
-            paperEntityDraft.setValue("type", 0, false);
+            paperEntityDraft.setValue("pubType", 0, false);
           } else if (item.PublicationType.toLowerCase().includes("book")) {
-            paperEntityDraft.setValue("type", 3, false);
+            paperEntityDraft.setValue("pubType", 3, false);
           } else if (item.PublicationType.toLowerCase().includes('proceeding')) {
-            paperEntityDraft.setValue("type", 1, false);
+            paperEntityDraft.setValue("pubType", 1, false);
           } else {
-            paperEntityDraft.setValue("type", 2, false);
+            paperEntityDraft.setValue("pubType", 2, false);
           }
 
           if (item.StartPage && item.EndPage) {

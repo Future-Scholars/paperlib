@@ -84,13 +84,13 @@ export class SpringerScraper extends Scraper {
         paperEntityDraft.setValue("doi", item.doi, false);
 
         if (item.contentType.toLowerCase().includes("journal")) {
-          paperEntityDraft.setValue("type", 0, false);
+          paperEntityDraft.setValue("pubType", 0, false);
         } else if (item.contentType.toLowerCase().includes("book")) {
-          paperEntityDraft.setValue("type", 3, false);
+          paperEntityDraft.setValue("pubType", 3, false);
         } else if (item.contentType.toLowerCase().includes('conference')) {
-          paperEntityDraft.setValue("type", 1, false);
+          paperEntityDraft.setValue("pubType", 1, false);
         } else {
-          paperEntityDraft.setValue("type", 2, false);
+          paperEntityDraft.setValue("pubType", 2, false);
         }
 
         if (item.startingPage && item.endingPage) {

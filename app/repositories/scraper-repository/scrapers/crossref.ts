@@ -99,13 +99,13 @@ export class CrossRefScraper extends Scraper {
       paperEntityDraft.setValue("publisher", hitItem.publisher, false);
 
       if (hitItem.type?.includes("journal")) {
-        paperEntityDraft.setValue("type", 0, false);
+        paperEntityDraft.setValue("pubType", 0, false);
       } else if (hitItem.type?.includes("book") || hitItem.type?.includes("monograph")) {
-        paperEntityDraft.setValue("type", 3, false);
+        paperEntityDraft.setValue("pubType", 3, false);
       } else if (hitItem.type?.includes("proceedings")) {
-        paperEntityDraft.setValue("type", 1, false);
+        paperEntityDraft.setValue("pubType", 1, false);
       } else {
-        paperEntityDraft.setValue("type", 2, false);
+        paperEntityDraft.setValue("pubType", 2, false);
       }
 
       paperEntityDraft.setValue("pages", hitItem.page, false);

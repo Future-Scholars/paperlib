@@ -84,13 +84,13 @@ export class AdsabsScraper extends Scraper {
         }
 
         if (item.doctype.includes("journal")) {
-          paperEntityDraft.setValue("type", 0, false);
+          paperEntityDraft.setValue("pubType", 0, false);
         } else if (item.doctype.includes("book")) {
-          paperEntityDraft.setValue("type", 3, false);
+          paperEntityDraft.setValue("pubType", 3, false);
         } else if (item.doctype.includes('proceeding')) {
-          paperEntityDraft.setValue("type", 1, false);
+          paperEntityDraft.setValue("pubType", 1, false);
         } else {
-          paperEntityDraft.setValue("type", 2, false);
+          paperEntityDraft.setValue("pubType", 2, false);
         }
 
         paperEntityDraft.setValue("pages", item.page.join('-'), false);

@@ -73,7 +73,7 @@ export class ChemRxivScraper extends Scraper {
       if (response.doi === paperEntityDraft.doi || sim > 0.95) {
         paperEntityDraft.setValue("title", response.title, false, true);
         paperEntityDraft.setValue("authors", response.authors.map(a => `${a.firstName} ${a.lastName}`).join(', '), false);
-        paperEntityDraft.setValue("date", response.statusDate.slice(0, 4), false);
+        paperEntityDraft.setValue("pubTime", response.statusDate.slice(0, 4), false);
         if (response.vor) {
           paperEntityDraft.setValue("doi", response.vor.vorDoi, false);
         } else {

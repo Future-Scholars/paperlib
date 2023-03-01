@@ -80,17 +80,17 @@ export class SemanticScholarScraper extends Scraper {
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
         if (item.publicationTypes?.pop()?.toLowerCase().includes("journal")) {
-          paperEntityDraft.setValue("type", 0, false);
+          paperEntityDraft.setValue("pubType", 0, false);
         } else if (
           item.publicationTypes?.pop()?.toLowerCase().includes("book")
         ) {
-          paperEntityDraft.setValue("type", 3, false);
+          paperEntityDraft.setValue("pubType", 3, false);
         } else if (
           item.publicationTypes?.pop()?.toLowerCase().includes("conference")
         ) {
-          paperEntityDraft.setValue("type", 1, false);
+          paperEntityDraft.setValue("pubType", 1, false);
         } else {
-          paperEntityDraft.setValue("type", 2, false);
+          paperEntityDraft.setValue("pubType", 2, false);
         }
 
         if (item.journal?.name) {

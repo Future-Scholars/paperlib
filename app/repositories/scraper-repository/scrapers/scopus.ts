@@ -83,11 +83,11 @@ export class ScopusScraper extends Scraper {
         paperEntityDraft.setValue("doi", item["prism:doi"], false);
 
         if (item["prism:aggregationType"].includes("journal")) {
-          paperEntityDraft.setValue("type", 0, false);
+          paperEntityDraft.setValue("pubType", 0, false);
         } else if (item["prism:aggregationType"].includes("book")) {
-          paperEntityDraft.setValue("type", 3, false);
+          paperEntityDraft.setValue("pubType", 3, false);
         } else {
-          paperEntityDraft.setValue("type", 2, false);
+          paperEntityDraft.setValue("pubType", 2, false);
         }
 
         paperEntityDraft.setValue("pages", item["prism:pageRange"], false);
