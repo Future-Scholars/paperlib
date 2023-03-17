@@ -1,3 +1,13 @@
+## v2.2.0 17/03 2023
+
+1. 新的官方 metadata 检索服务 Paperlib official metadata service 以及新的搜刮逻辑让元数据检索更快更稳定。
+2. 新搜刮器 PubMed.
+3. 修复 bug: Title including MathML will be scraped incorrectly.
+4. 修复 bug: Chrome extension to import papers on IEEE Xplore. 
+5. 修复 bug: Multiselection by pressing ctrl/cmd.
+6. 修复 UI 问题。
+
+
 ## v2.1.5 07/01 2023
 
 1. 优化 DBLP scaper 对部分 workshop 论文的检索结果。

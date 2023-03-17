@@ -41,6 +41,10 @@ export class AppInteractor {
     return await ipcRenderer.invoke("version");
   }
 
+  isMac() {
+    return os.platform() === "darwin";
+  }
+
   // ===============================
   // Window Control
   // ===============================
