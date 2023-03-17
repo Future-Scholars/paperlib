@@ -2,33 +2,37 @@ import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 
 export class CrossRefScraper extends Scraper {
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    super(stateStore, preference);
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return (
+      paperEntityDraft.title !== "" ||
+      (paperEntityDraft.doi !== "" && !isMetadataCompleted(paperEntityDraft))
+    );
   }
 
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      this.getEnable("crossref") &&
-      (paperEntityDraft.title !== "" || paperEntityDraft.doi !== "") &&
-      this.isPreprint(paperEntityDraft);
-
-    let scrapeURL
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    let scrapeURL;
     if (paperEntityDraft.doi !== "") {
-      scrapeURL = `https://api.crossref.org/works/${encodeURIComponent(paperEntityDraft.doi)}`;
-    } else if (paperEntityDraft.title !== "" && paperEntityDraft.authors !== "") {
-
-      scrapeURL = `https://doi.crossref.org/servlet/query?usr=hi@paperlib.app&qdata=<?xml version = "1.0" encoding="UTF-8"?><query_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0" xmlns="http://www.crossref.org/qschema/2.0"  xsi:schemaLocation="http://www.crossref.org/qschema/2.0 http://www.crossref.org/qschema/crossref_query_input2.0.xsd"><head><email_address>support@crossref.org</email_address><doi_batch_id>ABC_123_fff</doi_batch_id> </head> <body> <query enable-multiple-hits="false" secondary-query="author-title" key="key1"> <article_title match="fuzzy">${paperEntityDraft.title}</article_title> <author search-all-authors="true">${paperEntityDraft.authors.split(',')[0].trim().split(
-        ' '
-      ).pop()}</author> </query></body></query_batch>`
-    }
-    else {
+      scrapeURL = `https://api.crossref.org/works/${encodeURIComponent(
+        paperEntityDraft.doi
+      )}`;
+    } else if (
+      paperEntityDraft.title !== "" &&
+      paperEntityDraft.authors !== ""
+    ) {
+      scrapeURL = `https://doi.crossref.org/servlet/query?usr=hi@paperlib.app&qdata=<?xml version = "1.0" encoding="UTF-8"?><query_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0" xmlns="http://www.crossref.org/qschema/2.0"  xsi:schemaLocation="http://www.crossref.org/qschema/2.0 http://www.crossref.org/qschema/crossref_query_input2.0.xsd"><head><email_address>support@crossref.org</email_address><doi_batch_id>ABC_123_fff</doi_batch_id> </head> <body> <query enable-multiple-hits="false" secondary-query="author-title" key="key1"> <article_title match="fuzzy">${
+        paperEntityDraft.title
+      }</article_title> <author search-all-authors="true">${paperEntityDraft.authors
+        .split(",")[0]
+        .trim()
+        .split(" ")
+        .pop()}</author> </query></body></query_batch>`;
+    } else {
       scrapeURL = encodeURI(
         `https://api.crossref.org/works?query.bibliographic=${formatString({
           str: paperEntityDraft.title,
@@ -38,14 +42,11 @@ export class CrossRefScraper extends Scraper {
     }
 
     const headers = {};
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from crossref.org ...`;
-    }
 
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity,
     fromDOI = false
@@ -54,7 +55,7 @@ export class CrossRefScraper extends Scraper {
 
     if (fromDOI) {
       parsedResponse = JSON.parse(rawResponse.body) as {
-        message: HitItem
+        message: HitItem;
       };
     } else {
       parsedResponse = JSON.parse(rawResponse.body) as {
@@ -85,7 +86,10 @@ export class CrossRefScraper extends Scraper {
           lowercased: true,
         });
 
-        const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
+        const sim = stringSimilarity.compareTwoStrings(
+          plainHitTitle,
+          existTitle
+        );
         if (sim > 0.95) {
           hitItem = item;
           break;
@@ -94,32 +98,35 @@ export class CrossRefScraper extends Scraper {
     }
 
     if (hitItem) {
-      paperEntityDraft.setValue("title", hitItem.title[0], false);
+      paperEntityDraft.setValue("title", hitItem.title[0], false, true);
       paperEntityDraft.setValue("doi", hitItem.DOI, false);
       paperEntityDraft.setValue("publisher", hitItem.publisher, false);
 
       if (hitItem.type?.includes("journal")) {
-        paperEntityDraft.setValue("type", 0, false);
-      } else if (hitItem.type?.includes("book") || hitItem.type?.includes("monograph")) {
-        paperEntityDraft.setValue("type", 3, false);
+        paperEntityDraft.setValue("pubType", 0, false);
+      } else if (
+        hitItem.type?.includes("book") ||
+        hitItem.type?.includes("monograph")
+      ) {
+        paperEntityDraft.setValue("pubType", 3, false);
       } else if (hitItem.type?.includes("proceedings")) {
-        paperEntityDraft.setValue("type", 1, false);
+        paperEntityDraft.setValue("pubType", 1, false);
       } else {
-        paperEntityDraft.setValue("type", 2, false);
+        paperEntityDraft.setValue("pubType", 2, false);
       }
 
       paperEntityDraft.setValue("pages", hitItem.page, false);
 
-      let publication
-      if (hitItem.type?.includes('monograph')) {
+      let publication;
+      if (hitItem.type?.includes("monograph")) {
         publication = hitItem.publisher;
       } else {
-        publication = hitItem["container-title"]?.join(', ');
+        publication = hitItem["container-title"]?.join(", ");
       }
 
       paperEntityDraft.setValue(
         "publication",
-        publication?.replaceAll('&amp;', '&') || '',
+        publication?.replaceAll("&amp;", "&") || "",
         false
       );
       paperEntityDraft.setValue(
@@ -136,29 +143,22 @@ export class CrossRefScraper extends Scraper {
       );
       paperEntityDraft.setValue("number", hitItem.issue, false);
       paperEntityDraft.setValue("volume", hitItem.volume, false);
-
-      this.uploadCache(paperEntityDraft, "crossref");
-
     }
 
     return paperEntityDraft;
   }
 
-  // @ts-ignore
-  scrapeImpl = scrapeImpl;
-}
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
 
-async function scrapeImpl(
-  this: CrossRefScraper,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
+    const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-  if (enable || force) {
-    if (scrapeURL.startsWith('https://api.crossref.org')) {
+    if (scrapeURL.startsWith("https://api.crossref.org")) {
       const response = (await window.networkTool.get(
         scrapeURL,
         headers,
@@ -166,7 +166,11 @@ async function scrapeImpl(
         false,
         10000
       )) as Response<string>;
-      return this.parsingProcess(response, paperEntityDraft, !scrapeURL.includes('bibliographic')) as PaperEntity;
+      return this.parsingProcess(
+        response,
+        paperEntityDraft,
+        !scrapeURL.includes("bibliographic")
+      );
     } else {
       const response = (await window.networkTool.get(
         scrapeURL,
@@ -176,7 +180,10 @@ async function scrapeImpl(
         10000
       )) as Response<string>;
 
-      const potentialDOI = response.body.split('|').pop()?.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/gim)
+      const potentialDOI = response.body
+        .split("|")
+        .pop()
+        ?.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/gim);
       if (!potentialDOI) {
         const fallbackScrapeURL = encodeURI(
           `https://api.crossref.org/works?query.bibliographic=${formatString({
@@ -191,7 +198,7 @@ async function scrapeImpl(
           false,
           10000
         )) as Response<string>;
-        return this.parsingProcess(response, paperEntityDraft, false) as PaperEntity;
+        return this.parsingProcess(response, paperEntityDraft, false);
       } else {
         const response = (await window.networkTool.get(
           `https://api.crossref.org/works/${potentialDOI[0]}`,
@@ -200,14 +207,11 @@ async function scrapeImpl(
           false,
           10000
         )) as Response<string>;
-        return this.parsingProcess(response, paperEntityDraft, true) as PaperEntity;
+        return this.parsingProcess(response, paperEntityDraft, true);
       }
     }
-  } else {
-    return paperEntityDraft;
   }
 }
-
 
 interface HitItem {
   title: string[];

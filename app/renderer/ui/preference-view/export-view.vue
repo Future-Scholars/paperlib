@@ -96,7 +96,7 @@ onMounted(() => {
       <div>
         <select
           id="countries"
-          class="my-auto bg-gray-50 border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-48 h-6 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          class="my-auto cursor-pointer bg-gray-50 border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-48 h-6 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           v-model="selectedCSLStyle"
           @change="
             (e) => {
@@ -171,7 +171,7 @@ onMounted(() => {
     </div>
 
     <div
-      class="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md h-54 overflow-auto mb-5"
+      class="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md h-[240px] max-h-[240px] overflow-scroll mb-5"
     >
       <Replacement
         :from="replacement.from"

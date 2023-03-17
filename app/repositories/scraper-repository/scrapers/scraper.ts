@@ -1,114 +1,26 @@
 import { Response } from "got";
 
-import { APICache } from "@/models/apicache";
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference, ScraperPreference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { cryptoAndSign } from "@/utils/crypto/crypto";
-
-import { PDFFileResponseType } from "./pdf";
+import { isMetadataCompleted } from "@/utils/metadata";
 
 export interface ScraperRequestType {
   scrapeURL: string;
   headers: Record<string, string>;
-  enable: boolean;
   content?: Record<string, any>;
 }
 
-export interface ScraperType {
-  stateStore: MainRendererStateStore;
-  preference: Preference;
+export class Scraper {
 
-  scrape(paperEntityDraft: PaperEntity, force?: boolean): Promise<PaperEntity>;
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType | void;
-  parsingProcess(
-    rawResponse: Response<string> | PDFFileResponseType | string,
-    paperEntityDraft: PaperEntity
-  ): PaperEntity | void;
-  scrapeImpl: (_: PaperEntity, force?: boolean) => Promise<PaperEntity>;
-  getEnable(name: string): boolean;
-  uploadCache(paperEntity: PaperEntity, scraperName: string): Promise<void>;
-}
+  // All use static methods seems to be a better design for cross scrapers calls.
 
-export class Scraper implements ScraperType {
-  stateStore: MainRendererStateStore;
-  preference: Preference;
+  static async scrape(paperEntityDraft: PaperEntity, force = false): Promise<PaperEntity> {
 
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    this.stateStore = stateStore;
-    this.preference = preference;
-  }
-
-  scrape(paperEntityDraft: PaperEntity, force = false): Promise<PaperEntity> {
-    return this.scrapeImpl(paperEntityDraft, force);
-  }
-
-  preProcess(_paperEntityDraft: PaperEntity): ScraperRequestType | void {
-    throw new Error("Method not implemented.");
-  }
-
-  parsingProcess(
-    _rawResponse: Response<string> | PDFFileResponseType | string,
-    _paperEntityDraft: PaperEntity
-  ): PaperEntity | void {
-    throw new Error("Method not implemented.");
-  }
-
-  scrapeImpl = scrapeImpl;
-
-  getEnable(name: string) {
-    return (
-      (this.preference.get("scrapers") as Record<string, ScraperPreference>)[
-        name
-      ]?.enable ?? false
-    );
-  }
-
-  isPreprint(paperEntityDraft: PaperEntity) {
-    return (
-      !paperEntityDraft.publication ||
-      paperEntityDraft.publication.toLowerCase().includes("arxiv") ||
-      paperEntityDraft.publication.toLowerCase().includes("biorxiv") ||
-      paperEntityDraft.publication.toLowerCase().includes("medrxiv") ||
-      paperEntityDraft.publication.toLowerCase().includes("chemrxiv") ||
-      paperEntityDraft.publication.toLowerCase().includes("openreview") ||
-      paperEntityDraft.publication.includes("CoRR")
-    );
-  }
-
-  async uploadCache(
-    paperEntityDraft: PaperEntity,
-    scraperName: string
-  ): Promise<void> {
-    if (!this.isPreprint(paperEntityDraft)) {
-      try {
-        const apiCache = new APICache(true).initialize(
-          paperEntityDraft,
-          scraperName
-        );
-        const signedData = cryptoAndSign(apiCache);
-
-        await window.networkTool.post(
-          "https://api.paperlib.app/cache/",
-          signedData
-        );
-      } catch (e) {
-        console.log(e);
-      }
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
     }
-  }
-}
 
-async function scrapeImpl(
-  this: ScraperType,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
+    const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-  if (enable || force) {
     const response = (await window.networkTool.get(
       scrapeURL,
       headers,
@@ -116,8 +28,23 @@ async function scrapeImpl(
       false,
       10000
     )) as Response<string>;
-    return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
-  } else {
+    return this.parsingProcess(response, paperEntityDraft);
+  }
+
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    return { scrapeURL: "", headers: {} };
+  }
+
+  static parsingProcess(
+    rawResponse: any,
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
     return paperEntityDraft;
   }
+
+  // Check if the  paperEntityDraft contains enough information to scrape. (NOT enable or not by user preference)
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return !isMetadataCompleted(paperEntityDraft);
+  }
+
 }

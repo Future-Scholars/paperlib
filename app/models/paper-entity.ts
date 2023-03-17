@@ -1,4 +1,5 @@
 import { ObjectId } from "bson";
+import Mathml2latex from "mathml-to-latex";
 
 import { PaperFolder, PaperTag } from "./categorizer";
 import { FeedEntity } from "./feed-entity";
@@ -80,7 +81,27 @@ export class PaperEntity {
     }
   }
 
-  setValue(key: string, value: unknown, allowEmpty = false) {
+  setValue(key: string, value: unknown, allowEmpty = false, format = false) {
+    // Format the value
+    if (format && value) {
+      // 1. Check if contains Mathml
+      const mathmlRegex1 = /<math\b[^>]*>([\s\S]*?)<\/math>/gm;
+      const mathmlRegex2 = /<mml:math\b[^>]*>([\s\S]*?)<\/mml:math>/gm;
+      const mathmlRegex3 = /<mrow\b[^>]*>([\s\S]*?)<\/mrow>/gm;
+
+      for (const regex of [mathmlRegex1, mathmlRegex2, mathmlRegex3]) {
+        if (regex.test(value as string)) {
+          const mathmls = (value as string).match(regex);
+          if (mathmls) {
+            for (const mathml of mathmls) {
+              const latex = Mathml2latex.convert(mathml.replaceAll("mml:", ""));
+              value = (value as string).replace(mathml, "$" + latex + "$");
+            }
+          }
+        }
+      }
+    }
+
     if ((value || allowEmpty) && value !== "undefined") {
       this[key] = value;
     }

@@ -82,7 +82,7 @@ watch(
     >
       <div class="flex justify-center items-center w-full h-full">
         <div
-          class="m-auto flex bg-neutral-100 dark:bg-neutral-800 min-h-[600px] min-w-[750px] rounded-lg shadow-lg select-none space-y-2"
+          class="m-auto flex bg-neutral-100 dark:bg-neutral-800 h-[650px] w-[800px] rounded-lg shadow-lg select-none space-y-2"
         >
           <div
             class="flex flex-col space-y-1 h-full w-36 rounded-l-lg px-2 py-14 border-r-[1px] dark:border-r-neutral-700"
@@ -180,7 +180,7 @@ watch(
             <AboutView v-if="preferenceTab === 'about'" />
             <div class="flex justify-end space-x-2 py-1">
               <div
-                class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm"
+                class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm cursor-pointer"
                 @click="onCloseClicked"
               >
                 <span class="m-auto text-xs">{{ $t("menu.close") }}</span>

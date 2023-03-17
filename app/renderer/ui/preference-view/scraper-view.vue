@@ -127,8 +127,6 @@ const onUpdate = (key: string, value: unknown) => {
 
 const presets = {
   cs: [
-    "pdf",
-    "paperlib",
     "arxiv",
     "doi",
     "dblp",
@@ -139,8 +137,6 @@ const presets = {
     "pwc",
   ],
   es: [
-    "pdf",
-    "paperlib",
     "doi",
     "semanticscholar",
     "scopus",
@@ -149,8 +145,6 @@ const presets = {
     "googlescholar",
   ],
   phys: [
-    "pdf",
-    "paperlib",
     "arxiv",
     "doi",
     "semanticscholar",
@@ -161,15 +155,7 @@ const presets = {
     "crossref",
     "googlescholar",
   ],
-  default: [
-    "pdf",
-    "paperlib",
-    "arxiv",
-    "doi",
-    "semanticscholar",
-    "crossref",
-    "googlescholar",
-  ],
+  default: ["arxiv", "doi", "semanticscholar", "crossref", "googlescholar"],
 };
 
 const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
@@ -184,7 +170,7 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
 
 const onClickGuide = () => {
   window.appInteractor.open(
-    "https://github.com/GeoffreyChen777/paperlib/wiki/"
+    "https://github.com/Future-Scholars/paperlib/wiki/"
   );
 };
 
@@ -203,14 +189,14 @@ onMounted(() => {
 
 <template>
   <div
-    class="flex flex-col w-full text-neutral-800 dark:text-neutral-300 max-w-xl"
+    class="flex flex-col w-full text-neutral-800 dark:text-neutral-300 max-w-xl overflow-scroll"
   >
     <div class="text-base font-semibold mb-4">
       Metadata {{ $t("preference.scraper") }}
     </div>
 
     <div class="flex justify-between mb-5">
-      <div class="flex flex-col max-w-[90%]">
+      <div class="flex flex-col max-w-[90%] mr-5">
         <div class="text-xs font-semibold">
           {{ $t("preference.preset") }}
         </div>
@@ -218,10 +204,9 @@ onMounted(() => {
           {{ $t("preference.presetintro") }}
         </div>
       </div>
-      <div>
+      <div class="flex">
         <select
-          id="countries"
-          class="my-auto bg-gray-50 border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-28 h-6 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          class="my-auto cursor-pointer bg-gray-50 border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-28 h-6 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
           v-model="presetSelection"
           @change="
             (e) => {
@@ -250,7 +235,7 @@ onMounted(() => {
 
       <div class="flex space-x-2">
         <div
-          class="p-1 max-h-[335px] overflow-scroll w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-md"
+          class="p-1 max-h-[255px] overflow-scroll w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-md"
         >
           <draggable
             class="space-y-1 min-h-[332px]"
@@ -295,7 +280,7 @@ onMounted(() => {
         </div>
 
         <div
-          class="p-1 max-h-[335px] overflow-scroll w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-md"
+          class="p-1 max-h-[255px] overflow-scroll w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-md"
         >
           <draggable
             class="space-y-1 min-h-[332px]"

@@ -2,26 +2,31 @@ import { XMLParser } from "fast-xml-parser";
 import { Response } from "got";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 
-export class ArXivScraper extends Scraper {
-  xmlParser: XMLParser;
+const xmlParser = new XMLParser();
 
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    super(stateStore, preference);
-    this.xmlParser = new XMLParser();
+interface ResponseType {
+  feed: {
+    entry?: {
+      title: string;
+      author: { name: string }[] | { name: string };
+      published: string;
+    };
+  };
+}
+
+export class ArXivScraper extends Scraper {
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return (
+      paperEntityDraft.arxiv !== "" && !isMetadataCompleted(paperEntityDraft)
+    );
   }
 
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      this.getEnable("arxiv") &&
-      paperEntityDraft.arxiv !== "" &&
-      this.isPreprint(paperEntityDraft);
-
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const arxivID = formatString({
       str: paperEntityDraft.arxiv,
       removeStr: "arXiv:",
@@ -32,26 +37,15 @@ export class ArXivScraper extends Scraper {
       "accept-encoding": "UTF-32BE",
     };
 
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from arXiv.org ...`;
-    }
-
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const parsedResponse = this.xmlParser.parse(rawResponse.body) as {
-      feed: {
-        entry?: {
-          title: string;
-          author: { name: string }[] | { name: string };
-          published: string;
-        };
-      };
-    };
+    const parsedResponse = xmlParser.parse(rawResponse.body) as ResponseType;
+
     const arxivResponse = parsedResponse.feed.entry;
 
     if (arxivResponse) {
@@ -69,7 +63,7 @@ export class ArXivScraper extends Scraper {
       }
 
       const pubTime = arxivResponse.published.substring(0, 4);
-      paperEntityDraft.setValue("title", title);
+      paperEntityDraft.setValue("title", title, false, true);
       paperEntityDraft.setValue("authors", authors);
       paperEntityDraft.setValue("pubTime", pubTime);
       paperEntityDraft.setValue("pubType", 0);

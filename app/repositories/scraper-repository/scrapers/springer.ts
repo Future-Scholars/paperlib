@@ -2,29 +2,44 @@ import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { cryptoAndSign } from "@/utils/crypto/crypto";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
-import { cryptoAndSign } from "@/utils/crypto/crypto";
+
+interface ResponseType {
+  records: [
+    {
+      title: string;
+      creators: [
+        {
+          creator: string;
+        }
+      ];
+      publicationName: string;
+      doi: string;
+      publisher?: string;
+      publicationDate: string;
+      contentType: string;
+      volume?: string;
+      number?: string;
+      startingPage?: string;
+      endingPage?: string;
+    }
+  ];
+}
 
 export class SpringerScraper extends Scraper {
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    super(stateStore, preference);
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return (
+      paperEntityDraft.title !== "" && !isMetadataCompleted(paperEntityDraft)
+    );
   }
 
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      this.getEnable("springer") &&
-      paperEntityDraft.title !== "" &&
-      this.isPreprint(paperEntityDraft);
-
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const scrapeURL = `https://api.paperlib.app/publicdb/query`;
     const headers = {};
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from Springer...`;
-    }
 
     const content = {
       query: `title:${formatString({
@@ -34,34 +49,14 @@ export class SpringerScraper extends Scraper {
       database: "springer",
     };
 
-    return { scrapeURL, headers, enable, content };
+    return { scrapeURL, headers, content };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const parsedResponse = JSON.parse(rawResponse.body) as {
-      "records": [
-        {
-          "title": string,
-          "creators": [
-            {
-              "creator": string
-            }
-          ],
-          "publicationName": string,
-          "doi": string,
-          "publisher"?: string,
-          "publicationDate": string,
-          "contentType": string,
-          "volume"?: string,
-          "number"?: string,
-          "startingPage"?: string,
-          "endingPage"?: string,
-        }
-      ]
-    };
+    const parsedResponse = JSON.parse(rawResponse.body) as ResponseType;
 
     for (const item of parsedResponse.records) {
       const plainHitTitle = formatString({
@@ -80,27 +75,32 @@ export class SpringerScraper extends Scraper {
 
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
-        paperEntityDraft.setValue("title", item.title.replaceAll('&amp;', '&'), false);
+        paperEntityDraft.setValue(
+          "title",
+          item.title.replaceAll("&amp;", "&"),
+          false,
+          true
+        );
         paperEntityDraft.setValue("doi", item.doi, false);
 
         if (item.contentType.toLowerCase().includes("journal")) {
-          paperEntityDraft.setValue("type", 0, false);
+          paperEntityDraft.setValue("pubType", 0, false);
         } else if (item.contentType.toLowerCase().includes("book")) {
-          paperEntityDraft.setValue("type", 3, false);
-        } else if (item.contentType.toLowerCase().includes('conference')) {
-          paperEntityDraft.setValue("type", 1, false);
+          paperEntityDraft.setValue("pubType", 3, false);
+        } else if (item.contentType.toLowerCase().includes("conference")) {
+          paperEntityDraft.setValue("pubType", 1, false);
         } else {
-          paperEntityDraft.setValue("type", 2, false);
+          paperEntityDraft.setValue("pubType", 2, false);
         }
 
         if (item.startingPage && item.endingPage) {
-          paperEntityDraft.setValue("pages", `${item.startingPage}-${item.endingPage}`, false);
+          paperEntityDraft.setValue(
+            "pages",
+            `${item.startingPage}-${item.endingPage}`,
+            false
+          );
         }
-        paperEntityDraft.setValue(
-          "publication",
-          item.publicationName,
-          false
-        );
+        paperEntityDraft.setValue("publication", item.publicationName, false);
         paperEntityDraft.setValue(
           "pubTime",
           item.publicationDate?.slice(0, 4),
@@ -108,19 +108,20 @@ export class SpringerScraper extends Scraper {
         );
         paperEntityDraft.setValue(
           "authors",
-          item.creators.map(a => a.creator.split(',').map(n => n.trim()).reverse().join(' ')).join(', '),
+          item.creators
+            .map((a) =>
+              a.creator
+                .split(",")
+                .map((n) => n.trim())
+                .reverse()
+                .join(" ")
+            )
+            .join(", "),
           false
         );
-        paperEntityDraft.setValue(
-          "number",
-          item.number,
-          false
-        );
+        paperEntityDraft.setValue("number", item.number, false);
         paperEntityDraft.setValue("volume", item.volume, false);
         paperEntityDraft.setValue("publisher", item.publisher, false);
-
-
-        this.uploadCache(paperEntityDraft, "springer");
 
         break;
       }
@@ -129,20 +130,16 @@ export class SpringerScraper extends Scraper {
     return paperEntityDraft;
   }
 
-  // @ts-ignore
-  scrapeImpl = scrapeImpl;
-}
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
 
-async function scrapeImpl(
-  this: SpringerScraper,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable, content } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
+    const { scrapeURL, headers, content } = this.preProcess(paperEntityDraft);
 
-  if (enable || force) {
     const signedData = cryptoAndSign(content!);
 
     const response = (await window.networkTool.post(
@@ -152,13 +149,7 @@ async function scrapeImpl(
       1,
       5000
     )) as Response<string>;
-    paperEntityDraft = this.parsingProcess(
-      response,
-      paperEntityDraft
-    ) as PaperEntity;
-
-    return paperEntityDraft;
-  } else {
+    paperEntityDraft = this.parsingProcess(response, paperEntityDraft);
     return paperEntityDraft;
   }
 }

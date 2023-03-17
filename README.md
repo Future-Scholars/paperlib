@@ -1,15 +1,15 @@
 <div align="center">
 <img src="./assets/icon.png" height="95" />
 <br />
-<img src="https://img.shields.io/badge/dynamic/json?label=Release&query=version&url=https://raw.githubusercontent.com/GeoffreyChen777/paperlib/master/package.json" />
-<img src="https://img.shields.io/github/license/GeoffreyChen777/paperlib" />
-<img src="https://img.shields.io/github/stars/GeoffreyChen777/paperlib" />
+<img src="https://img.shields.io/badge/dynamic/json?label=Release&query=version&url=https://raw.githubusercontent.com/Future-Scholars/paperlib/master/package.json" />
+<img src="https://img.shields.io/github/license/Future-Scholars/paperlib" />
+<img src="https://img.shields.io/github/stars/Future-Scholars/paperlib" />
 <h2><a href="https://paperlib.app/" > Paperlib </a></h2>
 An open-source academic paper management tool.
 </div>
 
 <p align='center'>
-<a href='https://paperlib.app/en/'>Webpage</a> | <a href='https://paperlib.app/en/download.html'>Download</a> | <a href='https://paperlib.app/en/doc/getting-started.html'>Quick Start</a> | <a href='https://github.com/users/GeoffreyChen777/projects/1/views/1'>Roadmap</a>
+<a href='https://paperlib.app/en/'>Webpage</a> | <a href='https://paperlib.app/en/download.html'>Download</a> | <a href='https://paperlib.app/en/doc/getting-started.html'>Quick Start</a> | <a href='https://github.com/users/Future-Scholars/projects/1/views/1'>Roadmap</a>
 </p>
 
 ![](./assets/ui.png)
@@ -105,7 +105,7 @@ See [here](https://paperlib.app/en/download-linux.html).
 ## Contribute to Paperlib
 
 ### Metadata Scrapers
-My research topic is computer vision, which is only one piece of the puzzle of computer science. I tried to contact some friends to provide information about the paper metadata database in different disciplines. However, However, it does not cover all disciplines. If the [builtin metadata scrapers](https://github.com/GeoffreyChen777/paperlib/tree/master/app/repositories/scraper-repository/scrapers) are not suitable for your research, feel free to open an issue or a pull request.
+My research topic is computer vision, which is only one piece of the puzzle of computer science. I tried to contact some friends to provide information about the paper metadata database in different disciplines. However, However, it does not cover all disciplines. If the [builtin metadata scrapers](https://github.com/Future-Scholars/paperlib/tree/master/app/repositories/scraper-repository/scrapers) are not suitable for your research, feel free to open an issue or a pull request.
 
 ### New Features
 

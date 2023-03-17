@@ -5,13 +5,13 @@ import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import os from "os";
 import path from "path";
 import stream from "stream";
+import { CookieJar } from "tough-cookie";
 import { promisify } from "util";
 
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import { constructFileURL } from "./path";
-
 
 const cache = new Map();
 
@@ -32,10 +32,13 @@ const gotWithCache = got.extend({
       }
 
       const promise = next(options);
-      cache.set(options.url.href, { response: promise, ttl: Date.now() + 1000 * 60 * 60 * 24 });
+      cache.set(options.url.href, {
+        response: promise,
+        ttl: Date.now() + 1000 * 60 * 60 * 24,
+      });
       return promise;
-    }
-  ]
+    },
+  ],
 });
 
 export class NetworkTool {
@@ -162,6 +165,7 @@ export class NetworkTool {
         }
       }
       if (
+        response?.body.includes("gs_captcha_f") ||
         response?.body.includes("Please show you're not a robot") ||
         response?.body.includes("Please show you&#39;re not a robot") ||
         response?.body.includes("does not have permission")
@@ -221,10 +225,7 @@ export class NetworkTool {
     return await got.post(url, options);
   }
 
-  async download(
-    url: string,
-    targetPath: string,
-  ) {
+  async download(url: string, targetPath: string, cookies?: CookieJar) {
     try {
       const pipeline = promisify(stream.pipeline);
       const headers = {
@@ -237,6 +238,7 @@ export class NetworkTool {
             headers: headers,
             rejectUnauthorized: false,
             agent: this.agent,
+            cookieJar: cookies,
           })
           .on("downloadProgress", (progress) => {
             const percent = progress.percent;
@@ -255,20 +257,25 @@ export class NetworkTool {
     }
   }
 
-  async downloadPDFs(urlList: string[]): Promise<string[]> {
+  async downloadPDFs(
+    urlList: string[],
+    cookies?: CookieJar
+  ): Promise<string[]> {
     this.stateStore.logState.processLog = "";
 
-    const downloadedUrls = (await Promise.all(urlList.map(url => {
-      let filename = url.split("/").pop() as string;
-      filename = filename.slice(0, 100);
-      if (!filename.endsWith(".pdf")) {
-        filename += ".pdf";
-      }
-      const targetPath = path.join(os.homedir(), "Downloads", filename);
-      return this.download(url, targetPath);
-    }))).filter(
-      (url) => url !== ""
-    );
+    const downloadedUrls = (
+      await Promise.all(
+        urlList.map((url) => {
+          let filename = url.split("/").pop() as string;
+          filename = filename.slice(0, 100);
+          if (!filename.endsWith(".pdf")) {
+            filename += ".pdf";
+          }
+          const targetPath = path.join(os.homedir(), "Downloads", filename);
+          return this.download(url, targetPath, cookies);
+        })
+      )
+    ).filter((url) => url !== "");
 
     return downloadedUrls;
   }

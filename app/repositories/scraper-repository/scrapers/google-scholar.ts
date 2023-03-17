@@ -1,22 +1,60 @@
 import { parse } from "node-html-parser";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
-import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { Scraper, ScraperRequestType } from "./scraper";
 
-async function scrapeImpl(
-  this: ScraperType,
-  paperEntityDraft: PaperEntity
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
+export class GoogleScholarScraper extends Scraper {
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return (
+      paperEntityDraft.title !== "" && !isMetadataCompleted(paperEntityDraft)
+    );
+  }
 
-  if (enable) {
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    const query = paperEntityDraft.title.replace(/ /g, "+");
+
+    const scrapeURL = `https://scholar.google.com/scholar?q=${query}`;
+
+    const headers = {
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
+    };
+
+    return { scrapeURL, headers };
+  }
+
+  static parsingProcess(
+    rawResponse: string,
+    paperEntityDraft: PaperEntity
+  ): PaperEntity {
+    if (rawResponse) {
+      const bibtexs = bibtex2json(
+        rawResponse.replace("\\'", "").replace('\\"', "")
+      );
+      for (const bibtex of bibtexs) {
+        paperEntityDraft = bibtex2paperEntityDraft(bibtex, paperEntityDraft);
+
+        break;
+      }
+    }
+
+    return paperEntityDraft;
+  }
+
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
+
+    const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
+
     const response = await window.networkTool.get(scrapeURL, headers, 0, true);
 
     let bibtex = "";
@@ -93,57 +131,6 @@ async function scrapeImpl(
         }
       }
     }
-    return this.parsingProcess(bibtex, paperEntityDraft) as PaperEntity;
-  } else {
-    return paperEntityDraft;
+    return this.parsingProcess(bibtex, paperEntityDraft);
   }
-}
-
-export class GoogleScholarScraper extends Scraper {
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    super(stateStore, preference);
-  }
-
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      paperEntityDraft.title !== "" &&
-      this.isPreprint(paperEntityDraft) &&
-      this.getEnable("googlescholar");
-
-    const query = paperEntityDraft.title.replace(/ /g, "+");
-
-    const scrapeURL = `https://scholar.google.com/scholar?q=${query}`;
-
-    const headers = {
-      "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-    };
-
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from google scholar ...`;
-    }
-
-    return { scrapeURL, headers, enable };
-  }
-
-  parsingProcess(
-    rawResponse: string,
-    paperEntityDraft: PaperEntity
-  ): PaperEntity {
-    if (rawResponse) {
-      const bibtexs = bibtex2json(
-        rawResponse.replace("\\'", "").replace('\\"', "")
-      );
-      for (const bibtex of bibtexs) {
-        paperEntityDraft = bibtex2paperEntityDraft(bibtex, paperEntityDraft);
-
-        this.uploadCache(paperEntityDraft, "googlescholar");
-        break;
-      }
-    }
-
-    return paperEntityDraft;
-  }
-
-  scrapeImpl = scrapeImpl;
 }

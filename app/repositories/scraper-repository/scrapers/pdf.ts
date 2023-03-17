@@ -1,3 +1,4 @@
+import { franc } from "franc";
 import fs from "fs";
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
@@ -6,58 +7,47 @@ import {
   PDFPageProxy,
   TextItem,
 } from "pdfjs-dist/types/src/display/api";
-import { franc } from 'franc'
-
 
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { constructFileURL } from "@/utils/path";
 import { formatString } from "@/utils/string";
 
-import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { Scraper, ScraperRequestType } from "./scraper";
+
+const worker = new Worker("./build/pdf.worker.min.js");
+pdfjs.GlobalWorkerOptions.workerPort = worker;
 
 export class PDFScraper extends Scraper {
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    super(stateStore, preference);
-
-    const worker = new Worker("./build/pdf.worker.min.js");
-    pdfjs.GlobalWorkerOptions.workerPort = worker;
-  }
-
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return (
       paperEntityDraft.mainURL !== "" &&
       fs.existsSync(
         constructFileURL(
           paperEntityDraft.mainURL,
           true,
           false,
-          this.preference.get("appLibFolder") as string
+          window.preference?.get("appLibFolder") as string
         )
       ) &&
-      paperEntityDraft.mainURL.endsWith(".pdf") &&
-      this.getEnable("pdf");
+      paperEntityDraft.mainURL.endsWith(".pdf")
+    );
+  }
 
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const scrapeURL = constructFileURL(
       paperEntityDraft.mainURL,
       true,
       true,
-      this.preference.get("appLibFolder") as string
+      window.preference?.get("appLibFolder") as string
     );
 
     const headers = {};
 
-    if (enable) {
-      this.stateStore.logState.processLog =
-        "Scraping metadata from PDF builtin info...";
-    }
-
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
-  // @ts-ignore
-  parsingProcess(
+  static parsingProcess(
     rawResponse: PDFFileResponseType,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
@@ -72,7 +62,11 @@ export class PDFScraper extends Scraper {
     let metaDataTitle = "";
     if (paperEntityDraft.title === "") {
       metaDataTitle = metaData.info.Title || "";
-      if (metaDataTitle === "untitled" || metaDataTitle.includes('.docx') || metaDataTitle.includes('.doc')) {
+      if (
+        metaDataTitle === "untitled" ||
+        metaDataTitle.includes(".docx") ||
+        metaDataTitle.includes(".doc")
+      ) {
         metaDataTitle = "";
       }
     }
@@ -102,15 +96,18 @@ export class PDFScraper extends Scraper {
       arxivIds[0] = arxivIds[0].replace("arXiv:", "");
     }
     // if not start with number, should be arXiv ID before 2007
-    if (!arxivIds || (arxivIds?.length > 0 && !arxivIds[0].slice(0, 1).match(/\d/))) {
+    if (
+      !arxivIds ||
+      (arxivIds?.length > 0 && !arxivIds[0].slice(0, 1).match(/\d/))
+    ) {
       arxivIds = firstPageText.match(
-        new RegExp("arXiv:(.*\/\\d{7})(v\\d )?", "g")
+        new RegExp("arXiv:(.*/\\d{7})(v\\d )?", "g")
       );
     }
     if (arxivIds) {
       const arxivId = formatString({ str: arxivIds[0], removeWhite: true });
       if (paperEntityDraft.arxiv === "") {
-        paperEntityDraft.setValue("arxiv", arxivId.replace('arXiv:', ''));
+        paperEntityDraft.setValue("arxiv", arxivId.replace("arXiv:", ""));
       }
     }
 
@@ -160,46 +157,39 @@ export class PDFScraper extends Scraper {
     // Largest String as Title
     const largestText = rawResponse.largestText.slice(0, 400);
     if (paperEntityDraft.title === "") {
-
       const metaDataTitleLang = franc(metaDataTitle);
       const largestTextLang = franc(largestText);
 
       if (metaDataTitleLang === largestTextLang) {
         paperEntityDraft.setValue(
           "title",
-          metaDataTitle.length > largestText.length ? metaDataTitle : largestText
+          metaDataTitle.length > largestText.length
+            ? metaDataTitle
+            : largestText
         );
       } else {
-        paperEntityDraft.setValue(
-          "title",
-          largestText
-        );
+        paperEntityDraft.setValue("title", largestText);
       }
     }
 
     return paperEntityDraft;
   }
 
-  scrapeImpl = scrapeImpl;
-}
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
 
-async function scrapeImpl(
-  this: ScraperType,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, enable } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
-  if (enable || force) {
+    const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
     try {
-      const pdf = await pdfjs.getDocument(
-        {
-          url: constructFileURL(scrapeURL, false, true),
-          useWorkerFetch: true,
-          cMapUrl: "../viewer/cmaps/",
-        }
-      ).promise;
+      const pdf = await pdfjs.getDocument({
+        url: constructFileURL(scrapeURL, false, true),
+        useWorkerFetch: true,
+        cMapUrl: "../viewer/cmaps/",
+      }).promise;
       const metaData = await pdf.getMetadata();
       const urls = await _getPDFURL(pdf);
       const pageText = await _getPDFText(pdf);
@@ -211,13 +201,10 @@ async function scrapeImpl(
         urls: urls,
       };
 
-      // @ts-ignore
       return this.parsingProcess(response, paperEntityDraft);
     } catch (error) {
       throw error;
     }
-  } else {
-    return paperEntityDraft;
   }
 }
 
@@ -257,9 +244,13 @@ async function _renderPage(
   let largestTextList: string[] = [];
   let secondLargestTextList: string[] = [];
 
-  if ((textContent.items[0] as TextItem | undefined)?.str.slice(0, 100).includes("ICLR")) {
-    const largestTextList = []
-    let largestWord = ""
+  if (
+    (textContent.items[0] as TextItem | undefined)?.str
+      .slice(0, 100)
+      .includes("ICLR")
+  ) {
+    const largestTextList = [];
+    let largestWord = "";
     for (let item of textContent.items.slice(1)) {
       item = item as TextItem;
       if (item.height === 17.2154) {
@@ -268,14 +259,14 @@ async function _renderPage(
         largestWord += item.str.toLowerCase();
 
         if (largestWord !== "") {
-          largestTextList.push(largestWord.trim())
-          largestWord = ""
+          largestTextList.push(largestWord.trim());
+          largestWord = "";
         }
       } else {
         break;
       }
     }
-    largestText = largestTextList.filter(w => w).join(" ")
+    largestText = largestTextList.filter((w) => w).join(" ");
   } else {
     for (let item of textContent.items) {
       item = item as TextItem;
@@ -312,7 +303,10 @@ async function _renderPage(
 
     const lang = franc(largestText);
 
-    if (largestText.length === 1 || (lang !== 'cmn' && lang !== 'jpn' && !largestText.includes(' '))) {
+    if (
+      largestText.length === 1 ||
+      (lang !== "cmn" && lang !== "jpn" && !largestText.includes(" "))
+    ) {
       largestText = secondLargestText;
     }
   }
