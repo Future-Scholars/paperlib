@@ -1,58 +1,44 @@
 import { Response } from "got";
+import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { formatString } from "@/utils/string";
 
+import { DBLPScraper } from "./dblp";
 import { Scraper, ScraperRequestType } from "./scraper";
-import { DBLPVenueScraper } from "./dblp";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { Preference } from "@/preference/preference";
-import stringSimilarity from "string-similarity";
+
+interface ResponseType {
+  notes: {
+    content: {
+      title: string;
+      authors: string[];
+      venueid: string;
+      venue: string;
+      _bibtex: string;
+    };
+  }[];
+}
 
 export class OpenreviewScraper extends Scraper {
-  dblpVenueScraper: DBLPVenueScraper
-
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    super(stateStore, preference);
-    this.dblpVenueScraper = new DBLPVenueScraper(stateStore, preference);
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return paperEntityDraft.title !== "";
   }
 
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      paperEntityDraft.title !== "" &&
-      this.isPreprint(paperEntityDraft) &&
-      this.getEnable("openreview");
-
-    const scrapeURL = `https://api.openreview.net/notes/search?content=all&group=all&limit=10&source=forum&term=${paperEntityDraft.title}&type=terms`
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    const scrapeURL = `https://api.openreview.net/notes/search?content=all&group=all&limit=10&source=forum&term=${paperEntityDraft.title}&type=terms`;
 
     const headers = {
       Accept: "application/json",
     };
 
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from openreview.net ...`;
-    }
-
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const notes = (
-      JSON.parse(rawResponse.body) as {
-        notes: {
-          content: {
-            title: string;
-            authors: string[];
-            venueid: string;
-            venue: string;
-            _bibtex: string;
-          };
-        }[];
-      }
-    ).notes;
+    const notes = (JSON.parse(rawResponse.body) as ResponseType).notes;
 
     for (const note of notes) {
       const plainHitTitle = formatString({
@@ -71,7 +57,7 @@ export class OpenreviewScraper extends Scraper {
 
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
-        const title = note.content.title.replaceAll('&amp;', '&');
+        const title = note.content.title.replaceAll("&amp;", "&");
         const authors = note.content.authors.join(", ");
 
         paperEntityDraft.setValue("title", title, false, true);
@@ -82,20 +68,22 @@ export class OpenreviewScraper extends Scraper {
             !note.content.venue.includes("Submitted") &&
             !note.content.venue.includes("CoRR")
           ) {
-            let publication
+            let publication;
             if (note.content.venueid.includes("dblp")) {
               const type = note.content.venueid.includes("conf")
                 ? "conf"
                 : "journals";
 
-              const venueID = type + '/' + note.content.venueid.split("/")[2].toLowerCase();
+              const venueID =
+                type + "/" + note.content.venueid.split("/")[2].toLowerCase();
               if (!venueID.includes("journals/corr")) {
-                publication = `dblp://${JSON.stringify({ 'venueID': venueID, 'paperKey': '' })}`;
+                publication = `dblp://${JSON.stringify({
+                  venueID: venueID,
+                  paperKey: "",
+                })}`;
               } else {
                 publication = "";
               }
-
-
             } else {
               publication = note.content.venue;
             }
@@ -107,10 +95,7 @@ export class OpenreviewScraper extends Scraper {
             paperEntityDraft.setValue("publication", publication);
           }
         } else {
-          if (
-            note.content._bibtex &&
-            note.content._bibtex.includes("year={")
-          ) {
+          if (note.content._bibtex && note.content._bibtex.includes("year={")) {
             const pubTimeReg = note.content._bibtex.match(/year={(\d{4})/);
             const pubTime = pubTimeReg ? pubTimeReg[1] : "";
             paperEntityDraft.setValue("pubTime", `${pubTime} `);
@@ -125,20 +110,16 @@ export class OpenreviewScraper extends Scraper {
     return paperEntityDraft;
   }
 
-  // @ts-ignore
-  scrapeImpl = scrapeImpl;
-}
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
 
-async function scrapeImpl(
-  this: OpenreviewScraper,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
+    const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-  if (enable || force) {
     const response = (await window.networkTool.get(
       scrapeURL,
       headers,
@@ -149,15 +130,31 @@ async function scrapeImpl(
     paperEntityDraft = this.parsingProcess(response, paperEntityDraft);
 
     if (paperEntityDraft.publication.includes("dblp")) {
-      paperEntityDraft = await this.dblpVenueScraper.scrape(
+      const { venueID, paperKey } = JSON.parse(
+        paperEntityDraft.publication.replace("dblp://", "")
+      ) as { venueID: string; paperKey: string };
+      const venueScrapeURL =
+        "https://dblp.org/search/venue/api?q=" + venueID + "&format=json";
+
+      const rawSearchResponse = await DBLPScraper._scrapeRequest(
+        venueScrapeURL,
+        headers
+      );
+
+      // Try to fetch bib to handel workshop papers
+      const bibURL = `https://dblp.org/rec/${paperKey}.bib?param=1`;
+      const rawBibResponse = await DBLPScraper._scrapeRequest(bibURL, headers);
+
+      paperEntityDraft = DBLPScraper.parsingProcessVenue(
+        {
+          apiResponse: rawSearchResponse,
+          bibResponse: rawBibResponse,
+        },
         paperEntityDraft,
+        venueID
       );
     }
 
-    this.uploadCache(paperEntityDraft, 'openreview');
-
-    return paperEntityDraft;
-  } else {
     return paperEntityDraft;
   }
 }

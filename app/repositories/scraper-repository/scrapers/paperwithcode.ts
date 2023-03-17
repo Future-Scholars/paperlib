@@ -3,12 +3,23 @@ import { Response } from "got";
 import { PaperEntity } from "@/models/paper-entity";
 import { formatString } from "@/utils/string";
 
-import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { Scraper, ScraperRequestType } from "./scraper";
+
+interface ResponseType {
+  count?: number;
+  results: {
+    url: string;
+    is_official: boolean;
+    stars: number;
+  }[];
+}
 
 export class PwCScraper extends Scraper {
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable = paperEntityDraft.title !== "" && this.getEnable("pwc");
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return paperEntityDraft.title !== "";
+  }
 
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const connectedTitle = formatString({
       str: paperEntityDraft.title,
       removeStr: "&amp;",
@@ -23,25 +34,14 @@ export class PwCScraper extends Scraper {
       Accept: "application/json",
     };
 
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping code from paperswithcode.com ...`;
-    }
-
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const response = JSON.parse(rawResponse.body) as {
-      count?: number;
-      results: {
-        url: string;
-        is_official: boolean;
-        stars: number;
-      }[];
-    };
+    const response = JSON.parse(rawResponse.body) as ResponseType;
 
     if (response.count) {
       let codeList: string[] = [];
@@ -71,20 +71,16 @@ export class PwCScraper extends Scraper {
     }
     return paperEntityDraft;
   }
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
 
-  scrapeImpl = scrapeImpl;
-}
+    const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-async function scrapeImpl(
-  this: ScraperType,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
-
-  if (enable || force) {
     const rawSearchResponse = (await window.networkTool.get(
       scrapeURL,
       headers
@@ -133,14 +129,9 @@ async function scrapeImpl(
         headers
       )) as Response<string>;
 
-      return this.parsingProcess(
-        rawRepoResponse,
-        paperEntityDraft
-      ) as PaperEntity;
+      return this.parsingProcess(rawRepoResponse, paperEntityDraft);
     } else {
       return paperEntityDraft;
     }
-  } else {
-    return paperEntityDraft;
   }
 }

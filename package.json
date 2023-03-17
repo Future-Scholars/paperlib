@@ -60,6 +60,7 @@
     "md5-file": "5.0.0",
     "node-html-parser": "5.3.3",
     "pinia": "2.0.21",
+    "queue": "6.0.2",
     "realm": "10.22.0",
     "splitpanes": "3.1.1",
     "string-similarity": "4.0.4",

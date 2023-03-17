@@ -95,8 +95,9 @@ export class PaperEntityRepository {
         objects = objects.filtered(filterPattern);
       } catch (error) {
         console.error(error);
-        this.stateStore.logState.alertLog = `Filter pattern is invalid: ${error as string
-          }`;
+        this.stateStore.logState.alertLog = `Filter pattern is invalid: ${
+          error as string
+        }`;
       }
     }
 
@@ -182,15 +183,16 @@ export class PaperEntityRepository {
               addedObj.folders = paperFolder;
             }
           } else {
-            return false
+            return false;
           }
         }
         return true;
       });
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Failed to update database: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Failed to update database: ${
+        error as string
+      }`;
       return false;
     }
   }
@@ -218,8 +220,9 @@ export class PaperEntityRepository {
       });
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Failed to delete papers: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Failed to delete papers: ${
+        error as string
+      }`;
       return false;
     }
   }

@@ -4,17 +4,41 @@ import stringSimilarity from "string-similarity";
 import { PaperEntity } from "@/models/paper-entity";
 import { formatString } from "@/utils/string";
 
-import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { Scraper, ScraperRequestType } from "./scraper";
+
+interface ResponseTypeA {
+  data: [
+    {
+      paperId: string;
+      title: string;
+      citationCount?: number;
+      influentialCitationCount?: number;
+    }
+  ];
+}
+interface ResponseTypeB {
+  paperId: string;
+  title: string;
+  citationCount?: number;
+  influentialCitationCount?: number;
+}
 
 export class CitationCountScraper extends Scraper {
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable = paperEntityDraft.title !== "" || paperEntityDraft.doi !== "" || paperEntityDraft.arxiv !== "";
-
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return (
+      paperEntityDraft.title !== "" ||
+      paperEntityDraft.doi !== "" ||
+      paperEntityDraft.arxiv !== ""
+    );
+  }
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     let scrapeURL;
     if (paperEntityDraft.doi !== "") {
       scrapeURL = `https://api.semanticscholar.org/graph/v1/paper/${paperEntityDraft.doi}?fields=title,citationCount,influentialCitationCount`;
     } else if (paperEntityDraft.arxiv !== "") {
-      scrapeURL = `https://api.semanticscholar.org/graph/v1/paper/arXiv:${paperEntityDraft.arxiv.toLowerCase().replace('arxiv:', '').split('v')[0]}?fields=title,citationCount,influentialCitationCount`;
+      scrapeURL = `https://api.semanticscholar.org/graph/v1/paper/arXiv:${
+        paperEntityDraft.arxiv.toLowerCase().replace("arxiv:", "").split("v")[0]
+      }?fields=title,citationCount,influentialCitationCount`;
     } else {
       scrapeURL = `https://api.semanticscholar.org/graph/v1/paper/search?query=${formatString(
         {
@@ -24,34 +48,22 @@ export class CitationCountScraper extends Scraper {
       )}&limit=10&fields=title,citationCount,influentialCitationCount`;
     }
     const headers = {};
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): any {
-    const parsedResponse = JSON.parse(rawResponse.body) as {
-      data: [
-        {
-          paperId: string;
-          title: string;
-          citationCount?: number;
-          influentialCitationCount?: number;
-        }
-      ]
-    } | {
-      paperId: string;
-      title: string;
-      citationCount?: number;
-      influentialCitationCount?: number;
-    };
+    const parsedResponse = JSON.parse(rawResponse.body) as
+      | ResponseTypeA
+      | ResponseTypeB;
 
     let citationCount = {
-      semanticscholarId: '',
-      citationCount: 'N/A',
-      influentialCitationCount: 'N/A',
-    }
+      semanticscholarId: "",
+      citationCount: "N/A",
+      influentialCitationCount: "N/A",
+    };
 
     let itemList;
     // @ts-ignore
@@ -61,7 +73,6 @@ export class CitationCountScraper extends Scraper {
     } else {
       itemList = [parsedResponse];
     }
-
 
     for (const item of itemList) {
       const plainHitTitle = formatString({
@@ -84,27 +95,24 @@ export class CitationCountScraper extends Scraper {
           semanticscholarId: item.paperId,
           citationCount: `${item.citationCount}`,
           influentialCitationCount: `${item.influentialCitationCount}`,
-        }
+        };
         break;
       }
     }
 
     return citationCount;
   }
-  scrapeImpl = scrapeImpl
-}
 
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
 
-async function scrapeImpl(
-  this: ScraperType,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
+    const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-  if (enable || force) {
     const response = (await window.networkTool.get(
       scrapeURL,
       headers,
@@ -113,8 +121,6 @@ async function scrapeImpl(
       5000,
       true
     )) as Response<string>;
-    return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
-  } else {
-    return paperEntityDraft;
+    return this.parsingProcess(response, paperEntityDraft);
   }
 }

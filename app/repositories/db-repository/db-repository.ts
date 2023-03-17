@@ -117,13 +117,15 @@ export class DBRepository {
               this.syncSession = this._realm.syncSession;
             } catch (err) {
               console.log(err);
-              this.stateStore.logState.alertLog = `Open cloud database faild: ${err as string
-                }`;
+              this.stateStore.logState.alertLog = `Open cloud database faild: ${
+                err as string
+              }`;
             }
           }
         } else {
-          this.stateStore.logState.alertLog = `Open cloud database faild: ${err as string
-            }`;
+          this.stateStore.logState.alertLog = `Open cloud database faild: ${
+            err as string
+          }`;
         }
       }
     } else {
@@ -131,8 +133,9 @@ export class DBRepository {
         this._realm = new Realm(this.localConfig as Realm.Configuration);
       } catch (err) {
         console.error(err);
-        this.stateStore.logState.alertLog = `Open local database faild: ${err as string
-          }`;
+        this.stateStore.logState.alertLog = `Open local database faild: ${
+          err as string
+        }`;
       }
     }
 
@@ -327,8 +330,9 @@ export class DBRepository {
       await this.updatePaperEntities(entityDraftsWithCategorizer);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Migration failed, ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Migration failed, ${
+        error as string
+      }`;
     }
   }
 
@@ -435,24 +439,20 @@ export class DBRepository {
           }
         }
 
-        const tags = existingPaperEntity
-          ? this.categorizerRepository.update(
-            realm,
-            existingPaperEntity.tags,
-            paperEntity.tags,
-            "PaperTag",
-            this.getPartition()
-          )
-          : [];
-        const folders = existingPaperEntity
-          ? this.categorizerRepository.update(
-            realm,
-            existingPaperEntity.folders,
-            paperEntity.folders,
-            "PaperFolder",
-            this.getPartition()
-          )
-          : [];
+        const tags = this.categorizerRepository.update(
+          realm,
+          existingPaperEntity ? existingPaperEntity.tags : [],
+          paperEntity.tags,
+          "PaperTag",
+          this.getPartition()
+        );
+        const folders = this.categorizerRepository.update(
+          realm,
+          existingPaperEntity ? existingPaperEntity.folders : [],
+          paperEntity.folders,
+          "PaperFolder",
+          this.getPartition()
+        );
 
         const success = this.paperEntityRepository.update(
           realm,
@@ -524,7 +524,10 @@ export class DBRepository {
     return this.feedRepository.colorize(realm, color, feed, name);
   }
 
-  async updateFeedEntities(feedEntities: FeedEntity[], ignoreReadState = false) {
+  async updateFeedEntities(
+    feedEntities: FeedEntity[],
+    ignoreReadState = false
+  ) {
     const realm = await this.realm();
 
     realm.safeWrite(() => {
@@ -542,17 +545,17 @@ export class DBRepository {
 
         const feed = existingFeedEntity
           ? this.feedRepository.update(
-            realm,
-            existingFeedEntity.feed,
-            feedEntity.feed,
-            this.getPartition()
-          )
+              realm,
+              existingFeedEntity.feed,
+              feedEntity.feed,
+              this.getPartition()
+            )
           : this.feedRepository.update(
-            realm,
-            null,
-            feedEntity.feed,
-            this.getPartition()
-          );
+              realm,
+              null,
+              feedEntity.feed,
+              this.getPartition()
+            );
         let success;
         if (feed) {
           success = this.feedEntityRepository.update(

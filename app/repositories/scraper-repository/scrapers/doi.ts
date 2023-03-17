@@ -5,12 +5,28 @@ import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 
+interface ResponseType {
+  title: string;
+  author: { given?: string; family?: string; name?: string }[];
+  published: {
+    "date-parts": { "0": string[] };
+  };
+  type: string;
+  "container-title": string | string[];
+  publisher: string;
+  page: string;
+  volume: string;
+  issue: string;
+  subtitle: string[];
+  institution?: [{ name: string }];
+}
+
 export class DOIScraper extends Scraper {
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      paperEntityDraft.doi !== "" &&
-      this.getEnable("doi") &&
-      this.isPreprint(paperEntityDraft);
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return paperEntityDraft.doi !== "";
+  }
+
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const doiID = formatString({
       str: paperEntityDraft.doi,
       removeNewline: true,
@@ -21,13 +37,10 @@ export class DOIScraper extends Scraper {
       Accept: "application/json",
     };
 
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata by DOI ...`;
-    }
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
@@ -35,21 +48,11 @@ export class DOIScraper extends Scraper {
       return paperEntityDraft;
     }
 
-    const response = JSON.parse(rawResponse.body) as {
-      title: string;
-      author: { given?: string; family?: string; name?: string }[];
-      published: {
-        "date-parts": { "0": string[] };
-      };
-      type: string;
-      "container-title": string | string[];
-      publisher: string;
-      page: string;
-      volume: string;
-      issue: string;
-      subtitle: string[];
-    };
-    const title = [response.title, response.subtitle.join(' ')].filter(t => t !== '').join(" - ").replaceAll('&amp;', '&');
+    const response = JSON.parse(rawResponse.body) as ResponseType;
+    const title = [response.title, response.subtitle.join(" ")]
+      .filter((t) => t !== "")
+      .join(" - ")
+      .replaceAll("&amp;", "&");
     const authors = response.author
       .map((author) => {
         if (author.name) {
@@ -65,21 +68,32 @@ export class DOIScraper extends Scraper {
       pubType = 1;
     } else if (response.type == "journal-article") {
       pubType = 0;
-    } else if (response.type.includes("book") || response.type.includes("monograph")) {
+    } else if (
+      response.type.includes("book") ||
+      response.type.includes("monograph")
+    ) {
       pubType = 3;
     } else {
       pubType = 2;
     }
 
-    let publication
-    if (response.type.includes('monograph')) {
-      publication = response.publisher.replaceAll('&amp;', '&');
+    let publication;
+    if (response.type.includes("monograph")) {
+      publication = response.publisher.replaceAll("&amp;", "&");
     } else {
       publication = response["container-title"];
       if (Array.isArray(publication)) {
-        publication = publication.join(', ').replaceAll('&amp;', '&');
+        publication = publication.join(", ").replaceAll("&amp;", "&");
       } else {
-        publication = publication.replaceAll('&amp;', '&');
+        publication = publication.replaceAll("&amp;", "&");
+      }
+    }
+
+    if (response.institution && response.institution.length > 0) {
+      if (response.institution[0].name === "medRxiv") {
+        publication = "medRxiv";
+      } else if (response.institution[0].name === "bioRxiv") {
+        publication = "bioRxiv";
       }
     }
 
@@ -106,7 +120,6 @@ export class DOIScraper extends Scraper {
           : response.publisher
       );
     }
-    this.uploadCache(paperEntityDraft, "doi");
     return paperEntityDraft;
   }
 }
