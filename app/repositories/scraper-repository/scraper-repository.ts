@@ -212,20 +212,20 @@ export class ScraperRepository {
     // 2. Scrape from default Paperlib metadata service
     this.stateStore.logState.processLog = `Paperlib Metadata service ...`;
     let paperlibMetadataServiceSuccess = false;
-    // try {
-    //   paperEntityDraft = await PaperlibMetadataServiceScraper.scrape(
-    //     paperEntityDraft,
-    //     enabeledBuiltinScraperList,
-    //     force
-    //   );
-    //   paperlibMetadataServiceSuccess = true;
-    // } catch (error) {
-    //   console.error(error);
-    //   paperlibMetadataServiceSuccess = false;
-    //   this.stateStore.logState.alertLog = `Paperlib Metadata service error: ${
-    //     error as string
-    //   }`;
-    // }
+    try {
+      paperEntityDraft = await PaperlibMetadataServiceScraper.scrape(
+        paperEntityDraft,
+        ["cache"].concat(enabeledBuiltinScraperList),
+        force
+      );
+      paperlibMetadataServiceSuccess = true;
+    } catch (error) {
+      console.error(error);
+      paperlibMetadataServiceSuccess = false;
+      this.stateStore.logState.alertLog = `Paperlib Metadata service error: ${
+        error as string
+      }`;
+    }
 
     // 3. Scrape from client-side scrapers as backup if Paperlib metadata failed.
     if (!paperlibMetadataServiceSuccess) {
