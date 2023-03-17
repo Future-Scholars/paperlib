@@ -166,7 +166,10 @@ const onItemClicked = (event: MouseEvent, index: number) => {
     for (let i = minIndex; i <= maxIndex; i++) {
       selectedIndex.value.push(i);
     }
-  } else if (event.ctrlKey) {
+  } else if (
+    (event.ctrlKey && !window.appInteractor.isMac()) ||
+    (event.metaKey && window.appInteractor.isMac())
+  ) {
     if (selectedIndex.value.indexOf(index) >= 0) {
       selectedIndex.value.splice(selectedIndex.value.indexOf(index), 1);
     } else {

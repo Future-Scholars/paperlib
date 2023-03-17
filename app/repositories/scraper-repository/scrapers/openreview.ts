@@ -2,6 +2,7 @@ import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { DBLPScraper } from "./dblp";
@@ -21,7 +22,9 @@ interface ResponseType {
 
 export class OpenreviewScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
-    return paperEntityDraft.title !== "";
+    return (
+      paperEntityDraft.title !== "" && !isMetadataCompleted(paperEntityDraft)
+    );
   }
 
   static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {

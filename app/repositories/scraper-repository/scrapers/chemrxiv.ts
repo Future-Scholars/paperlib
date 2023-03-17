@@ -2,6 +2,7 @@ import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { DOIScraper } from "./doi";
@@ -23,7 +24,9 @@ interface ResponseType {
 export class ChemRxivPreciseScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
     return (
-      paperEntityDraft.doi !== "" && paperEntityDraft.doi.includes("chemrxiv")
+      paperEntityDraft.doi !== "" &&
+      paperEntityDraft.doi.includes("chemrxiv") &&
+      !isMetadataCompleted(paperEntityDraft)
     );
   }
 
@@ -121,7 +124,9 @@ export class ChemRxivPreciseScraper extends Scraper {
 
 export class ChemRxivFuzzyScraper extends ChemRxivPreciseScraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
-    return paperEntityDraft.title !== "";
+    return (
+      paperEntityDraft.title !== "" && !isMetadataCompleted(paperEntityDraft)
+    );
   }
 
   static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {

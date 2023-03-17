@@ -2,6 +2,7 @@ import { Response } from "got";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { ScraperPreference } from "@/preference/preference";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
@@ -32,7 +33,11 @@ export class IEEEScraper extends Scraper {
         "ieee"
       ]?.args ?? "";
 
-    return paperEntityDraft.title !== "" && IEEEAPIKey !== "";
+    return (
+      paperEntityDraft.title !== "" &&
+      IEEEAPIKey !== "" &&
+      !isMetadataCompleted(paperEntityDraft)
+    );
   }
 
   static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {

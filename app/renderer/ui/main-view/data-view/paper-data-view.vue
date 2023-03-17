@@ -219,7 +219,10 @@ const onItemClicked = (event: MouseEvent, index: number) => {
     for (let i = minIndex; i <= maxIndex; i++) {
       selectedIndex.value.push(i);
     }
-  } else if (event.ctrlKey) {
+  } else if (
+    (event.ctrlKey && !window.appInteractor.isMac()) ||
+    (event.metaKey && window.appInteractor.isMac())
+  ) {
     if (selectedIndex.value.indexOf(index) >= 0) {
       selectedIndex.value.splice(selectedIndex.value.indexOf(index), 1);
     } else {
@@ -229,7 +232,9 @@ const onItemClicked = (event: MouseEvent, index: number) => {
     selectedIndex.value = [index];
     selectedLastSingleIndex.value = index;
   }
-  selectionState.selectedIndex = selectedIndex.value;
+  selectionState.selectedIndex = JSON.parse(
+    JSON.stringify(selectedIndex.value)
+  );
 };
 
 const onItemRightClicked = (event: MouseEvent, index: number) => {
