@@ -4,6 +4,9 @@ on:
   push:
     tags: [release-electron*]
 
+permissions:
+  contents: write
+
 jobs:
   mac_x86_deploy:
     runs-on: macos-latest
