@@ -399,6 +399,18 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
+    pubmed: {
+      name: "pubmed",
+      category: "bio / med",
+      description: "PubMed",
+      enable: false,
+      custom: false,
+      args: "",
+      priority: 1,
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
   },
 
   downloaders: [

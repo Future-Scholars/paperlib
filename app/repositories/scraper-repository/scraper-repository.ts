@@ -24,6 +24,7 @@ import { OpenreviewScraper } from "./scrapers/openreview";
 import { PaperlibMetadataServiceScraper } from "./scrapers/paperlib-metadata";
 import { PwCScraper } from "./scrapers/paperwithcode";
 import { PDFScraper } from "./scrapers/pdf";
+import { PubMedScraper } from "./scrapers/pubmed";
 import { ScopusScraper } from "./scrapers/scopus";
 import { Scraper } from "./scrapers/scraper";
 import { SemanticScholarScraper } from "./scrapers/semanticscholar";
@@ -105,6 +106,7 @@ const SCRAPER_OBJS = new Map<string, typeof Scraper>([
   ["chemrxivprecise", ChemRxivPreciseScraper],
   ["chemrxivfuzzy", ChemRxivFuzzyScraper],
   ["ieee", IEEEScraper],
+  ["pubmed", PubMedScraper],
 ]);
 
 const CLIENTSIDE_SCRAPER_OBJS = new Map<string, typeof Scraper | CustomScraper>(
@@ -209,20 +211,21 @@ export class ScraperRepository {
 
     // 2. Scrape from default Paperlib metadata service
     this.stateStore.logState.processLog = `Paperlib Metadata service ...`;
-    let paperlibMetadataServiceSuccess = true;
-    try {
-      paperEntityDraft = await PaperlibMetadataServiceScraper.scrape(
-        paperEntityDraft,
-        enabeledBuiltinScraperList,
-        force
-      );
-    } catch (error) {
-      console.error(error);
-      paperlibMetadataServiceSuccess = false;
-      this.stateStore.logState.alertLog = `Paperlib Metadata service error: ${
-        error as string
-      }`;
-    }
+    let paperlibMetadataServiceSuccess = false;
+    // try {
+    //   paperEntityDraft = await PaperlibMetadataServiceScraper.scrape(
+    //     paperEntityDraft,
+    //     enabeledBuiltinScraperList,
+    //     force
+    //   );
+    //   paperlibMetadataServiceSuccess = true;
+    // } catch (error) {
+    //   console.error(error);
+    //   paperlibMetadataServiceSuccess = false;
+    //   this.stateStore.logState.alertLog = `Paperlib Metadata service error: ${
+    //     error as string
+    //   }`;
+    // }
 
     // 3. Scrape from client-side scrapers as backup if Paperlib metadata failed.
     if (!paperlibMetadataServiceSuccess) {
