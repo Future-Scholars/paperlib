@@ -70,6 +70,7 @@ export default defineConfig({
             "electron-proxy-agent",
             "string-similarity",
             "sudo-prompt",
+            "queue"
           ];
         },
       },

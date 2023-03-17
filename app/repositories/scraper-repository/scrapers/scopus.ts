@@ -2,34 +2,38 @@ import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { cryptoAndSign } from "@/utils/crypto/crypto";
 import { formatString } from "@/utils/string";
 
+import { DOIScraper } from "./doi";
 import { Scraper, ScraperRequestType } from "./scraper";
-import { DOIInnerScraper } from "./doi-inner";
+
+interface ResponseType {
+  "search-results": {
+    entry: [
+      {
+        "dc:title": string;
+        "dc:creator": string;
+        "prism:volume": string;
+        "prism:issueIdentifier": string;
+        "prism:pageRange": string;
+        "prism:coverDate": string;
+        "prism:doi": string;
+        "prism:aggregationType": string;
+        "prism:publicationName": string;
+      }
+    ];
+  };
+}
 
 export class ScopusScraper extends Scraper {
-  doiScraper: DOIInnerScraper;
-
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    super(stateStore, preference);
-
-    this.doiScraper = new DOIInnerScraper(stateStore, preference);
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return paperEntityDraft.title !== "";
   }
 
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      this.getEnable("scopus") &&
-      paperEntityDraft.title !== "" &&
-      this.isPreprint(paperEntityDraft);
-
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const scrapeURL = `https://api.paperlib.app/publicdb/query`;
     const headers = {};
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from Elseivier Scopus...`;
-    }
 
     const content = {
       query: `TITLE(${formatString({
@@ -39,30 +43,14 @@ export class ScopusScraper extends Scraper {
       database: "scopus",
     };
 
-    return { scrapeURL, headers, enable, content };
+    return { scrapeURL, headers, content };
   }
 
   parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const parsedResponse = JSON.parse(rawResponse.body) as {
-      "search-results": {
-        entry: [
-          {
-            "dc:title": string;
-            "dc:creator": string;
-            "prism:volume": string;
-            "prism:issueIdentifier": string;
-            "prism:pageRange": string;
-            "prism:coverDate": string;
-            "prism:doi": string;
-            "prism:aggregationType": string;
-            "prism:publicationName": string;
-          }
-        ];
-      };
-    };
+    const parsedResponse = JSON.parse(rawResponse.body) as ResponseType;
     for (const item of parsedResponse["search-results"].entry) {
       const plainHitTitle = formatString({
         str: item["dc:title"],
@@ -119,20 +107,16 @@ export class ScopusScraper extends Scraper {
     return paperEntityDraft;
   }
 
-  // @ts-ignore
-  scrapeImpl = scrapeImpl;
-}
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
 
-async function scrapeImpl(
-  this: ScopusScraper,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable, content } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
+    const { scrapeURL, headers, content } = this.preProcess(paperEntityDraft);
 
-  if (enable || force) {
     const signedData = cryptoAndSign(content!);
 
     const response = (await window.networkTool.post(
@@ -142,16 +126,10 @@ async function scrapeImpl(
       1,
       5000
     )) as Response<string>;
-    paperEntityDraft = this.parsingProcess(
-      response,
-      paperEntityDraft
-    ) as PaperEntity;
+    paperEntityDraft = this.parsingProcess(response, paperEntityDraft);
 
-    paperEntityDraft = await this.doiScraper.scrape(paperEntityDraft);
-    this.uploadCache(paperEntityDraft, "scopus");
+    paperEntityDraft = await DOIScraper.scrape(paperEntityDraft);
 
-    return paperEntityDraft;
-  } else {
     return paperEntityDraft;
   }
 }

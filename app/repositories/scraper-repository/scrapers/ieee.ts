@@ -6,17 +6,40 @@ import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 
+interface ResponseType {
+  total_records: number;
+  articles: {
+    title: string;
+    authors: {
+      authors: {
+        full_name: string;
+      }[];
+    };
+    publication_year: string;
+    content_type: string;
+    publication_title: string;
+    volume: string;
+    publisher: string;
+    start_page: string;
+    end_page: string;
+  }[];
+}
+
 export class IEEEScraper extends Scraper {
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const ieeeAPIKey =
-      (this.preference.get("scrapers") as Record<string, ScraperPreference>)[
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    const IEEEAPIKey =
+      (window.preference.get("scrapers") as Record<string, ScraperPreference>)[
         "ieee"
       ]?.args ?? "";
-    const enable =
-      paperEntityDraft.title !== "" &&
-      this.isPreprint(paperEntityDraft) &&
-      ieeeAPIKey !== "" &&
-      this.getEnable("ieee");
+
+    return paperEntityDraft.title !== "" && IEEEAPIKey !== "";
+  }
+
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
+    const IEEEAPIKey =
+      (window.preference.get("scrapers") as Record<string, ScraperPreference>)[
+        "ieee"
+      ]?.args ?? "";
 
     let requestTitle = formatString({
       str: paperEntityDraft.title,
@@ -25,7 +48,7 @@ export class IEEEScraper extends Scraper {
     requestTitle = requestTitle.replace(/ /g, "+");
     const scrapeURL =
       "http://ieeexploreapi.ieee.org/api/v1/search/articles?apikey=" +
-      ieeeAPIKey +
+      IEEEAPIKey +
       "&format=json&max_records=25&start_record=1&sort_order=asc&sort_field=article_number&article_title=" +
       requestTitle;
 
@@ -33,35 +56,14 @@ export class IEEEScraper extends Scraper {
       Accept: "application/json",
     };
 
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from IEEE Xplore ...`;
-    }
-
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const response = JSON.parse(rawResponse.body) as {
-      total_records: number;
-      articles: {
-        title: string;
-        authors: {
-          authors: {
-            full_name: string;
-          }[];
-        };
-        publication_year: string;
-        content_type: string;
-        publication_title: string;
-        volume: string;
-        publisher: string;
-        start_page: string;
-        end_page: string;
-      }[];
-    };
+    const response = JSON.parse(rawResponse.body) as ResponseType;
     if (response.total_records > 0) {
       for (const article of response.articles) {
         const plainHitTitle = formatString({
@@ -126,7 +128,6 @@ export class IEEEScraper extends Scraper {
             paperEntityDraft.setValue("publisher", article.publisher);
           }
           break;
-          this.uploadCache(paperEntityDraft, "ieee");
         }
       }
     }

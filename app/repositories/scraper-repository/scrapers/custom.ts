@@ -2,48 +2,34 @@ import { Response } from "got";
 
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference, ScraperPreference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { ScraperPreference } from "@/preference/preference";
 
-import { Scraper, ScraperRequestType, ScraperType } from "./scraper";
+import { Scraper, ScraperRequestType } from "./scraper";
 
-export class CustomScraper extends Scraper {
-  name = "";
+export class CustomScraper {
+  scraperName: string;
 
   tagClass: typeof PaperTag;
   folderClass: typeof PaperFolder;
 
-  constructor(
-    stateStore: MainRendererStateStore,
-    preference: Preference,
-    name: string
-  ) {
-    super(stateStore, preference);
-
-    this.name = name;
+  constructor(scraperName: string) {
+    this.scraperName = scraperName;
     this.tagClass = PaperTag;
     this.folderClass = PaperFolder;
   }
 
   preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    let enable = this.getEnable(this.name);
     let scrapeURL = `https://httpbin.org/get`;
     let headers = {};
     const preProcessCode = (
-      this.preference.get("scrapers") as Record<string, ScraperPreference>
-    )[this.name]?.preProcessCode;
+      window.preference.get("scrapers") as Record<string, ScraperPreference>
+    )[this.scraperName]?.preProcessCode;
 
     if (preProcessCode) {
       eval(preProcessCode);
-    } else {
-      enable = false;
     }
 
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from ${this.name}...`;
-    }
-
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
   parsingProcess(
@@ -51,8 +37,8 @@ export class CustomScraper extends Scraper {
     paperEntityDraft: PaperEntity
   ): PaperEntity {
     const parsingProcessCode = (
-      this.preference.get("scrapers") as Record<string, ScraperPreference>
-    )[this.name]?.parsingProcessCode;
+      window.preference.get("scrapers") as Record<string, ScraperPreference>
+    )[this.scraperName]?.parsingProcessCode;
 
     if (parsingProcessCode) {
       eval(parsingProcessCode);
@@ -60,38 +46,32 @@ export class CustomScraper extends Scraper {
 
     return paperEntityDraft;
   }
-  scrapeImpl = scrapeImpl;
-}
 
-async function scrapeImpl(
-  this: ScraperType,
-  paperEntityDraft: PaperEntity
-): Promise<PaperEntity> {
-  let scrapeImplCode =
-    (this.preference.get("scrapers") as Record<string, ScraperPreference>)[
-      // @ts-ignore
-      this.name
-    ]?.scrapeImplCode || "";
+  async scrape(
+    paperEntityDraft: PaperEntity,
+    force: boolean = false
+  ): Promise<PaperEntity> {
+    let scrapeImplCode =
+      (window.preference.get("scrapers") as Record<string, ScraperPreference>)[
+        this.scraperName
+      ]?.scrapeImplCode || "";
 
-  scrapeImplCode = scrapeImplCode.replaceAll("return", "paperEntityDraft = ");
+    scrapeImplCode = scrapeImplCode.replaceAll("return", "paperEntityDraft = ");
 
-  if (scrapeImplCode) {
-    eval(scrapeImplCode);
-  } else {
-    const { scrapeURL, headers, enable } = this.preProcess(
-      paperEntityDraft
-    ) as ScraperRequestType;
+    if (scrapeImplCode) {
+      eval(scrapeImplCode);
+    } else {
+      const { scrapeURL, headers } = this.preProcess(
+        paperEntityDraft
+      ) as ScraperRequestType;
 
-    if (enable) {
       const response = (await window.networkTool.get(
         scrapeURL,
         headers
       )) as Response<string>;
-      return this.parsingProcess(response, paperEntityDraft) as PaperEntity;
-    } else {
-      return paperEntityDraft;
+      return this.parsingProcess(response, paperEntityDraft);
     }
-  }
 
-  return paperEntityDraft;
+    return paperEntityDraft;
+  }
 }

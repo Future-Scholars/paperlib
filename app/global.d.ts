@@ -8,6 +8,8 @@ import { PluginSideInteractor } from "./interactors/plugin-side-interactor";
 import { PreviewInteractor } from "./interactors/preview-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
 import { WordAddinInteractor } from "./interactors/word-addin-interactor";
+import { Preference } from "./preference/preference";
+import { MainRendererStateStore } from "./state/renderer/appstate";
 import { NetworkTool } from "./utils/got";
 
 declare global {
@@ -21,6 +23,8 @@ declare global {
     wordAddinInteractor: WordAddinInteractor;
 
     networkTool: NetworkTool;
+    preference: Preference;
+    stateStore: MainRendererStateStore;
   }
 
   interface Realm {

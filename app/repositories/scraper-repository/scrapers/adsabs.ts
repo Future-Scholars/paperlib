@@ -2,30 +2,38 @@ import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { cryptoAndSign } from "@/utils/crypto/crypto";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
-import { cryptoAndSign } from "@/utils/crypto/crypto";
+
+interface ResponseType {
+  response: {
+    docs: [
+      {
+        author: string[];
+        doi?: string[];
+        issue: string;
+        page: string[];
+        pub: string;
+        pubdate: string;
+        title: string[];
+        year: string;
+        doctype: string;
+        volume: string;
+      }
+    ];
+  };
+}
 
 export class AdsabsScraper extends Scraper {
-
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    super(stateStore, preference);
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return paperEntityDraft.title !== "";
   }
 
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      this.getEnable("adsabs") &&
-      paperEntityDraft.title !== "" &&
-      this.isPreprint(paperEntityDraft);
-
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const scrapeURL = `https://api.paperlib.app/publicdb/query`;
     const headers = {};
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from NASA Ads...`;
-    }
 
     const content = {
       query: `title:${formatString({
@@ -35,31 +43,14 @@ export class AdsabsScraper extends Scraper {
       database: "adsabs",
     };
 
-    return { scrapeURL, headers, enable, content };
+    return { scrapeURL, headers, content };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const parsedResponse = JSON.parse(rawResponse.body) as {
-      "response": {
-        "docs": [
-          {
-            "author": string[],
-            "doi"?: string[],
-            "issue": string,
-            "page": string[],
-            "pub": string,
-            "pubdate": string,
-            "title": string[],
-            "year": string,
-            "doctype": string,
-            'volume': string,
-          }
-        ]
-      }
-    };
+    const parsedResponse = JSON.parse(rawResponse.body) as ResponseType;
 
     for (const item of parsedResponse.response.docs) {
       const plainHitTitle = formatString({
@@ -78,7 +69,12 @@ export class AdsabsScraper extends Scraper {
 
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
-        paperEntityDraft.setValue("title", item.title.join(' ') || "", false, true);
+        paperEntityDraft.setValue(
+          "title",
+          item.title.join(" ") || "",
+          false,
+          true
+        );
         if (item.doi) {
           paperEntityDraft.setValue("doi", item.doi[0] || "", false);
         }
@@ -87,36 +83,30 @@ export class AdsabsScraper extends Scraper {
           paperEntityDraft.setValue("pubType", 0, false);
         } else if (item.doctype.includes("book")) {
           paperEntityDraft.setValue("pubType", 3, false);
-        } else if (item.doctype.includes('proceeding')) {
+        } else if (item.doctype.includes("proceeding")) {
           paperEntityDraft.setValue("pubType", 1, false);
         } else {
           paperEntityDraft.setValue("pubType", 2, false);
         }
 
-        paperEntityDraft.setValue("pages", item.page.join('-'), false);
-        paperEntityDraft.setValue(
-          "publication",
-          item.pub,
-          false
-        );
-        paperEntityDraft.setValue(
-          "pubTime",
-          `${item.year.slice(0, 4)}`,
-          false
-        );
+        paperEntityDraft.setValue("pages", item.page.join("-"), false);
+        paperEntityDraft.setValue("publication", item.pub, false);
+        paperEntityDraft.setValue("pubTime", `${item.year.slice(0, 4)}`, false);
         paperEntityDraft.setValue(
           "authors",
-          item.author.map(a => a.split(',').map(n => n.trim()).reverse().join(' ')).join(', '),
+          item.author
+            .map((a) =>
+              a
+                .split(",")
+                .map((n) => n.trim())
+                .reverse()
+                .join(" ")
+            )
+            .join(", "),
           false
         );
-        paperEntityDraft.setValue(
-          "number",
-          item.issue,
-          false
-        );
+        paperEntityDraft.setValue("number", item.issue, false);
         paperEntityDraft.setValue("volume", item.volume, false);
-
-        this.uploadCache(paperEntityDraft, "adsabs");
 
         break;
       }
@@ -125,20 +115,16 @@ export class AdsabsScraper extends Scraper {
     return paperEntityDraft;
   }
 
-  // @ts-ignore
-  scrapeImpl = scrapeImpl;
-}
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
 
-async function scrapeImpl(
-  this: AdsabsScraper,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable, content } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
+    const { scrapeURL, headers, content } = this.preProcess(paperEntityDraft);
 
-  if (enable || force) {
     const signedData = cryptoAndSign(content!);
 
     const response = (await window.networkTool.post(
@@ -148,13 +134,8 @@ async function scrapeImpl(
       1,
       5000
     )) as Response<string>;
-    paperEntityDraft = this.parsingProcess(
-      response,
-      paperEntityDraft
-    ) as PaperEntity;
+    paperEntityDraft = this.parsingProcess(response, paperEntityDraft);
 
-    return paperEntityDraft;
-  } else {
     return paperEntityDraft;
   }
 }

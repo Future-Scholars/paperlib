@@ -30,7 +30,7 @@ export interface DownloaderPreference {
 
 export interface PreferenceStore {
   appLibFolder: string;
-  deleteSourceFile: boolean;  // deprecated, use sourceFileOperation = 'cut'
+  deleteSourceFile: boolean; // deprecated, use sourceFileOperation = 'cut'
   sourceFileOperation: "cut" | "copy" | "link";
 
   showSidebarCount: boolean;
@@ -218,30 +218,6 @@ export const defaultPreferences: PreferenceStore = {
   mainviewType: "list",
 
   scrapers: {
-    pdf: {
-      name: "pdf",
-      category: "general",
-      description: "PDF builtin scraper",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 10,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    paperlib: {
-      name: "paperlib",
-      category: "official",
-      description: "The Paperlib query service.",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 9.5,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
     arxiv: {
       name: "arxiv",
       category: "general",
@@ -399,30 +375,30 @@ export const defaultPreferences: PreferenceStore = {
       parsingProcessCode: "",
       scrapeImplCode: "",
     },
-    biomedrxiv: {
-      name: 'biomedrxiv',
-      category: 'bio / med',
-      description: 'Bio/MedRxiv.org',
+    chemrxivprecise: {
+      name: "chemrxivprecise",
+      category: "chem",
+      description: "ChemRxiv.org by DOI",
       enable: false,
       custom: false,
-      args: '',
+      args: "",
       priority: 1,
-      preProcessCode: '',
-      parsingProcessCode: '',
-      scrapeImplCode: '',
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
     },
-    chemrxiv: {
-      name: 'chemrxiv',
-      category: 'chem',
-      description: 'ChemRxiv.org',
+    chemrxivfuzzy: {
+      name: "chemrxivfuzzy",
+      category: "chem",
+      description: "ChemRxiv.org by title",
       enable: false,
       custom: false,
-      args: '',
+      args: "",
       priority: 1,
-      preProcessCode: '',
-      parsingProcessCode: '',
-      scrapeImplCode: '',
-    }
+      preProcessCode: "",
+      parsingProcessCode: "",
+      scrapeImplCode: "",
+    },
   },
 
   downloaders: [
@@ -439,8 +415,7 @@ export const defaultPreferences: PreferenceStore = {
     },
     {
       name: "semanticscholar",
-      description:
-        "semanticscholar.org",
+      description: "semanticscholar.org",
       enable: true,
       custom: false,
       args: "",
@@ -500,6 +475,7 @@ export class Preference {
       this.store = new Store<PreferenceStore>({});
     }
 
+    // depracated scrapers
     const existingScraperArray = this.store.get(
       "scrapers"
     ) as unknown as ScraperPreference[];
@@ -518,6 +494,21 @@ export class Preference {
           "custom";
       }
       this.store.set("scrapers", newScraperRecord);
+    }
+
+    if (this.store.get("scrapers")) {
+      const newScraperRecord = this.store.get("scrapers");
+      try {
+        for (const key of ["pdf", "paperlib", "chemrxiv", "biomedrxiv"]) {
+          if (newScraperRecord[key]) {
+            // @ts-ignore
+            newScraperRecord[key] = undefined;
+          }
+        }
+        this.store.set("scrapers", newScraperRecord);
+      } catch (e) {
+        console.log(e);
+      }
     }
 
     const existingDownloaderArray = this.store.get(
@@ -544,8 +535,11 @@ export class Preference {
     }
 
     // migrate old preference
-    if (this.store.has("deleteSourceFile") && this.store.get("deleteSourceFile")) {
-      this.store.set('sourceFileOperation', 'cut')
+    if (
+      this.store.has("deleteSourceFile") &&
+      this.store.get("deleteSourceFile")
+    ) {
+      this.store.set("sourceFileOperation", "cut");
     }
   }
 

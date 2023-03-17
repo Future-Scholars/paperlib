@@ -2,66 +2,57 @@ import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
+import { DOIScraper } from "./doi";
 import { Scraper, ScraperRequestType } from "./scraper";
-import { DOIInnerScraper } from "./doi-inner";
+
+interface ResponseType {
+  data: [
+    {
+      title: string;
+      authors?: { name: string }[];
+      year?: string;
+      publicationVenue?: {
+        name: string;
+        type: string;
+      };
+      journal?: {
+        name?: string;
+        pages?: string;
+        volume?: string;
+      };
+      externalIds?: {
+        ArXiv?: string;
+        DOI?: string;
+      };
+    }
+  ];
+}
 
 export class SemanticScholarScraper extends Scraper {
-  doiScraper: DOIInnerScraper;
-
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    super(stateStore, preference);
-
-    this.doiScraper = new DOIInnerScraper(stateStore, preference);
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return paperEntityDraft.title !== "";
   }
 
-  preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
-    const enable =
-      this.getEnable("semanticscholar") &&
-      paperEntityDraft.title !== "" &&
-      this.isPreprint(paperEntityDraft);
+  static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const scrapeURL = `https://api.semanticscholar.org/graph/v1/paper/search?query=${formatString(
       {
         str: paperEntityDraft.title,
         whiteSymbol: true,
       }
-    )}&limit=10&fields=externalIds,authors,title,venue,year,publicationTypes,journal`;
+    )}&limit=10&fields=externalIds,authors,title,year,journal,publicationTypes`;
 
     const headers = {};
-    if (enable) {
-      this.stateStore.logState.processLog = `Scraping metadata from semanticscholar.org ...`;
-    }
 
-    return { scrapeURL, headers, enable };
+    return { scrapeURL, headers };
   }
 
-  parsingProcess(
+  static parsingProcess(
     rawResponse: Response<string>,
     paperEntityDraft: PaperEntity
   ): PaperEntity {
-    const parsedResponse = JSON.parse(rawResponse.body) as {
-      data: [
-        {
-          title: string;
-          publicationTypes?: string[];
-          authors?: { name: string }[];
-          venue?: string;
-          year?: string;
-          journal?: {
-            name?: string;
-            pages?: string;
-            volume?: string;
-          };
-          externalIds?: {
-            ArXiv?: string;
-            DOI?: string;
-          };
-        }
-      ];
-    };
+    const parsedResponse = JSON.parse(rawResponse.body) as ResponseType;
     for (const item of parsedResponse.data) {
       const plainHitTitle = formatString({
         str: item.title,
@@ -79,24 +70,30 @@ export class SemanticScholarScraper extends Scraper {
 
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
-        if (item.publicationTypes?.pop()?.toLowerCase().includes("journal")) {
-          paperEntityDraft.setValue("pubType", 0, false);
-        } else if (
-          item.publicationTypes?.pop()?.toLowerCase().includes("book")
-        ) {
-          paperEntityDraft.setValue("pubType", 3, false);
-        } else if (
-          item.publicationTypes?.pop()?.toLowerCase().includes("conference")
-        ) {
-          paperEntityDraft.setValue("pubType", 1, false);
-        } else {
-          paperEntityDraft.setValue("pubType", 2, false);
+        if (item.publicationVenue) {
+          if (item.publicationVenue.type.includes("journal")) {
+            paperEntityDraft.setValue("pubType", 0, false);
+          } else if (item.publicationVenue.type.includes("book")) {
+            paperEntityDraft.setValue("pubType", 3, false);
+          } else if (item.publicationVenue.type.includes("conference")) {
+            paperEntityDraft.setValue("pubType", 1, false);
+          } else {
+            paperEntityDraft.setValue("pubType", 2, false);
+          }
         }
 
         if (item.journal?.name) {
-          paperEntityDraft.setValue("publication", item.journal.name.replaceAll('&amp;', '&'), false);
+          paperEntityDraft.setValue(
+            "publication",
+            item.journal.name.replaceAll("&amp;", "&"),
+            false
+          );
         } else {
-          paperEntityDraft.setValue("publication", item.venue?.replaceAll('&amp;', '&'), false);
+          paperEntityDraft.setValue(
+            "publication",
+            item.publicationVenue?.name.replaceAll("&amp;", "&"),
+            false
+          );
         }
 
         paperEntityDraft.setValue(
@@ -121,20 +118,16 @@ export class SemanticScholarScraper extends Scraper {
     return paperEntityDraft;
   }
 
-  // @ts-ignore
-  scrapeImpl = scrapeImpl;
-}
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
+    if (!this.checkEnable(paperEntityDraft) && !force) {
+      return paperEntityDraft;
+    }
 
-async function scrapeImpl(
-  this: SemanticScholarScraper,
-  paperEntityDraft: PaperEntity,
-  force = false
-): Promise<PaperEntity> {
-  const { scrapeURL, headers, enable } = this.preProcess(
-    paperEntityDraft
-  ) as ScraperRequestType;
+    const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-  if (enable || force) {
     const response = (await window.networkTool.get(
       scrapeURL,
       headers,
@@ -149,7 +142,7 @@ async function scrapeImpl(
 
     const authorListfromSemanticScholar = paperEntityDraft.authors.split(", ");
 
-    paperEntityDraft = await this.doiScraper.scrape(paperEntityDraft);
+    paperEntityDraft = await DOIScraper.scrape(paperEntityDraft);
 
     // Sometimes DOI returns incomplete author list, so we use Semantic Scholar's author list if it is longer
     if (
@@ -163,10 +156,6 @@ async function scrapeImpl(
       );
     }
 
-    this.uploadCache(paperEntityDraft, "semanticscholar");
-
-    return paperEntityDraft;
-  } else {
     return paperEntityDraft;
   }
 }

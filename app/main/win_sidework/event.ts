@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow } from "electron";
+import { BrowserWindow, ipcMain } from "electron";
 import os from "os";
 import { join } from "path";
 
@@ -21,7 +21,10 @@ export function registerSideworkWindowEvents(
       dom = await winSidework?.webContents.executeJavaScript(
         "document.body.innerHTML"
       );
-      if (dom?.includes("Please show you're not a robot")) {
+      if (
+        dom?.includes("Please show you're not a robot") ||
+        dom?.includes("captcha-form")
+      ) {
         winSidework?.show();
       } else {
         winSidework?.close();

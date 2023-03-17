@@ -1,6 +1,5 @@
 import { ObjectId } from "bson";
-import Mathml2latex from 'mathml-to-latex'
-
+import Mathml2latex from "mathml-to-latex";
 
 import { PaperFolder, PaperTag } from "./categorizer";
 import { FeedEntity } from "./feed-entity";

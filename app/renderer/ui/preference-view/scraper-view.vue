@@ -127,8 +127,6 @@ const onUpdate = (key: string, value: unknown) => {
 
 const presets = {
   cs: [
-    "pdf",
-    "paperlib",
     "arxiv",
     "doi",
     "dblp",
@@ -139,8 +137,6 @@ const presets = {
     "pwc",
   ],
   es: [
-    "pdf",
-    "paperlib",
     "doi",
     "semanticscholar",
     "scopus",
@@ -149,8 +145,6 @@ const presets = {
     "googlescholar",
   ],
   phys: [
-    "pdf",
-    "paperlib",
     "arxiv",
     "doi",
     "semanticscholar",
@@ -161,15 +155,7 @@ const presets = {
     "crossref",
     "googlescholar",
   ],
-  default: [
-    "pdf",
-    "paperlib",
-    "arxiv",
-    "doi",
-    "semanticscholar",
-    "crossref",
-    "googlescholar",
-  ],
+  default: ["arxiv", "doi", "semanticscholar", "crossref", "googlescholar"],
 };
 
 const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
