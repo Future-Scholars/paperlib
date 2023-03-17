@@ -2,6 +2,7 @@ import { Response } from "got";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { bibtex2json } from "@/utils/bibtex";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
@@ -39,7 +40,8 @@ interface ResponseType {
 export class DBLPScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
     return (
-      paperEntityDraft.title.replaceAll("&amp;", "").replaceAll("&", "") !== ""
+      paperEntityDraft.title.replaceAll("&amp;", "").replaceAll("&", "") !==
+        "" && !isMetadataCompleted(paperEntityDraft)
     );
   }
 

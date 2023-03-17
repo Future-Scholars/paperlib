@@ -1,6 +1,7 @@
 import { Response } from "got";
 
 import { PaperEntity } from "@/models/paper-entity";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
@@ -23,7 +24,9 @@ interface ResponseType {
 
 export class DOIScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
-    return paperEntityDraft.doi !== "";
+    return (
+      paperEntityDraft.doi !== "" && !isMetadataCompleted(paperEntityDraft)
+    );
   }
 
   static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {

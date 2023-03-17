@@ -3,6 +3,7 @@ import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { cryptoAndSign } from "@/utils/crypto/crypto";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
@@ -31,7 +32,9 @@ interface ResponseType {
 
 export class SpringerScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
-    return paperEntityDraft.title !== "";
+    return (
+      paperEntityDraft.title !== "" && !isMetadataCompleted(paperEntityDraft)
+    );
   }
 
   static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {

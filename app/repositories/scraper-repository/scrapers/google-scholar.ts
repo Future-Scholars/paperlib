@@ -2,13 +2,16 @@ import { parse } from "node-html-parser";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 
 export class GoogleScholarScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
-    return paperEntityDraft.title !== "";
+    return (
+      paperEntityDraft.title !== "" && !isMetadataCompleted(paperEntityDraft)
+    );
   }
 
   static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {

@@ -2,13 +2,17 @@ import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
+import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 
 export class CrossRefScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
-    return paperEntityDraft.title !== "" || paperEntityDraft.doi !== "";
+    return (
+      paperEntityDraft.title !== "" ||
+      (paperEntityDraft.doi !== "" && !isMetadataCompleted(paperEntityDraft))
+    );
   }
 
   static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
