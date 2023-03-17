@@ -86,13 +86,19 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.1.5 更新内容
+          Paperlib 2.2.0 更新内容
         </p>
 
         <ul class="list-disc mb-5">
-          <li>优化 DBLP scaper 对部分 workshop 论文的检索结果。</li>
-          <li>修复 BibTex 输出中一些特殊字符的问题。</li>
-          <li>修复一些 Bug。</li>
+          <li>
+            新的官方 metadata 检索服务 Paperlib official metadata service
+            以及新的搜刮逻辑让元数据检索更快更稳定。
+          </li>
+          <li>新搜刮器 PubMed。</li>
+          <li>修复 bug: 包含 MathML 标题将被错误地搜刮。</li>
+          <li>修复 bug: Chrome 扩展程序导入 IEEE Xplore 论文。</li>
+          <li>修复 bug: 按 ctrl/cmd 多选功能。</li>
+          <li>修复 UI 问题。</li>
         </ul>
         <div
           id="whats-new-close-btn"

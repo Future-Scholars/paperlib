@@ -86,13 +86,23 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.1.5
+          What's New in Paperlib 2.2.0
         </p>
 
         <ul class="list-disc mb-5">
-          <li>Enhance the DBLP scaper for some workshop papers.</li>
-          <li>Fixed the bibtex output for special char.</li>
-          <li>Fixed some bugs</li>
+          <li>
+            New Paperlib official metadata service and scraping logic which
+            makes scraping faster and more stable.
+          </li>
+          <li>New scrapers: PubMed.</li>
+          <li>
+            Fixed a bug: Title including MathML will be scraped incorrectly.
+          </li>
+          <li>
+            Fixed a bug: Chrome extension to import papers on IEEE Xplore.
+          </li>
+          <li>Fixed a bug: Multiselection by pressing ctrl/cmd.</li>
+          <li>Fixed some UI details and a typo.</li>
         </ul>
         <div
           id="whats-new-close-btn"
