@@ -1,6 +1,2 @@
-1. New Paperlib official metadata service and scraping logic which makes scraping faster and more stable.
-2. New scrapers: PubMed.
-3. Fixed a bug: Title including MathML will be scraped incorrectly.
-4. Fixed a bug: Chrome extension to import papers on IEEE Xplore. 
-5. Fixed a bug: Multiselection by pressing ctrl/cmd.
-6. Fixed some UI details and a typo.
+1. Support fuzzy searching. For example, to search a paper with title like: Semi-supervised Classification via AABBCC, you can input "semi" / "semi sup" / "classi" / "semi classi" / "AA CC" etc. to the search bar.
+2. Minor enhancement.

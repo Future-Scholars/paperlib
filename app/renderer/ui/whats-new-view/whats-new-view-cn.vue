@@ -86,19 +86,22 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.2.0 更新内容
+          Paperlib 2.2.1 更新内容
         </p>
 
         <ul class="list-disc mb-5">
           <li>
-            新的官方 metadata 检索服务 Paperlib official metadata service
-            以及新的搜刮逻辑让元数据检索更快更稳定。
+            加入我们的 Discard channel 来讨论新 features，提出问题，或建议！
+            <a href="https://discord.com/invite/4unrSRjcM9"
+              >https://discord.com/invite/4unrSRjcM9
+            </a>
           </li>
-          <li>新搜刮器 PubMed。</li>
-          <li>修复 bug: 包含 MathML 标题将被错误地搜刮。</li>
-          <li>修复 bug: Chrome 扩展程序导入 IEEE Xplore 论文。</li>
-          <li>修复 bug: 按 ctrl/cmd 多选功能。</li>
-          <li>修复 UI 问题。</li>
+          <li>
+            支持模糊搜索，比如论文标题为 Semi-supervised Classification via
+            AABBCC，那么可以通过输入 "semi" / "semi sup" / "classi" / "semi
+            classi" / "AA CC" 等等来搜索到这篇论文。
+          </li>
+          <li>改进了一点文件导入逻辑。</li>
         </ul>
         <div
           id="whats-new-close-btn"
