@@ -86,23 +86,24 @@ onMounted(() => {
           v-else
         />
         <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.2.0
+          What's New in Paperlib 2.2.1
         </p>
 
         <ul class="list-disc mb-5">
           <li>
-            New Paperlib official metadata service and scraping logic which
-            makes scraping faster and more stable.
+            Join our Discard channel to discuss new features, ask questions, and
+            share your feedback.
+            <a href="https://discord.com/invite/4unrSRjcM9"
+              >https://discord.com/invite/4unrSRjcM9
+            </a>
           </li>
-          <li>New scrapers: PubMed.</li>
           <li>
-            Fixed a bug: Title including MathML will be scraped incorrectly.
+            Support fuzzy searching. For example, to search a paper with title
+            like: Semi-supervised Classification via AABBCC, you can input
+            "semi" / "semi sup" / "classi" / "semi classi" / "AA CC" etc. to the
+            search bar.
           </li>
-          <li>
-            Fixed a bug: Chrome extension to import papers on IEEE Xplore.
-          </li>
-          <li>Fixed a bug: Multiselection by pressing ctrl/cmd.</li>
-          <li>Fixed some UI details and a typo.</li>
+          <li>Minor enhancement.</li>
         </ul>
         <div
           id="whats-new-close-btn"

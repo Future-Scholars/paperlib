@@ -8,7 +8,7 @@
   publish: [
     {
       provider: "generic",
-      url: "https://paperlib.app/distribution/electron-mac-arm/",
+      url: "https://distribution.paperlib.app/electron-mac-arm/",
     },
   ],
   directories: {
@@ -37,6 +37,6 @@
     "!app",
     "!assets",
     "!certificate.p12",
-    "!tests"
+    "!tests",
   ],
 }

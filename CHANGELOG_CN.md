@@ -1,3 +1,8 @@
+## v2.2.1 09/04 2023
+
+1. 支持模糊搜索，比如论文标题为 Semi-supervised Classification via AABBCC，那么可以通过输入 "semi" / "semi sup" / "classi" / "semi classi" / "AA CC" 等等来搜索到这篇论文。
+2. 改进了一点文件导入逻辑。
+
 ## v2.2.0 17/03 2023
 
 1. 新的官方 metadata 检索服务 Paperlib official metadata service 以及新的搜刮逻辑让元数据检索更快更稳定。

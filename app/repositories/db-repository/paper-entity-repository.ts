@@ -35,7 +35,11 @@ export class PaperEntityRepository {
 
     if (search) {
       if (this.stateStore.viewState.searchMode === "general") {
-        filterFormat += `(title contains[c] \"${formatedSearch}\" OR authors contains[c] \"${formatedSearch}\" OR publication contains[c] \"${formatedSearch}\" OR note contains[c] \"${formatedSearch}\") AND `;
+        const fuzzyFormatedSearch = `*${formatedSearch
+          .trim()
+          .split(" ")
+          .join("*")}*`;
+        filterFormat += `(title LIKE[c] \"${fuzzyFormatedSearch}\" OR authors LIKE[c] \"${fuzzyFormatedSearch}\" OR publication LIKE[c] \"${fuzzyFormatedSearch}\" OR note LIKE[c] \"${fuzzyFormatedSearch}\") AND `;
       } else if (this.stateStore.viewState.searchMode === "advanced") {
         filterFormat += `(${formatedSearch}) AND `;
       }

@@ -8,7 +8,7 @@
   publish: [
     {
       provider: "generic",
-      url: "https://paperlib.app/distribution/electron-win/",
+      url: "https://distribution.paperlib.app/electron-win/",
     },
   ],
   directories: {
@@ -39,6 +39,6 @@
     "!app",
     "!assets",
     "!certificate.p12",
-    "!tests"
+    "!tests",
   ],
 }

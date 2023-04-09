@@ -7,7 +7,6 @@ on:
 jobs:
   mac_x86_develop:
     runs-on: macos-latest
-    needs: e2e_test
 
     strategy:
       matrix:
@@ -75,7 +74,6 @@ jobs:
 
   mac_arm_develop:
     runs-on: self-hosted
-    needs: e2e_test
 
     strategy:
       matrix:
@@ -138,7 +136,6 @@ jobs:
 
   win_develop:
     runs-on: windows-latest
-    needs: e2e_test
 
     defaults:
       run:
@@ -203,7 +200,6 @@ jobs:
 
   linux_develop:
     runs-on: ubuntu-latest
-    needs: e2e_test
 
     strategy:
       matrix:

@@ -8,7 +8,7 @@
   publish: [
     {
       provider: "generic",
-      url: "https://paperlib.app/distribution/dev_channel/",
+      url: "https://distribution.paperlib.app/dev_channel/",
     },
   ],
   directories: {
@@ -30,6 +30,6 @@
     "!app",
     "!assets",
     "!certificate.p12",
-    "!tests"
+    "!tests",
   ],
 }
