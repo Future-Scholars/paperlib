@@ -174,6 +174,7 @@ export class EntityInteractor {
       );
     } catch (error) {
       console.error(error);
+      this.stateStore.viewState.processingQueueCount -= urlList.length;
       this.stateStore.logState.alertLog = `Add paper to library failed: ${
         error as string
       }`;
@@ -191,8 +192,7 @@ export class EntityInteractor {
     if (path.extname(url) === ".pdf") {
       let paperEntityDraft = new PaperEntity(true);
       paperEntityDraft.setValue("mainURL", url);
-      paperEntityDraft = await this.scraperRepository.scrape(paperEntityDraft);
-      return await this.fileRepository.move(paperEntityDraft);
+      return await this.scraperRepository.scrape(paperEntityDraft);
     } else if (path.extname(url) === ".bib") {
       const bibtexStr = readFileSync(url.replace("file://", ""), "utf8");
       const bibtexes = bibtex2json(bibtexStr);
@@ -209,15 +209,34 @@ export class EntityInteractor {
   }
 
   async _createPostProcess(paperEntityDrafts: PaperEntity[]) {
+    // - move files of entities.
+    const fileMovedPaperEntityDrafts = [];
+    for (const paperEntityDraft of paperEntityDrafts) {
+      const fileMovedPaperEntityDraft = await this.fileRepository.move(
+        paperEntityDraft
+      );
+      if (fileMovedPaperEntityDraft) {
+        fileMovedPaperEntityDrafts.push(fileMovedPaperEntityDraft);
+      } else {
+        if (paperEntityDraft.mainURL !== "") {
+          this.stateStore.logState.alertLog = `Failed to move files of ${paperEntityDraft.title}, ${paperEntityDraft.mainURL}`;
+          paperEntityDraft.mainURL = "";
+        }
+        fileMovedPaperEntityDrafts.push(paperEntityDraft);
+      }
+    }
+
     // DB insertion.
     const dbSuccesses = await this.dbRepository.updatePaperEntities(
-      paperEntityDrafts
+      fileMovedPaperEntityDrafts
     );
-    // - find unsuccessful entities.
+
+    // find unsuccessful entities.
     const unsuccessfulEntityDrafts = paperEntityDrafts.filter(
       (_, index) => !dbSuccesses[index]
     );
-    // - find successful entities.
+
+    // find successful entities.
     const successfulEntityDrafts = paperEntityDrafts.filter(
       (_, index) => dbSuccesses[index]
     );
