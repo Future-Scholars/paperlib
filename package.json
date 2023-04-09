@@ -1,6 +1,6 @@
 {
   "name": "paperlib",
-  "version": "2.2.1-dev.rc1",
+  "version": "2.2.1",
   "main": "dist/app/main/index.js",
   "description": "A simple academic paper management tool.",
   "author": "Future Scholars <hi@paperlib.app>",
