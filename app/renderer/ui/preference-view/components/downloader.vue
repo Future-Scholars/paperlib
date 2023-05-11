@@ -69,7 +69,7 @@ const onApplyUpdate = () => {
           v-if="downloaderPref.custom"
           @click="emit('delete', downloaderPref.name)"
         >
-          {{ $t("mainview.delete") }}
+          {{ $t("menu.delete") }}
         </div>
         <input
           type="checkbox"
