@@ -20,7 +20,7 @@ import {
 } from "../states";
 
 export class RendererStateStore {
-  constructor() { }
+  constructor() {}
 }
 
 export class MainRendererStateStore extends RendererStateStore {

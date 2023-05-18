@@ -1,14 +1,8 @@
-import {
-  BrowserWindow,
-  app,
-  globalShortcut,
-  ipcMain,
-  screen,
-} from "electron";
+import { BrowserWindow, app, globalShortcut, ipcMain, screen } from "electron";
 // @ts-ignore
 import Store from "electron-store";
+import path from "node:path";
 import { platform, release } from "os";
-import path from "path";
 
 import { Preference } from "../preference/preference";
 import "./files.ts";
@@ -40,10 +34,12 @@ if (!app.requestSingleInstanceLock()) {
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient('paperlib', process.execPath, [path.resolve(process.argv[1])])
+    app.setAsDefaultProtocolClient("paperlib", process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
   }
 } else {
-  app.setAsDefaultProtocolClient('paperlib')
+  app.setAsDefaultProtocolClient("paperlib");
 }
 
 // Remove electron security warnings
@@ -129,9 +125,9 @@ app.on("activate", () => {
   }
 });
 
-app.on('open-url', (event, url) => {
-  console.log(url)
-})
+app.on("open-url", (event, url) => {
+  console.log(url);
+});
 
 ipcMain.on("minimize", () => {
   win?.minimize();

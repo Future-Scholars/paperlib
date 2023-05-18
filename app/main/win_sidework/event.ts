@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain } from "electron";
+import { join } from "node:path";
 import os from "os";
-import { join } from "path";
 
 import { createSideworkWindow } from "./index";
 

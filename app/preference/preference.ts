@@ -1,7 +1,7 @@
 import { ipcRenderer } from "electron";
 import Store from "electron-store";
 import os from "os";
-import path from "path";
+import { join } from "path";
 
 export interface ScraperPreference {
   name: string;
@@ -131,7 +131,7 @@ export interface PreferenceStore {
 }
 
 export const defaultPreferences: PreferenceStore = {
-  appLibFolder: path.join(os.homedir(), "Documents", "paperlib"),
+  appLibFolder: join(os.homedir(), "Documents", "paperlib"),
   deleteSourceFile: false,
   sourceFileOperation: "copy",
 

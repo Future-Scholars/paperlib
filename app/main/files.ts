@@ -1,5 +1,5 @@
 import { BrowserWindow, app, dialog, ipcMain, screen } from "electron";
-import { join } from "path";
+import { join } from "node:path";
 
 ipcMain.on("userData", (event, arg) => {
   event.returnValue = app.getPath("userData");

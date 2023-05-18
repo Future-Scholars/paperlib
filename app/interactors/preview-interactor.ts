@@ -1,6 +1,7 @@
 import { ipcRenderer } from "electron";
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
 import {
   PDFPageProxy,
   RenderParameters,
@@ -32,7 +33,7 @@ export class PreviewInteractor {
     if (this.pdfWorker) {
       this.pdfWorker.terminate();
     }
-    this.pdfWorker = new Worker("./build/pdf.worker.min.js");
+    this.pdfWorker = new pdfjsWorker();
     pdfjs.GlobalWorkerOptions.workerPort = this.pdfWorker;
 
     if (this.renderingPage) {

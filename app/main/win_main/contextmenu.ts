@@ -1,7 +1,6 @@
 import { BrowserWindow, Menu, ipcMain, nativeImage } from "electron";
 
-import { loadLocales } from "@/locales/load";
-
+import { loadLocales } from "../../locales/load";
 import { Preference, ScraperPreference } from "../../preference/preference";
 
 const isMac = process.platform === "darwin";

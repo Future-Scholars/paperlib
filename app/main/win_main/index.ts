@@ -1,6 +1,6 @@
 import { BrowserWindow, app, nativeTheme, shell } from "electron";
+import { join, posix } from "node:path";
 import os from "os";
-import { join } from "path";
 
 import { Preference } from "../../preference/preference";
 import { setMainMenu } from "./menu";
@@ -24,7 +24,7 @@ export async function createMainWindow(
     minHeight: 600,
     useContentSize: true,
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
+      preload: join(__dirname, "preload.js"),
       webSecurity: false,
       nodeIntegration: true,
       contextIsolation: false,
@@ -35,19 +35,27 @@ export async function createMainWindow(
   });
 
   if (app.isPackaged || process.env.NODE_ENV === "vitest") {
-    win.loadFile(join(__dirname, "../../index.html"));
+    win.loadFile(join(__dirname, "../../app/index.html"));
   } else {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL as string);
+    win.loadURL(
+      posix.join(process.env.VITE_DEV_SERVER_URL as string, "app/index.html")
+    );
     win.webContents.openDevTools();
   }
 
   // Make all links open with the browser, not with the application
   win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.includes(process.env.VITE_DEV_SERVER_URL || "")) {
+      return { action: "allow" };
+    }
     if (url.startsWith("http")) shell.openExternal(url);
     return { action: "deny" };
   });
 
-  win.webContents.on('will-navigate', function (e, url) {
+  win.webContents.on("will-navigate", function (e, url) {
+    if (url.includes(process.env.VITE_DEV_SERVER_URL || "")) {
+      return;
+    }
     e.preventDefault();
     shell.openExternal(url);
   });

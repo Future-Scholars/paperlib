@@ -72,7 +72,7 @@ const onInput = (payload: Event) => {
       class="text-xs bg-transparent focus:outline-none resize-none dark:text-neutral-300 h-full"
       type="text"
       placeholder=" "
-      v-model="value"
+      :value="value"
       :name="placeholder"
       @input="onInput"
       @focus="viewState.inputFieldFocused = true"

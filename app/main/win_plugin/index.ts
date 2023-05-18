@@ -5,8 +5,8 @@ import {
   screen,
   shell,
 } from "electron";
+import { join, posix } from "node:path";
 import os from "os";
-import { join } from "path";
 
 import { registerPluginWindowEvents } from "./event";
 
@@ -41,16 +41,22 @@ export async function createPluginWindow(
   }
 
   if (app.isPackaged) {
-    winPlugin.loadFile(join(__dirname, "../../index_plugin.html"));
+    winPlugin.loadFile(join(__dirname, "../../app/index_plugin.html"));
   } else {
-    const url = `${process.env.VITE_DEV_SERVER_URL}/index_plugin.html`;
-
-    winPlugin.loadURL(url);
+    winPlugin.loadURL(
+      posix.join(
+        process.env.VITE_DEV_SERVER_URL as string,
+        "app/index_plugin.html"
+      )
+    );
     winPlugin.webContents.openDevTools();
   }
 
   // Make all links open with the browser, not with the application
   winPlugin.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.includes(process.env.VITE_DEV_SERVER_URL || "")) {
+      return { action: "allow" };
+    }
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
