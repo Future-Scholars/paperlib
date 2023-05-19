@@ -38,7 +38,6 @@ vSelect.props.components.default = () => ({
 const pinia = createPinia();
 
 const app = createApp(AppView);
-app.config.unwrapInjectedRef = true;
 
 app.use(pinia);
 

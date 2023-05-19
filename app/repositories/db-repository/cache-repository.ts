@@ -4,6 +4,7 @@ import md5 from "md5-file";
 import path from "path";
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import Realm, { PrimaryKey } from "realm";
 
@@ -66,8 +67,9 @@ export class CacheRepository {
       this._realm = new Realm(this.config);
     } catch (err) {
       console.error(err);
-      this.stateStore.logState.alertLog = `Open local cache faild: ${err as string
-        }`;
+      this.stateStore.logState.alertLog = `Open local cache faild: ${
+        err as string
+      }`;
     }
 
     this._realm!.safeWrite = (callback) => {
@@ -229,7 +231,7 @@ export class CacheRepository {
     }
     // 2. Update the cache
     if (pdfjs.GlobalWorkerOptions.workerPort === null) {
-      const pdfWorker = new Worker("./build/pdf.worker.min.js");
+      const pdfWorker = new pdfjsWorker();
       pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
     }
 
@@ -259,7 +261,7 @@ export class CacheRepository {
   async updateFullText(paperEntities: PaperEntityResults) {
     const realm = await this.realm();
     if (pdfjs.GlobalWorkerOptions.workerPort === null) {
-      const pdfWorker = new Worker("./build/pdf.worker.min.js");
+      const pdfWorker = new pdfjsWorker();
       pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
     }
 

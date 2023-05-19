@@ -285,9 +285,9 @@ const accessMainFile = async (index: number) => {
     const url = await window.appInteractor.access(paperEntity!.mainURL, false);
 
     if (viewState.searchMode === "fulltext" && viewState.searchText !== "") {
-      showingUrl.value = `./viewer/viewer.html?file=${url}&search=${viewState.searchText}`;
+      showingUrl.value = `../viewer/viewer.html?file=${url}&search=${viewState.searchText}`;
     } else {
-      showingUrl.value = `./viewer/viewer.html?file=${url}`;
+      showingUrl.value = `../viewer/viewer.html?file=${url}`;
     }
   } else {
     showingUrl.value = "";

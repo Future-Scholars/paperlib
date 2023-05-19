@@ -1,5 +1,5 @@
 import { BrowserWindow, app, dialog, ipcMain, screen } from "electron";
-import { join } from "path";
+import { join, posix } from "node:path";
 
 ipcMain.on("userData", (event, arg) => {
   event.returnValue = app.getPath("userData");
@@ -45,12 +45,16 @@ ipcMain.on("preview", (event, fileURL) => {
       });
 
       if (app.isPackaged) {
-        previewWin.loadFile(join(__dirname, "../../index_preview.html"));
+        previewWin.loadFile(join(__dirname, "app/index_preview.html"));
+      } else if (process.env.NODE_ENV === "vitest") {
+        previewWin.loadFile(join(__dirname, "app/index_preview.html"));
       } else {
-        // 🚧 Use ['ENV_NAME'] avoid vite:define plugin
-        const url = `${process.env.VITE_DEV_SERVER_URL}/index_preview.html`;
-
-        previewWin.loadURL(url);
+        previewWin.loadURL(
+          posix.join(
+            process.env.VITE_DEV_SERVER_URL as string,
+            "app/index_preview.html"
+          )
+        );
       }
     }
 

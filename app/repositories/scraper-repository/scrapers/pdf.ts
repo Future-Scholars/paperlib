@@ -2,6 +2,7 @@ import { franc } from "franc";
 import fs from "fs";
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
 import {
   PDFDocumentProxy,
   PDFPageProxy,
@@ -15,8 +16,7 @@ import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 
-const worker = new Worker("./build/pdf.worker.min.js");
-pdfjs.GlobalWorkerOptions.workerPort = worker;
+pdfjs.GlobalWorkerOptions.workerPort = new pdfjsWorker();
 
 export class PDFScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {

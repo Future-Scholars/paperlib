@@ -2,10 +2,9 @@ name: End-to-End Testing
 
 on:
   pull_request_target:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
     branches:
       - master
-      - electron-dev
 
 jobs:
   e2e_test_mac_arm:
@@ -13,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ['16.16.0']
+        node-versions: ['16.17.1']
 
     steps:
       - name: 'Checkout Project'
@@ -55,7 +54,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ["16.16.0"]
+        node-versions: ["16.17.1"]
 
     steps:
       - name: "Checkout Project"
@@ -95,7 +94,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ["16.16.0"]
+        node-versions: ["16.17.1"]
 
     steps:
       - name: "Checkout Project"

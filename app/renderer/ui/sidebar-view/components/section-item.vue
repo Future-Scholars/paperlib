@@ -3,8 +3,8 @@
 import dragDrop from "drag-drop";
 import { onMounted, ref } from "vue";
 
-import Spinner from "./spinner.vue";
 import Counter from "./counter.vue";
+import Spinner from "./spinner.vue";
 
 const props = defineProps({
   name: String,
@@ -82,7 +82,7 @@ onMounted(() => {
       class="my-auto text-xs bg-transparent grow text-ellipsis overflow-hidden whitespace-nowrap border-2 rounded-md px-1 border-accentlight dark:border-accentdark"
       autofocus
       type="text"
-      v-model="name"
+      :value="name"
       v-if="editing"
       @change="onNameChanged"
       @blur="onNameInputBlured"

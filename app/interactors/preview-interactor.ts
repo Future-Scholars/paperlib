@@ -1,6 +1,7 @@
 import { ipcRenderer } from "electron";
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
 import {
   PDFPageProxy,
   RenderParameters,
@@ -32,7 +33,7 @@ export class PreviewInteractor {
     if (this.pdfWorker) {
       this.pdfWorker.terminate();
     }
-    this.pdfWorker = new Worker("./build/pdf.worker.min.js");
+    this.pdfWorker = new pdfjsWorker();
     pdfjs.GlobalWorkerOptions.workerPort = this.pdfWorker;
 
     if (this.renderingPage) {
@@ -52,10 +53,12 @@ export class PreviewInteractor {
 
     const page = await pdf.getPage(1);
     this.renderingPage = page;
-    var scale = 1;
+    var scale = 1.5;
     var viewport = page.getViewport({ scale: scale });
     var outputScale = window.devicePixelRatio || 1;
-    var canvas = document.getElementById("preview-canvas") as HTMLCanvasElement;
+    var canvas = document.getElementById(
+      "quickview-canvas"
+    ) as HTMLCanvasElement;
     var context = canvas.getContext("2d") as CanvasRenderingContext2D;
     context.clearRect(0, 0, canvas.width, canvas.height);
 

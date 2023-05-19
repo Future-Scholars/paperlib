@@ -1,4 +1,4 @@
-import { WebSocket, WebSocketServer } from "ws";
+import * as WebSocket from "ws";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
@@ -16,8 +16,8 @@ export class BrowserExtensionInteractor {
 
   entityInteractor: EntityInteractor;
 
-  socketServer: WebSocketServer;
-  ws?: WebSocket;
+  socketServer: WebSocket.WebSocketServer;
+  ws?: WebSocket.WebSocket;
 
   constructor(
     stateStore: MainRendererStateStore,
@@ -32,7 +32,7 @@ export class BrowserExtensionInteractor {
 
     this.entityInteractor = entityInteractor;
 
-    this.socketServer = new WebSocketServer({ port: 21992 });
+    this.socketServer = new WebSocket.WebSocketServer({ port: 21992 });
     this.socketServer.on("connection", (ws) => {
       this.ws = ws;
       ws.on("message", this.create.bind(this));

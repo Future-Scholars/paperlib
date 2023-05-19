@@ -10,7 +10,6 @@ const props = defineProps({
 });
 
 const codes = ref(props.codes.map((code) => JSON.parse(code)));
-console.log(codes);
 const emit = defineEmits(["changed"]);
 
 const onInput = (payload: Event, index: number, key: string) => {
@@ -71,7 +70,7 @@ const onDeleteClicked = (index: number) => {
             type="text"
             class="text-xs dark:text-neutral-300 bg-transparent border-none focus:outline-none"
             :value="code.url"
-            @input="(payload) => onInput(payload, index, 'url')"
+            @input="(payload: any) => onInput(payload, index, 'url')"
           />
         </div>
         <div class="flex flex-col w-12">
@@ -82,7 +81,7 @@ const onDeleteClicked = (index: number) => {
             type="checkbox"
             class="text-xs dark:text-neutral-300 bg-transparent border-none focus:outline-none"
             :checked="code.isOfficial"
-            @change="(payload) => onInput(payload, index, 'isOfficial')"
+            @change="(payload: any) => onInput(payload, index, 'isOfficial')"
           />
         </div>
         <div

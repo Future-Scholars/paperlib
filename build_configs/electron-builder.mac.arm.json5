@@ -14,7 +14,6 @@
   directories: {
     output: "release/${version}",
   },
-  files: ["dist"],
   mac: {
     icon: "./icons/icon.icns",
     artifactName: "${productName}_${version}.${ext}",
@@ -28,6 +27,7 @@
   },
   buildDependenciesFromSource: true,
   files: [
+    "dist",
     "!node_modules/realm/react-native${/*}",
     "!node_modules/realm/scripts${/*}",
     "!node_modules/realm/src${/*}",

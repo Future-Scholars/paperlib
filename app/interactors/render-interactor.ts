@@ -6,6 +6,7 @@ import MarkdownIt from "markdown-it";
 import tm from "markdown-it-texmath";
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
 import {
   PDFPageProxy,
   RenderParameters,
@@ -42,7 +43,7 @@ export class RenderInteractor {
     if (this.pdfWorker) {
       this.pdfWorker.terminate();
     }
-    this.pdfWorker = new Worker("./build/pdf.worker.min.js");
+    this.pdfWorker = new pdfjsWorker();
     pdfjs.GlobalWorkerOptions.workerPort = this.pdfWorker;
 
     if (this.renderingPage) {
@@ -55,13 +56,11 @@ export class RenderInteractor {
     if (this.renderingPDF) {
       this.renderingPDF.destroy();
     }
-    const pdf = await pdfjs.getDocument(
-      {
-        url: fileURL,
-        useWorkerFetch: true,
-        cMapUrl: "../viewer/cmaps/",
-      }
-    ).promise;
+    const pdf = await pdfjs.getDocument({
+      url: fileURL,
+      useWorkerFetch: true,
+      cMapUrl: "../viewer/cmaps/",
+    }).promise;
     this.renderingPDF = pdf;
 
     const page = await pdf.getPage(1);
@@ -130,14 +129,17 @@ export class RenderInteractor {
       let overflow;
       if (!renderFull) {
         const lines = content.split("\n");
-        const renderLines = lines.slice(0, 10)
+        const renderLines = lines.slice(0, 10);
         overflow = lines.length > 10;
         renderContent = renderLines.join("\n");
       } else {
         overflow = false;
         renderContent = content;
       }
-      return { renderedStr: this.markdownIt.render(renderContent), overflow: overflow };
+      return {
+        renderedStr: this.markdownIt.render(renderContent),
+        overflow: overflow,
+      };
     } catch (e) {
       console.error(e);
       return { renderedStr: "", overflow: false };
