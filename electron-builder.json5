@@ -17,7 +17,7 @@
   mac: {
     icon: "./icons/icon.icns",
     artifactName: "${productName}_${version}.${ext}",
-    target: ["dmg", "zip"],
+    target: ["dmg"],
     releaseInfo: {
       releaseNotesFile: "./release-notes.md",
     },

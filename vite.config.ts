@@ -61,7 +61,7 @@ export default defineConfig({
         keytar: {
           type: "cjs",
         },
-        fsevents: {
+        chokidar: {
           type: "cjs",
         },
         realm: {
