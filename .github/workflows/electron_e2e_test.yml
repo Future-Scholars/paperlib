@@ -40,6 +40,7 @@ jobs:
         run: |
           node -v
           npm install --force
+          npx playwright install --with-deps
 
       - name: 'Cleanup Env'
         run: |
@@ -80,6 +81,7 @@ jobs:
         run: |
           node -v
           npm install --force
+          npx playwright install --with-deps
 
       - name: "Cleanup Env"
         run: |
@@ -120,6 +122,7 @@ jobs:
         run: |
           node -v
           npm install --force
+          npx playwright install --with-deps
 
       - name: "End-to-End Testing"
         run: npm run test:e2e
