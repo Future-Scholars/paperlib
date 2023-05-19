@@ -41,7 +41,7 @@ export async function createPluginWindow(
   }
 
   if (app.isPackaged) {
-    winPlugin.loadFile(join(__dirname, "../../app/index_plugin.html"));
+    winPlugin.loadFile(join(__dirname, "app/index_plugin.html"));
   } else {
     winPlugin.loadURL(
       posix.join(

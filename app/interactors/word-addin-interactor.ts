@@ -1,20 +1,19 @@
-import { WebSocket, WebSocketServer } from "ws";
-import { createServer } from 'https'
+import { existsSync, promises as fsPromise } from "fs";
+import { createServer } from "https";
+import os from "os";
 import path from "path";
-import os from "os"
-import { promises as fsPromise, existsSync } from "fs";
 import sudo from "sudo-prompt";
+import * as WebSocket from "ws";
 
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { certs } from "@/utils/crypto/word-comm-cert";
 
 import { EntityInteractor } from "./entity-interactor";
-import { certs } from "@/utils/crypto/word-comm-cert";
 
 interface SearchParams {
   query: string;
 }
-
 
 export class WordAddinInteractor {
   stateStore: MainRendererStateStore;
@@ -22,9 +21,8 @@ export class WordAddinInteractor {
 
   entityInteractor: EntityInteractor;
 
-  socketServer: WebSocketServer;
-  ws?: WebSocket;
-
+  socketServer: WebSocket.WebSocketServer;
+  ws?: WebSocket.WebSocket;
   constructor(
     stateStore: MainRendererStateStore,
     preference: Preference,
@@ -32,11 +30,10 @@ export class WordAddinInteractor {
   ) {
     this.stateStore = stateStore;
     this.preference = preference;
-
     this.entityInteractor = entityInteractor;
 
     const server = createServer(certs);
-    this.socketServer = new WebSocketServer({ server });
+    this.socketServer = new WebSocket.WebSocketServer({ server });
     this.socketServer.on("connection", (ws) => {
       this.ws = ws;
       ws.on("message", this.handler.bind(this));
@@ -55,10 +52,10 @@ export class WordAddinInteractor {
         await this.search(message.params);
         break;
       case "csl-names":
-        await this.loadCSLNames()
+        await this.loadCSLNames();
         break;
       case "load-csl":
-        await this.loadCSL(message.params)
+        await this.loadCSL(message.params);
         break;
     }
   }
@@ -70,24 +67,28 @@ export class WordAddinInteractor {
       "",
       "",
       "addTime",
-      "desc",
-    )
+      "desc"
+    );
 
-    const responseResult = result.slice(0, 10)
+    const responseResult = result.slice(0, 10);
     this.ws?.send(JSON.stringify({ type: "search", response: responseResult }));
   }
 
   async loadCSLNames() {
-    const cslDir = this.preference.get("importedCSLStylesPath") as string
+    const cslDir = this.preference.get("importedCSLStylesPath") as string;
     if (existsSync(cslDir)) {
-      const cslFiles = await fsPromise.readdir(cslDir)
-      const csls = (await Promise.all(cslFiles.map(async (cslFile) => {
-        if (cslFile.endsWith(".csl")) {
-          return cslFile.replace('.csl', '')
-        } else {
-          return ""
-        }
-      }))).filter((csl) => csl !== "")
+      const cslFiles = await fsPromise.readdir(cslDir);
+      const csls = (
+        await Promise.all(
+          cslFiles.map(async (cslFile) => {
+            if (cslFile.endsWith(".csl")) {
+              return cslFile.replace(".csl", "");
+            } else {
+              return "";
+            }
+          })
+        )
+      ).filter((csl) => csl !== "");
 
       this.ws?.send(JSON.stringify({ type: "csl-names", response: csls }));
     } else {
@@ -96,10 +97,10 @@ export class WordAddinInteractor {
   }
 
   async loadCSL(name: string) {
-    const cslDir = this.preference.get("importedCSLStylesPath") as string
-    const cslPath = path.join(cslDir, `${name}.csl`)
+    const cslDir = this.preference.get("importedCSLStylesPath") as string;
+    const cslPath = path.join(cslDir, `${name}.csl`);
     if (existsSync(cslPath)) {
-      const csl = await fsPromise.readFile(cslPath, "utf8")
+      const csl = await fsPromise.readFile(cslPath, "utf8");
       this.ws?.send(JSON.stringify({ type: "load-csl", response: csl }));
     } else {
       this.ws?.send(JSON.stringify({ type: "load-csl", response: "" }));
@@ -107,25 +108,43 @@ export class WordAddinInteractor {
   }
 
   async installWordAddin() {
-    const manifestUrl = "https://paperlib.app/distribution/word_addin/manifest.xml";
+    const manifestUrl =
+      "https://paperlib.app/distribution/word_addin/manifest.xml";
     const manifestPath = path.join(os.tmpdir(), "manifest.xml");
     await window.networkTool.download(manifestUrl, manifestPath);
 
-    if (os.platform() === 'darwin') {
-      await fsPromise.mkdir(path.join(os.homedir(), "Library/Containers/com.microsoft.Word/Data/Documents/wef/"), { recursive: true })
-      await fsPromise.copyFile(manifestPath, path.join(os.homedir(), "Library/Containers/com.microsoft.Word/Data/Documents/wef/paperlib.manifest.xml"));
-    } else if (os.platform() === 'win32') {
-      const helperUrl = "https://paperlib.app/distribution/word_addin/oaloader.exe";
+    if (os.platform() === "darwin") {
+      await fsPromise.mkdir(
+        path.join(
+          os.homedir(),
+          "Library/Containers/com.microsoft.Word/Data/Documents/wef/"
+        ),
+        { recursive: true }
+      );
+      await fsPromise.copyFile(
+        manifestPath,
+        path.join(
+          os.homedir(),
+          "Library/Containers/com.microsoft.Word/Data/Documents/wef/paperlib.manifest.xml"
+        )
+      );
+    } else if (os.platform() === "win32") {
+      const helperUrl =
+        "https://paperlib.app/distribution/word_addin/oaloader.exe";
       const helperPath = path.join(os.tmpdir(), "oaloader.exe");
       await window.networkTool.download(helperUrl, helperPath);
 
-      sudo.exec(`${helperPath} add ${manifestPath}`, { name: "PaperLib" }, (error, stdout, stderr) => {
-        if (error) {
-          console.log(error);
+      sudo.exec(
+        `${helperPath} add ${manifestPath}`,
+        { name: "PaperLib" },
+        (error, stdout, stderr) => {
+          if (error) {
+            console.log(error);
+          }
         }
-      });
+      );
     } else {
-      console.log("Not support platform")
+      console.log("Not support platform");
     }
   }
 }

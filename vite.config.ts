@@ -1,9 +1,9 @@
+import renderer from "@future-scholars/vite-plugin-electron-renderer";
 import vue from "@vitejs/plugin-vue";
 import { rmSync } from "node:fs";
 import path from "node:path";
 import { defineConfig } from "vite";
 import electron from "vite-plugin-electron";
-import renderer from "vite-plugin-electron-renderer";
 
 import pkg from "./package.json";
 
@@ -53,7 +53,7 @@ export default defineConfig({
           type: "cjs",
         },
         ws: {
-          type: "esm",
+          type: "cjs",
         },
         got: {
           type: "esm",
@@ -64,7 +64,11 @@ export default defineConfig({
         fsevents: {
           type: "cjs",
         },
+        realm: {
+          type: "cjs",
+        },
       },
+      browserField: false,
     }),
     vue(),
   ],

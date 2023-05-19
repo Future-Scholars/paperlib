@@ -34,8 +34,11 @@ export async function createMainWindow(
     visualEffectState: "active",
   });
 
-  if (app.isPackaged || process.env.NODE_ENV === "vitest") {
-    win.loadFile(join(__dirname, "../../app/index.html"));
+  if (app.isPackaged) {
+    win.loadFile(join(__dirname, "app/index.html"));
+  } else if (process.env.NODE_ENV === "vitest") {
+    win.webContents.openDevTools();
+    win.loadFile(join(__dirname, "app/index.html"));
   } else {
     win.loadURL(
       posix.join(process.env.VITE_DEV_SERVER_URL as string, "app/index.html")
