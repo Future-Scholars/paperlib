@@ -37,7 +37,6 @@ export async function createMainWindow(
   if (app.isPackaged) {
     win.loadFile(join(__dirname, "app/index.html"));
   } else if (process.env.NODE_ENV === "vitest") {
-    win.webContents.openDevTools();
     win.loadFile(join(__dirname, "app/index.html"));
   } else {
     win.loadURL(

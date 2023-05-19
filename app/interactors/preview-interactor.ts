@@ -53,10 +53,12 @@ export class PreviewInteractor {
 
     const page = await pdf.getPage(1);
     this.renderingPage = page;
-    var scale = 1;
+    var scale = 1.5;
     var viewport = page.getViewport({ scale: scale });
     var outputScale = window.devicePixelRatio || 1;
-    var canvas = document.getElementById("preview-canvas") as HTMLCanvasElement;
+    var canvas = document.getElementById(
+      "quickview-canvas"
+    ) as HTMLCanvasElement;
     var context = canvas.getContext("2d") as CanvasRenderingContext2D;
     context.clearRect(0, 0, canvas.width, canvas.height);
 

@@ -13,7 +13,7 @@ window.addEventListener("keydown", shortcutHandler, true);
 </script>
 
 <template>
-  <canvas id="preview-canvas" class="w-full h-full" />
+  <canvas id="quickview-canvas" class="w-full h-full" />
   <Transition
     enter-active-class="transition ease-out duration-75"
     enter-from-class="transform opacity-0"
