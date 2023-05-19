@@ -92,7 +92,7 @@ export class DBLPScraper extends Scraper {
         if (plainHitTitle != existTitle) {
           continue;
         } else {
-          const title = article.title.replace(/&amp;/g, "&");
+          const title = article.title.replace(/&amp;/g, "&").replace(/\.$/, "");
 
           const authorList = [];
           const authorResponse = article.authors.author;
@@ -300,6 +300,7 @@ export class DBLPScraper extends Scraper {
             "publication",
             paperEntityDraft.publication + " Workshop"
           );
+          paperEntityDraft.setValue("pubType", 1);
         }
       } catch (e) {}
     } else {

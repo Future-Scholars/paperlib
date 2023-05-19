@@ -8,17 +8,17 @@ import { Scraper, ScraperRequestType } from "./scraper";
 
 interface ResponseType {
   title: string;
-  author: { given?: string; family?: string; name?: string }[];
-  published: {
+  author?: { given?: string; family?: string; name?: string }[];
+  published?: {
     "date-parts": { "0": string[] };
   };
   type: string;
-  "container-title": string | string[];
+  "container-title"?: string | string[];
   publisher: string;
   page: string;
   volume: string;
   issue: string;
-  subtitle: string[];
+  subtitle?: string[];
   institution?: [{ name: string }];
 }
 
@@ -52,20 +52,27 @@ export class DOIScraper extends Scraper {
     }
 
     const response = JSON.parse(rawResponse.body) as ResponseType;
-    const title = [response.title, response.subtitle.join(" ")]
+    const title = [
+      response.title,
+      response.subtitle ? response.subtitle.join(" ") : "",
+    ]
       .filter((t) => t !== "")
       .join(" - ")
       .replaceAll("&amp;", "&");
     const authors = response.author
-      .map((author) => {
-        if (author.name) {
-          return author.name;
-        } else {
-          return author.given?.trim() + " " + author.family?.trim();
-        }
-      })
-      .join(", ");
-    const pubTime = response.published["date-parts"]["0"][0];
+      ? response.author
+          .map((author) => {
+            if (author.name) {
+              return author.name;
+            } else {
+              return author.given?.trim() + " " + author.family?.trim();
+            }
+          })
+          .join(", ")
+      : "";
+    const pubTime = response.published
+      ? response.published["date-parts"]["0"][0]
+      : "";
     let pubType;
     if (response.type == "proceedings-article") {
       pubType = 1;
@@ -85,10 +92,14 @@ export class DOIScraper extends Scraper {
       publication = response.publisher.replaceAll("&amp;", "&");
     } else {
       publication = response["container-title"];
-      if (Array.isArray(publication)) {
-        publication = publication.join(", ").replaceAll("&amp;", "&");
+      if (publication) {
+        if (Array.isArray(publication)) {
+          publication = publication.join(", ").replaceAll("&amp;", "&");
+        } else {
+          publication = publication.replaceAll("&amp;", "&");
+        }
       } else {
-        publication = publication.replaceAll("&amp;", "&");
+        publication = "";
       }
     }
 

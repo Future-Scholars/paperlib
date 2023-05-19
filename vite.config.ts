@@ -67,6 +67,9 @@ export default defineConfig({
         realm: {
           type: "cjs",
         },
+        "node-html-parser": {
+          type: "esm",
+        },
       },
       browserField: false,
     }),

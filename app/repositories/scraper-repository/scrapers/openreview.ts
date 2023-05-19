@@ -2,6 +2,7 @@ import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
 import { PaperEntity } from "@/models/paper-entity";
+import { bibtex2json } from "@/utils/bibtex";
 import { isMetadataCompleted } from "@/utils/metadata";
 import { formatString } from "@/utils/string";
 
@@ -13,7 +14,7 @@ interface ResponseType {
     content: {
       title: string;
       authors: string[];
-      venueid: string;
+      venueid?: string;
       venue: string;
       _bibtex: string;
     };
@@ -66,36 +67,65 @@ export class OpenreviewScraper extends Scraper {
         paperEntityDraft.setValue("title", title, false, true);
         paperEntityDraft.setValue("authors", authors);
 
+        console.log(note.content);
         if (note.content.venue) {
           if (
             !note.content.venue.includes("Submitted") &&
             !note.content.venue.includes("CoRR")
           ) {
-            let publication;
-            if (note.content.venueid.includes("dblp")) {
-              const type = note.content.venueid.includes("conf")
-                ? "conf"
-                : "journals";
-
-              const venueID =
-                type + "/" + note.content.venueid.split("/")[2].toLowerCase();
-              if (!venueID.includes("journals/corr")) {
-                publication = `dblp://${JSON.stringify({
-                  venueID: venueID,
-                  paperKey: "",
-                })}`;
-              } else {
-                publication = "";
+            if (note.content.venue.toLowerCase().includes("accept")) {
+              const parsedBibTexs = bibtex2json(note.content._bibtex);
+              if (parsedBibTexs.length > 0) {
+                const parsedBibTex = parsedBibTexs[0];
+                paperEntityDraft.setValue(
+                  "publication",
+                  parsedBibTex["container-title"],
+                  false
+                );
+                paperEntityDraft.setValue(
+                  "pubTime",
+                  `${parsedBibTex["issued"]["date-parts"][0][0]}`
+                );
+                if (parsedBibTex["type"].includes("conference")) {
+                  paperEntityDraft.setValue("pubType", 1);
+                } else if (parsedBibTex["type"].includes("journal")) {
+                  paperEntityDraft.setValue("pubType", 0);
+                } else {
+                  paperEntityDraft.setValue("pubType", 2);
+                }
               }
             } else {
-              publication = note.content.venue;
+              let publication;
+              if (
+                note.content.venueid &&
+                note.content.venueid.includes("dblp")
+              ) {
+                const type = note.content.venueid.includes("conf")
+                  ? "conf"
+                  : "journals";
+
+                const venueID =
+                  type + "/" + note.content.venueid.split("/")[2].toLowerCase();
+                if (!venueID.includes("journals/corr")) {
+                  publication = `dblp://${JSON.stringify({
+                    venueID: venueID,
+                    paperKey: "",
+                  })}`;
+                } else {
+                  publication = "";
+                }
+              } else {
+                publication = note.content.venue;
+              }
+
+              const pubTimeReg = (
+                note.content.venueid || note.content.venue
+              ).match(/\d{4}/g);
+              const pubTime = pubTimeReg ? pubTimeReg[0] : "";
+
+              paperEntityDraft.setValue("pubTime", `${pubTime} `);
+              paperEntityDraft.setValue("publication", publication);
             }
-
-            const pubTimeReg = note.content.venueid.match(/\d{4}/g);
-            const pubTime = pubTimeReg ? pubTimeReg[0] : "";
-
-            paperEntityDraft.setValue("pubTime", `${pubTime} `);
-            paperEntityDraft.setValue("publication", publication);
           }
         } else {
           if (note.content._bibtex && note.content._bibtex.includes("year={")) {
