@@ -9,6 +9,7 @@ import { DOIScraper } from "./doi";
 import { Scraper, ScraperRequestType } from "./scraper";
 
 interface ResponseType {
+  total: number;
   data: [
     {
       title: string;
@@ -44,7 +45,7 @@ export class SemanticScholarScraper extends Scraper {
         str: paperEntityDraft.title,
         whiteSymbol: true,
       }
-    )}&limit=10&fields=externalIds,authors,title,year,journal,publicationTypes`;
+    )}&limit=10&fields=externalIds,authors,title,year,journal,publicationVenue`;
 
     const headers = {};
 
@@ -56,6 +57,11 @@ export class SemanticScholarScraper extends Scraper {
     paperEntityDraft: PaperEntity
   ): PaperEntity {
     const parsedResponse = JSON.parse(rawResponse.body) as ResponseType;
+
+    if (parsedResponse.total === 0) {
+      return paperEntityDraft;
+    }
+
     for (const item of parsedResponse.data) {
       const plainHitTitle = formatString({
         str: item.title,
@@ -73,7 +79,11 @@ export class SemanticScholarScraper extends Scraper {
 
       const sim = stringSimilarity.compareTwoStrings(plainHitTitle, existTitle);
       if (sim > 0.95) {
-        if (item.publicationVenue) {
+        if (
+          item.publicationVenue &&
+          item.publicationVenue.name &&
+          item.publicationVenue.type
+        ) {
           if (item.publicationVenue.type.includes("journal")) {
             paperEntityDraft.setValue("pubType", 0, false);
           } else if (item.publicationVenue.type.includes("book")) {
@@ -143,22 +153,24 @@ export class SemanticScholarScraper extends Scraper {
       paperEntityDraft
     ) as PaperEntity;
 
-    const authorListfromSemanticScholar = paperEntityDraft.authors.split(", ");
+    if (paperEntityDraft.doi) {
+      const authorListfromSemanticScholar =
+        paperEntityDraft.authors.split(", ");
 
-    paperEntityDraft = await DOIScraper.scrape(paperEntityDraft);
+      paperEntityDraft = await DOIScraper.scrape(paperEntityDraft);
 
-    // Sometimes DOI returns incomplete author list, so we use Semantic Scholar's author list if it is longer
-    if (
-      paperEntityDraft.authors.split(", ").length <
-      authorListfromSemanticScholar.length
-    ) {
-      paperEntityDraft.setValue(
-        "authors",
-        authorListfromSemanticScholar.join(", "),
-        false
-      );
+      // Sometimes DOI returns incomplete author list, so we use Semantic Scholar's author list if it is longer
+      if (
+        paperEntityDraft.authors.split(", ").length <
+        authorListfromSemanticScholar.length
+      ) {
+        paperEntityDraft.setValue(
+          "authors",
+          authorListfromSemanticScholar.join(", "),
+          false
+        );
+      }
     }
-
     return paperEntityDraft;
   }
 }

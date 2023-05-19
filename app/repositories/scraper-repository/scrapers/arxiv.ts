@@ -15,6 +15,7 @@ interface ResponseType {
       title: string;
       author: { name: string }[] | { name: string };
       published: string;
+      "arxiv:comment": string;
     };
   };
 }
@@ -22,7 +23,9 @@ interface ResponseType {
 export class ArXivScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
     return (
-      paperEntityDraft.arxiv !== "" && !isMetadataCompleted(paperEntityDraft)
+      paperEntityDraft.arxiv !== "" &&
+      paperEntityDraft.arxiv !== "undefined" &&
+      !isMetadataCompleted(paperEntityDraft)
     );
   }
 

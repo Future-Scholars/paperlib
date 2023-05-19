@@ -10,14 +10,18 @@ import { Scraper, ScraperRequestType } from "./scraper";
 export class CrossRefScraper extends Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
     return (
-      paperEntityDraft.title !== "" ||
-      (paperEntityDraft.doi !== "" && !isMetadataCompleted(paperEntityDraft))
+      (paperEntityDraft.title !== "" || paperEntityDraft.doi !== "") &&
+      !paperEntityDraft.doi.toLowerCase().includes("arxiv") &&
+      !isMetadataCompleted(paperEntityDraft)
     );
   }
 
   static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     let scrapeURL;
-    if (paperEntityDraft.doi !== "") {
+    if (
+      paperEntityDraft.doi !== "" &&
+      !paperEntityDraft.doi.toLowerCase().includes("arxiv")
+    ) {
       scrapeURL = `https://api.crossref.org/works/${encodeURIComponent(
         paperEntityDraft.doi
       )}`;
@@ -185,20 +189,7 @@ export class CrossRefScraper extends Scraper {
         .pop()
         ?.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/gim);
       if (!potentialDOI) {
-        const fallbackScrapeURL = encodeURI(
-          `https://api.crossref.org/works?query.bibliographic=${formatString({
-            str: paperEntityDraft.title,
-            whiteSymbol: true,
-          })}&rows=2&mailto=hi@paperlib.app`
-        );
-        const response = (await window.networkTool.get(
-          fallbackScrapeURL,
-          headers,
-          1,
-          false,
-          10000
-        )) as Response<string>;
-        return this.parsingProcess(response, paperEntityDraft, false);
+        return paperEntityDraft;
       } else {
         const response = (await window.networkTool.get(
           `https://api.crossref.org/works/${potentialDOI[0]}`,

@@ -38,10 +38,17 @@ interface ResponseType {
 }
 
 export class PubMedScraper extends Scraper {
+  static checkEnable(paperEntityDraft: PaperEntity): boolean {
+    return paperEntityDraft.title !== "";
+  }
+
   static preProcess(paperEntityDraft: PaperEntity): ScraperRequestType {
     const scrapeURL = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&retmax=5&sort=relevance&term=${paperEntityDraft.title}`;
 
-    const headers = {};
+    const headers = {
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
+    };
 
     return { scrapeURL, headers };
   }
