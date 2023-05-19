@@ -29,6 +29,8 @@ export interface DownloaderPreference {
 }
 
 export interface PreferenceStore {
+  windowSize: { height: number; width: number };
+
   appLibFolder: string;
   deleteSourceFile: boolean; // deprecated, use sourceFileOperation = 'cut'
   sourceFileOperation: "cut" | "copy" | "link";
@@ -131,6 +133,8 @@ export interface PreferenceStore {
 }
 
 export const defaultPreferences: PreferenceStore = {
+  windowSize: { height: 800, width: 1440 },
+
   appLibFolder: join(os.homedir(), "Documents", "paperlib"),
   deleteSourceFile: false,
   sourceFileOperation: "copy",

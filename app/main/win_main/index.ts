@@ -16,12 +16,17 @@ export async function createMainWindow(
     win = null;
   }
 
+  const windowSize = preference.get("windowSize") as {
+    height: number;
+    width: number;
+  };
+
   win = new BrowserWindow({
     title: "Main window",
-    width: 1440,
-    height: 860,
-    minWidth: 800,
-    minHeight: 600,
+    width: windowSize.width,
+    height: windowSize.height,
+    minWidth: 600,
+    minHeight: 400,
     useContentSize: true,
     webPreferences: {
       preload: join(__dirname, "preload.js"),
@@ -84,6 +89,14 @@ export async function createMainWindow(
   });
 
   win.on("close", () => {
+    const winSize = win?.getNormalBounds();
+    if (winSize) {
+      preference.set("windowSize", {
+        width: winSize.width,
+        height: winSize.height,
+      });
+    }
+
     winPlugin?.close();
     winSidework?.close();
     win = null;
