@@ -13,6 +13,29 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 import CollopseGroup from "./components/collopse-group.vue";
 import SectionItem from "./components/section-item.vue";
 
+const colorClass = (color?: string) => {
+  switch (color) {
+    case "blue":
+    case null:
+    case undefined:
+      return "text-blue-500";
+    case "red":
+      return "text-red-500";
+    case "green":
+      return "text-green-500";
+    case "yellow":
+      return "text-yellow-500";
+    case "purple":
+      return "text-purple-500";
+    case "pink":
+      return "text-pink-500";
+    case "orange":
+      return "text-orange-500";
+    case "cyan":
+      return "text-cyan-500";
+  }
+};
+
 // ================================
 // State
 // ================================
@@ -134,12 +157,7 @@ watch(
       >
         <BIconBroadcast
           class="text-sm my-auto min-w-[1em]"
-          :class="{
-            'text-blue-500': feed.color === 'blue' || feed.color === null,
-            'text-red-500': feed.color === 'red',
-            'text-green-500': feed.color === 'green',
-            'text-yellow-500': feed.color === 'yellow',
-          }"
+          :class="colorClass(feed.color)"
         />
       </SectionItem>
     </CollopseGroup>

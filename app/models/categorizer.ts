@@ -65,4 +65,12 @@ export class PaperFolder extends Categorizer {
 }
 
 export type CategorizerType = "PaperTag" | "PaperFolder";
-export type Colors = "red" | "green" | "blue" | "yellow";
+export type Colors =
+  | "red"
+  | "green"
+  | "blue"
+  | "yellow"
+  | "orange"
+  | "cyan"
+  | "purple"
+  | "pink";

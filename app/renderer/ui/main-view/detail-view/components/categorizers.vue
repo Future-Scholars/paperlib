@@ -34,6 +34,29 @@ const onDeleteClick = (e: MouseEvent, categorizer: Categorizer) => {
   e.stopPropagation();
   emits("delete-categorizer", categorizer);
 };
+
+const colorClass = (color?: string) => {
+  switch (color) {
+    case "blue":
+    case null:
+    case undefined:
+      return "text-blue-500";
+    case "red":
+      return "text-red-500";
+    case "green":
+      return "text-green-500";
+    case "yellow":
+      return "text-yellow-500";
+    case "purple":
+      return "text-purple-500";
+    case "pink":
+      return "text-pink-500";
+    case "orange":
+      return "text-orange-500";
+    case "cyan":
+      return "text-cyan-500";
+  }
+};
 </script>
 
 <template>
@@ -44,13 +67,7 @@ const onDeleteClick = (e: MouseEvent, categorizer: Categorizer) => {
     >
       <div
         class="w-[2px] h-[10px] my-auto"
-        :class="{
-          'bg-blue-500':
-            categorizer.color === 'blue' || categorizer.color === null,
-          'bg-red-500': categorizer.color === 'red',
-          'bg-green-500': categorizer.color === 'green',
-          'bg-yellow-500': categorizer.color === 'yellow',
-        }"
+        :class="colorClass(categorizer.color)"
       ></div>
       <div
         class="text-xxs hover:underline my-auto"
