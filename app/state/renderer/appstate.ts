@@ -3,6 +3,7 @@ import { Pinia, Store, defineStore } from "pinia";
 
 import { Feed } from "@/models/feed";
 import { PaperEntity } from "@/models/paper-entity";
+import { PaperSmartFilter } from "@/models/smart-filter";
 import {
   Preference,
   PreferenceStore,
@@ -72,6 +73,7 @@ export class MainRendererStateStore extends RendererStateStore {
         isEditViewShown: false,
         isPreferenceViewShown: false,
         isFeedEditViewShown: false,
+        isPaperSmartFilterEditViewShown: false,
 
         // Count
         processingQueueCount: 0,
@@ -109,6 +111,7 @@ export class MainRendererStateStore extends RendererStateStore {
       return {
         editingPaperEntityDraft: new PaperEntity(false),
         editingFeedDraft: new Feed(false),
+        editingPaperSmartFilterDraft: new PaperSmartFilter("", ""),
       };
     },
   });
@@ -119,6 +122,7 @@ export class MainRendererStateStore extends RendererStateStore {
         entitiesUpdated: 0,
         tagsUpdated: 0,
         foldersUpdated: 0,
+        smartfiltersUpdated: 0,
         feedsUpdated: 0,
         feedEntitiesUpdated: 0,
       };

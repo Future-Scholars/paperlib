@@ -24,6 +24,28 @@ const greenBuf = Buffer.from([94, 197, 34, 0]);
 let greenIcon = nativeImage.createFromBuffer(greenBuf, { width: 1, height: 1 });
 greenIcon = greenIcon.resize({ width: 3, height: 10 });
 
+const orangeBuf = Buffer.from([0, 165, 255, 0]);
+let orangeIcon = nativeImage.createFromBuffer(orangeBuf, {
+  width: 1,
+  height: 1,
+});
+orangeIcon = orangeIcon.resize({ width: 3, height: 10 });
+
+const cyanBuf = Buffer.from([255, 255, 0, 0]);
+let cyanIcon = nativeImage.createFromBuffer(cyanBuf, { width: 1, height: 1 });
+cyanIcon = cyanIcon.resize({ width: 3, height: 10 });
+
+const purpleBuf = Buffer.from([128, 0, 128, 0]);
+let purpleIcon = nativeImage.createFromBuffer(purpleBuf, {
+  width: 1,
+  height: 1,
+});
+purpleIcon = purpleIcon.resize({ width: 3, height: 10 });
+
+const pinkBuf = Buffer.from([203, 192, 255, 0]);
+let pinkIcon = nativeImage.createFromBuffer(pinkBuf, { width: 1, height: 1 });
+pinkIcon = pinkIcon.resize({ width: 3, height: 10 });
+
 export function registerMainContextMenu(preference: Preference) {
   const locales = loadLocales(preference.get("language") as string);
 
@@ -200,6 +222,42 @@ export function registerMainContextMenu(preference: Preference) {
         },
         icon: greenIcon,
       },
+      {
+        label: "Orange",
+        click: () => {
+          event.sender.send("sidebar-context-menu-color", [
+            data,
+            type,
+            "orange",
+          ]);
+        },
+        icon: orangeIcon,
+      },
+      {
+        label: "Cyan",
+        click: () => {
+          event.sender.send("sidebar-context-menu-color", [data, type, "cyan"]);
+        },
+        icon: cyanIcon,
+      },
+      {
+        label: "Purple",
+        click: () => {
+          event.sender.send("sidebar-context-menu-color", [
+            data,
+            type,
+            "purple",
+          ]);
+        },
+        icon: purpleIcon,
+      },
+      {
+        label: "Pink",
+        click: () => {
+          event.sender.send("sidebar-context-menu-color", [data, type, "pink"]);
+        },
+        icon: pinkIcon,
+      },
       { type: "separator" },
       {
         label: locales.t("menu.delete"),
@@ -215,6 +273,7 @@ export function registerMainContextMenu(preference: Preference) {
           event.sender.send("sidebar-context-menu-feed-refresh", [data, type]);
         },
       });
+    } else if (type === "PaperPaperSmartFilter") {
     } else {
       template.push({
         label: locales.t("menu.edit"),

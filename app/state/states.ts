@@ -2,6 +2,7 @@ import { ObjectId } from "bson";
 
 import { Feed } from "@/models/feed";
 import { PaperEntity } from "@/models/paper-entity";
+import { PaperSmartFilter } from "@/models/smart-filter";
 
 export interface LogState {
   processLog: string;
@@ -21,6 +22,7 @@ export interface ViewState {
   isEditViewShown: boolean;
   isPreferenceViewShown: boolean;
   isFeedEditViewShown: boolean;
+  isPaperSmartFilterEditViewShown: boolean;
 
   processingQueueCount: number;
   entitiesCount: number;
@@ -48,12 +50,14 @@ export interface ViewState {
 export interface BufferState {
   editingPaperEntityDraft: PaperEntity;
   editingFeedDraft: Feed;
+  editingPaperSmartFilterDraft: PaperSmartFilter;
 }
 
 export interface DBState {
   entitiesUpdated: number;
   tagsUpdated: number;
   foldersUpdated: number;
+  smartfiltersUpdated: number;
   feedsUpdated: number;
   feedEntitiesUpdated: number;
 }

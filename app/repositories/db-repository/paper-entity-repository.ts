@@ -27,7 +27,7 @@ export class PaperEntityRepository {
   ): string {
     let filterFormat = "";
 
-    const formatedSearch = formatString({
+    let formatedSearch = formatString({
       str: search,
       removeNewline: true,
       trimWhite: true,
@@ -41,6 +41,38 @@ export class PaperEntityRepository {
           .join("*")}*`;
         filterFormat += `(title LIKE[c] \"${fuzzyFormatedSearch}\" OR authors LIKE[c] \"${fuzzyFormatedSearch}\" OR publication LIKE[c] \"${fuzzyFormatedSearch}\" OR note LIKE[c] \"${fuzzyFormatedSearch}\") AND `;
       } else if (this.stateStore.viewState.searchMode === "advanced") {
+        // Replace comparison operators for 'addTime'
+        const compareDateMatch = formatedSearch.match(
+          /(<|<=|>|>=)\s*\[\d+ DAYS\]/g
+        );
+        if (compareDateMatch) {
+          for (const match of compareDateMatch) {
+            if (formatedSearch.includes("<")) {
+              formatedSearch = formatedSearch.replaceAll(
+                match,
+                match.replaceAll("<", ">")
+              );
+            } else if (formatedSearch.includes(">")) {
+              formatedSearch = formatedSearch.replaceAll(
+                match,
+                match.replaceAll(">", "<")
+              );
+            }
+          }
+        }
+
+        // Replace Date string
+        const dateRegex = /\[\d+ DAYS\]/g;
+        const dateMatch = formatedSearch.match(dateRegex);
+        if (dateMatch) {
+          const date = new Date();
+          // replace with date like: 2021-02-20@17:30:15:00
+          date.setDate(date.getDate() - parseInt(dateMatch[0].slice(1, -6)));
+          formatedSearch = formatedSearch.replace(
+            dateRegex,
+            date.toISOString().slice(0, -5).replace("T", "@")
+          );
+        }
         filterFormat += `(${formatedSearch}) AND `;
       }
     }

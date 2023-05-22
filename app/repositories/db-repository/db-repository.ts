@@ -14,6 +14,7 @@ import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { ThumbnailCache } from "@/models/paper-entity-cache";
+import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
@@ -23,6 +24,7 @@ import { migrate } from "./db-migration";
 import { FeedEntityRepository } from "./feed-entity-repository";
 import { FeedRepository } from "./feed-repository";
 import { PaperEntityRepository } from "./paper-entity-repository";
+import { PaperSmartFilterRepository } from "./smartfilter-repository";
 
 export class DBRepository {
   stateStore: MainRendererStateStore;
@@ -39,6 +41,7 @@ export class DBRepository {
 
   paperEntityRepository: PaperEntityRepository;
   categorizerRepository: CategorizerRepository;
+  smartfilterRepository: PaperSmartFilterRepository;
 
   feedEntityRepository: FeedEntityRepository;
   feedRepository: FeedRepository;
@@ -51,6 +54,9 @@ export class DBRepository {
 
     this.paperEntityRepository = new PaperEntityRepository(this.stateStore);
     this.categorizerRepository = new CategorizerRepository(this.stateStore);
+    this.smartfilterRepository = new PaperSmartFilterRepository(
+      this.stateStore
+    );
 
     this.feedEntityRepository = new FeedEntityRepository(this.stateStore);
     this.feedRepository = new FeedRepository(this.stateStore);
@@ -93,6 +99,7 @@ export class DBRepository {
 
       this.paperEntityRepository.removeListeners();
       this.categorizerRepository.removeListeners();
+      this.smartfilterRepository.removeListeners();
       this.feedRepository.removeListeners();
       this.feedEntityRepository.removeListeners();
     }
@@ -192,6 +199,7 @@ export class DBRepository {
         PaperEntity.schema,
         PaperTag.schema,
         PaperFolder.schema,
+        PaperSmartFilter.schema,
         Feed.schema,
         FeedEntity.schema,
       ],
@@ -215,6 +223,7 @@ export class DBRepository {
           PaperEntity.schema,
           PaperTag.schema,
           PaperFolder.schema,
+          PaperSmartFilter.schema,
           Feed.schema,
           FeedEntity.schema,
         ],
@@ -393,6 +402,15 @@ export class DBRepository {
     return this.categorizerRepository.load(realm, type, sortBy, sortOrder);
   }
 
+  async smartfilters(
+    type: PaperSmartFilterType,
+    sortBy: string,
+    sortOrder: string
+  ) {
+    const realm = await this.realm();
+    return this.smartfilterRepository.load(realm, type, sortBy, sortOrder);
+  }
+
   async feeds(sortBy: string, sortOrder: string) {
     const realm = await this.realm();
     return this.feedRepository.load(realm, sortBy, sortOrder);
@@ -491,6 +509,35 @@ export class DBRepository {
   ) {
     const realm = await this.realm();
     return this.categorizerRepository.rename(realm, oldName, newName, type);
+  }
+
+  async insertPaperSmartFilter(
+    type: PaperSmartFilterType,
+    smartfilter: PaperSmartFilter
+  ) {
+    const realm = await this.realm();
+    return this.smartfilterRepository.insert(
+      realm,
+      smartfilter,
+      type,
+      this.getPartition()
+    );
+  }
+
+  async colorizePaperSmartFilter(
+    color: Colors,
+    type: PaperSmartFilterType,
+    smartfilter?: PaperSmartFilter,
+    name?: string
+  ) {
+    const realm = await this.realm();
+    return this.smartfilterRepository.colorize(
+      realm,
+      color,
+      type,
+      smartfilter,
+      name
+    );
   }
 
   async updateFeeds(feeds: Feed[]) {
@@ -608,6 +655,15 @@ export class DBRepository {
       categorizer,
       name
     );
+  }
+
+  async deletePaperSmartFilter(
+    type: PaperSmartFilterType,
+    smartfilter?: PaperSmartFilter,
+    name?: string
+  ) {
+    const realm = await this.realm();
+    return this.smartfilterRepository.delete(realm, type, smartfilter, name);
   }
 
   async deletePaperEntities(ids: (ObjectId | string)[]) {

@@ -29,7 +29,8 @@
     "codeofficial": "官方",
     "codecommunity": "社区",
     "supplementaries": "附件",
-    "citationcount": "被引次数"
+    "citationcount": "被引次数",
+    "smartfilters": "Smart 过滤器"
   },
   "menu": {
     "rescrape": "搜寻元数据",

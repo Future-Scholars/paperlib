@@ -4,16 +4,42 @@ import {
   BIconFlag,
   BIconFolder,
   BIconFolderSymlink,
+  BIconFunnel,
   BIconTag,
 } from "bootstrap-icons-vue";
 import { Ref, inject, ref, watch } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
+import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
+import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CollopseGroup from "./components/collopse-group.vue";
 import SectionItem from "./components/section-item.vue";
+
+const colorClass = (color?: string) => {
+  switch (color) {
+    case "blue":
+    case null:
+    case undefined:
+      return "text-blue-500";
+    case "red":
+      return "text-red-500";
+    case "green":
+      return "text-green-500";
+    case "yellow":
+      return "text-yellow-500";
+    case "purple":
+      return "text-purple-500";
+    case "pink":
+      return "text-pink-500";
+    case "orange":
+      return "text-orange-500";
+    case "cyan":
+      return "text-cyan-500";
+  }
+};
 
 // ================================
 // State
@@ -21,6 +47,7 @@ import SectionItem from "./components/section-item.vue";
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
 const prefState = MainRendererStateStore.usePreferenceState();
+const bufferState = MainRendererStateStore.useBufferState();
 
 const isSpinnerShown = ref(false);
 
@@ -29,18 +56,29 @@ const isSpinnerShown = ref(false);
 // ================================
 const tags = inject<Ref<CategorizerResults>>("tags");
 const folders = inject<Ref<CategorizerResults>>("folders");
+const smartfilters = inject<Ref<PaperSmartFilterResults>>("smartfilters");
 
 // ================================
 // Event Functions
 // ================================
 const onSelectCategorizer = (categorizer: string) => {
+  if (categorizer === "lib-all") {
+    viewState.searchMode = "general";
+    viewState.searchText = "";
+  }
   selectionState.selectedCategorizer = categorizer;
+};
+
+const onSelectSmartFilter = (smartfilter: PaperSmartFilter) => {
+  selectionState.selectedCategorizer = `smartfilter-${smartfilter.name}`;
+  viewState.searchMode = "advanced";
+  viewState.searchText = smartfilter.filter;
 };
 
 const onItemRightClicked = (
   event: MouseEvent,
-  categorizer: Categorizer,
-  type: CategorizerType
+  categorizer: Categorizer | PaperSmartFilter,
+  type: CategorizerType | PaperSmartFilterType
 ) => {
   window.appInteractor.showContextMenu("show-sidebar-context-menu", {
     data: categorizer.name,
@@ -92,6 +130,12 @@ const onCategorizerNameInputBlured = () => {
   selectionState.editingCategorizer = "";
 };
 
+const onAddNewPaperSmartFilterClicked = () => {
+  const smartfilterDraft = new PaperSmartFilter("", "");
+  bufferState.editingPaperSmartFilterDraft = smartfilterDraft;
+  viewState.isPaperSmartFilterEditViewShown = true;
+};
+
 // ================================
 // Register Context Menu Callbacks
 // ================================
@@ -99,7 +143,11 @@ window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
     if (viewState.contentType === "library") {
-      window.entityInteractor.deleteCategorizer(args[1], args[0]);
+      if (args[2] === "PaperPaperSmartFilter") {
+        window.entityInteractor.deletePaperSmartFilter(args[1], args[0]);
+      } else {
+        window.entityInteractor.deleteCategorizer(args[1], args[0]);
+      }
       selectionState.selectedCategorizer = "lib-all";
     }
   }
@@ -109,7 +157,15 @@ window.appInteractor.registerMainSignal(
   "sidebar-context-menu-color",
   (args) => {
     if (viewState.contentType === "library") {
-      window.entityInteractor.colorizeCategorizer(args[2], args[1], args[0]);
+      if (args[2] === "PaperPaperSmartFilter") {
+        window.entityInteractor.colorizePaperSmartFilter(
+          args[2],
+          args[1],
+          args[0]
+        );
+      } else {
+        window.entityInteractor.colorizeCategorizer(args[2], args[1], args[0]);
+      }
     }
   }
 );
@@ -169,6 +225,33 @@ watch(
       <BIconFlag class="text-sm my-auto text-blue-500 min-w-[1em]" />
     </SectionItem>
 
+    <CollopseGroup
+      :title="$t('mainview.smartfilters')"
+      :with-add="true"
+      @add="onAddNewPaperSmartFilterClicked"
+    >
+      <SectionItem
+        class="sidebar-smartfilter-item"
+        :name="smartfilter.name"
+        :with-counter="false"
+        :with-spinner="false"
+        :compact="prefState.isSidebarCompact"
+        :editing="false"
+        v-for="smartfilter in smartfilters"
+        :active="
+          selectionState.selectedCategorizer ===
+          `smartfilter-${smartfilter.name}`
+        "
+        @click="onSelectSmartFilter(smartfilter)"
+        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, smartfilter, 'PaperPaperSmartFilter')}"
+      >
+        <BIconFunnel
+          class="text-sm my-auto min-w-[1em]"
+          :class="colorClass(smartfilter.color)"
+        />
+      </SectionItem>
+    </CollopseGroup>
+
     <CollopseGroup :title="$t('mainview.tags')">
       <SectionItem
         class="sidebar-tag-item"
@@ -201,12 +284,7 @@ watch(
       >
         <BIconTag
           class="text-sm my-auto min-w-[1em]"
-          :class="{
-            'text-blue-500': tag.color === 'blue' || tag.color === null,
-            'text-red-500': tag.color === 'red',
-            'text-green-500': tag.color === 'green',
-            'text-yellow-500': tag.color === 'yellow',
-          }"
+          :class="colorClass(tag.color)"
         />
       </SectionItem>
     </CollopseGroup>

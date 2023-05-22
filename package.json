@@ -74,7 +74,7 @@
     "electron-updater": "5.0.1",
     "katex": "0.16.2",
     "keytar": "7.9.0",
-    "realm": "10.22.0",
+    "realm": "11.9.0",
     "ws": "8.6.0"
   },
   "debug": {

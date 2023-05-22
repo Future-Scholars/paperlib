@@ -87,13 +87,16 @@ const onClearClicked = (payload: Event) => {
       >
         <p class="font-semibold">Operators:</p>
         <p class="font-mono mb-2">
-          ==, &lt;, &gt;, &lt;=, &gt;=, !=, in, contains, and, or, any, all
+          ==, &lt;, &gt;, &lt;=, &gt;=, !=, IN, CONTAINS, LIKE, NONE, NOT, AND,
+          OR, ANY, ALL
         </p>
         <p class="font-semibold">Queryable fields:</p>
         <p class="font-mono mb-2">
           title, authors, publication, pubTime, rating, note, tags.name,
-          tags.count, folders.name, folders.count
+          tags.count, folders.name, folders.count, addTime, flag
         </p>
+        <p class="font-semibold">Date string:</p>
+        <p class="font-mono mb-2">[n DAYS]: n days before today</p>
         <p class="font-semibold">Examples:</p>
         <p class="italic">1) Query the paper whose title is 'Test title':</p>
         <p class="font-mono mb-1">&nbsp; title == 'Test title'</p>
@@ -110,9 +113,10 @@ const onClearClicked = (payload: Event) => {
         <p class="italic">
           5) Query the paper whose tags contains 'a' and 'b':
         </p>
-        <p class="font-mono">
-          &nbsp; any(tags.name contains 'a' and tags.name contains 'b')
-        </p>
+        <p class="font-mono">&nbsp; tags.name == 'a' and tags.name == 'b'</p>
+        <p class="italic">6) Query the paper added in the last 7 days:</p>
+        <p class="font-mono">&nbsp; addTime &lt;= [7 DAYS]</p>
+        <p class="italic">More on https://paperlib.app</p>
       </div>
     </div>
     <BIconX

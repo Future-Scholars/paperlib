@@ -14,6 +14,7 @@ import {
 } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { ThumbnailCache } from "@/models/paper-entity-cache";
+import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
@@ -101,6 +102,14 @@ export class EntityInteractor {
     sortOrder: string
   ) {
     return await this.dbRepository.categorizers(type, sortBy, sortOrder);
+  }
+
+  async loadPaperSmartFilters(
+    type: PaperSmartFilterType,
+    sortBy: string,
+    sortOrder: string
+  ) {
+    return await this.dbRepository.smartfilters(type, sortBy, sortOrder);
   }
 
   async loadThumbnail(paperEntity: PaperEntity) {
@@ -341,6 +350,21 @@ export class EntityInteractor {
     this.stateStore.viewState.processingQueueCount -= 1;
   }
 
+  async deletePaperSmartFilter(
+    type: PaperSmartFilterType,
+    name?: string,
+    smartfilter?: PaperSmartFilter
+  ) {
+    this.stateStore.viewState.processingQueueCount += 1;
+    try {
+      await this.dbRepository.deletePaperSmartFilter(type, smartfilter, name);
+    } catch (e) {
+      console.error(e);
+      this.stateStore.logState.alertLog = `Failed to remove smart filter ${type} ${name} ${smartfilter}`;
+    }
+    this.stateStore.viewState.processingQueueCount -= 1;
+  }
+
   async deleteSup(paperEntity: PaperEntity, url: string) {
     this.stateStore.logState.processLog = `Removing supplementary file ${url}...`;
     this.stateStore.viewState.processingQueueCount += 1;
@@ -547,6 +571,46 @@ export class EntityInteractor {
       this.stateStore.selectionState.pluginLinkedFolder = newName;
       this.preference.set("pluginLinkedFolder", newName);
     }
+  }
+
+  async insertPaperSmartFilter(
+    smartfilter: PaperSmartFilter,
+    type: PaperSmartFilterType
+  ) {
+    this.stateStore.logState.processLog = `Inserting smart filter ${smartfilter.name}...`;
+    this.stateStore.viewState.processingQueueCount += 1;
+
+    try {
+      await this.dbRepository.insertPaperSmartFilter(type, smartfilter);
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Insert smart filter failed: ${
+        error as string
+      }`;
+    }
+
+    this.stateStore.viewState.processingQueueCount -= 1;
+  }
+
+  async colorizePaperSmartFilter(
+    color: Colors,
+    type: PaperSmartFilterType,
+    name?: string,
+    smartfilter?: PaperSmartFilter
+  ) {
+    this.stateStore.viewState.processingQueueCount += 1;
+    try {
+      await this.dbRepository.colorizePaperSmartFilter(
+        color,
+        type,
+        smartfilter,
+        name
+      );
+    } catch (error) {
+      console.error(error);
+      this.stateStore.logState.alertLog = `Failed to colorize smart filter ${type} ${name} ${smartfilter}`;
+    }
+    this.stateStore.viewState.processingQueueCount -= 1;
   }
 
   async updateCache(paperEntities: PaperEntity[]) {
