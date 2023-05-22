@@ -273,6 +273,7 @@ export function registerMainContextMenu(preference: Preference) {
           event.sender.send("sidebar-context-menu-feed-refresh", [data, type]);
         },
       });
+    } else if (type === "PaperPaperSmartFilter") {
     } else {
       template.push({
         label: locales.t("menu.edit"),

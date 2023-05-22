@@ -29,7 +29,8 @@
     "codeofficial": "Official",
     "codecommunity": "Community",
     "supplementaries": "Supplementaries",
-    "citationcount": "Citation Count"
+    "citationcount": "Citation Count",
+    "smartfilters": "Smart Filters"
   },
   "menu": {
     "rescrape": "Scrape",

@@ -7,11 +7,13 @@ import { CategorizerResults } from "@/repositories/db-repository/categorizer-rep
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { FeedResults } from "@/repositories/db-repository/feed-repository";
 import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
 import EditView from "./edit-view/edit-view.vue";
 import FeedEditView from "./edit-view/feed-edit-view.vue";
+import PaperSmartFilterEditView from "./edit-view/smartfilter-edit-view.vue";
 import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import PresettingView from "./presetting-view/presetting-view.vue";
@@ -40,6 +42,8 @@ const tags: Ref<CategorizerResults> = ref([]);
 provide("tags", tags);
 const folders: Ref<CategorizerResults> = ref([]);
 provide("folders", folders);
+const smartfilters: Ref<PaperSmartFilterResults> = ref([]);
+provide("smartfilters", smartfilters);
 const feeds: Ref<FeedResults> = ref([]);
 provide("feeds", feeds);
 const feedEntities: Ref<FeedEntityResults> = ref([]);
@@ -110,6 +114,18 @@ watch(
   (value) => reloadFolders()
 );
 
+const reloadPaperSmartFilters = async () => {
+  smartfilters.value = await window.entityInteractor.loadPaperSmartFilters(
+    "PaperPaperSmartFilter",
+    prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
+  );
+};
+watch(
+  () => dbState.smartfiltersUpdated,
+  (value) => reloadPaperSmartFilters()
+);
+
 const reloadFeeds = async () => {
   const results = await window.feedInteractor.loadFeeds(
     prefState.sidebarSortBy,
@@ -172,6 +188,7 @@ watch(
   (value) => {
     reloadTags();
     reloadFolders();
+    reloadPaperSmartFilters();
   }
 );
 
@@ -203,6 +220,7 @@ watch(
     await reloadPaperEntities();
     await reloadTags();
     await reloadFolders();
+    await reloadPaperSmartFilters();
     removeLoading();
     reloadFeedEntities();
     reloadFeeds();
@@ -252,6 +270,7 @@ const reloadAll = async () => {
   await reloadPaperEntities();
   await reloadTags();
   await reloadFolders();
+  await reloadPaperSmartFilters();
 };
 const log = () => {
   console.log("paperEntities ========");
@@ -333,6 +352,7 @@ onMounted(async () => {
     </splitpanes>
     <EditView />
     <FeedEditView />
+    <PaperSmartFilterEditView />
     <PreferenceView />
     <DeleteConfirmView />
     <PresettingView />

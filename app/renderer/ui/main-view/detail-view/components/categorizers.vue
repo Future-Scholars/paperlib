@@ -40,21 +40,21 @@ const colorClass = (color?: string) => {
     case "blue":
     case null:
     case undefined:
-      return "text-blue-500";
+      return "bg-blue-500";
     case "red":
-      return "text-red-500";
+      return "bg-red-500";
     case "green":
-      return "text-green-500";
+      return "bg-green-500";
     case "yellow":
-      return "text-yellow-500";
+      return "bg-yellow-500";
     case "purple":
-      return "text-purple-500";
+      return "bg-purple-500";
     case "pink":
-      return "text-pink-500";
+      return "bg-pink-500";
     case "orange":
-      return "text-orange-500";
+      return "bg-orange-500";
     case "cyan":
-      return "text-cyan-500";
+      return "bg-cyan-500";
   }
 };
 </script>
