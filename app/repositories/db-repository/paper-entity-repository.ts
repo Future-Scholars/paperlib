@@ -40,6 +40,19 @@ export class PaperEntityRepository {
           .split(" ")
           .join("*")}*`;
         filterFormat += `(title LIKE[c] \"${fuzzyFormatedSearch}\" OR authors LIKE[c] \"${fuzzyFormatedSearch}\" OR publication LIKE[c] \"${fuzzyFormatedSearch}\" OR note LIKE[c] \"${fuzzyFormatedSearch}\") AND `;
+        if (flag) {
+          filterFormat += "flag == true AND ";
+        }
+        if (tag) {
+          filterFormat += `(ANY tags.name == \"${tag}\") AND `;
+        }
+        if (folder) {
+          filterFormat += `(ANY folders.name == \"${folder}\") AND `;
+        }
+
+        if (filterFormat.length > 0) {
+          filterFormat = filterFormat.slice(0, -5);
+        }
       } else if (this.stateStore.viewState.searchMode === "advanced") {
         // Replace comparison operators for 'addTime'
         const compareDateMatch = formatedSearch.match(
@@ -73,23 +86,9 @@ export class PaperEntityRepository {
             date.toISOString().slice(0, -5).replace("T", "@")
           );
         }
-        filterFormat += `(${formatedSearch}) AND `;
+        filterFormat += `${formatedSearch} `;
       }
     }
-    if (flag) {
-      filterFormat += "flag == true AND ";
-    }
-    if (tag) {
-      filterFormat += `(ANY tags.name == \"${tag}\") AND `;
-    }
-    if (folder) {
-      filterFormat += `(ANY folders.name == \"${folder}\") AND `;
-    }
-
-    if (filterFormat.length > 0) {
-      filterFormat = filterFormat.slice(0, -5);
-    }
-
     return filterFormat;
   }
 
