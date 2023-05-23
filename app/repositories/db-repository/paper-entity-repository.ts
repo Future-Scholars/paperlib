@@ -73,9 +73,11 @@ export class PaperEntityRepository {
             date.toISOString().slice(0, -5).replace("T", "@")
           );
         }
-        filterFormat += `(${formatedSearch}) AND `;
+        filterFormat += `${formatedSearch} `;
+        return filterFormat;
       }
     }
+
     if (flag) {
       filterFormat += "flag == true AND ";
     }
@@ -89,7 +91,6 @@ export class PaperEntityRepository {
     if (filterFormat.length > 0) {
       filterFormat = filterFormat.slice(0, -5);
     }
-
     return filterFormat;
   }
 
