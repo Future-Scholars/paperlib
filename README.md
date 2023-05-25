@@ -67,6 +67,7 @@ That is Paperlib.
 
     - ...
 -   Fulltext and advanced search.
+-   Smart filter.
 -   Rating, flag, tag, folder and markdown/plain text note.
 -   RSS feed subscription to follow the newest publications on your research topic.
 -   Locate and download PDF files from the web.
