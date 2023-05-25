@@ -64,16 +64,6 @@ async function createWindow() {
           setMainPluginCommunicationChannel(win, winPlugin);
 
           setWindowsSpecificStyles(winPlugin);
-
-          const { x, y } = screen.getCursorScreenPoint();
-          const currentDisplay = screen.getDisplayNearestPoint({ x, y });
-          const bounds = currentDisplay.bounds;
-          const centerx = bounds.x + (bounds.width - 600) / 2;
-          const centery = bounds.y + (bounds.height - 76) / 2;
-          winPlugin?.setPosition(
-            parseInt(`${centerx}`),
-            parseInt(`${centery}`)
-          );
         });
 
         winPlugin.on("hide", () => {
@@ -85,6 +75,13 @@ async function createWindow() {
           }
         });
       }
+
+      const { x, y } = screen.getCursorScreenPoint();
+      const currentDisplay = screen.getDisplayNearestPoint({ x, y });
+      const bounds = currentDisplay.bounds;
+      const centerx = bounds.x + (bounds.width - 600) / 2;
+      const centery = bounds.y + (bounds.height - 76) / 2;
+      winPlugin?.setPosition(parseInt(`${centerx}`), parseInt(`${centery}`));
       winPlugin?.show();
     }
   );
