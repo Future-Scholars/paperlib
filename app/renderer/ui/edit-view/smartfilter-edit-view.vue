@@ -21,6 +21,10 @@ watch(
   () => viewState.isPaperSmartFilterEditViewShown,
   (value) => {
     if (value) {
+      editingPaperSmartFilterDraft.value = new PaperSmartFilter("", "");
+      filterRules.value = [];
+
+      filterMatchType.value = "AND";
       infoText.value = "";
       window.addEventListener("keydown", keyDownListener, { once: true });
     }
@@ -152,7 +156,7 @@ onMounted(() => {
               class="bg-neutral-200 dark:bg-neutral-700 grow h-[1px] my-auto"
             />
             <div
-              class="w-4 h-4 my-auto flex-none dark:bg-neutral-700 dark:hover:bg-neutral-600 rounded-sm cursor-pointer"
+              class="w-4 h-4 my-auto flex-none bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 rounded-sm cursor-pointer"
               @click="onAddRuleClicked"
             >
               <BIconPlus
