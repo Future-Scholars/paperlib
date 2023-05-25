@@ -135,3 +135,44 @@ jobs:
       - name: "End-to-End Testing"
         run: npm run test:e2e
 
+  e2e_test_linux:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-versions: ["16.17.1"]
+
+    steps:
+      - name: "Checkout Project"
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          cp ./build_configs/electron-builder.linux.dev.json5 ./electron-builder.json5
+          rm -rf ./app/utils/crypto
+
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: Future-Scholars/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
+
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-versions }}
+
+      - name: "Install Node Module"
+        run: |
+          node -v
+          npm install --force
+          npx playwright install --with-deps
+
+      - name: "Cleanup Env"
+        run: |
+          rm -rf ~/Documents/paperlib
+          rm -rf ~/.config/paperlib
+
+      - name: "End-to-End Testing"
+        run: npm run test:e2e
