@@ -23,6 +23,7 @@ jobs:
       - name: Set env
         run: |
           cp ./build_configs/electron-builder.mac.arm.dev.json5 ./electron-builder.json5
+          rm -rf ./app/utils/crypto
 
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
@@ -64,6 +65,7 @@ jobs:
       - name: Set env
         run: |
           cp ./build_configs/electron-builder.mac.dev.json5 ./electron-builder.json5
+          rm -rf ./app/utils/crypto
 
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
@@ -105,6 +107,7 @@ jobs:
       - name: Set env
         run: |
           cp ./build_configs/electron-builder.win.dev.json5 ./electron-builder.json5
+          if (Test-Path ./app/utils/crypto) {rm ./app/utils/crypto -r -force}
 
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
@@ -123,6 +126,11 @@ jobs:
           node -v
           npm install --force
           npx playwright install --with-deps
+
+      - name: "Cleanup Env"
+        run: |
+          if (Test-Path C:\Users\runneradmin\Documents\paperlib) {rm C:\Users\runneradmin\Documents\paperlib -r -force}
+          if (Test-Path C:\Users\runneradmin\AppData\Local\paperlib) {rm C:\Users\runneradmin\AppData\Local\paperlib -r -force}
 
       - name: "End-to-End Testing"
         run: npm run test:e2e

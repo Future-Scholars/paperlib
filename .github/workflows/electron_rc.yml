@@ -25,6 +25,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./build_configs/electron-builder.mac.dev.json5 ./electron-builder.json5
+          rm -rf ./app/utils/crypto
 
       - name: 'Import Certificates'
         run: |
@@ -92,6 +93,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./build_configs/electron-builder.mac.arm.dev.json5 ./electron-builder.json5
+          rm -rf ./app/utils/crypto
 
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
@@ -158,6 +160,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./build_configs/electron-builder.win.dev.json5 ./electron-builder.json5
+          if (Test-Path ./app/utils/crypto) {rm ./app/utils/crypto -r -force}
 
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
@@ -218,6 +221,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
           cp ./build_configs/electron-builder.linux.dev.json5 ./electron-builder.json5
+          rm -rf ./app/utils/crypto
 
       - name: 'Clone Private Repository'
         uses: actions/checkout@v2
