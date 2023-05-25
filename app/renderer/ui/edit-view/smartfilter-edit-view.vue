@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconPlus } from "bootstrap-icons-vue";
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 import { Feed } from "@/models/feed";
 import { PaperSmartFilter } from "@/models/smart-filter";
@@ -96,6 +96,14 @@ const constructFilter = () => {
   const filter = filterRules.value.join(` ${filterMatchType.value} `);
   editingPaperSmartFilterDraft.value.filter = filter;
 };
+
+onMounted(() => {
+  editingPaperSmartFilterDraft.value = new PaperSmartFilter("", "");
+  filterRules.value = [];
+
+  filterMatchType.value = "AND";
+  infoText.value = "";
+});
 </script>
 
 <template>
