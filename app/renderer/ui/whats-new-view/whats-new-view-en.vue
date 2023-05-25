@@ -81,9 +81,9 @@ onMounted(() => {
         <ul class="list-disc mb-5">
           <li>
             New Feature: <b>Smart Filter</b>! <br />
-            You can create a smart filter for advanced filtering. For example:
-            papers with 'tag A' and 'tag B'; recently added papers'; papers with
-            author xxx; title contains string 'abc' etc.
+            You can create a smart filter to do an advanced filtering. For
+            example: papers with 'tag A' and 'tag B'; recently added papers;
+            papers by a specific author; title contains the string 'abc' etc.
             <span class="text-red-500"
               >Please turn on the 'DEV mode' if you are using the online MongoDB
               Atlas database</span

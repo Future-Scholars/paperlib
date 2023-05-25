@@ -1,2 +1,5 @@
-1. Support fuzzy searching. For example, to search a paper with title like: Semi-supervised Classification via AABBCC, you can input "semi" / "semi sup" / "classi" / "semi classi" / "AA CC" etc. to the search bar.
-2. Minor enhancement.
+1. New Feature: Smart Filter.
+2. More colours for tags and folders.
+3. Remember the window size.
+4. Fix PDF quicklook for Windows.
+5. Fix downloader delete button display bug. Thanks @qzydustin
