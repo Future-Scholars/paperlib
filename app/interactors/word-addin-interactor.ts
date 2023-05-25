@@ -32,13 +32,18 @@ export class WordAddinInteractor {
     this.preference = preference;
     this.entityInteractor = entityInteractor;
 
-    const server = createServer(certs);
-    this.socketServer = new WebSocket.WebSocketServer({ server });
-    this.socketServer.on("connection", (ws) => {
-      this.ws = ws;
-      ws.on("message", this.handler.bind(this));
-    });
-    server.listen(21993);
+    try {
+      const server = createServer(certs);
+      this.socketServer = new WebSocket.WebSocketServer({ server });
+      this.socketServer.on("connection", (ws) => {
+        this.ws = ws;
+        ws.on("message", this.handler.bind(this));
+      });
+      server.listen(21993);
+    } catch (e) {
+      // For developers outside Future Scholar
+      this.socketServer = new WebSocket.WebSocketServer({ port: 21993 });
+    }
   }
 
   async handler(data: string) {
