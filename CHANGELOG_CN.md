@@ -1,3 +1,11 @@
+# v2.2.2 25/05 2023
+
+1. 新功能: Smart Filter。
+2. 标签/文件夹支持更多的颜色。
+3. 记住上次关闭时的窗口尺寸。
+4. 修复 Windows 的快速预览。
+5. 修复下载器设置的按钮文字。Thanks @qzydustin
+
 ## v2.2.1 09/04 2023
 
 1. 支持模糊搜索，比如论文标题为 Semi-supervised Classification via AABBCC，那么可以通过输入 "semi" / "semi sup" / "classi" / "semi classi" / "AA CC" 等等来搜索到这篇论文。

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconPlus } from "bootstrap-icons-vue";
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 import { Feed } from "@/models/feed";
 import { PaperSmartFilter } from "@/models/smart-filter";
@@ -21,6 +21,10 @@ watch(
   () => viewState.isPaperSmartFilterEditViewShown,
   (value) => {
     if (value) {
+      editingPaperSmartFilterDraft.value = new PaperSmartFilter("", "");
+      filterRules.value = [];
+
+      filterMatchType.value = "AND";
       infoText.value = "";
       window.addEventListener("keydown", keyDownListener, { once: true });
     }
@@ -96,6 +100,14 @@ const constructFilter = () => {
   const filter = filterRules.value.join(` ${filterMatchType.value} `);
   editingPaperSmartFilterDraft.value.filter = filter;
 };
+
+onMounted(() => {
+  editingPaperSmartFilterDraft.value = new PaperSmartFilter("", "");
+  filterRules.value = [];
+
+  filterMatchType.value = "AND";
+  infoText.value = "";
+});
 </script>
 
 <template>
@@ -140,16 +152,20 @@ const constructFilter = () => {
           />
 
           <div class="flex space-x-1">
-            <div class="dark:bg-neutral-700 grow h-[1px] my-auto" />
             <div
-              class="w-4 h-4 my-auto flex-none dark:bg-neutral-700 dark:hover:bg-neutral-600 rounded-sm cursor-pointer"
+              class="bg-neutral-200 dark:bg-neutral-700 grow h-[1px] my-auto"
+            />
+            <div
+              class="w-4 h-4 my-auto flex-none bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 rounded-sm cursor-pointer"
               @click="onAddRuleClicked"
             >
               <BIconPlus
                 class="m-auto text-neutral-500 dark:text-neutral-400"
               />
             </div>
-            <div class="dark:bg-neutral-700 grow h-[1px] my-auto" />
+            <div
+              class="bg-neutral-200 dark:bg-neutral-700 grow h-[1px] my-auto"
+            />
           </div>
           <div class="flex justify-end space-x-2 py-1">
             <div class="text-xs h-6 flex text-red-500">

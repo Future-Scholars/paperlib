@@ -52,15 +52,23 @@ export async function createMainWindow(
 
   // Make all links open with the browser, not with the application
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.includes(process.env.VITE_DEV_SERVER_URL || "")) {
+    if (
+      url.includes(process.env.VITE_DEV_SERVER_URL || "") &&
+      process.env.NODE_ENV === "development"
+    ) {
       return { action: "allow" };
     }
-    if (url.startsWith("http")) shell.openExternal(url);
+    if (url.startsWith("http")) {
+      shell.openExternal(url);
+    }
     return { action: "deny" };
   });
 
   win.webContents.on("will-navigate", function (e, url) {
-    if (url.includes(process.env.VITE_DEV_SERVER_URL || "")) {
+    if (
+      url.includes(process.env.VITE_DEV_SERVER_URL || "") &&
+      process.env.NODE_ENV === "development"
+    ) {
       return;
     }
     e.preventDefault();

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 
+import WhatsNewHeader from "./header.vue";
+
 const show = ref(false);
 
 const checkShouldShow = async () => {
@@ -28,10 +30,6 @@ const loadHistoryReleaseNote = () => {
     }
   };
   xhr.send();
-};
-
-const openIntro = () => {
-  window.appInteractor.open("https://paperlib.app/cn/blog/word-addin/");
 };
 
 const darkMode = ref(false);
@@ -75,34 +73,36 @@ onMounted(() => {
       v-if="show"
     >
       <div class="w-[45rem] px-3 mx-auto my-20">
-        <img
-          class="w-12 mx-auto mb-6"
-          src="../../assets/logo-dark.png"
-          v-if="darkMode"
-        />
-        <img
-          class="w-10 mx-auto mb-6"
-          src="../../assets/logo-light.png"
-          v-else
-        />
-        <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 2.2.1 更新内容
-        </p>
+        <WhatsNewHeader :darkMode="darkMode" />
+        <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
+
+        <p class="text-center text-2xl font-bold mb-8">版本 2.2.2 更新内容</p>
 
         <ul class="list-disc mb-5">
           <li>
-            加入我们的 Discard channel 来讨论新 features，提出问题，或建议！
-            <a href="https://discord.com/invite/4unrSRjcM9"
-              >https://discord.com/invite/4unrSRjcM9
-            </a>
+            新功能: <b>Smart Filter</b>! <br />
+            你可以创建一个 smart filter 来进行高级过滤。例如： 同时具有 'tag A'
+            和 'tag B'
+            的论文；最近添加的论文；某个作者发表的论文；标题里有某个关键字的论文等等。
+            <span class="text-red-500"
+              >请打开 'DEV mode' 如果你使用在线 MongoDB Atlas 数据库</span
+            >。 详情请见
+            <a
+              class="underline"
+              href="https://paperlib.app/cn/doc/smart-filter/"
+              >文档</a
+            >。
+            <img
+              class="rounded-md drop-shadow-lg my-4"
+              src="../../assets/smart-filter.png"
+            />
           </li>
-          <li>
-            支持模糊搜索，比如论文标题为 Semi-supervised Classification via
-            AABBCC，那么可以通过输入 "semi" / "semi sup" / "classi" / "semi
-            classi" / "AA CC" 等等来搜索到这篇论文。
-          </li>
-          <li>改进了一点文件导入逻辑。</li>
+          <li>标签/文件夹支持更多的颜色。</li>
+          <li>记住上次关闭时的窗口尺寸。</li>
+          <li>修复 Windows 的快速预览。</li>
+          <li>修复下载器设置的按钮文字。Thanks @qzydustin</li>
         </ul>
+
         <div
           id="whats-new-close-btn"
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

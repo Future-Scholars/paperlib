@@ -103,8 +103,9 @@ export class FeedInteractor {
       );
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Add feeds failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Add feeds failed: ${
+        error as string
+      }`;
     }
     this.stateStore.viewState.processingQueueCount -= feeds.length;
   }
@@ -132,7 +133,6 @@ export class FeedInteractor {
           })
         )
       ).flat();
-
 
       // let paperEntityDrafts = feedEntityDrafts.map((feedEntityDraft) => {
       //   const draft = new PaperEntity(false);
@@ -183,8 +183,9 @@ export class FeedInteractor {
       await this.dbRepository.updateFeedEntities(feedEntityDrafts, true);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Refresh feeds failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Refresh feeds failed: ${
+        error as string
+      }`;
     }
     this.stateStore.viewState.processingQueueCount -= feedNames.length;
   }
@@ -197,8 +198,9 @@ export class FeedInteractor {
       await this.dbRepository.updateFeeds(feeds);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Updating feeds failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Updating feeds failed: ${
+        error as string
+      }`;
     }
     this.stateStore.viewState.processingQueueCount -= feeds.length;
   }
@@ -222,8 +224,9 @@ export class FeedInteractor {
       await this.dbRepository.updateFeedEntities(feedEntities);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Updating feed entities failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Updating feed entities failed: ${
+        error as string
+      }`;
     }
     this.stateStore.viewState.processingQueueCount -= feedEntities.length;
   }
@@ -236,7 +239,9 @@ export class FeedInteractor {
       const addPromise = async (feedEntityDraft: FeedEntity) => {
         let paperEntityDraft = new PaperEntity(true);
         paperEntityDraft.fromFeed(feedEntityDraft);
-        return await this.scraperRepository.scrape(paperEntityDraft);
+        return await this.scraperRepository.scrape(paperEntityDraft, [
+          "semanticscholar",
+        ]);
       };
 
       const paperEntityDrafts = await Promise.all(
@@ -247,8 +252,9 @@ export class FeedInteractor {
       await this.dbRepository.updatePaperEntities(paperEntityDrafts);
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Adding to library failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Adding to library failed: ${
+        error as string
+      }`;
     }
     this.stateStore.viewState.processingQueueCount -= feedEntities.length;
   }
@@ -280,8 +286,9 @@ export class FeedInteractor {
       await this.dbRepository.deleteOutdatedFeedEntities();
     } catch (error) {
       console.error(error);
-      this.stateStore.logState.alertLog = `Routine feed refreshing failed: ${error as string
-        }`;
+      this.stateStore.logState.alertLog = `Routine feed refreshing failed: ${
+        error as string
+      }`;
     }
     this.stateStore.viewState.processingQueueCount -= 1;
   }
