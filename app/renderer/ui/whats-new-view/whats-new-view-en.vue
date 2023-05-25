@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 
+import WhatsNewHeader from "./header.vue";
+
 const show = ref(false);
 
 const checkShouldShow = async () => {
@@ -28,10 +30,6 @@ const loadHistoryReleaseNote = () => {
     }
   };
   xhr.send();
-};
-
-const openIntro = () => {
-  window.appInteractor.open("https://paperlib.app/en/blog/word-addin/");
 };
 
 const darkMode = ref(false);
@@ -74,36 +72,36 @@ onMounted(() => {
       class="absolute w-full h-full top-0 left-0 bg-white dark:bg-neutral-800 z-50 overflow-auto dark:text-neutral-200"
       v-if="show"
     >
-      <div class="w-[45rem] px-3 mx-auto my-20">
-        <img
-          class="w-12 mx-auto mb-6"
-          src="../../assets/logo-dark.png"
-          v-if="darkMode"
-        />
-        <img
-          class="w-10 mx-auto mb-6"
-          src="../../assets/logo-light.png"
-          v-else
-        />
-        <p class="text-center text-2xl font-bold mb-8">
-          What's New in Paperlib 2.2.1
-        </p>
+      <div class="w-[45rem] px-3 mx-auto my-20 flex flex-col">
+        <WhatsNewHeader :darkMode="darkMode" />
+        <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
+
+        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.2</p>
 
         <ul class="list-disc mb-5">
           <li>
-            Join our Discard channel to discuss new features, ask questions, and
-            share your feedback.
-            <a href="https://discord.com/invite/4unrSRjcM9"
-              >https://discord.com/invite/4unrSRjcM9
-            </a>
+            New Feature: <b>Smart Filter</b>! <br />
+            You can create a smart filter for advanced filtering. For example:
+            papers with 'tag A' and 'tag B'; recently added papers'; papers with
+            author xxx; title contains string 'abc' etc.
+            <span class="text-red-500"
+              >Please turn on the 'DEV mode' if you are using the online MongoDB
+              Atlas database</span
+            >. Learn more
+            <a
+              class="underline"
+              href="https://paperlib.app/en/doc/smart-filter/"
+              >here</a
+            >.
+            <img
+              class="rounded-md drop-shadow-lg my-4"
+              src="../../assets/smart-filter.png"
+            />
           </li>
-          <li>
-            Support fuzzy searching. For example, to search a paper with title
-            like: Semi-supervised Classification via AABBCC, you can input
-            "semi" / "semi sup" / "classi" / "semi classi" / "AA CC" etc. to the
-            search bar.
-          </li>
-          <li>Minor enhancement.</li>
+          <li>More colours for tags and folders.</li>
+          <li>Remember the window size.</li>
+          <li>Fix PDF quicklook for Windows.</li>
+          <li>Fix downloader delete button display bug. Thanks @qzydustin</li>
         </ul>
         <div
           id="whats-new-close-btn"
