@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import { parse } from "node-html-parser";
+import parse from "node-html-parser";
 import path from "path";
 
 import { PaperEntity } from "@/models/paper-entity";

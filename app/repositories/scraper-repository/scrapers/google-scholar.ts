@@ -1,4 +1,4 @@
-import { parse } from "node-html-parser";
+import parse from "node-html-parser";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";

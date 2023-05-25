@@ -1,4 +1,4 @@
-import { parse } from "node-html-parser";
+import parse from "node-html-parser";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";

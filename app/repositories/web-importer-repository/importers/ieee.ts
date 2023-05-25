@@ -1,4 +1,4 @@
-import { parse } from "node-html-parser";
+import parse from "node-html-parser";
 import { CookieJar } from "tough-cookie";
 
 import { PaperEntity } from "@/models/paper-entity";
@@ -85,7 +85,10 @@ export class IEEEWebImporter extends WebImporter {
             filename += ".pdf";
           }
 
-          const targetUrl = await window.networkTool.downloadPDFs([url], cookieJar);
+          const targetUrl = await window.networkTool.downloadPDFs(
+            [url],
+            cookieJar
+          );
           if (targetUrl.length > 0) {
             entityDraft.mainURL = targetUrl[0];
           }

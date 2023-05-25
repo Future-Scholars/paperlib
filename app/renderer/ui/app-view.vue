@@ -71,10 +71,16 @@ const reloadPaperEntities = async () => {
   let folder = "";
   if (selectionState.selectedCategorizer.startsWith("tag-")) {
     tag = selectionState.selectedCategorizer.replace("tag-", "");
+    viewState.searchText = "";
+    viewState.searchMode = "general";
   } else if (selectionState.selectedCategorizer.startsWith("folder-")) {
     folder = selectionState.selectedCategorizer.replace("folder-", "");
+    viewState.searchText = "";
+    viewState.searchMode = "general";
   } else if (selectionState.selectedCategorizer === "lib-flaged") {
     flaged = true;
+    viewState.searchText = "";
+    viewState.searchMode = "general";
   }
   paperEntities.value = await window.entityInteractor.loadPaperEntities(
     viewState.searchText,
@@ -117,7 +123,7 @@ watch(
 const reloadPaperSmartFilters = async () => {
   smartfilters.value = await window.entityInteractor.loadPaperSmartFilters(
     "PaperPaperSmartFilter",
-    prefState.sidebarSortBy,
+    prefState.sidebarSortBy === "count" ? "name" : prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
