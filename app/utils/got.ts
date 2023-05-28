@@ -242,11 +242,12 @@ export class NetworkTool {
           })
           .on("downloadProgress", (progress) => {
             const percent = progress.percent;
-            this.stateStore.logState.progressLog = {
-              id: path.basename(targetPath),
-              value: percent * 100,
-              msg: `Downloading...`,
-            };
+            window.logger.progress(
+              "Downloading...",
+              percent * 100,
+              true,
+              "Network"
+            );
           }),
         createWriteStream(constructFileURL(targetPath, false, false))
       );
@@ -261,8 +262,6 @@ export class NetworkTool {
     urlList: string[],
     cookies?: CookieJar
   ): Promise<string[]> {
-    this.stateStore.logState.processLog = "";
-
     const downloadedUrls = (
       await Promise.all(
         urlList.map((url) => {

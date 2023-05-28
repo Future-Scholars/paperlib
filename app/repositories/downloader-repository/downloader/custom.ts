@@ -39,7 +39,12 @@ export class CustomDownloader extends Downloader {
     }
 
     if (enable) {
-      this.stateStore.logState.processLog = `Download PDF from ${this.name}...`;
+      window.logger.info(
+        `Download PDF from ${this.name}...`,
+        "",
+        true,
+        "Downloader"
+      );
     }
 
     return { queryUrl, headers, enable };

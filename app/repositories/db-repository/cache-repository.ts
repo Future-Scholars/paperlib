@@ -45,7 +45,7 @@ export class CacheRepository {
   // ========================
   async initRealm(reinit = false): Promise<Realm> {
     this.stateStore.viewState.processingQueueCount += 1;
-    this.stateStore.logState.processLog = "Cache Initializing...";
+    window.logger.info("Initializing Cache DB...", "", false, "Database");
 
     if (this._realm || reinit) {
       Realm.defaultPath = window.appInteractor.getUserDataPath();

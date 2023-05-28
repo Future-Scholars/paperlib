@@ -222,7 +222,7 @@ watch(
 watch(
   () => viewState.realmReinited,
   async (value) => {
-    console.time("Reload Data");
+    var startTime = Date.now();
     await reloadPaperEntities();
     await reloadTags();
     await reloadFolders();
@@ -230,7 +230,13 @@ watch(
     removeLoading();
     reloadFeedEntities();
     reloadFeeds();
-    console.timeEnd("Reload Data");
+    var endTime = Date.now();
+    window.logger.info(
+      `Data reinited in ${endTime - startTime}ms`,
+      "",
+      false,
+      "Data"
+    );
   }
 );
 
@@ -245,11 +251,7 @@ window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
 });
 
 window.appInteractor.registerMainSignal("update-download-progress", (value) => {
-  logState.progressLog = {
-    id: "update-download-progress",
-    msg: "Downloading update...",
-    value: value,
-  };
+  window.logger.progress("Downloading Update...", value, true, "Version");
 });
 
 // ================================
@@ -293,6 +295,22 @@ const log = () => {
   for (let i = 0; i < Math.min(10, folders.value.length); i++) {
     console.log(folders.value[i]);
   }
+};
+const logInfo = () => {
+  const randomString = Math.random().toString(36).slice(-8);
+  window.logger.info(randomString, "additional info", true, "DEVLOG");
+};
+const logWarn = () => {
+  const randomString = Math.random().toString(36).slice(-8);
+  window.logger.warn(randomString, "additional info", true, "DEVLOG");
+};
+const logError = () => {
+  const randomString = Math.random().toString(36).slice(-8);
+  window.logger.error(randomString, "additional info", true, "DEVLOG");
+};
+const logProgress = () => {
+  const randomNumber = Math.floor(Math.random() * 100);
+  window.logger.progress("Progress...", randomNumber, true, "DEVLOG");
 };
 
 // ================================
@@ -346,6 +364,30 @@ onMounted(async () => {
         @click="log"
       >
         Log
+      </button>
+      <button
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="logInfo"
+      >
+        Notify Info
+      </button>
+      <button
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="logWarn"
+      >
+        Notify Warn
+      </button>
+      <button
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="logError"
+      >
+        Notify Error
+      </button>
+      <button
+        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
+        @click="logProgress"
+      >
+        Notify Progress
       </button>
     </div>
     <splitpanes @resized="onSidebarResized($event)">

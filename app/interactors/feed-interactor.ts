@@ -92,7 +92,7 @@ export class FeedInteractor {
   // Create
   // ========================
   async createFeed(feeds: Feed[]) {
-    this.stateStore.logState.processLog = `Creating ${feeds.length} feeds...`;
+    window.logger.info(`Creating ${feeds.length} feeds...`, "", true, "Feed");
     this.stateStore.viewState.processingQueueCount += feeds.length;
 
     try {
@@ -114,7 +114,12 @@ export class FeedInteractor {
   // Update
   // ========================
   async refresh(feedNames: string[]) {
-    this.stateStore.logState.processLog = `Refreshing ${feedNames.length} feeds...`;
+    window.logger.info(
+      `Refreshing ${feedNames.length} feeds...`,
+      "",
+      true,
+      "Feed"
+    );
     this.stateStore.viewState.processingQueueCount += feedNames.length;
 
     try {
@@ -191,7 +196,7 @@ export class FeedInteractor {
   }
 
   async updateFeeds(feeds: Feed[]) {
-    this.stateStore.logState.processLog = `Updating ${feeds.length} feeds...`;
+    window.logger.info(`Updating ${feeds.length} feeds...`, "", true, "Feed");
     this.stateStore.viewState.processingQueueCount += feeds.length;
 
     try {
@@ -217,7 +222,12 @@ export class FeedInteractor {
   }
 
   async updateFeedEntities(feedEntities: FeedEntity[]) {
-    this.stateStore.logState.processLog = `Updating ${feedEntities.length} feed entities...`;
+    window.logger.info(
+      `Updating ${feedEntities.length} feed entities...`,
+      "",
+      true,
+      "Feed"
+    );
     this.stateStore.viewState.processingQueueCount += feedEntities.length;
 
     try {
@@ -232,7 +242,12 @@ export class FeedInteractor {
   }
 
   async addToLib(feedEntities: FeedEntity[]) {
-    this.stateStore.logState.processLog = `Adding ${feedEntities.length} feed entities to library...`;
+    window.logger.info(
+      `Adding ${feedEntities.length} feed entities to library...`,
+      "",
+      true,
+      "Feed"
+    );
     this.stateStore.viewState.processingQueueCount += feedEntities.length;
 
     try {
@@ -277,7 +292,7 @@ export class FeedInteractor {
   // Routine Task
   // ========================
   async routineRefresh() {
-    this.stateStore.logState.processLog = "Routine feed refreshing...";
+    window.logger.info("Routine feed refreshing...", "", true, "Feed");
     this.stateStore.viewState.processingQueueCount += 1;
     try {
       this.preference.set("lastFeedRefreshTime", Math.round(Date.now() / 1000));

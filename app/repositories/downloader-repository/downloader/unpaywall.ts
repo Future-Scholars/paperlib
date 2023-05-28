@@ -37,7 +37,12 @@ export class UnpayWallDownloader extends Downloader {
     };
 
     if (enable) {
-      this.stateStore.logState.processLog = `Downloading PDF from Unpaywall ...`;
+      window.logger.info(
+        "Downloading PDF from Unpaywall ...",
+        "",
+        true,
+        "Downloader"
+      );
     }
 
     return { queryUrl, headers, enable };

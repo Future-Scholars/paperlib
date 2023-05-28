@@ -5,13 +5,27 @@ import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 
 export interface LogState {
-  processLog: string;
   alertLog: string;
   infoLog: string;
-  progressLog: {
+  infoLogMessage: {
     id: string;
-    value: number;
     msg: string;
+    additional?: string;
+  };
+  warnLogMessage: {
+    id: string;
+    msg: string;
+    additional?: string;
+  };
+  errorLogMessage: {
+    id: string;
+    msg: string;
+    additional?: string;
+  };
+  progressLogMessage: {
+    id: string;
+    msg: string;
+    value: number;
   };
 }
 

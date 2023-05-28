@@ -81,7 +81,7 @@ export class DBRepository {
   // ========================
   async initRealm(reinit = false): Promise<Realm> {
     this.stateStore.viewState.processingQueueCount += 1;
-    this.stateStore.logState.processLog = "Database Initializing...";
+    window.logger.info("Initializing database...", "", true, "Database");
 
     // Stop watch file to release lock
     await window.appInteractor.fileRepository.stopWatch();
@@ -267,8 +267,7 @@ export class DBRepository {
 
       const loginedUser = await this.app.logIn(credentials);
 
-      this.stateStore.logState.processLog =
-        "Successfully logged in! Data is syncing...";
+      window.logger.info("Successfully logged in!", "", true, "Database");
 
       this.app.switchUser(loginedUser);
       return this.app.currentUser;

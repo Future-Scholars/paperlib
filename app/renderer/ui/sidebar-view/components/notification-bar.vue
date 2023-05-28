@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   BIconArrowBarUp,
+  BIconBug,
   BIconExclamationTriangle,
   BIconInfoCircle,
 } from "bootstrap-icons-vue";
@@ -12,10 +13,17 @@ const logState = MainRendererStateStore.useLogState();
 const viewState = MainRendererStateStore.useViewState();
 
 const isShown = ref(false);
-const isHistoryShown = ref(false);
-const historyMsgs = ref([]) as Ref<Array<Record<string, string | boolean>>>;
-const historyProgresses = ref([]) as Ref<
-  Array<Record<string, number | string | boolean>>
+const showingInfo = ref("");
+
+const historyMsgs = ref([]) as Ref<
+  Array<{
+    id: string;
+    level: "info" | "warn" | "error" | "progress";
+    msg: string;
+    additional: string;
+    value?: number;
+    show: boolean;
+  }>
 >;
 
 watch(
@@ -29,69 +37,97 @@ watch(
   }
 );
 
-const pushMsgToHistory = (type: string, msg: string) => {
-  if (msg) {
-    historyMsgs.value.push({
-      type: type,
-      msg: `${new Date().getHours().toString().padStart(2, "0")}:${new Date()
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")} ${msg}`,
-      forceShow: type === "warning",
-    });
-    if (historyMsgs.value.length > 20) {
-      historyMsgs.value.shift();
+const pushMsgToHistory = (
+  level: "info" | "warn" | "error" | "progress",
+  logMessage: { id: string; msg: string; additional?: string; value?: number }
+) => {
+  const newMsg = {
+    id: logMessage.id,
+    level: level,
+    msg: `${new Date().getHours().toString().padStart(2, "0")}:${new Date()
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")} [${
+      logMessage.id === "default" ? "Paperlib" : logMessage.id
+    }] ${logMessage.msg}`,
+    additional: logMessage.additional || "",
+    value: logMessage.value || 0,
+    show: level === "warn" || level === "error" || level === "progress",
+  };
+
+  if (level === "info") {
+    showingInfo.value =
+      (logMessage.id === "default" ? "" : `[${logMessage.id}] `) +
+      `${logMessage.msg}`;
+  }
+
+  if (level === "progress") {
+    if (newMsg.value > 99) {
+      historyMsgs.value = historyMsgs.value.filter(
+        (msg) => msg.id !== newMsg.id
+      );
+    } else {
+      let updated = false;
+      for (const msg of historyMsgs.value) {
+        if (msg.level === "progress" && msg.id === newMsg.id) {
+          msg.value = newMsg.value;
+          msg.show = true;
+          updated = true;
+        }
+      }
+      if (!updated) {
+        historyMsgs.value.push(newMsg);
+      }
     }
+  } else {
+    historyMsgs.value.push(newMsg);
+  }
+
+  if (historyMsgs.value.length > 5) {
+    historyMsgs.value.shift();
   }
 };
 
 watch(
-  () => logState.processLog,
+  () => logState.infoLogMessage,
   (value) => {
     pushMsgToHistory("info", value);
-  }
+  },
+  { deep: true }
 );
 
 watch(
-  () => logState.alertLog,
+  () => logState.warnLogMessage,
   (value) => {
-    pushMsgToHistory("warning", value as string);
-    isHistoryShown.value = true;
+    pushMsgToHistory("warn", value);
     debounce(() => {
-      isHistoryShown.value = false;
       historyMsgs.value = historyMsgs.value.map((msg) => {
-        msg.forceShow = false;
+        msg.show = false;
         return msg;
       });
     }, 3000)();
-  }
+  },
+  { deep: true }
 );
 
-const pushProgressToHistory = (
-  progress: Record<string, number | string | boolean>
-) => {
-  for (let i = 0; i < historyProgresses.value.length; i++) {
-    if (historyProgresses.value[i].id === progress.id) {
-      historyProgresses.value[i] = progress;
-
-      if (progress.value === 100) {
-        historyProgresses.value.splice(i, 1);
-      }
-
-      return;
-    }
-  }
-  historyProgresses.value.push(progress);
-};
+watch(
+  () => logState.errorLogMessage,
+  (value) => {
+    pushMsgToHistory("error", value);
+    debounce(() => {
+      historyMsgs.value = historyMsgs.value.map((msg) => {
+        msg.show = false;
+        return msg;
+      });
+    }, 3000)();
+  },
+  { deep: true }
+);
 
 watch(
-  () => logState.progressLog,
+  () => logState.progressLogMessage,
   (value) => {
-    pushProgressToHistory(value);
-    isHistoryShown.value = true;
-    debounce(() => {
-      isHistoryShown.value = false;
-    }, 3000)();
+    pushMsgToHistory("progress", value);
   },
   { deep: true }
 );
@@ -109,14 +145,16 @@ const debounce = (fn: Function, delay: number) => {
 };
 
 const onClicked = () => {
-  isHistoryShown.value = !isHistoryShown.value;
   historyMsgs.value = historyMsgs.value.map((msg) => {
-    msg.forceShow = true;
+    msg.show = true;
     return msg;
   });
   debounce(() => {
-    isHistoryShown.value = false;
-  }, 4000)();
+    historyMsgs.value = historyMsgs.value.map((msg) => {
+      msg.show = false;
+      return msg;
+    });
+  }, 2000)();
 };
 
 const onEnter = () => {
@@ -125,9 +163,8 @@ const onEnter = () => {
 
 const onLeave = () => {
   debounce(() => {
-    isHistoryShown.value = false;
     historyMsgs.value = historyMsgs.value.map((msg) => {
-      msg.forceShow = false;
+      msg.show = false;
       return msg;
     });
   }, 2000)();
@@ -146,40 +183,48 @@ const onLeave = () => {
     >
       <div
         class="flex flex-col justify-end fixed top-0 space-y-1 h-full pl-3 pb-8 w-64 pointer-events-none overflow-auto"
-        v-show="isHistoryShown"
+        v-show="historyMsgs.filter((msg) => msg.show).length > 0"
       >
         <div
-          class="flex text-xxs p-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto"
+          class="flex flex-col text-xxs py-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto"
           v-for="historyMsg of historyMsgs"
-          v-show="historyMsg.forceShow"
+          v-show="historyMsg.show"
           @mouseleave="onLeave"
           @mouseenter="onEnter"
         >
-          <div class="w-2 my-auto">
-            <BIconExclamationTriangle
-              class="my-auto text-red-600"
-              v-if="historyMsg.type === 'warning'"
-            />
-            <BIconInfoCircle
-              class="my-auto"
-              v-if="historyMsg.type === 'info'"
-            />
+          <div class="flex space-x-2">
+            <div class="w-2 my-auto">
+              <BIconBug
+                class="my-auto text-red-600"
+                v-if="historyMsg.level === 'error'"
+              />
+              <BIconExclamationTriangle
+                class="my-auto text-yellow-600"
+                v-if="historyMsg.level === 'warn'"
+              />
+              <BIconInfoCircle
+                class="my-auto"
+                v-if="
+                  historyMsg.level === 'info' || historyMsg.level === 'progress'
+                "
+              />
+            </div>
+            <span class="my-auto truncate hover:whitespace-normal">{{
+              historyMsg.msg
+            }}</span>
           </div>
           <span
-            class="my-auto truncate hover:whitespace-normal"
-            :class="historyMsg.type === 'warning' ? 'text-red-600' : ''"
-            >{{ historyMsg.msg }}</span
+            class="truncate hover:whitespace-normal pl-2"
+            v-if="historyMsg.additional !== ''"
+            >{{ historyMsg.additional }}</span
           >
-        </div>
-        <div
-          class="flex flex-col text-xxs py-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-y-1 pointer-events-auto"
-          v-for="progress of historyProgresses"
-        >
-          <div class="my-auto">{{ progress.msg }}</div>
-          <div class="rounded-full h-0.5">
+          <div
+            class="rounded-full h-0.5 my-1 pl-2"
+            v-if="historyMsg.level === 'progress'"
+          >
             <div
               class="bg-accentlight h-0.5 rounded-full dark:bg-accentdark transition-all duration-100"
-              :style="`width: ${progress.value}%`"
+              :style="`width: ${historyMsg.value}%`"
             ></div>
           </div>
         </div>
@@ -190,7 +235,9 @@ const onLeave = () => {
       class="flex justify-center my-auto w-5/6 h-8 truncate text-center text-xxs text-neutral-500 peer"
       @click="onClicked"
     >
-      <span class="my-auto" v-show="isShown"> {{ logState.processLog }}</span>
+      <span class="my-auto" v-show="isShown">
+        {{ showingInfo }}
+      </span>
     </div>
     <BIconArrowBarUp
       class="text-neutral-500 w-1/12 my-auto text-xs invisible peer-hover:visible"

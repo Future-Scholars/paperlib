@@ -70,6 +70,9 @@ export default defineConfig({
         "node-html-parser": {
           type: "esm",
         },
+        "electron-log": {
+          type: "esm",
+        },
       },
       browserField: false,
     }),
