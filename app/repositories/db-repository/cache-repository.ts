@@ -66,10 +66,12 @@ export class CacheRepository {
     try {
       this._realm = new Realm(this.config);
     } catch (err) {
-      console.error(err);
-      this.stateStore.logState.alertLog = `Open local cache faild: ${
-        err as string
-      }`;
+      window.logger.error(
+        `Open local cache faild: ${err as string}`,
+        "",
+        false,
+        "Database"
+      );
     }
 
     this._realm!.safeWrite = (callback) => {

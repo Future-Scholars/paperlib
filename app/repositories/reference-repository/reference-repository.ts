@@ -10,8 +10,11 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { formatString } from "@/utils/string";
 
 function escapeLaTexString(str: string) {
-  const out = str.replaceAll("&", "\\&").replaceAll("%", "\\%").replaceAll("#", "\\#");
-  return out
+  const out = str
+    .replaceAll("&", "\\&")
+    .replaceAll("%", "\\%")
+    .replaceAll("#", "\\#");
+  return out;
 }
 
 export class ReferenceRepository {
@@ -54,7 +57,9 @@ export class ReferenceRepository {
       for (const word of titleArray) {
         if (
           word.toLocaleLowerCase() !== "the" ||
-          word.toLocaleLowerCase() !== "a" || word.toLocaleLowerCase() !== "an" || word.length <= 3
+          word.toLocaleLowerCase() !== "a" ||
+          word.toLocaleLowerCase() !== "an" ||
+          word.length <= 3
         ) {
           citeKey += formatString({
             str: word.toLowerCase(),
@@ -164,16 +169,15 @@ export class ReferenceRepository {
   }
 
   exportBibTexBody(cite: Cite): string {
-
-    const mathEnvStrs = []
+    const mathEnvStrs = [];
     let idx = 0;
     for (const i in cite.data) {
-      let title = cite.data[i].title
+      let title = cite.data[i].title;
       const envRegex = /\$(.*?)\$/g;
       const envs = title.match(envRegex);
       if (envs) {
         for (const env of envs) {
-          mathEnvStrs.push(env)
+          mathEnvStrs.push(env);
           title = title.replace(env, `MATHENVDOLLAR{i}`);
           idx += 1;
         }
@@ -184,7 +188,9 @@ export class ReferenceRepository {
     let bibtexBody = escapeLaTexString(cite.format("bibtex"));
 
     for (const i in mathEnvStrs) {
-      bibtexBody = bibtexBody.replace(`MATHENVDOLLAR{i}`, mathEnvStrs[i]).replace(`{MATHENVDOLLAR}{i}`, mathEnvStrs[i]);
+      bibtexBody = bibtexBody
+        .replace(`MATHENVDOLLAR{i}`, mathEnvStrs[i])
+        .replace(`{MATHENVDOLLAR}{i}`, mathEnvStrs[i]);
     }
 
     return bibtexBody;
@@ -210,7 +216,13 @@ export class ReferenceRepository {
 
         return cite.format("bibliography", { template: csl });
       } else {
-        this.stateStore.logState.alertLog = `CSL template file: ${csl}.csl not found.`;
+        window.logger.error(
+          `CSL template file: ${csl}.csl not found.`,
+          "",
+          true,
+          "Reference"
+        );
+
         return cite.format("bibliography", { template: "apa" });
       }
     }

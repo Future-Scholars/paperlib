@@ -83,10 +83,12 @@ export class PaperSmartFilterRepository {
         return true;
       });
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to delete smartfilter: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Failed to delete smartfilter",
+        error as Error,
+        true,
+        "Database"
+      );
       return false;
     }
   }
@@ -134,7 +136,13 @@ export class PaperSmartFilterRepository {
           .filtered(`name == "${smartfilter.name}"`);
 
         if (dbExistPaperSmartFilter.length > 0) {
-          this.stateStore.logState.alertLog = `Smart filter: ${smartfilter.name} already exists.`;
+          window.logger.warn(
+            "Smart filter already exists",
+            smartfilter.name,
+            true,
+            "Database"
+          );
+
           return null;
         } else {
           const smarfilter = new PaperSmartFilter(
@@ -148,10 +156,12 @@ export class PaperSmartFilterRepository {
         }
       });
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to update categorizers: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Failed to update smartfilter",
+        error as Error,
+        true,
+        "Database"
+      );
       return null;
     }
   }

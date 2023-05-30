@@ -39,8 +39,12 @@ export class WebImporterRepository {
       try {
         parsed = await importer.parse(webContent);
       } catch (error) {
-        this.stateStore.logState.alertLog = `Web importer ${name} error: ${error as string
-          }`;
+        window.logger.error(
+          `Web importer ${name} error`,
+          error as Error,
+          true,
+          "WebImporter"
+        );
       }
       if (parsed) {
         break;

@@ -5,8 +5,6 @@ import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 
 export interface LogState {
-  alertLog: string;
-  infoLog: string;
   infoLogMessage: {
     id: string;
     msg: string;

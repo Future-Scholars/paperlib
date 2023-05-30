@@ -123,26 +123,33 @@ export class DBRepository {
               this._realm = new Realm(this.cloudConfig);
               this.syncSession = this._realm.syncSession;
             } catch (err) {
-              console.log(err);
-              this.stateStore.logState.alertLog = `Open cloud database faild: ${
-                err as string
-              }`;
+              window.logger.error(
+                "Failed to open cloud database",
+                err as Error,
+                true,
+                "Database"
+              );
             }
           }
         } else {
-          this.stateStore.logState.alertLog = `Open cloud database faild: ${
-            err as string
-          }`;
+          window.logger.error(
+            "Failed to open cloud database",
+            err as Error,
+            true,
+            "Database"
+          );
         }
       }
     } else {
       try {
         this._realm = new Realm(this.localConfig as Realm.Configuration);
       } catch (err) {
-        console.error(err);
-        this.stateStore.logState.alertLog = `Open local database faild: ${
-          err as string
-        }`;
+        window.logger.error(
+          "Failed to open local database",
+          err as Error,
+          true,
+          "Database"
+        );
       }
     }
 
@@ -237,7 +244,12 @@ export class DBRepository {
       this.cloudConfig = config;
       return config;
     } else {
-      this.stateStore.logState.alertLog = "Login cloud failed.";
+      window.logger.warn(
+        "Failed to login to cloud database",
+        "",
+        true,
+        "Database"
+      );
       window.appInteractor.setPreference("useSync", false);
       return this.getLocalConfig();
     }
@@ -273,7 +285,12 @@ export class DBRepository {
       return this.app.currentUser;
     } catch (error) {
       window.appInteractor.setPreference("useSync", false);
-      this.stateStore.logState.alertLog = `Login failed, ${error as string}`;
+      window.logger.error(
+        "Failed to login to cloud database",
+        error as Error,
+        true,
+        "Database"
+      );
 
       return null;
     }
@@ -337,10 +354,7 @@ export class DBRepository {
       await this.updatePaperEntities(entityDraftsWithoutCategorizer);
       await this.updatePaperEntities(entityDraftsWithCategorizer);
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Migration failed, ${
-        error as string
-      }`;
+      window.logger.error("Migration failed", error as Error, true, "Database");
     }
   }
 

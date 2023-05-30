@@ -229,9 +229,12 @@ export class ScraperRepository {
     } catch (error) {
       console.error(error);
       paperlibMetadataServiceSuccess = false;
-      this.stateStore.logState.alertLog = `Paperlib Metadata service error: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Paperlib Metadata service error",
+        error as Error,
+        true,
+        "Scraper"
+      );
     }
 
     // 3. Scrape from client-side scrapers as backup if Paperlib metadata failed.

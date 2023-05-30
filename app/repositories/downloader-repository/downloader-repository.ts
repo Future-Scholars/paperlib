@@ -7,9 +7,9 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { ArXivDownloader } from "./downloader/arxiv";
 import { CustomDownloader } from "./downloader/custom";
 import { DownloaderType } from "./downloader/downloader";
+import { SemanticScholarDownloader } from "./downloader/semanticscholar";
 import { UnpayWallDownloader } from "./downloader/unpaywall";
 import { XHubDownloader } from "./downloader/xhub";
-import { SemanticScholarDownloader } from "./downloader/semanticscholar";
 
 export class DownloaderRepository {
   stateStore: MainRendererStateStore;
@@ -100,9 +100,12 @@ export class DownloaderRepository {
           return entityDraftOrNull;
         }
       } catch (error) {
-        console.log(error);
-        this.stateStore.logState.alertLog = `${downloader.name} error: ${error as string
-          }`;
+        window.logger.error(
+          `${downloader.name} error`,
+          error as string,
+          true,
+          "Downloader"
+        );
       }
     }
 

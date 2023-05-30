@@ -85,10 +85,12 @@ export class FeedRepository {
         return true;
       });
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to delete feed: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Failed to delete feed",
+        error as Error,
+        true,
+        "Database"
+      );
       return false;
     }
   }
@@ -195,10 +197,12 @@ export class FeedRepository {
         return newFeed;
       });
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to update feed: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Failed to update feed",
+        error as Error,
+        true,
+        "Database"
+      );
       return null;
     }
   }

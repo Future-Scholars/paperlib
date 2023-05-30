@@ -51,14 +51,6 @@ export class MainRendererStateStore extends RendererStateStore {
   static useLogState = defineStore("logState", {
     state: () => {
       return {
-        alertLog: "",
-        infoLog: "",
-        progressLog: {
-          id: "",
-          value: 0,
-          msg: "",
-        },
-
         infoLogMessage: {
           id: "",
           msg: "",
