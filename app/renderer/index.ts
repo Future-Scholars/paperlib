@@ -23,6 +23,7 @@ import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 import { NetworkTool } from "@/utils/got";
+import { Logger } from "@/utils/logger";
 
 import { MainRendererStateStore } from "../state/renderer/appstate";
 import "./css/index.css";
@@ -47,10 +48,18 @@ app.component("v-select", vSelect);
 app.component("draggable", draggable);
 
 // ====================================
-// Setup interactors and repositories
+// Setup tools, interactors and repositories
 // ====================================
+const logger = new Logger();
 const preference = new Preference(true);
 const stateStore = new MainRendererStateStore(preference);
+const networkTool = new NetworkTool(stateStore, preference);
+
+// Inject
+window.logger = logger;
+window.networkTool = networkTool;
+window.preference = preference;
+window.stateStore = stateStore;
 
 const locales = loadLocales();
 
@@ -63,7 +72,7 @@ const i18n = createI18n({
 
 app.use(i18n);
 
-console.time("Setup interactors and repositories");
+var initStartTime = Date.now();
 const dbRepository = new DBRepository(stateStore, preference);
 const scraperRepository = new ScraperRepository(stateStore, preference);
 const fileRepository = new FileRepository(stateStore, preference);
@@ -112,10 +121,6 @@ const wordAddinInteractor = new WordAddinInteractor(
   entityInteractor
 );
 
-const networkTool = new NetworkTool(stateStore, preference);
-
-console.timeEnd("Setup interactors and repositories");
-
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (event) => {
@@ -130,8 +135,13 @@ window.appInteractor = appInteractor;
 window.renderInteractor = renderInteractor;
 window.feedInteractor = feedInteractor;
 window.wordAddinInteractor = wordAddinInteractor;
-window.networkTool = networkTool;
-window.preference = preference;
-window.stateStore = stateStore;
+
+var initEndTime = Date.now();
+window.logger.info(
+  `Initialization time: ${initEndTime - initStartTime}ms`,
+  "",
+  false,
+  "App"
+);
 
 app.mount("#app");

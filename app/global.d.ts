@@ -11,6 +11,7 @@ import { WordAddinInteractor } from "./interactors/word-addin-interactor";
 import { Preference } from "./preference/preference";
 import { MainRendererStateStore } from "./state/renderer/appstate";
 import { NetworkTool } from "./utils/got";
+import { Logger } from "./utils/logger";
 
 declare global {
   interface Window {
@@ -22,6 +23,7 @@ declare global {
     pluginSideInteractor: PluginSideInteractor;
     wordAddinInteractor: WordAddinInteractor;
 
+    logger: Logger;
     networkTool: NetworkTool;
     preference: Preference;
     stateStore: MainRendererStateStore;

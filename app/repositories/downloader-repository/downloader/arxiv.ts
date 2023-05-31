@@ -15,7 +15,12 @@ export class ArXivDownloader extends Downloader {
     };
 
     if (enable) {
-      this.stateStore.logState.processLog = `Downloading PDF from ArXiv ...`;
+      window.logger.info(
+        "Downloading PDF from ArXiv ...",
+        "",
+        true,
+        "Downloader"
+      );
     }
 
     return { queryUrl, headers, enable };

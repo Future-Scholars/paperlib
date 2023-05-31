@@ -63,7 +63,12 @@ export class FeedInteractor {
         this.stateStore.viewState.searchMode === "advanced") &&
       search
     ) {
-      this.stateStore.logState.alertLog = `Fulltext or advanced searching is not supported in the feeds view.`;
+      window.logger.warn(
+        `Fulltext or advanced searching is not supported in the feeds view.`,
+        "",
+        true,
+        "Search"
+      );
       search = "";
     }
     try {
@@ -75,8 +80,12 @@ export class FeedInteractor {
         sortOrder
       );
     } catch (e) {
-      console.error(e);
-      this.stateStore.logState.alertLog = `Failed to load feed entities: ${e}`;
+      window.logger.error(
+        "Failed to load feed entities",
+        e as Error,
+        true,
+        "Feed"
+      );
       entities = [] as FeedEntityResults;
     }
 
@@ -92,7 +101,7 @@ export class FeedInteractor {
   // Create
   // ========================
   async createFeed(feeds: Feed[]) {
-    this.stateStore.logState.processLog = `Creating ${feeds.length} feeds...`;
+    window.logger.info(`Creating ${feeds.length} feeds...`, "", true, "Feed");
     this.stateStore.viewState.processingQueueCount += feeds.length;
 
     try {
@@ -102,10 +111,12 @@ export class FeedInteractor {
         feeds.filter((_, index) => successes[index]).map((feed) => feed.name)
       );
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Add feeds failed: ${
-        error as string
-      }`;
+      window.logger.error(
+        `Failed to create feeds`,
+        error as Error,
+        true,
+        "Feed"
+      );
     }
     this.stateStore.viewState.processingQueueCount -= feeds.length;
   }
@@ -114,7 +125,12 @@ export class FeedInteractor {
   // Update
   // ========================
   async refresh(feedNames: string[]) {
-    this.stateStore.logState.processLog = `Refreshing ${feedNames.length} feeds...`;
+    window.logger.info(
+      `Refreshing ${feedNames.length} feeds...`,
+      "",
+      true,
+      "Feed"
+    );
     this.stateStore.viewState.processingQueueCount += feedNames.length;
 
     try {
@@ -182,25 +198,29 @@ export class FeedInteractor {
 
       await this.dbRepository.updateFeedEntities(feedEntityDrafts, true);
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Refresh feeds failed: ${
-        error as string
-      }`;
+      window.logger.error(
+        `Failed to refresh feeds`,
+        error as Error,
+        true,
+        "Feed"
+      );
     }
     this.stateStore.viewState.processingQueueCount -= feedNames.length;
   }
 
   async updateFeeds(feeds: Feed[]) {
-    this.stateStore.logState.processLog = `Updating ${feeds.length} feeds...`;
+    window.logger.info(`Updating ${feeds.length} feeds...`, "", true, "Feed");
     this.stateStore.viewState.processingQueueCount += feeds.length;
 
     try {
       await this.dbRepository.updateFeeds(feeds);
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Updating feeds failed: ${
-        error as string
-      }`;
+      window.logger.error(
+        `Failed to update feeds`,
+        error as Error,
+        true,
+        "Feed"
+      );
     }
     this.stateStore.viewState.processingQueueCount -= feeds.length;
   }
@@ -210,29 +230,45 @@ export class FeedInteractor {
     try {
       await this.dbRepository.colorizeFeed(color, feed, name);
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to colorize feed ${name} ${feed}`;
+      window.logger.error(
+        `Failed to colorize feed`,
+        error as Error,
+        true,
+        "Feed"
+      );
     }
     this.stateStore.viewState.processingQueueCount -= 1;
   }
 
   async updateFeedEntities(feedEntities: FeedEntity[]) {
-    this.stateStore.logState.processLog = `Updating ${feedEntities.length} feed entities...`;
+    window.logger.info(
+      `Updating ${feedEntities.length} feed entities...`,
+      "",
+      true,
+      "Feed"
+    );
     this.stateStore.viewState.processingQueueCount += feedEntities.length;
 
     try {
       await this.dbRepository.updateFeedEntities(feedEntities);
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Updating feed entities failed: ${
-        error as string
-      }`;
+      window.logger.error(
+        `Failed to update feed entities`,
+        error as Error,
+        true,
+        "Feed"
+      );
     }
     this.stateStore.viewState.processingQueueCount -= feedEntities.length;
   }
 
   async addToLib(feedEntities: FeedEntity[]) {
-    this.stateStore.logState.processLog = `Adding ${feedEntities.length} feed entities to library...`;
+    window.logger.info(
+      `Adding ${feedEntities.length} feed entities to library...`,
+      "",
+      true,
+      "Feed"
+    );
     this.stateStore.viewState.processingQueueCount += feedEntities.length;
 
     try {
@@ -251,10 +287,12 @@ export class FeedInteractor {
       // NOTE: here we decide to not download the PDFs when adding to library.
       await this.dbRepository.updatePaperEntities(paperEntityDrafts);
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Adding to library failed: ${
-        error as string
-      }`;
+      window.logger.error(
+        `Failed to add feed entities to library`,
+        error as Error,
+        true,
+        "Feed"
+      );
     }
     this.stateStore.viewState.processingQueueCount -= feedEntities.length;
   }
@@ -267,8 +305,7 @@ export class FeedInteractor {
     try {
       await this.dbRepository.deleteFeed(true, feed, name);
     } catch (e) {
-      console.error(e);
-      this.stateStore.logState.alertLog = `Failed to remove feed  ${name} ${feed}`;
+      window.logger.error(`Failed to remove feed`, e as Error, true, "Feed");
     }
     this.stateStore.viewState.processingQueueCount -= 1;
   }
@@ -277,7 +314,7 @@ export class FeedInteractor {
   // Routine Task
   // ========================
   async routineRefresh() {
-    this.stateStore.logState.processLog = "Routine feed refreshing...";
+    window.logger.info("Routine feed refreshing...", "", true, "Feed");
     this.stateStore.viewState.processingQueueCount += 1;
     try {
       this.preference.set("lastFeedRefreshTime", Math.round(Date.now() / 1000));
@@ -285,10 +322,12 @@ export class FeedInteractor {
       await this.refresh(feeds.map((feed) => feed.name));
       await this.dbRepository.deleteOutdatedFeedEntities();
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Routine feed refreshing failed: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Routine feed refreshing failed",
+        error as Error,
+        true,
+        "Routine"
+      );
     }
     this.stateStore.viewState.processingQueueCount -= 1;
   }

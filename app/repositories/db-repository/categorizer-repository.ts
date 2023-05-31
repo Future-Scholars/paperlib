@@ -106,10 +106,12 @@ export class CategorizerRepository {
         return true;
       });
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to delete categorizer: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Failed to delete categorizer",
+        error as Error,
+        true,
+        "Database"
+      );
       return false;
     }
   }
@@ -220,10 +222,12 @@ export class CategorizerRepository {
         return newCategorizers;
       });
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to update categorizers: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Failed to update categorizers",
+        error as Error,
+        true,
+        "Database"
+      );
       return [];
     }
   }

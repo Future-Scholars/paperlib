@@ -204,7 +204,12 @@ export class ScraperRepository {
         : this.clientsideScraperList;
 
     // 1. Scrape from file inner metadata
-    this.stateStore.logState.processLog = `Scraping metadata from file(s) ...`;
+    window.logger.info(
+      "Scraping metadata from file(s) ...",
+      "",
+      true,
+      "Scraper"
+    );
     paperEntityDraft = await this._scrapeFile(
       paperEntityDraft,
       enabeledFileScraperList,
@@ -212,7 +217,7 @@ export class ScraperRepository {
     );
 
     // 2. Scrape from default Paperlib metadata service
-    this.stateStore.logState.processLog = `Paperlib Metadata service ...`;
+    window.logger.info("Paperlib Metadata service ...", "", true, "Scraper");
     let paperlibMetadataServiceSuccess = false;
     try {
       paperEntityDraft = await PaperlibMetadataServiceScraper.scrape(
@@ -224,9 +229,12 @@ export class ScraperRepository {
     } catch (error) {
       console.error(error);
       paperlibMetadataServiceSuccess = false;
-      this.stateStore.logState.alertLog = `Paperlib Metadata service error: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Paperlib Metadata service error",
+        error as Error,
+        true,
+        "Scraper"
+      );
     }
 
     // 3. Scrape from client-side scrapers as backup if Paperlib metadata failed.
@@ -393,7 +401,12 @@ export class ScraperRepository {
 
             let scrapedPaperEntity: PaperEntity;
             try {
-              stateStore.logState.processLog = `Scraping metadata from [${scraper}] ...`;
+              window.logger.info(
+                `Scraping metadata from [${scraper}] ...`,
+                "",
+                true,
+                "Scraper"
+              );
               const toBeScrapedPaperEntity = new PaperEntity(false);
               toBeScrapedPaperEntity.initialize(paperEntityDraft);
               scrapedPaperEntity = await scraperObj.scrape(
@@ -402,9 +415,12 @@ export class ScraperRepository {
               );
             } catch (error) {
               if (error) {
-                stateStore.logState.alertLog = `${scraper} error: ${
-                  error as string
-                }`;
+                window.logger.error(
+                  `Scraper [${scraper}] error`,
+                  `${error}`,
+                  true,
+                  "Scraper"
+                );
               }
               scrapedPaperEntity = paperEntityDraft;
             }

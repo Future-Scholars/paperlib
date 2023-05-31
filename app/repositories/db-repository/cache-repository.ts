@@ -45,7 +45,7 @@ export class CacheRepository {
   // ========================
   async initRealm(reinit = false): Promise<Realm> {
     this.stateStore.viewState.processingQueueCount += 1;
-    this.stateStore.logState.processLog = "Cache Initializing...";
+    window.logger.info("Initializing Cache DB...", "", false, "Database");
 
     if (this._realm || reinit) {
       Realm.defaultPath = window.appInteractor.getUserDataPath();
@@ -66,10 +66,12 @@ export class CacheRepository {
     try {
       this._realm = new Realm(this.config);
     } catch (err) {
-      console.error(err);
-      this.stateStore.logState.alertLog = `Open local cache faild: ${
-        err as string
-      }`;
+      window.logger.error(
+        `Open local cache faild: ${err as string}`,
+        "",
+        false,
+        "Database"
+      );
     }
 
     this._realm!.safeWrite = (callback) => {

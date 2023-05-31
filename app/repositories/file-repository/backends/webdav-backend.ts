@@ -45,10 +45,13 @@ export class WebDavFileBackend implements FileBackend {
       this.stateStore.viewState.syncFileStorageAvaliable = true;
       return true;
     } catch (error) {
-      console.error(error);
       this.stateStore.viewState.syncFileStorageAvaliable = false;
-      this.stateStore.logState.alertLog =
-        "Could not connect to webdav, check your username, password and url.";
+      window.logger.error(
+        "Could not connect to webdav, check your username, password and url.",
+        error as Error,
+        true,
+        "WebDAV"
+      );
       return false;
     }
   }
@@ -72,10 +75,12 @@ export class WebDavFileBackend implements FileBackend {
             localURL
           );
         } catch (error) {
-          console.error(error);
-          this.stateStore.logState.alertLog = `Could not download file from webdav: ${
-            error as string
-          }`;
+          window.logger.error(
+            "Could not download file from webdav.",
+            error as Error,
+            true,
+            "WebDAV"
+          );
           return "";
         }
       } else {
@@ -126,10 +131,12 @@ export class WebDavFileBackend implements FileBackend {
             )
           );
         } catch (error) {
-          console.error(error);
-          this.stateStore.logState.alertLog = `Could not upload file to webdav: ${
-            error as string
-          }`;
+          window.logger.error(
+            "Could not upload file to webdav.",
+            error as Error,
+            true,
+            "WebDAV"
+          );
         }
       }
     });
@@ -173,9 +180,13 @@ export class WebDavFileBackend implements FileBackend {
       }
       return true;
     } catch (error) {
-      this.stateStore.logState.alertLog = `Could not copy file: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Could not copy file",
+        error as Error,
+        true,
+        "WebDAV"
+      );
+
       return false;
     }
   }
@@ -241,10 +252,12 @@ export class WebDavFileBackend implements FileBackend {
       }
       return success;
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Could not upload file to webdav: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Could not upload file",
+        error as Error,
+        true,
+        "WebDAV"
+      );
       return false;
     }
   }
@@ -426,10 +439,12 @@ export class WebDavFileBackend implements FileBackend {
       await this.webdavClient?.deleteFile(_sourceURL);
       return true;
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Could not remove file on webdav: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Could not remove file",
+        error as Error,
+        true,
+        "WebDAV"
+      );
       return false;
     }
   }
@@ -468,10 +483,12 @@ export class WebDavFileBackend implements FileBackend {
       const fileURL = constructFileURL(url, false, true, "", "webdav://");
       return await this._remove(fileURL);
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Could not remove file on webdav: ${
-        error as string
-      }`;
+      window.logger.error(
+        "Could not remove file",
+        error as Error,
+        true,
+        "WebDAV"
+      );
       return false;
     }
   }

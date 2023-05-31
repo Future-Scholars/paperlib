@@ -88,9 +88,12 @@ export class FeedEntityRepository {
       try {
         objects = objects.filtered(filterPattern);
       } catch (error) {
-        console.error(error);
-        this.stateStore.logState.alertLog = `Filter pattern is invalid: ${error as string
-          }`;
+        window.logger.error(
+          "Filter pattern is invalid",
+          error as Error,
+          true,
+          "Search"
+        );
       }
     }
 
@@ -188,9 +191,12 @@ export class FeedEntityRepository {
         }
       });
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to update database: ${error as string
-        }`;
+      window.logger.error(
+        "Failed to update database",
+        error as Error,
+        true,
+        "Database"
+      );
       return false;
     }
   }
@@ -236,9 +242,12 @@ export class FeedEntityRepository {
         return feedCount;
       });
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to delete database: ${error as string
-        }`;
+      window.logger.error(
+        "Failed to delete database",
+        error as Error,
+        true,
+        "Database"
+      );
       return {};
     }
   }
@@ -258,9 +267,12 @@ export class FeedEntityRepository {
         }
       });
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Failed to delete feed entities: ${error as string
-        }`;
+      window.logger.error(
+        "Failed to delete feed entities",
+        error as Error,
+        true,
+        "Database"
+      );
       return false;
     }
   }

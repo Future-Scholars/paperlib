@@ -38,10 +38,11 @@ export class LocalFileBackend implements FileBackend {
       if (pathStat.isFile()) {
         return Promise.resolve(fileURL);
       } else if (pathStat.isSymbolicLink()) {
-        const realPath = await fsPromise.realpath(fileURL.replace("file://", ""));
+        const realPath = await fsPromise.realpath(
+          fileURL.replace("file://", "")
+        );
         return Promise.resolve(`file://${realPath}`);
-      }
-      else {
+      } else {
         return Promise.resolve("");
       }
     } else {
@@ -49,7 +50,7 @@ export class LocalFileBackend implements FileBackend {
     }
   }
 
-  startWatch() { }
+  startWatch() {}
 
   async stopWatch(): Promise<void> {
     return Promise.resolve();
@@ -73,20 +74,26 @@ export class LocalFileBackend implements FileBackend {
     }
     try {
       if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
-        if (this.preference.get('sourceFileOperation') as string === 'link' && !forceNotLink) {
+        if (
+          (this.preference.get("sourceFileOperation") as string) === "link" &&
+          !forceNotLink
+        ) {
           try {
             const stat = await fsPromise.lstat(_targetURL);
             if (!existsSync(_targetURL) && stat.isSymbolicLink()) {
               await fsPromise.unlink(_targetURL);
             }
-          } catch (error) {
-          }
+          } catch (error) {}
 
-          const sourcePathStat = await fsPromise.lstat(_sourceURL.replace("file://", ""));
+          const sourcePathStat = await fsPromise.lstat(
+            _sourceURL.replace("file://", "")
+          );
           if (sourcePathStat.isFile()) {
             await fsPromise.symlink(_sourceURL, _targetURL);
           } else if (sourcePathStat.isSymbolicLink()) {
-            const realPath = await fsPromise.realpath(_sourceURL.replace("file://", ""));
+            const realPath = await fsPromise.realpath(
+              _sourceURL.replace("file://", "")
+            );
             await fsPromise.symlink(realPath, _targetURL);
           }
         } else {
@@ -94,16 +101,15 @@ export class LocalFileBackend implements FileBackend {
         }
       }
       if (
-        ((this.preference.get("sourceFileOperation") as string) === 'cut' || forceDelete) &&
+        ((this.preference.get("sourceFileOperation") as string) === "cut" ||
+          forceDelete) &&
         _sourceURL.toLowerCase() !== _targetURL.toLowerCase()
       ) {
         await fsPromise.unlink(sourceURL);
       }
       return true;
     } catch (error) {
-      console.error(error);
-      this.stateStore.logState.alertLog = `Could not copy file: ${error as string
-        }`;
+      window.logger.error("Faild to copy file", error as Error, true, "File");
       return false;
     }
   }
@@ -257,16 +263,18 @@ export class LocalFileBackend implements FileBackend {
         try {
           await fsPromise.unlink(_sourceURL);
         } catch (error) {
-          console.error(error);
-          this.stateStore.logState.alertLog = `Could not remove file: ${error as string
-            }`;
+          window.logger.error(
+            "Faild to remove file",
+            error as Error,
+            true,
+            "File"
+          );
           return false;
         }
       }
       return true;
     } catch (error) {
-      this.stateStore.logState.alertLog = `Could not remove file: ${error as string
-        }`;
+      window.logger.error("Faild to remove file", error as Error, true, "File");
       return false;
     }
   }
@@ -312,8 +320,7 @@ export class LocalFileBackend implements FileBackend {
       }
       return true;
     } catch (error) {
-      this.stateStore.logState.alertLog = `Could not remove file: ${error as string
-        }`;
+      window.logger.error("Faild to remove file", error as Error, true, "File");
       return false;
     }
   }
