@@ -325,7 +325,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex text-neutral-700 dark:text-neutral-200">
-    <div id="dev-btn-bar" class="space-x-2 fixed left-24 text-xs hidden">
+    <div id="dev-btn-bar" class="space-x-2 fixed right-0 bottom-0 text-xs">
       <button
         class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
         @click="reloadAll"
