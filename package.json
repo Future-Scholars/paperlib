@@ -75,6 +75,7 @@
     "electron-updater": "5.0.1",
     "katex": "0.16.2",
     "keytar": "7.9.0",
+    "live-plugin-manager": "^0.17.1",
     "realm": "11.9.0",
     "ws": "8.6.0"
   },

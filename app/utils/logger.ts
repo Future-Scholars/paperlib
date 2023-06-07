@@ -14,7 +14,15 @@ interface LogGroup {
 export class Logger {
   private logGroups: { [key: string]: LogGroup };
 
-  constructor() {
+  constructor(name?: string) {
+    if (name) {
+      const folder = loglib.transports.file
+        .getFile()
+        .path.split("/")
+        .slice(0, -1)
+        .join("/");
+      loglib.transports.file.resolvePath = () => `${folder}/${name}`;
+    }
     this.logGroups = {};
   }
 

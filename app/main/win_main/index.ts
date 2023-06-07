@@ -1,4 +1,11 @@
-import { BrowserWindow, app, nativeTheme, shell } from "electron";
+import {
+  BrowserWindow,
+  MessageChannelMain,
+  app,
+  nativeTheme,
+  shell,
+  utilityProcess,
+} from "electron";
 import { join, posix } from "node:path";
 import os from "os";
 
@@ -83,6 +90,15 @@ export async function createMainWindow(
 
   win.on("ready-to-show", () => {
     setWindowsSpecificStyles(win);
+    const extensionProcess = utilityProcess.fork(
+      join(__dirname, "extension-entry.js")
+    );
+
+    const { port1, port2 } = new MessageChannelMain();
+    win?.webContents.postMessage("create-rpc-protocol", "extensionProcess", [
+      port1,
+    ]);
+    extensionProcess.postMessage("create-rpc-protocol", [port2]);
   });
 
   win.on("blur", () => {
