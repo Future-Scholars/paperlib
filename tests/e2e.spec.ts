@@ -79,6 +79,11 @@ test("Presetting", async () => {
   await page.waitForSelector("#presetting-scraper-view", { state: "detached" });
 }, 300000);
 
+test("Maximize Window", async () => {
+  await page.locator("#window-maximize-btn").click({ force: true });
+  await page.waitForTimeout(1000);
+}, 100000);
+
 test("Drag PDF to Import", async () => {
   const e = await page.locator("#dev-btn-bar").elementHandle();
   await e?.evaluate((e) => {
