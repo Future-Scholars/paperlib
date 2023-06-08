@@ -172,7 +172,18 @@ export class DBRepository {
   }
 
   async getConfig(): Promise<Realm.Configuration> {
-    const syncPassword = await window.appInteractor.getPassword("realmSync");
+    let syncPassword;
+
+    try {
+      syncPassword = await window.appInteractor.getPassword("realmSync");
+    } catch (err) {
+      window.logger.error(
+        "Failed to get sync password",
+        err as Error,
+        true,
+        "Database"
+      );
+    }
     if (
       window.appInteractor.getPreference("useSync") &&
       window.appInteractor.getPreference("syncEmail") !== "" &&
