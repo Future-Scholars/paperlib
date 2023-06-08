@@ -15,7 +15,7 @@ jobs:
         node-versions: ['16.17.1']
 
     steps:
-      - name: 'Checkout Project'
+      - name: Checkout Project
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -25,7 +25,7 @@ jobs:
           cp ./build_configs/electron-builder.mac.arm.dev.json5 ./electron-builder.json5
           rm -rf ./app/utils/crypto
 
-      - name: 'Clone Private Repository'
+      - name: Clone Private Repository
         uses: actions/checkout@v2
         with:
           repository: Future-Scholars/paperlib-crypto
@@ -37,21 +37,25 @@ jobs:
         with:
           node-version: ${{ matrix.node-versions }}
 
-      - name: 'Install Node Module'
+      - name: Install Node Module
         run: |
           node -v
           npm install --force
           npx playwright install --with-deps
 
-      - name: 'Cleanup Env'
+      - name: Cleanup Env
         run: |
           rm -rf ~/Documents/paperlib
           rm -rf ~/Library/Application\ Support/paperlib 
 
-      - name: "End-to-End Testing"
+      - name: End-to-End Testing
         run: npm run test:e2e
 
-      - name: "Zip screenshots"
+      - name: Print Log
+        if: always()
+        run: cat ~/Library/Logs/paperlib/renderer.log
+
+      - name: Zip screenshots
         if: always()
         uses: vimtor/action-zip@v1
         with:
@@ -78,7 +82,7 @@ jobs:
         node-versions: ["16.17.1"]
 
     steps:
-      - name: "Checkout Project"
+      - name: Checkout Project
         uses: actions/checkout@v2
 
       - name: Set env
@@ -86,7 +90,7 @@ jobs:
           cp ./build_configs/electron-builder.mac.dev.json5 ./electron-builder.json5
           rm -rf ./app/utils/crypto
 
-      - name: 'Clone Private Repository'
+      - name: Clone Private Repository
         uses: actions/checkout@v2
         with:
           repository: Future-Scholars/paperlib-crypto
@@ -98,21 +102,25 @@ jobs:
         with:
           node-version: ${{ matrix.node-versions }}
 
-      - name: "Install Node Module"
+      - name: Install Node Module
         run: |
           node -v
           npm install --force
           npx playwright install --with-deps
 
-      - name: "Cleanup Env"
+      - name: Cleanup Env
         run: |
           rm -rf ~/Documents/paperlib
           rm -rf ~/Library/Application\ Support/paperlib
 
-      - name: "End-to-End Testing"
+      - name: End-to-End Testing
         run: npm run test:e2e
 
-      - name: "Zip screenshots"
+      - name: Print Log
+        if: always()
+        run: cat ~/Library/Logs/paperlib/renderer.log
+
+      - name: Zip screenshots
         if: always()
         uses: vimtor/action-zip@v1
         with:
@@ -143,7 +151,7 @@ jobs:
         node-versions: ["16.17.1"]
 
     steps:
-      - name: "Checkout Project"
+      - name: Checkout Project
         uses: actions/checkout@v2
 
       - name: Set env
@@ -152,7 +160,7 @@ jobs:
           rm -rf ./app/utils/crypto
           powershell Set-DisplayResolution -Width 1920 -Height 1080 -Force
 
-      - name: 'Clone Private Repository'
+      - name: Clone Private Repository
         uses: actions/checkout@v2
         with:
           repository: Future-Scholars/paperlib-crypto
@@ -164,21 +172,25 @@ jobs:
         with:
           node-version: ${{ matrix.node-versions }}
 
-      - name: "Install Node Module"
+      - name: Install Node Module
         run: |
           node -v
           npm install --force
           npx playwright install --with-deps
 
-      - name: "Cleanup Env"
+      - name: Cleanup Env
         run: |
           rm -rf C:\Users\runneradmin\Documents\paperlib
           rm -rf C:\Users\runneradmin\AppData\Local\paperlib
 
-      - name: "End-to-End Testing"
+      - name: End-to-End Testing
         run: npm run test:e2e
         
-      - name: "Zip screenshots"
+      - name: Print Log
+        if: always()
+        run: cat 'C:\Users\runneradmin\AppData\Roaming\paperlib\logs\renderer.log'
+        
+      - name: Zip screenshots
         if: always()
         uses: vimtor/action-zip@v1
         with:
@@ -214,7 +226,7 @@ jobs:
         node-versions: ["16.17.1"]
 
     steps:
-      - name: "Checkout Project"
+      - name: Checkout Project
         uses: actions/checkout@v2
 
       - name: Set env
@@ -225,7 +237,7 @@ jobs:
           sudo apt-get install -y imagemagick
           sudo apt-get install -y x11-xserver-utils
 
-      - name: "Clone Private Repository"
+      - name: Clone Private Repository
         uses: actions/checkout@v2
         with:
           repository: Future-Scholars/paperlib-crypto
@@ -237,21 +249,25 @@ jobs:
         with:
           node-version: ${{ matrix.node-versions }}
 
-      - name: "Install Node Module"
+      - name: Install Node Module
         run: |
           node -v
           npm install --force
           npx playwright install --with-deps
 
-      - name: "Cleanup Env"
+      - name: Cleanup Env
         run: |
           rm -rf ~/Documents/paperlib
           rm -rf ~/.config/paperlib
 
-      - name: "End-to-End Testing"
+      - name: End-to-End Testing
         run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" -- npm run test:e2e
         
-      - name: "Zip screenshots"
+      - name: Print Log
+        if: always()
+        run: cat ~/.config/paperlib/logs/renderer.log 
+        
+      - name: Zip screenshots
         if: always()
         uses: vimtor/action-zip@v1
         with:
