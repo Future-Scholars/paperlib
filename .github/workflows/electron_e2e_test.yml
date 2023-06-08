@@ -54,18 +54,18 @@ jobs:
           npm run test:e2e
 
       - name: Print Log
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: cat ~/Library/Logs/paperlib/renderer.log
 
       - name: Zip screenshots
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         uses: vimtor/action-zip@v1
         with:
           files: screenshots/
           dest: screenshots.zip
 
       - name: Install Oracle Cloud CLI
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: |
           brew install oci-cli && mkdir -p ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode -o config
@@ -74,7 +74,7 @@ jobs:
           mv oraclekey.cer ~/.oci
           
       - name: Upload to Oracle Storage
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: |
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-arm-screenshots.zip'        
 
@@ -125,18 +125,18 @@ jobs:
           npm run test:e2e
 
       - name: Print Log
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: cat ~/Library/Logs/paperlib/renderer.log
 
       - name: Zip screenshots
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         uses: vimtor/action-zip@v1
         with:
           files: screenshots/
           dest: screenshots.zip
 
       - name: Install Oracle Cloud CLI
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: |
           brew install oci-cli && mkdir -p ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
@@ -145,7 +145,7 @@ jobs:
           mv oraclekey.cer ~/.oci
           
       - name: Upload to Oracle Storage
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: |
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-screenshots.zip'        
 
@@ -201,18 +201,18 @@ jobs:
           npm run test:e2e
         
       - name: Print Log
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: cat 'C:\Users\runneradmin\AppData\Roaming\paperlib\logs\renderer.log'
         
       - name: Zip screenshots
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         uses: vimtor/action-zip@v1
         with:
           files: screenshots/
           dest: screenshots.zip
 
       - name: Install Oracle Cloud CLI
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: |
           pip install cffi
           curl https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1 --output install.ps1
@@ -226,7 +226,7 @@ jobs:
           mv oraclekey.cer ~/.oci
           
       - name: Upload to Oracle Storage
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: |
           ls ./
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/windows-screenshots.zip'        
@@ -282,18 +282,18 @@ jobs:
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" -- npm run test:e2e
         
       - name: Print Log
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: cat ~/.config/paperlib/logs/renderer.log 
         
       - name: Zip screenshots
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         uses: vimtor/action-zip@v1
         with:
           files: screenshots/
           dest: screenshots.zip
 
       - name: Install Oracle Cloud CLI
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: |
           curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
           bash ./install.sh --accept-all-defaults
@@ -304,7 +304,7 @@ jobs:
           mv oraclekey.cer ~/.oci
           
       - name: Upload to Oracle Storage
-        if: always()
+        if: ${{ !cancelled() && (success() || failure()) }}
         run: |
           ls ./
           ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/linux-screenshots.zip'
