@@ -64,7 +64,7 @@ jobs:
 
       - name: Install Oracle Cloud CLI
         run: |
-          brew install oci-cli && mkdir ~/.oci
+          brew install oci-cli && mkdir -p ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
           mv config ~/.oci
           echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode --output oraclekey.cer
@@ -129,7 +129,7 @@ jobs:
 
       - name: Install Oracle Cloud CLI
         run: |
-          brew install oci-cli && mkdir ~/.oci
+          brew install oci-cli && mkdir -p ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
           mv config ~/.oci
           echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode --output oraclekey.cer
@@ -279,7 +279,7 @@ jobs:
         run: |
           curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
           bash ./install.sh --accept-all-defaults
-          mkdir ~/.oci
+          mkdir -p ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode > config
           mv config ~/.oci
           echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode > oraclekey.cer
