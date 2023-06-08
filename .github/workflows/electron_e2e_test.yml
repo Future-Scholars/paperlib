@@ -65,9 +65,9 @@ jobs:
       - name: Install Oracle Cloud CLI
         run: |
           brew install oci-cli && mkdir -p ~/.oci
-          echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
+          echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode -o config
           mv config ~/.oci
-          echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode --output oraclekey.cer
+          echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode -o oraclekey.cer
           mv oraclekey.cer ~/.oci
           
       - name: Upload to Oracle Storage
