@@ -49,7 +49,9 @@ jobs:
           rm -rf ~/Library/Application\ Support/paperlib 
 
       - name: End-to-End Testing
-        run: npm run test:e2e
+        run: |
+          cat tests/e2e.spec.ts
+          npm run test:e2e
 
       - name: Print Log
         if: always()
@@ -74,7 +76,7 @@ jobs:
       - name: Upload to Oracle Storage
         if: always()
         run: |
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-screenshots.zip'        
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-arm-screenshots.zip'        
 
   e2e_test_mac_x86:
     runs-on: macos-latest
@@ -116,7 +118,9 @@ jobs:
           rm -rf ~/Library/Application\ Support/paperlib
 
       - name: End-to-End Testing
-        run: npm run test:e2e
+        run: |
+          cat tests/e2e.spec.ts
+          npm run test:e2e
 
       - name: Print Log
         if: always()
@@ -141,7 +145,7 @@ jobs:
       - name: Upload to Oracle Storage
         if: always()
         run: |
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-arm-screenshots.zip'        
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-screenshots.zip'        
 
   e2e_test_win:
     runs-on: windows-latest
@@ -188,7 +192,9 @@ jobs:
           rm -rf C:\Users\runneradmin\AppData\Local\paperlib
 
       - name: End-to-End Testing
-        run: npm run test:e2e
+        run: |
+          cat tests/e2e.spec.ts
+          npm run test:e2e
         
       - name: Print Log
         if: always()
@@ -265,7 +271,9 @@ jobs:
           rm -rf ~/.config/paperlib
 
       - name: End-to-End Testing
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" -- npm run test:e2e
+        run: |
+          cat tests/e2e.spec.ts
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" -- npm run test:e2e
         
       - name: Print Log
         if: always()
