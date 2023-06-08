@@ -63,6 +63,7 @@ jobs:
           dest: screenshots.zip
 
       - name: Install Oracle Cloud CLI
+        if: always()
         run: |
           brew install oci-cli && mkdir -p ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode -o config
@@ -71,6 +72,7 @@ jobs:
           mv oraclekey.cer ~/.oci
           
       - name: Upload to Oracle Storage
+        if: always()
         run: |
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-screenshots.zip'        
 
@@ -128,6 +130,7 @@ jobs:
           dest: screenshots.zip
 
       - name: Install Oracle Cloud CLI
+        if: always()
         run: |
           brew install oci-cli && mkdir -p ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
@@ -136,6 +139,7 @@ jobs:
           mv oraclekey.cer ~/.oci
           
       - name: Upload to Oracle Storage
+        if: always()
         run: |
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-arm-screenshots.zip'        
 
