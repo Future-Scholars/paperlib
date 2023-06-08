@@ -106,6 +106,13 @@ testAndScreenshot("Presetting", "presetting", async () => {
   await page.waitForSelector("#presetting-scraper-view", { state: "hidden" });
 });
 
+testAndScreenshot("Open Dev Buttons Bar", "dev-btn", async () => {
+  const e = await page.locator("#dev-btn-bar").elementHandle();
+  await e?.evaluate((e) => {
+    e.style.display = "flex";
+  });
+});
+
 testAndScreenshot("Drag PDF to Import", "drag", async () => {
   await page.locator("#dev-add-test-data-btn").click();
   await page.waitForTimeout(5000);
