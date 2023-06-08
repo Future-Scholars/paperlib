@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 
+import { APIClient } from "./api/api";
 import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
 import { FeedInteractor } from "./interactors/feed-interactor";
@@ -32,4 +33,6 @@ declare global {
   interface Realm {
     safeWrite: <T>(callback: () => T) => T;
   }
+
+  var paperlibAPI: APIClient;
 }

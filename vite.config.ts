@@ -38,7 +38,11 @@ export default defineConfig({
 
   plugins: [
     electron({
-      entry: ["app/main/main.ts", "app/preload/preload.ts"],
+      entry: [
+        "app/main/main.ts",
+        "app/preload/preload.ts",
+        "app/extension/extension-entry.ts",
+      ],
       vite: {
         build: {
           outDir: "dist",

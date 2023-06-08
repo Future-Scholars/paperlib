@@ -6,6 +6,7 @@ import { createI18n } from "vue-i18n";
 import vSelect from "vue-select";
 import draggable from "vuedraggable";
 
+import { APIHost } from "@/api/api-host";
 import { AppInteractor } from "@/interactors/app-interactor";
 import { BrowserExtensionInteractor } from "@/interactors/browser-extension-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
@@ -143,5 +144,7 @@ window.logger.info(
   false,
   "App"
 );
+
+const apiHost = new APIHost();
 
 app.mount("#app");
