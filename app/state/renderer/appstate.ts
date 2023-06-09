@@ -9,7 +9,6 @@ import {
   PreferenceStore,
   defaultPreferences,
 } from "@/preference/preference";
-
 import {
   BufferState,
   DBState,
@@ -18,7 +17,7 @@ import {
   PreviewViewState,
   SelectionState,
   ViewState,
-} from "../states";
+} from "@/state/states";
 
 export class RendererStateStore {
   constructor() {}

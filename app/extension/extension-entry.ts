@@ -1,5 +1,5 @@
-import { APIClient } from "../api/api";
-import { RPCProtocol } from "../rpc/rpc-protocol";
+import { APIClient } from "@/api/api";
+import { RPCProtocol } from "@/rpc/rpc-protocol";
 
 process.parentPort.once("message", (e) => {
   const [port] = e.ports;

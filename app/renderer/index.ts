@@ -23,10 +23,10 @@ import { ReferenceRepository } from "@/repositories/reference-repository/referen
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
+import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { NetworkTool } from "@/utils/got";
 import { Logger } from "@/utils/logger";
 
-import { MainRendererStateStore } from "../state/renderer/appstate";
 import "./css/index.css";
 import "./css/katex.min.css";
 import AppView from "./ui/app-view.vue";

@@ -7,11 +7,10 @@ import os from "os";
 import path from "path";
 import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
 
+import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-
-import { Preference } from "../preference/preference";
 
 export class AppInteractor {
   stateStore: MainRendererStateStore;

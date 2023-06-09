@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { RPCProtocol } from "../rpc/rpc-protocol";
+import { RPCProtocol } from "@/rpc/rpc-protocol";
 
 // API host in the main renderer process
 export class APIHost {

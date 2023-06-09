@@ -9,7 +9,8 @@ import {
 import { join, posix } from "node:path";
 import os from "os";
 
-import { Preference } from "../../preference/preference";
+import { Preference } from "@/preference/preference";
+
 import { setMainMenu } from "./menu";
 
 export async function createMainWindow(
