@@ -1,3 +1,5 @@
+import { RecycleScroller } from "@future-scholars/vue-virtual-scroller";
+import "@future-scholars/vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { BIconChevronUp, BIconX } from "bootstrap-icons-vue";
 import { createPinia } from "pinia";
 import { Pane, Splitpanes } from "splitpanes";
@@ -47,6 +49,7 @@ app.component("Splitpanes", Splitpanes);
 app.component("Pane", Pane);
 app.component("v-select", vSelect);
 app.component("draggable", draggable);
+app.component("RecycleScroller", RecycleScroller);
 
 // ====================================
 // Setup tools, interactors and repositories

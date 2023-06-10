@@ -137,7 +137,7 @@ export class EntityInteractor {
     try {
       // 1. Create from .bib files
       const bibUrls = urlList.filter((url) => path.extname(url) === ".bib");
-      const paperEntityDraftsFromBib = [];
+      const paperEntityDraftsFromBib: PaperEntity[] = [];
       for (const bibUrl of bibUrls) {
         const paperEntityDrafts =
           ((await this._createFromUrl(bibUrl)) as PaperEntity[]) || [];
@@ -149,7 +149,7 @@ export class EntityInteractor {
 
       // 2. Create from .pdf files
       const pdfUrls = urlList.filter((url) => path.extname(url) === ".pdf");
-      const successfulPaperEntityDraftsFromPDF = [];
+      const successfulPaperEntityDraftsFromPDF: PaperEntity[] = [];
       // Scrape 5 PDFs at a time.
       for (let i = 0; i < pdfUrls.length; i += 5) {
         if (pdfUrls.length > 5) {
@@ -209,7 +209,7 @@ export class EntityInteractor {
     } else if (path.extname(url) === ".bib") {
       const bibtexStr = readFileSync(url.replace("file://", ""), "utf8");
       const bibtexes = bibtex2json(bibtexStr);
-      const paperEntityDrafts = [];
+      const paperEntityDrafts: PaperEntity[] = [];
       for (const bibtex of bibtexes) {
         let paperEntityDraft = new PaperEntity(true);
         paperEntityDraft = bibtex2paperEntityDraft(bibtex, paperEntityDraft);
@@ -223,7 +223,7 @@ export class EntityInteractor {
 
   async _createPostProcess(paperEntityDrafts: PaperEntity[]) {
     // - move files of entities.
-    const fileMovedPaperEntityDrafts = [];
+    const fileMovedPaperEntityDrafts: PaperEntity[] = [];
     for (const paperEntityDraft of paperEntityDrafts) {
       const fileMovedPaperEntityDraft = await this.fileRepository.move(
         paperEntityDraft

@@ -43,7 +43,7 @@ export class PaperlibMetadataServiceScraper {
     let scrapeURL = `https://api.paperlib.app/metadata/query?scrapers=${scrapers.join(
       ","
     )}&`;
-    const queryParams = [];
+    const queryParams: string[] = [];
     if (title) {
       queryParams.push(`title=${title}`);
     }

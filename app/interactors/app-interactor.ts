@@ -218,7 +218,10 @@ export class AppInteractor {
         }
       };
 
-      const promises = [];
+      const promises: Promise<{
+        key: string;
+        name: any;
+      } | null>[] = [];
 
       for (const file of files) {
         if (file.endsWith(".csl")) {

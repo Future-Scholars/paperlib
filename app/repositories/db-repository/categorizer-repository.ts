@@ -171,7 +171,7 @@ export class CategorizerRepository {
   ) {
     try {
       return realm.safeWrite(() => {
-        let newCategorizers = [];
+        let newCategorizers: Categorizer[] = [];
         const existCategorizerNameList = existCategorizers.map(
           (categorizer) => {
             return categorizer.name;

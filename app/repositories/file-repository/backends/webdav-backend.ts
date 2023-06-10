@@ -399,7 +399,7 @@ export class WebDavFileBackend implements FileBackend {
       }
     };
 
-    const supMovePromiseList = [];
+    const supMovePromiseList: Promise<string | null>[] = [];
     for (const [i, sourceSupURL] of sourceSupURLs.entries()) {
       const targetSupURL = constructFileURL(
         targetFileName + `_sup${i}` + path.extname(sourceSupURL),
@@ -462,7 +462,7 @@ export class WebDavFileBackend implements FileBackend {
 
   async remove(paperEntity: PaperEntity): Promise<boolean> {
     await this.check();
-    const sourceUrls = [];
+    const sourceUrls: string[] = [];
     for (const url of paperEntity.supURLs) {
       sourceUrls.push(constructFileURL(url, false, true, "", "webdav://"));
     }

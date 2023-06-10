@@ -46,7 +46,7 @@ ipcMain.on("preview", (event, fileURL) => {
 
       if (app.isPackaged) {
         previewWin.loadFile(join(__dirname, "app/index_preview.html"));
-      } else if (process.env.NODE_ENV === "vitest") {
+      } else if (process.env.NODE_ENV === "test") {
         previewWin.loadFile(join(__dirname, "app/index_preview.html"));
       } else {
         previewWin.loadURL(

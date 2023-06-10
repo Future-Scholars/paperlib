@@ -49,7 +49,7 @@ export async function createMainWindow(
 
   if (app.isPackaged) {
     win.loadFile(join(__dirname, "app/index.html"));
-  } else if (process.env.NODE_ENV === "vitest") {
+  } else if (process.env.NODE_ENV === "test") {
     win.loadFile(join(__dirname, "app/index.html"));
   } else {
     win.loadURL(

@@ -31,7 +31,7 @@ function testAndScreenshot(
 }
 
 beforeAll(async () => {
-  process.env.NODE_ENV = "vitest";
+  process.env.NODE_ENV = "test";
   const fs = require("fs");
   if (!fs.existsSync("./screenshots")) {
     fs.mkdirSync("./screenshots");

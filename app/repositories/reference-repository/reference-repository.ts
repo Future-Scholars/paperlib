@@ -169,10 +169,10 @@ export class ReferenceRepository {
   }
 
   exportBibTexBody(cite: Cite): string {
-    const mathEnvStrs = [];
+    const mathEnvStrs: string[] = [];
     let idx = 0;
     for (const i in cite.data) {
-      let title = cite.data[i].title;
+      let title: string = cite.data[i].title;
       const envRegex = /\$(.*?)\$/g;
       const envs = title.match(envRegex);
       if (envs) {

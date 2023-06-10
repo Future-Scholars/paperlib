@@ -83,7 +83,7 @@ export class PluginMainInteractor {
       "desc"
     );
 
-    let results = [];
+    let results: PaperEntity[] = [];
     let i = 0;
     for (const paperEntity of entities) {
       i++;

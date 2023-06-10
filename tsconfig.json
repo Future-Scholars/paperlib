@@ -1,12 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
+    "target": "es2022",
+    "module": "es2022",
+    "composite": true,
     "moduleResolution": "node",
     "importHelpers": true,
     "jsx": "preserve",
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "noImplicitAny": false,
     "sourceMap": true,
     "baseUrl": "./",
     "strict": true,
@@ -14,9 +19,15 @@
       "@/*": ["app/*"]
     },
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["vite-plugin-electron/electron-env"]
   },
-  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.ts", "app/**/*.vue"],
-  "references": [{ "path": "./tsconfig.node.json" }],
-  "exclude": ["app/renderer/thirdparty/**/*"]
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "app/**/*.d.ts",
+    "app/**/*.vue",
+    "package.json",
+    "electron"
+  ]
 }
