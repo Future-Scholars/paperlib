@@ -50,7 +50,7 @@ jobs:
 
       - name: End-to-End Testing
         run: |
-          cat tests/e2e.spec.ts
+          cat tests/e2e.test.ts
           npm run test:e2e
 
       - name: Print Log
@@ -121,7 +121,7 @@ jobs:
 
       - name: End-to-End Testing
         run: |
-          cat tests/e2e.spec.ts
+          cat tests/e2e.test.ts
           npm run test:e2e
 
       - name: Print Log
@@ -197,7 +197,7 @@ jobs:
 
       - name: End-to-End Testing
         run: |
-          cat tests/e2e.spec.ts
+          cat tests/e2e.test.ts
           npm run test:e2e
         
       - name: Print Log
@@ -278,7 +278,7 @@ jobs:
 
       - name: End-to-End Testing
         run: |
-          cat tests/e2e.spec.ts
+          cat tests/e2e.test.ts
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" -- npm run test:e2e
         
       - name: Print Log
