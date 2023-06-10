@@ -87,7 +87,7 @@ export class FileRepository {
       }
     });
 
-    let paperEntityDrafts = [];
+    let paperEntityDrafts: PaperEntity[] = [];
     for (const value of values) {
       try {
         if (value) {

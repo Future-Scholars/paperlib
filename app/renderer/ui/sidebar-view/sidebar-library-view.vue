@@ -7,6 +7,7 @@ import {
   BIconFunnel,
   BIconTag,
 } from "bootstrap-icons-vue";
+import { ObjectID } from "bson";
 import { Ref, inject, ref, watch } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
@@ -95,7 +96,7 @@ const onFileDroped = (
 };
 
 const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
-  let dragedIds = [];
+  let dragedIds: (string | ObjectID)[] = [];
   if (selectionState.selectedIds.includes(selectionState.dragedIds[0])) {
     selectionState.dragedIds = selectionState.selectedIds;
     dragedIds = selectionState.selectedIds;

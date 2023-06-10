@@ -249,7 +249,7 @@ async function _renderPage(
       .slice(0, 100)
       .includes("ICLR")
   ) {
-    const largestTextList = [];
+    const largestTextList: string[] = [];
     let largestWord = "";
     for (let item of textContent.items.slice(1)) {
       item = item as TextItem;

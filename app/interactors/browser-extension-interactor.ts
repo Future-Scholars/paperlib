@@ -2,10 +2,10 @@ import * as WebSocket from "ws";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
+import { WebContentType } from "@/repositories/web-importer-repository/importers/importer";
+import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
-import { WebContentType } from "../repositories/web-importer-repository/importers/importer";
-import { WebImporterRepository } from "../repositories/web-importer-repository/web-importer-repository";
 import { EntityInteractor } from "./entity-interactor";
 
 export class BrowserExtensionInteractor {

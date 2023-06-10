@@ -358,7 +358,7 @@ export class CacheRepository {
           normalizeWhitespace: false,
           disableCombineTextItems: false,
         });
-        const pageTextList = [];
+        const pageTextList: string[] = [];
         for (const item of pageText.items) {
           pageTextList.push((item as TextItem).str);
         }

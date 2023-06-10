@@ -4,7 +4,8 @@ import Store from "electron-store";
 import path from "node:path";
 import { platform, release } from "os";
 
-import { Preference } from "../preference/preference";
+import { Preference } from "@/preference/preference";
+
 import "./files.ts";
 import "./proxy.ts";
 import "./theme.ts";

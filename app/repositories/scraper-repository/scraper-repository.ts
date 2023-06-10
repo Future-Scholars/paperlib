@@ -153,7 +153,7 @@ export class ScraperRepository {
       ScraperPreference
     >;
 
-    const sortedScraperPrefs = [];
+    const sortedScraperPrefs: ScraperPreference[] = [];
     for (const [name, scraperPref] of Object.entries(scraperPrefs)) {
       if (scraperPref.enable) {
         sortedScraperPrefs.push(scraperPref);

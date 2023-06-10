@@ -94,7 +94,7 @@ export class DBLPScraper extends Scraper {
         } else {
           const title = article.title.replace(/&amp;/g, "&").replace(/\.$/, "");
 
-          const authorList = [];
+          const authorList: string[] = [];
           const authorResponse = article.authors.author;
 
           if ("@pid" in authorResponse) {

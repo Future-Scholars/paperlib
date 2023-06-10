@@ -1,8 +1,8 @@
 import { BrowserWindow, Menu, app } from "electron";
 import { autoUpdater } from "electron-updater";
 
-import { loadLocales } from "../../locales/load";
-import { Preference } from "../../preference/preference";
+import { loadLocales } from "@/locales/load";
+import { Preference } from "@/preference/preference";
 
 export function setMainMenu(mainWindow: BrowserWindow, preference: Preference) {
   const isMac = process.platform === "darwin";

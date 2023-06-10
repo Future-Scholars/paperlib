@@ -66,8 +66,8 @@ const previewSelectedEntities = () => {
 const reloadSelectedEntities = () => {
   if (viewState.contentType === "library") {
     selectedPaperEntities.value = [];
-    let tempSelectedPaperEntities = [];
-    let tempSelectedIds = [];
+    let tempSelectedPaperEntities: PaperEntity[] = [];
+    let tempSelectedIds: string[] = [];
     if (paperEntities) {
       for (const index of selectionState.selectedIndex) {
         if (paperEntities.value.length > index) {
@@ -89,8 +89,8 @@ const reloadSelectedEntities = () => {
     }
   } else {
     selectedFeedEntities.value = [];
-    let tempSelectedFeedEntities = [];
-    let tempSelectedIds = [];
+    let tempSelectedFeedEntities: FeedEntity[] = [];
+    let tempSelectedIds: string[] = [];
     if (feedEntities) {
       for (const index of selectionState.selectedIndex) {
         if (feedEntities.value.length > index) {

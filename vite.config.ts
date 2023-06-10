@@ -49,6 +49,11 @@ export default defineConfig({
           sourcemap: process.env.NODE_ENV === "development" ? "inline" : false,
           minify: process.env.NODE_ENV === "production",
         },
+        resolve: {
+          alias: {
+            "@": path.join(__dirname, "app") + "/",
+          },
+        },
       },
     }),
     renderer({

@@ -1,7 +1,8 @@
+import { readFileSync } from "fs";
+
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { readFileSync } from "fs";
 
 import { WebContentType, WebImporter } from "./importer";
 
@@ -24,7 +25,7 @@ export class EmbedWebImporter extends WebImporter {
       entityDraft = new PaperEntity(true);
       let matched = false;
 
-      const authors = [];
+      const authors: string[] = [];
 
       // @ts-ignore
       for (const meta of metaTags) {
@@ -43,7 +44,7 @@ export class EmbedWebImporter extends WebImporter {
         }
         if (meta.name === "citation_pdf_url") {
           let downloadURL;
-          if (webContent.url.includes('adsabs.harvard.edu')) {
+          if (webContent.url.includes("adsabs.harvard.edu")) {
             downloadURL = `https://ui.adsabs.harvard.edu${meta.content}`;
           } else {
             if (meta.content.endsWith(".pdf")) {
@@ -57,9 +58,11 @@ export class EmbedWebImporter extends WebImporter {
             downloadURL,
           ]);
           if (downloadedFilePath.length > 0) {
-
             const fileContent = readFileSync(downloadedFilePath[0]);
-            if (fileContent.subarray(0, 5).toString() === '%PDF-' && fileContent.subarray(-5).toString().includes('EOF')) {
+            if (
+              fileContent.subarray(0, 5).toString() === "%PDF-" &&
+              fileContent.subarray(-5).toString().includes("EOF")
+            ) {
               entityDraft.setValue("mainURL", downloadedFilePath[0]);
             }
           }

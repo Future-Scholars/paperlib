@@ -471,7 +471,7 @@ export class DBRepository {
     return realm.safeWrite(() => {
       const successes: boolean[] = [];
       for (const paperEntity of paperEntities) {
-        let existingPaperEntity = null;
+        let existingPaperEntity: PaperEntity | null = null;
         if (paperEntity._id) {
           const existingObjs = this.paperEntityRepository.loadByIds(realm, [
             paperEntity._id,
@@ -570,7 +570,7 @@ export class DBRepository {
     return realm.safeWrite(() => {
       const successes: boolean[] = [];
       for (const feed of feeds) {
-        let existingFeed = null;
+        let existingFeed: Feed | null = null;
         if (feed._id) {
           const existingObjs = this.feedRepository.loadByIds(realm, [feed._id]);
           if (existingObjs.length > 0) {
@@ -604,7 +604,7 @@ export class DBRepository {
     realm.safeWrite(() => {
       const successes: boolean[] = [];
       for (const feedEntity of feedEntities) {
-        let existingFeedEntity = null;
+        let existingFeedEntity: FeedEntity | null = null;
         if (feedEntity._id) {
           const existingObjs = this.feedEntityRepository.loadByIds(realm, [
             feedEntity._id,

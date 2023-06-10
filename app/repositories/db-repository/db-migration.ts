@@ -36,7 +36,7 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
       const newObject = newObjects[objectIndex];
 
       newObject["mainURL"] = path.basename(newObject["mainURL"]);
-      const newObjectSupURLs = [];
+      const newObjectSupURLs: string[] = [];
       for (const supURL of newObject["supURLs"]) {
         newObjectSupURLs.push(path.basename(supURL));
       }

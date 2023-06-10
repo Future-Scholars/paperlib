@@ -43,7 +43,7 @@ export class CNKIWebImporter extends WebImporter {
       } else {
         const paperEntityDraft = new PaperEntity(true);
 
-        const authorList = [];
+        const authorList: string[] = [];
 
         let isDissertation = false;
         let isPatent = false;

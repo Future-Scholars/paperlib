@@ -6,10 +6,8 @@ import {
   BIconShift,
 } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
-import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
 import { PaperEntity } from "@/models/paper-entity";
-import RecycleScroller from "@/renderer/thirdparty/virutalscroll/src/components/RecycleScroller.vue";
 import { PluginRendererStateStore } from "@/state/renderer/appstate";
 import { debounce } from "@/utils/misc";
 

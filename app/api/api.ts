@@ -1,4 +1,5 @@
-import { Proxied, RPCProtocol } from "../rpc/rpc-protocol";
+import { Proxied, RPCProtocol } from "@/rpc/rpc-protocol";
+
 import { AppInteractorShape } from "./proxies/app";
 
 // API client in any process
