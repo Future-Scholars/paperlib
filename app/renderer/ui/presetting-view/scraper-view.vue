@@ -110,13 +110,9 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
   viewState.scraperReinited = Date.now();
 };
 
-preferenceService.onChanged(
-  "scrapers",
-  () => {
-    splitEnabledDisabledScraper();
-  }
-  // TODO: ? { deep: true }
-);
+preferenceService.onChanged("scrapers", () => {
+  splitEnabledDisabledScraper();
+});
 
 onMounted(() => {
   splitEnabledDisabledScraper();

@@ -498,11 +498,10 @@ export const IPreferenceService = createDecorator("preferenceService");
 export class PreferenceService {
   private readonly _store: ElectronStore<IPreferenceStore>;
   private readonly _preferenceVersion: number = 1;
-  readonly state: Store<"preferenceState", IPreferenceStore>;
+  private readonly _state: Store<"preferenceState", IPreferenceStore>;
   private readonly _listeners: { [key: string]: ((value: any) => void)[] };
 
   constructor() {
-    // TODO: create own state and emit change event.
     // 1. Initialize the store
     if (isRendererProcess()) {
       const userDataPath = ipcRenderer.sendSync("user-data-path");
@@ -525,12 +524,16 @@ export class PreferenceService {
 
     // 4. Create state from the store
     this._listeners = {};
-    this.state = this.useState();
-    this.state.$subscribe((mutation, state) => {
-      // TODO: check all changes are made by patch.
-      const payload = (
-        mutation as SubscriptionCallbackMutationPatchObject<IPreferenceStore>
-      ).payload;
+    this._state = this.useState();
+    this._state.$subscribe((mutation, state) => {
+      let payload: { [key: string]: any };
+      if (mutation.type === "direct") {
+        payload = { [mutation.events.key]: mutation.events.newValue };
+      } else {
+        payload = (
+          mutation as SubscriptionCallbackMutationPatchObject<IPreferenceStore>
+        ).payload;
+      }
       for (const key in payload) {
         if (key in this._listeners) {
           const callbacks = this._listeners[key];
@@ -639,7 +642,7 @@ export class PreferenceService {
    */
   set(patch: { [key in keyof IPreferenceStore]?: any }) {
     this._store.set(patch);
-    this.state.$patch(patch);
+    this._state.$patch(patch);
   }
 
   /**

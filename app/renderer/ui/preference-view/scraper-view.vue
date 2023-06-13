@@ -104,7 +104,6 @@ const onDeleteScraper = () => {
       newScrapers[name] = scraper;
     }
   }
-  prefState.scrapers = {};
   preferenceService.set({ scrapers: newScrapers });
   viewState.scraperReinited = Date.now();
   editingScraper.value = null;
@@ -172,13 +171,9 @@ const onClickGuide = () => {
   );
 };
 
-preferenceService.onChanged(
-  "scrapers",
-  (value) => {
-    splitEnabledDisabledScraper();
-  }
-  // TODO: ? { deep: true }
-);
+preferenceService.onChanged("scrapers", () => {
+  splitEnabledDisabledScraper();
+});
 
 onMounted(() => {
   splitEnabledDisabledScraper();
