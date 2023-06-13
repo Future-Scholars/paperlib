@@ -55,7 +55,7 @@ const props = defineProps({
   },
 });
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 </script>
 
 <template>

@@ -41,7 +41,7 @@ const colorClass = (color?: string) => {
 // ================================
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const bufferState = MainRendererStateStore.useBufferState();
 
 const isSpinnerShown = ref(false);

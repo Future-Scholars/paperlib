@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { IPreferenceStore } from "@/services/preference-service";
 
 import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
 
 const prefState = preferenceService.useState();
 
-const updatePref = (key: string, value: unknown) => {
+const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set(key, value);
 };
 </script>

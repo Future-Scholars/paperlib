@@ -2,7 +2,11 @@ import { ipcRenderer } from "electron";
 import ElectronStore from "electron-store";
 import os from "os";
 import { join } from "path";
-import { Store, defineStore } from "pinia";
+import {
+  Store,
+  SubscriptionCallbackMutationPatchObject,
+  defineStore,
+} from "pinia";
 
 import { createDecorator } from "@/base/injection/injection";
 import { isRendererProcess } from "@/base/process";
@@ -130,11 +134,12 @@ export interface IPreferenceStore {
   selectedPDFViewer: string;
   selectedPDFViewerPath: string;
 
+  selectedCSLStyle: string;
+  importedCSLStylesPath: string;
+
   showPresettingLang: boolean;
   showPresettingDB: boolean;
   showPresettingScraper: boolean;
-
-  [Key: string]: unknown;
 }
 
 const _defaultPreferences: IPreferenceStore = {
@@ -494,6 +499,7 @@ export class PreferenceService {
   private readonly _store: ElectronStore<IPreferenceStore>;
   private readonly _preferenceVersion: number = 1;
   readonly state: Store<"preferenceState", IPreferenceStore>;
+  private readonly _listeners: { [key: string]: ((value: any) => void)[] };
 
   constructor() {
     // TODO: create own state and emit change event.
@@ -518,7 +524,25 @@ export class PreferenceService {
     }
 
     // 4. Create state from the store
+    this._listeners = {};
     this.state = this.useState();
+    this.state.$subscribe((mutation, state) => {
+      // TODO: check all changes are made by patch.
+      const payload = (
+        mutation as SubscriptionCallbackMutationPatchObject<IPreferenceStore>
+      ).payload;
+      for (const key in payload) {
+        if (key in this._listeners) {
+          const callbacks = this._listeners[key];
+          const callbacksPromise = callbacks.map((callback) => {
+            return new Promise((resolve) => {
+              resolve(callback(payload[key]));
+            });
+          });
+          Promise.all(callbacksPromise);
+        }
+      }
+    });
   }
 
   useState() {
@@ -597,7 +621,7 @@ export class PreferenceService {
    * @param key - key of the preference
    * @returns value of the preference
    */
-  get(key: string) {
+  get(key: keyof IPreferenceStore) {
     if (this._store.has(key)) {
       return this._store.get(key);
     } else {
@@ -613,7 +637,7 @@ export class PreferenceService {
    * @param parse - parse the value as JSON
    * @returns void
    */
-  set(key: string, value: unknown, parse = false) {
+  set(key: keyof IPreferenceStore, value: unknown, parse = false) {
     if (parse) {
       value = JSON.parse(value as string);
     }
@@ -626,19 +650,13 @@ export class PreferenceService {
 
   onChanged(key: string | string[], callback: (newValue: any) => void) {
     if (typeof key === "string") {
-      this.state.$subscribe((mutation, state) => {
-        if (mutation.storeId === key) {
-          callback(this.state[key]);
-        }
-      });
-    } else {
-      for (const k of key) {
-        this.state.$subscribe((mutation, state) => {
-          if (mutation.storeId === k) {
-            callback(this.state[k]);
-          }
-        });
+      key = [key];
+    }
+    for (const k of key) {
+      if (!(k in this._listeners)) {
+        this._listeners[k] = [];
       }
+      this._listeners[k].push(callback);
     }
   }
 }

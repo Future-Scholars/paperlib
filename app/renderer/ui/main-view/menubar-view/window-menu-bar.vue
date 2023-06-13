@@ -41,7 +41,7 @@ const emit = defineEmits(["click"]);
 // State
 // ================================
 const viewState = MainRendererStateStore.useViewState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 const onCloseClicked = () => {
   window.appInteractor.close();

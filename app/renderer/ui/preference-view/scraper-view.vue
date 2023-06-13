@@ -3,12 +3,13 @@ import { BIconGear, BIconGripVertical, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref, watch } from "vue";
 
 import { ScraperPreference } from "@/preference/preference";
+import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ScraperItem from "./components/scraper.vue";
 import Toggle from "./components/toggle.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const viewState = MainRendererStateStore.useViewState();
 const presetSelection = ref("");
 
@@ -118,7 +119,7 @@ const onUpdateScraper = (scraperPref: ScraperPreference) => {
   editingScraper.value = null;
 };
 
-const onUpdate = (key: string, value: unknown) => {
+const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set(key, value);
 };
 
@@ -171,12 +172,12 @@ const onClickGuide = () => {
   );
 };
 
-watch(
-  () => prefState.scrapers,
+preferenceService.onChanged(
+  "scrapers",
   () => {
     splitEnabledDisabledScraper();
-  },
-  { deep: true }
+  }
+  // TODO: ? { deep: true }
 );
 
 onMounted(() => {

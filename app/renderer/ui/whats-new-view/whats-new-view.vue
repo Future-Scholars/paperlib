@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
 import WhatsNewViewCn from "./whats-new-view-cn.vue";
 import WhatsNewViewEn from "./whats-new-view-en.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 </script>
 
 <style>

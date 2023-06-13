@@ -4,7 +4,7 @@ import { Ref, inject, ref, watch } from "vue";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
-import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { debounce } from "@/utils/misc";
 
@@ -20,7 +20,7 @@ import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
 const bufferState = MainRendererStateStore.useBufferState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 // ================================
 // Data
@@ -28,7 +28,7 @@ const prefState = MainRendererStateStore.usePreferenceState();
 const selectedEntityPlaceHolder = ref(new PaperEntity(false));
 const selectedFeedEntityPlaceHolder = ref(new FeedEntity(false));
 
-const paperEntities = inject<Ref<PaperEntityResults>>("paperEntities");
+const paperEntities = inject<Ref<IPaperEntityResults>>("paperEntities");
 const feedEntities = inject<Ref<FeedEntityResults>>("feedEntities");
 
 const selectedPaperEntities = ref<Array<PaperEntity>>([]);
@@ -471,11 +471,16 @@ watch(
   }
 );
 
+preferenceService.onChanged(
+  ["mainviewSortBy", "mainviewSortOrder"],
+  (value) => {
+    clearSelected();
+  }
+);
+
 watch(
   () =>
     viewState.contentType +
-    prefState.mainviewSortBy +
-    prefState.mainviewSortOrder +
     viewState.searchText +
     selectionState.selectedCategorizer +
     selectionState.selectedFeed,

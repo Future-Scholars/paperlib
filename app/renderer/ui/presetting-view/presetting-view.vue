@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { IPreferenceStore } from "@/services/preference-service";
 
 import DbView from "./db-view.vue";
 import LangView from "./lang-view.vue";
 import ScraperView from "./scraper-view.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
-const hide = (key: string) => {
+const hide = (key: keyof IPreferenceStore) => {
   preferenceService.set(key, false);
 };
 </script>

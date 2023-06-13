@@ -8,7 +8,7 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 const emit = defineEmits(["close"]);
 
 const viewState = MainRendererStateStore.useViewState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 const presetSelection = ref("");
 
@@ -110,12 +110,12 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
   viewState.scraperReinited = Date.now();
 };
 
-watch(
-  () => prefState.scrapers,
+preferenceService.onChanged(
+  "scrapers",
   () => {
     splitEnabledDisabledScraper();
-  },
-  { deep: true }
+  }
+  // TODO: ? { deep: true }
 );
 
 onMounted(() => {

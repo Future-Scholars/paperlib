@@ -177,6 +177,7 @@ export class DBRepository {
   async getConfig(): Promise<Realm.Configuration> {
     let syncPassword;
 
+    if (window.appInteractor.getPreference("useSync")) {
     try {
       syncPassword = await window.appInteractor.getPassword("realmSync");
     } catch (err) {
@@ -188,12 +189,15 @@ export class DBRepository {
       );
     }
     if (
-      window.appInteractor.getPreference("useSync") &&
       window.appInteractor.getPreference("syncEmail") !== "" &&
       syncPassword
     ) {
       return await this.getCloudConfig();
     } else {
+      this.cloudConfig = undefined;
+      return await this.getLocalConfig();
+    } }
+    else {
       this.cloudConfig = undefined;
       return await this.getLocalConfig();
     }

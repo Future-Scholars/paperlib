@@ -12,8 +12,8 @@ describe("State Service", () => {
     const stateService = new StateService();
     expect(stateService).toBeDefined();
 
-    expect(stateService.viewState.processingQueueCount).toBe(0);
-    stateService.viewState.processingQueueCount = 1;
-    expect(stateService.viewState.processingQueueCount).toBe(1);
+    expect(stateService.viewState.searchText).toBe("");
+    stateService.viewState.searchText = "abc";
+    expect(stateService.viewState.searchText).toBe("abc");
   });
 });

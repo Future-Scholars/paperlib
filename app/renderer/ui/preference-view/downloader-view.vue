@@ -6,7 +6,7 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DownloaderItem from "./components/downloader.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const viewState = MainRendererStateStore.useViewState();
 
 const onAddNewDownloaderClicked = () => {

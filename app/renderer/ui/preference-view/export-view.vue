@@ -2,7 +2,7 @@
 import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { IPreferenceStore } from "@/services/preference-service";
 
 import Replacement from "./components/replacement.vue";
 import Toggle from "./components/toggle.vue";
@@ -10,9 +10,9 @@ import Toggle from "./components/toggle.vue";
 const newReplacementFrom = ref("");
 const newReplacementTo = ref("");
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
-const updatePref = (key: string, value: unknown) => {
+const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set(key, value);
 };
 

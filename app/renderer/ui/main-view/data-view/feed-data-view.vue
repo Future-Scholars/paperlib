@@ -3,6 +3,7 @@ import { Ref, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";
@@ -12,7 +13,7 @@ import TableComponent from "./components/table/table-component.vue";
 // State
 // ================================
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const i18n = useI18n();
 
 // ================================
@@ -27,6 +28,7 @@ const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
   ref({});
 
 const resetTableTitleColumns = (reset = false) => {
+  // TODO: check performance here
   if (reset) {
     const prefKeys = [
       "mainTitleWidth",
@@ -48,10 +50,7 @@ const resetTableTitleColumns = (reset = false) => {
       "feedAddTimeWidth",
     ];
     for (const key of prefKeys) {
-      prefState[key] = -1;
-    }
-    for (const key of prefKeys) {
-      window.appInteractor.setPreferenceAsync(key, -1);
+      preferenceService.set(key as keyof IPreferenceStore, -1);
     }
   }
 
@@ -129,11 +128,11 @@ const resetTableTitleColumns = (reset = false) => {
 };
 
 const onTableTitleClicked = (key: string) => {
-  prefState.mainviewSortBy = key;
-  prefState.mainviewSortOrder =
-    prefState.mainviewSortOrder === "asce" ? "desc" : "asce";
-  preferenceService.set("sortBy", key);
-  preferenceService.set("sortOrder", prefState.mainviewSortOrder);
+  preferenceService.set("mainviewSortBy", key);
+  preferenceService.set(
+    "mainviewSortOrder",
+    prefState.mainviewSortOrder === "asce" ? "desc" : "asce"
+  );
 };
 
 const onTableTitleWidthChanged = (
@@ -149,7 +148,10 @@ const onTableTitleWidthChanged = (
   } as Record<string, string>;
   for (const changedWidth of changedWidths) {
     tableTitleColumns.value[changedWidth.key].width = changedWidth.width;
-    preferenceService.set(keyPrefMap[changedWidth.key], changedWidth.width);
+    preferenceService.set(
+      keyPrefMap[changedWidth.key] as keyof IPreferenceStore,
+      changedWidth.width
+    );
   }
 };
 
@@ -208,17 +210,17 @@ watch(
   }
 );
 
-watch(
-  () => [
-    prefState.showMainYear,
-    prefState.showMainPublication,
-    prefState.showMainPubType,
-    prefState.showMainTags,
-    prefState.showMainFolders,
-    prefState.showMainNote,
-    prefState.showMainRating,
-    prefState.showMainFlag,
-    prefState.showMainAddTime,
+preferenceService.onChanged(
+  [
+    "showMainYear",
+    "showMainPublication",
+    "showMainPubType",
+    "showMainTags",
+    "showMainFolders",
+    "showMainNote",
+    "showMainRating",
+    "showMainFlag",
+    "showMainAddTime",
   ],
   () => resetTableTitleColumns(true)
 );

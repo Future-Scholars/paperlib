@@ -5,6 +5,7 @@ import { Ref, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";
@@ -15,7 +16,7 @@ import TableComponent from "./components/table/table-component.vue";
 // ================================
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const i18n = useI18n();
 
 // ================================
@@ -51,10 +52,8 @@ const resetTableTitleColumns = (reset = false) => {
       "feedAddTimeWidth",
     ];
     for (const key of prefKeys) {
-      prefState[key] = -1;
-    }
-    for (const key of prefKeys) {
-      window.appInteractor.setPreferenceAsync(key, -1);
+      // TODO: check performance here
+      preferenceService.set(key as keyof IPreferenceStore, -1);
     }
   }
 
@@ -177,11 +176,11 @@ const onTableTitleClicked = (key: string) => {
   if (key === "tags" || key === "folders") {
     return;
   }
-  prefState.mainviewSortBy = key;
-  prefState.mainviewSortOrder =
-    prefState.mainviewSortOrder === "asce" ? "desc" : "asce";
-  preferenceService.set("sortBy", key);
-  preferenceService.set("sortOrder", prefState.mainviewSortOrder);
+  preferenceService.set("mainviewSortBy", key);
+  preferenceService.set(
+    "mainviewSortOrder",
+    prefState.mainviewSortOrder === "asce" ? "desc" : "asce"
+  );
 };
 
 const onTableTitleWidthChanged = (
@@ -202,7 +201,10 @@ const onTableTitleWidthChanged = (
   } as Record<string, string>;
   for (const changedWidth of changedWidths) {
     tableTitleColumns.value[changedWidth.key].width = changedWidth.width;
-    preferenceService.set(keyPrefMap[changedWidth.key], changedWidth.width);
+    preferenceService.set(
+      keyPrefMap[changedWidth.key] as keyof IPreferenceStore,
+      changedWidth.width
+    );
   }
 };
 
@@ -308,28 +310,25 @@ watch(
   }
 );
 
-watch(
-  () => prefState.mainviewType,
-  (newMainviewType) => {
-    if (newMainviewType === "tableandpreview") {
-      if (selectionState.selectedIndex.length === 1) {
-        accessMainFile(selectionState.selectedIndex[0]);
-      }
+preferenceService.onChanged("mainviewType", (newMainviewType) => {
+  if (newMainviewType === "tableandpreview") {
+    if (selectionState.selectedIndex.length === 1) {
+      accessMainFile(selectionState.selectedIndex[0]);
     }
   }
-);
+});
 
-watch(
-  () => [
-    prefState.showMainYear,
-    prefState.showMainPublication,
-    prefState.showMainPubType,
-    prefState.showMainTags,
-    prefState.showMainFolders,
-    prefState.showMainNote,
-    prefState.showMainRating,
-    prefState.showMainFlag,
-    prefState.showMainAddTime,
+preferenceService.onChanged(
+  [
+    "showMainYear",
+    "showMainPublication",
+    "showMainPubType",
+    "showMainTags",
+    "showMainFolders",
+    "showMainNote",
+    "showMainRating",
+    "showMainFlag",
+    "showMainAddTime",
   ],
   () => resetTableTitleColumns(true)
 );

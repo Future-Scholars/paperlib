@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Options from "./components/options.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const viewState = MainRendererStateStore.useViewState();
 
 const syncAPPID = ref(prefState.syncAPPID);
@@ -17,7 +18,9 @@ const webdavURL = ref(prefState.webdavURL);
 const webdavUsername = ref(prefState.webdavUsername);
 const webdavPassword = ref("");
 
-const onUpdate = (key: string, value: unknown) => {
+// TODO: here is an error in console.
+
+const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set(key, value);
 };
 

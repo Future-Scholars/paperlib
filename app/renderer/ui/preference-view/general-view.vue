@@ -2,15 +2,16 @@
 import { ref } from "vue";
 
 import { APPTheme } from "@/services/app-service";
+import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
 
 const viewState = MainRendererStateStore.useViewState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
-const updatePrefs = (key: string, value: unknown) => {
+const updatePrefs = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set(key, value);
 };
 

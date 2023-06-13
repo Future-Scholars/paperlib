@@ -182,11 +182,11 @@ preferenceService.onChanged(
   }
 );
 
-// preferenceService.onChanged(["sidebarSortBy", "sidebarSortOrder"], (value) => {
-//   reloadTags();
-//   reloadFolders();
-//   reloadPaperSmartFilters();
-// });
+preferenceService.onChanged(["sidebarSortBy", "sidebarSortOrder"], (value) => {
+  reloadTags();
+  reloadFolders();
+  reloadPaperSmartFilters();
+});
 
 watch(
   () =>

@@ -3,7 +3,6 @@ import { BIconFlagFill, BIconStarFill } from "bootstrap-icons-vue";
 import { PropType } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { getCategorizerString, getPubTypeString } from "@/utils/string";
 
 const props = defineProps({
@@ -65,7 +64,7 @@ const props = defineProps({
   },
 });
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 </script>
 
 <template>

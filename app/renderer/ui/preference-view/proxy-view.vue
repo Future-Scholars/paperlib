@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { IPreferenceStore } from "@/services/preference-service";
 
 import Toggle from "./components/toggle.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 const httpproxy = ref(prefState.httpproxy);
 const httpsproxy = ref(prefState.httpsproxy);
 
-const onUpdate = (key: string, value: unknown) => {
+const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set(key, value);
 };
 </script>

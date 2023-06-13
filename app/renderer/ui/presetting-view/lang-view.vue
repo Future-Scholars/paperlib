@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
 const emit = defineEmits(["close"]);
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 const onChangeLanguage = (language: string) => {
   preferenceService.set("language", language);

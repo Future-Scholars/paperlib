@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
-import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import TableItem from "./table-item.vue";
@@ -12,7 +12,7 @@ const props = defineProps({
     required: true,
   },
   dataRows: {
-    type: Object as () => PaperEntityResults | FeedEntityResults,
+    type: Object as () => IPaperEntityResults | FeedEntityResults,
     required: true,
   },
   isFeedTable: {
@@ -25,7 +25,7 @@ const props = defineProps({
 // State
 // ================================
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 // ================================
 // Data
