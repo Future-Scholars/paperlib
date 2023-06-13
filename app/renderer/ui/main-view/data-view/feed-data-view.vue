@@ -28,7 +28,6 @@ const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
   ref({});
 
 const resetTableTitleColumns = (reset = false) => {
-  // TODO: check performance here
   if (reset) {
     preferenceService.set({
       mainTitleWidth: -1,

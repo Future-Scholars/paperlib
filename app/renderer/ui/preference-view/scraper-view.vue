@@ -174,7 +174,7 @@ const onClickGuide = () => {
 
 preferenceService.onChanged(
   "scrapers",
-  () => {
+  (value) => {
     splitEnabledDisabledScraper();
   }
   // TODO: ? { deep: true }
