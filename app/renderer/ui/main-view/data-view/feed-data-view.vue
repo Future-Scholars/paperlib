@@ -132,8 +132,8 @@ const onTableTitleClicked = (key: string) => {
   prefState.mainviewSortBy = key;
   prefState.mainviewSortOrder =
     prefState.mainviewSortOrder === "asce" ? "desc" : "asce";
-  window.appInteractor.setPreference("sortBy", key);
-  window.appInteractor.setPreference("sortOrder", prefState.mainviewSortOrder);
+  preferenceService.set("sortBy", key);
+  preferenceService.set("sortOrder", prefState.mainviewSortOrder);
 };
 
 const onTableTitleWidthChanged = (
@@ -149,10 +149,7 @@ const onTableTitleWidthChanged = (
   } as Record<string, string>;
   for (const changedWidth of changedWidths) {
     tableTitleColumns.value[changedWidth.key].width = changedWidth.width;
-    window.appInteractor.setPreference(
-      keyPrefMap[changedWidth.key],
-      changedWidth.width
-    );
+    preferenceService.set(keyPrefMap[changedWidth.key], changedWidth.width);
   }
 };
 
@@ -165,8 +162,8 @@ const onItemClicked = (event: MouseEvent, index: number) => {
       selectedIndex.value.push(i);
     }
   } else if (
-    (event.ctrlKey && !window.appInteractor.isMac()) ||
-    (event.metaKey && window.appInteractor.isMac())
+    (event.ctrlKey && appService.platform() !== "darwin") ||
+    (event.metaKey && appService.platform() === "darwin")
   ) {
     if (selectedIndex.value.indexOf(index) >= 0) {
       selectedIndex.value.splice(selectedIndex.value.indexOf(index), 1);

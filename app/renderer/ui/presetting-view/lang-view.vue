@@ -6,11 +6,11 @@ const emit = defineEmits(["close"]);
 const prefState = MainRendererStateStore.usePreferenceState();
 
 const onChangeLanguage = (language: string) => {
-  window.appInteractor.setPreference("language", language);
+  preferenceService.set("language", language);
 };
 
 const onRestartClicked = () => {
-  window.appInteractor.forceclose();
+  appService.forceClose();
 };
 </script>
 

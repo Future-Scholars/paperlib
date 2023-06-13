@@ -6,7 +6,7 @@ import WhatsNewHeader from "./header.vue";
 const show = ref(false);
 
 const checkShouldShow = async () => {
-  show.value = await window.appInteractor.shouldShowWhatsNew();
+  show.value = await appService.isVersionChanged();
 };
 
 const hide = () => {

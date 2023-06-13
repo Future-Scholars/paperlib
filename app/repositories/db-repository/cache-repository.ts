@@ -14,7 +14,7 @@ import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { constructFileURL } from "@/utils/path";
 
-import { PaperEntityResults } from "./paper-entity-repository";
+import { IPaperEntityResults } from "./paper-entity-repository";
 
 export class CacheRepository {
   stateStore: MainRendererStateStore;
@@ -48,7 +48,7 @@ export class CacheRepository {
     window.logger.info("Initializing Cache DB...", "", false, "Database");
 
     if (this._realm || reinit) {
-      Realm.defaultPath = window.appInteractor.getUserDataPath();
+      Realm.defaultPath = await appService.userDataPath();
       if (this._realm) {
         this._realm.close();
       }
@@ -95,7 +95,7 @@ export class CacheRepository {
         )
       )
     ) {
-      const userDataPath = window.appInteractor.getUserDataPath();
+      const userDataPath = await appService.userDataPath();
       try {
         if (path.join(userDataPath, "cache.realm")) {
           await promises.unlink(path.join(userDataPath, "cache.realm"));
@@ -151,7 +151,7 @@ export class CacheRepository {
     const config = {
       schema: [PaperEntityCache.schema],
       schemaVersion: this._schemaVersion,
-      path: path.join(window.appInteractor.getUserDataPath(), "cache.realm"),
+      path: path.join(await appService.userDataPath(), "cache.realm"),
     };
     this.config = config;
     return config;
@@ -164,7 +164,7 @@ export class CacheRepository {
   // ========================
   // Read
   // ========================
-  async fullTextFilter(query: string, paperEntities: PaperEntityResults) {
+  async fullTextFilter(query: string, paperEntities: IPaperEntityResults) {
     // First check if all the paper entities are already cached.
     try {
       await this.createFullText(paperEntities);
@@ -207,7 +207,7 @@ export class CacheRepository {
   // ========================
   // Create and Update
   // ========================
-  async createFullText(paperEntities: PaperEntityResults) {
+  async createFullText(paperEntities: IPaperEntityResults) {
     const realm = await this.realm();
 
     // 1. Pick out the entities that are not in the cache
@@ -218,7 +218,7 @@ export class CacheRepository {
       .filtered("_id IN $0", ids);
     const existObjIds = existObjs.map((e) => e._id);
 
-    let noCachePaperEntities: PaperEntityResults = [];
+    let noCachePaperEntities: IPaperEntityResults = [];
 
     if (paperEntities instanceof Realm.Results) {
       noCachePaperEntities = paperEntities.filtered(
@@ -260,7 +260,7 @@ export class CacheRepository {
     await Promise.all(noCachePaperEntities.map((p) => createPromise(p)));
   }
 
-  async updateFullText(paperEntities: PaperEntityResults) {
+  async updateFullText(paperEntities: IPaperEntityResults) {
     const realm = await this.realm();
     if (pdfjs.GlobalWorkerOptions.workerPort === null) {
       const pdfWorker = new pdfjsWorker();

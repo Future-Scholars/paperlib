@@ -8,7 +8,7 @@ import ScraperView from "./scraper-view.vue";
 const prefState = MainRendererStateStore.usePreferenceState();
 
 const hide = (key: string) => {
-  window.appInteractor.setPreference(key, false);
+  preferenceService.set(key, false);
 };
 </script>
 

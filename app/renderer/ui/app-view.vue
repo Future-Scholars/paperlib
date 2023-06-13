@@ -6,7 +6,7 @@ import { removeLoading } from "@/preload/loading";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { FeedResults } from "@/repositories/db-repository/feed-repository";
-import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
@@ -27,13 +27,12 @@ import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 const viewState = MainRendererStateStore.useViewState();
 const dbState = MainRendererStateStore.useDBState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
-const logState = MainRendererStateStore.useLogState();
+const prefState = preferenceService.useState();
 
 // ================================
 // Data
 // ================================
-const paperEntities: Ref<PaperEntityResults> = ref([]);
+const paperEntities: Ref<IPaperEntityResults> = ref([]);
 provide(
   "paperEntities",
   computed(() => paperEntities.value)
@@ -58,7 +57,7 @@ provide(
 
 const onSidebarResized = (event: any) => {
   const width = event[0].size ? event[0].size : 20;
-  window.appInteractor.setPreference("sidebarWidth", width);
+  preferenceService.set("sidebarWidth", width);
 };
 
 // ================================
@@ -172,10 +171,25 @@ watch(
 // ================================
 // Register State
 // ================================
+preferenceService.onChanged(
+  ["mainviewSortBy", "mainviewSortOrder"],
+  (value) => {
+    if (viewState.contentType === "library") {
+      reloadPaperEntities();
+    } else if (viewState.contentType === "feed") {
+      reloadFeedEntities();
+    }
+  }
+);
+
+// preferenceService.onChanged(["sidebarSortBy", "sidebarSortOrder"], (value) => {
+//   reloadTags();
+//   reloadFolders();
+//   reloadPaperSmartFilters();
+// });
+
 watch(
   () =>
-    prefState.mainviewSortBy +
-    prefState.mainviewSortOrder +
     viewState.contentType +
     viewState.searchText +
     selectionState.selectedCategorizer +
@@ -186,15 +200,6 @@ watch(
     } else if (viewState.contentType === "feed") {
       reloadFeedEntities();
     }
-  }
-);
-
-watch(
-  () => prefState.sidebarSortBy + prefState.sidebarSortOrder,
-  (value) => {
-    reloadTags();
-    reloadFolders();
-    reloadPaperSmartFilters();
   }
 );
 

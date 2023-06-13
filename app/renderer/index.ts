@@ -9,6 +9,7 @@ import vSelect from "vue-select";
 import draggable from "vuedraggable";
 
 import { APIHost } from "@/api/api-host";
+import { InjectionContainer } from "@/base/injection/injection";
 import { AppInteractor } from "@/interactors/app-interactor";
 import { BrowserExtensionInteractor } from "@/interactors/browser-extension-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
@@ -25,6 +26,10 @@ import { ReferenceRepository } from "@/repositories/reference-repository/referen
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
+import { APPService } from "@/services/app-service";
+import { PreferenceService } from "@/services/preference-service";
+import { Services } from "@/services/service";
+import { StateService } from "@/services/state-service/state-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { NetworkTool } from "@/utils/got";
 import { Logger } from "@/utils/logger";
@@ -125,6 +130,14 @@ const wordAddinInteractor = new WordAddinInteractor(
   entityInteractor
 );
 
+const injectionContainer = new InjectionContainer();
+const instances = injectionContainer.createInstance<Services>({
+  appService: APPService,
+  preferenceService: PreferenceService,
+  stateService: StateService,
+});
+console.log(instances);
+
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (event) => {
@@ -134,6 +147,10 @@ window
 // ====================================
 // Inject
 // ====================================
+for (const [key, instance] of Object.entries(instances)) {
+  globalThis[key] = instance;
+}
+
 window.entityInteractor = entityInteractor;
 window.appInteractor = appInteractor;
 window.renderInteractor = renderInteractor;

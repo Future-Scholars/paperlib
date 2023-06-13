@@ -2,15 +2,15 @@
 import { BIconDash, BIconPlus, BIconX } from "bootstrap-icons-vue";
 
 const onCloseClicked = () => {
-  window.appInteractor.close();
+  appService.close();
 };
 
 const onMinimizeClicked = () => {
-  window.appInteractor.minimize();
+  appService.minimize();
 };
 
 const onMaximizeClicked = () => {
-  window.appInteractor.maximize();
+  appService.maximize();
 };
 </script>
 

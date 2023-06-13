@@ -65,10 +65,7 @@ const onEnabledChanged = (change: any) => {
   for (const disabledScraper of disabledScraperList.value) {
     scraperPrefs[disabledScraper.name].enable = false;
   }
-  window.appInteractor.setPreference(
-    "scrapers",
-    JSON.parse(JSON.stringify(scraperPrefs))
-  );
+  preferenceService.set("scrapers", JSON.parse(JSON.stringify(scraperPrefs)));
   viewState.scraperReinited = Date.now();
 };
 
@@ -93,7 +90,7 @@ const onAddNewScraperClicked = () => {
   let scraperPrefs = prefState.scrapers;
   if (!scraperPrefs[newScraperPref.name]) {
     scraperPrefs[newScraperPref.name] = newScraperPref;
-    window.appInteractor.setPreference("scrapers", scraperPrefs);
+    preferenceService.set("scrapers", scraperPrefs);
     viewState.scraperReinited = Date.now();
   }
 };
@@ -107,7 +104,7 @@ const onDeleteScraper = () => {
     }
   }
   prefState.scrapers = {};
-  window.appInteractor.setPreference("scrapers", newScrapers);
+  preferenceService.set("scrapers", newScrapers);
   viewState.scraperReinited = Date.now();
   editingScraper.value = null;
 };
@@ -116,13 +113,13 @@ const onUpdateScraper = (scraperPref: ScraperPreference) => {
   let scraperPrefs = prefState.scrapers;
   delete scraperPrefs[editingScraperName.value];
   scraperPrefs[scraperPref.name] = scraperPref;
-  window.appInteractor.setPreference("scrapers", scraperPrefs);
+  preferenceService.set("scrapers", scraperPrefs);
   viewState.scraperReinited = Date.now();
   editingScraper.value = null;
 };
 
 const onUpdate = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+  preferenceService.set(key, value);
 };
 
 const presets = {
@@ -164,7 +161,7 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
     scraper.enable = presets[preset].includes(name);
     scraper.priority = 1000 - presets[preset].indexOf(name);
   }
-  window.appInteractor.setPreference("scrapers", scraperPrefs);
+  preferenceService.set("scrapers", scraperPrefs);
   viewState.scraperReinited = Date.now();
 };
 

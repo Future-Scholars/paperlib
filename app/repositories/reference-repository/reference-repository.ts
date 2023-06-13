@@ -3,6 +3,7 @@ import Cite from "citation-js";
 import { existsSync, readFileSync } from "fs";
 import path from "path";
 
+import { createDecorator } from "@/base/injection/injection";
 import { CSL } from "@/models/csl";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
@@ -16,6 +17,8 @@ function escapeLaTexString(str: string) {
     .replaceAll("#", "\\#");
   return out;
 }
+
+export const IReferenceRepository = createDecorator("IReferenceRepository");
 
 export class ReferenceRepository {
   stateStore: MainRendererStateStore;

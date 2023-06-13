@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+import { APPTheme } from "@/services/app-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Options from "./components/options.vue";
@@ -10,7 +11,7 @@ const viewState = MainRendererStateStore.useViewState();
 const prefState = MainRendererStateStore.usePreferenceState();
 
 const updatePrefs = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+  preferenceService.set(key, value);
 };
 
 const onPickerClicked = async () => {
@@ -22,8 +23,8 @@ const onPickerClicked = async () => {
   }
 };
 
-const onThemeUpdated = (value: string) => {
-  window.appInteractor.changeTheme(value);
+const onThemeUpdated = (value: APPTheme) => {
+  appService.changeTheme(value);
   updatePrefs("preferedTheme", value);
 };
 

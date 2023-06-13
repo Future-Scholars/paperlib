@@ -1,5 +1,6 @@
 import { watch } from "vue";
 
+import { createDecorator } from "@/base/injection/injection";
 import { PaperEntity } from "@/models/paper-entity";
 import { DownloaderPreference, Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -10,6 +11,8 @@ import { DownloaderType } from "./downloader/downloader";
 import { SemanticScholarDownloader } from "./downloader/semanticscholar";
 import { UnpayWallDownloader } from "./downloader/unpaywall";
 import { XHubDownloader } from "./downloader/xhub";
+
+export const IDownloaderRepository = createDecorator("IDownloaderRepository");
 
 export class DownloaderRepository {
   stateStore: MainRendererStateStore;

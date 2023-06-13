@@ -11,7 +11,7 @@ const httpproxy = ref(prefState.httpproxy);
 const httpsproxy = ref(prefState.httpsproxy);
 
 const onUpdate = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+  preferenceService.set(key, value);
 };
 </script>
 

@@ -1,8 +1,12 @@
 import { BrowserWindow, app, dialog, ipcMain, screen } from "electron";
 import { join, posix } from "node:path";
 
-ipcMain.on("userData", (event, arg) => {
+ipcMain.on("user-data-path", (event, arg) => {
   event.returnValue = app.getPath("userData");
+});
+
+ipcMain.handle("user-data-path", () => {
+  return app.getPath("userData");
 });
 
 ipcMain.handle("show-file-picker", () => {

@@ -27,7 +27,7 @@ const onUpdate = (key: string, value: string) => {
   const keyName = keyParts[2];
 
   if (keyName === "none") {
-    window.appInteractor.setPreference(key, "");
+    preferenceService.set(key, "");
   } else if (modifier2 === "Shift" && modifier1 === "none") {
     return;
   } else if (
@@ -53,7 +53,7 @@ const onUpdate = (key: string, value: string) => {
       return;
     }
     info.value = "";
-    window.appInteractor.setPreference(key, newShortcut);
+    preferenceService.set(key, newShortcut);
   }
 };
 </script>

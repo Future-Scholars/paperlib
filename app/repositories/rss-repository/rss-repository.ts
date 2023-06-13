@@ -1,10 +1,13 @@
 import { XMLParser } from "fast-xml-parser";
 import { Response } from "got";
 
+import { createDecorator } from "@/base/injection/injection";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+
+export const IRSSRepository = createDecorator("IRSSRepository");
 
 export class RSSRepository {
   stateStore: MainRendererStateStore;

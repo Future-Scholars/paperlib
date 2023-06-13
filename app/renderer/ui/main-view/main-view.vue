@@ -203,15 +203,15 @@ const readSelectedFeedEntities = (read: boolean | null, clear = false) => {
 };
 
 const switchViewType = (viewType: string) => {
-  window.appInteractor.setPreference("mainviewType", viewType);
+  preferenceService.set("mainviewType", viewType);
 };
 
 const switchSortBy = (key: string) => {
-  window.appInteractor.setPreference("mainviewSortBy", key);
+  preferenceService.set("mainviewSortBy", key);
 };
 
 const switchSortOrder = (order: string) => {
-  window.appInteractor.setPreference("mainviewSortOrder", order);
+  preferenceService.set("mainviewSortOrder", order);
 };
 
 const onMenuButtonClicked = (command: string) => {
@@ -279,7 +279,7 @@ const onArrowDownPressed = () => {
 
 const onDetailPanelResized = (event: any) => {
   const width = event[0].size ? event[0].size : 80;
-  window.appInteractor.setPreference("detailPanelWidth", width);
+  preferenceService.set("detailPanelWidth", width);
 };
 
 // ========================================================

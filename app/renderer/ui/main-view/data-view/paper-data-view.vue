@@ -4,7 +4,7 @@ import dragDrop from "drag-drop";
 import { Ref, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";
@@ -21,7 +21,7 @@ const i18n = useI18n();
 // ================================
 // Data
 // ================================
-const paperEntities = inject<Ref<PaperEntityResults>>("paperEntities");
+const paperEntities = inject<Ref<IPaperEntityResults>>("paperEntities");
 
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedLastSingleIndex = ref(-1);
@@ -180,8 +180,8 @@ const onTableTitleClicked = (key: string) => {
   prefState.mainviewSortBy = key;
   prefState.mainviewSortOrder =
     prefState.mainviewSortOrder === "asce" ? "desc" : "asce";
-  window.appInteractor.setPreference("sortBy", key);
-  window.appInteractor.setPreference("sortOrder", prefState.mainviewSortOrder);
+  preferenceService.set("sortBy", key);
+  preferenceService.set("sortOrder", prefState.mainviewSortOrder);
 };
 
 const onTableTitleWidthChanged = (
@@ -202,10 +202,7 @@ const onTableTitleWidthChanged = (
   } as Record<string, string>;
   for (const changedWidth of changedWidths) {
     tableTitleColumns.value[changedWidth.key].width = changedWidth.width;
-    window.appInteractor.setPreference(
-      keyPrefMap[changedWidth.key],
-      changedWidth.width
-    );
+    preferenceService.set(keyPrefMap[changedWidth.key], changedWidth.width);
   }
 };
 
@@ -218,8 +215,8 @@ const onItemClicked = (event: MouseEvent, index: number) => {
       selectedIndex.value.push(i);
     }
   } else if (
-    (event.ctrlKey && !window.appInteractor.isMac()) ||
-    (event.metaKey && window.appInteractor.isMac())
+    (event.ctrlKey && appService.platform() !== "darwin") ||
+    (event.metaKey && appService.platform() === "darwin")
   ) {
     if (selectedIndex.value.indexOf(index) >= 0) {
       selectedIndex.value.splice(selectedIndex.value.indexOf(index), 1);

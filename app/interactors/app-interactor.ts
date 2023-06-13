@@ -174,7 +174,7 @@ export class AppInteractor {
   }
 
   getUserDataPath() {
-    return ipcRenderer.sendSync("userData");
+    return ipcRenderer.sendSync("user-data-path");
   }
 
   // =============================

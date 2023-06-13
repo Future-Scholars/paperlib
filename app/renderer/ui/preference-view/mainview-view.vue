@@ -123,7 +123,7 @@ const resetTableTitleColumns = () => {
 };
 
 const updatePref = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+  preferenceService.set(key, value);
 };
 
 watch(

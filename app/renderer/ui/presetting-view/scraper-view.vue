@@ -63,10 +63,7 @@ const onEnabledChanged = (change: any) => {
   for (const disabledScraper of disabledScraperList.value) {
     scraperPrefs[disabledScraper.name].enable = false;
   }
-  window.appInteractor.setPreference(
-    "scrapers",
-    JSON.parse(JSON.stringify(scraperPrefs))
-  );
+  preferenceService.set("scrapers", JSON.parse(JSON.stringify(scraperPrefs)));
   viewState.scraperReinited = Date.now();
 };
 
@@ -109,7 +106,7 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
     scraper.enable = presets[preset].includes(name);
     scraper.priority = 1000 - presets[preset].indexOf(name);
   }
-  window.appInteractor.setPreference("scrapers", scraperPrefs);
+  preferenceService.set("scrapers", scraperPrefs);
   viewState.scraperReinited = Date.now();
 };
 

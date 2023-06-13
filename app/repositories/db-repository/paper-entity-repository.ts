@@ -326,6 +326,6 @@ export class PaperEntityRepository {
   }
 }
 
-export type PaperEntityResults =
+export type IPaperEntityResults =
   | Results<PaperEntity & Realm.Object>
   | Array<PaperEntity>;

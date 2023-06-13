@@ -1,6 +1,7 @@
 import fs from "fs";
 import { watch } from "vue";
 
+import { createDecorator } from "@/base/injection/injection";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -9,6 +10,8 @@ import { getAllFiles } from "@/utils/path";
 import { FileBackend } from "./backends/backend";
 import { LocalFileBackend } from "./backends/local-backend";
 import { WebDavFileBackend } from "./backends/webdav-backend";
+
+export const IFileRepository = createDecorator("IFileRepository");
 
 export class FileRepository {
   stateStore: MainRendererStateStore;

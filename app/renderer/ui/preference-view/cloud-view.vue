@@ -18,20 +18,20 @@ const webdavUsername = ref(prefState.webdavUsername);
 const webdavPassword = ref("");
 
 const onUpdate = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+  preferenceService.set(key, value);
 };
 
 const onLoginClicked = async () => {
-  window.appInteractor.setPreference("useSync", true);
-  window.appInteractor.setPreference("syncAPPID", syncAPPID.value);
-  window.appInteractor.setPreference("syncEmail", syncEmail.value);
+  preferenceService.set("useSync", true);
+  preferenceService.set("syncAPPID", syncAPPID.value);
+  preferenceService.set("syncEmail", syncEmail.value);
   await window.appInteractor.setPassword("realmSync", syncPassword.value);
 
   viewState.realmReiniting = Date.now();
 };
 
 const onLogoutClicked = () => {
-  window.appInteractor.setPreference("useSync", false);
+  preferenceService.set("useSync", false);
 
   viewState.realmReiniting = Date.now();
 };
@@ -52,16 +52,16 @@ window.appInteractor.getPassword("realmSync").then((password) => {
 // WebDAV
 
 const onWebdavConnectClicked = async () => {
-  window.appInteractor.setPreference("webdavURL", webdavURL.value);
-  window.appInteractor.setPreference("webdavUsername", webdavUsername.value);
+  preferenceService.set("webdavURL", webdavURL.value);
+  preferenceService.set("webdavUsername", webdavUsername.value);
   await window.appInteractor.setPassword("webdav", webdavPassword.value);
-  window.appInteractor.setPreference("syncFileStorage", "webdav");
+  preferenceService.set("syncFileStorage", "webdav");
 
   viewState.storageBackendReinited = Date.now();
 };
 
 const onWebdavDisconnectClicked = () => {
-  window.appInteractor.setPreference("syncFileStorage", "local");
+  preferenceService.set("syncFileStorage", "local");
   viewState.storageBackendReinited = Date.now();
 };
 </script>

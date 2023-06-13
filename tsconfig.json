@@ -27,6 +27,7 @@
     "app/**/*.tsx",
     "app/**/*.d.ts",
     "app/**/*.vue",
+    "tests/**/*.ts",
     "package.json",
     "electron"
   ]

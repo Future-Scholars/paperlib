@@ -2,6 +2,7 @@ import got from "got";
 import queue from "queue";
 import { watch } from "vue";
 
+import { createDecorator } from "@/base/injection/injection";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -112,6 +113,8 @@ const SCRAPER_OBJS = new Map<string, typeof Scraper>([
 const CLIENTSIDE_SCRAPER_OBJS = new Map<string, typeof Scraper | CustomScraper>(
   [["googlescholar", GoogleScholarScraper]]
 );
+
+export const IScraperRepository = createDecorator("IScraperRepository");
 
 export class ScraperRepository {
   stateStore: MainRendererStateStore;

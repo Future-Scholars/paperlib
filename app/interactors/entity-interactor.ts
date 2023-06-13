@@ -17,7 +17,7 @@ import { ThumbnailCache } from "@/models/paper-entity-cache";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
-import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
@@ -95,7 +95,7 @@ export class EntityInteractor {
         "Entity"
       );
 
-      entities = [] as PaperEntityResults;
+      entities = [] as IPaperEntityResults;
     }
     this.stateStore.viewState.processingQueueCount -= 1;
     return entities;

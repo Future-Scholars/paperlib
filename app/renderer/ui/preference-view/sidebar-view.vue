@@ -4,10 +4,10 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
-const updatePrefs = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+const updatePref = (key: string, value: unknown) => {
+  preferenceService.set(key, value);
 };
 </script>
 
@@ -22,14 +22,14 @@ const updatePrefs = (key: string, value: unknown) => {
       :title="$t('preference.displaycountnumber')"
       :info="$t('preference.displaycountnumberintro')"
       :enable="prefState.showSidebarCount"
-      @update="(value) => updatePrefs('showSidebarCount', value)"
+      @update="(value) => updatePref('showSidebarCount', value)"
     />
     <Toggle
       class="mb-5"
       :title="$t('preference.compactsidebar')"
       :info="$t('preference.compactsidebarintro')"
       :enable="prefState.isSidebarCompact"
-      @update="(value) => updatePrefs('isSidebarCompact', value)"
+      @update="(value) => updatePref('isSidebarCompact', value)"
     />
     <Options
       class="mb-5"
@@ -43,7 +43,7 @@ const updatePrefs = (key: string, value: unknown) => {
       }"
       @update="
         (value) => {
-          updatePrefs('sidebarSortBy', value);
+          updatePref('sidebarSortBy', value);
         }
       "
     />
@@ -55,7 +55,7 @@ const updatePrefs = (key: string, value: unknown) => {
       :options="{ asce: $t('preference.asc'), desc: $t('preference.desc') }"
       @update="
         (value) => {
-          updatePrefs('sidebarSortOrder', value);
+          updatePref('sidebarSortOrder', value);
         }
       "
     />

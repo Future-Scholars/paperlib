@@ -3,6 +3,7 @@ import { existsSync, promises } from "fs";
 import path from "path";
 import Realm from "realm";
 
+import { createDecorator } from "@/base/injection/injection";
 import {
   Categorizer,
   CategorizerType,
@@ -25,6 +26,8 @@ import { FeedEntityRepository } from "./feed-entity-repository";
 import { FeedRepository } from "./feed-repository";
 import { PaperEntityRepository } from "./paper-entity-repository";
 import { PaperSmartFilterRepository } from "./smartfilter-repository";
+
+export const IDBRepository = createDecorator("IDBRepository");
 
 export class DBRepository {
   stateStore: MainRendererStateStore;
@@ -87,7 +90,7 @@ export class DBRepository {
     await window.appInteractor.fileRepository.stopWatch();
 
     if (this._realm || reinit) {
-      Realm.defaultPath = window.appInteractor.getUserDataPath();
+      Realm.defaultPath = await appService.userDataPath();
       if (this._realm) {
         this._realm.close();
       }
@@ -250,7 +253,7 @@ export class DBRepository {
           user: cloudUser,
           partitionValue: cloudUser.id,
         },
-        path: path.join(window.appInteractor.getUserDataPath(), "synced.realm"),
+        path: path.join(await appService.userDataPath(), "synced.realm"),
       };
       this.cloudConfig = config;
       return config;
@@ -261,14 +264,14 @@ export class DBRepository {
         true,
         "Database"
       );
-      window.appInteractor.setPreference("useSync", false);
+      preferenceService.set("useSync", false);
       return this.getLocalConfig();
     }
   }
 
   async loginCloud(this: DBRepository): Promise<Realm.User | null> {
     if (!this.app) {
-      process.chdir(window.appInteractor.getUserDataPath());
+      process.chdir(await appService.userDataPath());
 
       const id = window.appInteractor.getPreference("syncAPPID") as string;
       this.app = new Realm.App({
@@ -295,7 +298,7 @@ export class DBRepository {
       this.app.switchUser(loginedUser);
       return this.app.currentUser;
     } catch (error) {
-      window.appInteractor.setPreference("useSync", false);
+      preferenceService.set("useSync", false);
       window.logger.error(
         "Failed to login to cloud database",
         error as Error,
@@ -315,7 +318,7 @@ export class DBRepository {
       }
     }
     const syncDBPath = path.join(
-      window.appInteractor.getUserDataPath(),
+      await appService.userDataPath(),
       "synced.realm"
     );
     if (existsSync(syncDBPath)) {
