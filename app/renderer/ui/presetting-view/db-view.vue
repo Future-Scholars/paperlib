@@ -10,7 +10,7 @@ const onPickerClicked = async () => {
   const pickedFolder = (await window.appInteractor.showFolderPicker())
     .filePaths[0];
   if (pickedFolder) {
-    preferenceService.set("appLibFolder", pickedFolder);
+    preferenceService.set({ appLibFolder: pickedFolder });
     viewState.realmReiniting = Date.now();
   }
 };

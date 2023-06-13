@@ -28,7 +28,7 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
   const keyName = keyParts[2];
 
   if (keyName === "none") {
-    preferenceService.set(key, "");
+    preferenceService.set({ [key]: "" });
   } else if (modifier2 === "Shift" && modifier1 === "none") {
     return;
   } else if (
@@ -54,7 +54,7 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
       return;
     }
     info.value = "";
-    preferenceService.set(key, newShortcut);
+    preferenceService.set({ [key]: newShortcut });
   }
 };
 </script>

@@ -625,29 +625,29 @@ export class PreferenceService {
     if (this._store.has(key)) {
       return this._store.get(key);
     } else {
-      this.set(key, _defaultPreferences[key]);
+      const patch = {};
+      patch[key] = _defaultPreferences[key];
+      this.set(patch);
       return _defaultPreferences[key];
     }
   }
 
   /**
    * Set the value of the preference
-   * @param key - key of the preference
-   * @param value - value of the preference
-   * @param parse - parse the value as JSON
-   * @returns void
+   * @param patch - patch object
+   * @returns
    */
-  set(key: keyof IPreferenceStore, value: unknown, parse = false) {
-    if (parse) {
-      value = JSON.parse(value as string);
-    }
-    this._store.set(key, value);
-
-    let patch: Record<string, any> = {};
-    patch[key] = value;
+  set(patch: { [key in keyof IPreferenceStore]?: any }) {
+    this._store.set(patch);
     this.state.$patch(patch);
   }
 
+  /**
+   * Add a listener to the preference
+   * @param key - key(s) of the preference
+   * @param callback - callback function
+   * @returns
+   */
   onChanged(key: string | string[], callback: (newValue: any) => void) {
     if (typeof key === "string") {
       key = [key];

@@ -11,7 +11,7 @@ const httpproxy = ref(prefState.httpproxy);
 const httpsproxy = ref(prefState.httpsproxy);
 
 const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set(key, value);
+  preferenceService.set({ [key]: value });
 };
 </script>
 

@@ -12,7 +12,7 @@ const viewState = MainRendererStateStore.useViewState();
 const prefState = preferenceService.useState();
 
 const updatePrefs = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set(key, value);
+  preferenceService.set({ [key]: value });
 };
 
 const onPickerClicked = async () => {

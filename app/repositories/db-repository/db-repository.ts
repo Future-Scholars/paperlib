@@ -178,26 +178,26 @@ export class DBRepository {
     let syncPassword;
 
     if (window.appInteractor.getPreference("useSync")) {
-    try {
-      syncPassword = await window.appInteractor.getPassword("realmSync");
-    } catch (err) {
-      window.logger.error(
-        "Failed to get sync password",
-        err as Error,
-        true,
-        "Database"
-      );
-    }
-    if (
-      window.appInteractor.getPreference("syncEmail") !== "" &&
-      syncPassword
-    ) {
-      return await this.getCloudConfig();
+      try {
+        syncPassword = await window.appInteractor.getPassword("realmSync");
+      } catch (err) {
+        window.logger.error(
+          "Failed to get sync password",
+          err as Error,
+          true,
+          "Database"
+        );
+      }
+      if (
+        window.appInteractor.getPreference("syncEmail") !== "" &&
+        syncPassword
+      ) {
+        return await this.getCloudConfig();
+      } else {
+        this.cloudConfig = undefined;
+        return await this.getLocalConfig();
+      }
     } else {
-      this.cloudConfig = undefined;
-      return await this.getLocalConfig();
-    } }
-    else {
       this.cloudConfig = undefined;
       return await this.getLocalConfig();
     }
@@ -268,7 +268,7 @@ export class DBRepository {
         true,
         "Database"
       );
-      preferenceService.set("useSync", false);
+      preferenceService.set({ useSync: false });
       return this.getLocalConfig();
     }
   }
@@ -302,7 +302,7 @@ export class DBRepository {
       this.app.switchUser(loginedUser);
       return this.app.currentUser;
     } catch (error) {
-      preferenceService.set("useSync", false);
+      preferenceService.set({ useSync: false });
       window.logger.error(
         "Failed to login to cloud database",
         error as Error,

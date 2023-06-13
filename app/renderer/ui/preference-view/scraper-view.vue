@@ -66,7 +66,7 @@ const onEnabledChanged = (change: any) => {
   for (const disabledScraper of disabledScraperList.value) {
     scraperPrefs[disabledScraper.name].enable = false;
   }
-  preferenceService.set("scrapers", JSON.parse(JSON.stringify(scraperPrefs)));
+  preferenceService.set({ scrapers: JSON.parse(JSON.stringify(scraperPrefs)) });
   viewState.scraperReinited = Date.now();
 };
 
@@ -91,7 +91,7 @@ const onAddNewScraperClicked = () => {
   let scraperPrefs = prefState.scrapers;
   if (!scraperPrefs[newScraperPref.name]) {
     scraperPrefs[newScraperPref.name] = newScraperPref;
-    preferenceService.set("scrapers", scraperPrefs);
+    preferenceService.set({ scrapers: scraperPrefs });
     viewState.scraperReinited = Date.now();
   }
 };
@@ -105,7 +105,7 @@ const onDeleteScraper = () => {
     }
   }
   prefState.scrapers = {};
-  preferenceService.set("scrapers", newScrapers);
+  preferenceService.set({ scrapers: newScrapers });
   viewState.scraperReinited = Date.now();
   editingScraper.value = null;
 };
@@ -114,13 +114,13 @@ const onUpdateScraper = (scraperPref: ScraperPreference) => {
   let scraperPrefs = prefState.scrapers;
   delete scraperPrefs[editingScraperName.value];
   scraperPrefs[scraperPref.name] = scraperPref;
-  preferenceService.set("scrapers", scraperPrefs);
+  preferenceService.set({ scrapers: scraperPrefs });
   viewState.scraperReinited = Date.now();
   editingScraper.value = null;
 };
 
 const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set(key, value);
+  preferenceService.set({ [key]: value });
 };
 
 const presets = {
@@ -162,7 +162,7 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
     scraper.enable = presets[preset].includes(name);
     scraper.priority = 1000 - presets[preset].indexOf(name);
   }
-  preferenceService.set("scrapers", scraperPrefs);
+  preferenceService.set({ scrapers: scraperPrefs });
   viewState.scraperReinited = Date.now();
 };
 

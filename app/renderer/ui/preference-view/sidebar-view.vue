@@ -7,7 +7,7 @@ import Toggle from "./components/toggle.vue";
 const prefState = preferenceService.useState();
 
 const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set(key, value);
+  preferenceService.set({ [key]: value });
 };
 </script>
 

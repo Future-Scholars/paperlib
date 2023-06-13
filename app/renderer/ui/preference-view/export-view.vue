@@ -13,7 +13,7 @@ const newReplacementTo = ref("");
 const prefState = preferenceService.useState();
 
 const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set(key, value);
+  preferenceService.set({ [key]: value });
 };
 
 const onReplacementAdd = () => {
@@ -27,7 +27,7 @@ const onReplacementAdd = () => {
     to: newReplacementTo.value,
   });
   // Update preference
-  preferenceService.set("exportReplacement", replacements);
+  preferenceService.set({ exportReplacement: replacements });
 
   newReplacementFrom.value = "";
   newReplacementTo.value = "";
@@ -39,7 +39,7 @@ const onReplacementDelete = (replacement: { from: string; to: string }) => {
     (item) => item.from !== replacement.from && item.to !== replacement.to
   );
   // Update preference
-  preferenceService.set("exportReplacement", replacements);
+  preferenceService.set({ exportReplacement: replacements });
 };
 
 const selectedCSLStyle = ref(prefState.selectedCSLStyle);
@@ -51,10 +51,9 @@ const onCSLStyleUpdate = async (CSLStyle: string) => {
       await window.appInteractor.showFolderPicker()
     ).filePaths[0];
     if (pickedImportedCSLStylesPath) {
-      preferenceService.set(
-        "importedCSLStylesPath",
-        pickedImportedCSLStylesPath
-      );
+      preferenceService.set({
+        importedCSLStylesPath: pickedImportedCSLStylesPath,
+      });
       loadCSLStyles();
     }
   } else {

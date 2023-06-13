@@ -8,7 +8,7 @@ import ScraperView from "./scraper-view.vue";
 const prefState = preferenceService.useState();
 
 const hide = (key: keyof IPreferenceStore) => {
-  preferenceService.set(key, false);
+  preferenceService.set({ [key]: false });
 };
 </script>
 

@@ -57,7 +57,7 @@ provide(
 
 const onSidebarResized = (event: any) => {
   const width = event[0].size ? event[0].size : 20;
-  preferenceService.set("sidebarWidth", width);
+  preferenceService.set({ sidebarWidth: width });
 };
 
 // ================================

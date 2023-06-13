@@ -725,7 +725,7 @@ export class PaperService {
       success
     ) {
       this.stateService.selectionState.pluginLinkedFolder = newName;
-      this.preferenceService.set("pluginLinkedFolder", newName);
+      this.preferenceService.set({ pluginLinkedFolder: newName });
     }
   }
 

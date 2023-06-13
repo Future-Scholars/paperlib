@@ -26,14 +26,14 @@ const onAddNewDownloaderClicked = () => {
   if (!downloaderPrefs.find((item) => item.name === newDownloaderPref.name)) {
     downloaderPrefs.push(newDownloaderPref);
   }
-  preferenceService.set("downloaders", downloaderPrefs);
+  preferenceService.set({ downloaders: downloaderPrefs });
   viewState.downloaderReinited = Date.now();
 };
 
 const onDeleteDownloaders = (name: string) => {
   let downloaderPrefs = prefState.downloaders;
   downloaderPrefs = downloaderPrefs.filter((item) => item.name !== name);
-  preferenceService.set("downloaders", downloaderPrefs);
+  preferenceService.set({ downloaders: downloaderPrefs });
   viewState.downloaderReinited = Date.now();
 };
 
@@ -48,7 +48,7 @@ const onUpdateDownloader = (
     }
     return item;
   });
-  preferenceService.set("downloaders", downloaderPrefs);
+  preferenceService.set({ downloaders: downloaderPrefs });
 };
 
 const onClickGuide = () => {

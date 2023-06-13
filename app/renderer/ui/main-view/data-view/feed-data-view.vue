@@ -30,28 +30,25 @@ const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
 const resetTableTitleColumns = (reset = false) => {
   // TODO: check performance here
   if (reset) {
-    const prefKeys = [
-      "mainTitleWidth",
-      "mainAuthorsWidth",
-      "mainPublicationWidth",
-      "mainYearWidth",
-      "mainPubTypeWidth",
-      "mainTagsWidth",
-      "mainFoldersWidth",
-      "mainNoteWidth",
-      "mainRatingWidth",
-      "mainFlagWidth",
-      "mainAddTimeWidth",
-      "feedTitleWidth",
-      "feedAuthorsWidth",
-      "feedYearWidth",
-      "feedPublicationWidth",
-      "feedPubTypeWidth",
-      "feedAddTimeWidth",
-    ];
-    for (const key of prefKeys) {
-      preferenceService.set(key as keyof IPreferenceStore, -1);
-    }
+    preferenceService.set({
+      mainTitleWidth: -1,
+      mainAuthorsWidth: -1,
+      mainPublicationWidth: -1,
+      mainYearWidth: -1,
+      mainPubTypeWidth: -1,
+      mainTagsWidth: -1,
+      mainFoldersWidth: -1,
+      mainNoteWidth: -1,
+      mainRatingWidth: -1,
+      mainFlagWidth: -1,
+      mainAddTimeWidth: -1,
+      feedTitleWidth: -1,
+      feedAuthorsWidth: -1,
+      feedYearWidth: -1,
+      feedPublicationWidth: -1,
+      feedPubTypeWidth: -1,
+      feedAddTimeWidth: -1,
+    });
   }
 
   let totalWidth =
@@ -128,11 +125,10 @@ const resetTableTitleColumns = (reset = false) => {
 };
 
 const onTableTitleClicked = (key: string) => {
-  preferenceService.set("mainviewSortBy", key);
-  preferenceService.set(
-    "mainviewSortOrder",
-    prefState.mainviewSortOrder === "asce" ? "desc" : "asce"
-  );
+  preferenceService.set({ mainviewSortBy: key });
+  preferenceService.set({
+    mainviewSortOrder: prefState.mainviewSortOrder === "asce" ? "desc" : "asce",
+  });
 };
 
 const onTableTitleWidthChanged = (
@@ -146,13 +142,13 @@ const onTableTitleWidthChanged = (
     pubType: "feedPubTypeWidth",
     addTime: "feedAddTimeWidth",
   } as Record<string, string>;
+
+  const patch = {};
   for (const changedWidth of changedWidths) {
     tableTitleColumns.value[changedWidth.key].width = changedWidth.width;
-    preferenceService.set(
-      keyPrefMap[changedWidth.key] as keyof IPreferenceStore,
-      changedWidth.width
-    );
+    patch[keyPrefMap[changedWidth.key]] = changedWidth.width;
   }
+  preferenceService.set(patch);
 };
 
 const onItemClicked = (event: MouseEvent, index: number) => {

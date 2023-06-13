@@ -4,7 +4,7 @@ const emit = defineEmits(["close"]);
 const prefState = preferenceService.useState();
 
 const onChangeLanguage = (language: string) => {
-  preferenceService.set("language", language);
+  preferenceService.set({ language: language });
 };
 
 const onRestartClicked = () => {

@@ -124,7 +124,7 @@ const resetTableTitleColumns = () => {
 };
 
 const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set(key, value);
+  preferenceService.set({ [key]: value });
 };
 
 preferenceService.onChanged(

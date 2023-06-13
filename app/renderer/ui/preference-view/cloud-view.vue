@@ -21,20 +21,20 @@ const webdavPassword = ref("");
 // TODO: here is an error in console.
 
 const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set(key, value);
+  preferenceService.set({ [key]: value });
 };
 
 const onLoginClicked = async () => {
-  preferenceService.set("useSync", true);
-  preferenceService.set("syncAPPID", syncAPPID.value);
-  preferenceService.set("syncEmail", syncEmail.value);
+  preferenceService.set({ useSync: true });
+  preferenceService.set({ syncAPPID: syncAPPID.value });
+  preferenceService.set({ syncEmail: syncEmail.value });
   await window.appInteractor.setPassword("realmSync", syncPassword.value);
 
   viewState.realmReiniting = Date.now();
 };
 
 const onLogoutClicked = () => {
-  preferenceService.set("useSync", false);
+  preferenceService.set({ useSync: false });
 
   viewState.realmReiniting = Date.now();
 };
@@ -55,16 +55,16 @@ window.appInteractor.getPassword("realmSync").then((password) => {
 // WebDAV
 
 const onWebdavConnectClicked = async () => {
-  preferenceService.set("webdavURL", webdavURL.value);
-  preferenceService.set("webdavUsername", webdavUsername.value);
+  preferenceService.set({ webdavURL: webdavURL.value });
+  preferenceService.set({ webdavUsername: webdavUsername.value });
   await window.appInteractor.setPassword("webdav", webdavPassword.value);
-  preferenceService.set("syncFileStorage", "webdav");
+  preferenceService.set({ syncFileStorage: "webdav" });
 
   viewState.storageBackendReinited = Date.now();
 };
 
 const onWebdavDisconnectClicked = () => {
-  preferenceService.set("syncFileStorage", "local");
+  preferenceService.set({ syncFileStorage: "local" });
   viewState.storageBackendReinited = Date.now();
 };
 </script>
