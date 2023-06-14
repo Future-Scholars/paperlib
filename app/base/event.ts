@@ -1,8 +1,10 @@
 import {
   Store,
   SubscriptionCallbackMutationPatchObject,
+  _DeepPartial,
   defineStore,
 } from "pinia";
+import { UnwrapRef } from "vue";
 
 import { uid } from "@/utils/misc";
 
@@ -10,15 +12,17 @@ interface IEventState {
   [key: string]: any;
 }
 
-export class Eventable {
-  private readonly _state: Store<string, IEventState>;
+export class Eventable<T extends IEventState> {
+  private readonly _state: Store<string, T>;
   private readonly _listeners: {
     [key: string]: { [callbackId: string]: (value: any) => void };
   };
   private readonly _eventGroupId: string;
+  private readonly _eventDefaultState: T;
 
-  constructor(eventGroupId: string) {
+  constructor(eventGroupId: string, eventDefaultState?: T) {
     this._eventGroupId = eventGroupId;
+    this._eventDefaultState = eventDefaultState || ({} as T);
 
     this._listeners = {};
     this._state = this.useState();
@@ -47,7 +51,9 @@ export class Eventable {
 
   useState() {
     return defineStore(this._eventGroupId, {
-      state: (): IEventState => ({}),
+      state: (): T => {
+        return this._eventDefaultState;
+      },
     })();
   }
 
@@ -56,12 +62,12 @@ export class Eventable {
    * @param event - event name or object of events
    * @returns
    */
-  fire(event: { [key in keyof IEventState]?: any } | keyof IEventState) {
-    let patch: { [key in keyof IEventState]?: any } = {};
+  fire(event: { [key in keyof T]?: any } | keyof T) {
+    let patch: _DeepPartial<UnwrapRef<T>> = {};
     if (typeof event === "string") {
-      patch[event] = this._state[event] + 1;
+      patch = { [event]: this._state[event] + 1 } as _DeepPartial<UnwrapRef<T>>;
     } else {
-      patch = event as { [key in keyof IEventState]?: any };
+      patch = event as _DeepPartial<UnwrapRef<T>>;
     }
     this._state.$patch(patch);
   }

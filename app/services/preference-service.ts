@@ -2,16 +2,11 @@ import { ipcRenderer } from "electron";
 import ElectronStore from "electron-store";
 import os from "os";
 import { join } from "path";
-import {
-  Store,
-  SubscriptionCallbackMutationPatchObject,
-  defineStore,
-} from "pinia";
+import { defineStore } from "pinia";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection";
 import { isRendererProcess } from "@/base/process";
-import { uid } from "@/utils/misc";
 
 export interface IScraperPreference {
   name: string;
@@ -491,102 +486,101 @@ const _defaultPreferences: IPreferenceStore = {
   showPresettingScraper: true,
 };
 
+function _migrate(
+  store: ElectronStore<IPreferenceStore>,
+  preferenceVersion: number
+) {
+  const prevVersion = store.has("preferenceVersion")
+    ? store.get("preferenceVersion")
+    : 0;
+
+  if (prevVersion === 0) {
+    // depracated scrapers
+    const existingScraperArray = store.get(
+      "scrapers"
+    ) as unknown as IScraperPreference[];
+
+    if (existingScraperArray && !!existingScraperArray[Symbol.iterator]) {
+      store.set("scrapers", _defaultPreferences.scrapers);
+      const newScraperRecord = store.get("scrapers");
+
+      for (const existingScraper of existingScraperArray) {
+        if (existingScraper.name === "cvf") {
+          continue;
+        }
+        newScraperRecord[existingScraper.name] = existingScraper;
+        newScraperRecord[existingScraper.name].category =
+          _defaultPreferences.scrapers[existingScraper.name]?.category ||
+          "custom";
+      }
+      store.set("scrapers", newScraperRecord);
+    }
+
+    if (store.get("scrapers")) {
+      const newScraperRecord = store.get("scrapers");
+      try {
+        for (const key of ["pdf", "paperlib", "chemrxiv", "biomedrxiv"]) {
+          if (newScraperRecord[key]) {
+            // @ts-ignore
+            newScraperRecord[key] = undefined;
+          }
+        }
+        store.set("scrapers", newScraperRecord);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    const existingDownloaderArray = store.get(
+      "downloaders"
+    ) as unknown as IDownloaderPreference[];
+
+    if (existingDownloaderArray) {
+      for (const defaultDownloader of _defaultPreferences.downloaders) {
+        if (
+          !existingDownloaderArray.find(
+            (downloader) => downloader.name === defaultDownloader.name
+          )
+        ) {
+          existingDownloaderArray.push(defaultDownloader);
+        }
+      }
+      store.set("downloaders", existingDownloaderArray);
+    }
+  }
+
+  store.set("preferenceVersion", preferenceVersion);
+
+  return store;
+}
+
 export const IPreferenceService = createDecorator("preferenceService");
+
+export const PREFEREMCE_VERSION: number = 1;
 
 /**
  * Preference service.
  * It is a wrapper of ElectronStore with responsive states.
  */
-export class PreferenceService extends Eventable {
+export class PreferenceService extends Eventable<IPreferenceStore> {
   private readonly _store: ElectronStore<IPreferenceStore>;
-  private readonly _preferenceVersion: number = 1;
 
   constructor() {
-    super("preferenceService");
-
-    // 1. Initialize the store
+    let _store: ElectronStore<IPreferenceStore>;
     if (isRendererProcess()) {
       const userDataPath = ipcRenderer.sendSync("user-data-path");
-      this._store = new ElectronStore<IPreferenceStore>({
+      _store = new ElectronStore<IPreferenceStore>({
         cwd: userDataPath,
       });
     } else {
-      this._store = new ElectronStore<IPreferenceStore>({});
+      _store = new ElectronStore<IPreferenceStore>({});
     }
 
-    // 2. Migrate
-    this._migrate();
-  }
+    _store = _migrate(_store, PREFEREMCE_VERSION);
 
-  useState() {
-    return defineStore("preferenceState", {
-      state: (): IPreferenceStore => {
-        return this._store.store;
-      },
-    })();
-  }
+    super("preferenceService", _store.store);
 
-  private _migrate() {
-    const prevVersion = this._store.has("preferenceVersion")
-      ? this._store.get("preferenceVersion")
-      : 0;
-
-    if (prevVersion === 0) {
-      // depracated scrapers
-      const existingScraperArray = this._store.get(
-        "scrapers"
-      ) as unknown as IScraperPreference[];
-
-      if (existingScraperArray && !!existingScraperArray[Symbol.iterator]) {
-        this._store.set("scrapers", _defaultPreferences.scrapers);
-        const newScraperRecord = this._store.get("scrapers");
-
-        for (const existingScraper of existingScraperArray) {
-          if (existingScraper.name === "cvf") {
-            continue;
-          }
-          newScraperRecord[existingScraper.name] = existingScraper;
-          newScraperRecord[existingScraper.name].category =
-            _defaultPreferences.scrapers[existingScraper.name]?.category ||
-            "custom";
-        }
-        this._store.set("scrapers", newScraperRecord);
-      }
-
-      if (this._store.get("scrapers")) {
-        const newScraperRecord = this._store.get("scrapers");
-        try {
-          for (const key of ["pdf", "paperlib", "chemrxiv", "biomedrxiv"]) {
-            if (newScraperRecord[key]) {
-              // @ts-ignore
-              newScraperRecord[key] = undefined;
-            }
-          }
-          this._store.set("scrapers", newScraperRecord);
-        } catch (e) {
-          console.log(e);
-        }
-      }
-
-      const existingDownloaderArray = this._store.get(
-        "downloaders"
-      ) as unknown as IDownloaderPreference[];
-
-      if (existingDownloaderArray) {
-        for (const defaultDownloader of _defaultPreferences.downloaders) {
-          if (
-            !existingDownloaderArray.find(
-              (downloader) => downloader.name === defaultDownloader.name
-            )
-          ) {
-            existingDownloaderArray.push(defaultDownloader);
-          }
-        }
-        this._store.set("downloaders", existingDownloaderArray);
-      }
-    }
-
-    this._store.set("preferenceVersion", this._preferenceVersion);
+    this._store = _store;
   }
 
   /**

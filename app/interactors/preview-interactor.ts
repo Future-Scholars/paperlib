@@ -1,6 +1,7 @@
 import { ipcRenderer } from "electron";
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
+// @ts-ignore
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
 import {
   PDFPageProxy,

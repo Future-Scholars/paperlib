@@ -21,7 +21,7 @@
     },
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "types": ["vite-plugin-electron/electron-env"]
+    "types": ["vite-plugin-electron/electron-env", "vite/client"]
   },
   "include": [
     "app/**/*.ts",
