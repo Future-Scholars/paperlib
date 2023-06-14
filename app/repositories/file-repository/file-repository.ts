@@ -1,7 +1,7 @@
 import fs from "fs";
 import { watch } from "vue";
 
-import { createDecorator } from "@/base/injection/injection";
+import { createDecorator } from "@/base/injection";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";

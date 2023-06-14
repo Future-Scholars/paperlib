@@ -2,6 +2,7 @@
 import { BIconGripVertical } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { ScraperPreference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
@@ -110,9 +111,11 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
   viewState.scraperReinited = Date.now();
 };
 
-preferenceService.onChanged("scrapers", () => {
-  splitEnabledDisabledScraper();
-});
+disposable(
+  preferenceService.onChanged("scrapers", () => {
+    splitEnabledDisabledScraper();
+  })
+);
 
 onMounted(() => {
   splitEnabledDisabledScraper();

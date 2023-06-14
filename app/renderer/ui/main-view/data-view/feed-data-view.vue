@@ -2,6 +2,7 @@
 import { Ref, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { disposable } from "@/base/dispose";
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -205,19 +206,21 @@ watch(
   }
 );
 
-preferenceService.onChanged(
-  [
-    "showMainYear",
-    "showMainPublication",
-    "showMainPubType",
-    "showMainTags",
-    "showMainFolders",
-    "showMainNote",
-    "showMainRating",
-    "showMainFlag",
-    "showMainAddTime",
-  ],
-  () => resetTableTitleColumns(true)
+disposable(
+  preferenceService.onChanged(
+    [
+      "showMainYear",
+      "showMainPublication",
+      "showMainPubType",
+      "showMainTags",
+      "showMainFolders",
+      "showMainNote",
+      "showMainRating",
+      "showMainFlag",
+      "showMainAddTime",
+    ],
+    () => resetTableTitleColumns(true)
+  )
 );
 
 onMounted(() => {

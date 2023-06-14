@@ -14,6 +14,7 @@ import { ObjectId } from "bson";
 import { Ref, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { disposable } from "@/base/dispose";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import ListItem from "@/renderer/ui/main-view/data-view/components/list-item.vue";
@@ -127,19 +128,21 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set({ [key]: value });
 };
 
-preferenceService.onChanged(
-  [
-    "showMainYear",
-    "showMainPublication",
-    "showMainPubType",
-    "showMainTags",
-    "showMainFolders",
-    "showMainNote",
-    "showMainRating",
-    "showMainFlag",
-    "showMainAddTime",
-  ],
-  resetTableTitleColumns
+disposable(
+  preferenceService.onChanged(
+    [
+      "showMainYear",
+      "showMainPublication",
+      "showMainPubType",
+      "showMainTags",
+      "showMainFolders",
+      "showMainNote",
+      "showMainRating",
+      "showMainFlag",
+      "showMainAddTime",
+    ],
+    resetTableTitleColumns
+  )
 );
 
 onMounted(() => {

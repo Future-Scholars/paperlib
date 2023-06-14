@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Ref, inject, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
@@ -471,11 +472,13 @@ watch(
   }
 );
 
-preferenceService.onChanged(
-  ["mainviewSortBy", "mainviewSortOrder"],
-  (value) => {
-    clearSelected();
-  }
+disposable(
+  preferenceService.onChanged(
+    ["mainviewSortBy", "mainviewSortOrder"],
+    (value) => {
+      clearSelected();
+    }
+  )
 );
 
 watch(

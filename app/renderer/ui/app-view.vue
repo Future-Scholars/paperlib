@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import "splitpanes/dist/splitpanes.css";
-import { Ref, computed, nextTick, onMounted, provide, ref, watch } from "vue";
+import {
+  Ref,
+  computed,
+  getCurrentScope,
+  nextTick,
+  onMounted,
+  provide,
+  ref,
+  watch,
+} from "vue";
 
+import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/preload/loading";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
@@ -35,7 +45,7 @@ const prefState = preferenceService.useState();
 const paperEntities: Ref<IPaperEntityResults> = ref([]);
 provide(
   "paperEntities",
-  computed(() => paperEntities.value)
+  computed(() => paperEntities.value) // TODO: ?
 );
 const tags: Ref<CategorizerResults> = ref([]);
 provide("tags", tags);
@@ -171,22 +181,28 @@ watch(
 // ================================
 // Register State
 // ================================
-preferenceService.onChanged(
-  ["mainviewSortBy", "mainviewSortOrder"],
-  (value) => {
-    if (viewState.contentType === "library") {
-      reloadPaperEntities();
-    } else if (viewState.contentType === "feed") {
-      reloadFeedEntities();
+disposable(
+  preferenceService.onChanged(
+    ["mainviewSortBy", "mainviewSortOrder"],
+    (value) => {
+      if (viewState.contentType === "library") {
+        reloadPaperEntities();
+      } else if (viewState.contentType === "feed") {
+        reloadFeedEntities();
+      }
     }
-  }
+  )
 );
-
-preferenceService.onChanged(["sidebarSortBy", "sidebarSortOrder"], (value) => {
-  reloadTags();
-  reloadFolders();
-  reloadPaperSmartFilters();
-});
+disposable(
+  preferenceService.onChanged(
+    ["sidebarSortBy", "sidebarSortOrder"],
+    (value) => {
+      reloadTags();
+      reloadFolders();
+      reloadPaperSmartFilters();
+    }
+  )
+);
 
 watch(
   () =>
@@ -318,11 +334,14 @@ const logProgress = () => {
   window.logger.progress("Progress...", randomNumber, true, "DEVLOG");
 };
 
+const isWhatsNewShown = ref(false);
+
 // ================================
 // Mount Hook
 // ================================
 onMounted(async () => {
   nextTick(async () => {
+    isWhatsNewShown.value = await appService.isVersionChanged();
     window.appInteractor.initDB();
   });
 });
@@ -406,12 +425,80 @@ onMounted(async () => {
         <MainView />
       </pane>
     </splitpanes>
-    <EditView />
-    <FeedEditView />
-    <PaperSmartFilterEditView />
-    <PreferenceView />
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <EditView v-if="viewState.isEditViewShown" />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <FeedEditView v-if="viewState.isFeedEditViewShown" />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <PaperSmartFilterEditView
+        v-if="viewState.isPaperSmartFilterEditViewShown"
+      />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <PreferenceView v-if="viewState.isPreferenceViewShown" />
+    </Transition>
+
     <DeleteConfirmView />
-    <PresettingView />
-    <WhatsNewView />
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <PresettingView
+        v-if="
+          prefState.showPresettingLang ||
+          prefState.showPresettingScraper ||
+          prefState.showPresettingDB
+        "
+      />
+    </Transition>
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <WhatsNewView v-if="isWhatsNewShown" />
+    </Transition>
   </div>
 </template>

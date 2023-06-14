@@ -3,14 +3,7 @@ import { onMounted, ref } from "vue";
 
 import WhatsNewHeader from "./header.vue";
 
-const show = ref(false);
-
-const checkShouldShow = async () => {
-  show.value = await window.appInteractor.shouldShowWhatsNew();
-};
-
 const hide = () => {
-  show.value = false;
   window.appInteractor.hideWhatsNew();
 };
 
@@ -35,7 +28,6 @@ const loadHistoryReleaseNote = () => {
 const darkMode = ref(false);
 onMounted(() => {
   loadHistoryReleaseNote();
-  checkShouldShow();
   if (
     window.matchMedia &&
     window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -59,70 +51,58 @@ onMounted(() => {
 </style>
 
 <template>
-  <Transition
-    enter-active-class="transition ease-out duration-75"
-    enter-from-class="transform opacity-0"
-    enter-to-class="transform opacity-100"
-    leave-active-class="transition ease-in duration-75"
-    leave-from-class="transform opacity-100"
-    leave-to-class="transform opacity-0"
+  <div
+    id="whats-new-view"
+    class="absolute w-full h-full top-0 left-0 bg-white dark:bg-neutral-800 z-50 overflow-auto dark:text-neutral-200"
   >
-    <div
-      id="whats-new-view"
-      class="absolute w-full h-full top-0 left-0 bg-white dark:bg-neutral-800 z-50 overflow-auto dark:text-neutral-200"
-      v-if="show"
-    >
-      <div class="w-[45rem] px-3 mx-auto my-20 flex flex-col">
-        <WhatsNewHeader :darkMode="darkMode" />
-        <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
+    <div class="w-[45rem] px-3 mx-auto my-20 flex flex-col">
+      <WhatsNewHeader :darkMode="darkMode" />
+      <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.2</p>
+      <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.2</p>
 
-        <ul class="list-disc mb-5">
-          <li>
-            New Feature: <b>Smart Filter</b>! <br />
-            You can create a smart filter to do an advanced filtering. For
-            example: papers with 'tag A' and 'tag B'; recently added papers;
-            papers by a specific author; title contains the string 'abc' etc.
-            <span class="text-red-500"
-              >Please turn on the 'DEV mode' if you are using the online MongoDB
-              Atlas database</span
-            >. Learn more
-            <a
-              class="underline"
-              href="https://paperlib.app/en/doc/smart-filter/"
-              >here</a
-            >.
-            <img
-              class="rounded-md drop-shadow-lg my-4"
-              src="../../assets/smart-filter.png"
-            />
-          </li>
-          <li>More colours for tags and folders.</li>
-          <li>Remember the window size.</li>
-          <li>Fix PDF quicklook for Windows.</li>
-          <li>Fix downloader delete button display bug. Thanks @qzydustin</li>
-        </ul>
-        <div
-          id="whats-new-close-btn"
-          class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
-          @click="hide"
-        >
-          <span class="m-auto">Close</span>
-        </div>
-
-        <p class="text-center text-2xl font-bold mt-20 mb-8">
-          History Release Note
-        </p>
-
-        <div id="release-note" class="px-5 text-sm"></div>
-
-        <div class="w-full h-20"></div>
+      <ul class="list-disc mb-5">
+        <li>
+          New Feature: <b>Smart Filter</b>! <br />
+          You can create a smart filter to do an advanced filtering. For
+          example: papers with 'tag A' and 'tag B'; recently added papers;
+          papers by a specific author; title contains the string 'abc' etc.
+          <span class="text-red-500"
+            >Please turn on the 'DEV mode' if you are using the online MongoDB
+            Atlas database</span
+          >. Learn more
+          <a class="underline" href="https://paperlib.app/en/doc/smart-filter/"
+            >here</a
+          >.
+          <img
+            class="rounded-md drop-shadow-lg my-4"
+            src="../../assets/smart-filter.png"
+          />
+        </li>
+        <li>More colours for tags and folders.</li>
+        <li>Remember the window size.</li>
+        <li>Fix PDF quicklook for Windows.</li>
+        <li>Fix downloader delete button display bug. Thanks @qzydustin</li>
+      </ul>
+      <div
+        id="whats-new-close-btn"
+        class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
+        @click="hide"
+      >
+        <span class="m-auto">Close</span>
       </div>
 
-      <div
-        class="fixed bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white dark:from-neutral-800"
-      ></div>
+      <p class="text-center text-2xl font-bold mt-20 mb-8">
+        History Release Note
+      </p>
+
+      <div id="release-note" class="px-5 text-sm"></div>
+
+      <div class="w-full h-20"></div>
     </div>
-  </Transition>
+
+    <div
+      class="fixed bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white dark:from-neutral-800"
+    ></div>
+  </div>
 </template>

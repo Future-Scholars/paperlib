@@ -1,6 +1,7 @@
 // @ts-ignore
 import Cite from "citation-js";
 
+// @ts-check
 import { PaperEntity } from "@/models/paper-entity";
 
 interface BibtexEntry {

@@ -1,7 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
 import { Response } from "got";
 
-import { createDecorator } from "@/base/injection/injection";
+import { createDecorator } from "@/base/injection";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { Preference } from "@/preference/preference";

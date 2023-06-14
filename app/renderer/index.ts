@@ -9,7 +9,7 @@ import vSelect from "vue-select";
 import draggable from "vuedraggable";
 
 import { APIHost } from "@/api/api-host";
-import { InjectionContainer } from "@/base/injection/injection";
+import { InjectionContainer } from "@/base/injection";
 import { AppInteractor } from "@/interactors/app-interactor";
 import { BrowserExtensionInteractor } from "@/interactors/browser-extension-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";

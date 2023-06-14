@@ -4,6 +4,7 @@
     "module": "es2022",
     "composite": true,
     "moduleResolution": "node",
+    "isolatedModules": true,
     "importHelpers": true,
     "jsx": "preserve",
     "esModuleInterop": true,

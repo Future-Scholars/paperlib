@@ -3,14 +3,7 @@ import { onMounted, ref } from "vue";
 
 import WhatsNewHeader from "./header.vue";
 
-const show = ref(false);
-
-const checkShouldShow = async () => {
-  show.value = await appService.isVersionChanged();
-};
-
 const hide = () => {
-  show.value = false;
   window.appInteractor.hideWhatsNew();
 };
 
@@ -35,7 +28,6 @@ const loadHistoryReleaseNote = () => {
 const darkMode = ref(false);
 onMounted(() => {
   loadHistoryReleaseNote();
-  checkShouldShow();
   if (
     window.matchMedia &&
     window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -59,68 +51,56 @@ onMounted(() => {
 </style>
 
 <template>
-  <Transition
-    enter-active-class="transition ease-out duration-75"
-    enter-from-class="transform opacity-0"
-    enter-to-class="transform opacity-100"
-    leave-active-class="transition ease-in duration-75"
-    leave-from-class="transform opacity-100"
-    leave-to-class="transform opacity-0"
+  <div
+    id="whats-new-view"
+    class="absolute w-full h-full top-0 left-0 bg-white dark:bg-neutral-800 z-50 overflow-auto dark:text-neutral-200"
   >
-    <div
-      id="whats-new-view"
-      class="absolute w-full h-full top-0 left-0 bg-white dark:bg-neutral-800 z-50 overflow-auto dark:text-neutral-200"
-      v-if="show"
-    >
-      <div class="w-[45rem] px-3 mx-auto my-20">
-        <WhatsNewHeader :darkMode="darkMode" />
-        <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
+    <div class="w-[45rem] px-3 mx-auto my-20">
+      <WhatsNewHeader :darkMode="darkMode" />
+      <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">版本 2.2.2 更新内容</p>
+      <p class="text-center text-2xl font-bold mb-8">版本 2.2.2 更新内容</p>
 
-        <ul class="list-disc mb-5">
-          <li>
-            新功能: <b>Smart Filter</b>! <br />
-            你可以创建一个 smart filter 来进行高级过滤。例如： 同时具有 'tag A'
-            和 'tag B'
-            的论文；最近添加的论文；某个作者发表的论文；标题里有某个关键字的论文等等。
-            <span class="text-red-500"
-              >请打开 'DEV mode' 如果你使用在线 MongoDB Atlas 数据库</span
-            >。 详情请见
-            <a
-              class="underline"
-              href="https://paperlib.app/cn/doc/smart-filter/"
-              >文档</a
-            >。
-            <img
-              class="rounded-md drop-shadow-lg my-4"
-              src="../../assets/smart-filter.png"
-            />
-          </li>
-          <li>标签/文件夹支持更多的颜色。</li>
-          <li>记住上次关闭时的窗口尺寸。</li>
-          <li>修复 Windows 的快速预览。</li>
-          <li>修复下载器设置的按钮文字。Thanks @qzydustin</li>
-        </ul>
-
-        <div
-          id="whats-new-close-btn"
-          class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
-          @click="hide"
-        >
-          <span class="m-auto">关闭</span>
-        </div>
-
-        <p class="text-center text-2xl font-bold mt-20 mb-8">历史版本更新</p>
-
-        <div id="release-note" class="px-5 text-sm"></div>
-
-        <div class="w-full h-20"></div>
-      </div>
+      <ul class="list-disc mb-5">
+        <li>
+          新功能: <b>Smart Filter</b>! <br />
+          你可以创建一个 smart filter 来进行高级过滤。例如： 同时具有 'tag A' 和
+          'tag B'
+          的论文；最近添加的论文；某个作者发表的论文；标题里有某个关键字的论文等等。
+          <span class="text-red-500"
+            >请打开 'DEV mode' 如果你使用在线 MongoDB Atlas 数据库</span
+          >。 详情请见
+          <a class="underline" href="https://paperlib.app/cn/doc/smart-filter/"
+            >文档</a
+          >。
+          <img
+            class="rounded-md drop-shadow-lg my-4"
+            src="../../assets/smart-filter.png"
+          />
+        </li>
+        <li>标签/文件夹支持更多的颜色。</li>
+        <li>记住上次关闭时的窗口尺寸。</li>
+        <li>修复 Windows 的快速预览。</li>
+        <li>修复下载器设置的按钮文字。Thanks @qzydustin</li>
+      </ul>
 
       <div
-        class="fixed bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white dark:from-neutral-800"
-      ></div>
+        id="whats-new-close-btn"
+        class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
+        @click="hide"
+      >
+        <span class="m-auto">关闭</span>
+      </div>
+
+      <p class="text-center text-2xl font-bold mt-20 mb-8">历史版本更新</p>
+
+      <div id="release-note" class="px-5 text-sm"></div>
+
+      <div class="w-full h-20"></div>
     </div>
-  </Transition>
+
+    <div
+      class="fixed bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white dark:from-neutral-800"
+    ></div>
+  </div>
 </template>

@@ -2,6 +2,7 @@
 import { BIconGear, BIconGripVertical, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { ScraperPreference } from "@/preference/preference";
 import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -171,9 +172,11 @@ const onClickGuide = () => {
   );
 };
 
-preferenceService.onChanged("scrapers", () => {
-  splitEnabledDisabledScraper();
-});
+disposable(
+  preferenceService.onChanged("scrapers", () => {
+    splitEnabledDisabledScraper();
+  })
+);
 
 onMounted(() => {
   splitEnabledDisabledScraper();

@@ -1,6 +1,6 @@
 import * as loglib from "electron-log";
 
-import { createDecorator } from "@/base/injection/injection";
+import { createDecorator } from "@/base/injection";
 
 interface ILogMessage {
   level: "info" | "warn" | "error";

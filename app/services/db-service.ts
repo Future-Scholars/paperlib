@@ -1,4 +1,4 @@
-import { createDecorator } from "@/base/injection/injection";
+import { createDecorator } from "@/base/injection";
 import {
   DBRepository,
   IDBRepository,

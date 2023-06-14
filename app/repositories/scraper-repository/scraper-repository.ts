@@ -2,7 +2,7 @@ import got from "got";
 import queue from "queue";
 import { watch } from "vue";
 
-import { createDecorator } from "@/base/injection/injection";
+import { createDecorator } from "@/base/injection";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";

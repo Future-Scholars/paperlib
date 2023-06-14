@@ -8,8 +8,9 @@ import {
   defineStore,
 } from "pinia";
 
-import { createDecorator } from "@/base/injection/injection";
+import { createDecorator } from "@/base/injection";
 import { isRendererProcess } from "@/base/process";
+import { uid } from "@/utils/misc";
 
 export interface IScraperPreference {
   name: string;
@@ -499,7 +500,9 @@ export class PreferenceService {
   private readonly _store: ElectronStore<IPreferenceStore>;
   private readonly _preferenceVersion: number = 1;
   private readonly _state: Store<"preferenceState", IPreferenceStore>;
-  private readonly _listeners: { [key: string]: ((value: any) => void)[] };
+  private readonly _listeners: {
+    [key: string]: { [callbackId: string]: (value: any) => void };
+  };
 
   constructor() {
     // 1. Initialize the store
@@ -537,7 +540,7 @@ export class PreferenceService {
       for (const key in payload) {
         if (key in this._listeners) {
           const callbacks = this._listeners[key];
-          const callbacksPromise = callbacks.map((callback) => {
+          const callbacksPromise = Object.values(callbacks).map((callback) => {
             return new Promise((resolve) => {
               resolve(callback(payload[key]));
             });
@@ -655,11 +658,22 @@ export class PreferenceService {
     if (typeof key === "string") {
       key = [key];
     }
+
+    const keyAndCallbackId: string[][] = [];
     for (const k of key) {
       if (!(k in this._listeners)) {
-        this._listeners[k] = [];
+        this._listeners[k] = {};
       }
-      this._listeners[k].push(callback);
+      const callbackId = uid();
+      this._listeners[k][callbackId] = callback;
+      keyAndCallbackId.push([k, callbackId]);
     }
+
+    return () => {
+      for (const [k, callbackId] of keyAndCallbackId) {
+        console.log("Dispose", k, callbackId);
+        delete this._listeners[k][callbackId];
+      }
+    };
   }
 }
