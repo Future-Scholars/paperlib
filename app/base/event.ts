@@ -12,6 +12,12 @@ interface IEventState {
   [key: string]: any;
 }
 
+/**
+ * A eventable base class.
+ * There is two ways to fire a event:
+ *   1. Fire a single event by calling `fire(event: string)` / Fire multiple events by calling `fire(events: { [key in keyof T]?: any })`
+ *   2. Directly modify the state by calling `useState().key = value`
+ */
 export class Eventable<T extends IEventState> {
   private readonly _state: Store<string, T>;
   private readonly _listeners: {

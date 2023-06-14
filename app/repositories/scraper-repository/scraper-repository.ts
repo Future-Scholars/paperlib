@@ -5,6 +5,7 @@ import { watch } from "vue";
 import { createDecorator } from "@/base/injection";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
+import { ILogService, LogService } from "@/services/log-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { isMetadataCompleted, mergeMetadata } from "@/utils/metadata";
 
@@ -125,7 +126,11 @@ export class ScraperRepository {
   builtinScraperList: Array<string>;
   clientsideScraperList: Array<string>;
 
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
+  constructor(
+    stateStore: MainRendererStateStore,
+    preference: Preference,
+    @ILogService private readonly logService: LogService
+  ) {
     this.stateStore = stateStore;
     this.preference = preference;
 
@@ -207,7 +212,7 @@ export class ScraperRepository {
         : this.clientsideScraperList;
 
     // 1. Scrape from file inner metadata
-    window.logger.info(
+    this.logService.info(
       "Scraping metadata from file(s) ...",
       "",
       true,
@@ -220,7 +225,7 @@ export class ScraperRepository {
     );
 
     // 2. Scrape from default Paperlib metadata service
-    window.logger.info("Paperlib Metadata service ...", "", true, "Scraper");
+    this.logService.info("Paperlib Metadata service ...", "", true, "Scraper");
     let paperlibMetadataServiceSuccess = false;
     try {
       paperEntityDraft = await PaperlibMetadataServiceScraper.scrape(
@@ -230,9 +235,8 @@ export class ScraperRepository {
       );
       paperlibMetadataServiceSuccess = true;
     } catch (error) {
-      console.error(error);
       paperlibMetadataServiceSuccess = false;
-      window.logger.error(
+      this.logService.error(
         "Paperlib Metadata service error",
         error as Error,
         true,
@@ -366,6 +370,7 @@ export class ScraperRepository {
     force: boolean = false
   ): Promise<PaperEntity> {
     const stateStore = this.stateStore;
+    const thisArg = this;
     return new Promise(async function (resolve, reject) {
       const q = queue();
       q.timeout = 20000;
@@ -404,7 +409,7 @@ export class ScraperRepository {
 
             let scrapedPaperEntity: PaperEntity;
             try {
-              window.logger.info(
+              thisArg.logService.info(
                 `Scraping metadata from [${scraper}] ...`,
                 "",
                 true,
@@ -418,7 +423,7 @@ export class ScraperRepository {
               );
             } catch (error) {
               if (error) {
-                window.logger.error(
+                thisArg.logService.error(
                   `Scraper [${scraper}] error`,
                   `${error}`,
                   true,

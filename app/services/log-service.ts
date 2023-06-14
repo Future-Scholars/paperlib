@@ -1,5 +1,6 @@
 import * as loglib from "electron-log";
 
+import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection";
 
 interface ILogMessage {
@@ -13,12 +14,58 @@ interface ILogGroup {
   lastlog: ILogMessage;
 }
 
+export interface ILogEventState {
+  infoLogMessage: {
+    id: string;
+    msg: string;
+    additional?: string;
+  };
+  warnLogMessage: {
+    id: string;
+    msg: string;
+    additional?: string;
+  };
+  errorLogMessage: {
+    id: string;
+    msg: string;
+    additional?: string;
+  };
+  progressLogMessage: {
+    id: string;
+    msg: string;
+    value: number;
+  };
+}
+
 export const ILogService = createDecorator("ILogService");
 
-export class LogService {
+export class LogService extends Eventable<ILogEventState> {
   private logGroups: { [key: string]: ILogGroup };
 
   constructor(name?: string) {
+    super("logService", {
+      infoLogMessage: {
+        id: "",
+        msg: "",
+        additional: "",
+      },
+      warnLogMessage: {
+        id: "",
+        msg: "",
+        additional: "",
+      },
+      errorLogMessage: {
+        id: "",
+        msg: "",
+        additional: "",
+      },
+      progressLogMessage: {
+        id: "",
+        msg: "",
+        value: 0,
+      },
+    });
+
     if (name) {
       const folder = loglib.transports.file
         .getFile()
@@ -93,25 +140,31 @@ export class LogService {
 
     switch (logMessage.level) {
       case "info":
-        window.stateStore.logState.infoLogMessage = {
-          id: id,
-          msg: logMessage.msg,
-          additional: logMessage.additional,
-        };
+        this.fire({
+          infoLogMessage: {
+            id: id,
+            msg: logMessage.msg,
+            additional: logMessage.additional,
+          },
+        });
         break;
       case "warn":
-        window.stateStore.logState.warnLogMessage = {
-          id: id,
-          msg: logMessage.msg,
-          additional: logMessage.additional,
-        };
+        this.fire({
+          warnLogMessage: {
+            id: id,
+            msg: logMessage.msg,
+            additional: logMessage.additional,
+          },
+        });
         break;
       case "error":
-        window.stateStore.logState.errorLogMessage = {
-          id: id,
-          msg: logMessage.msg,
-          additional: logMessage.additional,
-        };
+        this.fire({
+          errorLogMessage: {
+            id: id,
+            msg: logMessage.msg,
+            additional: logMessage.additional,
+          },
+        });
         break;
       default:
         break;
@@ -212,11 +265,13 @@ export class LogService {
   progress(msg: string, value: number, notify: boolean = false, id?: string) {
     loglib.info(`${id ? `[${id}]` : ""} ${msg} - ${value}%`);
     if (notify) {
-      window.stateStore.logState.progressLogMessage = {
-        id: id || "default",
-        msg: msg,
-        value: value,
-      };
+      this.fire({
+        progressLogMessage: {
+          id: id || "default",
+          msg: msg,
+          value: value,
+        },
+      });
     }
   }
 

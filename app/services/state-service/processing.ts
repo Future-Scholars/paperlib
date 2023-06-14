@@ -24,15 +24,19 @@ export function processing(key: _ProcessingKey) {
     descriptor.value = isAsync
       ? async function (...args: any[]) {
           processingState[key] += 1;
+          console.log(processingState[key]);
           const results = await originalMethod(...args);
           processingState[key] -= 1;
           return results;
         }
       : function (...args: any[]) {
           processingState[key] += 1;
+          console.log(processingState[key]);
           const results = originalMethod(...args);
           processingState[key] -= 1;
           return results;
         };
   };
 }
+
+export const useProcessingState = defineProcessingState;

@@ -7,10 +7,11 @@ import {
 } from "bootstrap-icons-vue";
 import { Ref, ref, watch } from "vue";
 
+import { useProcessingState } from "@/services/state-service/processing";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
-const logState = MainRendererStateStore.useLogState();
-const viewState = MainRendererStateStore.useViewState();
+const logState = logService.useState();
+const processingState = useProcessingState();
 
 const isShown = ref(false);
 const showingInfo = ref("");
@@ -27,7 +28,7 @@ const historyMsgs = ref([]) as Ref<
 >;
 
 watch(
-  () => viewState.processingQueueCount,
+  () => processingState.general,
   (value) => {
     if (value > 0) {
       isShown.value = true;

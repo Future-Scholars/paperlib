@@ -14,6 +14,7 @@ import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
+import { useProcessingState } from "@/services/state-service/processing";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CollopseGroup from "./components/collopse-group.vue";
@@ -46,6 +47,7 @@ const colorClass = (color?: string) => {
 // State
 // ================================
 const viewState = MainRendererStateStore.useViewState();
+const processingState = useProcessingState();
 const selectionState = MainRendererStateStore.useSelectionState();
 const prefState = preferenceService.useState();
 const bufferState = MainRendererStateStore.useBufferState();
@@ -180,7 +182,7 @@ window.appInteractor.registerMainSignal("sidebar-context-menu-edit", (args) => {
 });
 
 watch(
-  () => viewState.processingQueueCount,
+  () => processingState.general,
   (value) => {
     if (value > 0) {
       isSpinnerShown.value = true;

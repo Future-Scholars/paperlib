@@ -27,6 +27,7 @@ import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 import { APPService } from "@/services/app-service";
+import { LogService } from "@/services/log-service";
 import { PreferenceService } from "@/services/preference-service";
 import { Services } from "@/services/service";
 import { StateService } from "@/services/state-service/state-service";
@@ -59,6 +60,18 @@ app.component("RecycleScroller", RecycleScroller);
 // ====================================
 // Setup tools, interactors and repositories
 // ====================================
+const injectionContainer = new InjectionContainer();
+const instances = injectionContainer.createInstance<Services>({
+  appService: APPService,
+  preferenceService: PreferenceService,
+  stateService: StateService,
+  logService: LogService,
+});
+for (const [key, instance] of Object.entries(instances)) {
+  globalThis[key] = instance;
+}
+console.log(instances);
+
 const logger = new Logger();
 const preference = new Preference(true);
 const stateStore = new MainRendererStateStore(preference);
@@ -83,7 +96,11 @@ app.use(i18n);
 
 var initStartTime = Date.now();
 const dbRepository = new DBRepository(stateStore, preference);
-const scraperRepository = new ScraperRepository(stateStore, preference);
+const scraperRepository = new ScraperRepository(
+  stateStore,
+  preference,
+  logService
+);
 const fileRepository = new FileRepository(stateStore, preference);
 const referenceRepository = new ReferenceRepository(stateStore, preference);
 const downloaderRepository = new DownloaderRepository(stateStore, preference);
@@ -130,14 +147,6 @@ const wordAddinInteractor = new WordAddinInteractor(
   entityInteractor
 );
 
-const injectionContainer = new InjectionContainer();
-const instances = injectionContainer.createInstance<Services>({
-  appService: APPService,
-  preferenceService: PreferenceService,
-  stateService: StateService,
-});
-console.log(instances);
-
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (event) => {
@@ -147,9 +156,6 @@ window
 // ====================================
 // Inject
 // ====================================
-for (const [key, instance] of Object.entries(instances)) {
-  globalThis[key] = instance;
-}
 
 window.entityInteractor = entityInteractor;
 window.appInteractor = appInteractor;

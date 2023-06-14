@@ -11,6 +11,7 @@ import { RenderInteractor } from "./interactors/render-interactor";
 import { WordAddinInteractor } from "./interactors/word-addin-interactor";
 import { Preference } from "./preference/preference";
 import { APPService } from "./services/app-service";
+import { LogService } from "./services/log-service";
 import { PreferenceService } from "./services/preference-service";
 import { StateService } from "./services/state-service/state-service";
 import { MainRendererStateStore } from "./state/renderer/appstate";
@@ -42,4 +43,5 @@ declare global {
   var appService: APPService;
   var preferenceService: PreferenceService;
   var stateService: StateService;
+  var logService: LogService;
 }
