@@ -8,6 +8,7 @@ import {
   defineStore,
 } from "pinia";
 
+import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection";
 import { isRendererProcess } from "@/base/process";
 import { uid } from "@/utils/misc";
@@ -496,15 +497,13 @@ export const IPreferenceService = createDecorator("preferenceService");
  * Preference service.
  * It is a wrapper of ElectronStore with responsive states.
  */
-export class PreferenceService {
+export class PreferenceService extends Eventable {
   private readonly _store: ElectronStore<IPreferenceStore>;
   private readonly _preferenceVersion: number = 1;
-  private readonly _state: Store<"preferenceState", IPreferenceStore>;
-  private readonly _listeners: {
-    [key: string]: { [callbackId: string]: (value: any) => void };
-  };
 
   constructor() {
+    super("preferenceService");
+
     // 1. Initialize the store
     if (isRendererProcess()) {
       const userDataPath = ipcRenderer.sendSync("user-data-path");
@@ -517,38 +516,6 @@ export class PreferenceService {
 
     // 2. Migrate
     this._migrate();
-
-    // 3. Set default values
-    for (const key in _defaultPreferences) {
-      if (!this._store.has(key)) {
-        this._store.set(key, _defaultPreferences[key]);
-      }
-    }
-
-    // 4. Create state from the store
-    this._listeners = {};
-    this._state = this.useState();
-    this._state.$subscribe((mutation, state) => {
-      let payload: { [key: string]: any };
-      if (mutation.type === "direct") {
-        payload = { [mutation.events.key]: mutation.events.newValue };
-      } else {
-        payload = (
-          mutation as SubscriptionCallbackMutationPatchObject<IPreferenceStore>
-        ).payload;
-      }
-      for (const key in payload) {
-        if (key in this._listeners) {
-          const callbacks = this._listeners[key];
-          const callbacksPromise = Object.values(callbacks).map((callback) => {
-            return new Promise((resolve) => {
-              resolve(callback(payload[key]));
-            });
-          });
-          Promise.all(callbacksPromise);
-        }
-      }
-    });
   }
 
   useState() {
@@ -645,35 +612,6 @@ export class PreferenceService {
    */
   set(patch: { [key in keyof IPreferenceStore]?: any }) {
     this._store.set(patch);
-    this._state.$patch(patch);
-  }
-
-  /**
-   * Add a listener to the preference
-   * @param key - key(s) of the preference
-   * @param callback - callback function
-   * @returns
-   */
-  onChanged(key: string | string[], callback: (newValue: any) => void) {
-    if (typeof key === "string") {
-      key = [key];
-    }
-
-    const keyAndCallbackId: string[][] = [];
-    for (const k of key) {
-      if (!(k in this._listeners)) {
-        this._listeners[k] = {};
-      }
-      const callbackId = uid();
-      this._listeners[k][callbackId] = callback;
-      keyAndCallbackId.push([k, callbackId]);
-    }
-
-    return () => {
-      for (const [k, callbackId] of keyAndCallbackId) {
-        console.log("Dispose", k, callbackId);
-        delete this._listeners[k][callbackId];
-      }
-    };
+    this.fire(patch);
   }
 }
