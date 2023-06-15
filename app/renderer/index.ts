@@ -32,6 +32,7 @@ import { WebImporterRepository } from "@/repositories/web-importer-repository/we
 import { APPService } from "@/services/app-service";
 import { DatabaseService } from "@/services/database-service";
 import { LogService } from "@/services/log-service";
+import { PaperService } from "@/services/paper-service";
 import { PreferenceService } from "@/services/preference-service";
 import { useProcessingState } from "@/services/state-service/processing";
 import { StateService } from "@/services/state-service/state-service";
@@ -75,6 +76,7 @@ const instances = injectionContainer.createInstance<IInjectable>({
   logService: LogService,
   databaseCore: DatabaseCore,
   databaseService: DatabaseService,
+  paperService: PaperService,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;

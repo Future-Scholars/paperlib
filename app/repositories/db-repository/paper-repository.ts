@@ -166,11 +166,11 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
   /**
    * Delete paper entity.
    * @param realm - Realm instance.
-   * @param paperEntity - Paper entity.
    * @param ids - OR Paper ids.
+   * @param paperEntity - Paper entity.
    * @returns - Deleted boolean flag.
    */
-  delete(realm: Realm, paperEntity?: PaperEntity, ids?: (ObjectId | string)[]) {
+  delete(realm: Realm, ids?: (ObjectId | string)[], paperEntity?: PaperEntity) {
     return realm.safeWrite(() => {
       if (paperEntity) {
         realm.delete(paperEntity);

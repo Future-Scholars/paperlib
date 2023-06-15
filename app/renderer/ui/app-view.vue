@@ -93,8 +93,8 @@ const reloadPaperEntities = async () => {
     viewState.searchMode = "general";
   }
   // TODO: fix any here
-  paperEntities.value = await databaseService.paperEntity.load(
-    databaseService.paperEntity.constructFilter({
+  paperEntities.value = await paperService.load(
+    paperService.constructFilter({
       search: viewState.searchText,
       searchMode: viewState.searchMode as any,
       flaged,
@@ -107,7 +107,7 @@ const reloadPaperEntities = async () => {
 };
 
 disposable(
-  databaseService.on("paperEntityUpdated", () => {
+  paperService.on("updated", () => {
     reloadPaperEntities();
   })
 );

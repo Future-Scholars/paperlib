@@ -26,7 +26,7 @@ const onCancel = () => {
 };
 
 const onConfirm = () => {
-  window.entityInteractor.delete(selectionState.selectedIds);
+  paperService.delete(selectionState.selectedIds);
   selectionState.selectedIds = [];
   selectionState.selectedIndex = [];
   onClick();
