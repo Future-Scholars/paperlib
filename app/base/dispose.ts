@@ -19,7 +19,7 @@ export function disposable(cancelHandler?: () => void) {
       const originalMethod = descriptor.value;
 
       descriptor.value = function (...args: any[]) {
-        const cancelHandler = originalMethod(...args);
+        const cancelHandler = originalMethod.apply(this, args);
         if (getCurrentScope()) {
           onScopeDispose(cancelHandler);
         } else {
@@ -29,4 +29,8 @@ export function disposable(cancelHandler?: () => void) {
       };
     };
   }
+}
+
+export interface IDisposable {
+  dispose: () => void;
 }

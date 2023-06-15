@@ -11,8 +11,6 @@ export const ProcessingKey = _ProcessingKey;
  * @param key
  */
 export function processing(key: _ProcessingKey) {
-  const processingState = defineProcessingState();
-
   return function (
     target: any,
     propertyKey: string,
@@ -21,21 +19,21 @@ export function processing(key: _ProcessingKey) {
     const originalMethod = descriptor.value;
     const isAsync = originalMethod.constructor.name === "AsyncFunction";
 
-    descriptor.value = isAsync
-      ? async function (...args: any[]) {
-          processingState[key] += 1;
-          console.log(processingState[key]);
-          const results = await originalMethod(...args);
-          processingState[key] -= 1;
-          return results;
-        }
-      : function (...args: any[]) {
-          processingState[key] += 1;
-          console.log(processingState[key]);
-          const results = originalMethod(...args);
-          processingState[key] -= 1;
-          return results;
-        };
+    if (isAsync)
+      descriptor.value = async function (...args: any[]) {
+        processingState[key] += 1;
+        const results = await originalMethod.apply(this, args);
+        processingState[key] -= 1;
+        return results;
+      };
+    else {
+      descriptor.value = function (...args: any[]) {
+        processingState[key] += 1;
+        const results = originalMethod.apply(this, args);
+        processingState[key] -= 1;
+        return results;
+      };
+    }
   };
 }
 

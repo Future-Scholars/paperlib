@@ -6,6 +6,7 @@ import {
 } from "pinia";
 import { UnwrapRef } from "vue";
 
+import { IDisposable } from "@/base/dispose";
 import { uid } from "@/utils/misc";
 
 interface IEventState {
@@ -18,11 +19,11 @@ interface IEventState {
  *   1. Fire a single event by calling `fire(event: string)` / Fire multiple events by calling `fire(events: { [key in keyof T]?: any })`
  *   2. Directly modify the state by calling `useState().key = value`
  */
-export class Eventable<T extends IEventState> {
+export class Eventable<T extends IEventState> implements IDisposable {
   private readonly _state: Store<string, T>;
-  private readonly _listeners: {
-    [key: string]: { [callbackId: string]: (value: any) => void };
-  };
+  private readonly _listeners: Partial<
+    Record<keyof T, { [callbackId: string]: (value: any) => void }>
+  >;
   private readonly _eventGroupId: string;
   private readonly _eventDefaultState: T;
 
@@ -43,10 +44,10 @@ export class Eventable<T extends IEventState> {
       }
       for (const key in payload) {
         if (key in this._listeners) {
-          const callbacks = this._listeners[key];
+          const callbacks = this._listeners[key]!;
           const callbacksPromise = Object.values(callbacks).map((callback) => {
             return new Promise((resolve) => {
-              resolve(callback(payload[key]));
+              resolve(callback({ key: [key], value: payload[key] }));
             });
           });
           Promise.all(callbacksPromise);
@@ -84,25 +85,27 @@ export class Eventable<T extends IEventState> {
    * @param callback - callback function
    * @returns
    */
-  onChanged(key: string | string[], callback: (newValue: any) => void) {
+  onChanged(
+    key: keyof T | (keyof T)[],
+    callback: (newValues: { key: keyof T; value: any }) => void
+  ) {
     if (typeof key === "string") {
       key = [key];
     }
 
-    const keyAndCallbackId: string[][] = [];
-    for (const k of key) {
-      if (!(k in this._listeners)) {
-        this._listeners[k] = {};
-      }
+    const keyAndCallbackId: [keyof T, string][] = [];
+    for (const k of key as (keyof T)[]) {
+      this._listeners[k] = this._listeners[k] || {};
       const callbackId = uid();
-      this._listeners[k][callbackId] = callback;
+      const callbackList = this._listeners[k]!;
+      callbackList[callbackId] = callback;
       keyAndCallbackId.push([k, callbackId]);
     }
 
     return () => {
       for (const [k, callbackId] of keyAndCallbackId) {
         console.log("Dispose", k, callbackId);
-        delete this._listeners[k][callbackId];
+        delete this._listeners[k]![callbackId];
       }
     };
   }
@@ -114,4 +117,18 @@ export class Eventable<T extends IEventState> {
    * @returns
    */
   on = this.onChanged;
+
+  dispose() {
+    for (var prop in this) {
+      if (
+        (this[prop] as any).hasOwnProperty("dispose") &&
+        typeof (this[prop] as any).dispose === "function"
+      ) {
+        (this[prop] as any).dispose();
+      }
+    }
+    for (var listener in this._listeners) {
+      delete this._listeners[listener];
+    }
+  }
 }

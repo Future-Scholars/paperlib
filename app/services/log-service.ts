@@ -1,7 +1,7 @@
 import * as loglib from "electron-log";
 
 import { Eventable } from "@/base/event";
-import { createDecorator } from "@/base/injection";
+import { createDecorator } from "@/base/injection/injection";
 
 interface ILogMessage {
   level: "info" | "warn" | "error";
@@ -37,7 +37,7 @@ export interface ILogEventState {
   };
 }
 
-export const ILogService = createDecorator("ILogService");
+export const ILogService = createDecorator("logService");
 
 export class LogService extends Eventable<ILogEventState> {
   private logGroups: { [key: string]: ILogGroup };

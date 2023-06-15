@@ -9,7 +9,9 @@ import vSelect from "vue-select";
 import draggable from "vuedraggable";
 
 import { APIHost } from "@/api/api-host";
-import { InjectionContainer } from "@/base/injection";
+import { DatabaseCore } from "@/base/database/core";
+import { IInjectable } from "@/base/injection/injectable";
+import { InjectionContainer } from "@/base/injection/injection";
 import { AppInteractor } from "@/interactors/app-interactor";
 import { BrowserExtensionInteractor } from "@/interactors/browser-extension-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
@@ -20,6 +22,7 @@ import { WordAddinInteractor } from "@/interactors/word-addin-interactor";
 import { loadLocales } from "@/locales/load";
 import { Preference } from "@/preference/preference";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
+import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
 import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
@@ -27,9 +30,10 @@ import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 import { APPService } from "@/services/app-service";
+import { DatabaseService } from "@/services/database-service";
 import { LogService } from "@/services/log-service";
 import { PreferenceService } from "@/services/preference-service";
-import { Services } from "@/services/service";
+import { useProcessingState } from "@/services/state-service/processing";
 import { StateService } from "@/services/state-service/state-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { NetworkTool } from "@/utils/got";
@@ -60,17 +64,21 @@ app.component("RecycleScroller", RecycleScroller);
 // ====================================
 // Setup tools, interactors and repositories
 // ====================================
+const processingState = useProcessingState();
+globalThis.processingState = processingState;
+
 const injectionContainer = new InjectionContainer();
-const instances = injectionContainer.createInstance<Services>({
+const instances = injectionContainer.createInstance<IInjectable>({
   appService: APPService,
   preferenceService: PreferenceService,
   stateService: StateService,
   logService: LogService,
+  databaseCore: DatabaseCore,
+  databaseService: DatabaseService,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;
 }
-console.log(instances);
 
 const logger = new Logger();
 const preference = new Preference(true);

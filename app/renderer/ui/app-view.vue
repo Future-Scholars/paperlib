@@ -18,6 +18,7 @@ import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repo
 import { FeedResults } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
+import { DatabaseService } from "@/services/database-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
@@ -91,18 +92,24 @@ const reloadPaperEntities = async () => {
     viewState.searchText = "";
     viewState.searchMode = "general";
   }
-  paperEntities.value = await window.entityInteractor.loadPaperEntities(
-    viewState.searchText,
-    flaged,
-    tag,
-    folder,
+  // TODO: fix any here
+  paperEntities.value = await databaseService.paperEntity.load(
+    databaseService.paperEntity.constructFilter({
+      search: viewState.searchText,
+      searchMode: viewState.searchMode as any,
+      flaged,
+      tag,
+      folder,
+    }),
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
 };
-watch(
-  () => dbState.entitiesUpdated,
-  (value) => reloadPaperEntities()
+
+disposable(
+  databaseService.on("paperEntityUpdated", () => {
+    reloadPaperEntities();
+  })
 );
 
 const reloadTags = async () => {

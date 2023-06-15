@@ -307,7 +307,7 @@ watch(
 
 disposable(
   preferenceService.onChanged("mainviewType", (newMainviewType) => {
-    if (newMainviewType === "tableandpreview") {
+    if (newMainviewType.value === "tableandpreview") {
       if (selectionState.selectedIndex.length === 1) {
         accessMainFile(selectionState.selectedIndex[0]);
       }

@@ -5,7 +5,7 @@ import { join } from "path";
 import { defineStore } from "pinia";
 
 import { Eventable } from "@/base/event";
-import { createDecorator } from "@/base/injection";
+import { createDecorator } from "@/base/injection/injection";
 import { isRendererProcess } from "@/base/process";
 
 export interface IScraperPreference {
@@ -123,7 +123,7 @@ export interface IPreferenceStore {
   sidebarWidth: number;
   detailPanelWidth: number;
   mainviewSortBy: string;
-  mainviewSortOrder: string;
+  mainviewSortOrder: "desc" | "asce";
   mainviewType: string;
 
   pluginLinkedFolder: string;

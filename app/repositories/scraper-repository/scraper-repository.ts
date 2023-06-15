@@ -2,7 +2,7 @@ import got from "got";
 import queue from "queue";
 import { watch } from "vue";
 
-import { createDecorator } from "@/base/injection";
+import { createDecorator } from "@/base/injection/injection";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
 import { ILogService, LogService } from "@/services/log-service";

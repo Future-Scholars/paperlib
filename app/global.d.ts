@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { Store } from "pinia";
 
 import { APIClient } from "./api/api";
 import { AppInteractor } from "./interactors/app-interactor";
@@ -11,9 +12,11 @@ import { RenderInteractor } from "./interactors/render-interactor";
 import { WordAddinInteractor } from "./interactors/word-addin-interactor";
 import { Preference } from "./preference/preference";
 import { APPService } from "./services/app-service";
+import { DatabaseService } from "./services/database-service";
 import { LogService } from "./services/log-service";
 import { PreferenceService } from "./services/preference-service";
 import { StateService } from "./services/state-service/state-service";
+import { IProcessingState } from "./services/state-service/state/processing";
 import { MainRendererStateStore } from "./state/renderer/appstate";
 import { NetworkTool } from "./utils/got";
 import { Logger } from "./utils/logger";
@@ -44,4 +47,7 @@ declare global {
   var preferenceService: PreferenceService;
   var stateService: StateService;
   var logService: LogService;
+  var databaseService: DatabaseService;
+
+  var processingState: Store<"processingState", IProcessingState>;
 }

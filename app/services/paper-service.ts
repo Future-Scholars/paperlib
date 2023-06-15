@@ -3,7 +3,7 @@ import { clipboard } from "electron";
 import { readFileSync } from "fs";
 import path from "path";
 
-import { createDecorator } from "@/base/injection";
+import { createDecorator } from "@/base/injection/injection";
 import {
   Categorizer,
   CategorizerType,

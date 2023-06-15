@@ -1,7 +1,7 @@
 import { ipcRenderer } from "electron";
 import os from "os";
 
-import { createDecorator } from "@/base/injection";
+import { createDecorator } from "@/base/injection/injection";
 import {
   IPreferenceService,
   PreferenceService,

@@ -3,7 +3,7 @@ import { existsSync, promises } from "fs";
 import path from "path";
 import Realm from "realm";
 
-import { createDecorator } from "@/base/injection";
+import { createDecorator } from "@/base/injection/injection";
 import {
   Categorizer,
   CategorizerType,

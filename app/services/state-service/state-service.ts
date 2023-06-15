@@ -1,6 +1,6 @@
 import { Store } from "pinia";
 
-import { createDecorator } from "@/base/injection";
+import { createDecorator } from "@/base/injection/injection";
 import {
   ISelectionState,
   defineSelectionState,
