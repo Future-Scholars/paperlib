@@ -40,8 +40,8 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
   private _partition?: string;
 
   constructor(
-    @IAPPService private readonly appService: APPService,
-    @IPreferenceService private readonly preferenceService: PreferenceService,
+    @IAPPService private readonly _appService: APPService,
+    @IPreferenceService private readonly _preferenceService: PreferenceService,
     @ILogService private readonly logService: LogService
   ) {
     super("databaseCore", {
@@ -74,7 +74,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       this.fire("dbInitializing");
 
       // TODO: Check all injected with this
-      Realm.defaultPath = await this.appService.userDataPath();
+      Realm.defaultPath = await this._appService.userDataPath();
       if (this._realm) {
         this._realm.close();
       }
@@ -163,7 +163,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
   }> {
     let syncPassword: string | undefined;
 
-    if (this.preferenceService.get("useSync")) {
+    if (this._preferenceService.get("useSync")) {
       try {
         syncPassword = (await window.appInteractor.getPassword(
           "realmSync"
@@ -176,7 +176,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
           "Database"
         );
       }
-      if (this.preferenceService.get("syncEmail") !== "" && syncPassword) {
+      if (this._preferenceService.get("syncEmail") !== "" && syncPassword) {
         return {
           config: await this._getCloudConfig(),
           type: ConfigType.Cloud,
@@ -205,11 +205,9 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       await this._logoutCloud();
     }
 
-    if (
-      !existsSync(window.appInteractor.getPreference("appLibFolder") as string)
-    ) {
+    if (!existsSync(this._preferenceService.get("appLibFolder") as string)) {
       await promises.mkdir(
-        window.appInteractor.getPreference("appLibFolder") as string,
+        this._preferenceService.get("appLibFolder") as string,
         {
           recursive: true,
         }
@@ -227,7 +225,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       ],
       schemaVersion: DATABASE_SCHEMA_VERSION,
       path: path.join(
-        this.preferenceService.get("appLibFolder") as string,
+        this._preferenceService.get("appLibFolder") as string,
         "default.realm"
       ),
       migration: migrate,
@@ -257,7 +255,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
           user: cloudUser,
           partitionValue: cloudUser.id,
         },
-        path: path.join(await appService.userDataPath(), "synced.realm"),
+        path: path.join(await this._appService.userDataPath(), "synced.realm"),
       };
       return config;
     } else {
@@ -267,7 +265,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
         true,
         "Database"
       );
-      preferenceService.set({ useSync: false });
+      this._preferenceService.set({ useSync: false });
       return this._getLocalConfig();
     }
   }
@@ -278,9 +276,9 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
    */
   private async _loginCloud(): Promise<Realm.User | null> {
     if (!this._app) {
-      process.chdir(await this.appService.userDataPath());
+      process.chdir(await this._appService.userDataPath());
 
-      const id = preferenceService.get("syncAPPID") as string;
+      const id = this._preferenceService.get("syncAPPID") as string;
       this._app = new Realm.App({
         id: id,
       });
@@ -307,8 +305,8 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       this._partition = this._app.currentUser?.id || "";
       return this._app.currentUser;
     } catch (error) {
-      preferenceService.set({ useSync: false });
-      window.logger.error(
+      this._preferenceService.set({ useSync: false });
+      this.logService.error(
         "Failed to login to cloud database",
         error as Error,
         true,
@@ -330,7 +328,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       }
     }
     const syncDBPath = path.join(
-      await this.appService.userDataPath(),
+      await this._appService.userDataPath(),
       "synced.realm"
     );
     if (existsSync(syncDBPath)) {

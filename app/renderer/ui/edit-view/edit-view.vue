@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconQuestionCircle } from "bootstrap-icons-vue";
-import { Ref, inject, onMounted, ref, watch } from "vue";
+import { Ref, inject, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
@@ -19,9 +19,12 @@ import SelectBox from "./components/select-box.vue";
 // ==============================
 const wideMode = ref(false);
 const advancedMode = ref(false);
-const editingPaperEntityDraft = ref(new PaperEntity(false));
+const editingPaperEntityDraft = ref(
+  new PaperEntity(false).initialize(
+    bufferService.get("editingPaperEntityDraft") as PaperEntity
+  )
+);
 const viewState = MainRendererStateStore.useViewState();
-const bufferState = MainRendererStateStore.useBufferState();
 
 watch(
   () => viewState.isEditViewShown,
@@ -32,11 +35,10 @@ watch(
   }
 );
 
-watch(
-  () => bufferState.editingPaperEntityDraft,
-  (value) => {
-    editingPaperEntityDraft.value.initialize(value);
-  }
+disposable(
+  bufferService.onChanged("editingPaperEntityDraft", (payload) => {
+    editingPaperEntityDraft.value.initialize(payload.value);
+  })
 );
 
 // ==============================
@@ -112,20 +114,20 @@ const onSaveAndScrapeClicked = async () => {
             <InputBox
               :placeholder="$t('mainview.title')"
               :value="editingPaperEntityDraft.title"
-              @changed="(value) => (editingPaperEntityDraft.title = value)"
+              @changed="(value: string) => (editingPaperEntityDraft.title = value)"
             />
             <InputBox
               id="paper-edit-view-author-input"
               :placeholder="$t('mainview.authors')"
               :value="editingPaperEntityDraft.authors"
-              @changed="(value) => (editingPaperEntityDraft.authors = value)"
+              @changed="(value: string) => (editingPaperEntityDraft.authors = value)"
             />
             <InputBox
               id="paper-edit-view-publication-input"
               :placeholder="$t('mainview.publicationtitle')"
               :value="editingPaperEntityDraft.publication"
               @changed="
-                (value) => (editingPaperEntityDraft.publication = value)
+                (value: string) => (editingPaperEntityDraft.publication = value)
               "
             />
             <div class="flex w-full space-x-2">
@@ -133,7 +135,7 @@ const onSaveAndScrapeClicked = async () => {
                 :placeholder="$t('mainview.publicationyear')"
                 class="w-1/2"
                 :value="editingPaperEntityDraft.pubTime"
-                @changed="(value) => (editingPaperEntityDraft.pubTime = value)"
+                @changed="(value: string) => (editingPaperEntityDraft.pubTime = value)"
               />
               <SelectBox
                 :placeholder="$t('mainview.publicationtype')"
@@ -141,7 +143,7 @@ const onSaveAndScrapeClicked = async () => {
                 :options="pubTypes"
                 :value="pubTypes[editingPaperEntityDraft.pubType]"
                 @changed="
-                  (value) => {
+                  (value: string) => {
                     editingPaperEntityDraft.pubType = pubTypes.indexOf(value);
                   }
                 "
@@ -153,13 +155,13 @@ const onSaveAndScrapeClicked = async () => {
                   class="basis-1/2 w-8"
                   placeholder="Volumn"
                   :value="editingPaperEntityDraft.volume"
-                  @changed="(value) => (editingPaperEntityDraft.volume = value)"
+                  @changed="(value: string) => (editingPaperEntityDraft.volume = value)"
                 />
                 <InputBox
                   class="basis-1/2 w-8"
                   placeholder="Pages"
                   :value="editingPaperEntityDraft.pages"
-                  @changed="(value) => (editingPaperEntityDraft.pages = value)"
+                  @changed="(value: string) => (editingPaperEntityDraft.pages = value)"
                 />
               </div>
               <div class="basis-1/2 flex space-x-2">
@@ -167,14 +169,14 @@ const onSaveAndScrapeClicked = async () => {
                   class="basis-1/2 w-8"
                   placeholder="Number"
                   :value="editingPaperEntityDraft.number"
-                  @changed="(value) => (editingPaperEntityDraft.number = value)"
+                  @changed="(value: string) => (editingPaperEntityDraft.number = value)"
                 />
                 <InputBox
                   class="basis-1/2 w-8"
                   placeholder="Publisher"
                   :value="editingPaperEntityDraft.publisher"
                   @changed="
-                    (value) => (editingPaperEntityDraft.publisher = value)
+                    (value: string) => (editingPaperEntityDraft.publisher = value)
                   "
                 />
               </div>
@@ -184,13 +186,13 @@ const onSaveAndScrapeClicked = async () => {
                 placeholder="arXiv ID"
                 class="w-1/2"
                 :value="editingPaperEntityDraft.arxiv"
-                @changed="(value) => (editingPaperEntityDraft.arxiv = value)"
+                @changed="(value: string) => (editingPaperEntityDraft.arxiv = value)"
               />
               <InputBox
                 placeholder="DOI"
                 class="w-1/2"
                 :value="editingPaperEntityDraft.doi"
-                @changed="(value) => (editingPaperEntityDraft.doi = value)"
+                @changed="(value: string) => (editingPaperEntityDraft.doi = value)"
               />
             </div>
             <MultiselectBox
@@ -199,7 +201,7 @@ const onSaveAndScrapeClicked = async () => {
               :options="(tags ? tags : []).map((tag) => tag.name)"
               :existValues="editingPaperEntityDraft.tags.map((tag) => tag.name)"
               @changed="
-                (values) => {
+                (values: string[]) => {
                   onCategorizerUpdated(values, 'PaperTag');
                 }
               "
@@ -212,7 +214,7 @@ const onSaveAndScrapeClicked = async () => {
                 editingPaperEntityDraft.folders.map((folder) => folder.name)
               "
               @changed="
-                (values) => {
+                (values: string[]) => {
                   onCategorizerUpdated(values, 'PaperFolder');
                 }
               "
@@ -223,9 +225,9 @@ const onSaveAndScrapeClicked = async () => {
               :value="editingPaperEntityDraft.note"
               :is-expanded="wideMode"
               :can-expand="true"
-              @changed="(value) => (editingPaperEntityDraft.note = value)"
+              @changed="(value: string) => (editingPaperEntityDraft.note = value)"
               v-if="!wideMode"
-              @expand="(expanded) => (wideMode = expanded)"
+              @expand="(expanded: boolean) => (wideMode = expanded)"
             />
           </div>
 
@@ -236,9 +238,9 @@ const onSaveAndScrapeClicked = async () => {
               :value="editingPaperEntityDraft.note"
               :is-expanded="wideMode"
               :can-expand="true"
-              @changed="(value) => (editingPaperEntityDraft.note = value)"
+              @changed="(value: string) => (editingPaperEntityDraft.note = value)"
               v-if="wideMode"
-              @expand="(expanded) => (wideMode = expanded)"
+              @expand="(expanded: boolean) => (wideMode = expanded)"
             />
           </div>
         </div>

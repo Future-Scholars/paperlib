@@ -20,12 +20,12 @@ interface IEventState {
  *   2. Directly modify the state by calling `useState().key = value`
  */
 export class Eventable<T extends IEventState> implements IDisposable {
-  private readonly _state: Store<string, T>;
-  private readonly _listeners: Partial<
+  protected readonly _state: Store<string, T>;
+  protected readonly _listeners: Partial<
     Record<keyof T, { [callbackId: string]: (value: any) => void }>
   >;
-  private readonly _eventGroupId: string;
-  private readonly _eventDefaultState: T;
+  protected readonly _eventGroupId: string;
+  protected readonly _eventDefaultState: T;
 
   constructor(eventGroupId: string, eventDefaultState?: T) {
     this._eventGroupId = eventGroupId;

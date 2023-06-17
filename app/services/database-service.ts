@@ -10,6 +10,9 @@ export interface IDatabaseServiceState {
 
 export const IDatabaseService = createDecorator("databaseService");
 
+/**
+ * Service for database operations except data access and modification.
+ */
 export class DatabaseService extends Eventable<IDatabaseServiceState> {
   constructor(
     @IDatabaseCore private readonly _databaseCore: DatabaseCore,

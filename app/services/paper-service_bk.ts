@@ -942,6 +942,7 @@ export class PaperService {
    * @returns
    */
   async export(paperEntities: PaperEntity[], format: string) {
+    // TODO: move to an individual export service.
     let paperEntityDrafts = paperEntities.map((paperEntity) => {
       return new PaperEntity(false).initialize(paperEntity);
     });

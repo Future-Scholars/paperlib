@@ -30,6 +30,7 @@ import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 import { APPService } from "@/services/app-service";
+import { BufferService } from "@/services/buffer-service";
 import { DatabaseService } from "@/services/database-service";
 import { LogService } from "@/services/log-service";
 import { PaperService } from "@/services/paper-service";
@@ -77,6 +78,7 @@ const instances = injectionContainer.createInstance<IInjectable>({
   databaseCore: DatabaseCore,
   databaseService: DatabaseService,
   paperService: PaperService,
+  bufferService: BufferService,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;

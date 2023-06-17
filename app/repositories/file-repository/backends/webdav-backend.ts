@@ -106,7 +106,7 @@ export class WebDavFileBackend implements FileBackend {
     );
   }
 
-  startWatch() {
+  async startWatch() {
     this.watcher = chokidar.watch(
       this.preference.get("appLibFolder") as string
     );

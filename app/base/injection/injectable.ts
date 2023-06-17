@@ -1,5 +1,6 @@
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
 import { APPService } from "@/services/app-service";
+import { BufferService } from "@/services/buffer-service";
 import { DatabaseService } from "@/services/database-service";
 import { LogService } from "@/services/log-service";
 import { PaperService } from "@/services/paper-service";
@@ -16,4 +17,5 @@ export type IInjectable =
   | DatabaseService
   | DatabaseCore
   | PaperEntityRepository
-  | PaperService;
+  | PaperService
+  | BufferService;

@@ -83,9 +83,11 @@ const reloadSelectedEntities = () => {
       selectedPaperEntities.value = tempSelectedPaperEntities;
       selectionState.selectedIds = tempSelectedIds;
       if (tempSelectedPaperEntities.length > 0) {
-        bufferState.editingPaperEntityDraft = new PaperEntity(false).initialize(
-          tempSelectedPaperEntities[0]
-        );
+        bufferService.set({
+          editingPaperEntityDraft: new PaperEntity(false).initialize(
+            tempSelectedPaperEntities[0]
+          ),
+        });
       }
     }
   } else {
@@ -211,7 +213,7 @@ const switchSortBy = (key: string) => {
   preferenceService.set({ mainviewSortBy: key });
 };
 
-const switchSortOrder = (order: string) => {
+const switchSortOrder = (order: "asce" | "desc") => {
   preferenceService.set({ mainviewSortOrder: order });
 };
 
@@ -247,7 +249,7 @@ const onMenuButtonClicked = (command: string) => {
       break;
     case "sort-order-asce":
     case "sort-order-desc":
-      switchSortOrder(command.replaceAll("sort-order-", ""));
+      switchSortOrder(command.replaceAll("sort-order-", "") as "asce" | "desc");
       break;
     case "preference":
       viewState.isPreferenceViewShown = true;

@@ -12,7 +12,7 @@ export interface FileBackend {
 
   check(): void;
   access(url: string, download: boolean): Promise<string>;
-  startWatch(): void;
+  startWatch(): Promise<void>;
   stopWatch(): Promise<void>;
   move(
     paperEntity: PaperEntity,

@@ -2,6 +2,7 @@ import { ObjectId } from "bson";
 import Realm, { PrimaryKey, Results } from "realm";
 
 import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 
@@ -9,6 +10,8 @@ export interface IPaperEntityRepositoryState {
   count: number;
   updated: number;
 }
+
+export const IPaperEntityRepository = createDecorator("paperEntityRepository");
 
 export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState> {
   private _listened: boolean;

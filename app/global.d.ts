@@ -12,6 +12,7 @@ import { RenderInteractor } from "./interactors/render-interactor";
 import { WordAddinInteractor } from "./interactors/word-addin-interactor";
 import { Preference } from "./preference/preference";
 import { APPService } from "./services/app-service";
+import { BufferService } from "./services/buffer-service";
 import { DatabaseService } from "./services/database-service";
 import { LogService } from "./services/log-service";
 import { PaperService } from "./services/paper-service";
@@ -50,6 +51,7 @@ declare global {
   var logService: LogService;
   var databaseService: DatabaseService;
   var paperService: PaperService;
+  var bufferService: BufferService;
 
   var processingState: Store<"processingState", IProcessingState>;
 }

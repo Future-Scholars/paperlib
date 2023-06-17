@@ -4,6 +4,12 @@ import { existsSync } from "fs";
 import os from "os";
 
 import {
+  eraseProtocol,
+  getFileType,
+  getProtocol,
+  hasProtocol,
+} from "@/base/url";
+import {
   FileRepository,
   IFileRepository,
 } from "@/repositories/file-repository/file-repository";
@@ -13,64 +19,13 @@ import {
   PreferenceService,
 } from "@/services/preference-service";
 
+// TODO: no need of this
 export class URLService {
   constructor(
     @IFileRepository private readonly fileRepository: FileRepository,
     @IPreferenceService private readonly preferenceService: PreferenceService,
     @ILogService private readonly logService: LogService
   ) {}
-
-  /**
-   * Get the protocol of the URL.
-   * @param url
-   * @returns
-   */
-  getProtocol(url: string): string {
-    const components = url.split("://");
-    if (components.length === 1) {
-      return "";
-    } else {
-      return components[0];
-    }
-  }
-
-  /**
-   * Check if the URL has a protocol.
-   * @param url
-   * @returns
-   */
-  hasProtocol(url: string): boolean {
-    return url.includes("://");
-  }
-
-  /**
-   * Erase the protocol of the URL.
-   * @param url
-   * @returns
-   */
-  eraseProtocol(url: string): string {
-    const components = url.split("://");
-    if (components.length === 1) {
-      return url;
-    } else {
-      return components[1];
-    }
-  }
-
-  /**
-   * Get the file type of the URL.
-   * @param url
-   * @returns
-   * @description
-   */
-  getFileType(url: string): string {
-    const components = url.split(".");
-    if (components.length === 1) {
-      return "";
-    } else {
-      return components[components.length - 1];
-    }
-  }
 
   /**
    * Return the real and accessable path of the URL.
@@ -91,7 +46,7 @@ export class URLService {
    * @param url
    */
   async open(url: string) {
-    if (!this.hasProtocol(url)) {
+    if (!hasProtocol(url)) {
       this.logService.error(
         "URL should have a protocol",
         "",
@@ -101,13 +56,13 @@ export class URLService {
       return;
     }
 
-    if (this.getProtocol(url) === "http" || this.getProtocol(url) === "https") {
+    if (getProtocol(url) === "http" || getProtocol(url) === "https") {
       shell.openExternal(url);
     } else {
-      const accessableURL = this.eraseProtocol(await this.access(url, true));
+      const accessableURL = eraseProtocol(await this.access(url, true));
       if (
         this.preferenceService.get("selectedPDFViewer") === "default" ||
-        this.getFileType(accessableURL) !== "pdf"
+        getFileType(accessableURL) !== "pdf"
       ) {
         shell.openPath(accessableURL);
       } else {

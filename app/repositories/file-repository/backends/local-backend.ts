@@ -50,7 +50,7 @@ export class LocalFileBackend implements FileBackend {
     }
   }
 
-  startWatch() {}
+  async startWatch() {}
 
   async stopWatch(): Promise<void> {
     return Promise.resolve();

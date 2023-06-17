@@ -604,7 +604,7 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
    * @param patch - patch object
    * @returns
    */
-  set(patch: { [key in keyof IPreferenceStore]?: any }) {
+  set(patch: Partial<IPreferenceStore>) {
     this._store.set(patch);
     this.fire(patch);
   }
