@@ -41,11 +41,11 @@ const selectedFeedEntities = ref<Array<FeedEntity>>([]);
 const openSelectedEntities = () => {
   if (viewState.contentType === "library") {
     selectedPaperEntities.value.forEach((paperEntity) => {
-      window.appInteractor.open(paperEntity.mainURL);
+      fileService.open(paperEntity.mainURL);
     });
   } else {
     selectedFeedEntities.value.forEach((entity) => {
-      window.appInteractor.open(entity.mainURL);
+      fileService.open(entity.mainURL);
     });
   }
 };
@@ -53,14 +53,14 @@ const openSelectedEntities = () => {
 const showInFinderSelectedEntities = () => {
   if (viewState.contentType === "library") {
     selectedPaperEntities.value.forEach((paperEentity) => {
-      window.appInteractor.showInFinder(paperEentity.mainURL);
+      fileService.showInFinder(paperEentity.mainURL);
     });
   }
 };
 
 const previewSelectedEntities = () => {
   if (viewState.contentType === "library") {
-    window.appInteractor.preview(selectedPaperEntities.value[0].mainURL);
+    fileService.preview(selectedPaperEntities.value[0].mainURL);
   }
 };
 
@@ -124,7 +124,7 @@ const scrapeSelectedEntities = () => {
       const paperEntityDraft = new PaperEntity(false).initialize(paperEntity);
       return paperEntityDraft;
     });
-    void window.entityInteractor.scrape(paperEntityDrafts);
+    void paperService.scrape(paperEntityDrafts);
   }
 };
 
@@ -134,7 +134,7 @@ const scrapeSelectedEntitiesFrom = (scraperName: string) => {
       const paperEntityDraft = new PaperEntity(false).initialize(paperEntity);
       return paperEntityDraft;
     });
-    void window.entityInteractor.scrapeFrom(paperEntityDrafts, scraperName);
+    void paperService.scrape(paperEntityDrafts, [scraperName]);
   }
 };
 
@@ -161,7 +161,7 @@ const flagSelectedEntities = () => {
       paperEntityDraft.flag = !paperEntityDraft.flag;
       return paperEntityDraft;
     });
-    void window.entityInteractor.update(paperEntityDrafts);
+    paperService.update(paperEntityDrafts);
   }
 };
 

@@ -30,7 +30,7 @@ const viewState = MainRendererStateStore.useViewState();
 const onRatingChanged = (value: number) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.rating = value;
-  void window.entityInteractor.update([paperEntityDraft]);
+  paperService.update([paperEntityDraft]);
 };
 
 const onDeleteCategorizer = (
@@ -47,17 +47,17 @@ const onDeleteCategorizer = (
       return folder.name !== categorizer.name;
     });
   }
-  void window.entityInteractor.update([paperEntityDraft]);
+  paperService.update([paperEntityDraft]);
 };
 
 const modifyMainFile = async (url: string) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.mainURL = url;
-  const updatedPaperEntity = await window.entityInteractor.update(
+  const updatedPaperEntity = await paperService.update(
     [paperEntityDraft],
     false
   );
-  await window.entityInteractor.updateCache(updatedPaperEntity);
+  await cacheService.updateCache(updatedPaperEntity);
   setTimeout(() => {
     viewState.renderRequired = Date.now();
   }, 500);
@@ -68,19 +68,19 @@ const locateMainFile = async () => {
   const updatedPaperEntity = await window.entityInteractor.locateMainFile([
     paperEntityDraft,
   ]);
-  await window.entityInteractor.updateCache(updatedPaperEntity);
+  await cacheService.updateCache(updatedPaperEntity);
   viewState.renderRequired = Date.now();
 };
 
 const addSups = (urls: string[]) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.supURLs = [...paperEntityDraft.supURLs, ...urls];
-  void window.entityInteractor.update([paperEntityDraft], false);
+  paperService.update([paperEntityDraft], false);
 };
 
 const onDeleteSup = (url: string) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
-  window.entityInteractor.deleteSup(paperEntityDraft, url);
+  paperService.deleteSup(paperEntityDraft, url);
 };
 
 window.appInteractor.registerMainSignal("sup-context-menu-delete", (args) => {
@@ -208,7 +208,7 @@ watch(
 
 const onCitationCountClicked = (semanticscholarId: string) => {
   if (semanticscholarId) {
-    window.appInteractor.open(
+    fileService.open(
       `https://www.semanticscholar.org/paper/${semanticscholarId}`
     );
   }

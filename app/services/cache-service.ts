@@ -212,15 +212,24 @@ export class CacheService {
       }
 
       const updatePromise = async (paperEntity: PaperEntity) => {
-        const fulltext = await this._getPDFText(paperEntity.mainURL);
         const filePath = eraseProtocol(
           await this._fileService.access(paperEntity.mainURL, false)
         );
-
         let md5String = "";
         if (filePath && (await promises.lstat(filePath)).isFile()) {
           md5String = await md5(filePath);
         }
+
+        const object = realm.objectForPrimaryKey<PaperEntityCache>(
+          "PaperEntityCache",
+          new ObjectId(paperEntity.id) as unknown as PrimaryKey
+        );
+
+        if (object && object.md5 === md5String) {
+          return;
+        }
+
+        const fulltext = await this._getPDFText(paperEntity.mainURL);
 
         realm.safeWrite(() => {
           realm.create<PaperEntityCache>(

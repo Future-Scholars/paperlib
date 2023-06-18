@@ -84,7 +84,7 @@ export class DBRepository {
   // ========================
   async initRealm(reinit = false): Promise<Realm> {
     this.stateStore.viewState.processingQueueCount += 1;
-    window.logger.info("Initializing database...", "", true, "Database");
+    window.logger.info("Initializing database (Old)...", "", true, "Database");
 
     // Stop watch file to release lock
     await window.appInteractor.fileRepository.stopWatch();

@@ -15,7 +15,14 @@ export const chunkRun = async <T, Q>(
     const chunkArgs = argsList.slice(i, i + chunkSize);
 
     const chunkResult = await Promise.allSettled(
-      chunkArgs.map((args) => process.apply(this, args))
+      chunkArgs.map(async (args) => {
+        // if process is a arrow function
+        if (process.prototype === undefined) {
+          return await process(args);
+        } else {
+          return await process.apply(this, args);
+        }
+      })
     );
 
     for (const [j, result] of chunkResult.entries()) {
@@ -23,7 +30,11 @@ export const chunkRun = async <T, Q>(
         errors.push(result.reason as Error);
 
         if (errorProcess) {
-          results.push(await errorProcess.apply(this, chunkArgs[j]));
+          if (errorProcess.prototype === undefined) {
+            results.push(await errorProcess(chunkArgs[j]));
+          } else {
+            results.push(await errorProcess.apply(this, chunkArgs[j]));
+          }
         } else {
           results.push(null);
         }

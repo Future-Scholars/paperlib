@@ -13,7 +13,7 @@ const getExtension = (sup: string) => {
 };
 
 const onClick = (url: string) => {
-  window.appInteractor.open(url);
+  fileService.open(url);
 };
 
 const onRightClicked = (event: MouseEvent, url: string) => {

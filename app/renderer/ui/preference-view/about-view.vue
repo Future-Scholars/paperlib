@@ -8,7 +8,7 @@ appService.version().then((v) => {
 });
 
 const onLinkClicked = (url: string) => {
-  window.appInteractor.open(url);
+  fileService.open(url);
 };
 
 const darkMode = ref(false);

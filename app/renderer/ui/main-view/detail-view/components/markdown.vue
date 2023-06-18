@@ -36,7 +36,7 @@ const render = async (renderFull = false) => {
   } else {
     for (const url of props.sups || []) {
       if (url.endsWith(".md") || url.endsWith(".markdown")) {
-        const mdURL = await window.appInteractor.access(url, true);
+        const mdURL = await fileService.access(url, true);
         const { renderedStr, overflow } =
           await window.renderInteractor.renderMarkdownFile(mdURL, renderFull);
         renderedHTML.value = renderedStr;

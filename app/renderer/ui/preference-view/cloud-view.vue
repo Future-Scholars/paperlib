@@ -28,7 +28,7 @@ const onLoginClicked = async () => {
   preferenceService.set({ useSync: true });
   preferenceService.set({ syncAPPID: syncAPPID.value });
   preferenceService.set({ syncEmail: syncEmail.value });
-  await window.appInteractor.setPassword("realmSync", syncPassword.value);
+  await preferenceService.setPassword("realmSync", syncPassword.value);
 
   viewState.realmReiniting = Date.now();
 };
@@ -40,14 +40,14 @@ const onLogoutClicked = () => {
 };
 
 const onClickGuide = () => {
-  window.appInteractor.open("https://paperlib.app/en/blog/sync/");
+  fileService.open("https://paperlib.app/en/blog/sync/");
 };
 
 const onMigrateClicked = () => {
-  window.appInteractor.migrateLocaltoCloud();
+  databaseService.migrateLocaltoCloud();
 };
 
-window.appInteractor.getPassword("realmSync").then((password) => {
+preferenceService.getPassword("realmSync").then((password) => {
   syncPassword.value = password ? (password as string) : "";
 });
 
@@ -57,7 +57,7 @@ window.appInteractor.getPassword("realmSync").then((password) => {
 const onWebdavConnectClicked = async () => {
   preferenceService.set({ webdavURL: webdavURL.value });
   preferenceService.set({ webdavUsername: webdavUsername.value });
-  await window.appInteractor.setPassword("webdav", webdavPassword.value);
+  await preferenceService.setPassword("webdav", webdavPassword.value);
   preferenceService.set({ syncFileStorage: "webdav" });
 
   viewState.storageBackendReinited = Date.now();

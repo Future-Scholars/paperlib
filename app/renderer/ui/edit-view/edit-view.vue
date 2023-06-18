@@ -82,17 +82,17 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
-  window.entityInteractor.update([
+  paperService.update([
     new PaperEntity(false).initialize(editingPaperEntityDraft.value),
   ]);
   onCloseClicked();
 };
 
 const onSaveAndScrapeClicked = async () => {
-  const savedPaperEntityDraft = await window.entityInteractor.update([
+  const savedPaperEntityDraft = await paperService.update([
     new PaperEntity(false).initialize(editingPaperEntityDraft.value),
   ]);
-  window.entityInteractor.scrape(savedPaperEntityDraft);
+  paperService.scrape(savedPaperEntityDraft);
 };
 </script>
 

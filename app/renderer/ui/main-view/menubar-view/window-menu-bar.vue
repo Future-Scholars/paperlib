@@ -44,15 +44,15 @@ const viewState = MainRendererStateStore.useViewState();
 const prefState = preferenceService.useState();
 
 const onCloseClicked = () => {
-  window.appInteractor.close();
+  appService.close();
 };
 
 const onMinimizeClicked = () => {
-  window.appInteractor.minimize();
+  appService.minimize();
 };
 
 const onMaximizeClicked = () => {
-  window.appInteractor.maximize();
+  appService.maximize();
 };
 </script>
 

@@ -188,7 +188,7 @@ const onItemRightClicked = (event: MouseEvent, index: number) => {
 const onItemDoubleClicked = (event: MouseEvent, index: number, url: string) => {
   selectedIndex.value = [index];
   selectionState.selectedIndex = selectedIndex.value;
-  window.appInteractor.open(url);
+  fileService.open(url);
 };
 
 watch(

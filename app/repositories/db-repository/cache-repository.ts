@@ -90,7 +90,7 @@ export class CacheRepository {
     if (
       existsSync(
         path.join(
-          window.appInteractor.getPreference("appLibFolder") as string,
+          preferenceService.get("appLibFolder") as string,
           "cache.realm"
         )
       )
@@ -114,7 +114,7 @@ export class CacheRepository {
       try {
         await promises.rename(
           path.join(
-            window.appInteractor.getPreference("appLibFolder") as string,
+            preferenceService.get("appLibFolder") as string,
             "cache.realm"
           ),
           path.join(userDataPath, "cache.realm")
@@ -126,7 +126,7 @@ export class CacheRepository {
       try {
         await promises.rename(
           path.join(
-            window.appInteractor.getPreference("appLibFolder") as string,
+            preferenceService.get("appLibFolder") as string,
             "cache.realm.lock"
           ),
           path.join(userDataPath, "cache.realm.lock")
@@ -138,7 +138,7 @@ export class CacheRepository {
       try {
         await promises.rename(
           path.join(
-            window.appInteractor.getPreference("appLibFolder") as string,
+            preferenceService.get("appLibFolder") as string,
             "cache.realm.management"
           ),
           path.join(userDataPath, "cache.realm.management")
@@ -242,7 +242,7 @@ export class CacheRepository {
         const fulltext = await this.getPDFText(paperEntity.mainURL);
         const md5String = await md5(
           (
-            await window.appInteractor.access(paperEntity.mainURL, false)
+            await fileService.access(paperEntity.mainURL, false)
           ).replace("file://", "")
         );
         realm.safeWrite(() => {
@@ -270,7 +270,7 @@ export class CacheRepository {
     const updatePromise = async (paperEntity: PaperEntity) => {
       const fulltext = await this.getPDFText(paperEntity.mainURL);
       const filePath = (
-        await window.appInteractor.access(paperEntity.mainURL, false)
+        await fileService.access(paperEntity.mainURL, false)
       ).replace("file://", "");
 
       let md5String = "";
@@ -302,7 +302,7 @@ export class CacheRepository {
     const realm = await this.realm();
 
     const filePath = (
-      await window.appInteractor.access(paperEntity.mainURL, false)
+      await fileService.access(paperEntity.mainURL, false)
     ).replace("file://", "");
 
     let md5String = "";

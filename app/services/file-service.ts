@@ -1,5 +1,5 @@
 import { SpawnOptions, spawn } from "child_process";
-import { shell } from "electron";
+import { ipcRenderer, shell } from "electron";
 import { existsSync } from "fs";
 import os from "os";
 import path from "path";
@@ -16,10 +16,6 @@ import { PaperEntity } from "@/models/paper-entity";
 import { IFileBackend } from "@/repositories/file-repository/backend";
 import { LocalFileBackend } from "@/repositories/file-repository/local-backend";
 import { WebDavFileBackend } from "@/repositories/file-repository/webdav-backend";
-import {
-  ProcessingKey,
-  processing,
-} from "@/services//state-service/processing";
 import { ILogService, LogService } from "@/services/log-service";
 import {
   IPreferenceService,
@@ -126,6 +122,7 @@ export class FileService {
     fourceDelete = false,
     forceNotLink = false
   ): Promise<PaperEntity> {
+    console.log(paperEntity);
     let title =
       paperEntity.title.replace(/[^\p{L}|\s]/gu, "").replace(/\s/g, "_") ||
       "untitled";
@@ -369,5 +366,23 @@ export class FileService {
         }
       }
     }
+  }
+
+  /**
+   * Show the URL in Finder.
+   * @param url - URL to show
+   */
+  async showInFinder(url: string) {
+    const accessedURL = eraseProtocol(await this.access(url, true));
+    shell.showItemInFolder(accessedURL);
+  }
+
+  /**
+   * Preview the URL.
+   * @param url - URL to preview
+   */
+  async preview(url: string) {
+    const fileURL = await this.access(url, true);
+    ipcRenderer.send("preview", fileURL);
   }
 }

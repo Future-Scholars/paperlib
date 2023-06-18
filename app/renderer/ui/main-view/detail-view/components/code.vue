@@ -19,7 +19,7 @@ const onClick = (codeJSONstr: string) => {
     url: string;
     isOfficial: boolean;
   };
-  window.appInteractor.open(code.url);
+  fileService.open(code.url);
 };
 </script>
 

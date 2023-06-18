@@ -52,9 +52,7 @@ const onUpdateDownloader = (
 };
 
 const onClickGuide = () => {
-  window.appInteractor.open(
-    "https://github.com/Future-Scholars/paperlib/wiki/"
-  );
+  fileService.open("https://github.com/Future-Scholars/paperlib/wiki/");
 };
 </script>
 

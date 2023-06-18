@@ -94,7 +94,7 @@ const onFileDroped = (
   type: CategorizerType,
   filePaths: string[]
 ) => {
-  window.entityInteractor.createIntoCategorizer(filePaths, categorizer, type);
+  paperService.createIntoCategorizer(filePaths, categorizer, type);
 };
 
 const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
@@ -105,7 +105,7 @@ const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
   } else {
     dragedIds = selectionState.dragedIds;
   }
-  window.entityInteractor.updateWithCategorizer(dragedIds, categorizer, type);
+  paperService.updateWithCategorizer(dragedIds, categorizer, type);
 };
 
 const onCategorizerNameChanged = (name: string) => {
@@ -116,7 +116,7 @@ const onCategorizerNameChanged = (name: string) => {
       .replace("tag-", "") !== name &&
     viewState.contentType === "library"
   ) {
-    window.entityInteractor.renameCategorizer(
+    categorizerService.rename(
       selectionState.editingCategorizer
         .replace("folder-", "")
         .replace("tag-", ""),
@@ -149,7 +149,7 @@ window.appInteractor.registerMainSignal(
       if (args[2] === "PaperPaperSmartFilter") {
         window.entityInteractor.deletePaperSmartFilter(args[1], args[0]);
       } else {
-        window.entityInteractor.deleteCategorizer(args[1], args[0]);
+        categorizerService.delete(args[1], args[0]);
       }
       selectionState.selectedCategorizer = "lib-all";
     }
@@ -167,7 +167,7 @@ window.appInteractor.registerMainSignal(
           args[0]
         );
       } else {
-        window.entityInteractor.colorizeCategorizer(args[2], args[1], args[0]);
+        categorizerService.colorize(args[2], args[1], args[0]);
       }
     }
   }

@@ -5,6 +5,12 @@ import { chunkRun } from "@/base/chunk";
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import {
+  Categorizer,
+  CategorizerType,
+  PaperFolder,
+  PaperTag,
+} from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import {
   CategorizerRepository,
@@ -14,18 +20,16 @@ import {
   IPaperEntityRepository,
   PaperEntityRepository,
 } from "@/repositories/db-repository/paper-repository";
+import { CacheService, ICacheService } from "@/services/cache-service";
+import { FileService, IFileService } from "@/services/file-service";
 import { ILogService, LogService } from "@/services/log-service";
 import { IScrapeService, ScrapeService } from "@/services/scrape-service";
 import { ProcessingKey, processing } from "@/services/state-service/processing";
 import { formatString } from "@/utils/string";
 
-import { FileService, IFileService } from "./file-service";
-
 export interface IPaperServiceState {
   count: number;
   updated: number;
-  tagsUpdated: number;
-  foldersUpdated: number;
 }
 
 export interface IPaperFilterOptions {
@@ -49,14 +53,13 @@ export class PaperService extends Eventable<IPaperServiceState> {
     @ICategorizerRepository
     private readonly _categorizerRepository: CategorizerRepository,
     @IScrapeService private readonly _scrapeService: ScrapeService,
+    @ICacheService private readonly _cacheService: CacheService,
     @IFileService private readonly _fileService: FileService,
     @ILogService private readonly _logService: LogService
   ) {
     super("paperService", {
       count: 0,
       updated: 0,
-      tagsUpdated: 0,
-      foldersUpdated: 0,
     });
 
     this._paperEntityRepository = new PaperEntityRepository();
@@ -65,16 +68,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
         [payload.key]: payload.value,
       });
     });
-
-    this._categorizerRepository = new CategorizerRepository();
-    this._categorizerRepository.on(
-      ["tagsUpdated", "foldersUpdated"],
-      (payload) => {
-        this.fire({
-          [payload.key]: payload.value,
-        });
-      }
-    );
   }
 
   constructFilter(filterOptions: IPaperFilterOptions) {
@@ -170,7 +163,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
         "Cannot load paper entities",
         error as Error,
         true,
-        "Database"
+        "PaperService"
       );
       return [] as PaperEntity[];
     }
@@ -193,25 +186,25 @@ export class PaperService extends Eventable<IPaperServiceState> {
         "Cannot load paper entity by id",
         error as Error,
         true,
-        "Database"
+        "PaperService"
       );
+      return [];
     }
   }
 
   /**
-   * Update paper entity.
-   * @param paperEntity - paper entity
-   * @param paperTag - paper tags
-   * @param paperFolder - paper folders
-   * @param existingPaperEntity - existing paper entity
-   * @returns - flag
+   * Update paper entities.
+   * @param paperEntityDrafts - paper entity drafts
+   * @param forceDelete - force delete
+   * @param forceNotLink - force not link
+   * @returns
    */
   @processing(ProcessingKey.General)
   async update(
     paperEntityDrafts: PaperEntity[],
     forceDelete = true,
     forceNotLink = false
-  ): Promise<void> {
+  ): Promise<PaperEntity[]> {
     // TODO: why we need forceDelete and forceNotLink?
 
     this._logService.info(
@@ -221,135 +214,206 @@ export class PaperService extends Eventable<IPaperServiceState> {
       "PaperService"
     );
 
-    // ========================================================
-    // #region 1. Move files to the app lib folder
-    let { results: fileMovedPaperEntityDrafts, errors } = await chunkRun<
-      PaperEntity,
-      PaperEntity
-    >(
-      paperEntityDrafts,
-      async (paperEntityDraft) => {
-        return await this._fileService.move(paperEntityDraft);
-      },
-      async (paperEntityDraft) => {
-        return paperEntityDraft;
-      }
-    );
-    // filter paper entities with files that are not moved (still absolute path)
-    fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.filter(
-      (paperEntityDraft) => {
-        return (
-          paperEntityDraft.mainURL && !path.isAbsolute(paperEntityDraft.mainURL)
+    // TODO: all exposed methods should be in try catch block
+    try {
+      // ========================================================
+      // #region 1. Move files to the app lib folder
+      let { results: fileMovedPaperEntityDrafts, errors } = await chunkRun<
+        PaperEntity,
+        PaperEntity
+      >(
+        paperEntityDrafts,
+        async (paperEntityDraft) => {
+          return await this._fileService.move(paperEntityDraft);
+        },
+        async (paperEntityDraft) => {
+          return paperEntityDraft;
+        }
+      );
+      errors.forEach((error) => {
+        this._logService.error(
+          "Failed to move file",
+          error as Error,
+          true,
+          "PaperService"
         );
-      }
-    );
-    fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.map(
-      (paperEntityDraft) => {
-        paperEntityDraft.supURLs = paperEntityDraft.supURLs.filter((url) => {
-          return path && !path.isAbsolute(url);
-        });
-        return paperEntityDraft;
-      }
-    );
+      });
 
-    errors.forEach((error) => {
+      // filter paper entities with files that are not moved (still absolute path)
+      fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.filter(
+        (paperEntityDraft) => {
+          return (
+            paperEntityDraft.mainURL &&
+            !path.isAbsolute(paperEntityDraft.mainURL)
+          );
+        }
+      );
+      fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.map(
+        (paperEntityDraft) => {
+          paperEntityDraft.supURLs = paperEntityDraft.supURLs.filter((url) => {
+            return path && !path.isAbsolute(url);
+          });
+          return paperEntityDraft;
+        }
+      );
+      // #endregion ========================================================
+
+      // ========================================================
+      // #region 2. Update database
+      const realm = await this._databaseCore.realm();
+      const dbUpdatedPaperEntityDrafts = realm.safeWrite(
+        (): (PaperEntity | null)[] => {
+          const updatedPaperEntityDrafts: (PaperEntity | null)[] = [];
+
+          for (const paperEntity of fileMovedPaperEntityDrafts) {
+            let existingPaperEntity: PaperEntity | null = null;
+            try {
+              if (paperEntity._id) {
+                const existingObjs = this._paperEntityRepository.loadByIds(
+                  realm,
+                  [paperEntity._id]
+                );
+                if (existingObjs.length > 0) {
+                  existingPaperEntity = existingObjs[0];
+                }
+              }
+            } catch (error) {}
+
+            try {
+              const tags = this._categorizerRepository.update(
+                realm,
+                existingPaperEntity ? existingPaperEntity.tags : [],
+                paperEntity.tags,
+                "PaperTag",
+                this._databaseCore.getPartition()
+              );
+              const folders = this._categorizerRepository.update(
+                realm,
+                existingPaperEntity ? existingPaperEntity.folders : [],
+                paperEntity.folders,
+                "PaperFolder",
+                this._databaseCore.getPartition()
+              );
+
+              const success = this._paperEntityRepository.update(
+                realm,
+                paperEntity,
+                tags,
+                folders,
+                existingPaperEntity,
+                this._databaseCore.getPartition()
+              );
+              updatedPaperEntityDrafts.push(
+                success ? paperEntity : existingPaperEntity
+              );
+            } catch (error) {
+              this._logService.error(
+                "Cannot update paper entity",
+                error as Error,
+                true,
+                "Database"
+              );
+              updatedPaperEntityDrafts.push(existingPaperEntity);
+            }
+          }
+
+          return updatedPaperEntityDrafts;
+        }
+      );
+
+      // handle files of failed updated paper entities
+      for (const i in dbUpdatedPaperEntityDrafts) {
+        const fileMovedPaperEntityDraft = fileMovedPaperEntityDrafts[i];
+        const dbUpdatedPaperEntityDraft = dbUpdatedPaperEntityDrafts[i];
+
+        if (dbUpdatedPaperEntityDraft === null) {
+          this._fileService.remove(fileMovedPaperEntityDraft);
+        } else if (
+          fileMovedPaperEntityDraft.mainURL !==
+          dbUpdatedPaperEntityDraft.mainURL
+        ) {
+          this._fileService.moveFile(
+            fileMovedPaperEntityDraft.mainURL,
+            dbUpdatedPaperEntityDraft.mainURL,
+            forceDelete,
+            forceNotLink
+          );
+        }
+      }
+      // #endregion ========================================================
+
+      // ========================================================
+      // #region 3. Create cache
+      const successfulEntityDrafts = dbUpdatedPaperEntityDrafts.filter(
+        (paperEntityDraft) => {
+          return paperEntityDraft !== null;
+        }
+      ) as PaperEntity[];
+
+      // Don't wait this
+      this._cacheService.updateFullTextCache(successfulEntityDrafts);
+
+      return successfulEntityDrafts;
+    } catch (error) {
       this._logService.error(
-        "Failed to move file",
+        "Cannot update paper entity",
         error as Error,
         true,
         "PaperService"
       );
-    });
-    // #endregion ========================================================
+      return [];
+    }
+  }
 
-    // ========================================================
-    // #region 2. Update database
-    const realm = await this._databaseCore.realm();
-    const dbUpdatedPaperEntityDrafts = realm.safeWrite(
-      (): (PaperEntity | null)[] => {
-        const updatedPaperEntityDrafts: (PaperEntity | null)[] = [];
+  /**
+   * Update paper entities with a categorizer.
+   * @param ids - The list of paper IDs.
+   * @param categorizer - The categorizer.
+   * @param type - The type of the categorizer.
+   * @returns
+   */
+  @processing(ProcessingKey.General)
+  async updateWithCategorizer(
+    ids: (string | ObjectId)[],
+    categorizer: Categorizer,
+    type: CategorizerType
+  ) {
+    try {
+      // 1. Get Entities by IDs.
+      const paperEntities = await this.loadByIds(ids);
 
-        for (const paperEntity of fileMovedPaperEntityDrafts) {
-          let existingPaperEntity: PaperEntity | null = null;
-          try {
-            if (paperEntity._id) {
-              const existingObjs = this._paperEntityRepository.loadByIds(
-                realm,
-                [paperEntity._id]
-              );
-              if (existingObjs.length > 0) {
-                existingPaperEntity = existingObjs[0];
-              }
-            }
-          } catch (error) {}
+      let paperEntityDrafts = paperEntities.map((paperEntity: PaperEntity) => {
+        return new PaperEntity(false).initialize(paperEntity);
+      });
 
-          try {
-            const tags = this._categorizerRepository.update(
-              realm,
-              existingPaperEntity ? existingPaperEntity.tags : [],
-              paperEntity.tags,
-              "PaperTag",
-              this._databaseCore.getPartition()
-            );
-            const folders = this._categorizerRepository.update(
-              realm,
-              existingPaperEntity ? existingPaperEntity.folders : [],
-              paperEntity.folders,
-              "PaperFolder",
-              this._databaseCore.getPartition()
-            );
-
-            const success = this._paperEntityRepository.update(
-              realm,
-              paperEntity,
-              tags,
-              folders,
-              existingPaperEntity,
-              this._databaseCore.getPartition()
-            );
-            updatedPaperEntityDrafts.push(
-              success ? paperEntity : existingPaperEntity
-            );
-          } catch (error) {
-            this._logService.error(
-              "Cannot update paper entity",
-              error as Error,
-              true,
-              "Database"
-            );
-            updatedPaperEntityDrafts.push(existingPaperEntity);
+      paperEntityDrafts = paperEntityDrafts.map((paperEntityDraft) => {
+        if (type === "PaperTag") {
+          let tagNames = paperEntityDraft.tags.map((tag) => tag.name);
+          if (!tagNames.includes(categorizer.name)) {
+            paperEntityDraft.tags.push(categorizer);
+          }
+        }
+        if (type === "PaperFolder") {
+          let folderNames = paperEntityDraft.folders.map(
+            (folder) => folder.name
+          );
+          if (!folderNames.includes(categorizer.name)) {
+            paperEntityDraft.folders.push(categorizer);
           }
         }
 
-        return updatedPaperEntityDrafts;
-      }
-    );
+        return paperEntityDraft;
+      });
 
-    // handle files of failed updated paper entities
-    for (const i in dbUpdatedPaperEntityDrafts) {
-      const fileMovedPaperEntityDraft = fileMovedPaperEntityDrafts[i];
-      const dbUpdatedPaperEntityDraft = dbUpdatedPaperEntityDrafts[i];
-
-      if (dbUpdatedPaperEntityDraft === null) {
-        this._fileService.remove(fileMovedPaperEntityDraft);
-      } else if (
-        fileMovedPaperEntityDraft.mainURL !== dbUpdatedPaperEntityDraft.mainURL
-      ) {
-        this._fileService.moveFile(
-          fileMovedPaperEntityDraft.mainURL,
-          dbUpdatedPaperEntityDraft.mainURL,
-          forceDelete,
-          forceNotLink
-        );
-      }
+      await this.update(paperEntityDrafts);
+    } catch (error) {
+      this._logService.error(
+        `Failed to add paper to ${categorizer.name}`,
+        error as Error,
+        true,
+        "PaperService"
+      );
     }
-    // #endregion ========================================================
-
-    // 3. Create cache
-    // TODO: create cache service, in that service, we should check md5 to see if we need to update cache
-    // await this.dbRepository.updatePaperEntitiesCacheFullText(
-    //   successfulEntityDrafts
-    // );
   }
 
   /**
@@ -377,7 +441,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
         "Cannot delete paper entity",
         error as Error,
         true,
-        "Database"
+        "PaperService"
       );
     }
   }
@@ -407,7 +471,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
         `Remove supplementary file failed: ${url}`,
         error as Error,
         true,
-        "Entity"
+        "PaperService"
       );
     }
   }
@@ -431,13 +495,55 @@ export class PaperService extends Eventable<IPaperServiceState> {
       );
 
       // 2. Update.
-      await this.update(scrapedPaperEntityDrafts);
+      return await this.update(scrapedPaperEntityDrafts);
     } catch (error) {
       this._logService.error(
         "Failed to Add papers to library",
         error as Error,
         true,
-        "Paper"
+        "PaperService"
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Create paper entity from a URL with a given categorizer.
+   * @param urlList - The list of URLs.
+   * @param categorizer - The categorizer.
+   * @param type - The type of categorizer.
+   * @returns
+   */
+  @processing(ProcessingKey.General)
+  async createIntoCategorizer(
+    urlList: string[],
+    categorizer: Categorizer,
+    type: CategorizerType
+  ) {
+    try {
+      const paperEntityDrafts = await this.create(urlList);
+
+      const toBeUpdatedPaperEntityDrafts = paperEntityDrafts.map(
+        (paperEntityDraft) => {
+          if ((type = "PaperTag")) {
+            paperEntityDraft.setValue("tags", [
+              new PaperTag("", 0, "").initialize(categorizer),
+            ]);
+          } else if (type === "PaperFolder") {
+            paperEntityDraft.setValue("folders", [
+              new PaperFolder("", 0, "").initialize(categorizer),
+            ]);
+          }
+          return paperEntityDraft;
+        }
+      );
+      await this.update(toBeUpdatedPaperEntityDrafts);
+    } catch (error) {
+      this._logService.error(
+        "Add paper to library failed",
+        error as Error,
+        true,
+        "PaperService"
       );
     }
   }
@@ -463,6 +569,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
         specificScrapers || [],
         specificScrapers ? true : false
       );
+
+      await this.update(scrapedPaperEntityDrafts);
     } catch (error) {
       this._logService.error(
         "Failed to scrape metadata!",
@@ -471,8 +579,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
         "PaperService"
       );
     }
-
-    await this.update(paperEntities);
   }
 
   /**

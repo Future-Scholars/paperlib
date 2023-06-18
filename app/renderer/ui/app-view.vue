@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import "splitpanes/dist/splitpanes.css";
-import {
-  Ref,
-  computed,
-  getCurrentScope,
-  nextTick,
-  onMounted,
-  provide,
-  ref,
-  watch,
-} from "vue";
+import { Ref, computed, nextTick, onMounted, provide, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/preload/loading";
@@ -18,7 +9,6 @@ import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repo
 import { FeedResults } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
-import { DatabaseService } from "@/services/database-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
@@ -113,28 +103,22 @@ disposable(
 );
 
 const reloadTags = async () => {
-  tags.value = await window.entityInteractor.loadCategorizers(
+  tags.value = await categorizerService.load(
     "PaperTag",
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
-watch(
-  () => dbState.tagsUpdated,
-  (value) => reloadTags()
-);
+disposable(categorizerService.on("tagsUpdated", () => reloadTags()));
 
 const reloadFolders = async () => {
-  folders.value = await window.entityInteractor.loadCategorizers(
+  folders.value = await categorizerService.load(
     "PaperFolder",
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
-watch(
-  () => dbState.foldersUpdated,
-  (value) => reloadFolders()
-);
+disposable(categorizerService.on("foldersUpdated", () => reloadFolders()));
 
 const reloadPaperSmartFilters = async () => {
   smartfilters.value = await window.entityInteractor.loadPaperSmartFilters(
@@ -226,9 +210,8 @@ watch(
   }
 );
 
-watch(
-  () => viewState.realmReiniting,
-  (value) => {
+disposable(
+  databaseService.on("dbInitialized", async () => {
     selectionState.selectedCategorizer = "";
     selectionState.selectedFeed = "";
     selectionState.selectedIds = [];
@@ -236,20 +219,11 @@ watch(
     selectionState.dragedIds = [];
     selectionState.pluginLinkedFolder = "";
     selectionState.editingCategorizer = "";
-
     paperEntities.value = [];
     tags.value = [];
     folders.value = [];
     feeds.value = [];
     feedEntities.value = [];
-
-    window.appInteractor.initDB();
-  }
-);
-
-watch(
-  () => viewState.realmReinited,
-  async (value) => {
     var startTime = Date.now();
     await reloadPaperEntities();
     await reloadTags();
@@ -259,23 +233,23 @@ watch(
     reloadFeedEntities();
     reloadFeeds();
     var endTime = Date.now();
-    window.logger.info(
+    logService.info(
       `Data reinited in ${endTime - startTime}ms`,
       "",
       false,
-      "Data"
+      "UI"
     );
-  }
+  })
 );
 
 window.appInteractor.registerMainSignal("window-lost-focus", (_: any) => {
   viewState.mainViewFocused = false;
-  void window.appInteractor.pauseSync();
+  databaseService.pauseSync();
 });
 
 window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
   viewState.mainViewFocused = true;
-  void window.appInteractor.resumeSync();
+  databaseService.resumeSync();
 });
 
 window.appInteractor.registerMainSignal("update-download-progress", (value) => {
@@ -349,7 +323,7 @@ const isWhatsNewShown = ref(false);
 onMounted(async () => {
   nextTick(async () => {
     isWhatsNewShown.value = await appService.isVersionChanged();
-    window.appInteractor.initDB();
+    await databaseService.initialize(true);
   });
 });
 </script>

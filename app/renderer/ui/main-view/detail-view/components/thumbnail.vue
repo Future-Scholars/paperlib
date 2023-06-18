@@ -27,10 +27,7 @@ const fileExistingStatus = ref(1);
 
 const renderFromFile = async () => {
   isRendering.value = true;
-  const fileURL = await window.appInteractor.access(
-    props.entity.mainURL,
-    false
-  );
+  const fileURL = await fileService.access(props.entity.mainURL, false);
   if (fileURL.length === 0) {
     isRendering.value = false;
     fileExistingStatus.value = 1;
@@ -46,7 +43,7 @@ const renderFromFile = async () => {
   isRendering.value = false;
 
   if (thumbnailCache.blob) {
-    window.entityInteractor.updateThumbnailCache(
+    cacheService.updateThumbnailCache(
       props.entity,
       thumbnailCache as ThumbnailCache
     );
@@ -55,18 +52,13 @@ const renderFromFile = async () => {
 
 const render = async () => {
   isRendering.value = true;
-  const fileURL = await window.appInteractor.access(
-    props.entity.mainURL,
-    false
-  );
+  const fileURL = await fileService.access(props.entity.mainURL, false);
   if (
     props.entity.mainURL &&
     fileURL &&
     !fileURL.startsWith("downloadRequired://")
   ) {
-    const cachedThumbnail = await window.entityInteractor.loadThumbnail(
-      props.entity
-    );
+    const cachedThumbnail = await cacheService.loadThumbnail(props.entity);
     if (cachedThumbnail?.blob && cachedThumbnail?.blob.byteLength > 0) {
       try {
         window.renderInteractor.renderCache(cachedThumbnail as ThumbnailCache);
@@ -93,11 +85,8 @@ const onClick = async (e: MouseEvent) => {
   e.preventDefault();
   e.stopPropagation();
 
-  const fileURL = await window.appInteractor.access(
-    props.entity.mainURL,
-    false
-  );
-  window.appInteractor.open(fileURL);
+  const fileURL = await fileService.access(props.entity.mainURL, false);
+  fileService.open(fileURL);
 };
 
 const showFilePicker = async () => {
@@ -113,7 +102,7 @@ const locatePDF = async () => {
 
 const onWebdavDownloadClicked = async () => {
   isRendering.value = true;
-  const fileURL = await window.appInteractor.access(props.entity.mainURL, true);
+  const fileURL = await fileService.access(props.entity.mainURL, true);
   isRendering.value = false;
   if (fileURL === "") {
     return;

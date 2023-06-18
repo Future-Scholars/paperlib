@@ -11,6 +11,7 @@ import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 import { APPService, IAPPService } from "@/services/app-service";
+import { FileService, IFileService } from "@/services/file-service";
 import { ILogService, LogService } from "@/services/log-service";
 import {
   IPreferenceService,
@@ -41,8 +42,9 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
 
   constructor(
     @IAPPService private readonly _appService: APPService,
+    @IFileService private readonly _fileService: FileService,
     @IPreferenceService private readonly _preferenceService: PreferenceService,
-    @ILogService private readonly logService: LogService
+    @ILogService private readonly _logService: LogService
   ) {
     super("databaseCore", {
       dbInitializing: 0,
@@ -64,16 +66,14 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
    */
   @processing(ProcessingKey.General)
   async initRealm(reinit = false): Promise<Realm> {
-    this.logService.info("Initializing database...", "", true, "Database");
-
-    // Stop watch file to release lock
-    // TODO: move this, should be here?
-    await window.appInteractor.fileRepository.stopWatch();
+    this._logService.info("Initializing database...", "", true, "Database");
+    await this._fileService.stopWatch();
 
     if (this._realm || reinit) {
+      this._realm?.removeAllListeners();
       this.fire("dbInitializing");
 
-      // TODO: Check all injected with this
+      // TODO: Check all injected object use this. nor global
       Realm.defaultPath = await this._appService.userDataPath();
       if (this._realm) {
         this._realm.close();
@@ -83,8 +83,6 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       this._syncSession = undefined;
 
       // TODO: listen this
-      // this.paperEntityRepository.removeListeners();
-      // this.categorizerRepository.removeListeners();
       // this.smartfilterRepository.removeListeners();
       // this.feedRepository.removeListeners();
       // this.feedEntityRepository.removeListeners();
@@ -106,7 +104,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
               this._realm = new Realm(config);
               this._syncSession = this._realm.syncSession;
             } catch (err) {
-              this.logService.error(
+              this._logService.error(
                 "Failed to open cloud database",
                 err as Error,
                 true,
@@ -115,7 +113,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
             }
           }
         } else {
-          window.logger.error(
+          this._logService.error(
             "Failed to open cloud database",
             err as Error,
             true,
@@ -127,7 +125,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       try {
         this._realm = new Realm(config);
       } catch (err) {
-        this.logService.error(
+        this._logService.error(
           "Failed to open local database",
           err as Error,
           true,
@@ -144,12 +142,14 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       }
     };
 
-    this.fire("dbInitialized");
-    // Start watch file
-    // TODO: move this
-    window.appInteractor.fileRepository.startWatch();
+    this._realm!.paperEntityListened = false;
+    this._realm!.tagsListened = false;
+    this._realm!.foldersListened = false;
 
-    this.logService.info("Database initialized.", "", true, "Database");
+    this.fire("dbInitialized");
+    await this._fileService.startWatch();
+
+    this._logService.info("Database initialized.", "", true, "Database");
     return this._realm!;
   }
 
@@ -165,11 +165,10 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
 
     if (this._preferenceService.get("useSync")) {
       try {
-        syncPassword = (await window.appInteractor.getPassword(
-          "realmSync"
-        )) as string;
+        syncPassword =
+          (await this._preferenceService.getPassword("realmSync")) || "";
       } catch (err) {
-        this.logService.error(
+        this._logService.error(
           "Failed to get sync password",
           err as Error,
           true,
@@ -259,7 +258,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       };
       return config;
     } else {
-      this.logService.warn(
+      this._logService.warn(
         "Failed to login to cloud database",
         "",
         true,
@@ -285,20 +284,21 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
     }
 
     if (!window.networkTool.connected()) {
-      this.logService.warn("No network connection...", "", true, "Database");
+      this._logService.warn("No network connection...", "", true, "Database");
       return this._app?.currentUser ?? null;
     }
 
     try {
-      const syncPassword = await window.appInteractor.getPassword("realmSync");
+      const syncPassword =
+        (await this._preferenceService.getPassword("realmSync")) || "";
       const credentials = Realm.Credentials.emailPassword(
-        window.appInteractor.getPreference("syncEmail") as string,
-        syncPassword as string
+        this._preferenceService.get("syncEmail") as string,
+        syncPassword
       );
 
       const loginedUser = await this._app.logIn(credentials);
 
-      this.logService.info("Logged in!", "", true, "Database");
+      this._logService.info("Logged in!", "", true, "Database");
 
       this._app.switchUser(loginedUser);
 
@@ -306,7 +306,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       return this._app.currentUser;
     } catch (error) {
       this._preferenceService.set({ useSync: false });
-      this.logService.error(
+      this._logService.error(
         "Failed to login to cloud database",
         error as Error,
         true,

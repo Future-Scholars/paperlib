@@ -242,7 +242,7 @@ const onItemRightClicked = (event: MouseEvent, index: number) => {
 const onItemDoubleClicked = (event: MouseEvent, index: number, url: string) => {
   selectedIndex.value = [index];
   selectionState.selectedIndex = selectedIndex.value;
-  window.appInteractor.open(url);
+  fileService.open(url);
 };
 
 const registerDropHandler = () => {
@@ -257,7 +257,7 @@ const registerDropHandler = () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
         filePaths.push(`file://${file.path as string}`);
       });
-      await window.entityInteractor.create(filePaths);
+      await paperService.create(filePaths);
     },
   });
 };
@@ -274,7 +274,7 @@ const showingUrl = ref("");
 const accessMainFile = async (index: number) => {
   const paperEntity = paperEntities?.value[index];
   if (paperEntity) {
-    const url = await window.appInteractor.access(paperEntity!.mainURL, false);
+    const url = await fileService.access(paperEntity!.mainURL, false);
 
     if (viewState.searchMode === "fulltext" && viewState.searchText !== "") {
       showingUrl.value = `../viewer/viewer.html?file=${url}&search=${viewState.searchText}`;

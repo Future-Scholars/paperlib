@@ -14,20 +14,12 @@ export interface IPaperEntityRepositoryState {
 export const IPaperEntityRepository = createDecorator("paperEntityRepository");
 
 export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState> {
-  private _listened: boolean;
-
   // TODO: repository should not access services such as log service. Just throw error.
   constructor() {
     super("PaperEntityRepository", {
       count: 0,
       updated: 0,
     });
-    this._listened = false;
-  }
-
-  removeListeners() {
-    // TODO: where to use this?
-    this._listened = false;
   }
 
   /**
@@ -47,7 +39,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     let objects = realm.objects<PaperEntity>("PaperEntity");
     this.fire({ count: objects.length });
 
-    if (!this._listened) {
+    if (!realm.paperEntityListened) {
       objects.addListener((objs, changes) => {
         const deletionCount = changes.deletions.length;
         const insertionCount = changes.insertions.length;
@@ -58,7 +50,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           this.fire("updated");
         }
       });
-      this._listened = true;
+      realm.paperEntityListened = true;
     }
 
     if (filter) {

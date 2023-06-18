@@ -20,25 +20,11 @@ export interface ICategorizerRepositoryState {
 export const ICategorizerRepository = createDecorator("categorizerRepository");
 
 export class CategorizerRepository extends Eventable<ICategorizerRepositoryState> {
-  private _listened: Record<CategorizerType, boolean>;
-
   constructor() {
     super("categorizerRepository", {
       tagsUpdated: 0,
       foldersUpdated: 0,
     });
-
-    this._listened = {
-      PaperTag: false,
-      PaperFolder: false,
-    };
-  }
-
-  removeListeners() {
-    this._listened = {
-      PaperTag: false,
-      PaperFolder: false,
-    };
   }
 
   /**
@@ -59,7 +45,11 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
       .objects<Categorizer>(type)
       .sorted(sortBy, sortOrder == "desc");
 
-    if (!this._listened[type]) {
+    if (
+      !{ PaperTag: realm.tagsListened, PaperFolder: realm.foldersListened }[
+        type
+      ]
+    ) {
       objects.addListener((objs, changes) => {
         const deletionCount = changes.deletions.length;
         const insertionCount = changes.insertions.length;
@@ -76,7 +66,13 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
           }
         }
       });
-      this._listened[type] = true;
+      if (type === "PaperTag") {
+        realm.tagsListened = true;
+      } else if (type === "PaperFolder") {
+        realm.foldersListened = true;
+      } else {
+        throw new Error(`Unknown categorizer type: ${type}`);
+      }
     }
     return objects;
   }
@@ -127,7 +123,7 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
   // ========================
   // Update
   // ========================
-  async colorize(
+  colorize(
     realm: Realm,
     color: Colors,
     type: CategorizerType,
@@ -153,7 +149,7 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     });
   }
 
-  async rename(
+  rename(
     realm: Realm,
     oldName: string,
     newName: string,

@@ -69,7 +69,7 @@ const onCustomRenamingFormatUpdate = (payload: Event) => {
 };
 
 const onRenameAllClicked = () => {
-  window.entityInteractor.renameAll();
+  paperService.renameAll();
 };
 
 const onChangePDFViewer = async (pdfViewer: string) => {

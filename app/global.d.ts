@@ -13,7 +13,10 @@ import { WordAddinInteractor } from "./interactors/word-addin-interactor";
 import { Preference } from "./preference/preference";
 import { APPService } from "./services/app-service";
 import { BufferService } from "./services/buffer-service";
+import { CacheService } from "./services/cache-service";
+import { CategorizerService } from "./services/categorizer-service";
 import { DatabaseService } from "./services/database-service";
+import { FileService } from "./services/file-service";
 import { LogService } from "./services/log-service";
 import { PaperService } from "./services/paper-service";
 import { PreferenceService } from "./services/preference-service";
@@ -41,6 +44,9 @@ declare global {
 
   interface Realm {
     safeWrite: <T>(callback: () => T) => T;
+    paperEntityListened: boolean;
+    tagsListened: boolean;
+    foldersListened: boolean;
   }
 
   var paperlibAPI: APIClient;
@@ -52,6 +58,9 @@ declare global {
   var databaseService: DatabaseService;
   var paperService: PaperService;
   var bufferService: BufferService;
+  var cacheService: CacheService;
+  var categorizerService: CategorizerService;
+  var fileService: FileService;
 
   var processingState: Store<"processingState", IProcessingState>;
 }

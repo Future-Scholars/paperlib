@@ -1,8 +1,8 @@
 import { ipcRenderer } from "electron";
 import ElectronStore from "electron-store";
+import keytar from "keytar";
 import os from "os";
 import { join } from "path";
-import { defineStore } from "pinia";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -607,5 +607,13 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
   set(patch: Partial<IPreferenceStore>) {
     this._store.set(patch);
     this.fire(patch);
+  }
+
+  async getPassword(key: string) {
+    return await keytar.getPassword("paperlib", key);
+  }
+
+  async setPassword(key: string, pwd: string) {
+    await keytar.setPassword("paperlib", key, pwd);
   }
 }

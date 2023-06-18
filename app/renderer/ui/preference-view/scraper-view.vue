@@ -167,9 +167,7 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
 };
 
 const onClickGuide = () => {
-  window.appInteractor.open(
-    "https://github.com/Future-Scholars/paperlib/wiki/"
-  );
+  fileService.open("https://github.com/Future-Scholars/paperlib/wiki/");
 };
 
 disposable(
