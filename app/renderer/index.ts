@@ -27,6 +27,7 @@ import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
 import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
+import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
 import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
@@ -92,6 +93,7 @@ const instances = injectionContainer.createInstance<IInjectable>({
   cacheDatabaseCore: CacheDatabaseCore,
   cacheService: CacheService,
   categorizerService: CategorizerService,
+  fileSourceRepository: FileSourceRepository,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;

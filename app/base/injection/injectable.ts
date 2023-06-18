@@ -2,6 +2,7 @@ import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository-v2";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
+import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
 import { APPService } from "@/services/app-service";
 import { BufferService } from "@/services/buffer-service";
 import { CacheService } from "@/services/cache-service";
@@ -29,4 +30,5 @@ export type IInjectable =
   | FileService
   | CacheService
   | CacheDatabaseCore
-  | CategorizerService;
+  | CategorizerService
+  | FileSourceRepository;

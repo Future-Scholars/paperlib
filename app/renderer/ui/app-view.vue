@@ -9,6 +9,7 @@ import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repo
 import { FeedResults } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
+import { LogService } from "@/services/log-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
@@ -260,21 +261,19 @@ window.appInteractor.registerMainSignal("update-download-progress", (value) => {
 // Dev Functions
 // ================================
 const addDummyData = async () => {
-  await window.entityInteractor.addDummyData();
+  await paperService.addDummyData();
 };
 const addTestData = async () => {
-  await window.entityInteractor.create([
-    `${process.cwd()}/tests/pdfs/cs/1.pdf`,
-  ]);
+  await paperService.create([`${process.cwd()}/tests/pdfs/cs/1.pdf`]);
 };
 const addTwoTestData = async () => {
-  await window.entityInteractor.create([
+  await paperService.create([
     `${process.cwd()}/tests/pdfs/cs/1.pdf`,
     `${process.cwd()}/tests/pdfs/cs/2.pdf`,
   ]);
 };
 const removeAll = async () => {
-  await window.entityInteractor.removeAll();
+  await paperService.removeAll();
 };
 const reloadAll = async () => {
   await reloadPaperEntities();
@@ -300,19 +299,19 @@ const log = () => {
 };
 const logInfo = () => {
   const randomString = Math.random().toString(36).slice(-8);
-  window.logger.info(randomString, "additional info", true, "DEVLOG");
+  logService.info(randomString, "additional info", true, "DEVLOG");
 };
 const logWarn = () => {
   const randomString = Math.random().toString(36).slice(-8);
-  window.logger.warn(randomString, "additional info", true, "DEVLOG");
+  logService.warn(randomString, "additional info", true, "DEVLOG");
 };
 const logError = () => {
   const randomString = Math.random().toString(36).slice(-8);
-  window.logger.error(randomString, "additional info", true, "DEVLOG");
+  logService.error(randomString, "additional info", true, "DEVLOG");
 };
 const logProgress = () => {
   const randomNumber = Math.floor(Math.random() * 100);
-  window.logger.progress("Progress...", randomNumber, true, "DEVLOG");
+  logService.progress("Progress...", randomNumber, true, "DEVLOG");
 };
 
 const isWhatsNewShown = ref(false);

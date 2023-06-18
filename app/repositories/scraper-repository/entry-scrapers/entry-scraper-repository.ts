@@ -4,14 +4,14 @@ import { BibTexEntryScraper } from "./scrapers/bibtex-entry-scraper";
 import { AbstractEntryScraper } from "./scrapers/entry-scraper";
 import { PaperEntityEntryScraper } from "./scrapers/paperentity-entry-scraper";
 import { PDFEntryScraper } from "./scrapers/pdf-entry-scraper";
+import { ZoteroCSVEntryScraper } from "./scrapers/zoterocsv-entry-scraper";
 
 const SCRAPER_OBJS = new Map<string, typeof AbstractEntryScraper>([
   ["pdf", PDFEntryScraper],
   ["bibtex", BibTexEntryScraper],
   ["paperentity", PaperEntityEntryScraper],
+  ["zoterocsv", ZoteroCSVEntryScraper],
 ]);
-
-// TODO: zotero csv
 
 export class EntryScraperRepository {
   async scrape(payloads: any[]): Promise<PaperEntity[]> {

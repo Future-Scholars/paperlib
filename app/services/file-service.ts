@@ -4,6 +4,7 @@ import { existsSync } from "fs";
 import os from "os";
 import path from "path";
 
+import { chunkRun } from "@/base/chunk";
 import { createDecorator } from "@/base/injection/injection";
 import {
   eraseProtocol,
@@ -16,8 +17,13 @@ import { PaperEntity } from "@/models/paper-entity";
 import { IFileBackend } from "@/repositories/file-repository/backend";
 import { LocalFileBackend } from "@/repositories/file-repository/local-backend";
 import { WebDavFileBackend } from "@/repositories/file-repository/webdav-backend";
+import {
+  FileSourceRepository,
+  IFileSourceRepository,
+} from "@/repositories/filesource-repository/filesource-repository";
 import { ILogService, LogService } from "@/services/log-service";
 import {
+  IDownloaderPreference,
   IPreferenceService,
   PreferenceService,
 } from "@/services/preference-service";
@@ -28,6 +34,8 @@ export class FileService {
   private _backend: IFileBackend;
 
   constructor(
+    @IFileSourceRepository
+    private readonly _fileSourceRepository: FileSourceRepository,
     @ILogService private readonly _logService: LogService,
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
@@ -122,7 +130,10 @@ export class FileService {
     fourceDelete = false,
     forceNotLink = false
   ): Promise<PaperEntity> {
-    console.log(paperEntity);
+    if (!paperEntity.mainURL) {
+      return paperEntity;
+    }
+
     let title =
       paperEntity.title.replace(/[^\p{L}|\s]/gu, "").replace(/\s/g, "_") ||
       "untitled";
@@ -273,36 +284,51 @@ export class FileService {
    * @returns
    */
   async locateFileOnWeb(paperEntities: PaperEntity[]) {
-    // TODO: implement
-    // this._logService.info(
-    //   `Locating files for ${paperEntities.length} paper(s)...`,
-    //   "",
-    //   true,
-    //   "FileService"
-    // );
-    // let paperEntityDrafts = paperEntities.map((paperEntity) => {
-    //   return new PaperEntity(false).initialize(paperEntity);
-    // });
-    // let updatedPaperEntities: PaperEntity[] = [];
-    // try {
-    //   const downloadPromise = async (paperEntityDraft: PaperEntity) => {
-    //     return await this.downloaderRepository.download(paperEntityDraft);
-    //   };
-    //   paperEntityDrafts = await Promise.all(
-    //     paperEntityDrafts.map((paperEntityDraft) =>
-    //       downloadPromise(paperEntityDraft)
-    //     )
-    //   );
-    //   updatedPaperEntities = await this.update(paperEntityDrafts, false, true);
-    // } catch (error) {
-    //   this._logService.error(
-    //     "Download paper failed",
-    //     error as Error,
-    //     true,
-    //     "FileService"
-    //   );
-    // }
-    // return updatedPaperEntities;
+    this._logService.info(
+      `Locating files for ${paperEntities.length} paper(s)...`,
+      "",
+      true,
+      "FileService"
+    );
+
+    const downloaderPref = this._preferenceService.get(
+      "downloaders"
+    ) as IDownloaderPreference[];
+    let fileSources: string[] = [];
+    for (const pref of downloaderPref) {
+      if (pref.enable) {
+        fileSources.push(pref.name);
+      }
+    }
+
+    let paperEntityDrafts = paperEntities.map((paperEntity) => {
+      return new PaperEntity(false).initialize(paperEntity);
+    });
+
+    const { results: updatedPaperEntities, errors } = await chunkRun(
+      paperEntityDrafts,
+      async (paperEntityDraft: PaperEntity) => {
+        const { paperEntityDraft: updatedPaperEntity, errors } =
+          await this._fileSourceRepository.download(
+            paperEntityDraft,
+            fileSources
+          );
+        errors.forEach((error) => {
+          this._logService.error(
+            "Download paper failed",
+            error as Error,
+            true,
+            "FileService"
+          );
+        });
+
+        return updatedPaperEntity;
+      },
+      async (paperEntityDraft: PaperEntity) => {
+        return paperEntityDraft;
+      }
+    );
+    return updatedPaperEntities;
   }
 
   /**

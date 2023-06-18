@@ -1,14 +1,8 @@
 import { readFileSync } from "fs";
 
 import { bibtex2json, bibtex2paperEntityDraft } from "@/base/bibtex";
-import {
-  constructFileURL,
-  eraseProtocol,
-  getFileType,
-  getProtocol,
-} from "@/base/url";
+import { eraseProtocol, getFileType, getProtocol } from "@/base/url";
 import { PaperEntity } from "@/models/paper-entity";
-import { formatString } from "@/utils/string";
 
 import { AbstractEntryScraper } from "./entry-scraper";
 

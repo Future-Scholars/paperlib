@@ -242,6 +242,8 @@ export class NetworkTool {
           })
           .on("downloadProgress", (progress) => {
             const percent = progress.percent;
+
+            // TODO: Log only every 5 percent
             window.logger.progress(
               "Downloading...",
               percent * 100,

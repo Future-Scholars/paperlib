@@ -9,12 +9,13 @@ export interface ScraperRequestType {
   content?: Record<string, any>;
 }
 
-export class Scraper {
-
+export abstract class Scraper {
   // All use static methods seems to be a better design for cross scrapers calls.
 
-  static async scrape(paperEntityDraft: PaperEntity, force = false): Promise<PaperEntity> {
-
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
     if (!this.checkEnable(paperEntityDraft) && !force) {
       return paperEntityDraft;
     }
@@ -46,5 +47,4 @@ export class Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
     return !isMetadataCompleted(paperEntityDraft);
   }
-
 }

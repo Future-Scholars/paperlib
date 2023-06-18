@@ -202,8 +202,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
   @processing(ProcessingKey.General)
   async update(
     paperEntityDrafts: PaperEntity[],
-    forceDelete = true,
-    forceNotLink = false
+    forceDelete = false,
+    forceNotLink = true
   ): Promise<PaperEntity[]> {
     // TODO: why we need forceDelete and forceNotLink?
 
@@ -240,16 +240,15 @@ export class PaperService extends Eventable<IPaperServiceState> {
       });
 
       // filter paper entities with files that are not moved (still absolute path)
-      fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.filter(
-        (paperEntityDraft) => {
-          return (
-            paperEntityDraft.mainURL &&
-            !path.isAbsolute(paperEntityDraft.mainURL)
-          );
-        }
-      );
       fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.map(
         (paperEntityDraft) => {
+          if (
+            paperEntityDraft.mainURL &&
+            path.isAbsolute(paperEntityDraft.mainURL)
+          ) {
+            paperEntityDraft.mainURL = "";
+          }
+
           paperEntityDraft.supURLs = paperEntityDraft.supURLs.filter((url) => {
             return path && !path.isAbsolute(url);
           });
@@ -486,7 +485,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     try {
       // 1. Scrape
       const payloads = urlList.map((url) => {
-        url;
+        return { url };
       });
       const scrapedPaperEntityDrafts = await this._scrapeService.scrape(
         payloads,
@@ -618,4 +617,12 @@ export class PaperService extends Eventable<IPaperServiceState> {
       );
     }
   }
+
+  // ======================= //
+  // DEV functions
+  // ======================= //
+
+  addDummyData() {}
+
+  removeAll() {}
 }

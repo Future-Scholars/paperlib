@@ -65,10 +65,10 @@ const modifyMainFile = async (url: string) => {
 
 const locateMainFile = async () => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
-  const updatedPaperEntity = await window.entityInteractor.locateMainFile([
+  const updatedPaperEntity = await fileService.locateFileOnWeb([
     paperEntityDraft,
   ]);
-  await cacheService.updateCache(updatedPaperEntity);
+  await paperService.update(updatedPaperEntity);
   viewState.renderRequired = Date.now();
 };
 
