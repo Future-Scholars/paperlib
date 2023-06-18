@@ -122,16 +122,13 @@ const reloadFolders = async () => {
 disposable(categorizerService.on("foldersUpdated", () => reloadFolders()));
 
 const reloadPaperSmartFilters = async () => {
-  smartfilters.value = await window.entityInteractor.loadPaperSmartFilters(
+  smartfilters.value = await smartFilterService.load(
     "PaperPaperSmartFilter",
     prefState.sidebarSortBy === "count" ? "name" : prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
-watch(
-  () => dbState.smartfiltersUpdated,
-  (value) => reloadPaperSmartFilters()
-);
+disposable(smartFilterService.on("updated", () => reloadPaperSmartFilters()));
 
 const reloadFeeds = async () => {
   const results = await window.feedInteractor.loadFeeds(

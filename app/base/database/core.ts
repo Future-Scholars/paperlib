@@ -83,7 +83,6 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       this._syncSession = undefined;
 
       // TODO: listen this
-      // this.smartfilterRepository.removeListeners();
       // this.feedRepository.removeListeners();
       // this.feedEntityRepository.removeListeners();
     }
@@ -145,6 +144,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
     this._realm!.paperEntityListened = false;
     this._realm!.tagsListened = false;
     this._realm!.foldersListened = false;
+    this._realm!.smartfilterListened = false;
 
     this.fire("dbInitialized");
     await this._fileService.startWatch();

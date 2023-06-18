@@ -147,7 +147,7 @@ window.appInteractor.registerMainSignal(
   (args) => {
     if (viewState.contentType === "library") {
       if (args[2] === "PaperPaperSmartFilter") {
-        window.entityInteractor.deletePaperSmartFilter(args[1], args[0]);
+        smartFilterService.delete(args[1], args[0]);
       } else {
         categorizerService.delete(args[1], args[0]);
       }
@@ -161,11 +161,7 @@ window.appInteractor.registerMainSignal(
   (args) => {
     if (viewState.contentType === "library") {
       if (args[2] === "PaperPaperSmartFilter") {
-        window.entityInteractor.colorizePaperSmartFilter(
-          args[2],
-          args[1],
-          args[0]
-        );
+        smartFilterService.colorize(args[2], args[1], args[0]);
       } else {
         categorizerService.colorize(args[2], args[1], args[0]);
       }

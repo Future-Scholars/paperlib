@@ -29,11 +29,11 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
 
   /**
    * Load all categorizers.
-   * @param realm - Realm instance.
-   * @param type - Categorizer type.
-   * @param sortBy - Sort by field.
-   * @param sortOrder - Sort order.
-   * @returns Results of categorizer.
+   * @param realm - Realm instance
+   * @param type - Categorizer type
+   * @param sortBy - Sort by field
+   * @param sortOrder - Sort order
+   * @returns Results of categorizer
    */
   load(
     realm: Realm,
@@ -120,9 +120,15 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     });
   }
 
-  // ========================
-  // Update
-  // ========================
+  /**
+   * Colorize categorizer.
+   * @param realm - Realm instance
+   * @param color - Color
+   * @param type - Categorizer type
+   * @param categorizer - Categorizer
+   * @param name - Name of categorizer
+   * @returns True if success
+   */
   colorize(
     realm: Realm,
     color: Colors,
@@ -149,6 +155,14 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     });
   }
 
+  /**
+   * Rename categorizer.
+   * @param realm - Realm instance
+   * @param oldName - Old name
+   * @param newName - New name
+   * @param type - Categorizer type
+   * @returns True if success
+   */
   rename(
     realm: Realm,
     oldName: string,
@@ -166,6 +180,15 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     });
   }
 
+  /**
+   * Update categorizer.
+   * @param realm - Realm instance
+   * @param existCategorizers - Exist categorizers
+   * @param updateCategorizers - Update categorizers
+   * @param type - Categorizer type
+   * @param partition - Partition
+   * @returns True if success
+   */
   update(
     realm: Realm,
     existCategorizers: Categorizer[],

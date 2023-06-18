@@ -75,7 +75,7 @@ const onSaveClicked = async () => {
     return;
   }
 
-  window.entityInteractor.insertPaperSmartFilter(
+  smartFilterService.insert(
     new PaperSmartFilter("", "").initialize(editingPaperSmartFilterDraft.value),
     "PaperPaperSmartFilter"
   );

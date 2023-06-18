@@ -28,7 +28,6 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
       foldersUpdated: 0,
     });
 
-    this._categorizerRepository = new CategorizerRepository();
     this._categorizerRepository.on(
       ["tagsUpdated", "foldersUpdated"],
       (payload) => {

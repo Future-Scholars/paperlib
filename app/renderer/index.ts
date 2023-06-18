@@ -42,6 +42,7 @@ import { LogService } from "@/services/log-service";
 import { PaperService } from "@/services/paper-service";
 import { PreferenceService } from "@/services/preference-service";
 import { ScrapeService } from "@/services/scrape-service";
+import { SmartFilterService } from "@/services/smartfilter-service";
 import { useProcessingState } from "@/services/state-service/processing";
 import { StateService } from "@/services/state-service/state-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
@@ -94,6 +95,7 @@ const instances = injectionContainer.createInstance<IInjectable>({
   cacheService: CacheService,
   categorizerService: CategorizerService,
   fileSourceRepository: FileSourceRepository,
+  smartFilterService: SmartFilterService,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;

@@ -20,6 +20,7 @@ import { FileService } from "./services/file-service";
 import { LogService } from "./services/log-service";
 import { PaperService } from "./services/paper-service";
 import { PreferenceService } from "./services/preference-service";
+import { SmartFilterService } from "./services/smartfilter-service";
 import { StateService } from "./services/state-service/state-service";
 import { IProcessingState } from "./services/state-service/state/processing";
 import { MainRendererStateStore } from "./state/renderer/appstate";
@@ -47,6 +48,7 @@ declare global {
     paperEntityListened: boolean;
     tagsListened: boolean;
     foldersListened: boolean;
+    smartfilterListened: boolean;
   }
 
   var paperlibAPI: APIClient;
@@ -61,6 +63,7 @@ declare global {
   var cacheService: CacheService;
   var categorizerService: CategorizerService;
   var fileService: FileService;
+  var smartFilterService: SmartFilterService;
 
   var processingState: Store<"processingState", IProcessingState>;
 }

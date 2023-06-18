@@ -27,7 +27,7 @@ const importFromFolderClicked = async () => {
 
 const importFromZoteroCSVClicked = async () => {
   if (zoteroCSVPath.value) {
-    window.entityInteractor.createFromZoteroCSV(zoteroCSVPath.value);
+    paperService.create([zoteroCSVPath.value]);
   }
 };
 </script>
