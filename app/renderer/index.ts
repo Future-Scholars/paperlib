@@ -14,7 +14,6 @@ import { DatabaseCore } from "@/base/database/core";
 import { IInjectable } from "@/base/injection/injectable";
 import { InjectionContainer } from "@/base/injection/injection";
 import { AppInteractor } from "@/interactors/app-interactor";
-import { BrowserExtensionInteractor } from "@/interactors/browser-extension-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
 import { FeedInteractor } from "@/interactors/feed-interactor";
 import { PluginMainInteractor } from "@/interactors/plugin-main-interactor";
@@ -25,6 +24,7 @@ import { Preference } from "@/preference/preference";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository-v2";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
+import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository-v2";
 import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
@@ -33,6 +33,7 @@ import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 import { APPService } from "@/services/app-service";
+import { BrowserExtensionService } from "@/services/browser-extension-service";
 import { BufferService } from "@/services/buffer-service";
 import { CacheService } from "@/services/cache-service";
 import { CategorizerService } from "@/services/categorizer-service";
@@ -96,6 +97,8 @@ const instances = injectionContainer.createInstance<IInjectable>({
   categorizerService: CategorizerService,
   fileSourceRepository: FileSourceRepository,
   smartFilterService: SmartFilterService,
+  paperSmartFilterRepository: PaperSmartFilterRepository,
+  browserExtensionService: BrowserExtensionService,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;
@@ -163,12 +166,6 @@ const pluginMainInteractor = new PluginMainInteractor(
   stateStore,
   preference,
   referenceRepository
-);
-const browserExtensionInteractor = new BrowserExtensionInteractor(
-  stateStore,
-  preference,
-  webImporterRepository,
-  entityInteractor
 );
 const wordAddinInteractor = new WordAddinInteractor(
   stateStore,
