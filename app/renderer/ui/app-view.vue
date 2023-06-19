@@ -131,16 +131,13 @@ const reloadPaperSmartFilters = async () => {
 disposable(smartFilterService.on("updated", () => reloadPaperSmartFilters()));
 
 const reloadFeeds = async () => {
-  const results = await window.feedInteractor.loadFeeds(
+  const results = await feedService.load(
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
   feeds.value = results;
 };
-watch(
-  () => dbState.feedsUpdated,
-  (value) => reloadFeeds()
-);
+disposable(feedService.on("updated", () => reloadFeeds()));
 
 const reloadFeedEntities = async () => {
   let feed = "";
@@ -154,18 +151,20 @@ const reloadFeedEntities = async () => {
   } else {
     feed = selectionState.selectedFeed.replace("feed-", "");
   }
-  feedEntities.value = await window.feedInteractor.loadFeedEntities(
-    viewState.searchText,
-    feed,
-    unread,
+
+  // TODO: fix any here
+  feedEntities.value = await feedService.loadEntities(
+    feedService.constructFilter({
+      search: viewState.searchText,
+      searchMode: viewState.searchMode as any,
+      feedName: feed,
+      unread,
+    }),
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
 };
-watch(
-  () => dbState.feedEntitiesUpdated,
-  (value) => reloadFeedEntities()
-);
+disposable(feedService.on("entitiesUpdated", () => reloadFeedEntities()));
 
 // ================================
 // Register State

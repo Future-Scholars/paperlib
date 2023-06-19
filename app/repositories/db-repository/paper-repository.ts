@@ -16,7 +16,7 @@ export const IPaperEntityRepository = createDecorator("paperEntityRepository");
 export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState> {
   // TODO: repository should not access services such as log service. Just throw error.
   constructor() {
-    super("PaperEntityRepository", {
+    super("paperEntityRepository", {
       count: 0,
       updated: 0,
     });
@@ -179,7 +179,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         );
         return true;
       } else {
-        throw new Error("No paper entity or ids are given");
+        throw new Error("Either ids or paperEntity should be provided.");
       }
     });
   }

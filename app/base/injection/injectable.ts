@@ -1,15 +1,19 @@
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository-v2";
+import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository-v2";
+import { FeedRepository } from "@/repositories/db-repository/feed-repository-v2";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository-v2";
 import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
+import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { APPService } from "@/services/app-service";
 import { BrowserExtensionService } from "@/services/browser-extension-service";
 import { BufferService } from "@/services/buffer-service";
 import { CacheService } from "@/services/cache-service";
 import { CategorizerService } from "@/services/categorizer-service";
 import { DatabaseService } from "@/services/database-service";
+import { FeedService } from "@/services/feed-service";
 import { FileService } from "@/services/file-service";
 import { LogService } from "@/services/log-service";
 import { PaperService } from "@/services/paper-service";
@@ -37,4 +41,8 @@ export type IInjectable =
   | FileSourceRepository
   | SmartFilterService
   | BrowserExtensionService
-  | PaperSmartFilterRepository;
+  | PaperSmartFilterRepository
+  | FeedService
+  | FeedRepository
+  | FeedEntityRepository
+  | RSSRepository;

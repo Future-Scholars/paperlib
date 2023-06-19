@@ -145,6 +145,8 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
     this._realm!.tagsListened = false;
     this._realm!.foldersListened = false;
     this._realm!.smartfilterListened = false;
+    this._realm!.feedEntityListened = false;
+    this._realm!.feedListened = false;
 
     this.fire("dbInitialized");
     await this._fileService.startWatch();

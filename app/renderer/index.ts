@@ -23,6 +23,8 @@ import { loadLocales } from "@/locales/load";
 import { Preference } from "@/preference/preference";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository-v2";
 import { DBRepository } from "@/repositories/db-repository/db-repository";
+import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository-v2";
+import { FeedRepository } from "@/repositories/db-repository/feed-repository-v2";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository-v2";
 import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
@@ -38,6 +40,7 @@ import { BufferService } from "@/services/buffer-service";
 import { CacheService } from "@/services/cache-service";
 import { CategorizerService } from "@/services/categorizer-service";
 import { DatabaseService } from "@/services/database-service";
+import { FeedService } from "@/services/feed-service";
 import { FileService } from "@/services/file-service";
 import { LogService } from "@/services/log-service";
 import { PaperService } from "@/services/paper-service";
@@ -99,6 +102,10 @@ const instances = injectionContainer.createInstance<IInjectable>({
   smartFilterService: SmartFilterService,
   paperSmartFilterRepository: PaperSmartFilterRepository,
   browserExtensionService: BrowserExtensionService,
+  feedService: FeedService,
+  feedEntityRepository: FeedEntityRepository,
+  feedRepository: FeedRepository,
+  rssRepository: RSSRepository,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;

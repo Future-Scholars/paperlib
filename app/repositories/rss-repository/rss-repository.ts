@@ -7,7 +7,7 @@ import { FeedEntity } from "@/models/feed-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
-export const IRSSRepository = createDecorator("IRSSRepository");
+export const IRSSRepository = createDecorator("rssRepository");
 
 export class RSSRepository {
   stateStore: MainRendererStateStore;

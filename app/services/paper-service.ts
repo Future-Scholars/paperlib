@@ -62,7 +62,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
       updated: 0,
     });
 
-    this._paperEntityRepository = new PaperEntityRepository();
     this._paperEntityRepository.on(["count", "updated"], (payload) => {
       this.fire({
         [payload.key]: payload.value,
@@ -151,6 +150,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   async load(filter: string, sortBy: string, sortOrder: "asce" | "desc") {
+    // TODO: fulltext filter
     try {
       return this._paperEntityRepository.load(
         await this._databaseCore.realm(),
@@ -160,7 +160,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       );
     } catch (error) {
       this._logService.error(
-        "Cannot load paper entities",
+        "Failed to load paper entities",
         error as Error,
         true,
         "PaperService"
@@ -183,7 +183,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       );
     } catch (error) {
       this._logService.error(
-        "Cannot load paper entity by id",
+        "Failed to load paper entity by id",
         error as Error,
         true,
         "PaperService"

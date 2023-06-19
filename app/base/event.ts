@@ -47,7 +47,7 @@ export class Eventable<T extends IEventState> implements IDisposable {
           const callbacks = this._listeners[key]!;
           const callbacksPromise = Object.values(callbacks).map((callback) => {
             return new Promise((resolve) => {
-              resolve(callback({ key: [key], value: payload[key] }));
+              resolve(callback({ key: key, value: payload[key] }));
             });
           });
           Promise.all(callbacksPromise);
