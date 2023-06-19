@@ -21,6 +21,7 @@ import { FileService } from "./services/file-service";
 import { LogService } from "./services/log-service";
 import { PaperService } from "./services/paper-service";
 import { PreferenceService } from "./services/preference-service";
+import { ReferenceService } from "./services/reference-service";
 import { RenderService } from "./services/render-service";
 import { SmartFilterService } from "./services/smartfilter-service";
 import { StateService } from "./services/state-service/state-service";
@@ -33,7 +34,6 @@ declare global {
   interface Window {
     appInteractor: AppInteractor;
     entityInteractor: EntityInteractor;
-    renderInteractor: RenderInteractor;
     feedInteractor: FeedInteractor;
     previewInteractor: PreviewInteractor;
     pluginSideInteractor: PluginSideInteractor;
@@ -70,6 +70,7 @@ declare global {
   var smartFilterService: SmartFilterService;
   var feedService: FeedService;
   var renderService: RenderService;
+  var referenceService: ReferenceService;
 
   var processingState: Store<"processingState", IProcessingState>;
 }

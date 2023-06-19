@@ -167,7 +167,7 @@ const flagSelectedEntities = () => {
 
 const exportSelectedEntities = (format: string) => {
   if (viewState.contentType === "library") {
-    window.entityInteractor.export(selectedPaperEntities.value, format);
+    referenceService.export(selectedPaperEntities.value, format);
   }
 };
 

@@ -17,7 +17,6 @@ import { AppInteractor } from "@/interactors/app-interactor";
 import { EntityInteractor } from "@/interactors/entity-interactor";
 import { FeedInteractor } from "@/interactors/feed-interactor";
 import { PluginMainInteractor } from "@/interactors/plugin-main-interactor";
-import { RenderInteractor } from "@/interactors/render-interactor";
 import { WordAddinInteractor } from "@/interactors/word-addin-interactor";
 import { loadLocales } from "@/locales/load";
 import { Preference } from "@/preference/preference";
@@ -33,7 +32,6 @@ import { FileSourceRepository } from "@/repositories/filesource-repository/files
 import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
-import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 import { APPService } from "@/services/app-service";
 import { BrowserExtensionService } from "@/services/browser-extension-service";
 import { BufferService } from "@/services/buffer-service";
@@ -45,6 +43,7 @@ import { FileService } from "@/services/file-service";
 import { LogService } from "@/services/log-service";
 import { PaperService } from "@/services/paper-service";
 import { PreferenceService } from "@/services/preference-service";
+import { ReferenceService } from "@/services/reference-service";
 import { RenderService } from "@/services/render-service";
 import { ScrapeService } from "@/services/scrape-service";
 import { SmartFilterService } from "@/services/smartfilter-service";
@@ -108,6 +107,7 @@ const instances = injectionContainer.createInstance<IInjectable>({
   feedRepository: FeedRepository,
   rssRepository: RSSRepository,
   renderService: RenderService,
+  referenceService: ReferenceService,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;
@@ -146,7 +146,6 @@ const fileRepository = new FileRepository(stateStore, preference);
 const referenceRepository = new ReferenceRepository(stateStore, preference);
 const downloaderRepository = new DownloaderRepository(stateStore, preference);
 const rssRepository = new RSSRepository(stateStore, preference);
-const webImporterRepository = new WebImporterRepository(stateStore, preference);
 
 const appInteractor = new AppInteractor(
   stateStore,
@@ -163,7 +162,6 @@ const entityInteractor = new EntityInteractor(
   referenceRepository,
   downloaderRepository
 );
-const renderInteractor = new RenderInteractor(preference);
 const feedInteractor = new FeedInteractor(
   stateStore,
   preference,
@@ -194,7 +192,6 @@ window
 
 window.entityInteractor = entityInteractor;
 window.appInteractor = appInteractor;
-window.renderInteractor = renderInteractor;
 window.feedInteractor = feedInteractor;
 window.wordAddinInteractor = wordAddinInteractor;
 

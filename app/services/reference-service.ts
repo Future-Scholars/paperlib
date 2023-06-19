@@ -1,37 +1,27 @@
-// @ts-ignore
 import Cite from "citation-js";
+import { clipboard } from "electron";
 import { existsSync, readFileSync } from "fs";
 import path from "path";
 
 import { createDecorator } from "@/base/injection/injection";
 import { CSL } from "@/models/csl";
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/services/preference-service";
 import { formatString } from "@/utils/string";
 
-function escapeLaTexString(str: string) {
-  const out = str
-    .replaceAll("&", "\\&")
-    .replaceAll("%", "\\%")
-    .replaceAll("#", "\\#");
-  return out;
-}
+export const IReferenceService = createDecorator("referenceService");
 
-export const IReferenceRepository = createDecorator("referenceRepository");
-
-export class ReferenceRepository {
-  stateStore: MainRendererStateStore;
-  preference: Preference;
-
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    this.stateStore = stateStore;
-    this.preference = preference;
-
-    this.setCitePlugin();
+export class ReferenceService {
+  constructor(
+    @IPreferenceService private readonly _preferenceService: PreferenceService
+  ) {
+    this._setupCitePlugin();
   }
 
-  setCitePlugin() {
+  private _setupCitePlugin() {
     const parseSingle = (paperEntityDraft: PaperEntity) => {
       let nameArray;
       if (paperEntityDraft.authors.includes(";")) {
@@ -139,10 +129,10 @@ export class ReferenceRepository {
   }
 
   replacePublication(source: PaperEntity) {
-    if (this.preference.get("enableExportReplacement")) {
-      const pubReplacement = this.preference.get("exportReplacement") as [
-        { from: string; to: string }
-      ];
+    if (this._preferenceService.get("enableExportReplacement")) {
+      const pubReplacement = this._preferenceService.get(
+        "exportReplacement"
+      ) as [{ from: string; to: string }];
 
       const pubMap = new Map(
         pubReplacement.map((item) => [item.from, item.to])
@@ -200,13 +190,13 @@ export class ReferenceRepository {
   }
 
   async exportPlainText(cite: Cite): Promise<string> {
-    const csl = this.preference.get("selectedCSLStyle") as string;
+    const csl = this._preferenceService.get("selectedCSLStyle") as string;
 
     if (["apa", "vancouver", "harvard1"].includes(csl)) {
       return cite.format("bibliography", { template: csl });
     } else {
       let templatePath = path.join(
-        this.preference.get("importedCSLStylesPath") as string,
+        this._preferenceService.get("importedCSLStylesPath") as string,
         csl + ".csl"
       );
 
@@ -230,4 +220,29 @@ export class ReferenceRepository {
       }
     }
   }
+
+  async export(paperEntities: PaperEntity[], format: string) {
+    let paperEntityDrafts = paperEntities.map((paperEntity) => {
+      return new PaperEntity(false).initialize(paperEntity);
+    });
+
+    let copyStr = "";
+    if (format === "BibTex") {
+      copyStr = this.exportBibTexBody(this.toCite(paperEntityDrafts));
+    } else if (format === "BibTex-Key") {
+      copyStr = this.exportBibTexKey(this.toCite(paperEntityDrafts));
+    } else if (format === "PlainText") {
+      copyStr = await this.exportPlainText(this.toCite(paperEntityDrafts));
+    }
+
+    clipboard.writeText(copyStr);
+  }
+}
+
+function escapeLaTexString(str: string) {
+  const out = str
+    .replaceAll("&", "\\&")
+    .replaceAll("%", "\\%")
+    .replaceAll("#", "\\#");
+  return out;
 }

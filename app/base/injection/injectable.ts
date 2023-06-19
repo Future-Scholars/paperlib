@@ -18,6 +18,7 @@ import { FileService } from "@/services/file-service";
 import { LogService } from "@/services/log-service";
 import { PaperService } from "@/services/paper-service";
 import { PreferenceService } from "@/services/preference-service";
+import { ReferenceService } from "@/services/reference-service";
 import { RenderService } from "@/services/render-service";
 import { ScrapeService } from "@/services/scrape-service";
 import { SmartFilterService } from "@/services/smartfilter-service";
@@ -47,4 +48,5 @@ export type IInjectable =
   | FeedRepository
   | FeedEntityRepository
   | RSSRepository
-  | RenderService;
+  | RenderService
+  | ReferenceService;
