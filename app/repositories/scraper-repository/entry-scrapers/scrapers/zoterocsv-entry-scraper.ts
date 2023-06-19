@@ -6,12 +6,17 @@ import { PaperEntity } from "@/models/paper-entity";
 import { AbstractEntryScraper } from "./entry-scraper";
 
 export interface IZoteroCSVEntryScraperPayload {
-  url: string;
+  type: "file";
+  value: string;
 }
 
 export class ZoteroCSVEntryScraper extends AbstractEntryScraper {
   static validPayload(payload: any): boolean {
-    if (!payload.hasOwnProperty("url")) {
+    if (
+      !payload.hasOwnProperty("type") ||
+      !payload.hasOwnProperty("value") ||
+      payload.type !== "file"
+    ) {
       return false;
     }
     if (
@@ -38,7 +43,7 @@ export class ZoteroCSVEntryScraper extends AbstractEntryScraper {
       return [];
     }
 
-    const data = readFileSync(eraseProtocol(payload.url), "utf8");
+    const data = readFileSync(eraseProtocol(payload.value), "utf8");
     let dataList = data.split("\n");
 
     const keys = dataList[0].split('","');

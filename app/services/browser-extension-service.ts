@@ -24,6 +24,11 @@ export class BrowserExtensionService {
   }
 
   private async _create(webContent: string) {
+    const payload = {
+      type: "webcontent",
+      value: JSON.parse(webContent),
+    };
+
     const scrapedPaperEntities = await this._scrapeService.scrape(
       [JSON.parse(webContent)],
       []

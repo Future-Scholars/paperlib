@@ -428,7 +428,10 @@ export class FeedService extends Eventable<IFeedServiceState> {
           paperEntityDraft.fromFeed(feedEntityDraft);
           // NOTE: we don't want to download the PDFs when adding to library.
           paperEntityDraft.mainURL = "";
-          return paperEntityDraft;
+          return {
+            type: "paperEntity",
+            value: paperEntityDraft,
+          };
         }),
         ["semanticscholar"]
       );

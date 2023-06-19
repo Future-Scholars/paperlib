@@ -7,17 +7,23 @@ import { PaperEntity } from "@/models/paper-entity";
 import { AbstractEntryScraper } from "./entry-scraper";
 
 export interface IWebcontentIEEEEntryScraperPayload {
-  url: string;
-  document: string;
-  cookies: string;
+  type: "webcontent";
+  value: {
+    url: string;
+    document: string;
+    cookies: string;
+  };
 }
 
 export class WebcontentIEEEEntryImporter extends AbstractEntryScraper {
   static validPayload(payload: any) {
     if (
-      !payload.hasOwnProperty("url") ||
-      !payload.hasOwnProperty("document") ||
-      !payload.hasOwnProperty("cookies")
+      !payload.hasOwnProperty("type") ||
+      !payload.hasOwnProperty("value") ||
+      payload.type !== "webcontent" ||
+      !payload.value.hasOwnProperty("url") ||
+      !payload.value.hasOwnProperty("document") ||
+      !payload.value.hasOwnProperty("cookies")
     ) {
       return false;
     }
@@ -34,7 +40,7 @@ export class WebcontentIEEEEntryImporter extends AbstractEntryScraper {
 
     const cookieJar = new CookieJar();
 
-    const root = parse(payload.document);
+    const root = parse(payload.value.document);
     const metaNodes = root.querySelectorAll("script");
     const meta = metaNodes.find((node) =>
       node.rawText.includes("xplGlobal.document.metadata")
@@ -83,7 +89,7 @@ export class WebcontentIEEEEntryImporter extends AbstractEntryScraper {
           "iel7",
           "ielx7"
         )}`;
-        for (const cookie of payload.cookies) {
+        for (const cookie of payload.value.cookies) {
           if (cookie) {
             await cookieJar.setCookie(
               // @ts-ignore

@@ -6,17 +6,23 @@ import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";
 import { AbstractEntryScraper } from "./entry-scraper";
 
 export interface IWebcontentGoogleScholarEntryScraperPayload {
-  url: string;
-  document: string;
-  cookies: string;
+  type: "webcontent";
+  value: {
+    url: string;
+    document: string;
+    cookies: string;
+  };
 }
 
 export class WebcontentGoogleScholarEntryImporter extends AbstractEntryScraper {
   static validPayload(payload: any) {
     if (
-      !payload.hasOwnProperty("url") ||
-      !payload.hasOwnProperty("document") ||
-      !payload.hasOwnProperty("cookies")
+      !payload.hasOwnProperty("type") ||
+      !payload.hasOwnProperty("value") ||
+      payload.type !== "webcontent" ||
+      !payload.value.hasOwnProperty("url") ||
+      !payload.value.hasOwnProperty("document") ||
+      !payload.value.hasOwnProperty("cookies")
     ) {
       return false;
     }
@@ -31,7 +37,7 @@ export class WebcontentGoogleScholarEntryImporter extends AbstractEntryScraper {
       return [];
     }
 
-    const paper = parse(payload.document);
+    const paper = parse(payload.value.document);
 
     if (paper) {
       let entityDraft = new PaperEntity(true);

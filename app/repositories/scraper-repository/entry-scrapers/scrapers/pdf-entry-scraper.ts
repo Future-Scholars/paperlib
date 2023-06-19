@@ -17,12 +17,17 @@ import { AbstractEntryScraper } from "./entry-scraper";
 pdfjs.GlobalWorkerOptions.workerPort = new pdfjsWorker();
 
 export interface IPDFEntryScraperPayload {
-  url: string;
+  type: "file";
+  value: string;
 }
 
 export class PDFEntryScraper extends AbstractEntryScraper {
   static validPayload(payload: any): boolean {
-    if (!payload.hasOwnProperty("url")) {
+    if (
+      !payload.hasOwnProperty("type") ||
+      !payload.hasOwnProperty("value") ||
+      payload.type !== "file"
+    ) {
       return false;
     }
     if (
@@ -47,7 +52,7 @@ export class PDFEntryScraper extends AbstractEntryScraper {
     // TODO: check cmap url
     // 1. Read PDF
     const pdf = await pdfjs.getDocument({
-      url: constructFileURL(payload.url, false, true),
+      url: constructFileURL(payload.value, false, true),
       useWorkerFetch: true,
       cMapUrl: "../viewer/cmaps/",
     }).promise;
@@ -158,7 +163,7 @@ export class PDFEntryScraper extends AbstractEntryScraper {
       }
     }
 
-    paperEntityDraft.setValue("mainURL", payload.url);
+    paperEntityDraft.setValue("mainURL", payload.value);
 
     return [paperEntityDraft];
   }

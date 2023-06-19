@@ -7,12 +7,17 @@ import { PaperEntity } from "@/models/paper-entity";
 import { AbstractEntryScraper } from "./entry-scraper";
 
 export interface IBibTexEntryScraperPayload {
-  url: string;
+  type: "file";
+  value: string;
 }
 
 export class BibTexEntryScraper extends AbstractEntryScraper {
   static validPayload(payload: any): boolean {
-    if (!payload.hasOwnProperty("url")) {
+    if (
+      !payload.hasOwnProperty("type") ||
+      !payload.hasOwnProperty("value") ||
+      payload.type !== "file"
+    ) {
       return false;
     }
     if (
@@ -32,7 +37,7 @@ export class BibTexEntryScraper extends AbstractEntryScraper {
       return [];
     }
 
-    const bibtexStr = readFileSync(eraseProtocol(payload.url), "utf8");
+    const bibtexStr = readFileSync(eraseProtocol(payload.value), "utf8");
     const bibtexes = bibtex2json(bibtexStr);
     const paperEntityDrafts: PaperEntity[] = [];
     for (const bibtex of bibtexes) {

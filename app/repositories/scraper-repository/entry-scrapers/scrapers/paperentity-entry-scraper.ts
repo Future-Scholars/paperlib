@@ -6,35 +6,17 @@ import { PaperEntity } from "@/models/paper-entity";
 import { AbstractEntryScraper } from "./entry-scraper";
 
 export interface IPaperEntityEntryScraperPayload {
-  _id: ObjectId | string;
-  id: ObjectId | string;
-  _partition: string;
-  addTime: Date;
-  title: string;
-  authors: string;
-  publication: string;
-  pubTime: string;
-  pubType: number;
-  doi: string;
-  arxiv: string;
-  mainURL: string;
-  supURLs: string[];
-  rating: number;
-  tags: PaperTag[];
-  folders: PaperFolder[];
-  flag: boolean;
-  note: string;
-  codes: string[];
-  pages: string;
-  volume: string;
-  number: string;
-  publisher: string;
+  type: "paperEntity";
+  value: PaperEntity;
 }
 
 export class PaperEntityEntryScraper extends AbstractEntryScraper {
   static validPayload(payload: any): boolean {
-    let valid = true;
+    if (!payload.hasOwnProperty("type") || payload.type !== "paperEntity") {
+      return false;
+    }
 
+    let valid = true;
     for (const p of Object.keys(payload)) {
       if (p in PaperEntity.schema.properties) {
         continue;
@@ -47,7 +29,7 @@ export class PaperEntityEntryScraper extends AbstractEntryScraper {
     return valid;
   }
   static async scrape(
-    payload: Partial<IPaperEntityEntryScraperPayload>
+    payload: IPaperEntityEntryScraperPayload
   ): Promise<PaperEntity[]> {
     if (!this.validPayload(payload)) {
       return [];
@@ -55,7 +37,7 @@ export class PaperEntityEntryScraper extends AbstractEntryScraper {
 
     const paperEntityDraft = new PaperEntity(true);
 
-    for (const p of Object.keys(payload)) {
+    for (const p of Object.keys(payload.value)) {
       paperEntityDraft[p] = payload[p];
     }
 

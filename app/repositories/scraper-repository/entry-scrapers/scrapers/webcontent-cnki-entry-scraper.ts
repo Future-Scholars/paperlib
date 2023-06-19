@@ -5,17 +5,23 @@ import { PaperEntity } from "@/models/paper-entity";
 import { AbstractEntryScraper } from "./entry-scraper";
 
 export interface IWebcontentCNKIEntryScraperPayload {
-  url: string;
-  document: string;
-  cookies: string;
+  type: "webcontent";
+  value: {
+    url: string;
+    document: string;
+    cookies: string;
+  };
 }
 
 export class WebcontentCNKIEntryImporter extends AbstractEntryScraper {
   static validPayload(payload: any) {
     if (
-      !payload.hasOwnProperty("url") ||
-      !payload.hasOwnProperty("document") ||
-      !payload.hasOwnProperty("cookies")
+      !payload.hasOwnProperty("type") ||
+      !payload.hasOwnProperty("value") ||
+      payload.type !== "webcontent" ||
+      !payload.value.hasOwnProperty("url") ||
+      !payload.value.hasOwnProperty("document") ||
+      !payload.value.hasOwnProperty("cookies")
     ) {
       return false;
     }
@@ -30,7 +36,7 @@ export class WebcontentCNKIEntryImporter extends AbstractEntryScraper {
       return [];
     }
 
-    const url = payload.url;
+    const url = payload.value.url;
 
     const urlParams = new URLSearchParams(url.split("?")[1]);
     const filename = urlParams.get("filename") || "";

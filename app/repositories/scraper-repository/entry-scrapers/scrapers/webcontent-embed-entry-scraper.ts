@@ -5,17 +5,23 @@ import { PaperEntity } from "@/models/paper-entity";
 import { AbstractEntryScraper } from "./entry-scraper";
 
 export interface IWebcontentEmbedEntryScraperPayload {
-  url: string;
-  document: string;
-  cookies: string;
+  type: "webcontent";
+  value: {
+    url: string;
+    document: string;
+    cookies: string;
+  };
 }
 
 export class WebcontentEmbedEntryImporter extends AbstractEntryScraper {
   static validPayload(payload: any) {
     if (
-      !payload.hasOwnProperty("url") ||
-      !payload.hasOwnProperty("document") ||
-      !payload.hasOwnProperty("cookies")
+      !payload.hasOwnProperty("type") ||
+      !payload.hasOwnProperty("value") ||
+      payload.type !== "webcontent" ||
+      !payload.value.hasOwnProperty("url") ||
+      !payload.value.hasOwnProperty("document") ||
+      !payload.value.hasOwnProperty("cookies")
     ) {
       return false;
     }
@@ -54,7 +60,7 @@ export class WebcontentEmbedEntryImporter extends AbstractEntryScraper {
     }
 
     var el = document.createElement("html");
-    el.innerHTML = payload.document;
+    el.innerHTML = payload.value.document;
 
     // Get meta tags
     const metaTags = el.getElementsByTagName("meta");
@@ -80,7 +86,7 @@ export class WebcontentEmbedEntryImporter extends AbstractEntryScraper {
         }
         if (meta.name === "citation_pdf_url") {
           let downloadURL: string;
-          if (payload.url.includes("adsabs.harvard.edu")) {
+          if (payload.value.url.includes("adsabs.harvard.edu")) {
             downloadURL = `https://ui.adsabs.harvard.edu${meta.content}`;
           } else {
             if (meta.content.endsWith(".pdf")) {

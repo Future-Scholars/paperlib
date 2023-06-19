@@ -485,7 +485,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     try {
       // 1. Scrape
       const payloads = urlList.map((url) => {
-        return { url };
+        return { type: "file", value: url };
       });
       const scrapedPaperEntityDrafts = await this._scrapeService.scrape(
         payloads,
@@ -564,7 +564,12 @@ export class PaperService extends Eventable<IPaperServiceState> {
     try {
       // 1. Scrape
       const scrapedPaperEntityDrafts = await this._scrapeService.scrape(
-        paperEntities,
+        paperEntities.map((paperEntity) => {
+          return {
+            type: "paperEntity",
+            value: paperEntity,
+          };
+        }),
         specificScrapers || [],
         specificScrapers ? true : false
       );

@@ -4,17 +4,23 @@ import { AbstractEntryScraper } from "./entry-scraper";
 import { PDFEntryScraper } from "./pdf-entry-scraper";
 
 export interface IWebcontentArXivEntryScraperPayload {
-  url: string;
-  document: string;
-  cookies: string;
+  type: "webcontent";
+  value: {
+    url: string;
+    document: string;
+    cookies: string;
+  };
 }
 
 export class WebcontentArXivEntryImporter extends AbstractEntryScraper {
   static validPayload(payload: any) {
     if (
-      !payload.hasOwnProperty("url") ||
-      !payload.hasOwnProperty("document") ||
-      !payload.hasOwnProperty("cookies")
+      !payload.hasOwnProperty("type") ||
+      !payload.hasOwnProperty("value") ||
+      payload.type !== "webcontent" ||
+      !payload.value.hasOwnProperty("url") ||
+      !payload.value.hasOwnProperty("document") ||
+      !payload.value.hasOwnProperty("cookies")
     ) {
       return false;
     }
@@ -31,7 +37,7 @@ export class WebcontentArXivEntryImporter extends AbstractEntryScraper {
       return [];
     }
 
-    const arXivID = payload.url.split("/")[4].replace(".pdf", "");
+    const arXivID = payload.value.url.split("/")[4].replace(".pdf", "");
 
     if (arXivID) {
       const downloadURL = `https://arxiv.org/pdf/${arXivID}.pdf`;
@@ -41,7 +47,8 @@ export class WebcontentArXivEntryImporter extends AbstractEntryScraper {
       ]);
 
       return PDFEntryScraper.scrape({
-        url: downloadedFilePath[0],
+        type: "file",
+        value: downloadedFilePath[0],
       });
     } else {
       return [];
