@@ -31,13 +31,13 @@ export class Feed {
   }
 
   initialize(feed: Feed) {
-    this._id = feed._id;
-    this.id = feed.id;
-    this._partition = feed._partition;
-    this.name = feed.name;
-    this.count = feed.count;
-    this.color = feed.color;
-    this.url = feed.url;
+    this._id = feed._id ? feed._id : this._id || new ObjectId();
+    this.id = feed.id ? feed.id : this.id || this._id;
+    this._partition = feed._partition || this._partition;
+    this.name = feed.name || this.name;
+    this.count = feed.count || this.count;
+    this.color = feed.color || this.color;
+    this.url = feed.url || this.url;
 
     return this;
   }

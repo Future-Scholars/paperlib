@@ -177,7 +177,7 @@ const addSelectedFeedEntities = async () => {
     const feedEntityDrafts = selectedFeedEntities.value.map((entity) => {
       return new FeedEntity(false).initialize(entity);
     });
-    await window.feedInteractor.addToLib(feedEntityDrafts);
+    await feedService.addToLib(feedEntityDrafts);
     viewState.feedEntityAddingStatus = 2;
     debounce(() => {
       viewState.feedEntityAddingStatus = 0;
@@ -201,7 +201,7 @@ const readSelectedFeedEntities = (read: boolean | null, clear = false) => {
     if (clear) {
       clearSelected();
     }
-    void window.feedInteractor.updateFeedEntities(feedEntityDrafts);
+    void feedService.updateEntities(feedEntityDrafts);
   }
 };
 

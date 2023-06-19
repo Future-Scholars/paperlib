@@ -158,6 +158,8 @@ export class PDFEntryScraper extends AbstractEntryScraper {
       }
     }
 
+    paperEntityDraft.setValue("mainURL", payload.url);
+
     return [paperEntityDraft];
   }
 }

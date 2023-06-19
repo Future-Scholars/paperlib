@@ -267,6 +267,10 @@ onMounted(() => {
       @row-clicked="onItemClicked"
       @row-right-clicked="onItemRightClicked"
       @row-double-clicked="onItemDoubleClicked"
+      v-if="
+        prefState.mainviewType === 'table' ||
+        prefState.mainviewType === 'tableandpreview'
+      "
     />
   </div>
 </template>

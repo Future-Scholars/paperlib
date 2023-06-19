@@ -53,6 +53,7 @@ export class ScrapeService extends Eventable<{}> {
     specificScrapers: string[],
     force: boolean = false
   ): Promise<PaperEntity[]> {
+    console.log(payloads);
     // 1. Entry scraper transforms data source payloads into a PaperEntity list.
     // TODO: check all promise.all and chunkRun
     const { results: _paperEntityDrafts, errors: entryScraperErrors } =

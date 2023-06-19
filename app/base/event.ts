@@ -104,7 +104,6 @@ export class Eventable<T extends IEventState> implements IDisposable {
 
     return () => {
       for (const [k, callbackId] of keyAndCallbackId) {
-        console.log("Dispose", k, callbackId);
         delete this._listeners[k]![callbackId];
       }
     };

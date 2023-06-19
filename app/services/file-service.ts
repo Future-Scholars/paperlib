@@ -131,6 +131,7 @@ export class FileService {
     forceNotLink = false
   ): Promise<PaperEntity> {
     if (!paperEntity.mainURL) {
+      console.log("No main url");
       return paperEntity;
     }
 

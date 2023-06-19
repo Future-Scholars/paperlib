@@ -79,7 +79,7 @@ window.appInteractor.registerMainSignal(
   "sidebar-context-menu-delete",
   (args) => {
     if (viewState.contentType === "feed") {
-      window.feedInteractor.deleteFeed(args[0]);
+      feedService.delete(args[0]);
       selectionState.selectedFeed = "feed-all";
     }
   }
@@ -89,7 +89,7 @@ window.appInteractor.registerMainSignal(
   "sidebar-context-menu-feed-refresh",
   (args) => {
     if (viewState.contentType === "feed") {
-      window.feedInteractor.refresh([args[0]]);
+      feedService.refresh([args[0]]);
     }
   }
 );
@@ -98,7 +98,7 @@ window.appInteractor.registerMainSignal(
   "sidebar-context-menu-color",
   (args) => {
     if (viewState.contentType === "feed") {
-      window.feedInteractor.colorizeFeed(args[2], args[0]);
+      feedService.colorize(args[2], args[0]);
     }
   }
 );

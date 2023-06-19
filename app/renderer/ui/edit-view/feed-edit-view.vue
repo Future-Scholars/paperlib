@@ -50,9 +50,7 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
-  window.feedInteractor.createFeed([
-    new Feed(false).initialize(editingFeedDraft.value),
-  ]);
+  feedService.create([new Feed(false).initialize(editingFeedDraft.value)]);
   onCloseClicked();
 };
 </script>

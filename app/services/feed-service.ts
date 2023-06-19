@@ -380,14 +380,24 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
-  async deleteFeed(name?: string, feed?: Feed) {
+  async delete(name?: string, feed?: Feed) {
+    const realm = await this._databaseCore.realm();
     try {
-      this._feedRepository.delete(
-        await this._databaseCore.realm(),
-        true,
-        feed,
-        name
+      const toBeDeletedEntities = this._feedEntityRepository.load(
+        realm,
+        this.constructFilter({
+          feedName: name || feed?.name,
+        }),
+        "addTime",
+        "asce"
       );
+
+      this._feedEntityRepository.delete(
+        realm,
+        toBeDeletedEntities.map((feed) => feed._id)
+      );
+
+      this._feedRepository.delete(realm, true, feed, name);
     } catch (e) {
       this._logService.error(
         `Failed to remove feed`,
@@ -413,12 +423,14 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
     try {
       const paperEntityDrafts = await this._scrapeService.scrape(
-        feedEntities.map(async (feedEntityDraft: FeedEntity) => {
+        feedEntities.map((feedEntityDraft: FeedEntity) => {
           const paperEntityDraft = new PaperEntity(true);
           paperEntityDraft.fromFeed(feedEntityDraft);
+          // NOTE: we don't want to download the PDFs when adding to library.
+          paperEntityDraft.mainURL = "";
           return paperEntityDraft;
         }),
-        []
+        ["semanticscholar"]
       );
 
       // NOTE: here we decide to not download the PDFs when adding to library.
