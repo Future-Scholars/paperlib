@@ -25,11 +25,10 @@ const render = async (renderFull = false) => {
   let rendered = false;
 
   if (props.content) {
-    const { renderedStr, overflow } =
-      await window.renderInteractor.renderMarkdown(
-        props.content.slice(4) || "",
-        renderFull
-      );
+    const { renderedStr, overflow } = await renderService.renderMarkdown(
+      props.content.slice(4) || "",
+      renderFull
+    );
     renderedHTML.value = renderedStr;
     rendered = true;
     isOverflow.value = overflow;
@@ -38,7 +37,7 @@ const render = async (renderFull = false) => {
       if (url.endsWith(".md") || url.endsWith(".markdown")) {
         const mdURL = await fileService.access(url, true);
         const { renderedStr, overflow } =
-          await window.renderInteractor.renderMarkdownFile(mdURL, renderFull);
+          await renderService.renderMarkdownFile(mdURL, renderFull);
         renderedHTML.value = renderedStr;
         rendered = true;
         isOverflow.value = overflow;

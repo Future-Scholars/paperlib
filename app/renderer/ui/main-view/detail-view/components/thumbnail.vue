@@ -39,7 +39,10 @@ const renderFromFile = async () => {
   } else {
     fileExistingStatus.value = 0;
   }
-  const thumbnailCache = await window.renderInteractor.render(fileURL);
+  const thumbnailCache = await renderService.renderPDF(
+    fileURL,
+    "preview-canvas"
+  );
   isRendering.value = false;
 
   if (thumbnailCache.blob) {
@@ -61,7 +64,10 @@ const render = async () => {
     const cachedThumbnail = await cacheService.loadThumbnail(props.entity);
     if (cachedThumbnail?.blob && cachedThumbnail?.blob.byteLength > 0) {
       try {
-        window.renderInteractor.renderCache(cachedThumbnail as ThumbnailCache);
+        renderService.renderPDFCache(
+          cachedThumbnail as ThumbnailCache,
+          "preview-canvas"
+        );
       } catch (e) {
         console.error(e);
         renderFromFile();
