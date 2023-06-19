@@ -12,6 +12,8 @@ import {
 } from "@/services/preference-service";
 import { isMetadataCompleted } from "@/utils/metadata";
 
+import { ProcessingKey, processing } from "./state-service/processing";
+
 export const IScrapeService = createDecorator("scrapeService");
 
 /**
@@ -48,12 +50,12 @@ export class ScrapeService extends Eventable<{}> {
     this._metadataScraperRepository = new MetadataScraperRepository();
   }
 
+  @processing(ProcessingKey.General)
   async scrape(
     payloads: any[],
     specificScrapers: string[],
     force: boolean = false
   ): Promise<PaperEntity[]> {
-    console.log(payloads);
     // 1. Entry scraper transforms data source payloads into a PaperEntity list.
     // TODO: check all promise.all and chunkRun
     const { results: _paperEntityDrafts, errors: entryScraperErrors } =
@@ -85,6 +87,8 @@ export class ScrapeService extends Eventable<{}> {
       );
       return [];
     }
+
+    // TODO merge duplicated paperEntityDrafts
 
     // 2. Metadata scraper fullfills the metadata of PaperEntitys.
     // 2.0 Get enabled scrapers

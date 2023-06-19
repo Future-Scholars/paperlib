@@ -25,11 +25,7 @@ export class BrowserExtensionService {
 
   private async _create(webContent: string) {
     const scrapedPaperEntities = await this._scrapeService.scrape(
-      [
-        {
-          webContent,
-        },
-      ],
+      [JSON.parse(webContent)],
       []
     );
     if (scrapedPaperEntities.length === 0) {
