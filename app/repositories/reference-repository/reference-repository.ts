@@ -219,14 +219,8 @@ export class ReferenceRepository {
 
         return cite.format("bibliography", { template: csl });
       } else {
-        window.logger.error(
-          `CSL template file: ${csl}.csl not found.`,
-          "",
-          true,
-          "Reference"
-        );
-
-        return cite.format("bibliography", { template: "apa" });
+        // TODO: check what will happend in the topper service
+        throw new Error("CSL style file not found.");
       }
     }
   }

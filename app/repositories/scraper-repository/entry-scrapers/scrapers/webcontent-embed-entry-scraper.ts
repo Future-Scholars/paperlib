@@ -96,7 +96,7 @@ export class WebcontentEmbedEntryImporter extends AbstractEntryScraper {
             }
           }
 
-          const downloadedFilePath = await window.networkTool.downloadPDFs([
+          const downloadedFilePath = await networkTool.downloadPDFs([
             downloadURL,
           ]);
           if (downloadedFilePath.length > 0) {

@@ -8,7 +8,6 @@ import path from "path";
 import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
 
 import { Preference } from "@/preference/preference";
-import { DBRepository } from "@/repositories/db-repository/db-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
@@ -16,22 +15,11 @@ export class AppInteractor {
   stateStore: MainRendererStateStore;
   preference: Preference;
 
-  fileRepository: FileRepository;
-  dbRepository: DBRepository;
-
   scheduler: ToadScheduler;
 
-  constructor(
-    stateStore: MainRendererStateStore,
-    preference: Preference,
-    fileRepository: FileRepository,
-    dbRepository: DBRepository
-  ) {
+  constructor(stateStore: MainRendererStateStore, preference: Preference) {
     this.stateStore = stateStore;
     this.preference = preference;
-
-    this.fileRepository = fileRepository;
-    this.dbRepository = dbRepository;
 
     this.scheduler = new ToadScheduler();
   }
@@ -120,46 +108,6 @@ export class AppInteractor {
   // =============================
   // URL Handler
   // =============================
-
-  async access(url: string, download: boolean) {
-    return await this.fileRepository.access(url, download);
-  }
-
-  async open(url: string) {
-    if (url.startsWith("http")) {
-      shell.openExternal(url);
-    } else {
-      const accessedURL = (await this.access(url, true)).replace("file://", "");
-      if (
-        this.preference.get("selectedPDFViewer") === "default" ||
-        !accessedURL.endsWith(".pdf")
-      ) {
-        shell.openPath(accessedURL);
-      } else {
-        const viewerPath = this.preference.get(
-          "selectedPDFViewerPath"
-        ) as string;
-        const exists = existsSync(viewerPath);
-        if (!exists) {
-          console.error("Viewer not found");
-        }
-        const opts: SpawnOptions = {
-          detached: true,
-        };
-        if (os.platform() === "win32") {
-          spawn(viewerPath, [accessedURL], opts);
-        } else {
-          spawn("open", ["-a", viewerPath, accessedURL], opts);
-        }
-      }
-    }
-  }
-
-  async preview(url: string) {
-    const fileURL = await this.access(url, true);
-    ipcRenderer.send("preview", fileURL);
-  }
-
   async showInFinder(url: string) {
     const accessedURL = (await this.access(url, true)).replace("file://", "");
     shell.showItemInFolder(accessedURL);
@@ -237,38 +185,6 @@ export class AppInteractor {
     }
 
     return CSLStyles;
-  }
-
-  // =============================
-  // Database Event
-  // =============================
-  async initDB() {
-    await this.dbRepository.initRealm(true);
-  }
-
-  pauseSync() {
-    this.scheduler.removeById("pauseSync");
-    const task = new Task("pauseSync", () => {
-      void this.dbRepository.pauseSync();
-      this.scheduler.removeById("pauseSync");
-    });
-
-    const job = new SimpleIntervalJob(
-      { seconds: 3600, runImmediately: false },
-      task,
-      "pauseSync"
-    );
-
-    this.scheduler.addSimpleIntervalJob(job);
-  }
-
-  resumeSync() {
-    this.scheduler.removeById("pauseSync");
-    void this.dbRepository.resumeSync();
-  }
-
-  migrateLocaltoCloud() {
-    void this.dbRepository.migrateLocaltoCloud();
   }
 
   // =============================

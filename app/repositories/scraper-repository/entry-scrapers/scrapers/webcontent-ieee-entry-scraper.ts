@@ -105,10 +105,7 @@ export class WebcontentIEEEEntryImporter extends AbstractEntryScraper {
             filename += ".pdf";
           }
 
-          const targetUrl = await window.networkTool.downloadPDFs(
-            [url],
-            cookieJar
-          );
+          const targetUrl = await networkTool.downloadPDFs([url], cookieJar);
           if (targetUrl.length > 0) {
             entityDraft.mainURL = targetUrl[0];
           }

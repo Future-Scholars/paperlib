@@ -45,7 +45,7 @@ export class WebcontentGoogleScholarEntryImporter extends AbstractEntryScraper {
       // @ts-ignore
       const downloadURL = fileUrlNode?.attributes["href"];
       if (downloadURL) {
-        const downloadedFilePath = await window.networkTool.downloadPDFs([
+        const downloadedFilePath = await networkTool.downloadPDFs([
           downloadURL,
         ]);
 
@@ -71,12 +71,12 @@ export class WebcontentGoogleScholarEntryImporter extends AbstractEntryScraper {
             " ",
             "+"
           )}`;
-          await window.networkTool.get(scrapeUrl, headers, 0, true);
+          await networkTool.get(scrapeUrl, headers, 0, true);
 
           const dataid = title.parentNode.parentNode.attributes["data-aid"];
           if (dataid) {
             const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
-            const citeResponse = await window.networkTool.get(
+            const citeResponse = await networkTool.get(
               citeUrl,
               headers,
               0,
@@ -90,7 +90,7 @@ export class WebcontentGoogleScholarEntryImporter extends AbstractEntryScraper {
                 // @ts-ignore
                 const citeBibtexUrl = citeBibtexNode.attributes["href"];
                 if (citeBibtexUrl) {
-                  const citeBibtexResponse = await window.networkTool.get(
+                  const citeBibtexResponse = await networkTool.get(
                     citeBibtexUrl,
                     headers,
                     0,

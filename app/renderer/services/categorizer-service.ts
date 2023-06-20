@@ -10,7 +10,7 @@ import {
 import {
   CategorizerRepository,
   ICategorizerRepository,
-} from "@/repositories/db-repository/categorizer-repository-v2";
+} from "@/repositories/db-repository/categorizer-repository";
 
 export interface ICategorizerServiceState {
   tagsUpdated: number;

@@ -42,9 +42,7 @@ export class WebcontentArXivEntryImporter extends AbstractEntryScraper {
     if (arXivID) {
       const downloadURL = `https://arxiv.org/pdf/${arXivID}.pdf`;
 
-      const downloadedFilePath = await window.networkTool.downloadPDFs([
-        downloadURL,
-      ]);
+      const downloadedFilePath = await networkTool.downloadPDFs([downloadURL]);
 
       return PDFEntryScraper.scrape({
         type: "file",

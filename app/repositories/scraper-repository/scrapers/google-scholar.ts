@@ -55,7 +55,7 @@ export class GoogleScholarScraper extends Scraper {
 
     const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-    const response = await window.networkTool.get(scrapeURL, headers, 0, true);
+    const response = await networkTool.get(scrapeURL, headers, 0, true);
 
     let bibtex = "";
 
@@ -92,7 +92,7 @@ export class GoogleScholarScraper extends Scraper {
 
                     if (dataid) {
                       const citeUrl = `https://scholar.google.com/scholar?q=info:${dataid}:scholar.google.com/&output=cite&scirp=1&hl=en`;
-                      const citeResponse = await window.networkTool.get(
+                      const citeResponse = await networkTool.get(
                         citeUrl,
                         headers,
                         0,
@@ -110,13 +110,12 @@ export class GoogleScholarScraper extends Scraper {
                               // @ts-ignore
                               citeBibtexNode.attributes["href"];
                             if (citeBibtexUrl) {
-                              const citeBibtexResponse =
-                                await window.networkTool.get(
-                                  citeBibtexUrl,
-                                  headers,
-                                  0,
-                                  true
-                                );
+                              const citeBibtexResponse = await networkTool.get(
+                                citeBibtexUrl,
+                                headers,
+                                0,
+                                true
+                              );
                               bibtex = citeBibtexResponse?.body;
                             }
                           }

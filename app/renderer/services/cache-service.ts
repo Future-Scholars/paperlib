@@ -24,7 +24,7 @@ import {
   ProcessingKey,
   processing,
 } from "@/renderer/services/state-service/processing";
-import { IPaperEntityResults } from "@/repositories/db-repository/paper-repository";
+import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 
 export const ICacheService = createDecorator("cacheService");
 

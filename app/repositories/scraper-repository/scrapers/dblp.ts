@@ -168,7 +168,7 @@ export class DBLPScraper extends Scraper {
   ) {
     let rawSearchResponse: Response<string> | null;
     try {
-      rawSearchResponse = (await window.networkTool.get(
+      rawSearchResponse = (await networkTool.get(
         scrapeURL,
         headers
       )) as Response<string>;
@@ -180,7 +180,7 @@ export class DBLPScraper extends Scraper {
     if (!rawSearchResponse) {
       // Try an alternative URL
       const alternativeURL = scrapeURL.replace("dblp.org", "dblp.uni-trier.de");
-      rawSearchResponse = (await window.networkTool.get(
+      rawSearchResponse = (await networkTool.get(
         alternativeURL,
         headers
       )) as Response<string>;

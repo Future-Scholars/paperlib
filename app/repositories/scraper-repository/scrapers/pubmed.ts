@@ -138,7 +138,7 @@ export class PubMedScraper extends Scraper {
       paperEntityDraft
     ) as ScraperRequestType;
 
-    const rawSearchResponse = (await window.networkTool.get(
+    const rawSearchResponse = (await networkTool.get(
       scrapeURL,
       headers
     )) as Response<string>;
@@ -153,7 +153,7 @@ export class PubMedScraper extends Scraper {
       const id = searchResponse.esearchresult.idlist[0];
 
       if (id) {
-        const rawRepoResponse = (await window.networkTool.get(
+        const rawRepoResponse = (await networkTool.get(
           `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&retmax=20&sort=relevance&id=${id}`,
           headers
         )) as Response<string>;

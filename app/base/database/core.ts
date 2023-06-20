@@ -281,7 +281,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       });
     }
 
-    if (!window.networkTool.connected()) {
+    if (!networkTool.connected()) {
       this._logService.warn("No network connection...", "", true, "Database");
       return this._app?.currentUser ?? null;
     }

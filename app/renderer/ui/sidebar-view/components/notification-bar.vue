@@ -7,6 +7,7 @@ import {
 } from "bootstrap-icons-vue";
 import { Ref, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { useProcessingState } from "@/renderer/services/state-service/processing";
 
 const logState = logService.useState();
@@ -88,48 +89,40 @@ const pushMsgToHistory = (
   }
 };
 
-watch(
-  () => logState.infoLogMessage,
-  (value) => {
-    pushMsgToHistory("info", value);
-  },
-  { deep: true }
+disposable(
+  logService.on("infoLogMessage", (payload) => {
+    pushMsgToHistory("info", payload.value);
+  })
 );
 
-watch(
-  () => logState.warnLogMessage,
-  (value) => {
-    pushMsgToHistory("warn", value);
+disposable(
+  logService.on("warnLogMessage", (payload) => {
+    pushMsgToHistory("warn", payload.value);
     debounce(() => {
       historyMsgs.value = historyMsgs.value.map((msg) => {
         msg.show = false;
         return msg;
       });
     }, 3000)();
-  },
-  { deep: true }
+  })
 );
 
-watch(
-  () => logState.errorLogMessage,
-  (value) => {
-    pushMsgToHistory("error", value);
+disposable(
+  logService.on("errorLogMessage", (payload) => {
+    pushMsgToHistory("error", payload.value);
     debounce(() => {
       historyMsgs.value = historyMsgs.value.map((msg) => {
         msg.show = false;
         return msg;
       });
     }, 3000)();
-  },
-  { deep: true }
+  })
 );
 
-watch(
-  () => logState.progressLogMessage,
-  (value) => {
-    pushMsgToHistory("progress", value);
-  },
-  { deep: true }
+disposable(
+  logService.on("progressLogMessage", (payload) => {
+    pushMsgToHistory("progress", payload.value);
+  })
 );
 
 const timeoutID = ref();

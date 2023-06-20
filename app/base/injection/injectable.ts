@@ -1,5 +1,6 @@
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
+import { NetworkTool } from "@/base/network";
 import { APPService } from "@/renderer/services/app-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
 import { BufferService } from "@/renderer/services/buffer-service";
@@ -18,11 +19,11 @@ import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
 import { StateService } from "@/renderer/services/state-service/state-service";
-import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository-v2";
-import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository-v2";
-import { FeedRepository } from "@/repositories/db-repository/feed-repository-v2";
-import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
-import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository-v2";
+import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
+import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
+import { FeedRepository } from "@/repositories/db-repository/feed-repository";
+import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity-repository";
+import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
 import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 
@@ -53,4 +54,5 @@ export type IInjectable =
   | RenderService
   | ReferenceService
   | SchedulerService
-  | MSWordCommService;
+  | MSWordCommService
+  | NetworkTool;

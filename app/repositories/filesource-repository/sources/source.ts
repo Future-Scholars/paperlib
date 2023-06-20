@@ -21,9 +21,7 @@ export abstract class FileSource {
       paperEntityDraft
     );
     if (downloadUrl) {
-      const downloadedUrl = await window.networkTool.downloadPDFs([
-        downloadUrl,
-      ]);
+      const downloadedUrl = await networkTool.downloadPDFs([downloadUrl]);
 
       if (downloadedUrl.length > 0) {
         paperEntityDraft.mainURL = downloadedUrl[0];

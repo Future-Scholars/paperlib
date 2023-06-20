@@ -12,6 +12,7 @@ import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { IInjectable } from "@/base/injection/injectable";
 import { InjectionContainer } from "@/base/injection/injection";
+import { NetworkTool } from "@/base/network";
 import { RendererRPCService } from "@/base/rpc/renderer-rpc-service";
 import { AppInteractor } from "@/interactors/app-interactor";
 import { loadLocales } from "@/locales/load";
@@ -35,18 +36,14 @@ import { ScrapeService } from "@/renderer/services/scrape-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
 import { useProcessingState } from "@/renderer/services/state-service/processing";
 import { StateService } from "@/renderer/services/state-service/state-service";
-import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository-v2";
-import { DBRepository } from "@/repositories/db-repository/db-repository";
-import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository-v2";
-import { FeedRepository } from "@/repositories/db-repository/feed-repository-v2";
-import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
-import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository-v2";
-import { FileRepository } from "@/repositories/file-repository/file-repository";
+import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
+import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
+import { FeedRepository } from "@/repositories/db-repository/feed-repository";
+import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity-repository";
+import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
 import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { NetworkTool } from "@/utils/got";
-import { Logger } from "@/utils/logger";
 
 import "./css/index.css";
 import "./css/katex.min.css";
@@ -105,19 +102,16 @@ const instances = injectionContainer.createInstance<IInjectable>({
   referenceService: ReferenceService,
   schedulerService: SchedulerService,
   msWordCommService: MSWordCommService,
+  networkTool: NetworkTool,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;
 }
 
-const logger = new Logger();
 const preference = new Preference(true);
 const stateStore = new MainRendererStateStore(preference);
-const networkTool = new NetworkTool(stateStore, preference);
 
 // Inject
-window.logger = logger;
-window.networkTool = networkTool;
 window.preference = preference;
 window.stateStore = stateStore;
 
@@ -132,24 +126,13 @@ const i18n = createI18n({
 
 app.use(i18n);
 
-const dbRepository = new DBRepository(stateStore, preference);
-const fileRepository = new FileRepository(stateStore, preference);
-const appInteractor = new AppInteractor(
-  stateStore,
-  preference,
-  fileRepository,
-  dbRepository
-);
+const appInteractor = new AppInteractor(stateStore, preference);
 
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (event) => {
     stateStore.viewState.renderRequired = Date.now();
   });
-
-// ====================================
-// Inject
-// ====================================
 
 window.appInteractor = appInteractor;
 

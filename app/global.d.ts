@@ -3,6 +3,7 @@ import path from "path";
 import { Store } from "pinia";
 
 import { APIShape } from "./api/api";
+import { NetworkTool } from "./base/network";
 import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
 import { FeedInteractor } from "./interactors/feed-interactor";
@@ -28,8 +29,6 @@ import { SmartFilterService } from "./renderer/services/smartfilter-service";
 import { StateService } from "./renderer/services/state-service/state-service";
 import { IProcessingState } from "./renderer/services/state-service/state/processing";
 import { MainRendererStateStore } from "./state/renderer/appstate";
-import { NetworkTool } from "./utils/got";
-import { Logger } from "./utils/logger";
 
 declare global {
   interface Window {
@@ -37,8 +36,6 @@ declare global {
     previewInteractor: PreviewInteractor;
     pluginSideInteractor: PluginSideInteractor;
 
-    logger: Logger;
-    networkTool: NetworkTool;
     preference: Preference;
     stateStore: MainRendererStateStore;
   }
@@ -70,6 +67,7 @@ declare global {
   var renderService: RenderService;
   var referenceService: ReferenceService;
   var schedulerService: SchedulerService;
+  var networkTool: NetworkTool;
 
   var processingState: Store<"processingState", IProcessingState>;
 }

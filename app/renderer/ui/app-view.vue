@@ -4,11 +4,11 @@ import { Ref, computed, nextTick, onMounted, provide, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/preload/loading";
-import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
-import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
-import { FeedResults } from "@/repositories/db-repository/feed-repository";
+import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
+import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { IFeedResults } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
-import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
+import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
@@ -38,15 +38,15 @@ provide(
   "paperEntities",
   computed(() => paperEntities.value) // TODO: ?
 );
-const tags: Ref<CategorizerResults> = ref([]);
+const tags: Ref<ICategorizerResults> = ref([]);
 provide("tags", tags);
-const folders: Ref<CategorizerResults> = ref([]);
+const folders: Ref<ICategorizerResults> = ref([]);
 provide("folders", folders);
-const smartfilters: Ref<PaperSmartFilterResults> = ref([]);
+const smartfilters: Ref<IPaperSmartFilterResults> = ref([]);
 provide("smartfilters", smartfilters);
-const feeds: Ref<FeedResults> = ref([]);
+const feeds: Ref<IFeedResults> = ref([]);
 provide("feeds", feeds);
-const feedEntities: Ref<FeedEntityResults> = ref([]);
+const feedEntities: Ref<IFeedEntityResults> = ref([]);
 provide(
   "feedEntities",
   computed(() => feedEntities.value)
@@ -249,7 +249,7 @@ window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
 });
 
 window.appInteractor.registerMainSignal("update-download-progress", (value) => {
-  window.logger.progress("Downloading Update...", value, true, "Version");
+  logService.progress("Downloading Update...", value, true, "Version");
 });
 
 // ================================
@@ -478,3 +478,5 @@ onMounted(async () => {
   </div>
 </template>
 @/renderer/services/log-service
+@/repositories/db-repository/categorizer-repository
+@/repositories/db-repository/feed-repository

@@ -6,6 +6,7 @@ import path from "path";
 import { createDecorator } from "@/base/injection/injection";
 import { CSL } from "@/models/csl";
 import { PaperEntity } from "@/models/paper-entity";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
@@ -16,7 +17,8 @@ export const IReferenceService = createDecorator("referenceService");
 
 export class ReferenceService {
   constructor(
-    @IPreferenceService private readonly _preferenceService: PreferenceService
+    @IPreferenceService private readonly _preferenceService: PreferenceService,
+    @ILogService private readonly _logService: LogService
   ) {
     this._setupCitePlugin();
   }
@@ -209,7 +211,7 @@ export class ReferenceService {
 
         return cite.format("bibliography", { template: csl });
       } else {
-        window.logger.error(
+        this._logService.error(
           `CSL template file: ${csl}.csl not found.`,
           "",
           true,

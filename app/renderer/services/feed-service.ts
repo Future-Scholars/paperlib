@@ -21,13 +21,13 @@ import {
 } from "@/renderer/services/state-service/processing";
 import {
   FeedEntityRepository,
-  FeedEntityResults,
   IFeedEntityRepository,
-} from "@/repositories/db-repository/feed-entity-repository-v2";
+  IFeedEntityResults,
+} from "@/repositories/db-repository/feed-entity-repository";
 import {
   FeedRepository,
   IFeedRepository,
-} from "@/repositories/db-repository/feed-repository-v2";
+} from "@/repositories/db-repository/feed-repository";
 import {
   IRSSRepository,
   RSSRepository,
@@ -176,7 +176,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
         true,
         "FeedService"
       );
-      return [] as FeedEntityResults;
+      return [] as IFeedEntityResults;
     }
   }
 

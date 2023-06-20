@@ -1,32 +1,30 @@
 import Realm, { Results } from "realm";
 
+import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { ISmartFilterServiceState } from "@/renderer/services/smartfilter-service";
 
-export class PaperSmartFilterRepository {
-  stateStore: MainRendererStateStore;
-  listened: Record<PaperSmartFilterType, boolean>;
+export const IPaperSmartFilterRepository = createDecorator(
+  "paperSmartFilterRepository"
+);
 
-  constructor(stateStore: MainRendererStateStore) {
-    this.stateStore = stateStore;
-    this.listened = {
-      PaperPaperSmartFilter: false,
-    };
+export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceState> {
+  constructor() {
+    super("paperSmartFilterRepository", {
+      updated: 0,
+    });
   }
 
-  removeListeners() {
-    this.listened = {
-      PaperPaperSmartFilter: false,
-    };
-  }
-
-  // ========================
-  // CRUD
-  // ========================
-  // ========================
-  // Read
-  // ========================
+  /**
+   *
+   * @param realm - Realm instance
+   * @param type - SmartFilter type
+   * @param sortBy - Sort by field
+   * @param sortOrder - Sort order
+   * @returns Results of smartfilter
+   */
   load(
     realm: Realm,
     type: PaperSmartFilterType,
@@ -37,7 +35,7 @@ export class PaperSmartFilterRepository {
       .objects<PaperSmartFilter>(type)
       .sorted(sortBy, sortOrder == "desc");
 
-    if (!this.listened[type]) {
+    if (!realm.smartfilterListened) {
       objects.addListener((objs, changes) => {
         const deletionCount = changes.deletions.length;
         const insertionCount = changes.insertions.length;
@@ -45,57 +43,56 @@ export class PaperSmartFilterRepository {
           changes.newModifications.length + changes.oldModifications.length;
 
         if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
-          this.stateStore.dbState.smartfiltersUpdated = Date.now();
+          this.fire("updated");
         }
       });
-      this.listened[type] = true;
+      realm.smartfilterListened = true;
     }
     return objects;
   }
 
-  // ========================
-  // Delete
-  // ========================
+  /**
+   * Delete smartfilter
+   * @param realm - Realm instance
+   * @param type - SmartFilter type
+   * @param smartfilter - SmartFilter
+   * @param name - SmartFilter name
+   * @returns True if success
+   */
   delete(
     realm: Realm,
     type: PaperSmartFilterType,
     smartfilter?: PaperSmartFilter,
     name?: string
   ) {
-    try {
-      return realm.safeWrite(() => {
-        let objects;
-        if (smartfilter) {
-          objects = realm
-            .objects<PaperSmartFilter>(type)
-            .filtered(`name == "${smartfilter.name}"`);
-        } else if (name) {
-          objects = realm
-            .objects<PaperSmartFilter>(type)
-            .filtered(`name == "${name}"`);
-        } else {
-          throw new Error(
-            `Invalid arguments: ${smartfilter}, ${name}, ${type}`
-          );
-        }
+    return realm.safeWrite(() => {
+      let objects: IPaperSmartFilterResults;
+      if (smartfilter) {
+        objects = realm
+          .objects<PaperSmartFilter>(type)
+          .filtered(`name == "${smartfilter.name}"`);
+      } else if (name) {
+        objects = realm
+          .objects<PaperSmartFilter>(type)
+          .filtered(`name == "${name}"`);
+      } else {
+        throw new Error(`Invalid arguments: ${smartfilter}, ${name}, ${type}`);
+      }
 
-        realm.delete(objects);
-        return true;
-      });
-    } catch (error) {
-      window.logger.error(
-        "Failed to delete smartfilter",
-        error as Error,
-        true,
-        "Database"
-      );
-      return false;
-    }
+      realm.delete(objects);
+      return true;
+    });
   }
 
-  // ========================
-  // Update
-  // ========================
+  /**
+   * Colorize smartfilter
+   * @param realm - Realm instance
+   * @param color - Color
+   * @param type - SmartFilter type
+   * @param smartfilter - SmartFilter
+   * @param name - SmartFilter name
+   * @returns True if success
+   */
   async colorize(
     realm: Realm,
     color: Colors,
@@ -122,51 +119,44 @@ export class PaperSmartFilterRepository {
     });
   }
 
+  /**
+   * Update smartfilter
+   * @param realm - Realm instance
+   * @param smartfilter - SmartFilter
+   * @param type - SmartFilter type
+   * @param partition - Partition
+   * @returns Updated smartfilter
+   */
   insert(
     realm: Realm,
     smartfilter: PaperSmartFilter,
     type: PaperSmartFilterType,
     partition: string
   ) {
-    try {
-      return realm.safeWrite(() => {
-        // Add or Link categorizer
-        const dbExistPaperSmartFilter = realm
-          .objects<PaperSmartFilter>(type)
-          .filtered(`name == "${smartfilter.name}"`);
+    return realm.safeWrite(() => {
+      // Add or Link categorizer
+      const dbExistPaperSmartFilter = realm
+        .objects<PaperSmartFilter>(type)
+        .filtered(`name == "${smartfilter.name}"`);
 
-        if (dbExistPaperSmartFilter.length > 0) {
-          window.logger.warn(
-            "Smart filter already exists",
-            smartfilter.name,
-            true,
-            "Database"
-          );
-
-          return null;
-        } else {
-          const smarfilter = new PaperSmartFilter(
-            smartfilter.name,
-            smartfilter.filter,
-            smartfilter.color,
-            partition
-          );
-          realm.create(type, smarfilter);
-          return smarfilter;
-        }
-      });
-    } catch (error) {
-      window.logger.error(
-        "Failed to update smartfilter",
-        error as Error,
-        true,
-        "Database"
-      );
-      return null;
-    }
+      if (dbExistPaperSmartFilter.length > 0) {
+        throw new Error(
+          `SmartFilter already exists: ${smartfilter.name}, ${type}`
+        );
+      } else {
+        const smarfilter = new PaperSmartFilter(
+          smartfilter.name,
+          smartfilter.filter,
+          smartfilter.color,
+          partition
+        );
+        realm.create(type, smarfilter);
+        return smarfilter;
+      }
+    });
   }
 }
 
-export type PaperSmartFilterResults =
+export type IPaperSmartFilterResults =
   | Results<PaperSmartFilter & Realm.Object>
   | Array<PaperSmartFilter>;

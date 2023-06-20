@@ -4,7 +4,7 @@ import { Ref, inject, ref, watch } from "vue";
 import { disposable } from "@/base/dispose";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
-import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { debounce } from "@/utils/misc";
@@ -30,7 +30,7 @@ const selectedEntityPlaceHolder = ref(new PaperEntity(false));
 const selectedFeedEntityPlaceHolder = ref(new FeedEntity(false));
 
 const paperEntities = inject<Ref<IPaperEntityResults>>("paperEntities");
-const feedEntities = inject<Ref<FeedEntityResults>>("feedEntities");
+const feedEntities = inject<Ref<IFeedEntityResults>>("feedEntities");
 
 const selectedPaperEntities = ref<Array<PaperEntity>>([]);
 const selectedFeedEntities = ref<Array<FeedEntity>>([]);

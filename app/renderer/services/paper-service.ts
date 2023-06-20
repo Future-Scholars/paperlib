@@ -34,11 +34,11 @@ import {
 import {
   CategorizerRepository,
   ICategorizerRepository,
-} from "@/repositories/db-repository/categorizer-repository-v2";
+} from "@/repositories/db-repository/categorizer-repository";
 import {
   IPaperEntityRepository,
   PaperEntityRepository,
-} from "@/repositories/db-repository/paper-repository";
+} from "@/repositories/db-repository/paper-entity-repository";
 import { formatString } from "@/utils/string";
 
 export interface IPaperServiceState {

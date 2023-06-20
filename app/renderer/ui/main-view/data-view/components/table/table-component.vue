@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
@@ -12,7 +12,7 @@ const props = defineProps({
     required: true,
   },
   dataRows: {
-    type: Object as () => IPaperEntityResults | FeedEntityResults,
+    type: Object as () => IPaperEntityResults | IFeedEntityResults,
     required: true,
   },
   isFeedTable: {

@@ -11,7 +11,7 @@ import {
 import {
   IPaperSmartFilterRepository,
   PaperSmartFilterRepository,
-} from "@/repositories/db-repository/smartfilter-repository-v2";
+} from "@/repositories/db-repository/smartfilter-repository";
 
 export interface ISmartFilterServiceState {
   updated: number;

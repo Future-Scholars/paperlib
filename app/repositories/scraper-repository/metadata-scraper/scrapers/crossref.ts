@@ -163,7 +163,7 @@ export class CrossRefScraper extends Scraper {
     const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
     if (scrapeURL.startsWith("https://api.crossref.org")) {
-      const response = (await window.networkTool.get(
+      const response = (await networkTool.get(
         scrapeURL,
         headers,
         1,
@@ -176,7 +176,7 @@ export class CrossRefScraper extends Scraper {
         !scrapeURL.includes("bibliographic")
       );
     } else {
-      const response = (await window.networkTool.get(
+      const response = (await networkTool.get(
         scrapeURL,
         headers,
         1,
@@ -191,7 +191,7 @@ export class CrossRefScraper extends Scraper {
       if (!potentialDOI) {
         return paperEntityDraft;
       } else {
-        const response = (await window.networkTool.get(
+        const response = (await networkTool.get(
           `https://api.crossref.org/works/${potentialDOI[0]}`,
           headers,
           1,

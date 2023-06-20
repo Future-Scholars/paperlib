@@ -43,7 +43,7 @@ export class SemanticScholarFileSource extends FileSource {
     paperEntityDraft: PaperEntity | null
   ): Promise<string> {
     try {
-      const response = (await window.networkTool.get(
+      const response = (await networkTool.get(
         queryUrl,
         headers,
         0,

@@ -116,7 +116,7 @@ export class MSWordCommService {
     const manifestUrl =
       "https://paperlib.app/distribution/word_addin/manifest.xml";
     const manifestPath = path.join(os.tmpdir(), "manifest.xml");
-    await window.networkTool.download(manifestUrl, manifestPath);
+    await networkTool.download(manifestUrl, manifestPath);
 
     if (os.platform() === "darwin") {
       await fsPromise.mkdir(
@@ -137,7 +137,7 @@ export class MSWordCommService {
       const helperUrl =
         "https://paperlib.app/distribution/word_addin/oaloader.exe";
       const helperPath = path.join(os.tmpdir(), "oaloader.exe");
-      await window.networkTool.download(helperUrl, helperPath);
+      await networkTool.download(helperUrl, helperPath);
 
       sudo.exec(
         `${helperPath} add ${manifestPath}`,

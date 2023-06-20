@@ -38,9 +38,7 @@ export class WebcontentPDFURLEntryImporter extends AbstractEntryScraper {
     const downloadURL = payload.value.url;
 
     if (downloadURL) {
-      const downloadedFilePath = await window.networkTool.downloadPDFs([
-        downloadURL,
-      ]);
+      const downloadedFilePath = await networkTool.downloadPDFs([downloadURL]);
       if (downloadedFilePath.length > 0) {
         return PDFEntryScraper.scrape({
           type: "file",

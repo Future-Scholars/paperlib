@@ -8,10 +8,12 @@ import stream from "stream";
 import { CookieJar } from "tough-cookie";
 import { promisify } from "util";
 
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
-import { constructFileURL } from "./path";
+import { constructFileURL } from "@/base/url";
+import { ILogService, LogService } from "@/renderer/services/log-service";
+import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/renderer/services/preference-service";
 
 const cache = new Map();
 
@@ -42,21 +44,18 @@ const gotWithCache = got.extend({
 });
 
 export class NetworkTool {
-  stateStore: MainRendererStateStore;
-  preference: Preference;
-
-  agent: {
+  private _agent: {
     http?: HttpProxyAgent;
     https?: HttpsProxyAgent;
   };
 
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    this.stateStore = stateStore;
-    this.preference = preference;
+  constructor(
+    @IPreferenceService private readonly _preferenceService: PreferenceService,
+    @ILogService private readonly _logService: LogService
+  ) {
+    this._agent = {};
 
-    this.agent = {};
-
-    if (this.preference.get("allowproxy")) {
+    if (this._preferenceService.get("allowproxy")) {
       try {
         this.checkSystemProxy();
       } catch (e) {
@@ -66,9 +65,10 @@ export class NetworkTool {
   }
 
   setProxyAgent(proxy: string = "") {
-    const httpproxyUrl = (this.preference.get("httpproxy") as string) || proxy;
+    const httpproxyUrl =
+      (this._preferenceService.get("httpproxy") as string) || proxy;
     const httpsproxyUrl =
-      (this.preference.get("httpsproxy") as string) || proxy;
+      (this._preferenceService.get("httpsproxy") as string) || proxy;
 
     let agnets = {};
     if (httpproxyUrl || httpsproxyUrl) {
@@ -104,7 +104,7 @@ export class NetworkTool {
       });
     }
 
-    this.agent = agnets;
+    this._agent = agnets;
   }
 
   checkSystemProxy() {
@@ -140,7 +140,7 @@ export class NetworkTool {
       timeout: {
         request: timeout,
       },
-      agent: this.agent,
+      agent: this._agent,
     };
 
     if (safe) {
@@ -201,7 +201,7 @@ export class NetworkTool {
       timeout: {
         request: timeout,
       },
-      agent: this.agent,
+      agent: this._agent,
     };
     return await got.post(url, options);
   }
@@ -220,7 +220,7 @@ export class NetworkTool {
       timeout: {
         request: timeout,
       },
-      agent: this.agent,
+      agent: this._agent,
     };
     return await got.post(url, options);
   }
@@ -237,14 +237,14 @@ export class NetworkTool {
           .stream(url, {
             headers: headers,
             rejectUnauthorized: false,
-            agent: this.agent,
+            agent: this._agent,
             cookieJar: cookies,
           })
           .on("downloadProgress", (progress) => {
             const percent = progress.percent;
 
             // TODO: Log only every 5 percent
-            window.logger.progress(
+            this._logService.progress(
               "Downloading...",
               percent * 100,
               true,

@@ -81,7 +81,7 @@ export class PwCScraper extends Scraper {
 
     const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-    const rawSearchResponse = (await window.networkTool.get(
+    const rawSearchResponse = (await networkTool.get(
       scrapeURL,
       headers
     )) as Response<string>;
@@ -124,7 +124,7 @@ export class PwCScraper extends Scraper {
     }
 
     if (id) {
-      const rawRepoResponse = (await window.networkTool.get(
+      const rawRepoResponse = (await networkTool.get(
         `https://paperswithcode.com/api/v1/papers/${id}/repositories/`,
         headers
       )) as Response<string>;

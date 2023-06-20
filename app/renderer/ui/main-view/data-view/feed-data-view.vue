@@ -3,7 +3,7 @@ import { Ref, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { disposable } from "@/base/dispose";
-import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";
@@ -19,7 +19,7 @@ const i18n = useI18n();
 // ================================
 // Data
 // ================================
-const feedEntities = inject<Ref<FeedEntityResults>>("feedEntities");
+const feedEntities = inject<Ref<IFeedEntityResults>>("feedEntities");
 
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedLastSingleIndex = ref(-1);

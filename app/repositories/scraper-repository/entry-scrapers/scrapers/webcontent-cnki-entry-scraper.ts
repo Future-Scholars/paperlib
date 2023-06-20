@@ -49,7 +49,7 @@ export class WebcontentCNKIEntryImporter extends AbstractEntryScraper {
     refRequestFormData.append("displaymode", "Refworks");
     refRequestFormData.append("ordertype", "desc");
 
-    const response = await window.networkTool.postForm(
+    const response = await networkTool.postForm(
       refRequestUrl,
       refRequestFormData
     );

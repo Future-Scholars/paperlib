@@ -96,7 +96,7 @@ export class PaperlibMetadataServiceScraper {
       scrapeURL += "&force=true";
     }
 
-    const response = (await window.networkTool.get(
+    const response = (await networkTool.get(
       scrapeURL,
       headers,
       1,

@@ -153,7 +153,7 @@ export class OpenreviewScraper extends Scraper {
 
     const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-    const response = (await window.networkTool.get(
+    const response = (await networkTool.get(
       scrapeURL,
       headers,
       1,
