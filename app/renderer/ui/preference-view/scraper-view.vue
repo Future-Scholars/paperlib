@@ -4,7 +4,7 @@ import { Ref, onMounted, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { ScraperPreference } from "@/preference/preference";
-import { IPreferenceStore } from "@/services/preference-service";
+import { IPreferenceStore } from "@/renderer/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ScraperItem from "./components/scraper.vue";

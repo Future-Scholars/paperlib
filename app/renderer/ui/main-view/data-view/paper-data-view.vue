@@ -6,7 +6,6 @@ import { useI18n } from "vue-i18n";
 
 import { disposable } from "@/base/dispose";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
-import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";

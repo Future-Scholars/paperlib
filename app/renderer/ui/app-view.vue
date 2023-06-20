@@ -9,7 +9,6 @@ import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repo
 import { FeedResults } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
-import { LogService } from "@/services/log-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";

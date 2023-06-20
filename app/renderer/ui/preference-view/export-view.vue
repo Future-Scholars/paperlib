@@ -2,7 +2,8 @@
 import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
-import { IPreferenceStore } from "@/services/preference-service";
+import { MSWordCommService } from "@/renderer/services/msword-comm-service";
+import { IPreferenceStore } from "@/renderer/services/preference-service";
 
 import Replacement from "./components/replacement.vue";
 import Toggle from "./components/toggle.vue";
@@ -68,7 +69,8 @@ const loadCSLStyles = async () => {
 const installstate = ref(0);
 
 const installWordAddinClicked = async () => {
-  await window.wordAddinInteractor.installWordAddin();
+  // TODO: implement
+  // await MSWordCommService.installWordAddin();
   installstate.value = 1;
 };
 

@@ -12,9 +12,9 @@ import { Ref, inject, ref, watch } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
+import { useProcessingState } from "@/renderer/services/state-service/processing";
 import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
-import { useProcessingState } from "@/services/state-service/processing";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CollopseGroup from "./components/collopse-group.vue";

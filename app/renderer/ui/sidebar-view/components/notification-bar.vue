@@ -7,8 +7,7 @@ import {
 } from "bootstrap-icons-vue";
 import { Ref, ref, watch } from "vue";
 
-import { useProcessingState } from "@/services/state-service/processing";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { useProcessingState } from "@/renderer/services/state-service/processing";
 
 const logState = logService.useState();
 const processingState = useProcessingState();

@@ -1,9 +1,6 @@
 import { AppInteractor } from "@/interactors/app-interactor";
-import { EntityInteractor } from "@/interactors/entity-interactor";
 
-export function createInteractorProxy(
-  interactor: AppInteractor | EntityInteractor
-) {
+export function createInteractorProxy(interactor: AppInteractor) {
   const interactorFuncs = Object.getOwnPropertyNames(
     Object.getPrototypeOf(interactor)
   );

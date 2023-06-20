@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { IPreferenceStore } from "@/services/preference-service";
+import { IPreferenceStore } from "@/renderer/services/preference-service";
 
 import Toggle from "./components/toggle.vue";
 

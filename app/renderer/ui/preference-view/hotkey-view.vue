@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { IPreferenceStore } from "@/services/preference-service";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { IPreferenceStore } from "@/renderer/services/preference-service";
 
 import HotkeyOption from "./components/hotkey-options.vue";
 
