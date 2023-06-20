@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { PreferenceService } from "@/services/preference-service";
+import { PreferenceService } from "@/renderer/services/preference-service";
 
 describe("State Service", () => {
   beforeEach(() => {

@@ -2,7 +2,10 @@ import {
   Store,
   SubscriptionCallbackMutationPatchObject,
   _DeepPartial,
+  createPinia,
   defineStore,
+  getActivePinia,
+  setActivePinia,
 } from "pinia";
 import { UnwrapRef } from "vue";
 
@@ -32,6 +35,11 @@ export class Eventable<T extends IEventState> implements IDisposable {
     this._eventDefaultState = eventDefaultState || ({} as T);
 
     this._listeners = {};
+
+    if (!getActivePinia()) {
+      setActivePinia(createPinia());
+    }
+
     this._state = this.useState();
     this._state.$subscribe((mutation, state) => {
       let payload: { [key: string]: any };
@@ -46,9 +54,14 @@ export class Eventable<T extends IEventState> implements IDisposable {
         if (key in this._listeners) {
           const callbacks = this._listeners[key]!;
           const callbacksPromise = Object.values(callbacks).map((callback) => {
-            return new Promise((resolve) => {
-              resolve(callback({ key: key, value: payload[key] }));
-            });
+            // if callback is async
+            if (callback.constructor.name === "AsyncFunction") {
+              return callback({ key: key, value: payload[key] });
+            } else {
+              return new Promise((resolve) => {
+                resolve(callback({ key: key, value: payload[key] }));
+              });
+            }
           });
           Promise.all(callbacksPromise);
         }

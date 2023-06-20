@@ -5,7 +5,7 @@ import { createDecorator } from "@/base/injection/injection";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/services/preference-service";
+} from "@/renderer/services/preference-service";
 
 export enum APPTheme {
   System = "system",

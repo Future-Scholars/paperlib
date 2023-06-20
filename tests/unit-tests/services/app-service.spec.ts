@@ -1,8 +1,8 @@
 import os from "os";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { APPService } from "@/services/app-service";
-import { PreferenceService } from "@/services/preference-service";
+import { APPService } from "@/renderer/services/app-service";
+import { PreferenceService } from "@/renderer/services/preference-service";
 
 vi.mock("@/services/preference-service", () => {
   const PreferenceService = vi.fn();

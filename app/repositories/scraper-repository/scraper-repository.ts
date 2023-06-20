@@ -5,7 +5,7 @@ import { watch } from "vue";
 import { createDecorator } from "@/base/injection/injection";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
-import { ILogService, LogService } from "@/services/log-service";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 import { isMetadataCompleted, mergeMetadata } from "@/utils/metadata";
 

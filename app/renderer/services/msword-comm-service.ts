@@ -6,11 +6,11 @@ import sudo from "sudo-prompt";
 import * as WebSocket from "ws";
 
 import { createDecorator } from "@/base/injection/injection";
-import { IPaperService, PaperService } from "@/services/paper-service";
+import { IPaperService, PaperService } from "@/renderer/services/paper-service";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/services/preference-service";
+} from "@/renderer/services/preference-service";
 import { certs } from "@/utils/crypto/word-comm-cert";
 
 interface ISearchParams {

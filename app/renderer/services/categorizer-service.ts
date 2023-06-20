@@ -2,12 +2,15 @@ import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Categorizer, CategorizerType, Colors } from "@/models/categorizer";
+import { ILogService, LogService } from "@/renderer/services/log-service";
+import {
+  ProcessingKey,
+  processing,
+} from "@/renderer/services/state-service/processing";
 import {
   CategorizerRepository,
   ICategorizerRepository,
 } from "@/repositories/db-repository/categorizer-repository-v2";
-import { ILogService, LogService } from "@/services/log-service";
-import { ProcessingKey, processing } from "@/services/state-service/processing";
 
 export interface ICategorizerServiceState {
   tagsUpdated: number;

@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Store } from "pinia";
 
-import { APIClient } from "./api/api";
+import { APIShape } from "./api/api";
 import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
 import { FeedInteractor } from "./interactors/feed-interactor";
@@ -11,22 +11,22 @@ import { PreviewInteractor } from "./interactors/preview-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
 import { WordAddinInteractor } from "./interactors/word-addin-interactor";
 import { Preference } from "./preference/preference";
-import { APPService } from "./services/app-service";
-import { BufferService } from "./services/buffer-service";
-import { CacheService } from "./services/cache-service";
-import { CategorizerService } from "./services/categorizer-service";
-import { DatabaseService } from "./services/database-service";
-import { FeedService } from "./services/feed-service";
-import { FileService } from "./services/file-service";
-import { LogService } from "./services/log-service";
-import { PaperService } from "./services/paper-service";
-import { PreferenceService } from "./services/preference-service";
-import { ReferenceService } from "./services/reference-service";
-import { RenderService } from "./services/render-service";
-import { SchedulerService } from "./services/scheduler-service";
-import { SmartFilterService } from "./services/smartfilter-service";
-import { StateService } from "./services/state-service/state-service";
-import { IProcessingState } from "./services/state-service/state/processing";
+import { APPService } from "./renderer/services/app-service";
+import { BufferService } from "./renderer/services/buffer-service";
+import { CacheService } from "./renderer/services/cache-service";
+import { CategorizerService } from "./renderer/services/categorizer-service";
+import { DatabaseService } from "./renderer/services/database-service";
+import { FeedService } from "./renderer/services/feed-service";
+import { FileService } from "./renderer/services/file-service";
+import { LogService } from "./renderer/services/log-service";
+import { PaperService } from "./renderer/services/paper-service";
+import { PreferenceService } from "./renderer/services/preference-service";
+import { ReferenceService } from "./renderer/services/reference-service";
+import { RenderService } from "./renderer/services/render-service";
+import { SchedulerService } from "./renderer/services/scheduler-service";
+import { SmartFilterService } from "./renderer/services/smartfilter-service";
+import { StateService } from "./renderer/services/state-service/state-service";
+import { IProcessingState } from "./renderer/services/state-service/state/processing";
 import { MainRendererStateStore } from "./state/renderer/appstate";
 import { NetworkTool } from "./utils/got";
 import { Logger } from "./utils/logger";
@@ -53,7 +53,7 @@ declare global {
     feedListened: boolean;
   }
 
-  var paperlibAPI: APIClient;
+  var paperlibAPI: APIShape;
 
   var appService: APPService;
   var preferenceService: PreferenceService;

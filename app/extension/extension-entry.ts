@@ -1,14 +1,11 @@
-import { APIClient } from "@/api/api";
-import { RPCProtocol } from "@/rpc/rpc-protocol";
+import { ExtensionRPCService } from "@/base/rpc/extension-rpc-service";
 
-process.parentPort.once("message", (e) => {
-  const [port] = e.ports;
+const extensionRPCService = new ExtensionRPCService();
 
-  const apiClient = new APIClient(new RPCProtocol(port));
-
-  globalThis.paperlibAPI = apiClient;
-
-  paperlibAPI.app.version().then((version) => {
-    console.log(`Paperlib version ${version}`);
-  });
+extensionRPCService.on("initialized", async () => {
+  try {
+    console.log(await paperlibAPI.appService.version());
+  } catch (e) {
+    console.log("error");
+  }
 });

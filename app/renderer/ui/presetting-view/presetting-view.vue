@@ -38,3 +38,4 @@ const hide = (key: keyof IPreferenceStore) => {
     />
   </div>
 </template>
+@/renderer/services/preference-service

@@ -408,3 +408,4 @@ onMounted(() => {
     </splitpanes>
   </div>
 </template>
+@/renderer/services/preference-service

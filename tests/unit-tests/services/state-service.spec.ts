@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { StateService } from "@/services/state-service/state-service";
+import { StateService } from "@/renderer/services/state-service/state-service";
 
 describe("State Service", () => {
   beforeEach(() => {

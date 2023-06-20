@@ -1,12 +1,6 @@
-import { Proxied, RPCProtocol } from "@/rpc/rpc-protocol";
+import { Proxied } from "@/base/rpc/rpc-protocol";
+import { APPService } from "@/renderer/services/app-service";
 
-import { AppInteractorShape } from "./proxies/app";
-
-// API client in any process
-export class APIClient {
-  public app: Proxied<AppInteractorShape>;
-
-  constructor(protocol: RPCProtocol) {
-    this.app = protocol.getProxy<AppInteractorShape>("app");
-  }
+export interface APIShape {
+  appService: Proxied<APPService>;
 }

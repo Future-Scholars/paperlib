@@ -2,19 +2,25 @@ import { Store } from "pinia";
 
 import { createDecorator } from "@/base/injection/injection";
 import {
-  ISelectionState,
-  defineSelectionState,
-} from "@/services/state-service/state//selection";
-import {
   IBufferState,
   defineBufferState,
-} from "@/services/state-service/state/buffer";
-import { IDBState, defineDBState } from "@/services/state-service/state/db";
-import { ILogState, defineLogState } from "@/services/state-service/state/log";
+} from "@/renderer/services/state-service/state/buffer";
+import {
+  IDBState,
+  defineDBState,
+} from "@/renderer/services/state-service/state/db";
+import {
+  ILogState,
+  defineLogState,
+} from "@/renderer/services/state-service/state/log";
+import {
+  ISelectionState,
+  defineSelectionState,
+} from "@/renderer/services/state-service/state/selection";
 import {
   IViewState,
   defineViewState,
-} from "@/services/state-service/state/view";
+} from "@/renderer/services/state-service/state/view";
 
 export const IStateService = createDecorator("stateService");
 

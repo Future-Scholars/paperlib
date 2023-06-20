@@ -9,7 +9,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/services/preference-service";
+} from "@/renderer/services/preference-service";
 import { formatString } from "@/utils/string";
 
 export const IReferenceService = createDecorator("referenceService");

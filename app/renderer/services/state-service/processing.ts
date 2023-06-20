@@ -1,7 +1,7 @@
 import {
   ProcessingKey as _ProcessingKey,
   defineProcessingState,
-} from "@/services/state-service/state/processing";
+} from "@/renderer/services/state-service/state/processing";
 
 export const ProcessingKey = _ProcessingKey;
 

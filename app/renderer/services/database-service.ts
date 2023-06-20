@@ -1,7 +1,7 @@
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { ILogService, LogService } from "@/services/log-service";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 
 export interface IDatabaseServiceState {
   dbInitializing: number;

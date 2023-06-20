@@ -12,6 +12,25 @@ import {
   PaperTag,
 } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
+import { CacheService, ICacheService } from "@/renderer/services/cache-service";
+import { FileService, IFileService } from "@/renderer/services/file-service";
+import { ILogService, LogService } from "@/renderer/services/log-service";
+import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/renderer/services/preference-service";
+import {
+  ISchedulerService,
+  SchedulerService,
+} from "@/renderer/services/scheduler-service";
+import {
+  IScrapeService,
+  ScrapeService,
+} from "@/renderer/services/scrape-service";
+import {
+  ProcessingKey,
+  processing,
+} from "@/renderer/services/state-service/processing";
 import {
   CategorizerRepository,
   ICategorizerRepository,
@@ -20,19 +39,6 @@ import {
   IPaperEntityRepository,
   PaperEntityRepository,
 } from "@/repositories/db-repository/paper-repository";
-import { CacheService, ICacheService } from "@/services/cache-service";
-import { FileService, IFileService } from "@/services/file-service";
-import { ILogService, LogService } from "@/services/log-service";
-import {
-  IPreferenceService,
-  PreferenceService,
-} from "@/services/preference-service";
-import {
-  ISchedulerService,
-  SchedulerService,
-} from "@/services/scheduler-service";
-import { IScrapeService, ScrapeService } from "@/services/scrape-service";
-import { ProcessingKey, processing } from "@/services/state-service/processing";
 import { formatString } from "@/utils/string";
 
 export interface IPaperServiceState {

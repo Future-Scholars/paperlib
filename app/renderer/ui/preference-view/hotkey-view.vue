@@ -109,3 +109,4 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     </div>
   </div>
 </template>
+@/renderer/services/preference-service

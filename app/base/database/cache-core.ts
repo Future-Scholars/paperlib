@@ -5,14 +5,14 @@ import Realm from "realm";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { PaperEntityCache } from "@/models/paper-entity-cache";
-import { APPService, IAPPService } from "@/services/app-service";
-import { ILogService, LogService } from "@/services/log-service";
+import { APPService, IAPPService } from "@/renderer/services/app-service";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/services/preference-service";
-import { processing } from "@/services/state-service/processing";
-import { ProcessingKey } from "@/services/state-service/state/processing";
+} from "@/renderer/services/preference-service";
+import { processing } from "@/renderer/services/state-service/processing";
+import { ProcessingKey } from "@/renderer/services/state-service/state/processing";
 
 export const DATABASE_SCHEMA_VERSION = 2;
 

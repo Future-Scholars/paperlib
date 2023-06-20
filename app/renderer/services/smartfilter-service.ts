@@ -3,12 +3,15 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
+import { ILogService, LogService } from "@/renderer/services/log-service";
+import {
+  ProcessingKey,
+  processing,
+} from "@/renderer/services/state-service/processing";
 import {
   IPaperSmartFilterRepository,
   PaperSmartFilterRepository,
 } from "@/repositories/db-repository/smartfilter-repository-v2";
-import { ILogService, LogService } from "@/services/log-service";
-import { ProcessingKey, processing } from "@/services/state-service/processing";
 
 export interface ISmartFilterServiceState {
   updated: number;

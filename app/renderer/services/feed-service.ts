@@ -5,6 +5,20 @@ import { Colors } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
+import { ILogService, LogService } from "@/renderer/services/log-service";
+import { IPaperService, PaperService } from "@/renderer/services/paper-service";
+import {
+  ISchedulerService,
+  SchedulerService,
+} from "@/renderer/services/scheduler-service";
+import {
+  IScrapeService,
+  ScrapeService,
+} from "@/renderer/services/scrape-service";
+import {
+  ProcessingKey,
+  processing,
+} from "@/renderer/services/state-service/processing";
 import {
   FeedEntityRepository,
   FeedEntityResults,
@@ -18,14 +32,6 @@ import {
   IRSSRepository,
   RSSRepository,
 } from "@/repositories/rss-repository/rss-repository";
-import { ILogService, LogService } from "@/services/log-service";
-import { IPaperService, PaperService } from "@/services/paper-service";
-import {
-  ISchedulerService,
-  SchedulerService,
-} from "@/services/scheduler-service";
-import { IScrapeService, ScrapeService } from "@/services/scrape-service";
-import { ProcessingKey, processing } from "@/services/state-service/processing";
 import { formatString } from "@/utils/string";
 
 export interface IFeedServiceState {

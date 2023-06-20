@@ -256,3 +256,4 @@ onMounted(() => {
     </div>
   </div>
 </template>
+@/renderer/services/preference-service

@@ -1,8 +1,11 @@
 import * as WebSocket from "ws";
 
 import { createDecorator } from "@/base/injection/injection";
-import { IPaperService, PaperService } from "@/services/paper-service";
-import { IScrapeService, ScrapeService } from "@/services/scrape-service";
+import { IPaperService, PaperService } from "@/renderer/services/paper-service";
+import {
+  IScrapeService,
+  ScrapeService,
+} from "@/renderer/services/scrape-service";
 
 export const IBrowserExtensionService = createDecorator(
   "browserExtensionService"

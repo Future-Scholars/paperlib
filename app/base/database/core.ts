@@ -10,15 +10,15 @@ import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
-import { APPService, IAPPService } from "@/services/app-service";
-import { FileService, IFileService } from "@/services/file-service";
-import { ILogService, LogService } from "@/services/log-service";
+import { APPService, IAPPService } from "@/renderer/services/app-service";
+import { FileService, IFileService } from "@/renderer/services/file-service";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/services/preference-service";
-import { processing } from "@/services/state-service/processing";
-import { ProcessingKey } from "@/services/state-service/state/processing";
+} from "@/renderer/services/preference-service";
+import { processing } from "@/renderer/services/state-service/processing";
+import { ProcessingKey } from "@/renderer/services/state-service/state/processing";
 
 export const DATABASE_SCHEMA_VERSION = 9;
 

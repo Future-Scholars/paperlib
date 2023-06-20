@@ -14,6 +14,12 @@ import {
   listAllFiles,
 } from "@/base/url";
 import { PaperEntity } from "@/models/paper-entity";
+import { ILogService, LogService } from "@/renderer/services/log-service";
+import {
+  IDownloaderPreference,
+  IPreferenceService,
+  PreferenceService,
+} from "@/renderer/services/preference-service";
 import { IFileBackend } from "@/repositories/file-repository/backend";
 import { LocalFileBackend } from "@/repositories/file-repository/local-backend";
 import { WebDavFileBackend } from "@/repositories/file-repository/webdav-backend";
@@ -21,12 +27,6 @@ import {
   FileSourceRepository,
   IFileSourceRepository,
 } from "@/repositories/filesource-repository/filesource-repository";
-import { ILogService, LogService } from "@/services/log-service";
-import {
-  IDownloaderPreference,
-  IPreferenceService,
-  PreferenceService,
-} from "@/services/preference-service";
 
 export const IFileService = createDecorator("fileService");
 

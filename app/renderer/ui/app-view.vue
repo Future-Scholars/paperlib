@@ -478,3 +478,4 @@ onMounted(async () => {
     </Transition>
   </div>
 </template>
+@/renderer/services/log-service

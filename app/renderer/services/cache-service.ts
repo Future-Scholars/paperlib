@@ -14,14 +14,17 @@ import { createDecorator } from "@/base/injection/injection";
 import { constructFileURL, eraseProtocol } from "@/base/url";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperEntityCache, ThumbnailCache } from "@/models/paper-entity-cache";
-import { IPaperEntityResults } from "@/repositories/db-repository/paper-repository";
-import { FileService, IFileService } from "@/services/file-service";
-import { ILogService, LogService } from "@/services/log-service";
+import { FileService, IFileService } from "@/renderer/services/file-service";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/services/preference-service";
-import { ProcessingKey, processing } from "@/services/state-service/processing";
+} from "@/renderer/services/preference-service";
+import {
+  ProcessingKey,
+  processing,
+} from "@/renderer/services/state-service/processing";
+import { IPaperEntityResults } from "@/repositories/db-repository/paper-repository";
 
 export const ICacheService = createDecorator("cacheService");
 

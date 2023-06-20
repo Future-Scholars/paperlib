@@ -15,7 +15,7 @@ import { ThumbnailCache } from "@/models/paper-entity-cache";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/services/preference-service";
+} from "@/renderer/services/preference-service";
 
 export const IRenderService = createDecorator("renderService");
 
