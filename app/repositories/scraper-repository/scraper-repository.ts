@@ -134,8 +134,6 @@ export class ScraperRepository {
     this.stateStore = stateStore;
     this.preference = preference;
 
-    // TODO: currently only support pdf.
-    // Should make scraper repo support multiple files processing before enable bibtex.
     this.fileScraperList = ["pdf", "bibtex"];
     this.builtinScraperList = [];
     this.clientsideScraperList = [];

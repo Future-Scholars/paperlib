@@ -81,10 +81,6 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       this._realm = undefined;
       this._app = undefined;
       this._syncSession = undefined;
-
-      // TODO: listen this
-      // this.feedRepository.removeListeners();
-      // this.feedEntityRepository.removeListeners();
     }
 
     const { config, type } = await this.getConfig();

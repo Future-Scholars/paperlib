@@ -82,8 +82,6 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     return objects;
   }
 
-  //TODO: preprint should implement in the db service
-
   /**
    * Update paper entity.
    * @param realm - Realm instance.
