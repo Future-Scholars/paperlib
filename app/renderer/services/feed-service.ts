@@ -1,6 +1,7 @@
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { formatString } from "@/base/string";
 import { Colors } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
@@ -32,7 +33,6 @@ import {
   IRSSRepository,
   RSSRepository,
 } from "@/repositories/rss-repository/rss-repository";
-import { formatString } from "@/utils/string";
 
 export interface IFeedServiceState {
   updated: number;

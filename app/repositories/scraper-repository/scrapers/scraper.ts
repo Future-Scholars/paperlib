@@ -1,7 +1,7 @@
 import { Response } from "got";
 
+import { isMetadataCompleted } from "@/base/metadata";
 import { PaperEntity } from "@/models/paper-entity";
-import { isMetadataCompleted } from "@/utils/metadata";
 
 export interface ScraperRequestType {
   scrapeURL: string;

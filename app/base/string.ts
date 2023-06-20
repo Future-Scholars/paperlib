@@ -54,9 +54,11 @@ export const formatString = ({
   }
 };
 
-
-
-export const getCategorizerString = (categorizer: Categorizer[], sortBy: string, sortOrder: string) => {
+export const getCategorizerString = (
+  categorizer: Categorizer[],
+  sortBy: string,
+  sortOrder: string
+) => {
   if (sortOrder === "asce") {
     if (sortBy === "name") {
       return categorizer
@@ -93,7 +95,6 @@ export const getCategorizerString = (categorizer: Categorizer[], sortBy: string,
     }
   }
 };
-
 
 export const getPubTypeString = (pubType: number) => {
   switch (pubType) {

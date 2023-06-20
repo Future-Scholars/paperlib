@@ -8,9 +8,9 @@ import {
   TextItem,
 } from "pdfjs-dist/types/src/display/api";
 
+import { formatString } from "@/base/string";
 import { constructFileURL, getFileType, getProtocol } from "@/base/url";
 import { PaperEntity } from "@/models/paper-entity";
-import { formatString } from "@/utils/string";
 
 import { AbstractEntryScraper } from "./entry-scraper";
 

@@ -1,8 +1,8 @@
 import { Response } from "got";
 
+import { isMetadataCompleted } from "@/base/metadata";
+import { formatString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
-import { isMetadataCompleted } from "@/utils/metadata";
-import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 

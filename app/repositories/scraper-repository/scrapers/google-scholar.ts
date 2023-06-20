@@ -1,9 +1,9 @@
 import parse from "node-html-parser";
 
+import { bibtex2json, bibtex2paperEntityDraft } from "@/base/bibtex";
+import { isMetadataCompleted } from "@/base/metadata";
+import { formatString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
-import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";
-import { isMetadataCompleted } from "@/utils/metadata";
-import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 

@@ -5,13 +5,13 @@ import path from "path";
 import sudo from "sudo-prompt";
 import * as WebSocket from "ws";
 
+import { certs } from "@/base/crypto/word-comm-cert";
 import { createDecorator } from "@/base/injection/injection";
 import { IPaperService, PaperService } from "@/renderer/services/paper-service";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/renderer/services/preference-service";
-import { certs } from "@/utils/crypto/word-comm-cert";
 
 interface ISearchParams {
   query: string;

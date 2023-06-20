@@ -5,6 +5,7 @@ import { chunkRun } from "@/base/chunk";
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { formatString } from "@/base/string";
 import {
   Categorizer,
   CategorizerType,
@@ -39,7 +40,6 @@ import {
   IPaperEntityRepository,
   PaperEntityRepository,
 } from "@/repositories/db-repository/paper-entity-repository";
-import { formatString } from "@/utils/string";
 
 export interface IPaperServiceState {
   count: number;

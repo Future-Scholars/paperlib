@@ -1,7 +1,7 @@
 import parse from "node-html-parser";
 
+import { bibtex2json, bibtex2paperEntityDraft } from "@/base/bibtex";
 import { PaperEntity } from "@/models/paper-entity";
-import { bibtex2json, bibtex2paperEntityDraft } from "@/utils/bibtex";
 
 import { AbstractEntryScraper } from "./entry-scraper";
 

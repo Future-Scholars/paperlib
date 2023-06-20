@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "fs";
 import path from "path";
 
 import { createDecorator } from "@/base/injection/injection";
+import { formatString } from "@/base/string";
 import { CSL } from "@/models/csl";
 import { PaperEntity } from "@/models/paper-entity";
 import { ILogService, LogService } from "@/renderer/services/log-service";
@@ -11,7 +12,6 @@ import {
   IPreferenceService,
   PreferenceService,
 } from "@/renderer/services/preference-service";
-import { formatString } from "@/utils/string";
 
 export const IReferenceService = createDecorator("referenceService");
 

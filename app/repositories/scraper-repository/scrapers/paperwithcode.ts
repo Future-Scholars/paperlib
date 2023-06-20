@@ -1,7 +1,7 @@
 import { Response } from "got";
 
+import { formatString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
-import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 

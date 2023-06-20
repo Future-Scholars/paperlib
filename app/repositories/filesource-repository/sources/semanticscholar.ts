@@ -1,8 +1,8 @@
 import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
+import { formatString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
-import { formatString } from "@/utils/string";
 
 import { FileSource, FileSourceRequestType } from "./source";
 

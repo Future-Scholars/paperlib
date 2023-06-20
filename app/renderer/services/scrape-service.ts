@@ -1,6 +1,7 @@
 import { chunkRun } from "@/base/chunk";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { isMetadataCompleted } from "@/base/metadata";
 import { PaperEntity } from "@/models/paper-entity";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
@@ -10,7 +11,6 @@ import {
 } from "@/renderer/services/preference-service";
 import { EntryScraperRepository } from "@/repositories/scraper-repository/entry-scrapers/entry-scraper-repository";
 import { MetadataScraperRepository } from "@/repositories/scraper-repository/metadata-scraper/metadata-scraper-repository";
-import { isMetadataCompleted } from "@/utils/metadata";
 
 import { ProcessingKey, processing } from "./state-service/processing";
 

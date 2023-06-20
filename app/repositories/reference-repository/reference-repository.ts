@@ -4,11 +4,11 @@ import { existsSync, readFileSync } from "fs";
 import path from "path";
 
 import { createDecorator } from "@/base/injection/injection";
+import { formatString } from "@/base/string";
 import { CSL } from "@/models/csl";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { formatString } from "@/utils/string";
 
 function escapeLaTexString(str: string) {
   const out = str

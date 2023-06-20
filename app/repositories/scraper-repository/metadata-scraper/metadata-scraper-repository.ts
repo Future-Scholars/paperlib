@@ -2,8 +2,8 @@ import got from "got";
 import queue from "queue";
 
 import { createDecorator } from "@/base/injection/injection";
+import { isMetadataCompleted, mergeMetadata } from "@/base/metadata";
 import { PaperEntity } from "@/models/paper-entity";
-import { isMetadataCompleted, mergeMetadata } from "@/utils/metadata";
 
 import { AdsabsScraper } from "./scrapers/adsabs";
 import { ArXivScraper } from "./scrapers/arxiv";

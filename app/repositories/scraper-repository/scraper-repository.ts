@@ -3,11 +3,11 @@ import queue from "queue";
 import { watch } from "vue";
 
 import { createDecorator } from "@/base/injection/injection";
+import { isMetadataCompleted, mergeMetadata } from "@/base/metadata";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference, ScraperPreference } from "@/preference/preference";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { isMetadataCompleted, mergeMetadata } from "@/utils/metadata";
 
 import { AdsabsScraper } from "./scrapers/adsabs";
 import { ArXivScraper } from "./scrapers/arxiv";

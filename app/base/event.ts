@@ -10,7 +10,7 @@ import {
 import { UnwrapRef } from "vue";
 
 import { IDisposable } from "@/base/dispose";
-import { uid } from "@/utils/misc";
+import { uid } from "@/base/misc";
 
 interface IEventState {
   [key: string]: any;
