@@ -3,12 +3,12 @@ import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
 import { createDecorator } from "@/base/injection/injection";
 import { ILogService, LogService } from "@/services/log-service";
 
-export const ISechedulerService = createDecorator("ISchedulerService");
+export const ISchedulerService = createDecorator("schedulerService");
 
 export class SchedulerService {
   private readonly _scheduler: ToadScheduler;
 
-  constructor(@ILogService private readonly logService: LogService) {
+  constructor(@ILogService private readonly _logService: LogService) {
     this._scheduler = new ToadScheduler();
   }
 
@@ -39,7 +39,7 @@ export class SchedulerService {
       errorImpl
         ? errorImpl
         : (error: Error) => {
-            this.logService.error(
+            this._logService.error(
               `Task ${taskId} failed.`,
               error,
               true,
@@ -51,14 +51,16 @@ export class SchedulerService {
     const job = new SimpleIntervalJob(
       { seconds: interval, runImmediately: runImmediately },
       task,
-      "pauseSync"
+      taskId
     );
 
     this._scheduler.addSimpleIntervalJob(job);
 
-    this.logService.info(
+    this._logService.info(
       `Task ${taskId} created.`,
-      `Interval ${interval} runImmediately ${runImmediately} runOnce ${runOnce}`
+      `Interval ${interval} runImmediately ${runImmediately} runOnce ${runOnce}`,
+      false,
+      "SchedulerService"
     );
   }
 

@@ -117,6 +117,30 @@ export class Eventable<T extends IEventState> implements IDisposable {
    */
   on = this.onChanged;
 
+  already(
+    key: keyof T | (keyof T)[],
+    callback: (newValues: { key: keyof T; value: any }) => void
+  ) {
+    if (typeof key === "string") {
+      key = [key];
+    }
+
+    const disposeCallbacks: (() => void)[] = [];
+    for (const k of key as string[]) {
+      if (this._state[k] !== this._eventDefaultState[k]) {
+        callback({ key: k, value: this._state[k] });
+      } else {
+        disposeCallbacks.push(this.onChanged(k, callback));
+      }
+    }
+
+    return () => {
+      for (const disposeCallback of disposeCallbacks) {
+        disposeCallback();
+      }
+    };
+  }
+
   dispose() {
     for (var prop in this) {
       if (

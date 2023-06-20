@@ -23,6 +23,14 @@ import {
 import { CacheService, ICacheService } from "@/services/cache-service";
 import { FileService, IFileService } from "@/services/file-service";
 import { ILogService, LogService } from "@/services/log-service";
+import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/services/preference-service";
+import {
+  ISchedulerService,
+  SchedulerService,
+} from "@/services/scheduler-service";
 import { IScrapeService, ScrapeService } from "@/services/scrape-service";
 import { ProcessingKey, processing } from "@/services/state-service/processing";
 import { formatString } from "@/utils/string";
@@ -54,7 +62,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
     private readonly _categorizerRepository: CategorizerRepository,
     @IScrapeService private readonly _scrapeService: ScrapeService,
     @ICacheService private readonly _cacheService: CacheService,
+    @ISchedulerService private readonly _schedulerService: SchedulerService,
     @IFileService private readonly _fileService: FileService,
+    @IPreferenceService private readonly _preferenceService: PreferenceService,
     @ILogService private readonly _logService: LogService
   ) {
     super("paperService", {
@@ -66,6 +76,18 @@ export class PaperService extends Eventable<IPaperServiceState> {
       this.fire({
         [payload.key]: payload.value,
       });
+    });
+
+    this._databaseCore.already("dbInitialized", () => {
+      this._schedulerService.createTask(
+        "paperServiceScrapePreprint",
+        () => {
+          this.scrapePreprint();
+        },
+        7 * 86400,
+        undefined,
+        true
+      );
     });
   }
 
@@ -582,6 +604,53 @@ export class PaperService extends Eventable<IPaperServiceState> {
         true,
         "PaperService"
       );
+    }
+  }
+
+  /**
+   * Scrape preprint paper entities.
+   * @param paperEntities - The list of paper entities.
+   * @returns
+   */
+  @processing(ProcessingKey.General)
+  async scrapePreprint() {
+    if (this._preferenceService.get("allowRoutineMatch") as boolean) {
+      if (
+        Math.round(Date.now() / 1000) -
+          (this._preferenceService.get("lastRematchTime") as number) <
+        7 * 86400 - 10
+      ) {
+        return;
+      }
+      this._logService.info(
+        `Scraping metadata of preprint paper(s)...`,
+        "",
+        true,
+        "PaperService"
+      );
+      try {
+        const preprintPaperEntities = this._paperEntityRepository.load(
+          await this._databaseCore.realm(),
+          '(publication contains[c] "arXiv") OR (publication contains[c] "openreview") OR publication == ""',
+          "addTime",
+          "desc"
+        );
+        await this.scrape(
+          preprintPaperEntities.map((paperEntity) => {
+            return new PaperEntity(false).initialize(paperEntity);
+          })
+        );
+        this._preferenceService.set({
+          lastRematchTime: Math.round(Date.now() / 1000),
+        });
+      } catch (error) {
+        this._logService.error(
+          "Failed to scrape metadata for preprint paper(s)!",
+          error as Error,
+          true,
+          "PaperService"
+        );
+      }
     }
   }
 

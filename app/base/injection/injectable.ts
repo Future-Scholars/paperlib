@@ -16,10 +16,12 @@ import { DatabaseService } from "@/services/database-service";
 import { FeedService } from "@/services/feed-service";
 import { FileService } from "@/services/file-service";
 import { LogService } from "@/services/log-service";
+import { MSWordCommService } from "@/services/msword-comm-service";
 import { PaperService } from "@/services/paper-service";
 import { PreferenceService } from "@/services/preference-service";
 import { ReferenceService } from "@/services/reference-service";
 import { RenderService } from "@/services/render-service";
+import { SchedulerService } from "@/services/scheduler-service";
 import { ScrapeService } from "@/services/scrape-service";
 import { SmartFilterService } from "@/services/smartfilter-service";
 import { StateService } from "@/services/state-service/state-service";
@@ -49,4 +51,6 @@ export type IInjectable =
   | FeedEntityRepository
   | RSSRepository
   | RenderService
-  | ReferenceService;
+  | ReferenceService
+  | SchedulerService
+  | MSWordCommService;

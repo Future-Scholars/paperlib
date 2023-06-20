@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+import { eraseProtocol, listAllFiles } from "@/base/url";
+
 const pickedFolderPath = ref("");
 const zoteroCSVPath = ref("");
 
@@ -21,7 +23,7 @@ const onCSVPickerClicked = async () => {
 
 const importFromFolderClicked = async () => {
   if (pickedFolderPath.value) {
-    window.entityInteractor.createFromWholeFolder(pickedFolderPath.value);
+    paperService.create(listAllFiles(eraseProtocol(pickedFolderPath.value)));
   }
 };
 

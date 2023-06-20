@@ -20,6 +20,10 @@ import {
 } from "@/repositories/rss-repository/rss-repository";
 import { ILogService, LogService } from "@/services/log-service";
 import { IPaperService, PaperService } from "@/services/paper-service";
+import {
+  ISchedulerService,
+  SchedulerService,
+} from "@/services/scheduler-service";
 import { IScrapeService, ScrapeService } from "@/services/scrape-service";
 import { ProcessingKey, processing } from "@/services/state-service/processing";
 import { formatString } from "@/utils/string";
@@ -48,6 +52,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     @IRSSRepository private readonly _rssRepository: RSSRepository,
     @IScrapeService private readonly _scrapeService: ScrapeService,
     @IPaperService private readonly _paperService: PaperService,
+    @ISchedulerService private readonly _schedulerService: SchedulerService,
     @ILogService private readonly _logService: LogService
   ) {
     super("feedService", {
@@ -68,6 +73,18 @@ export class FeedService extends Eventable<IFeedServiceState> {
           1
         )}`]: payload.value,
       });
+    });
+
+    this._databaseCore.already("dbInitialized", () => {
+      this._schedulerService.createTask(
+        "feedServiceScrapePreprint",
+        () => {
+          this._routineRefresh();
+        },
+        86400,
+        undefined,
+        true
+      );
     });
   }
 
@@ -448,5 +465,10 @@ export class FeedService extends Eventable<IFeedServiceState> {
     }
   }
 
-  // TODO: routine task
+  @processing(ProcessingKey.General)
+  private async _routineRefresh() {
+    const feeds = await this.load("name", "desc");
+    await this.refresh(feeds.map((feed: Feed) => feed.name));
+    this._feedEntityRepository.deleteOutdate(await this._databaseCore.realm());
+  }
 }

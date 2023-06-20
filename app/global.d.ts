@@ -23,6 +23,7 @@ import { PaperService } from "./services/paper-service";
 import { PreferenceService } from "./services/preference-service";
 import { ReferenceService } from "./services/reference-service";
 import { RenderService } from "./services/render-service";
+import { SchedulerService } from "./services/scheduler-service";
 import { SmartFilterService } from "./services/smartfilter-service";
 import { StateService } from "./services/state-service/state-service";
 import { IProcessingState } from "./services/state-service/state/processing";
@@ -33,11 +34,8 @@ import { Logger } from "./utils/logger";
 declare global {
   interface Window {
     appInteractor: AppInteractor;
-    entityInteractor: EntityInteractor;
-    feedInteractor: FeedInteractor;
     previewInteractor: PreviewInteractor;
     pluginSideInteractor: PluginSideInteractor;
-    wordAddinInteractor: WordAddinInteractor;
 
     logger: Logger;
     networkTool: NetworkTool;
@@ -71,6 +69,7 @@ declare global {
   var feedService: FeedService;
   var renderService: RenderService;
   var referenceService: ReferenceService;
+  var schedulerService: SchedulerService;
 
   var processingState: Store<"processingState", IProcessingState>;
 }

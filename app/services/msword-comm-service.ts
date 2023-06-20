@@ -5,33 +5,29 @@ import path from "path";
 import sudo from "sudo-prompt";
 import * as WebSocket from "ws";
 
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { createDecorator } from "@/base/injection/injection";
+import { IPaperService, PaperService } from "@/services/paper-service";
+import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/services/preference-service";
 import { certs } from "@/utils/crypto/word-comm-cert";
 
-import { EntityInteractor } from "./entity-interactor";
-
-interface SearchParams {
+interface ISearchParams {
   query: string;
 }
 
-export class WordAddinInteractor {
-  stateStore: MainRendererStateStore;
-  preference: Preference;
+export const IMSWordCommService = createDecorator("msWordCommService");
 
-  entityInteractor: EntityInteractor;
-
+// TODO: make this better
+export class MSWordCommService {
   socketServer: WebSocket.WebSocketServer;
   ws?: WebSocket.WebSocket;
-  constructor(
-    stateStore: MainRendererStateStore,
-    preference: Preference,
-    entityInteractor: EntityInteractor
-  ) {
-    this.stateStore = stateStore;
-    this.preference = preference;
-    this.entityInteractor = entityInteractor;
 
+  constructor(
+    @IPaperService private _paperService: PaperService,
+    @IPreferenceService private _preferenceService: PreferenceService
+  ) {
     try {
       const server = createServer(certs);
       this.socketServer = new WebSocket.WebSocketServer({ server });
@@ -65,12 +61,12 @@ export class WordAddinInteractor {
     }
   }
 
-  async search(params: SearchParams) {
-    const result = await this.entityInteractor.loadPaperEntities(
-      params.query,
-      false,
-      "",
-      "",
+  async search(params: ISearchParams) {
+    const result = await this._paperService.load(
+      this._paperService.constructFilter({
+        search: params.query,
+        searchMode: "general",
+      }),
       "addTime",
       "desc"
     );
@@ -80,7 +76,9 @@ export class WordAddinInteractor {
   }
 
   async loadCSLNames() {
-    const cslDir = this.preference.get("importedCSLStylesPath") as string;
+    const cslDir = this._preferenceService.get(
+      "importedCSLStylesPath"
+    ) as string;
     if (existsSync(cslDir)) {
       const cslFiles = await fsPromise.readdir(cslDir);
       const csls = (
@@ -102,7 +100,9 @@ export class WordAddinInteractor {
   }
 
   async loadCSL(name: string) {
-    const cslDir = this.preference.get("importedCSLStylesPath") as string;
+    const cslDir = this._preferenceService.get(
+      "importedCSLStylesPath"
+    ) as string;
     const cslPath = path.join(cslDir, `${name}.csl`);
     if (existsSync(cslPath)) {
       const csl = await fsPromise.readFile(cslPath, "utf8");

@@ -14,10 +14,6 @@ import { DatabaseCore } from "@/base/database/core";
 import { IInjectable } from "@/base/injection/injectable";
 import { InjectionContainer } from "@/base/injection/injection";
 import { AppInteractor } from "@/interactors/app-interactor";
-import { EntityInteractor } from "@/interactors/entity-interactor";
-import { FeedInteractor } from "@/interactors/feed-interactor";
-import { PluginMainInteractor } from "@/interactors/plugin-main-interactor";
-import { WordAddinInteractor } from "@/interactors/word-addin-interactor";
 import { loadLocales } from "@/locales/load";
 import { Preference } from "@/preference/preference";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository-v2";
@@ -26,12 +22,9 @@ import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-r
 import { FeedRepository } from "@/repositories/db-repository/feed-repository-v2";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-repository";
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository-v2";
-import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
 import { FileRepository } from "@/repositories/file-repository/file-repository";
 import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
-import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
-import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
 import { APPService } from "@/services/app-service";
 import { BrowserExtensionService } from "@/services/browser-extension-service";
 import { BufferService } from "@/services/buffer-service";
@@ -41,10 +34,12 @@ import { DatabaseService } from "@/services/database-service";
 import { FeedService } from "@/services/feed-service";
 import { FileService } from "@/services/file-service";
 import { LogService } from "@/services/log-service";
+import { MSWordCommService } from "@/services/msword-comm-service";
 import { PaperService } from "@/services/paper-service";
 import { PreferenceService } from "@/services/preference-service";
 import { ReferenceService } from "@/services/reference-service";
 import { RenderService } from "@/services/render-service";
+import { SchedulerService } from "@/services/scheduler-service";
 import { ScrapeService } from "@/services/scrape-service";
 import { SmartFilterService } from "@/services/smartfilter-service";
 import { useProcessingState } from "@/services/state-service/processing";
@@ -108,6 +103,8 @@ const instances = injectionContainer.createInstance<IInjectable>({
   rssRepository: RSSRepository,
   renderService: RenderService,
   referenceService: ReferenceService,
+  schedulerService: SchedulerService,
+  msWordCommService: MSWordCommService,
 });
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;
@@ -137,47 +134,12 @@ app.use(i18n);
 
 var initStartTime = Date.now();
 const dbRepository = new DBRepository(stateStore, preference);
-const scraperRepository = new ScraperRepository(
-  stateStore,
-  preference,
-  logService
-);
 const fileRepository = new FileRepository(stateStore, preference);
-const referenceRepository = new ReferenceRepository(stateStore, preference);
-const downloaderRepository = new DownloaderRepository(stateStore, preference);
-const rssRepository = new RSSRepository(stateStore, preference);
-
 const appInteractor = new AppInteractor(
   stateStore,
   preference,
   fileRepository,
   dbRepository
-);
-const entityInteractor = new EntityInteractor(
-  stateStore,
-  preference,
-  dbRepository,
-  scraperRepository,
-  fileRepository,
-  referenceRepository,
-  downloaderRepository
-);
-const feedInteractor = new FeedInteractor(
-  stateStore,
-  preference,
-  dbRepository,
-  rssRepository,
-  scraperRepository
-);
-const pluginMainInteractor = new PluginMainInteractor(
-  stateStore,
-  preference,
-  referenceRepository
-);
-const wordAddinInteractor = new WordAddinInteractor(
-  stateStore,
-  preference,
-  entityInteractor
 );
 
 window
@@ -190,10 +152,7 @@ window
 // Inject
 // ====================================
 
-window.entityInteractor = entityInteractor;
 window.appInteractor = appInteractor;
-window.feedInteractor = feedInteractor;
-window.wordAddinInteractor = wordAddinInteractor;
 
 var initEndTime = Date.now();
 window.logger.info(

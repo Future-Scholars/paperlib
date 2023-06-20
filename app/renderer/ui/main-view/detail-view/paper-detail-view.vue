@@ -181,19 +181,20 @@ const citationCount = ref({}) as Ref<
   >
 >;
 const requestCitationCount = async () => {
-  citationCount.value = {
-    semanticscholarId: "",
-    citationCount: "N/A",
-    influentialCitationCount: "N/A",
-  };
-  const responseCitationCount = await window.entityInteractor.loadCitationCount(
-    props.entity
-  );
-  citationCount.value.semanticscholarId =
-    responseCitationCount.semanticscholarId;
-  citationCount.value.citationCount = responseCitationCount.citationCount;
-  citationCount.value.influentialCitationCount =
-    responseCitationCount.influentialCitationCount;
+  // TODO: move to a seperate plugin.
+  // citationCount.value = {
+  //   semanticscholarId: "",
+  //   citationCount: "N/A",
+  //   influentialCitationCount: "N/A",
+  // };
+  // const responseCitationCount = await window.entityInteractor.loadCitationCount(
+  //   props.entity
+  // );
+  // citationCount.value.semanticscholarId =
+  //   responseCitationCount.semanticscholarId;
+  // citationCount.value.citationCount = responseCitationCount.citationCount;
+  // citationCount.value.influentialCitationCount =
+  //   responseCitationCount.influentialCitationCount;
 };
 
 watch(
