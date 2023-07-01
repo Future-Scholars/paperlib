@@ -1,4 +1,9 @@
-## v2.2.2 May 25 2024
+## v2.2.3 July 01 2023
+
+1. Fixed a bug of the code repository scraper.
+2. Fixed a bug of the smart filter.
+
+## v2.2.2 May 25 2023
 
 1. New Feature: Smart Filter.
 2. More colours for tags and folders.
@@ -11,13 +16,12 @@
 1. Support fuzzy searching. For example, to search a paper with title like: Semi-supervised Classification via AABBCC, you can input "semi" / "semi sup" / "classi" / "semi classi" / "AA CC" etc. to the search bar.
 2. Minor enhancement.
 
-
 ## v2.2.0 Mar 17 2023
 
 1. New Paperlib official metadata service and scraping logic which makes scraping faster and more stable.
 2. New scrapers: PubMed.
 3. Fixed a bug: Title including MathML will be scraped incorrectly.
-4. Fixed a bug: Chrome extension to import papers on IEEE Xplore. 
+4. Fixed a bug: Chrome extension to import papers on IEEE Xplore.
 5. Fixed a bug: Multiselection by pressing ctrl/cmd.
 6. Fixed some UI details and a typo.
 
@@ -35,7 +39,6 @@
 ## v2.1.3 Dec 23 2022
 
 1. Update the MS Word add-in cert.
-
 
 ## v2.1.2 Nov 20 2022
 
@@ -71,7 +74,7 @@
 
 ## v2.0.5 Oct 18 2022
 
-1. The beta version of the Microsoft Word Add-in is released. 
+1. The beta version of the Microsoft Word Add-in is released.
 2. Linux build is avaliable now.
 3. The code repository metadata is editable now.
 4. Better hover experience of the search bar.
@@ -130,7 +133,6 @@
 1. New metadata scraper: corssref.org
 2. Fixed some bugs.
 
-
 ## v1.10.1 Sep 01 2022
 
 1. Fixed some bugs.
@@ -154,8 +156,7 @@
 3. Import papers from a BibTex file.
 4. The browser extension supports all urls ending with '.pdf'.
 5. For those who have cloud sync set up, now it is possible to use Paperlib without network connection.
-6. Fixed some bugs in custom scrapers. 
-
+6. Fixed some bugs in custom scrapers.
 
 ## v1.9.5 Aug 14 2022
 
@@ -173,7 +174,6 @@
 1. Reduce memory usage.
 2. Fixed: a bug in the metadata updating.
 3. Fixed: a bug in the preview rendering.
-
 
 ## v1.9.2 Jul 28 2022
 
@@ -199,14 +199,12 @@
 3. Contextmenu: Scrape by using a specific scraper.
 4. Bug fix.
 
-
 ## v1.8.1 Jul 10 2022
 
 1. FireFox add-on is ready.
 2. Custom scraper, scrapers' priority.
 3. Dialog window hotkey.
 4. Bug fix.
-
 
 ## v1.7.8 Jul 05 2022
 
@@ -230,16 +228,13 @@
 3. Support 3 renaming formats.
 4. Support import from a folder or a Zotero CSV file.
 
-
 ## v1.7.4 Jun 24 2022
 
 1. Fix a bug in cloud preference.
 
-
 ## v1.7.3 Jun 21 2022
 
 1. Fix fulltext search bug.
-
 
 ## v1.7.2 Jun 19 2022
 
@@ -251,7 +246,6 @@
 2. Clear search input button.
 3. Chrome Extension supports IEEE and Google Scholar.
 
-
 ## v1.7.0 Jun 13 2022
 
 1. Colorizable tags and folders.
@@ -260,7 +254,6 @@
 ## v1.6.5 Jun 5 2022
 
 1. Fix the window control bugs on Windows.
-
 
 ## v1.6.4 Jun 5 2022
 
@@ -280,7 +273,6 @@
 
 1. Bug fix.
 
-
 ## v1.6.0 May 5 2022
 
 1. Paperlib plugin for fast BibTex copy-paste.
@@ -295,7 +287,6 @@
 
 1. Better tags and folders UI with suggestions.
 
-
 ## v1.5.8 Apr 12 2022
 
 1. Support custom MongoDB atlas App ID.
@@ -307,7 +298,6 @@
 ## v1.5.6 Apr 10 2022
 
 1. Remove useless animations.
-
 
 ## v1.5.5 Apr 06 2022
 
