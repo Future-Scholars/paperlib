@@ -1,10 +1,10 @@
-import { ExtensionRPCService } from "@/base/rpc/extension-rpc-service";
+import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
 
 const extensionRPCService = new ExtensionRPCService();
 
 extensionRPCService.on("initialized", async () => {
   try {
-    console.log(await paperlibAPI.appService.version());
+    console.log(await PLAPI.appService.version());
   } catch (e) {
     console.log("error");
   }

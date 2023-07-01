@@ -2,8 +2,9 @@ import fs from "fs";
 import path from "path";
 import { Store } from "pinia";
 
-import { APIShape } from "./api/api";
+import { APIShape, MainAPIShape } from "./api/api";
 import { NetworkTool } from "./base/network";
+import { PreferenceService } from "./common/services/preference-service";
 import { AppInteractor } from "./interactors/app-interactor";
 import { EntityInteractor } from "./interactors/entity-interactor";
 import { FeedInteractor } from "./interactors/feed-interactor";
@@ -11,6 +12,10 @@ import { PluginSideInteractor } from "./interactors/plugin-side-interactor";
 import { PreviewInteractor } from "./interactors/preview-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
 import { WordAddinInteractor } from "./interactors/word-addin-interactor";
+import { MainRPCService } from "./main/services/main-rpc-service";
+import { WindowControlService } from "./main/services/window-control-service";
+import { WindowProcessManagementService } from "./main/services/window-management-service";
+import { WindowStorage } from "./main/window-storage";
 import { Preference } from "./preference/preference";
 import { APPService } from "./renderer/services/app-service";
 import { BufferService } from "./renderer/services/buffer-service";
@@ -21,7 +26,6 @@ import { FeedService } from "./renderer/services/feed-service";
 import { FileService } from "./renderer/services/file-service";
 import { LogService } from "./renderer/services/log-service";
 import { PaperService } from "./renderer/services/paper-service";
-import { PreferenceService } from "./renderer/services/preference-service";
 import { ReferenceService } from "./renderer/services/reference-service";
 import { RenderService } from "./renderer/services/render-service";
 import { SchedulerService } from "./renderer/services/scheduler-service";
@@ -31,6 +35,8 @@ import { IProcessingState } from "./renderer/services/state-service/state/proces
 import { MainRendererStateStore } from "./state/renderer/appstate";
 
 declare global {
+  var browserWindows: WindowStorage;
+
   interface Window {
     appInteractor: AppInteractor;
     previewInteractor: PreviewInteractor;
@@ -50,7 +56,11 @@ declare global {
     feedListened: boolean;
   }
 
-  var paperlibAPI: APIShape;
+  var PLAPI: APIShape;
+
+  var PLMainAPI: MainAPIShape;
+  var windowProcessManagementService: WindowProcessManagementService;
+  var windowControlService: WindowControlService;
 
   var appService: APPService;
   var preferenceService: PreferenceService;
@@ -68,6 +78,7 @@ declare global {
   var referenceService: ReferenceService;
   var schedulerService: SchedulerService;
   var networkTool: NetworkTool;
+  var mainRPCService: MainRPCService;
 
   var processingState: Store<"processingState", IProcessingState>;
 }

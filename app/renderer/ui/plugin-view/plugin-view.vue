@@ -7,9 +7,9 @@ import {
 } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
+import { debounce } from "@/base/misc";
 import { PaperEntity } from "@/models/paper-entity";
 import { PluginRendererStateStore } from "@/state/renderer/appstate";
-import { debounce } from "@/utils/misc";
 
 import PluginTableItem from "./components/table-item.vue";
 

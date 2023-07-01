@@ -9,11 +9,11 @@ import { CookieJar } from "tough-cookie";
 import { promisify } from "util";
 
 import { constructFileURL } from "@/base/url";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/renderer/services/preference-service";
+} from "@/common/services/preference-service";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 
 const cache = new Map();
 

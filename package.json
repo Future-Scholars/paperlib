@@ -48,7 +48,7 @@
     "md5-file": "5.0.0",
     "node-html-parser": "5.3.3",
     "pdfjs-dist": "2.16.105",
-    "pinia": "2.0.21",
+    "pinia": "2.1.4",
     "playwright": "1.34.3",
     "postcss": "8.4.12",
     "prettier": "^2.8.8",

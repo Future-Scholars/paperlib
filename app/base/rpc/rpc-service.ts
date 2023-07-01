@@ -1,9 +1,16 @@
 import { Eventable } from "../event";
-import { RPCProtocol } from "./rpc-protocol";
+import { EIMainRPCProtocol } from "./ei-main-rpc-protocol";
+import { EIRendererRPCProtocol } from "./ei-renderer-rpc-protocol";
+import { MessagePortRPCProtocol } from "./messageport-rpc-protocol";
 
 interface IRPCServiceState {
   initialized: number;
 }
+
+export type RPCProtocol =
+  | MessagePortRPCProtocol
+  | EIMainRPCProtocol
+  | EIRendererRPCProtocol;
 
 export abstract class RPCService<
   T extends IRPCServiceState
@@ -17,4 +24,8 @@ export abstract class RPCService<
 
   protected abstract _listenProtocolCreation(): void;
   protected abstract _initActionor(protocol: RPCProtocol): void;
+  protected abstract _initProxy(
+    protocol: RPCProtocol,
+    protocolId: string
+  ): void;
 }

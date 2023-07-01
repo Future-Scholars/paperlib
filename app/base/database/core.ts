@@ -5,6 +5,10 @@ import Realm from "realm";
 import { migrate } from "@/base/database/migration";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/common/services/preference-service";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
@@ -13,10 +17,6 @@ import { PaperSmartFilter } from "@/models/smart-filter";
 import { APPService, IAPPService } from "@/renderer/services/app-service";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-import {
-  IPreferenceService,
-  PreferenceService,
-} from "@/renderer/services/preference-service";
 import { processing } from "@/renderer/services/state-service/processing";
 import { ProcessingKey } from "@/renderer/services/state-service/state/processing";
 

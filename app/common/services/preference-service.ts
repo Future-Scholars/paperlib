@@ -578,7 +578,7 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
 
     _store = _migrate(_store, PREFEREMCE_VERSION);
 
-    super("preferenceService", _store.store);
+    super("preferenceService", JSON.parse(JSON.stringify(_store.store)));
 
     this._store = _store;
   }

@@ -1,6 +1,10 @@
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { NetworkTool } from "@/base/network";
+import { PreferenceService } from "@/common/services/preference-service";
+import { MainRPCService } from "@/main/services/main-rpc-service";
+import { WindowControlService } from "@/main/services/window-control-service";
+import { WindowProcessManagementService } from "@/main/services/window-management-service";
 import { APPService } from "@/renderer/services/app-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
 import { BufferService } from "@/renderer/services/buffer-service";
@@ -12,7 +16,6 @@ import { FileService } from "@/renderer/services/file-service";
 import { LogService } from "@/renderer/services/log-service";
 import { MSWordCommService } from "@/renderer/services/msword-comm-service";
 import { PaperService } from "@/renderer/services/paper-service";
-import { PreferenceService } from "@/renderer/services/preference-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";
 import { SchedulerService } from "@/renderer/services/scheduler-service";
@@ -55,4 +58,7 @@ export type IInjectable =
   | ReferenceService
   | SchedulerService
   | MSWordCommService
-  | NetworkTool;
+  | NetworkTool
+  | WindowProcessManagementService
+  | MainRPCService
+  | WindowControlService;

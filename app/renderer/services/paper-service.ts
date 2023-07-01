@@ -7,6 +7,10 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
 import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/common/services/preference-service";
+import {
   Categorizer,
   CategorizerType,
   PaperFolder,
@@ -16,10 +20,6 @@ import { PaperEntity } from "@/models/paper-entity";
 import { CacheService, ICacheService } from "@/renderer/services/cache-service";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-import {
-  IPreferenceService,
-  PreferenceService,
-} from "@/renderer/services/preference-service";
 import {
   ISchedulerService,
   SchedulerService,

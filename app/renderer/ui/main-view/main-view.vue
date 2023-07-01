@@ -2,12 +2,12 @@
 import { Ref, inject, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
+import { debounce } from "@/base/misc";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { debounce } from "@/utils/misc";
 
 import FeedDataView from "./data-view/feed-data-view.vue";
 import PaperDataView from "./data-view/paper-data-view.vue";

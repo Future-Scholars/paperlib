@@ -61,4 +61,4 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
     />
   </div>
 </template>
-@/renderer/services/preference-service
+@/renderer/services/preference-service @/common/services/preference-service

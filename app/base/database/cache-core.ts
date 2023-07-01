@@ -4,13 +4,13 @@ import Realm from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { PaperEntityCache } from "@/models/paper-entity-cache";
-import { APPService, IAPPService } from "@/renderer/services/app-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/renderer/services/preference-service";
+} from "@/common/services/preference-service";
+import { PaperEntityCache } from "@/models/paper-entity-cache";
+import { APPService, IAPPService } from "@/renderer/services/app-service";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 import { processing } from "@/renderer/services/state-service/processing";
 import { ProcessingKey } from "@/renderer/services/state-service/state/processing";
 

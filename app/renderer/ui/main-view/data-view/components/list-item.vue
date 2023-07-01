@@ -7,9 +7,8 @@ import {
 } from "bootstrap-icons-vue";
 import { PropType } from "vue";
 
+import { getCategorizerString, getPubTypeString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { getCategorizerString, getPubTypeString } from "@/utils/string";
 
 const props = defineProps({
   item: {

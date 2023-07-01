@@ -5,7 +5,7 @@ import { createDecorator } from "@/base/injection/injection";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/renderer/services/preference-service";
+} from "@/common/services/preference-service";
 
 export enum APPTheme {
   System = "system",
@@ -52,7 +52,7 @@ export class APPService {
   /**
    * Maximize the application window. */
   maximize() {
-    ipcRenderer.send("maximize");
+    PLMainAPI.windowControlService.maximize();
   }
   /**
    * Close the application window. */

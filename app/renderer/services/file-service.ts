@@ -13,13 +13,13 @@ import {
   hasProtocol,
   listAllFiles,
 } from "@/base/url";
-import { PaperEntity } from "@/models/paper-entity";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   IDownloaderPreference,
   IPreferenceService,
   PreferenceService,
-} from "@/renderer/services/preference-service";
+} from "@/common/services/preference-service";
+import { PaperEntity } from "@/models/paper-entity";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 import { IFileBackend } from "@/repositories/file-repository/backend";
 import { LocalFileBackend } from "@/repositories/file-repository/local-backend";
 import { WebDavFileBackend } from "@/repositories/file-repository/webdav-backend";

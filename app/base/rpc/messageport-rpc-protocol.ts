@@ -25,8 +25,9 @@ export enum MessageType {
   replyError = 2,
 }
 
-// Now only consider MessagePort as the communication channel
-export class RPCProtocol {
+/**
+ * MessagePort based RPC Protocol*/
+export class MessagePortRPCProtocol {
   private readonly _port: MessagePort | MessagePortMain;
   private readonly _proxies: { [id: string]: Proxied<any> };
   private readonly _locals: { [id: string]: any };
@@ -34,13 +35,23 @@ export class RPCProtocol {
   private _lastCallId: number;
   private readonly _pendingRPCReplies: { [callId: string]: LazyPromise };
 
-  constructor(port: MessagePortMain | MessagePort) {
+  private readonly _callerId: string;
+  private readonly _callWithCallerId: boolean;
+
+  constructor(
+    port: MessagePortMain | MessagePort,
+    _callerId: string,
+    callWithCallerId: boolean = false
+  ) {
     this._port = port;
     this._proxies = {};
     this._locals = {};
     this._pendingRPCReplies = {};
 
     this._lastCallId = 0;
+
+    this._callerId = _callerId;
+    this._callWithCallerId = callWithCallerId;
 
     if (this._port instanceof MessagePort) {
       (this._port as MessagePort).onmessage = (event) => {
@@ -90,6 +101,7 @@ export class RPCProtocol {
     this._pendingRPCReplies[callId] = result;
     const msg = JSON.stringify({
       callId,
+      callerId: this._callerId,
       rpcId,
       type: MessageType.request,
       value: {
@@ -102,7 +114,7 @@ export class RPCProtocol {
   }
 
   private _receiveOneMessage(rawmsg: string): void {
-    const { callId, rpcId, type, value } = JSON.parse(rawmsg);
+    const { callId, callerId, rpcId, type, value } = JSON.parse(rawmsg);
 
     switch (type) {
       case MessageType.request: {
@@ -163,7 +175,7 @@ export class RPCProtocol {
     }
   }
 
-  private _doInvokeHandler(
+  protected _doInvokeHandler(
     rpcId: string,
     methodName: string,
     args: any[]
@@ -176,7 +188,12 @@ export class RPCProtocol {
     if (typeof method !== "function") {
       throw new Error("Unknown method " + methodName + " on actor " + rpcId);
     }
-    return method.apply(actor, args);
+    if (this._callWithCallerId) {
+      return method.apply(actor, this._callerId, ...args);
+    } else {
+      // TODO: Check ...
+      return method.apply(actor, ...args);
+    }
   }
 
   private _receiveReply(callId: string, value: any): void {

@@ -2,8 +2,8 @@
 import { BIconQuestionCircle, BIconSearch, BIconX } from "bootstrap-icons-vue";
 import { ref, watch } from "vue";
 
+import { debounce } from "@/base/misc";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { debounce } from "@/utils/misc";
 
 // ================================
 // State

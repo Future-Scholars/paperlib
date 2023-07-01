@@ -11,11 +11,11 @@ import {
 } from "pdfjs-dist/types/src/display/api";
 
 import { createDecorator } from "@/base/injection/injection";
-import { ThumbnailCache } from "@/models/paper-entity-cache";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/renderer/services/preference-service";
+} from "@/common/services/preference-service";
+import { ThumbnailCache } from "@/models/paper-entity-cache";
 
 export const IRenderService = createDecorator("renderService");
 

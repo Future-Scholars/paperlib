@@ -12,14 +12,14 @@ import {
 } from "@/base/database/cache-core";
 import { createDecorator } from "@/base/injection/injection";
 import { constructFileURL, eraseProtocol } from "@/base/url";
+import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/common/services/preference-service";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperEntityCache, ThumbnailCache } from "@/models/paper-entity-cache";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-import {
-  IPreferenceService,
-  PreferenceService,
-} from "@/renderer/services/preference-service";
 import {
   ProcessingKey,
   processing,

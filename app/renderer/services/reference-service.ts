@@ -5,13 +5,13 @@ import path from "path";
 
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
-import { CSL } from "@/models/csl";
-import { PaperEntity } from "@/models/paper-entity";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/renderer/services/preference-service";
+} from "@/common/services/preference-service";
+import { CSL } from "@/models/csl";
+import { PaperEntity } from "@/models/paper-entity";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 
 export const IReferenceService = createDecorator("referenceService");
 

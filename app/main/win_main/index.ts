@@ -96,10 +96,15 @@ export async function createMainWindow(
     );
 
     const { port1, port2 } = new MessageChannelMain();
-    win?.webContents.postMessage("create-rpc-protocol", "extensionProcess", [
-      port1,
-    ]);
-    extensionProcess.postMessage("create-rpc-protocol", [port2]);
+    win?.webContents.postMessage(
+      "create-messageport-rpc-protocol",
+      "extensionProcess",
+      [port1]
+    );
+    extensionProcess.postMessage(
+      "create-messageport-rpc-protocol:rendererPreocess",
+      [port2]
+    );
   });
 
   win.on("blur", () => {
