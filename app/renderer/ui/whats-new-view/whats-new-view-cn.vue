@@ -76,32 +76,28 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">版本 2.2.2 更新内容</p>
+        <p class="text-center text-2xl font-bold mb-8">版本 2.2.3 更新内容</p>
 
         <ul class="list-disc mb-5">
-          <li>
-            新功能: <b>Smart Filter</b>! <br />
-            你可以创建一个 smart filter 来进行高级过滤。例如： 同时具有 'tag A'
-            和 'tag B'
-            的论文；最近添加的论文；某个作者发表的论文；标题里有某个关键字的论文等等。
-            <span class="text-red-500"
-              >请打开 'DEV mode' 如果你使用在线 MongoDB Atlas 数据库</span
-            >。 详情请见
-            <a
-              class="underline"
-              href="https://paperlib.app/cn/doc/smart-filter/"
-              >文档</a
-            >。
-            <img
-              class="rounded-md drop-shadow-lg my-4"
-              src="../../assets/smart-filter.png"
-            />
-          </li>
-          <li>标签/文件夹支持更多的颜色。</li>
-          <li>记住上次关闭时的窗口尺寸。</li>
-          <li>修复 Windows 的快速预览。</li>
-          <li>修复下载器设置的按钮文字。Thanks @qzydustin</li>
+          <li>修复代码仓库搜刮器的 Bug。</li>
+          <li>修复了 Smart Filter 的一个 Bug。</li>
         </ul>
+
+        <p class="text-center text-2xl font-bold mb-8">关于 Paperlib 3.0.0</p>
+        <p class="mb-2">
+          在这个大版本更新中，我们将会发布一个
+          <b>类 vscode 的插件系统</b>
+          。我们相信插件系统可以赋予 Paperlib
+          更多可能性。同时保持软件主体干净简洁。
+        </p>
+        <p class="mb-2">
+          仍然有许多开发工作需要做，需要对代码架构做大幅调整。但是我们会尽快发布这个版本。请期待。我们正在努力开发中。
+        </p>
+        <p class="mb-2">
+          如果你有任何关于使用插件系统完成功能的想法，请在 Discord
+          频道中告诉我们，或者在 Github 仓库中提出
+          issue。更多的插件使用场景将会帮助我们设计出更好的插件系统架构。感激不尽。
+        </p>
 
         <div
           id="whats-new-close-btn"

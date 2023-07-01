@@ -79,30 +79,28 @@ onMounted(() => {
         <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.2</p>
 
         <ul class="list-disc mb-5">
-          <li>
-            New Feature: <b>Smart Filter</b>! <br />
-            You can create a smart filter to do an advanced filtering. For
-            example: papers with 'tag A' and 'tag B'; recently added papers;
-            papers by a specific author; title contains the string 'abc' etc.
-            <span class="text-red-500"
-              >Please turn on the 'DEV mode' if you are using the online MongoDB
-              Atlas database</span
-            >. Learn more
-            <a
-              class="underline"
-              href="https://paperlib.app/en/doc/smart-filter/"
-              >here</a
-            >.
-            <img
-              class="rounded-md drop-shadow-lg my-4"
-              src="../../assets/smart-filter.png"
-            />
-          </li>
-          <li>More colours for tags and folders.</li>
-          <li>Remember the window size.</li>
-          <li>Fix PDF quicklook for Windows.</li>
-          <li>Fix downloader delete button display bug. Thanks @qzydustin</li>
+          <li>Fixed a bug of the code repository scraper.</li>
+          <li>Fixed a bug of the smart filter..</li>
         </ul>
+
+        <p class="text-center text-2xl font-bold mb-8">About Paperlib 3.0.0</p>
+        <p class="mb-2">
+          In this major update, we will introduce a
+          <b>vscode-like extension system</b>
+          to Paperlib.
+        </p>
+        <p class="mb-2">
+          There are still a lot works to do to implement this extension
+          architecture, but we will release it as soon as possible. Please look
+          forward to it. We are currently working hard on it.
+        </p>
+        <p class="mb-2">
+          If you have any ideas about some useful extension use cases, please
+          feel free to tell us in the Discord channel or raise an issue in the
+          Github repo. More extension use cases will help us to design a better
+          extension architecture.
+        </p>
+
         <div
           id="whats-new-close-btn"
           class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"
