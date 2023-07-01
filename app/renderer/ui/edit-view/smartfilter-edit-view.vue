@@ -143,6 +143,7 @@ onMounted(() => {
             placeholder="Match"
             :options="['AND', 'OR']"
             :value="filterMatchType"
+            @changed="(value) => (filterMatchType = value)"
           />
 
           <SmartFilterRuleBox

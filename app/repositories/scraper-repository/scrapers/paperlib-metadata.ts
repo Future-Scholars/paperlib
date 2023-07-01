@@ -78,6 +78,9 @@ export class PaperlibMetadataServiceScraper {
     paperEntityDraft.setValue("volume", response.volume, false);
     paperEntityDraft.setValue("number", response.number, false);
     paperEntityDraft.setValue("publisher", response.publisher, false);
+
+    paperEntityDraft.setValue("codes", response.codes);
+
     return paperEntityDraft;
   }
 
