@@ -76,7 +76,7 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.2</p>
+        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.3</p>
 
         <ul class="list-disc mb-5">
           <li>Fixed a bug of the code repository scraper.</li>
