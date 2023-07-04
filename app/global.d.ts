@@ -33,6 +33,7 @@ import { SmartFilterService } from "./renderer/services/smartfilter-service";
 import { StateService } from "./renderer/services/state-service/state-service";
 import { IProcessingState } from "./renderer/services/state-service/state/processing";
 import { MainRendererStateStore } from "./state/renderer/appstate";
+import { FileSystemService } from "./main/services/filesystem-service";
 
 declare global {
   var browserWindows: WindowStorage;
@@ -61,6 +62,7 @@ declare global {
   var PLMainAPI: MainAPIShape;
   var windowProcessManagementService: WindowProcessManagementService;
   var windowControlService: WindowControlService;
+  var fileSystemService: FileSystemService;
 
   var appService: APPService;
   var preferenceService: PreferenceService;

@@ -30,6 +30,7 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
       windowProcessManagementService
     );
     protocol.set("windowControlService", windowControlService);
+    protocol.set("fileSystemService", fileSystemService);
   }
 
   _initProxy(protocol: RPCProtocol, protocolId: string): void {

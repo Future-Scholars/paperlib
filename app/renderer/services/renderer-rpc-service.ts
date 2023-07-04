@@ -43,6 +43,7 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
     } else if (protocolId === "mainProcess") {
       globalThis.PLMainAPI = {
         windowControlService: protocol.getProxy("windowControlService"),
+        fileSystemService: protocol.getProxy("fileSystemService"),
       };
     }
   }

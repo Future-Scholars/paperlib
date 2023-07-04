@@ -96,7 +96,8 @@ const onClick = async (e: MouseEvent) => {
 };
 
 const showFilePicker = async () => {
-  const pickedFile = (await window.appInteractor.showFilePicker()).filePaths[0];
+  const pickedFile = (await PLMainAPI.fileSystemService.showFilePicker())
+    .filePaths[0];
   if (pickedFile) {
     emit("modifyMainFile", pickedFile);
   }

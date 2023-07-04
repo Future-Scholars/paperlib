@@ -6,12 +6,7 @@ import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
-
-export enum APPTheme {
-  System = "system",
-  Light = "light",
-  Dark = "dark",
-}
+import { APPTheme } from "@/main/services/window-control-service";
 
 export const IAPPService = createDecorator("appService");
 
@@ -62,13 +57,13 @@ export class APPService {
   /**
    * Force close the application window. */
   forceClose() {
-    ipcRenderer.send("force-close");
+    PLMainAPI.windowControlService.forceClose();
   }
   /**
    * Change the theme of the application.
    * @param {APPTheme} theme The theme to change to. */
   changeTheme(theme: APPTheme) {
-    ipcRenderer.send("theme-change", theme);
+    PLMainAPI.windowControlService.changeTheme(theme);
   }
 
   /**

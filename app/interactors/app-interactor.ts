@@ -106,26 +106,6 @@ export class AppInteractor {
   }
 
   // =============================
-  // URL Handler
-  // =============================
-  async showInFinder(url: string) {
-    const accessedURL = (await this.access(url, true)).replace("file://", "");
-    shell.showItemInFolder(accessedURL);
-  }
-
-  async showFilePicker() {
-    return await ipcRenderer.invoke("show-file-picker");
-  }
-
-  async showFolderPicker() {
-    return await ipcRenderer.invoke("show-folder-picker");
-  }
-
-  getUserDataPath() {
-    return ipcRenderer.sendSync("user-data-path");
-  }
-
-  // =============================
   // Reference
   // =============================
   // TODO: move to reference interactor?
@@ -185,17 +165,5 @@ export class AppInteractor {
     }
 
     return CSLStyles;
-  }
-
-  // =============================
-  // What's New
-  // =============================
-  async shouldShowWhatsNew() {
-    const lastVersion = this.getPreference("lastVersion");
-    return lastVersion !== (await this.version());
-  }
-
-  async hideWhatsNew() {
-    this.preference.set("lastVersion", await this.version());
   }
 }

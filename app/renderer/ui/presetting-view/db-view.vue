@@ -7,7 +7,7 @@ const viewState = MainRendererStateStore.useViewState();
 const prefState = preferenceService.useState();
 
 const onPickerClicked = async () => {
-  const pickedFolder = (await window.appInteractor.showFolderPicker())
+  const pickedFolder = (await PLMainAPI.fileSystemService.showFolderPicker())
     .filePaths[0];
   if (pickedFolder) {
     preferenceService.set({ appLibFolder: pickedFolder });

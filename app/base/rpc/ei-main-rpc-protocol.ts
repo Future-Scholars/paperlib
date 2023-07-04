@@ -36,12 +36,22 @@ export class EIMainRPCProtocol {
         const channelName = `${rpcId}.${key}`;
         if (!this._locals[channelName]) {
           this._locals[channelName] = value[key];
-          ipcMain.handle(channelName, (event, args) => {
-            return (value[key] as Function)(
-              ...args,
-              browserWindows.getRealId(event.sender.id)
-            );
-          });
+
+          if (channelName.endsWith("Sync")) {
+            ipcMain.on(channelName, (event, args) => {
+              event.returnValue = (value[key] as Function)(
+                ...args,
+                browserWindows.getRealId(event.sender.id)
+              );
+            });
+          } else {
+            ipcMain.handle(channelName, (event, args) => {
+              return (value[key] as Function)(
+                ...args,
+                browserWindows.getRealId(event.sender.id)
+              );
+            });
+          }
         }
       }
     }

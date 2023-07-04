@@ -10,12 +10,17 @@ import {
 import { join, posix } from "node:path";
 import os from "os";
 
+export enum APPTheme {
+  System = "system",
+  Light = "light",
+  Dark = "dark",
+}
+
 export class WindowControlService {
   constructor() {}
 
   /**
    * Minimize the window with the given id.
-   * @param windowId - The id of the window to be minimized
    */
   minimize(windowId: string) {
     if (windowId === "rendererProcess") {
@@ -32,7 +37,6 @@ export class WindowControlService {
 
   /**
    * Maximize the window with the given id.
-   * @param windowId - The id of the window to be maximized
    */
   maximize(windowId: string) {
     if (windowId === "rendererProcess") {
@@ -43,7 +47,6 @@ export class WindowControlService {
 
   /**
    * Close the window with the given id.
-   * @param windowId - The id of the window to be closed
    */
   close(windowId: string) {
     if (os.platform() === "darwin") {
@@ -70,7 +73,6 @@ export class WindowControlService {
 
   /**
    * Force close the window with the given id.
-   * @param windowId - The id of the window to be force closed
    */
   forceClose(windowId: string) {
     if (windowId === "rendererProcess") {
@@ -81,5 +83,21 @@ export class WindowControlService {
       const win = browserWindows.get(windowId);
       win.close();
     }
+  }
+
+  /**
+   * Change the theme of the app.
+   * @param theme - The theme to be changed to
+   */
+  changeTheme(theme: APPTheme, windowId: string) {
+    nativeTheme.themeSource = theme;
+  }
+
+  /**
+   * Check if the app is in dark mode.
+   * @returns - Whether the app is in dark mode
+   */
+  isDarkMode(windowId: string): boolean {
+    return nativeTheme.shouldUseDarkColors;
   }
 }

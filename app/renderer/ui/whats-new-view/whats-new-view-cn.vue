@@ -3,8 +3,10 @@ import { onMounted, ref } from "vue";
 
 import WhatsNewHeader from "./header.vue";
 
-const hide = () => {
-  window.appInteractor.hideWhatsNew();
+const hide = async () => {
+  preferenceService.set({
+    lastVersion: await appService.version(),
+  });
 };
 
 const loadHistoryReleaseNote = () => {

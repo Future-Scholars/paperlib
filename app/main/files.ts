@@ -9,18 +9,6 @@ ipcMain.handle("user-data-path", () => {
   return app.getPath("userData");
 });
 
-ipcMain.handle("show-file-picker", () => {
-  return dialog.showOpenDialog({
-    properties: ["openFile"],
-  });
-});
-
-ipcMain.handle("show-folder-picker", () => {
-  return dialog.showOpenDialog({
-    properties: ["openDirectory"],
-  });
-});
-
 let previewWin: BrowserWindow | null = null;
 ipcMain.on("preview", (event, fileURL) => {
   if (process.platform === "darwin") {

@@ -7,7 +7,7 @@ const pickedFolderPath = ref("");
 const zoteroCSVPath = ref("");
 
 const onPickerClicked = async () => {
-  const pickedFolder = (await window.appInteractor.showFolderPicker())
+  const pickedFolder = (await PLMainAPI.fileSystemService.showFolderPicker())
     .filePaths[0];
   if (pickedFolder) {
     pickedFolderPath.value = pickedFolder;
@@ -15,7 +15,8 @@ const onPickerClicked = async () => {
 };
 
 const onCSVPickerClicked = async () => {
-  const zoteroCSV = (await window.appInteractor.showFilePicker()).filePaths[0];
+  const zoteroCSV = (await PLMainAPI.fileSystemService.showFilePicker())
+    .filePaths[0];
   if (zoteroCSV) {
     zoteroCSVPath.value = zoteroCSV;
   }

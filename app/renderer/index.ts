@@ -73,6 +73,7 @@ app.component("RecycleScroller", RecycleScroller);
 const processingState = useProcessingState();
 globalThis.processingState = processingState;
 
+new RendererRPCService();
 const injectionContainer = new InjectionContainer();
 const instances = injectionContainer.createInstance<IInjectable>({
   appService: APPService,
@@ -135,7 +136,5 @@ window
   });
 
 window.appInteractor = appInteractor;
-
-new RendererRPCService();
 
 app.mount("#app");

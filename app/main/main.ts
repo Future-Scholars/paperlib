@@ -26,6 +26,7 @@ import {
   setWindowsSpecificStyles,
 } from "./win_plugin/index";
 import { registerSideworkWindowEvents } from "./win_sidework/event";
+import { FileSystemService } from "./services/filesystem-service.ts";
 
 Store.initRenderer();
 // const preference = new Preference();
@@ -105,6 +106,7 @@ async function initialize() {
     preferenceService: PreferenceService,
     windowProcessManagementService: WindowProcessManagementService,
     windowControlService: WindowControlService,
+    fileSystemService: FileSystemService,
   });
   for (const [key, instance] of Object.entries(instances)) {
     globalThis[key] = instance;

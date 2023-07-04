@@ -94,7 +94,7 @@ export class RenderService {
 
     if (
       this._preferenceService.get("invertColor") &&
-      (await ipcRenderer.invoke("getTheme"))
+      (await PLMainAPI.windowControlService.isDarkMode())
     ) {
       context.filter = "invert(0.9)";
       context.drawImage(canvas, 0, 0);

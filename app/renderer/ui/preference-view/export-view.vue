@@ -3,7 +3,7 @@ import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
 import { MSWordCommService } from "@/renderer/services/msword-comm-service";
-import { IPreferenceStore } from "@/renderer/services/preference-service";
+import { IPreferenceStore } from "@/common/services/preference-service";
 
 import Replacement from "./components/replacement.vue";
 import Toggle from "./components/toggle.vue";
@@ -49,7 +49,7 @@ const CSLStyles = ref([]) as Ref<{ key: string; name: string }[]>;
 const onCSLStyleUpdate = async (CSLStyle: string) => {
   if (CSLStyle === "import-from-folder") {
     const pickedImportedCSLStylesPath = (
-      await window.appInteractor.showFolderPicker()
+      await PLMainAPI.fileSystemService.showFolderPicker()
     ).filePaths[0];
     if (pickedImportedCSLStylesPath) {
       preferenceService.set({

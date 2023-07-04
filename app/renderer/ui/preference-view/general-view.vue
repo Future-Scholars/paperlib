@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { APPTheme } from "@/renderer/services/app-service";
-import { IPreferenceStore } from "@/renderer/services/preference-service";
+import { APPTheme } from "@/main/services/window-control-service";
+import { IPreferenceStore } from "@/common/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Options from "./components/options.vue";
@@ -16,7 +16,7 @@ const updatePrefs = (key: keyof IPreferenceStore, value: unknown) => {
 };
 
 const onPickerClicked = async () => {
-  const pickedFolder = (await window.appInteractor.showFolderPicker())
+  const pickedFolder = (await PLMainAPI.fileSystemService.showFolderPicker())
     .filePaths[0];
   if (pickedFolder) {
     updatePrefs("appLibFolder", pickedFolder);
@@ -74,7 +74,7 @@ const onRenameAllClicked = () => {
 
 const onChangePDFViewer = async (pdfViewer: string) => {
   if (pdfViewer === "custom") {
-    const pickedViewer = (await window.appInteractor.showFilePicker())
+    const pickedViewer = (await PLMainAPI.fileSystemService.showFilePicker())
       .filePaths[0];
     if (pickedViewer) {
       updatePrefs("selectedPDFViewer", "custom");

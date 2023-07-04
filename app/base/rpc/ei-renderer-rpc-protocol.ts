@@ -38,7 +38,12 @@ export class EIRendererRPCProtocol {
         if (typeof name === "string" && !target[name]) {
           target[name] = (...myArgs: any[]) => {
             console.log("invoke", `${rpcId}.${name}`, myArgs);
-            return ipcRenderer.invoke(`${rpcId}.${name}`, myArgs);
+
+            if (name.endsWith("Sync")) {
+              return ipcRenderer.sendSync(`${rpcId}.${name}`, myArgs);
+            } else {
+              return ipcRenderer.invoke(`${rpcId}.${name}`, myArgs);
+            }
           };
         }
         return target[name];

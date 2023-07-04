@@ -1,7 +1,5 @@
 import {
   BrowserWindow,
-  Menu,
-  MessageChannelMain,
   app,
   nativeTheme,
   shell,
@@ -9,7 +7,6 @@ import {
 } from "electron";
 import { join, posix } from "node:path";
 import os from "os";
-import { defineStore, getActivePinia } from "pinia";
 
 import {
   IPreferenceService,
