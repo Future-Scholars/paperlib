@@ -47,7 +47,7 @@ export class APPService {
   /**
    * Minimize the application window. */
   minimize() {
-    ipcRenderer.send("minimize");
+    PLMainAPI.windowControlService.minimize();
   }
   /**
    * Maximize the application window. */
@@ -57,7 +57,7 @@ export class APPService {
   /**
    * Close the application window. */
   close() {
-    ipcRenderer.send("close");
+    PLMainAPI.windowControlService.close();
   }
   /**
    * Force close the application window. */

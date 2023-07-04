@@ -116,77 +116,26 @@ async function initialize() {
 
 app.whenReady().then(initialize);
 
-// app.on("window-all-closed", () => {
-//   if (win && !win.isDestroyed()) {
-//     win.close();
-//   }
-//   if (winPlugin && !winPlugin.isDestroyed()) {
-//     winPlugin.close();
-//   }
-//   if (winSidework && !winSidework.isDestroyed()) {
-//     winSidework.close();
-//   }
-//   win = null;
-//   winPlugin = null;
-//   winSidework = null;
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});
 
-//   if (process.platform !== "darwin") app.quit();
-// });
+app.on("second-instance", () => {
+  if (browserWindows.has("rendererProcess")) {
+    if (browserWindows.get("browserWindows").isMinimized())
+      browserWindows.get("browserWindows").restore();
+    browserWindows.get("browserWindows").focus();
+  }
+});
 
-// app.on("second-instance", () => {
-//   if (win) {
-//     if (win.isMinimized()) win.restore();
-//     win.focus();
-//   }
-// });
-
-// app.on("activate", () => {
-//   if (win && !win?.isDestroyed()) {
-//     win.show();
-//     win.focus();
-//   } else {
-//     createWindow();
-//   }
-// });
-
-// app.on("open-url", (event, url) => {
-//   console.log(url);
-// });
-
-// ipcMain.on("minimize", () => {
-//   win?.minimize();
-//   winPlugin?.hide();
-//   winSidework?.close();
-// });
-
-// ipcMain.on("maximize", () => {
-//   if (win?.isMaximized()) {
-//     win?.unmaximize();
-//   } else {
-//     win?.maximize();
-//   }
-// });
-
-// ipcMain.on("close", (e) => {
-//   if (platform() === "darwin") {
-//     e.preventDefault();
-//     win?.hide();
-//     winPlugin?.hide();
-//     winSidework?.close();
-//   } else {
-//     win?.close();
-//     winPlugin?.close();
-//     winSidework?.close();
-//     app.quit();
-//   }
-// });
-
-// ipcMain.on("force-close", (e) => {
-//   win?.close();
-//   winPlugin?.close();
-//   winSidework?.close();
-//   app.quit();
-// });
+app.on("activate", () => {
+  if (browserWindows.has("rendererProcess")) {
+    browserWindows.get("rendererProcess").show();
+    browserWindows.get("rendererProcess").focus();
+  } else {
+    windowProcessManagementService.createMainRenderer();
+  }
+});
 
 ipcMain.handle("version", () => {
   return app.getVersion();

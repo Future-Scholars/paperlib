@@ -80,9 +80,12 @@ export class WindowStorage {
 
   has(id: string | number): boolean {
     if (typeof id === "string") {
-      return id in this._windows;
+      return id in this._windows && !this._windows[id].isDestroyed();
     } else {
-      return this._wId2Id[id] in this._windows;
+      return (
+        this._wId2Id[id] in this._windows &&
+        !this._windows[this._wId2Id[id]].isDestroyed()
+      );
     }
   }
 }
