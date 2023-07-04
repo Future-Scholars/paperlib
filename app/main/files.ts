@@ -73,6 +73,7 @@ ipcMain.on("preview", (event, fileURL) => {
   }
 });
 
+// TODO: move this
 ipcMain.on("close-preview", () => {
   previewWin?.close();
   previewWin = null;

@@ -127,7 +127,7 @@ const i18n = createI18n({
 
 app.use(i18n);
 
-const appInteractor = new AppInteractor(stateStore, preference);
+const appInteractor = new AppInteractor();
 
 window
   .matchMedia("(prefers-color-scheme: dark)")

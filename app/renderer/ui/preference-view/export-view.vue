@@ -63,7 +63,7 @@ const onCSLStyleUpdate = async (CSLStyle: string) => {
 };
 
 const loadCSLStyles = async () => {
-  CSLStyles.value = await window.appInteractor.loadCSLStyles();
+  CSLStyles.value = await referenceService.loadCSLStyles();
 };
 
 const installstate = ref(0);

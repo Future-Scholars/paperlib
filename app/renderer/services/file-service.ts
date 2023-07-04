@@ -410,6 +410,6 @@ export class FileService {
    */
   async preview(url: string) {
     const fileURL = await this.access(url, true);
-    ipcRenderer.send("preview", fileURL);
+    PLMainAPI.fileSystemService.preview(fileURL);
   }
 }

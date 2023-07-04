@@ -1,7 +1,8 @@
 import Cite from "citation-js";
 import { clipboard } from "electron";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, readdirSync } from "fs";
 import path from "path";
+import { XMLParser } from "fast-xml-parser";
 
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
@@ -238,6 +239,64 @@ export class ReferenceService {
     }
 
     clipboard.writeText(copyStr);
+  }
+
+  async loadCSLStyles(): Promise<{ key: string; name: string }[]> {
+    const CSLStyles = [
+      {
+        key: "apa",
+        name: "American Psychological Association",
+      },
+      {
+        key: "vancouver",
+        name: "Vancouver",
+      },
+      {
+        key: "harvard1",
+        name: "Harvard1",
+      },
+    ];
+
+    const importedCSLStylesPath = this._preferenceService.get(
+      "importedCSLStylesPath"
+    ) as string;
+
+    if (importedCSLStylesPath) {
+      // List all files in the importedCSLStylesPath
+      const files = readdirSync(importedCSLStylesPath);
+      const xmlParser = new XMLParser();
+
+      const parsePromise = async (filePath: string) => {
+        const fileContent = readFileSync(filePath);
+        const xml = xmlParser.parse(fileContent);
+        try {
+          const name = xml.style.info.title;
+          const key = path.basename(filePath, ".csl");
+          return { key, name };
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const promises: Promise<{
+        key: string;
+        name: any;
+      } | null>[] = [];
+
+      for (const file of files) {
+        if (file.endsWith(".csl")) {
+          promises.push(parsePromise(path.join(importedCSLStylesPath, file)));
+        }
+      }
+
+      const importedCSLStyles = (await Promise.all(promises)).filter(
+        (item) => item !== null
+      ) as { key: string; name: string }[];
+
+      return [...CSLStyles, ...importedCSLStyles];
+    }
+
+    return CSLStyles;
   }
 }
 
