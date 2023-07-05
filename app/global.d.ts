@@ -34,6 +34,7 @@ import { StateService } from "./renderer/services/state-service/state-service";
 import { IProcessingState } from "./renderer/services/state-service/state/processing";
 import { MainRendererStateStore } from "./state/renderer/appstate";
 import { FileSystemService } from "./main/services/filesystem-service";
+import { ContextMenuService } from "./main/services/contextmenu-service";
 
 declare global {
   var browserWindows: WindowStorage;
@@ -63,6 +64,7 @@ declare global {
   var windowProcessManagementService: WindowProcessManagementService;
   var windowControlService: WindowControlService;
   var fileSystemService: FileSystemService;
+  var contextMenuService: ContextMenuService;
 
   var appService: APPService;
   var preferenceService: PreferenceService;

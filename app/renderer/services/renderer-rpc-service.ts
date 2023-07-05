@@ -44,6 +44,7 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
       globalThis.PLMainAPI = {
         windowControlService: protocol.getProxy("windowControlService"),
         fileSystemService: protocol.getProxy("fileSystemService"),
+        contextMenuService: protocol.getProxy("contextMenuService"),
       };
     }
   }

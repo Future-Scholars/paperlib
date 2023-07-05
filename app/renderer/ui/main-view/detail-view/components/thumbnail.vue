@@ -119,10 +119,7 @@ const onWebdavDownloadClicked = async () => {
 };
 
 const onRightClicked = (event: MouseEvent) => {
-  window.appInteractor.showContextMenu(
-    "show-thumbnail-context-menu",
-    props.entity.mainURL
-  );
+  PLMainAPI.contextMenuService.showThumbnailMenu(props.entity.mainURL);
 };
 
 window.appInteractor.registerMainSignal(

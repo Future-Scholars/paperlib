@@ -31,6 +31,7 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     );
     protocol.set("windowControlService", windowControlService);
     protocol.set("fileSystemService", fileSystemService);
+    protocol.set("contextMenuService", contextMenuService);
   }
 
   _initProxy(protocol: RPCProtocol, protocolId: string): void {

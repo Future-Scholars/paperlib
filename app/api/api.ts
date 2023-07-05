@@ -1,4 +1,5 @@
 import { Proxied } from "@/base/rpc/messageport-rpc-protocol";
+import { ContextMenuService } from "@/main/services/contextmenu-service";
 import { FileSystemService } from "@/main/services/filesystem-service";
 import { WindowControlService } from "@/main/services/window-control-service";
 import { APPService } from "@/renderer/services/app-service";
@@ -24,4 +25,5 @@ export interface MainAPIShape {
     RemoveLastParameterForShape<WindowControlService>
   >;
   fileSystemService: Proxied<RemoveLastParameterForShape<FileSystemService>>;
+  contextMenuService: Proxied<RemoveLastParameterForShape<ContextMenuService>>;
 }

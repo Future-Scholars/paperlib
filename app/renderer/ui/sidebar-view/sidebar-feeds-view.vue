@@ -7,7 +7,7 @@ import {
 import { Ref, inject, ref, watch } from "vue";
 
 import { Feed } from "@/models/feed";
-import { FeedResults } from "@/repositories/db-repository/feed-repository";
+import { IFeedResults } from "@/repositories/db-repository/feed-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CollopseGroup from "./components/collopse-group.vue";
@@ -49,7 +49,7 @@ const isSpinnerShown = ref(false);
 // ================================
 // Data
 // ================================
-const feeds = inject<Ref<FeedResults>>("feeds");
+const feeds = inject<Ref<IFeedResults>>("feeds");
 
 // ================================
 // Event Functions
@@ -59,10 +59,7 @@ const onSelectFeed = (feed: string) => {
 };
 
 const onItemRightClicked = (event: MouseEvent, feed: Feed) => {
-  window.appInteractor.showContextMenu("show-sidebar-context-menu", {
-    data: feed.name,
-    type: "feed",
-  });
+  PLMainAPI.contextMenuService.showSidebarMenu(feed.name, "feed");
 };
 
 const onAddNewFeedClicked = () => {

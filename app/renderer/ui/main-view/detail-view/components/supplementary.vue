@@ -17,7 +17,7 @@ const onClick = (url: string) => {
 };
 
 const onRightClicked = (event: MouseEvent, url: string) => {
-  window.appInteractor.showContextMenu("show-sup-context-menu", url);
+  PLMainAPI.contextMenuService.showSupMenu(url);
 };
 </script>
 

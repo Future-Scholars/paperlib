@@ -13,8 +13,8 @@ import { Ref, inject, ref, watch } from "vue";
 import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { useProcessingState } from "@/renderer/services/state-service/processing";
-import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
-import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
+import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
+import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CollopseGroup from "./components/collopse-group.vue";
@@ -57,9 +57,9 @@ const isSpinnerShown = ref(false);
 // ================================
 // Data
 // ================================
-const tags = inject<Ref<CategorizerResults>>("tags");
-const folders = inject<Ref<CategorizerResults>>("folders");
-const smartfilters = inject<Ref<PaperSmartFilterResults>>("smartfilters");
+const tags = inject<Ref<ICategorizerResults>>("tags");
+const folders = inject<Ref<ICategorizerResults>>("folders");
+const smartfilters = inject<Ref<IPaperSmartFilterResults>>("smartfilters");
 
 // ================================
 // Event Functions
@@ -83,10 +83,7 @@ const onItemRightClicked = (
   categorizer: Categorizer | PaperSmartFilter,
   type: CategorizerType | PaperSmartFilterType
 ) => {
-  window.appInteractor.showContextMenu("show-sidebar-context-menu", {
-    data: categorizer.name,
-    type: type,
-  });
+  PLMainAPI.contextMenuService.showSidebarMenu(categorizer.name, type);
 };
 
 const onFileDroped = (

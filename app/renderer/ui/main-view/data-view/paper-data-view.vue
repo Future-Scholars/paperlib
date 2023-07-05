@@ -232,8 +232,8 @@ const onItemRightClicked = (event: MouseEvent, index: number) => {
   if (selectedIndex.value.indexOf(index) === -1) {
     onItemClicked(event, index);
   }
-  window.appInteractor.showContextMenu(
-    "show-data-context-menu",
+
+  PLMainAPI.contextMenuService.showPaperDataMenu(
     selectedIndex.value.length === 1
   );
 };

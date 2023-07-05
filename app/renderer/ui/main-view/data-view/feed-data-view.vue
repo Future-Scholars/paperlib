@@ -178,10 +178,7 @@ const onItemRightClicked = (event: MouseEvent, index: number) => {
   if (selectedIndex.value.indexOf(index) === -1) {
     onItemClicked(event, index);
   }
-  window.appInteractor.showContextMenu(
-    "show-feed-data-context-menu",
-    selectedIndex.value.length === 1
-  );
+  PLMainAPI.contextMenuService.showFeedDataMenu();
 };
 
 const onItemDoubleClicked = (event: MouseEvent, index: number, url: string) => {
