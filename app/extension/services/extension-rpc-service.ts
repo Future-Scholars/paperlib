@@ -8,6 +8,8 @@ interface IExtensionRPCServiceState {
 export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
   constructor() {
     super("extensionRPCService", { initialized: 0 });
+
+    this._listenProtocolCreation();
   }
 
   _listenProtocolCreation(): void {

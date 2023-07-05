@@ -12,17 +12,47 @@ import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
+import { WindowStorage } from "@/main/window-storage";
+import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 
 interface WindowOptions extends Electron.BrowserWindowConstructorOptions {
   entry: string;
 }
 
-export class WindowProcessManagementService {
+export enum APPTheme {
+  System = "system",
+  Light = "light",
+  Dark = "dark",
+}
+
+export interface IWindowProcessManagementServiceState {
+  "ready-to-show": number;
+  blur: number;
+  focus: number;
+  close: number;
+}
+
+export const IWindowProcessManagementService = createDecorator(
+  "windowProcessManagementService"
+);
+
+export class WindowProcessManagementService extends Eventable<IWindowProcessManagementServiceState> {
   private readonly _extensionProcess: Electron.UtilityProcess;
+  public browserWindows: WindowStorage;
 
   constructor(
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
+    super("windowProcessManagementService", {
+      "ready-to-show": 0,
+      blur: 0,
+      focus: 0,
+      close: 0,
+    });
+
+    this.browserWindows = new WindowStorage();
+
     // 1. Create extension utility process
     this._extensionProcess = utilityProcess.fork(
       join(__dirname, "extension-entry.js")
@@ -40,23 +70,23 @@ export class WindowProcessManagementService {
     options: WindowOptions,
     eventCallbacks: Record<string, (win: BrowserWindow) => void>
   ) {
-    if (browserWindows.has(id)) {
-      browserWindows.destroy(id);
+    if (this.browserWindows.has(id)) {
+      this.browserWindows.destroy(id);
     }
 
     const { entry, ...windowOptions } = options;
 
-    browserWindows.set(id, new BrowserWindow(windowOptions));
+    this.browserWindows.set(id, new BrowserWindow(windowOptions));
 
     if (app.isPackaged || process.env.NODE_ENV === "test") {
-      browserWindows.get(id).loadFile(this.constructEntryURL(entry));
+      this.browserWindows.get(id).loadFile(this._constructEntryURL(entry));
     } else {
-      browserWindows.get(id).loadURL(this.constructEntryURL(entry));
-      browserWindows.get(id).webContents.openDevTools();
+      this.browserWindows.get(id).loadURL(this._constructEntryURL(entry));
+      this.browserWindows.get(id).webContents.openDevTools();
     }
 
     // Make all links open with the browser, not with the application
-    browserWindows.get(id).webContents.setWindowOpenHandler(({ url }) => {
+    this.browserWindows.get(id).webContents.setWindowOpenHandler(({ url }) => {
       if (
         url.includes(process.env.VITE_DEV_SERVER_URL || "") &&
         process.env.NODE_ENV === "development"
@@ -68,16 +98,18 @@ export class WindowProcessManagementService {
       }
       return { action: "deny" };
     });
-    browserWindows.get(id).webContents.on("will-navigate", function (e, url) {
-      if (
-        url.includes(process.env.VITE_DEV_SERVER_URL || "") &&
-        process.env.NODE_ENV === "development"
-      ) {
-        return;
-      }
-      e.preventDefault();
-      shell.openExternal(url);
-    });
+    this.browserWindows
+      .get(id)
+      .webContents.on("will-navigate", function (e, url) {
+        if (
+          url.includes(process.env.VITE_DEV_SERVER_URL || "") &&
+          process.env.NODE_ENV === "development"
+        ) {
+          return;
+        }
+        e.preventDefault();
+        shell.openExternal(url);
+      });
 
     nativeTheme.themeSource = this._preferenceService.get("preferedTheme") as
       | "dark"
@@ -85,13 +117,16 @@ export class WindowProcessManagementService {
       | "system";
 
     this._createMenu();
-    this._setNonMacSpecificStyles(browserWindows.get(id));
+    this._setNonMacSpecificStyles(this.browserWindows.get(id));
 
     for (const eventName of ["ready-to-show", "blur", "focus", "close"]) {
-      browserWindows.get(id).on(eventName as any, () => {
-        browserWindows.get(id).webContents.send(eventName);
+      this.browserWindows.get(id).on(eventName as any, () => {
+        if (eventName !== "close") {
+          this.fire(eventName as any);
+        }
+
         if (eventCallbacks[eventName]) {
-          eventCallbacks[eventName](browserWindows.get(id));
+          eventCallbacks[eventName](this.browserWindows.get(id));
         }
       });
     }
@@ -124,6 +159,8 @@ export class WindowProcessManagementService {
       },
       {
         close: (win: BrowserWindow) => {
+          this._extensionProcess.kill();
+
           const winSize = win.getNormalBounds();
           if (winSize) {
             this._preferenceService.set({
@@ -135,16 +172,16 @@ export class WindowProcessManagementService {
           }
 
           for (const [windowId, window] of Object.entries(
-            browserWindows.all()
+            this.browserWindows.all()
           )) {
             if (windowId !== "mainRenderer") {
               window.close();
-              browserWindows.get(windowId).destroy();
+              this.browserWindows.get(windowId).destroy();
             }
           }
 
           win.close();
-          browserWindows.get("mainRenderer").destroy();
+          this.browserWindows.get("mainRenderer").destroy();
 
           if (process.platform !== "darwin") app.quit();
         },
@@ -152,7 +189,93 @@ export class WindowProcessManagementService {
     );
   }
 
-  constructEntryURL(url: string) {
+  /**
+   * Minimize the window with the given id.
+   */
+  minimize(windowId: string) {
+    if (windowId === "rendererProcess") {
+      const win = this.browserWindows.get(windowId);
+      win.minimize();
+
+      for (const [windowId, win] of Object.entries(this.browserWindows.all())) {
+        if (windowId !== "rendererProcess") {
+          win.hide();
+        }
+      }
+    }
+  }
+
+  /**
+   * Maximize the window with the given id.
+   */
+  maximize(windowId: string) {
+    if (windowId === "rendererProcess") {
+      const win = this.browserWindows.get(windowId);
+      win.maximize();
+    }
+  }
+
+  /**
+   * Close the window with the given id.
+   */
+  close(windowId: string) {
+    if (os.platform() === "darwin") {
+      if (windowId === "rendererProcess") {
+        for (const [windowId, win] of Object.entries(
+          this.browserWindows.all()
+        )) {
+          win.hide();
+        }
+      } else {
+        const win = this.browserWindows.get(windowId);
+        win.hide();
+      }
+    } else {
+      if (windowId === "rendererProcess") {
+        for (const [windowId, win] of Object.entries(
+          this.browserWindows.all()
+        )) {
+          win.close();
+        }
+        app.quit();
+      } else {
+        const win = this.browserWindows.get(windowId);
+        win.close();
+      }
+    }
+  }
+
+  /**
+   * Force close the window with the given id.
+   */
+  forceClose(windowId: string) {
+    if (windowId === "rendererProcess") {
+      for (const [windowId, win] of Object.entries(this.browserWindows.all())) {
+        win.close();
+      }
+    } else {
+      const win = this.browserWindows.get(windowId);
+      win.close();
+    }
+  }
+
+  /**
+   * Change the theme of the app.
+   * @param theme - The theme to be changed to
+   */
+  changeTheme(theme: APPTheme) {
+    nativeTheme.themeSource = theme;
+  }
+
+  /**
+   * Check if the app is in dark mode.
+   * @returns - Whether the app is in dark mode
+   */
+  isDarkMode(): boolean {
+    return nativeTheme.shouldUseDarkColors;
+  }
+
+  private _constructEntryURL(url: string) {
     if (app.isPackaged) {
       return join(__dirname, url);
     } else if (process.env.NODE_ENV === "test") {
@@ -349,7 +472,7 @@ export class WindowProcessManagementService {
     // Menu.setApplicationMenu(menu);
   }
 
-  _setNonMacSpecificStyles(win: BrowserWindow) {
+  private _setNonMacSpecificStyles(win: BrowserWindow) {
     if (os.platform() !== "darwin") {
       win.webContents.insertCSS(`
   

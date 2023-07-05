@@ -243,6 +243,10 @@ window.appInteractor.registerMainSignal("window-lost-focus", (_: any) => {
   databaseService.pauseSync();
 });
 
+PLMainAPI.windowProcessManagementService.on("blur", () => {
+  console.log("window-lost-focus");
+});
+
 window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
   viewState.mainViewFocused = true;
   databaseService.resumeSync();

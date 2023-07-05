@@ -6,7 +6,7 @@ import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
-import { APPTheme } from "@/main/services/window-control-service";
+import { APPTheme } from "@/main/services/window-management-service";
 
 export const IAPPService = createDecorator("appService");
 
@@ -42,28 +42,28 @@ export class APPService {
   /**
    * Minimize the application window. */
   minimize() {
-    PLMainAPI.windowControlService.minimize();
+    PLMainAPI.windowProcessManagementService.minimize("rendererProcess");
   }
   /**
    * Maximize the application window. */
   maximize() {
-    PLMainAPI.windowControlService.maximize();
+    PLMainAPI.windowProcessManagementService.maximize("rendererProcess");
   }
   /**
    * Close the application window. */
   close() {
-    PLMainAPI.windowControlService.close();
+    PLMainAPI.windowProcessManagementService.close("rendererProcess");
   }
   /**
    * Force close the application window. */
   forceClose() {
-    PLMainAPI.windowControlService.forceClose();
+    PLMainAPI.windowProcessManagementService.forceClose("rendererProcess");
   }
   /**
    * Change the theme of the application.
    * @param {APPTheme} theme The theme to change to. */
   changeTheme(theme: APPTheme) {
-    PLMainAPI.windowControlService.changeTheme(theme);
+    PLMainAPI.windowProcessManagementService.changeTheme(theme);
   }
 
   /**

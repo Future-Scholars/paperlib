@@ -77,6 +77,10 @@ export class Eventable<T extends IEventState> implements IDisposable {
     })();
   }
 
+  getEvents(): string[] {
+    return Object.keys(this._state.$state);
+  }
+
   /**
    * Fire an event
    * @param event - event name or object of events
@@ -93,8 +97,8 @@ export class Eventable<T extends IEventState> implements IDisposable {
   }
 
   /**
-   * Add a listener to the preference
-   * @param key - key(s) of the preference
+   * Add a listener
+   * @param key - key(s) of the event
    * @param callback - callback function
    * @returns
    */
@@ -123,8 +127,8 @@ export class Eventable<T extends IEventState> implements IDisposable {
   }
 
   /**
-   * Add a listener to the preference
-   * @param key - key(s) of the preference
+   * Add a listener
+   * @param key - key(s) of the event
    * @param callback - callback function
    * @returns
    */

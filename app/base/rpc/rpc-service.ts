@@ -19,7 +19,6 @@ export abstract class RPCService<
 
   constructor(eventId: string, initialState: T) {
     super(eventId, initialState);
-    this._listenProtocolCreation();
   }
 
   protected abstract _listenProtocolCreation(): void;

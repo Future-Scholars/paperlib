@@ -13,7 +13,6 @@ import { PreviewInteractor } from "./interactors/preview-interactor";
 import { RenderInteractor } from "./interactors/render-interactor";
 import { WordAddinInteractor } from "./interactors/word-addin-interactor";
 import { MainRPCService } from "./main/services/main-rpc-service";
-import { WindowControlService } from "./main/services/window-control-service";
 import { WindowProcessManagementService } from "./main/services/window-management-service";
 import { WindowStorage } from "./main/window-storage";
 import { Preference } from "./preference/preference";
@@ -37,8 +36,6 @@ import { FileSystemService } from "./main/services/filesystem-service";
 import { ContextMenuService } from "./main/services/contextmenu-service";
 
 declare global {
-  var browserWindows: WindowStorage;
-
   interface Window {
     appInteractor: AppInteractor;
     previewInteractor: PreviewInteractor;
@@ -62,7 +59,6 @@ declare global {
 
   var PLMainAPI: MainAPIShape;
   var windowProcessManagementService: WindowProcessManagementService;
-  var windowControlService: WindowControlService;
   var fileSystemService: FileSystemService;
   var contextMenuService: ContextMenuService;
 

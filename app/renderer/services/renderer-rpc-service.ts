@@ -12,6 +12,8 @@ interface IRendererRPCServiceState {
 export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
   constructor() {
     super("rendererRPCService", { initialized: 0 });
+
+    this._listenProtocolCreation();
   }
 
   _listenProtocolCreation(): void {
@@ -42,9 +44,15 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
     if (protocolId === "extensionProcess") {
     } else if (protocolId === "mainProcess") {
       globalThis.PLMainAPI = {
-        windowControlService: protocol.getProxy("windowControlService"),
-        fileSystemService: protocol.getProxy("fileSystemService"),
-        contextMenuService: protocol.getProxy("contextMenuService"),
+        windowProcessManagementService: (
+          protocol as EIRendererRPCProtocol
+        ).getProxy("windowProcessManagementService"),
+        fileSystemService: (protocol as EIRendererRPCProtocol).getProxy(
+          "fileSystemService"
+        ),
+        contextMenuService: (protocol as EIRendererRPCProtocol).getProxy(
+          "contextMenuService"
+        ),
       };
     }
   }

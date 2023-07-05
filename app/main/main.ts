@@ -14,7 +14,6 @@ import { Preference } from "@/preference/preference";
 import "./files.ts";
 import "./proxy.ts";
 import { MainRPCService } from "./services/main-rpc-service.ts";
-import { WindowControlService } from "./services/window-control-service.ts";
 import { WindowProcessManagementService } from "./services/window-management-service.ts";
 import "./theme.ts";
 import "./update.ts";
@@ -106,15 +105,14 @@ async function initialize() {
   const instances = injectionContainer.createInstance<IInjectable>({
     preferenceService: PreferenceService,
     windowProcessManagementService: WindowProcessManagementService,
-    windowControlService: WindowControlService,
     fileSystemService: FileSystemService,
     contextMenuService: ContextMenuService,
+    mainRPCService: MainRPCService,
   });
   for (const [key, instance] of Object.entries(instances)) {
     globalThis[key] = instance;
   }
 
-  new MainRPCService();
   windowProcessManagementService.createMainRenderer();
 }
 
@@ -125,17 +123,25 @@ app.on("window-all-closed", () => {
 });
 
 app.on("second-instance", () => {
-  if (browserWindows.has("rendererProcess")) {
-    if (browserWindows.get("browserWindows").isMinimized())
-      browserWindows.get("browserWindows").restore();
-    browserWindows.get("browserWindows").focus();
+  if (windowProcessManagementService.browserWindows.has("rendererProcess")) {
+    if (
+      windowProcessManagementService.browserWindows
+        .get("browserWindows")
+        .isMinimized()
+    )
+      windowProcessManagementService.browserWindows
+        .get("browserWindows")
+        .restore();
+    windowProcessManagementService.browserWindows.get("browserWindows").focus();
   }
 });
 
 app.on("activate", () => {
-  if (browserWindows.has("rendererProcess")) {
-    browserWindows.get("rendererProcess").show();
-    browserWindows.get("rendererProcess").focus();
+  if (windowProcessManagementService.browserWindows.has("rendererProcess")) {
+    windowProcessManagementService.browserWindows.get("rendererProcess").show();
+    windowProcessManagementService.browserWindows
+      .get("rendererProcess")
+      .focus();
   } else {
     windowProcessManagementService.createMainRenderer();
   }

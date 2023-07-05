@@ -94,7 +94,7 @@ export class RenderService {
 
     if (
       this._preferenceService.get("invertColor") &&
-      (await PLMainAPI.windowControlService.isDarkMode())
+      (await PLMainAPI.windowProcessManagementService.isDarkMode())
     ) {
       context.filter = "invert(0.9)";
       context.drawImage(canvas, 0, 0);

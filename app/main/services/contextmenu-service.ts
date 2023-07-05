@@ -6,6 +6,7 @@ import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
+import { createDecorator } from "@/base/injection/injection";
 
 const isMac = process.platform === "darwin";
 
@@ -50,6 +51,8 @@ const pinkBuf = Buffer.from([203, 192, 255, 0]);
 let pinkIcon = nativeImage.createFromBuffer(pinkBuf, { width: 1, height: 1 });
 pinkIcon = pinkIcon.resize({ width: 3, height: 10 });
 
+export const IContextMenuService = createDecorator("contextMenuService");
+
 export class ContextMenuService {
   private readonly _locales: { t: (key: string) => string };
 
@@ -61,7 +64,7 @@ export class ContextMenuService {
     );
   }
 
-  showPaperDataMenu(allowEdit: boolean, windowId: string) {
+  showPaperDataMenu(allowEdit: boolean) {
     const scraperPrefs = this._preferenceService.get("scrapers") as Record<
       string,
       ScraperPreference
@@ -164,7 +167,7 @@ export class ContextMenuService {
     menu.popup();
   }
 
-  showFeedDataMenu(windowId: string) {
+  showFeedDataMenu() {
     const template = [
       {
         label: this._locales.t("menu.open"),
@@ -192,7 +195,7 @@ export class ContextMenuService {
     menu.popup();
   }
 
-  showSidebarMenu(data: string, type: string, windowId: string) {
+  showSidebarMenu(data: string, type: string) {
     const template = [
       {
         label: "Blue",
@@ -295,7 +298,7 @@ export class ContextMenuService {
     menu.popup();
   }
 
-  showSupMenu(fileURL: string, windowId: string) {
+  showSupMenu(fileURL: string) {
     const template = [
       {
         label: this._locales.t("menu.delete"),
@@ -309,7 +312,7 @@ export class ContextMenuService {
     menu.popup();
   }
 
-  showThumbnailMenu(fileURL: string, windowId: string) {
+  showThumbnailMenu(fileURL: string) {
     const template = [
       {
         label: this._locales.t("menu.replace"),

@@ -1,16 +1,33 @@
-import { MessagePortMain } from "electron";
-
 import { EIMainRPCProtocol } from "@/base/rpc/ei-main-rpc-protocol";
-import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { RPCProtocol, RPCService } from "@/base/rpc/rpc-service";
+import {
+  IWindowProcessManagementService,
+  WindowProcessManagementService,
+} from "@/main/services/window-management-service";
+import {
+  FileSystemService,
+  IFileSystemService,
+} from "@/main/services/filesystem-service";
+import {
+  ContextMenuService,
+  IContextMenuService,
+} from "@/main/services/contextmenu-service";
 
 interface IMainRPCServiceState {
   initialized: number;
 }
 
 export class MainRPCService extends RPCService<IMainRPCServiceState> {
-  constructor() {
+  constructor(
+    @IWindowProcessManagementService
+    private readonly _windowProcessManagementService: WindowProcessManagementService,
+    @IFileSystemService private readonly _fileSystemService: FileSystemService,
+    @IContextMenuService
+    private readonly _contextMenuService: ContextMenuService
+  ) {
     super("mainRPCService", { initialized: 0 });
+
+    this._listenProtocolCreation();
   }
 
   _listenProtocolCreation(): void {
@@ -20,18 +37,19 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
       );
     }
 
-    const eiMainRPCProtocol = new EIMainRPCProtocol();
+    const eiMainRPCProtocol = new EIMainRPCProtocol(
+      this._windowProcessManagementService.browserWindows
+    );
     this._initActionor(eiMainRPCProtocol);
   }
 
   _initActionor(protocol: RPCProtocol): void {
     protocol.set(
       "windowProcessManagementService",
-      windowProcessManagementService
+      this._windowProcessManagementService
     );
-    protocol.set("windowControlService", windowControlService);
-    protocol.set("fileSystemService", fileSystemService);
-    protocol.set("contextMenuService", contextMenuService);
+    protocol.set("fileSystemService", this._fileSystemService);
+    protocol.set("contextMenuService", this._contextMenuService);
   }
 
   _initProxy(protocol: RPCProtocol, protocolId: string): void {

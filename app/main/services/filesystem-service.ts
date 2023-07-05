@@ -1,5 +1,8 @@
+import { createDecorator } from "@/base/injection/injection";
 import { eraseProtocol } from "@/base/url";
 import { BrowserWindow, OpenDialogReturnValue, app, dialog } from "electron";
+
+export const IFileSystemService = createDecorator("fileSystemService");
 
 export class FileSystemService {
   constructor() {}
@@ -49,8 +52,7 @@ export class FileSystemService {
       | "videos"
       | "recent"
       | "logs"
-      | "crashDumps",
-    windowId: string
+      | "crashDumps"
   ): string {
     return app.getPath(key);
   }
@@ -59,7 +61,7 @@ export class FileSystemService {
    * Show a file picker.
    * @returns {Promise<OpenDialogReturnValue>} The result of the file picker.
    */
-  showFilePicker(windowId: string): Promise<OpenDialogReturnValue> {
+  showFilePicker(): Promise<OpenDialogReturnValue> {
     return dialog.showOpenDialog({
       properties: ["openFile"],
     });
@@ -69,13 +71,13 @@ export class FileSystemService {
    * Show a folder picker.
    * @returns {Promise<OpenDialogReturnValue>} The result of the folder picker.
    */
-  showFolderPicker(windowId: string): Promise<OpenDialogReturnValue> {
+  showFolderPicker(): Promise<OpenDialogReturnValue> {
     return dialog.showOpenDialog({
       properties: ["openDirectory"],
     });
   }
 
-  preview(fileURL: string, windowId: string) {
+  preview(fileURL: string) {
     if (process.platform === "darwin") {
       BrowserWindow.getFocusedWindow()?.previewFile(eraseProtocol(fileURL));
     } else {
