@@ -65,7 +65,7 @@ export class CustomScraper {
         paperEntityDraft
       ) as ScraperRequestType;
 
-      const response = (await window.networkTool.get(
+      const response = (await networkTool.get(
         scrapeURL,
         headers
       )) as Response<string>;

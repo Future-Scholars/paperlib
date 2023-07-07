@@ -62,15 +62,13 @@ const reanderedAbstract = ref("");
 
 const render = async () => {
   if (props.entity.title?.includes("$")) {
-    reanderedTitle.value = await window.renderInteractor.renderMath(
-      props.entity.title
-    );
+    reanderedTitle.value = await renderService.renderMath(props.entity.title);
   } else {
     reanderedTitle.value = props.entity.title || "";
   }
 
   if (props.entity.abstract?.includes("$")) {
-    reanderedAbstract.value = await window.renderInteractor.renderMath(
+    reanderedAbstract.value = await renderService.renderMath(
       props.entity.abstract
     );
   } else {

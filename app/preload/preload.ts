@@ -1,4 +1,4 @@
-import { domReady } from "@/utils/misc";
+import { domReady } from "@/base/misc";
 
 import { appendLoading } from "./loading";
 

@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
 const emit = defineEmits(["close"]);
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 const onChangeLanguage = (language: string) => {
-  window.appInteractor.setPreference("language", language);
+  preferenceService.set({ language: language });
 };
 
 const onRestartClicked = () => {
-  window.appInteractor.forceclose();
+  appService.forceClose();
 };
 </script>
 

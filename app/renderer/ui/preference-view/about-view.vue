@@ -3,12 +3,12 @@ import { BIconCoin, BIconGithub, BIconGlobe } from "bootstrap-icons-vue";
 import { onMounted, ref } from "vue";
 
 const version = ref("");
-window.appInteractor.version().then((v) => {
+appService.version().then((v) => {
   version.value = v;
 });
 
 const onLinkClicked = (url: string) => {
-  window.appInteractor.open(url);
+  fileService.open(url);
 };
 
 const darkMode = ref(false);

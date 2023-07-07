@@ -1,20 +1,12 @@
 import { BrowserWindow, app, dialog, ipcMain, screen } from "electron";
 import { join, posix } from "node:path";
 
-ipcMain.on("userData", (event, arg) => {
+ipcMain.on("user-data-path", (event, arg) => {
   event.returnValue = app.getPath("userData");
 });
 
-ipcMain.handle("show-file-picker", () => {
-  return dialog.showOpenDialog({
-    properties: ["openFile"],
-  });
-});
-
-ipcMain.handle("show-folder-picker", () => {
-  return dialog.showOpenDialog({
-    properties: ["openDirectory"],
-  });
+ipcMain.handle("user-data-path", () => {
+  return app.getPath("userData");
 });
 
 let previewWin: BrowserWindow | null = null;
@@ -81,6 +73,7 @@ ipcMain.on("preview", (event, fileURL) => {
   }
 });
 
+// TODO: move this
 ipcMain.on("close-preview", () => {
   previewWin?.close();
   previewWin = null;

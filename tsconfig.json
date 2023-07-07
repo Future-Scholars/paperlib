@@ -4,6 +4,7 @@
     "module": "es2022",
     "composite": true,
     "moduleResolution": "node",
+    "isolatedModules": true,
     "importHelpers": true,
     "jsx": "preserve",
     "esModuleInterop": true,
@@ -20,13 +21,14 @@
     },
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "types": ["vite-plugin-electron/electron-env"]
+    "types": ["vite-plugin-electron/electron-env", "vite/client"]
   },
   "include": [
     "app/**/*.ts",
     "app/**/*.tsx",
     "app/**/*.d.ts",
     "app/**/*.vue",
+    "tests/**/*.ts",
     "package.json",
     "electron"
   ]

@@ -7,7 +7,7 @@ import {
 import { Ref, inject, ref, watch } from "vue";
 
 import { Feed } from "@/models/feed";
-import { FeedResults } from "@/repositories/db-repository/feed-repository";
+import { IFeedResults } from "@/repositories/db-repository/feed-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CollopseGroup from "./components/collopse-group.vue";
@@ -41,7 +41,7 @@ const colorClass = (color?: string) => {
 // ================================
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const bufferState = MainRendererStateStore.useBufferState();
 
 const isSpinnerShown = ref(false);
@@ -49,7 +49,7 @@ const isSpinnerShown = ref(false);
 // ================================
 // Data
 // ================================
-const feeds = inject<Ref<FeedResults>>("feeds");
+const feeds = inject<Ref<IFeedResults>>("feeds");
 
 // ================================
 // Event Functions
@@ -59,10 +59,7 @@ const onSelectFeed = (feed: string) => {
 };
 
 const onItemRightClicked = (event: MouseEvent, feed: Feed) => {
-  window.appInteractor.showContextMenu("show-sidebar-context-menu", {
-    data: feed.name,
-    type: "feed",
-  });
+  PLMainAPI.contextMenuService.showSidebarMenu(feed.name, "feed");
 };
 
 const onAddNewFeedClicked = () => {
@@ -75,30 +72,30 @@ const onAddNewFeedClicked = () => {
 // Register Context Menu Callbacks
 // ================================
 
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-delete",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuDeleteClicked",
+  (payload: { data: string; type: string }) => {
     if (viewState.contentType === "feed") {
-      window.feedInteractor.deleteFeed(args[0]);
+      feedService.delete(payload.data);
       selectionState.selectedFeed = "feed-all";
     }
   }
 );
 
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-feed-refresh",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuFeedRefreshClicked",
+  (payload: { data: string; type: string }) => {
     if (viewState.contentType === "feed") {
-      window.feedInteractor.refresh([args[0]]);
+      feedService.refresh([payload.data]);
     }
   }
 );
 
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-color",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuColorClicked",
+  (payload: { data: string; type: string; color: string }) => {
     if (viewState.contentType === "feed") {
-      window.feedInteractor.colorizeFeed(args[2], args[0]);
+      feedService.colorize(payload.color as any, payload.data);
     }
   }
 );

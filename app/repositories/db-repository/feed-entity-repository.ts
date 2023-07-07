@@ -1,76 +1,45 @@
 import { ObjectId } from "bson";
 import Realm, { Results } from "realm";
 
+import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { formatString } from "@/utils/string";
 
-export class FeedEntityRepository {
-  stateStore: MainRendererStateStore;
-  listened: boolean;
+export interface IFeedEntityRepositoryState {
+  count: number;
+  updated: number;
+}
 
-  constructor(stateStore: MainRendererStateStore) {
-    this.stateStore = stateStore;
-    this.listened = false;
-  }
+export const IFeedEntityRepository = createDecorator("feedEntityRepository");
 
-  removeListeners() {
-    this.listened = false;
-  }
-
-  createFilterPattern(
-    search: string | null,
-    name: string | null,
-    unread: boolean
-  ): string {
-    let filterFormat = "";
-
-    const formatedSearch = formatString({
-      str: search,
-      removeNewline: true,
-      trimWhite: true,
+export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> {
+  constructor() {
+    super("feedEntityRepository", {
+      count: 0,
+      updated: 0,
     });
-
-    if (search) {
-      if (this.stateStore.viewState.searchMode === "general") {
-        filterFormat += `(title contains[c] \"${formatedSearch}\" OR authors contains[c] \"${formatedSearch}\" OR publication contains[c] \"${formatedSearch}\" OR abstract contains[c] \"${formatedSearch}\") AND `;
-      } else if (this.stateStore.viewState.searchMode === "advanced") {
-        filterFormat += `(${formatedSearch}) AND `;
-      }
-    }
-    if (name) {
-      filterFormat += `(feed.name == \"${name}\") AND `;
-    }
-    if (unread) {
-      filterFormat += `(read == false) AND `;
-    }
-    if (filterFormat.length > 0) {
-      filterFormat = filterFormat.slice(0, -5);
-    }
-
-    return filterFormat;
   }
 
-  // ========================
-  // Read
-  // ========================
+  /**
+   * Load all filtered feed entities.
+   * @param realm - Realm instance.
+   * @param filter - Filter string.
+   * @param sortBy - Sort by field.
+   * @param sortOrder - Sort order.
+   * @returns - Results of feed entities.
+   */
   load(
     realm: Realm,
-    search: string,
-    name: string,
-    unread: boolean,
+    filter: string,
     sortBy: string,
-    sortOrder: string
+    sortOrder: "asce" | "desc"
   ) {
-    const filterPattern = this.createFilterPattern(search, name, unread);
+    let objects = realm.objects<FeedEntity>("FeedEntity");
 
-    let objects = realm
-      .objects<FeedEntity>("FeedEntity")
-      .sorted(sortBy, sortOrder == "desc");
-    this.stateStore.viewState.feedEntitiesCount = objects.length;
+    this.fire({ count: objects.length });
 
-    if (!this.listened) {
+    if (!realm.feedEntityListened) {
       objects.addListener((objs, changes) => {
         const deletionCount = changes.deletions.length;
         const insertionCount = changes.insertions.length;
@@ -78,28 +47,29 @@ export class FeedEntityRepository {
           changes.newModifications.length + changes.oldModifications.length;
 
         if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
-          this.stateStore.dbState.feedEntitiesUpdated = Date.now();
+          this.fire("updated");
         }
       });
-      this.listened = true;
+      realm.feedEntityListened = true;
     }
 
-    if (filterPattern) {
+    if (filter) {
       try {
-        objects = objects.filtered(filterPattern);
+        return objects.filtered(filter).sorted(sortBy, sortOrder == "desc");
       } catch (error) {
-        window.logger.error(
-          "Filter pattern is invalid",
-          error as Error,
-          true,
-          "Search"
-        );
+        throw new Error(`Invalid filter: ${filter}`);
       }
+    } else {
+      return objects.sorted(sortBy, sortOrder == "desc");
     }
-
-    return objects;
   }
 
+  /**
+   * Load feed entity by id.
+   * @param realm - Realm instance.
+   * @param ids - Paper ids.
+   * @returns - Results of feed entities.
+   */
   loadByIds(realm: Realm, ids: (ObjectId | string)[]) {
     const idsQuery = ids
       .map((id) => `_id == oid(${id as string})`)
@@ -112,9 +82,16 @@ export class FeedEntityRepository {
     return objects;
   }
 
-  // ========================
-  // Update
-  // ========================
+  /**
+   * Update feed entity.
+   * @param realm - Realm instance.
+   * @param feedEntity - Feed entity.
+   * @param feed - Feed.
+   * @param existingFeedEntity - Existing feed entity.
+   * @param ignoreReadState - Ignore read state.
+   * @param partition - Partition.
+   * @returns "updated" | "created"
+   */
   update(
     realm: Realm,
     feedEntity: FeedEntity,
@@ -123,11 +100,49 @@ export class FeedEntityRepository {
     ignoreReadState: boolean,
     partition: string
   ) {
-    try {
-      return realm.safeWrite(() => {
-        if (existingFeedEntity) {
-          // Update
-          const updateObj = existingFeedEntity;
+    return realm.safeWrite(() => {
+      if (existingFeedEntity) {
+        // Update
+        const updateObj = existingFeedEntity;
+        updateObj.feedTime = feedEntity.feedTime;
+        updateObj.title = feedEntity.title;
+        updateObj.authors = feedEntity.authors;
+        updateObj.abstract = feedEntity.abstract;
+        updateObj.publication = feedEntity.publication;
+        updateObj.pubTime = feedEntity.pubTime;
+        updateObj.pubType = feedEntity.pubType;
+        updateObj.doi = feedEntity.doi;
+        updateObj.arxiv = feedEntity.arxiv;
+        updateObj.mainURL = feedEntity.mainURL;
+        updateObj.pages = feedEntity.pages;
+        updateObj.volume = feedEntity.volume;
+        updateObj.number = feedEntity.number;
+        updateObj.publisher = feedEntity.publisher;
+        if (!ignoreReadState) {
+          updateObj.read = feedEntity.read;
+        }
+        updateObj.feed = feed;
+
+        return "updated";
+      } else {
+        // Add
+        const reduplicatedFeedEntities = realm
+          .objects<FeedEntity>("FeedEntity")
+          .filtered(
+            "title == $0 and authors == $1",
+            feedEntity.title,
+            feedEntity.authors
+          );
+        if (reduplicatedFeedEntities.length === 0) {
+          feedEntity.feed = feed;
+          if (partition) {
+            feedEntity._partition = partition;
+          }
+          realm.create("FeedEntity", feedEntity);
+
+          return "created";
+        } else {
+          const updateObj = reduplicatedFeedEntities[0];
           updateObj.feedTime = feedEntity.feedTime;
           updateObj.title = feedEntity.title;
           updateObj.authors = feedEntity.authors;
@@ -148,62 +163,16 @@ export class FeedEntityRepository {
           updateObj.feed = feed;
 
           return "updated";
-        } else {
-          // Add
-          const reduplicatedFeedEntities = realm
-            .objects<FeedEntity>("FeedEntity")
-            .filtered(
-              "title == $0 and authors == $1",
-              feedEntity.title,
-              feedEntity.authors
-            );
-          if (reduplicatedFeedEntities.length === 0) {
-            feedEntity.feed = feed;
-            if (partition) {
-              feedEntity._partition = partition;
-            }
-            realm.create("FeedEntity", feedEntity);
-
-            return "created";
-          } else {
-            const updateObj = reduplicatedFeedEntities[0];
-            updateObj.feedTime = feedEntity.feedTime;
-            updateObj.title = feedEntity.title;
-            updateObj.authors = feedEntity.authors;
-            updateObj.abstract = feedEntity.abstract;
-            updateObj.publication = feedEntity.publication;
-            updateObj.pubTime = feedEntity.pubTime;
-            updateObj.pubType = feedEntity.pubType;
-            updateObj.doi = feedEntity.doi;
-            updateObj.arxiv = feedEntity.arxiv;
-            updateObj.mainURL = feedEntity.mainURL;
-            updateObj.pages = feedEntity.pages;
-            updateObj.volume = feedEntity.volume;
-            updateObj.number = feedEntity.number;
-            updateObj.publisher = feedEntity.publisher;
-            if (!ignoreReadState) {
-              updateObj.read = feedEntity.read;
-            }
-            updateObj.feed = feed;
-
-            return "updated";
-          }
         }
-      });
-    } catch (error) {
-      window.logger.error(
-        "Failed to update database",
-        error as Error,
-        true,
-        "Database"
-      );
-      return false;
-    }
+      }
+    });
   }
 
-  // ========================
-  // Delete
-  // ========================
+  /**
+   * Delete outdate feed entities.
+   * @param realm - Realm instance.
+   * @returns - Feed count.
+   */
   deleteOutdate(realm: Realm) {
     const readObjects = realm
       .objects<FeedEntity>("FeedEntity")
@@ -235,52 +204,38 @@ export class FeedEntityRepository {
       }
     });
 
-    try {
-      return realm.safeWrite(() => {
-        realm.delete(readObjects);
-        realm.delete(unreadObjects);
-        return feedCount;
-      });
-    } catch (error) {
-      window.logger.error(
-        "Failed to delete database",
-        error as Error,
-        true,
-        "Database"
-      );
-      return {};
-    }
+    return realm.safeWrite(() => {
+      realm.delete(readObjects);
+      realm.delete(unreadObjects);
+      return feedCount;
+    });
   }
 
-  delete(realm: Realm, feedEntity?: FeedEntity, ids?: (ObjectId | string)[]) {
-    try {
-      return realm.safeWrite(() => {
-        if (feedEntity) {
-          realm.delete(feedEntity);
-        } else if (ids) {
-          realm.delete(
-            realm.objects<FeedEntity>("FeedEntity").filtered("_id IN $0", ids)
-          );
-          return true;
-        } else {
-          throw new Error("No feed entity or ids are given");
-        }
-      });
-    } catch (error) {
-      window.logger.error(
-        "Failed to delete feed entities",
-        error as Error,
-        true,
-        "Database"
-      );
-      return false;
-    }
+  /**
+   * Delete feed entities.
+   * @param realm - Realm instance.
+   * @param ids - Paper ids.
+   * @param feedEntity - Feed entity.
+   * @returns - True if success.
+   */
+  delete(realm: Realm, ids?: (ObjectId | string)[], feedEntity?: FeedEntity) {
+    return realm.safeWrite(() => {
+      if (feedEntity) {
+        realm.delete(feedEntity);
+      } else if (ids) {
+        realm.delete(
+          realm.objects<FeedEntity>("FeedEntity").filtered("_id IN $0", ids)
+        );
+        return true;
+      } else {
+        throw new Error("Either ids or feedEntity must be specified.");
+      }
+    });
   }
 
   // ==============================
   // Dev Functions
   // ==============================
-
   removeAll(realm: Realm) {
     const objects = realm.objects<FeedEntity>("FeedEntity");
     realm.safeWrite(() => {
@@ -301,6 +256,6 @@ export class FeedEntityRepository {
   }
 }
 
-export type FeedEntityResults =
+export type IFeedEntityResults =
   | Results<FeedEntity & Realm.Object>
   | Array<FeedEntity>;

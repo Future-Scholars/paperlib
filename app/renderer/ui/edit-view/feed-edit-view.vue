@@ -50,58 +50,44 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
-  window.feedInteractor.createFeed([
-    new Feed(false).initialize(editingFeedDraft.value),
-  ]);
+  feedService.create([new Feed(false).initialize(editingFeedDraft.value)]);
   onCloseClicked();
 };
 </script>
 
 <template>
-  <Transition
-    enter-active-class="transition ease-out duration-75"
-    enter-from-class="transform opacity-0"
-    enter-to-class="transform opacity-100"
-    leave-active-class="transition ease-in duration-75"
-    leave-from-class="transform opacity-100"
-    leave-to-class="transform opacity-0"
+  <div
+    class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-800 dark:bg-neutral-900 bg-opacity-50 dark:bg-opacity-80"
   >
-    <div
-      class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-800 dark:bg-neutral-900 bg-opacity-50 dark:bg-opacity-80"
-      v-if="viewState.isFeedEditViewShown"
-    >
-      <div class="flex flex-col justify-center items-center w-full h-full">
-        <div
-          class="m-auto flex flex-col justify-between p-2 border-[1px] dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 w-[500px] rounded-lg shadow-lg select-none space-y-2"
-        >
-          <InputBox
-            placeholder="Feed Name"
-            :value="editingFeedDraft.name"
-            @changed="(value) => (editingFeedDraft.name = value)"
-          />
-          <InputBox
-            placeholder="Feed URL"
-            :value="editingFeedDraft.url"
-            @changed="(value) => (editingFeedDraft.url = value)"
-          />
-          <div class="flex justify-end space-x-2 py-1">
-            <div
-              class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm"
-              @click="onCloseClicked"
-            >
-              <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
-            </div>
-            <div
-              class="flex w-20 h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm"
-              @click="onSaveClicked"
-            >
-              <span class="m-auto text-xs text-white">{{
-                $t("menu.save")
-              }}</span>
-            </div>
+    <div class="flex flex-col justify-center items-center w-full h-full">
+      <div
+        class="m-auto flex flex-col justify-between p-2 border-[1px] dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 w-[500px] rounded-lg shadow-lg select-none space-y-2"
+      >
+        <InputBox
+          placeholder="Feed Name"
+          :value="editingFeedDraft.name"
+          @changed="(value) => (editingFeedDraft.name = value)"
+        />
+        <InputBox
+          placeholder="Feed URL"
+          :value="editingFeedDraft.url"
+          @changed="(value) => (editingFeedDraft.url = value)"
+        />
+        <div class="flex justify-end space-x-2 py-1">
+          <div
+            class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-500 dark:text-neutral-300 hover:shadow-sm"
+            @click="onCloseClicked"
+          >
+            <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
+          </div>
+          <div
+            class="flex w-20 h-6 rounded-md bg-accentlight dark:bg-accentdark hover:shadow-sm"
+            @click="onSaveClicked"
+          >
+            <span class="m-auto text-xs text-white">{{ $t("menu.save") }}</span>
           </div>
         </div>
       </div>
     </div>
-  </Transition>
+  </div>
 </template>

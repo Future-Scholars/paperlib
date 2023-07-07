@@ -30,7 +30,7 @@ const viewState = MainRendererStateStore.useViewState();
 const onRatingChanged = (value: number) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.rating = value;
-  void window.entityInteractor.update([paperEntityDraft]);
+  paperService.update([paperEntityDraft]);
 };
 
 const onDeleteCategorizer = (
@@ -47,17 +47,17 @@ const onDeleteCategorizer = (
       return folder.name !== categorizer.name;
     });
   }
-  void window.entityInteractor.update([paperEntityDraft]);
+  paperService.update([paperEntityDraft]);
 };
 
 const modifyMainFile = async (url: string) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.mainURL = url;
-  const updatedPaperEntity = await window.entityInteractor.update(
+  const updatedPaperEntity = await paperService.update(
     [paperEntityDraft],
     false
   );
-  await window.entityInteractor.updateCache(updatedPaperEntity);
+  await cacheService.updateCache(updatedPaperEntity);
   setTimeout(() => {
     viewState.renderRequired = Date.now();
   }, 500);
@@ -65,27 +65,30 @@ const modifyMainFile = async (url: string) => {
 
 const locateMainFile = async () => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
-  const updatedPaperEntity = await window.entityInteractor.locateMainFile([
+  const updatedPaperEntity = await fileService.locateFileOnWeb([
     paperEntityDraft,
   ]);
-  await window.entityInteractor.updateCache(updatedPaperEntity);
+  await paperService.update(updatedPaperEntity);
   viewState.renderRequired = Date.now();
 };
 
 const addSups = (urls: string[]) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.supURLs = [...paperEntityDraft.supURLs, ...urls];
-  void window.entityInteractor.update([paperEntityDraft], false);
+  paperService.update([paperEntityDraft], false);
 };
 
 const onDeleteSup = (url: string) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
-  window.entityInteractor.deleteSup(paperEntityDraft, url);
+  paperService.deleteSup(paperEntityDraft, url);
 };
 
-window.appInteractor.registerMainSignal("sup-context-menu-delete", (args) => {
-  onDeleteSup(args);
-});
+PLMainAPI.contextMenuService.on(
+  "supContextMenuDeleteClicked",
+  (fileURL: string) => {
+    onDeleteSup(fileURL);
+  }
+);
 
 const registerDropHandler = () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -168,9 +171,7 @@ const reanderedTitle = ref("");
 
 const renderTitle = async () => {
   if (props.entity.title?.includes("$")) {
-    reanderedTitle.value = await window.renderInteractor.renderMath(
-      props.entity.title
-    );
+    reanderedTitle.value = await renderService.renderMath(props.entity.title);
   } else {
     reanderedTitle.value = props.entity.title;
   }
@@ -183,19 +184,20 @@ const citationCount = ref({}) as Ref<
   >
 >;
 const requestCitationCount = async () => {
-  citationCount.value = {
-    semanticscholarId: "",
-    citationCount: "N/A",
-    influentialCitationCount: "N/A",
-  };
-  const responseCitationCount = await window.entityInteractor.loadCitationCount(
-    props.entity
-  );
-  citationCount.value.semanticscholarId =
-    responseCitationCount.semanticscholarId;
-  citationCount.value.citationCount = responseCitationCount.citationCount;
-  citationCount.value.influentialCitationCount =
-    responseCitationCount.influentialCitationCount;
+  // TODO: move to a seperate plugin.
+  // citationCount.value = {
+  //   semanticscholarId: "",
+  //   citationCount: "N/A",
+  //   influentialCitationCount: "N/A",
+  // };
+  // const responseCitationCount = await window.entityInteractor.loadCitationCount(
+  //   props.entity
+  // );
+  // citationCount.value.semanticscholarId =
+  //   responseCitationCount.semanticscholarId;
+  // citationCount.value.citationCount = responseCitationCount.citationCount;
+  // citationCount.value.influentialCitationCount =
+  //   responseCitationCount.influentialCitationCount;
 };
 
 watch(
@@ -208,7 +210,7 @@ watch(
 
 const onCitationCountClicked = (semanticscholarId: string) => {
   if (semanticscholarId) {
-    window.appInteractor.open(
+    fileService.open(
       `https://www.semanticscholar.org/paper/${semanticscholarId}`
     );
   }

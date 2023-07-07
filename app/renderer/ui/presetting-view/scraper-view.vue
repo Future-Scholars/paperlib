@@ -2,13 +2,14 @@
 import { BIconGripVertical } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { ScraperPreference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 const emit = defineEmits(["close"]);
 
 const viewState = MainRendererStateStore.useViewState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 const presetSelection = ref("");
 
@@ -63,10 +64,7 @@ const onEnabledChanged = (change: any) => {
   for (const disabledScraper of disabledScraperList.value) {
     scraperPrefs[disabledScraper.name].enable = false;
   }
-  window.appInteractor.setPreference(
-    "scrapers",
-    JSON.parse(JSON.stringify(scraperPrefs))
-  );
+  preferenceService.set({ scrapers: JSON.parse(JSON.stringify(scraperPrefs)) });
   viewState.scraperReinited = Date.now();
 };
 
@@ -109,16 +107,14 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
     scraper.enable = presets[preset].includes(name);
     scraper.priority = 1000 - presets[preset].indexOf(name);
   }
-  window.appInteractor.setPreference("scrapers", scraperPrefs);
+  preferenceService.set({ scrapers: scraperPrefs });
   viewState.scraperReinited = Date.now();
 };
 
-watch(
-  () => prefState.scrapers,
-  () => {
+disposable(
+  preferenceService.onChanged("scrapers", () => {
     splitEnabledDisabledScraper();
-  },
-  { deep: true }
+  })
 );
 
 onMounted(() => {

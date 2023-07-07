@@ -9,10 +9,9 @@ import {
   TextItem,
 } from "pdfjs-dist/types/src/display/api";
 
+import { formatString } from "@/base/string";
+import { constructFileURL } from "@/base/url";
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference } from "@/preference/preference";
-import { constructFileURL } from "@/utils/path";
-import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 

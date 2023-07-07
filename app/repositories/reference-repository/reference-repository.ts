@@ -3,11 +3,12 @@ import Cite from "citation-js";
 import { existsSync, readFileSync } from "fs";
 import path from "path";
 
+import { createDecorator } from "@/base/injection/injection";
+import { formatString } from "@/base/string";
 import { CSL } from "@/models/csl";
 import { PaperEntity } from "@/models/paper-entity";
 import { Preference } from "@/preference/preference";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { formatString } from "@/utils/string";
 
 function escapeLaTexString(str: string) {
   const out = str
@@ -16,6 +17,8 @@ function escapeLaTexString(str: string) {
     .replaceAll("#", "\\#");
   return out;
 }
+
+export const IReferenceRepository = createDecorator("referenceRepository");
 
 export class ReferenceRepository {
   stateStore: MainRendererStateStore;
@@ -216,14 +219,8 @@ export class ReferenceRepository {
 
         return cite.format("bibliography", { template: csl });
       } else {
-        window.logger.error(
-          `CSL template file: ${csl}.csl not found.`,
-          "",
-          true,
-          "Reference"
-        );
-
-        return cite.format("bibliography", { template: "apa" });
+        // TODO: check what will happend in the topper service
+        throw new Error("CSL style file not found.");
       }
     }
   }

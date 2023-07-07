@@ -11,7 +11,7 @@ defineProps({
 });
 
 const openURL = (url: string) => {
-  window.appInteractor.open(url);
+  fileService.open(url);
 };
 </script>
 

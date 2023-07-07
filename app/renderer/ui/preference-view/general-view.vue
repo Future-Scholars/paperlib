@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+import { APPTheme } from "@/main/services/window-control-service";
+import { IPreferenceStore } from "@/common/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
 
 const viewState = MainRendererStateStore.useViewState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
-const updatePrefs = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+const updatePrefs = (key: keyof IPreferenceStore, value: unknown) => {
+  preferenceService.set({ [key]: value });
 };
 
 const onPickerClicked = async () => {
-  const pickedFolder = (await window.appInteractor.showFolderPicker())
+  const pickedFolder = (await PLMainAPI.fileSystemService.showFolderPicker())
     .filePaths[0];
   if (pickedFolder) {
     updatePrefs("appLibFolder", pickedFolder);
@@ -22,8 +24,8 @@ const onPickerClicked = async () => {
   }
 };
 
-const onThemeUpdated = (value: string) => {
-  window.appInteractor.changeTheme(value);
+const onThemeUpdated = (value: APPTheme) => {
+  appService.changeTheme(value);
   updatePrefs("preferedTheme", value);
 };
 
@@ -67,12 +69,12 @@ const onCustomRenamingFormatUpdate = (payload: Event) => {
 };
 
 const onRenameAllClicked = () => {
-  window.entityInteractor.renameAll();
+  paperService.renameAll();
 };
 
 const onChangePDFViewer = async (pdfViewer: string) => {
   if (pdfViewer === "custom") {
-    const pickedViewer = (await window.appInteractor.showFilePicker())
+    const pickedViewer = (await PLMainAPI.fileSystemService.showFilePicker())
       .filePaths[0];
     if (pickedViewer) {
       updatePrefs("selectedPDFViewer", "custom");
@@ -272,3 +274,5 @@ const onChangeLanguage = (language: string) => {
     </div>
   </div>
 </template>
+@/renderer/services/app-service@/renderer/services/preference-service
+@/common/services/preference-service

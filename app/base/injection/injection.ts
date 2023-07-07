@@ -62,6 +62,7 @@ export class InjectionContainer {
       throw new Error("Cycle dependency");
     }
     const creatSequence = this._graph.topologicalSort();
+    console.log(creatSequence.join(" -> "));
     for (const id of creatSequence) {
       const _constructor = this._constructors.get(id);
       if (!_constructor) {

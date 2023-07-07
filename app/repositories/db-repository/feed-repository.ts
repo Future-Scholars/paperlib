@@ -1,35 +1,37 @@
 import { ObjectId } from "bson";
 import Realm, { Results } from "realm";
 
+import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
-export class FeedRepository {
-  stateStore: MainRendererStateStore;
-  listened: boolean;
+export interface IFeedRepositoryState {
+  updated: number;
+}
 
-  constructor(stateStore: MainRendererStateStore) {
-    this.stateStore = stateStore;
-    this.listened = false;
+export const IFeedRepository = createDecorator("feedRepository");
+
+export class FeedRepository extends Eventable<IFeedRepositoryState> {
+  constructor() {
+    super("feedRepository", {
+      updated: 0,
+    });
   }
 
-  removeListeners() {
-    this.listened = false;
-  }
-
-  // ========================
-  // CRUD
-  // ========================
-  // ========================
-  // Read
-  // ========================
+  /**
+   * Load all feeds.
+   * @param realm - Realm instance
+   * @param sortBy - Sort by field
+   * @param sortOrder - Sort order
+   * @returns Results of feed
+   */
   load(realm: Realm, sortBy: string, sortOrder: string) {
     const objects = realm
       .objects<Feed>("Feed")
       .sorted(sortBy, sortOrder == "desc");
 
-    if (!this.listened) {
+    if (!realm.feedListened) {
       objects.addListener((objs, changes) => {
         const deletionCount = changes.deletions.length;
         const insertionCount = changes.insertions.length;
@@ -37,14 +39,20 @@ export class FeedRepository {
           changes.newModifications.length + changes.oldModifications.length;
 
         if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
-          this.stateStore.dbState.feedsUpdated = Date.now();
+          this.fire("updated");
         }
       });
-      this.listened = true;
+      realm.feedListened = true;
     }
     return objects;
   }
 
+  /**
+   * Load feed by id.
+   * @param realm - Realm instance
+   * @param id - Feed id
+   * @returns Feed
+   */
   loadByIds(realm: Realm, ids: (ObjectId | string)[]) {
     const idsQuery = ids
       .map((id) => `_id == oid(${id as string})`)
@@ -55,52 +63,50 @@ export class FeedRepository {
     return objects;
   }
 
-  // ========================
-  // Delete
-  // ========================
+  /**
+   * Delete feed.
+   * @param realm - Realm instance
+   * @param deleteAll - Delete all feed
+   * @param feed - Feed
+   * @param name - Feed name
+   */
   delete(realm: Realm, deleteAll = true, feed?: Feed, name?: string) {
-    try {
-      return realm.safeWrite(() => {
-        let objects;
-        if (feed) {
-          objects = realm
-            .objects<Feed>("Feed")
-            .filtered(`name == "${feed.name}"`);
-        } else if (name) {
-          objects = realm.objects<Feed>("Feed").filtered(`name == "${name}"`);
-        } else {
-          throw new Error(`Invalid arguments: ${feed}, ${name}`);
-        }
+    return realm.safeWrite(() => {
+      let objects: IFeedResults;
+      if (feed) {
+        objects = realm
+          .objects<Feed>("Feed")
+          .filtered(`name == "${feed.name}"`);
+      } else if (name) {
+        objects = realm.objects<Feed>("Feed").filtered(`name == "${name}"`);
+      } else {
+        throw new Error(`Invalid arguments: ${feed}, ${name}`);
+      }
 
-        if (deleteAll) {
-          realm.delete(objects);
-        } else {
-          for (const object of objects) {
-            object.count -= 1;
-            if (object.count <= 0) {
-              realm.delete(object);
-            }
+      if (deleteAll) {
+        realm.delete(objects);
+      } else {
+        for (const object of objects) {
+          object.count -= 1;
+          if (object.count <= 0) {
+            realm.delete(object);
           }
         }
-        return true;
-      });
-    } catch (error) {
-      window.logger.error(
-        "Failed to delete feed",
-        error as Error,
-        true,
-        "Database"
-      );
-      return false;
-    }
+      }
+      return true;
+    });
   }
 
-  // ========================
-  // Update
-  // ========================
-  async colorize(realm: Realm, color: Colors, feed?: Feed, name?: string) {
+  /**
+   * Colorize feed.
+   * @param realm - Realm instance
+   * @param color - Color
+   * @param feed - Feed
+   * @param name - Feed name
+   */
+  colorize(realm: Realm, color: Colors, feed?: Feed, name?: string) {
     realm.safeWrite(() => {
-      let objects;
+      let objects: IFeedResults;
       if (feed) {
         objects = realm
           .objects<Feed>("Feed")
@@ -116,7 +122,13 @@ export class FeedRepository {
     });
   }
 
-  async rename(realm: Realm, oldName: string, newName: string) {
+  /**
+   * Rename feed.
+   * @param realm - Realm instance
+   * @param oldName - Old name
+   * @param newName - New name
+   */
+  rename(realm: Realm, oldName: string, newName: string) {
     realm.safeWrite(() => {
       const objects = realm
         .objects<Feed>("Feed")
@@ -127,6 +139,14 @@ export class FeedRepository {
     });
   }
 
+  /**
+   * Update feed.
+   * @param realm - Realm instance
+   * @param existFeed - Exist feed
+   * @param updateFeed - Update feed
+   * @param partition - Partition
+   * @returns Feed
+   */
   update(
     realm: Realm,
     existFeed: Feed | null,
@@ -136,75 +156,65 @@ export class FeedRepository {
     // exist = null, undate != null, means create (or link once).
     // exist != null, update != null, means update.
     // exist != null, update = null, means delete (or unlink once).
-    try {
-      return realm.safeWrite(() => {
-        let newFeed: Feed;
-        const existName = existFeed?.name;
-        const updateName = updateFeed?.name;
+    return realm.safeWrite(() => {
+      let newFeed: Feed;
+      const existName = existFeed?.name;
+      const updateName = updateFeed?.name;
 
-        if (!existName && updateName) {
-          const objects = realm
-            .objects<Feed>("Feed")
-            .filtered(`name == "${updateName}"`);
-          if (objects.length > 0) {
-            // Link
-            const object = objects[0];
-            object.count += 1;
-            newFeed = objects[0];
-          } else {
-            // Create
-            const toBeCreatedObject = new Feed(true).initialize(updateFeed);
-            if (partition) {
-              toBeCreatedObject._partition = partition;
-            }
-            newFeed = realm.create<Feed>("Feed", toBeCreatedObject);
-          }
-        } else if (existName && updateName) {
-          // Update
-          const objects = realm
-            .objects<Feed>("Feed")
-            .filtered(`name == "${existName}"`);
-          if (objects.length > 0) {
-            const object = objects[0];
-            object.name = updateName;
-            object.color = updateFeed?.color;
-            object.count = updateFeed?.count;
-            if (partition) {
-              object._partition = partition;
-            }
-            newFeed = objects[0];
-          } else {
-            throw new Error(`No feed found: ${existName}`);
-          }
-        } else if (existName && !updateName) {
-          // Delete
-          const objects = realm
-            .objects<Feed>("Feed")
-            .filtered(`name == "${existName}"`);
-          if (objects.length > 0) {
-            const object = objects[0];
-            object.count -= 1;
-            if (object.count <= 0) {
-              object.count = 0;
-            }
-            newFeed = objects[0];
-          } else {
-            throw new Error(`No feed found: ${existName}`);
-          }
+      if (!existName && updateName) {
+        const objects = realm
+          .objects<Feed>("Feed")
+          .filtered(`name == "${updateName}"`);
+        if (objects.length > 0) {
+          // Link
+          const object = objects[0];
+          object.count += 1;
+          newFeed = objects[0];
         } else {
-          throw new Error(`Invalid arguments: ${existFeed}, ${updateFeed}`);
+          // Create
+          const toBeCreatedObject = new Feed(true).initialize(updateFeed);
+          if (partition) {
+            toBeCreatedObject._partition = partition;
+          }
+          newFeed = realm.create<Feed>("Feed", toBeCreatedObject);
         }
-        return newFeed;
-      });
-    } catch (error) {
-      window.logger.error(
-        "Failed to update feed",
-        error as Error,
-        true,
-        "Database"
-      );
-      return null;
-    }
+      } else if (existName && updateName) {
+        // Update
+        const objects = realm
+          .objects<Feed>("Feed")
+          .filtered(`name == "${existName}"`);
+        if (objects.length > 0) {
+          const object = objects[0];
+          object.name = updateName;
+          object.color = updateFeed?.color;
+          object.count = updateFeed?.count;
+          if (partition) {
+            object._partition = partition;
+          }
+          newFeed = objects[0];
+        } else {
+          throw new Error(`No feed found: ${existName}`);
+        }
+      } else if (existName && !updateName) {
+        // Delete
+        const objects = realm
+          .objects<Feed>("Feed")
+          .filtered(`name == "${existName}"`);
+        if (objects.length > 0) {
+          const object = objects[0];
+          object.count -= 1;
+          if (object.count <= 0) {
+            object.count = 0;
+          }
+          newFeed = objects[0];
+        } else {
+          throw new Error(`No feed found: ${existName}`);
+        }
+      } else {
+        throw new Error(`Invalid arguments: ${existFeed}, ${updateFeed}`);
+      }
+      return newFeed;
+    });
   }
 
   // ========================
@@ -231,4 +241,4 @@ export class FeedRepository {
   }
 }
 
-export type FeedResults = Results<Feed & Realm.Object> | Array<Feed>;
+export type IFeedResults = Results<Feed & Realm.Object> | Array<Feed>;

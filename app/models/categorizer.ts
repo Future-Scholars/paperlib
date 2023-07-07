@@ -64,6 +64,7 @@ export class PaperFolder extends Categorizer {
   }
 }
 
+// TODO: enumable
 export type CategorizerType = "PaperTag" | "PaperFolder";
 export type Colors =
   | "red"

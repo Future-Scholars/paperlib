@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { IPreferenceStore } from "@/renderer/services/preference-service";
 
 import HotkeyOption from "./components/hotkey-options.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 let existingShortcuts = {
   shortcutPlugin: prefState.shortcutPlugin,
@@ -20,14 +20,14 @@ let existingShortcuts = {
 
 const info = ref("");
 
-const onUpdate = (key: string, value: string) => {
+const onUpdate = (key: keyof IPreferenceStore, value: string) => {
   const keyParts = value.split("+");
   const modifier1 = keyParts[0];
   const modifier2 = keyParts[1];
   const keyName = keyParts[2];
 
   if (keyName === "none") {
-    window.appInteractor.setPreference(key, "");
+    preferenceService.set({ [key]: "" });
   } else if (modifier2 === "Shift" && modifier1 === "none") {
     return;
   } else if (
@@ -53,7 +53,7 @@ const onUpdate = (key: string, value: string) => {
       return;
     }
     info.value = "";
-    window.appInteractor.setPreference(key, newShortcut);
+    preferenceService.set({ [key]: newShortcut });
   }
 };
 </script>
@@ -108,3 +108,4 @@ const onUpdate = (key: string, value: string) => {
     </div>
   </div>
 </template>
+@/renderer/services/preference-service @/common/services/preference-service

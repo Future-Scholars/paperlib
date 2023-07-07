@@ -2,7 +2,8 @@
 import { Ref, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { disposable } from "@/base/dispose";
+import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";
@@ -12,13 +13,13 @@ import TableComponent from "./components/table/table-component.vue";
 // State
 // ================================
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const i18n = useI18n();
 
 // ================================
 // Data
 // ================================
-const feedEntities = inject<Ref<FeedEntityResults>>("feedEntities");
+const feedEntities = inject<Ref<IFeedEntityResults>>("feedEntities");
 
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedLastSingleIndex = ref(-1);
@@ -28,31 +29,25 @@ const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
 
 const resetTableTitleColumns = (reset = false) => {
   if (reset) {
-    const prefKeys = [
-      "mainTitleWidth",
-      "mainAuthorsWidth",
-      "mainPublicationWidth",
-      "mainYearWidth",
-      "mainPubTypeWidth",
-      "mainTagsWidth",
-      "mainFoldersWidth",
-      "mainNoteWidth",
-      "mainRatingWidth",
-      "mainFlagWidth",
-      "mainAddTimeWidth",
-      "feedTitleWidth",
-      "feedAuthorsWidth",
-      "feedYearWidth",
-      "feedPublicationWidth",
-      "feedPubTypeWidth",
-      "feedAddTimeWidth",
-    ];
-    for (const key of prefKeys) {
-      prefState[key] = -1;
-    }
-    for (const key of prefKeys) {
-      window.appInteractor.setPreferenceAsync(key, -1);
-    }
+    preferenceService.set({
+      mainTitleWidth: -1,
+      mainAuthorsWidth: -1,
+      mainPublicationWidth: -1,
+      mainYearWidth: -1,
+      mainPubTypeWidth: -1,
+      mainTagsWidth: -1,
+      mainFoldersWidth: -1,
+      mainNoteWidth: -1,
+      mainRatingWidth: -1,
+      mainFlagWidth: -1,
+      mainAddTimeWidth: -1,
+      feedTitleWidth: -1,
+      feedAuthorsWidth: -1,
+      feedYearWidth: -1,
+      feedPublicationWidth: -1,
+      feedPubTypeWidth: -1,
+      feedAddTimeWidth: -1,
+    });
   }
 
   let totalWidth =
@@ -129,11 +124,10 @@ const resetTableTitleColumns = (reset = false) => {
 };
 
 const onTableTitleClicked = (key: string) => {
-  prefState.mainviewSortBy = key;
-  prefState.mainviewSortOrder =
-    prefState.mainviewSortOrder === "asce" ? "desc" : "asce";
-  window.appInteractor.setPreference("sortBy", key);
-  window.appInteractor.setPreference("sortOrder", prefState.mainviewSortOrder);
+  preferenceService.set({ mainviewSortBy: key });
+  preferenceService.set({
+    mainviewSortOrder: prefState.mainviewSortOrder === "asce" ? "desc" : "asce",
+  });
 };
 
 const onTableTitleWidthChanged = (
@@ -147,13 +141,13 @@ const onTableTitleWidthChanged = (
     pubType: "feedPubTypeWidth",
     addTime: "feedAddTimeWidth",
   } as Record<string, string>;
+
+  const patch = {};
   for (const changedWidth of changedWidths) {
     tableTitleColumns.value[changedWidth.key].width = changedWidth.width;
-    window.appInteractor.setPreference(
-      keyPrefMap[changedWidth.key],
-      changedWidth.width
-    );
+    patch[keyPrefMap[changedWidth.key]] = changedWidth.width;
   }
+  preferenceService.set(patch);
 };
 
 const onItemClicked = (event: MouseEvent, index: number) => {
@@ -165,8 +159,8 @@ const onItemClicked = (event: MouseEvent, index: number) => {
       selectedIndex.value.push(i);
     }
   } else if (
-    (event.ctrlKey && !window.appInteractor.isMac()) ||
-    (event.metaKey && window.appInteractor.isMac())
+    (event.ctrlKey && appService.platform() !== "darwin") ||
+    (event.metaKey && appService.platform() === "darwin")
   ) {
     if (selectedIndex.value.indexOf(index) >= 0) {
       selectedIndex.value.splice(selectedIndex.value.indexOf(index), 1);
@@ -184,16 +178,13 @@ const onItemRightClicked = (event: MouseEvent, index: number) => {
   if (selectedIndex.value.indexOf(index) === -1) {
     onItemClicked(event, index);
   }
-  window.appInteractor.showContextMenu(
-    "show-feed-data-context-menu",
-    selectedIndex.value.length === 1
-  );
+  PLMainAPI.contextMenuService.showFeedDataMenu();
 };
 
 const onItemDoubleClicked = (event: MouseEvent, index: number, url: string) => {
   selectedIndex.value = [index];
   selectionState.selectedIndex = selectedIndex.value;
-  window.appInteractor.open(url);
+  fileService.open(url);
 };
 
 watch(
@@ -211,19 +202,21 @@ watch(
   }
 );
 
-watch(
-  () => [
-    prefState.showMainYear,
-    prefState.showMainPublication,
-    prefState.showMainPubType,
-    prefState.showMainTags,
-    prefState.showMainFolders,
-    prefState.showMainNote,
-    prefState.showMainRating,
-    prefState.showMainFlag,
-    prefState.showMainAddTime,
-  ],
-  () => resetTableTitleColumns(true)
+disposable(
+  preferenceService.onChanged(
+    [
+      "showMainYear",
+      "showMainPublication",
+      "showMainPubType",
+      "showMainTags",
+      "showMainFolders",
+      "showMainNote",
+      "showMainRating",
+      "showMainFlag",
+      "showMainAddTime",
+    ],
+    () => resetTableTitleColumns(true)
+  )
 );
 
 onMounted(() => {
@@ -270,6 +263,11 @@ onMounted(() => {
       @row-clicked="onItemClicked"
       @row-right-clicked="onItemRightClicked"
       @row-double-clicked="onItemDoubleClicked"
+      v-if="
+        prefState.mainviewType === 'table' ||
+        prefState.mainviewType === 'tableandpreview'
+      "
     />
   </div>
 </template>
+@/renderer/services/preference-service

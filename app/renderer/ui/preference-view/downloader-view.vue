@@ -6,7 +6,7 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DownloaderItem from "./components/downloader.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const viewState = MainRendererStateStore.useViewState();
 
 const onAddNewDownloaderClicked = () => {
@@ -26,14 +26,14 @@ const onAddNewDownloaderClicked = () => {
   if (!downloaderPrefs.find((item) => item.name === newDownloaderPref.name)) {
     downloaderPrefs.push(newDownloaderPref);
   }
-  window.appInteractor.setPreference("downloaders", downloaderPrefs);
+  preferenceService.set({ downloaders: downloaderPrefs });
   viewState.downloaderReinited = Date.now();
 };
 
 const onDeleteDownloaders = (name: string) => {
   let downloaderPrefs = prefState.downloaders;
   downloaderPrefs = downloaderPrefs.filter((item) => item.name !== name);
-  window.appInteractor.setPreference("downloaders", downloaderPrefs);
+  preferenceService.set({ downloaders: downloaderPrefs });
   viewState.downloaderReinited = Date.now();
 };
 
@@ -48,13 +48,11 @@ const onUpdateDownloader = (
     }
     return item;
   });
-  window.appInteractor.setPreference("downloaders", downloaderPrefs);
+  preferenceService.set({ downloaders: downloaderPrefs });
 };
 
 const onClickGuide = () => {
-  window.appInteractor.open(
-    "https://github.com/Future-Scholars/paperlib/wiki/"
-  );
+  fileService.open("https://github.com/Future-Scholars/paperlib/wiki/");
 };
 </script>
 

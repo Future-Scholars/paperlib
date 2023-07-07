@@ -48,6 +48,9 @@ export default defineConfig({
           outDir: "dist",
           sourcemap: process.env.NODE_ENV === "development" ? "inline" : false,
           minify: process.env.NODE_ENV === "production",
+          rollupOptions: {
+            external: ["keytar"],
+          },
         },
         resolve: {
           alias: {

@@ -1,119 +1,45 @@
 import { ObjectId } from "bson";
 import Realm, { PrimaryKey, Results } from "realm";
 
+import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { formatString } from "@/utils/string";
 
-export class PaperEntityRepository {
-  stateStore: MainRendererStateStore;
-  listened: boolean;
+export interface IPaperEntityRepositoryState {
+  count: number;
+  updated: number;
+}
 
-  constructor(stateStore: MainRendererStateStore) {
-    this.stateStore = stateStore;
-    this.listened = false;
-  }
+export const IPaperEntityRepository = createDecorator("paperEntityRepository");
 
-  removeListeners() {
-    this.listened = false;
-  }
-
-  createFilterPattern(
-    search: string | null,
-    flag: boolean,
-    tag: string,
-    folder: string
-  ): string {
-    let filterFormat = "";
-
-    let formatedSearch = formatString({
-      str: search,
-      removeNewline: true,
-      trimWhite: true,
+export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState> {
+  // TODO: repository should not access services such as log service. Just throw error.
+  constructor() {
+    super("paperEntityRepository", {
+      count: 0,
+      updated: 0,
     });
-
-    if (search) {
-      if (this.stateStore.viewState.searchMode === "general") {
-        const fuzzyFormatedSearch = `*${formatedSearch
-          .trim()
-          .split(" ")
-          .join("*")}*`;
-        filterFormat += `(title LIKE[c] \"${fuzzyFormatedSearch}\" OR authors LIKE[c] \"${fuzzyFormatedSearch}\" OR publication LIKE[c] \"${fuzzyFormatedSearch}\" OR note LIKE[c] \"${fuzzyFormatedSearch}\") AND `;
-      } else if (this.stateStore.viewState.searchMode === "advanced") {
-        // Replace comparison operators for 'addTime'
-        const compareDateMatch = formatedSearch.match(
-          /(<|<=|>|>=)\s*\[\d+ DAYS\]/g
-        );
-        if (compareDateMatch) {
-          for (const match of compareDateMatch) {
-            if (formatedSearch.includes("<")) {
-              formatedSearch = formatedSearch.replaceAll(
-                match,
-                match.replaceAll("<", ">")
-              );
-            } else if (formatedSearch.includes(">")) {
-              formatedSearch = formatedSearch.replaceAll(
-                match,
-                match.replaceAll(">", "<")
-              );
-            }
-          }
-        }
-
-        // Replace Date string
-        const dateRegex = /\[\d+ DAYS\]/g;
-        const dateMatch = formatedSearch.match(dateRegex);
-        if (dateMatch) {
-          const date = new Date();
-          // replace with date like: 2021-02-20@17:30:15:00
-          date.setDate(date.getDate() - parseInt(dateMatch[0].slice(1, -6)));
-          formatedSearch = formatedSearch.replace(
-            dateRegex,
-            date.toISOString().slice(0, -5).replace("T", "@")
-          );
-        }
-        filterFormat += `${formatedSearch} `;
-        return filterFormat;
-      }
-    }
-
-    if (flag) {
-      filterFormat += "flag == true AND ";
-    }
-    if (tag) {
-      filterFormat += `(ANY tags.name == \"${tag}\") AND `;
-    }
-    if (folder) {
-      filterFormat += `(ANY folders.name == \"${folder}\") AND `;
-    }
-
-    if (filterFormat.length > 0) {
-      filterFormat = filterFormat.slice(0, -5);
-    }
-    return filterFormat;
   }
 
-  // ========================
-  // Read
-  // ========================
+  /**
+   * Load all filtered paper entities.
+   * @param realm - Realm instance.
+   * @param filter - Filter string.
+   * @param sortBy - Sort by field.
+   * @param sortOrder - Sort order.
+   * @returns - Results of paper entities.
+   */
   load(
     realm: Realm,
-    search: string,
-    flag: boolean,
-    tag: string,
-    folder: string,
+    filter: string,
     sortBy: string,
-    sortOrder: string
+    sortOrder: "asce" | "desc"
   ) {
-    const filterPattern = this.createFilterPattern(search, flag, tag, folder);
+    let objects = realm.objects<PaperEntity>("PaperEntity");
+    this.fire({ count: objects.length });
 
-    let objects = realm
-      .objects<PaperEntity>("PaperEntity")
-      .sorted(sortBy, sortOrder == "desc");
-    this.stateStore.viewState.entitiesCount = objects.length;
-
-    if (!this.listened) {
+    if (!realm.paperEntityListened) {
       objects.addListener((objs, changes) => {
         const deletionCount = changes.deletions.length;
         const insertionCount = changes.insertions.length;
@@ -121,28 +47,29 @@ export class PaperEntityRepository {
           changes.newModifications.length + changes.oldModifications.length;
 
         if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
-          this.stateStore.dbState.entitiesUpdated = Date.now();
+          this.fire("updated");
         }
       });
-      this.listened = true;
+      realm.paperEntityListened = true;
     }
 
-    if (filterPattern) {
+    if (filter) {
       try {
-        objects = objects.filtered(filterPattern);
+        return objects.filtered(filter).sorted(sortBy, sortOrder === "desc");
       } catch (error) {
-        window.logger.error(
-          "Filter pattern is invalid",
-          error as Error,
-          true,
-          "Search"
-        );
+        throw new Error(`Invalid filter: ${filter}`);
       }
+    } else {
+      return objects.sorted(sortBy, sortOrder === "desc");
     }
-
-    return objects;
   }
 
+  /**
+   * Load paper entity by id.
+   * @param realm - Realm instance.
+   * @param ids - Paper ids.
+   * @returns - Results of paper entities.
+   */
   loadByIds(realm: Realm, ids: (ObjectId | string)[]) {
     const idsQuery = ids
       .map((id) => `_id == oid(${id as string})`)
@@ -155,15 +82,16 @@ export class PaperEntityRepository {
     return objects;
   }
 
-  loadPreprint(realm: Realm) {
-    const filterFormat =
-      '(publication contains[c] "arXiv") OR (publication contains[c] "openreview") OR publication == ""';
-    return realm.objects<PaperEntity>("PaperEntity").filtered(filterFormat);
-  }
-
-  // ========================
-  // Update
-  // ========================
+  /**
+   * Update paper entity.
+   * @param realm - Realm instance.
+   * @param paperEntity - Paper entity.
+   * @param paperTag - Paper tags.
+   * @param paperFolder - Paper folders.
+   * @param existingPaperEntity - Existing paper entity.
+   * @param partition - Partition.
+   * @returns - Updated boolean flag.
+   */
   update(
     realm: Realm,
     paperEntity: PaperEntity,
@@ -172,102 +100,86 @@ export class PaperEntityRepository {
     existingPaperEntity: PaperEntity | null,
     partition: string
   ) {
-    try {
-      return realm.safeWrite(() => {
-        if (existingPaperEntity) {
-          // Update
-          const updateObj = existingPaperEntity;
-          updateObj.title = paperEntity.title;
-          updateObj.authors = paperEntity.authors;
-          updateObj.publication = paperEntity.publication;
-          updateObj.pubTime = paperEntity.pubTime;
-          updateObj.pubType = paperEntity.pubType;
-          updateObj.doi = paperEntity.doi;
-          updateObj.arxiv = paperEntity.arxiv;
-          updateObj.mainURL = paperEntity.mainURL;
-          updateObj.supURLs = paperEntity.supURLs;
-          updateObj.rating = paperEntity.rating;
-          updateObj.flag = paperEntity.flag;
-          updateObj.note = paperEntity.note;
-          updateObj.codes = paperEntity.codes;
-          updateObj.volume = paperEntity.volume;
-          updateObj.number = paperEntity.number;
-          updateObj.pages = paperEntity.pages;
-          updateObj.publisher = paperEntity.publisher;
-          updateObj.tags = paperTag;
-          updateObj.folders = paperFolder;
-        } else {
-          // Add
-          const reduplicatedEntities = realm
-            .objects<PaperEntity>("PaperEntity")
-            .filtered(
-              "title == $0 and authors == $1",
-              paperEntity.title,
-              paperEntity.authors
-            );
-          if (reduplicatedEntities.length === 0) {
-            paperEntity.tags = [];
-            paperEntity.folders = [];
-            if (partition) {
-              paperEntity._partition = partition;
-            }
-            realm.create("PaperEntity", paperEntity);
-
-            const addedObj = realm.objectForPrimaryKey<PaperEntity>(
-              "PaperEntity",
-              new Realm.BSON.ObjectId(paperEntity._id)
-            );
-            if (addedObj) {
-              addedObj.tags = paperTag;
-              addedObj.folders = paperFolder;
-            }
-          } else {
-            return false;
+    return realm.safeWrite(() => {
+      if (existingPaperEntity) {
+        // Update
+        const updateObj = existingPaperEntity;
+        updateObj.title = paperEntity.title;
+        updateObj.authors = paperEntity.authors;
+        updateObj.publication = paperEntity.publication;
+        updateObj.pubTime = paperEntity.pubTime;
+        updateObj.pubType = paperEntity.pubType;
+        updateObj.doi = paperEntity.doi;
+        updateObj.arxiv = paperEntity.arxiv;
+        updateObj.mainURL = paperEntity.mainURL;
+        updateObj.supURLs = paperEntity.supURLs;
+        updateObj.rating = paperEntity.rating;
+        updateObj.flag = paperEntity.flag;
+        updateObj.note = paperEntity.note;
+        updateObj.codes = paperEntity.codes;
+        updateObj.volume = paperEntity.volume;
+        updateObj.number = paperEntity.number;
+        updateObj.pages = paperEntity.pages;
+        updateObj.publisher = paperEntity.publisher;
+        updateObj.tags = paperTag;
+        updateObj.folders = paperFolder;
+      } else {
+        // Add
+        const reduplicatedEntities = realm
+          .objects<PaperEntity>("PaperEntity")
+          .filtered(
+            "title == $0 and authors == $1",
+            paperEntity.title,
+            paperEntity.authors
+          );
+        if (reduplicatedEntities.length === 0) {
+          paperEntity.tags = [];
+          paperEntity.folders = [];
+          if (partition) {
+            paperEntity._partition = partition;
           }
+          realm.create("PaperEntity", paperEntity);
+
+          const addedObj = realm.objectForPrimaryKey<PaperEntity>(
+            "PaperEntity",
+            new Realm.BSON.ObjectId(paperEntity._id)
+          );
+          if (addedObj) {
+            addedObj.tags = paperTag;
+            addedObj.folders = paperFolder;
+          }
+        } else {
+          return false;
         }
-        return true;
-      });
-    } catch (error) {
-      window.logger.error(
-        "Failed to update database",
-        error as Error,
-        true,
-        "Database"
-      );
-      return false;
-    }
+      }
+      return true;
+    });
   }
 
-  // ========================
-  // Delete
-  // ========================
-  delete(realm: Realm, paperEntity?: PaperEntity, ids?: (ObjectId | string)[]) {
-    try {
-      return realm.safeWrite(() => {
-        if (paperEntity) {
-          realm.delete(paperEntity);
-          return true;
-        } else if (ids) {
-          const idsQuery = ids
-            .map((id) => `_id == oid(${id as string})`)
-            .join(" OR ");
-          realm.delete(
-            realm.objects<PaperEntity>("PaperEntity").filtered(`(${idsQuery})`)
-          );
-          return true;
-        } else {
-          throw new Error("No paper entity or ids are given");
-        }
-      });
-    } catch (error) {
-      window.logger.error(
-        "Failed to delete papers",
-        error as Error,
-        true,
-        "Database"
-      );
-      return false;
-    }
+  /**
+   * Delete paper entity.
+   * @param realm - Realm instance.
+   * @param ids - OR Paper ids.
+   * @param paperEntity - Paper entity.
+   * @returns - Deleted boolean flag.
+   */
+  delete(realm: Realm, ids?: (ObjectId | string)[], paperEntity?: PaperEntity) {
+    return realm.safeWrite(() => {
+      if (paperEntity) {
+        realm.delete(paperEntity);
+        return true;
+      } else if (ids) {
+        const idsQuery = ids
+          .map((id) => `_id == oid(${id as string})`)
+          .join(" OR ");
+        realm.delete(
+          realm.objects<PaperEntity>("PaperEntity").filtered(`(${idsQuery})`)
+        );
+        return true;
+      } else {
+        throw new Error("Either ids or paperEntity should be provided.");
+      }
+    });
   }
 
   // ==============================
@@ -326,6 +238,6 @@ export class PaperEntityRepository {
   }
 }
 
-export type PaperEntityResults =
+export type IPaperEntityResults =
   | Results<PaperEntity & Realm.Object>
   | Array<PaperEntity>;

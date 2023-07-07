@@ -13,11 +13,11 @@ const getExtension = (sup: string) => {
 };
 
 const onClick = (url: string) => {
-  window.appInteractor.open(url);
+  fileService.open(url);
 };
 
 const onRightClicked = (event: MouseEvent, url: string) => {
-  window.appInteractor.showContextMenu("show-sup-context-menu", url);
+  PLMainAPI.contextMenuService.showSupMenu(url);
 };
 </script>
 

@@ -17,7 +17,7 @@ const onClick = (e: MouseEvent, author: string) => {
 const onRightClick = (e: MouseEvent, author: string) => {
   e.preventDefault();
   e.stopPropagation();
-  window.appInteractor.open(
+  fileService.open(
     `https://scholar.google.com/scholar?q=${author.replaceAll(" ", "+")}`
   );
 };

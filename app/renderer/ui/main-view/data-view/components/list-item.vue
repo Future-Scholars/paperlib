@@ -7,9 +7,8 @@ import {
 } from "bootstrap-icons-vue";
 import { PropType } from "vue";
 
+import { getCategorizerString, getPubTypeString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { getCategorizerString, getPubTypeString } from "@/utils/string";
 
 const props = defineProps({
   item: {
@@ -55,7 +54,7 @@ const props = defineProps({
   },
 });
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 </script>
 
 <template>
@@ -164,3 +163,4 @@ const prefState = MainRendererStateStore.usePreferenceState();
     </div>
   </div>
 </template>
+@/base/string

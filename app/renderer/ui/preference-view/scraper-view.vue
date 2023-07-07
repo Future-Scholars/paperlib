@@ -2,13 +2,15 @@
 import { BIconGear, BIconGripVertical, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { ScraperPreference } from "@/preference/preference";
+import { IPreferenceStore } from "@/renderer/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ScraperItem from "./components/scraper.vue";
 import Toggle from "./components/toggle.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const viewState = MainRendererStateStore.useViewState();
 const presetSelection = ref("");
 
@@ -65,10 +67,7 @@ const onEnabledChanged = (change: any) => {
   for (const disabledScraper of disabledScraperList.value) {
     scraperPrefs[disabledScraper.name].enable = false;
   }
-  window.appInteractor.setPreference(
-    "scrapers",
-    JSON.parse(JSON.stringify(scraperPrefs))
-  );
+  preferenceService.set({ scrapers: JSON.parse(JSON.stringify(scraperPrefs)) });
   viewState.scraperReinited = Date.now();
 };
 
@@ -93,7 +92,7 @@ const onAddNewScraperClicked = () => {
   let scraperPrefs = prefState.scrapers;
   if (!scraperPrefs[newScraperPref.name]) {
     scraperPrefs[newScraperPref.name] = newScraperPref;
-    window.appInteractor.setPreference("scrapers", scraperPrefs);
+    preferenceService.set({ scrapers: scraperPrefs });
     viewState.scraperReinited = Date.now();
   }
 };
@@ -106,8 +105,7 @@ const onDeleteScraper = () => {
       newScrapers[name] = scraper;
     }
   }
-  prefState.scrapers = {};
-  window.appInteractor.setPreference("scrapers", newScrapers);
+  preferenceService.set({ scrapers: newScrapers });
   viewState.scraperReinited = Date.now();
   editingScraper.value = null;
 };
@@ -116,13 +114,13 @@ const onUpdateScraper = (scraperPref: ScraperPreference) => {
   let scraperPrefs = prefState.scrapers;
   delete scraperPrefs[editingScraperName.value];
   scraperPrefs[scraperPref.name] = scraperPref;
-  window.appInteractor.setPreference("scrapers", scraperPrefs);
+  preferenceService.set({ scrapers: scraperPrefs });
   viewState.scraperReinited = Date.now();
   editingScraper.value = null;
 };
 
-const onUpdate = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
+  preferenceService.set({ [key]: value });
 };
 
 const presets = {
@@ -164,22 +162,18 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
     scraper.enable = presets[preset].includes(name);
     scraper.priority = 1000 - presets[preset].indexOf(name);
   }
-  window.appInteractor.setPreference("scrapers", scraperPrefs);
+  preferenceService.set({ scrapers: scraperPrefs });
   viewState.scraperReinited = Date.now();
 };
 
 const onClickGuide = () => {
-  window.appInteractor.open(
-    "https://github.com/Future-Scholars/paperlib/wiki/"
-  );
+  fileService.open("https://github.com/Future-Scholars/paperlib/wiki/");
 };
 
-watch(
-  () => prefState.scrapers,
-  () => {
+disposable(
+  preferenceService.onChanged("scrapers", () => {
     splitEnabledDisabledScraper();
-  },
-  { deep: true }
+  })
 );
 
 onMounted(() => {
@@ -362,3 +356,4 @@ onMounted(() => {
     </div>
   </div>
 </template>
+@/renderer/services/preference-service @/common/services/preference-service

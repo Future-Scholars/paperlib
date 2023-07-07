@@ -4,13 +4,13 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 const emit = defineEmits(["close"]);
 
 const viewState = MainRendererStateStore.useViewState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
 const onPickerClicked = async () => {
-  const pickedFolder = (await window.appInteractor.showFolderPicker())
+  const pickedFolder = (await PLMainAPI.fileSystemService.showFolderPicker())
     .filePaths[0];
   if (pickedFolder) {
-    window.appInteractor.setPreference("appLibFolder", pickedFolder);
+    preferenceService.set({ appLibFolder: pickedFolder });
     viewState.realmReiniting = Date.now();
   }
 };

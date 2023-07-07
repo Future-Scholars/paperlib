@@ -1,7 +1,7 @@
 import { Response } from "got";
 
+import { isMetadataCompleted } from "@/base/metadata";
 import { PaperEntity } from "@/models/paper-entity";
-import { isMetadataCompleted } from "@/utils/metadata";
 
 export interface ScraperRequestType {
   scrapeURL: string;
@@ -9,19 +9,20 @@ export interface ScraperRequestType {
   content?: Record<string, any>;
 }
 
-export class Scraper {
-
+export abstract class Scraper {
   // All use static methods seems to be a better design for cross scrapers calls.
 
-  static async scrape(paperEntityDraft: PaperEntity, force = false): Promise<PaperEntity> {
-
+  static async scrape(
+    paperEntityDraft: PaperEntity,
+    force = false
+  ): Promise<PaperEntity> {
     if (!this.checkEnable(paperEntityDraft) && !force) {
       return paperEntityDraft;
     }
 
     const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-    const response = (await window.networkTool.get(
+    const response = (await networkTool.get(
       scrapeURL,
       headers,
       1,
@@ -46,5 +47,4 @@ export class Scraper {
   static checkEnable(paperEntityDraft: PaperEntity): boolean {
     return !isMetadataCompleted(paperEntityDraft);
   }
-
 }

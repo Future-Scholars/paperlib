@@ -10,6 +10,7 @@ import { onMounted, ref, watch } from "vue";
 import { PaperEntity } from "@/models/paper-entity";
 import { ThumbnailCache } from "@/models/paper-entity-cache";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { ipcMain } from "electron";
 
 const props = defineProps({
   entity: {
@@ -27,10 +28,7 @@ const fileExistingStatus = ref(1);
 
 const renderFromFile = async () => {
   isRendering.value = true;
-  const fileURL = await window.appInteractor.access(
-    props.entity.mainURL,
-    false
-  );
+  const fileURL = await fileService.access(props.entity.mainURL, false);
   if (fileURL.length === 0) {
     isRendering.value = false;
     fileExistingStatus.value = 1;
@@ -42,11 +40,14 @@ const renderFromFile = async () => {
   } else {
     fileExistingStatus.value = 0;
   }
-  const thumbnailCache = await window.renderInteractor.render(fileURL);
+  const thumbnailCache = await renderService.renderPDF(
+    fileURL,
+    "preview-canvas"
+  );
   isRendering.value = false;
 
   if (thumbnailCache.blob) {
-    window.entityInteractor.updateThumbnailCache(
+    cacheService.updateThumbnailCache(
       props.entity,
       thumbnailCache as ThumbnailCache
     );
@@ -55,21 +56,19 @@ const renderFromFile = async () => {
 
 const render = async () => {
   isRendering.value = true;
-  const fileURL = await window.appInteractor.access(
-    props.entity.mainURL,
-    false
-  );
+  const fileURL = await fileService.access(props.entity.mainURL, false);
   if (
     props.entity.mainURL &&
     fileURL &&
     !fileURL.startsWith("downloadRequired://")
   ) {
-    const cachedThumbnail = await window.entityInteractor.loadThumbnail(
-      props.entity
-    );
+    const cachedThumbnail = await cacheService.loadThumbnail(props.entity);
     if (cachedThumbnail?.blob && cachedThumbnail?.blob.byteLength > 0) {
       try {
-        window.renderInteractor.renderCache(cachedThumbnail as ThumbnailCache);
+        renderService.renderPDFCache(
+          cachedThumbnail as ThumbnailCache,
+          "preview-canvas"
+        );
       } catch (e) {
         console.error(e);
         renderFromFile();
@@ -93,15 +92,13 @@ const onClick = async (e: MouseEvent) => {
   e.preventDefault();
   e.stopPropagation();
 
-  const fileURL = await window.appInteractor.access(
-    props.entity.mainURL,
-    false
-  );
-  window.appInteractor.open(fileURL);
+  const fileURL = await fileService.access(props.entity.mainURL, false);
+  fileService.open(fileURL);
 };
 
 const showFilePicker = async () => {
-  const pickedFile = (await window.appInteractor.showFilePicker()).filePaths[0];
+  const pickedFile = (await PLMainAPI.fileSystemService.showFilePicker())
+    .filePaths[0];
   if (pickedFile) {
     emit("modifyMainFile", pickedFile);
   }
@@ -113,7 +110,7 @@ const locatePDF = async () => {
 
 const onWebdavDownloadClicked = async () => {
   isRendering.value = true;
-  const fileURL = await window.appInteractor.access(props.entity.mainURL, true);
+  const fileURL = await fileService.access(props.entity.mainURL, true);
   isRendering.value = false;
   if (fileURL === "") {
     return;
@@ -123,25 +120,16 @@ const onWebdavDownloadClicked = async () => {
 };
 
 const onRightClicked = (event: MouseEvent) => {
-  window.appInteractor.showContextMenu(
-    "show-thumbnail-context-menu",
-    props.entity.mainURL
-  );
+  PLMainAPI.contextMenuService.showThumbnailMenu(props.entity.mainURL);
 };
 
-window.appInteractor.registerMainSignal(
-  "thumbnail-context-menu-replace",
-  (args) => {
-    showFilePicker();
-  }
-);
+PLMainAPI.contextMenuService.on("thumbnailContextMenuReplaceClicked", () => {
+  showFilePicker();
+});
 
-window.appInteractor.registerMainSignal(
-  "thumbnail-context-menu-refresh",
-  (args) => {
-    renderFromFile();
-  }
-);
+PLMainAPI.contextMenuService.on("thumbnailContextMenuRefreshClicked", () => {
+  renderFromFile();
+});
 
 watch(
   () => viewState.renderRequired,

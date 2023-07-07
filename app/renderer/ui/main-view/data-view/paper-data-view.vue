@@ -4,7 +4,8 @@ import dragDrop from "drag-drop";
 import { Ref, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { disposable } from "@/base/dispose";
+import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";
@@ -15,13 +16,13 @@ import TableComponent from "./components/table/table-component.vue";
 // ================================
 const viewState = MainRendererStateStore.useViewState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const i18n = useI18n();
 
 // ================================
 // Data
 // ================================
-const paperEntities = inject<Ref<PaperEntityResults>>("paperEntities");
+const paperEntities = inject<Ref<IPaperEntityResults>>("paperEntities");
 
 const selectedIndex: Ref<number[]> = ref([]);
 const selectedLastSingleIndex = ref(-1);
@@ -31,31 +32,25 @@ const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
 
 const resetTableTitleColumns = (reset = false) => {
   if (reset) {
-    const prefKeys = [
-      "mainTitleWidth",
-      "mainAuthorsWidth",
-      "mainPublicationWidth",
-      "mainYearWidth",
-      "mainPubTypeWidth",
-      "mainTagsWidth",
-      "mainFoldersWidth",
-      "mainNoteWidth",
-      "mainRatingWidth",
-      "mainFlagWidth",
-      "mainAddTimeWidth",
-      "feedTitleWidth",
-      "feedAuthorsWidth",
-      "feedYearWidth",
-      "feedPublicationWidth",
-      "feedPubTypeWidth",
-      "feedAddTimeWidth",
-    ];
-    for (const key of prefKeys) {
-      prefState[key] = -1;
-    }
-    for (const key of prefKeys) {
-      window.appInteractor.setPreferenceAsync(key, -1);
-    }
+    preferenceService.set({
+      mainTitleWidth: -1,
+      mainAuthorsWidth: -1,
+      mainPublicationWidth: -1,
+      mainYearWidth: -1,
+      mainPubTypeWidth: -1,
+      mainTagsWidth: -1,
+      mainFoldersWidth: -1,
+      mainNoteWidth: -1,
+      mainRatingWidth: -1,
+      mainFlagWidth: -1,
+      mainAddTimeWidth: -1,
+      feedTitleWidth: -1,
+      feedAuthorsWidth: -1,
+      feedYearWidth: -1,
+      feedPublicationWidth: -1,
+      feedPubTypeWidth: -1,
+      feedAddTimeWidth: -1,
+    });
   }
 
   let totalWidth =
@@ -177,11 +172,10 @@ const onTableTitleClicked = (key: string) => {
   if (key === "tags" || key === "folders") {
     return;
   }
-  prefState.mainviewSortBy = key;
-  prefState.mainviewSortOrder =
-    prefState.mainviewSortOrder === "asce" ? "desc" : "asce";
-  window.appInteractor.setPreference("sortBy", key);
-  window.appInteractor.setPreference("sortOrder", prefState.mainviewSortOrder);
+  preferenceService.set({ mainviewSortBy: key });
+  preferenceService.set({
+    mainviewSortOrder: prefState.mainviewSortOrder === "asce" ? "desc" : "asce",
+  });
 };
 
 const onTableTitleWidthChanged = (
@@ -200,13 +194,12 @@ const onTableTitleWidthChanged = (
     flag: "mainFlagWidth",
     addTime: "mainAddTimeWidth",
   } as Record<string, string>;
+  const patch = {};
   for (const changedWidth of changedWidths) {
     tableTitleColumns.value[changedWidth.key].width = changedWidth.width;
-    window.appInteractor.setPreference(
-      keyPrefMap[changedWidth.key],
-      changedWidth.width
-    );
+    patch[keyPrefMap[changedWidth.key]] = changedWidth.width;
   }
+  preferenceService.set(patch);
 };
 
 const onItemClicked = (event: MouseEvent, index: number) => {
@@ -218,8 +211,8 @@ const onItemClicked = (event: MouseEvent, index: number) => {
       selectedIndex.value.push(i);
     }
   } else if (
-    (event.ctrlKey && !window.appInteractor.isMac()) ||
-    (event.metaKey && window.appInteractor.isMac())
+    (event.ctrlKey && appService.platform() !== "darwin") ||
+    (event.metaKey && appService.platform() === "darwin")
   ) {
     if (selectedIndex.value.indexOf(index) >= 0) {
       selectedIndex.value.splice(selectedIndex.value.indexOf(index), 1);
@@ -239,8 +232,8 @@ const onItemRightClicked = (event: MouseEvent, index: number) => {
   if (selectedIndex.value.indexOf(index) === -1) {
     onItemClicked(event, index);
   }
-  window.appInteractor.showContextMenu(
-    "show-data-context-menu",
+
+  PLMainAPI.contextMenuService.showPaperDataMenu(
     selectedIndex.value.length === 1
   );
 };
@@ -248,7 +241,7 @@ const onItemRightClicked = (event: MouseEvent, index: number) => {
 const onItemDoubleClicked = (event: MouseEvent, index: number, url: string) => {
   selectedIndex.value = [index];
   selectionState.selectedIndex = selectedIndex.value;
-  window.appInteractor.open(url);
+  fileService.open(url);
 };
 
 const registerDropHandler = () => {
@@ -263,7 +256,7 @@ const registerDropHandler = () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
         filePaths.push(`file://${file.path as string}`);
       });
-      await window.entityInteractor.create(filePaths);
+      await paperService.create(filePaths);
     },
   });
 };
@@ -280,7 +273,7 @@ const showingUrl = ref("");
 const accessMainFile = async (index: number) => {
   const paperEntity = paperEntities?.value[index];
   if (paperEntity) {
-    const url = await window.appInteractor.access(paperEntity!.mainURL, false);
+    const url = await fileService.access(paperEntity!.mainURL, false);
 
     if (viewState.searchMode === "fulltext" && viewState.searchText !== "") {
       showingUrl.value = `../viewer/viewer.html?file=${url}&search=${viewState.searchText}`;
@@ -311,30 +304,31 @@ watch(
   }
 );
 
-watch(
-  () => prefState.mainviewType,
-  (newMainviewType) => {
-    if (newMainviewType === "tableandpreview") {
+disposable(
+  preferenceService.onChanged("mainviewType", (newMainviewType) => {
+    if (newMainviewType.value === "tableandpreview") {
       if (selectionState.selectedIndex.length === 1) {
         accessMainFile(selectionState.selectedIndex[0]);
       }
     }
-  }
+  })
 );
 
-watch(
-  () => [
-    prefState.showMainYear,
-    prefState.showMainPublication,
-    prefState.showMainPubType,
-    prefState.showMainTags,
-    prefState.showMainFolders,
-    prefState.showMainNote,
-    prefState.showMainRating,
-    prefState.showMainFlag,
-    prefState.showMainAddTime,
-  ],
-  () => resetTableTitleColumns(true)
+disposable(
+  preferenceService.onChanged(
+    [
+      "showMainYear",
+      "showMainPublication",
+      "showMainPubType",
+      "showMainTags",
+      "showMainFolders",
+      "showMainNote",
+      "showMainRating",
+      "showMainFlag",
+      "showMainAddTime",
+    ],
+    () => resetTableTitleColumns(true)
+  )
 );
 
 onMounted(() => {
@@ -413,3 +407,4 @@ onMounted(() => {
     </splitpanes>
   </div>
 </template>
+@/renderer/services/preference-service

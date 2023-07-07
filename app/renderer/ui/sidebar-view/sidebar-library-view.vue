@@ -12,8 +12,9 @@ import { Ref, inject, ref, watch } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
-import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
-import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
+import { useProcessingState } from "@/renderer/services/state-service/processing";
+import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
+import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CollopseGroup from "./components/collopse-group.vue";
@@ -46,8 +47,9 @@ const colorClass = (color?: string) => {
 // State
 // ================================
 const viewState = MainRendererStateStore.useViewState();
+const processingState = useProcessingState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const bufferState = MainRendererStateStore.useBufferState();
 
 const isSpinnerShown = ref(false);
@@ -55,9 +57,9 @@ const isSpinnerShown = ref(false);
 // ================================
 // Data
 // ================================
-const tags = inject<Ref<CategorizerResults>>("tags");
-const folders = inject<Ref<CategorizerResults>>("folders");
-const smartfilters = inject<Ref<PaperSmartFilterResults>>("smartfilters");
+const tags = inject<Ref<ICategorizerResults>>("tags");
+const folders = inject<Ref<ICategorizerResults>>("folders");
+const smartfilters = inject<Ref<IPaperSmartFilterResults>>("smartfilters");
 
 // ================================
 // Event Functions
@@ -81,10 +83,7 @@ const onItemRightClicked = (
   categorizer: Categorizer | PaperSmartFilter,
   type: CategorizerType | PaperSmartFilterType
 ) => {
-  window.appInteractor.showContextMenu("show-sidebar-context-menu", {
-    data: categorizer.name,
-    type: type,
-  });
+  PLMainAPI.contextMenuService.showSidebarMenu(categorizer.name, type);
 };
 
 const onFileDroped = (
@@ -92,7 +91,7 @@ const onFileDroped = (
   type: CategorizerType,
   filePaths: string[]
 ) => {
-  window.entityInteractor.createIntoCategorizer(filePaths, categorizer, type);
+  paperService.createIntoCategorizer(filePaths, categorizer, type);
 };
 
 const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
@@ -103,7 +102,7 @@ const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
   } else {
     dragedIds = selectionState.dragedIds;
   }
-  window.entityInteractor.updateWithCategorizer(dragedIds, categorizer, type);
+  paperService.updateWithCategorizer(dragedIds, categorizer, type);
 };
 
 const onCategorizerNameChanged = (name: string) => {
@@ -114,7 +113,7 @@ const onCategorizerNameChanged = (name: string) => {
       .replace("tag-", "") !== name &&
     viewState.contentType === "library"
   ) {
-    window.entityInteractor.renameCategorizer(
+    categorizerService.rename(
       selectionState.editingCategorizer
         .replace("folder-", "")
         .replace("tag-", ""),
@@ -140,47 +139,55 @@ const onAddNewPaperSmartFilterClicked = () => {
 // ================================
 // Register Context Menu Callbacks
 // ================================
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-delete",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuDeleteClicked",
+  (payload: { data: string; type: string }) => {
     if (viewState.contentType === "library") {
-      if (args[2] === "PaperPaperSmartFilter") {
-        window.entityInteractor.deletePaperSmartFilter(args[1], args[0]);
+      if (payload.type === "PaperPaperSmartFilter") {
+        smartFilterService.delete(payload.type, payload.data);
       } else {
-        window.entityInteractor.deleteCategorizer(args[1], args[0]);
+        categorizerService.delete(payload.type as any, payload.data);
       }
       selectionState.selectedCategorizer = "lib-all";
     }
   }
 );
 
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-color",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuColorClicked",
+  (payload: { data: string; type: string; color: string }) => {
     if (viewState.contentType === "library") {
-      if (args[2] === "PaperPaperSmartFilter") {
-        window.entityInteractor.colorizePaperSmartFilter(
-          args[2],
-          args[1],
-          args[0]
+      if (payload.type === "PaperPaperSmartFilter") {
+        // TODO: check here
+        smartFilterService.colorize(
+          payload.color as any,
+          payload.type,
+          payload.data
         );
       } else {
-        window.entityInteractor.colorizeCategorizer(args[2], args[1], args[0]);
+        categorizerService.colorize(
+          payload.color as any,
+          payload.type as any,
+          payload.data
+        );
       }
     }
   }
 );
 
-window.appInteractor.registerMainSignal("sidebar-context-menu-edit", (args) => {
-  if (viewState.contentType === "library") {
-    selectionState.editingCategorizer = `${
-      { PaperTag: "tag", PaperFolder: "folder" }[args[1] as string]
-    }-${args[0]}`;
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuEditClicked",
+  (payload: { data: ""; type: "" }) => {
+    if (viewState.contentType === "library") {
+      selectionState.editingCategorizer = `${
+        { PaperTag: "tag", PaperFolder: "folder" }[payload.type as string]
+      }-${payload.data}`;
+    }
   }
-});
+);
 
 watch(
-  () => viewState.processingQueueCount,
+  () => processingState.general,
   (value) => {
     if (value > 0) {
       isSpinnerShown.value = true;
@@ -344,3 +351,4 @@ watch(
     </CollopseGroup>
   </div>
 </template>
+@/renderer/services/state-service/processing

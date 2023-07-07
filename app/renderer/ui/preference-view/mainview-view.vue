@@ -14,15 +14,17 @@ import { ObjectId } from "bson";
 import { Ref, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { disposable } from "@/base/dispose";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import ListItem from "@/renderer/ui/main-view/data-view/components/list-item.vue";
 import TableItem from "@/renderer/ui/main-view/data-view/components/table/table-item.vue";
+import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import MainSection from "./components/main-section.vue";
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 const i18n = useI18n();
 
 const item = ref(new PaperEntity(false));
@@ -122,23 +124,25 @@ const resetTableTitleColumns = () => {
   tableTitleColumns.value = newTitleColumns;
 };
 
-const updatePref = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
+  preferenceService.set({ [key]: value });
 };
 
-watch(
-  () => [
-    prefState.showMainYear,
-    prefState.showMainPublication,
-    prefState.showMainPubType,
-    prefState.showMainTags,
-    prefState.showMainFolders,
-    prefState.showMainNote,
-    prefState.showMainRating,
-    prefState.showMainFlag,
-    prefState.showMainAddTime,
-  ],
-  resetTableTitleColumns
+disposable(
+  preferenceService.onChanged(
+    [
+      "showMainYear",
+      "showMainPublication",
+      "showMainPubType",
+      "showMainTags",
+      "showMainFolders",
+      "showMainNote",
+      "showMainRating",
+      "showMainFlag",
+      "showMainAddTime",
+    ],
+    resetTableTitleColumns
+  )
 );
 
 onMounted(() => {
@@ -252,3 +256,4 @@ onMounted(() => {
     </div>
   </div>
 </template>
+@/renderer/services/preference-service

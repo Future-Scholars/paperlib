@@ -2,12 +2,13 @@
 import "splitpanes/dist/splitpanes.css";
 import { Ref, computed, nextTick, onMounted, provide, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/preload/loading";
-import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
-import { FeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
-import { FeedResults } from "@/repositories/db-repository/feed-repository";
-import { PaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
-import { PaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
+import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
+import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { IFeedResults } from "@/repositories/db-repository/feed-repository";
+import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
@@ -27,26 +28,25 @@ import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 const viewState = MainRendererStateStore.useViewState();
 const dbState = MainRendererStateStore.useDBState();
 const selectionState = MainRendererStateStore.useSelectionState();
-const prefState = MainRendererStateStore.usePreferenceState();
-const logState = MainRendererStateStore.useLogState();
+const prefState = preferenceService.useState();
 
 // ================================
 // Data
 // ================================
-const paperEntities: Ref<PaperEntityResults> = ref([]);
+const paperEntities: Ref<IPaperEntityResults> = ref([]);
 provide(
   "paperEntities",
-  computed(() => paperEntities.value)
+  computed(() => paperEntities.value) // TODO: ?
 );
-const tags: Ref<CategorizerResults> = ref([]);
+const tags: Ref<ICategorizerResults> = ref([]);
 provide("tags", tags);
-const folders: Ref<CategorizerResults> = ref([]);
+const folders: Ref<ICategorizerResults> = ref([]);
 provide("folders", folders);
-const smartfilters: Ref<PaperSmartFilterResults> = ref([]);
+const smartfilters: Ref<IPaperSmartFilterResults> = ref([]);
 provide("smartfilters", smartfilters);
-const feeds: Ref<FeedResults> = ref([]);
+const feeds: Ref<IFeedResults> = ref([]);
 provide("feeds", feeds);
-const feedEntities: Ref<FeedEntityResults> = ref([]);
+const feedEntities: Ref<IFeedEntityResults> = ref([]);
 provide(
   "feedEntities",
   computed(() => feedEntities.value)
@@ -58,7 +58,7 @@ provide(
 
 const onSidebarResized = (event: any) => {
   const width = event[0].size ? event[0].size : 20;
-  window.appInteractor.setPreference("sidebarWidth", width);
+  preferenceService.set({ sidebarWidth: width });
 };
 
 // ================================
@@ -82,67 +82,61 @@ const reloadPaperEntities = async () => {
     viewState.searchText = "";
     viewState.searchMode = "general";
   }
-  paperEntities.value = await window.entityInteractor.loadPaperEntities(
-    viewState.searchText,
-    flaged,
-    tag,
-    folder,
+  // TODO: fix any here
+  paperEntities.value = await paperService.load(
+    paperService.constructFilter({
+      search: viewState.searchText,
+      searchMode: viewState.searchMode as any,
+      flaged,
+      tag,
+      folder,
+    }),
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
 };
-watch(
-  () => dbState.entitiesUpdated,
-  (value) => reloadPaperEntities()
+
+disposable(
+  paperService.on("updated", () => {
+    reloadPaperEntities();
+  })
 );
 
 const reloadTags = async () => {
-  tags.value = await window.entityInteractor.loadCategorizers(
+  tags.value = await categorizerService.load(
     "PaperTag",
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
-watch(
-  () => dbState.tagsUpdated,
-  (value) => reloadTags()
-);
+disposable(categorizerService.on("tagsUpdated", () => reloadTags()));
 
 const reloadFolders = async () => {
-  folders.value = await window.entityInteractor.loadCategorizers(
+  folders.value = await categorizerService.load(
     "PaperFolder",
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
-watch(
-  () => dbState.foldersUpdated,
-  (value) => reloadFolders()
-);
+disposable(categorizerService.on("foldersUpdated", () => reloadFolders()));
 
 const reloadPaperSmartFilters = async () => {
-  smartfilters.value = await window.entityInteractor.loadPaperSmartFilters(
+  smartfilters.value = await smartFilterService.load(
     "PaperPaperSmartFilter",
     prefState.sidebarSortBy === "count" ? "name" : prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
-watch(
-  () => dbState.smartfiltersUpdated,
-  (value) => reloadPaperSmartFilters()
-);
+disposable(smartFilterService.on("updated", () => reloadPaperSmartFilters()));
 
 const reloadFeeds = async () => {
-  const results = await window.feedInteractor.loadFeeds(
+  const results = await feedService.load(
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
   feeds.value = results;
 };
-watch(
-  () => dbState.feedsUpdated,
-  (value) => reloadFeeds()
-);
+disposable(feedService.on("updated", () => reloadFeeds()));
 
 const reloadFeedEntities = async () => {
   let feed = "";
@@ -156,26 +150,49 @@ const reloadFeedEntities = async () => {
   } else {
     feed = selectionState.selectedFeed.replace("feed-", "");
   }
-  feedEntities.value = await window.feedInteractor.loadFeedEntities(
-    viewState.searchText,
-    feed,
-    unread,
+
+  // TODO: fix any here
+  feedEntities.value = await feedService.loadEntities(
+    feedService.constructFilter({
+      search: viewState.searchText,
+      searchMode: viewState.searchMode as any,
+      feedName: feed,
+      unread,
+    }),
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
 };
-watch(
-  () => dbState.feedEntitiesUpdated,
-  (value) => reloadFeedEntities()
-);
+disposable(feedService.on("entitiesUpdated", () => reloadFeedEntities()));
 
 // ================================
 // Register State
 // ================================
+disposable(
+  preferenceService.onChanged(
+    ["mainviewSortBy", "mainviewSortOrder"],
+    (value) => {
+      if (viewState.contentType === "library") {
+        reloadPaperEntities();
+      } else if (viewState.contentType === "feed") {
+        reloadFeedEntities();
+      }
+    }
+  )
+);
+disposable(
+  preferenceService.onChanged(
+    ["sidebarSortBy", "sidebarSortOrder"],
+    (value) => {
+      reloadTags();
+      reloadFolders();
+      reloadPaperSmartFilters();
+    }
+  )
+);
+
 watch(
   () =>
-    prefState.mainviewSortBy +
-    prefState.mainviewSortOrder +
     viewState.contentType +
     viewState.searchText +
     selectionState.selectedCategorizer +
@@ -189,18 +206,8 @@ watch(
   }
 );
 
-watch(
-  () => prefState.sidebarSortBy + prefState.sidebarSortOrder,
-  (value) => {
-    reloadTags();
-    reloadFolders();
-    reloadPaperSmartFilters();
-  }
-);
-
-watch(
-  () => viewState.realmReiniting,
-  (value) => {
+disposable(
+  databaseService.on("dbInitialized", async () => {
     selectionState.selectedCategorizer = "";
     selectionState.selectedFeed = "";
     selectionState.selectedIds = [];
@@ -208,20 +215,11 @@ watch(
     selectionState.dragedIds = [];
     selectionState.pluginLinkedFolder = "";
     selectionState.editingCategorizer = "";
-
     paperEntities.value = [];
     tags.value = [];
     folders.value = [];
     feeds.value = [];
     feedEntities.value = [];
-
-    window.appInteractor.initDB();
-  }
-);
-
-watch(
-  () => viewState.realmReinited,
-  async (value) => {
     var startTime = Date.now();
     await reloadPaperEntities();
     await reloadTags();
@@ -231,48 +229,46 @@ watch(
     reloadFeedEntities();
     reloadFeeds();
     var endTime = Date.now();
-    window.logger.info(
+    logService.info(
       `Data reinited in ${endTime - startTime}ms`,
       "",
       false,
-      "Data"
+      "UI"
     );
-  }
+  })
 );
 
-window.appInteractor.registerMainSignal("window-lost-focus", (_: any) => {
+PLMainAPI.windowProcessManagementService.on("blur", () => {
   viewState.mainViewFocused = false;
-  void window.appInteractor.pauseSync();
+  databaseService.pauseSync();
 });
 
-window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
+PLMainAPI.windowProcessManagementService.on("focus", () => {
   viewState.mainViewFocused = true;
-  void window.appInteractor.resumeSync();
+  databaseService.resumeSync();
 });
 
-window.appInteractor.registerMainSignal("update-download-progress", (value) => {
-  window.logger.progress("Downloading Update...", value, true, "Version");
+PLMainAPI.upgradeService.on("downloading", (value: number) => {
+  logService.progress("Downloading Update...", value, true, "Version");
 });
 
 // ================================
 // Dev Functions
 // ================================
 const addDummyData = async () => {
-  await window.entityInteractor.addDummyData();
+  await paperService.addDummyData();
 };
 const addTestData = async () => {
-  await window.entityInteractor.create([
-    `${process.cwd()}/tests/pdfs/cs/1.pdf`,
-  ]);
+  await paperService.create([`${process.cwd()}/tests/pdfs/cs/1.pdf`]);
 };
 const addTwoTestData = async () => {
-  await window.entityInteractor.create([
+  await paperService.create([
     `${process.cwd()}/tests/pdfs/cs/1.pdf`,
     `${process.cwd()}/tests/pdfs/cs/2.pdf`,
   ]);
 };
 const removeAll = async () => {
-  await window.entityInteractor.removeAll();
+  await paperService.removeAll();
 };
 const reloadAll = async () => {
   await reloadPaperEntities();
@@ -298,27 +294,30 @@ const log = () => {
 };
 const logInfo = () => {
   const randomString = Math.random().toString(36).slice(-8);
-  window.logger.info(randomString, "additional info", true, "DEVLOG");
+  logService.info(randomString, "additional info", true, "DEVLOG");
 };
 const logWarn = () => {
   const randomString = Math.random().toString(36).slice(-8);
-  window.logger.warn(randomString, "additional info", true, "DEVLOG");
+  logService.warn(randomString, "additional info", true, "DEVLOG");
 };
 const logError = () => {
   const randomString = Math.random().toString(36).slice(-8);
-  window.logger.error(randomString, "additional info", true, "DEVLOG");
+  logService.error(randomString, "additional info", true, "DEVLOG");
 };
 const logProgress = () => {
   const randomNumber = Math.floor(Math.random() * 100);
-  window.logger.progress("Progress...", randomNumber, true, "DEVLOG");
+  logService.progress("Progress...", randomNumber, true, "DEVLOG");
 };
+
+const isWhatsNewShown = ref(false);
 
 // ================================
 // Mount Hook
 // ================================
 onMounted(async () => {
   nextTick(async () => {
-    window.appInteractor.initDB();
+    isWhatsNewShown.value = await appService.isVersionChanged();
+    await databaseService.initialize(true);
   });
 });
 </script>
@@ -401,12 +400,83 @@ onMounted(async () => {
         <MainView />
       </pane>
     </splitpanes>
-    <EditView />
-    <FeedEditView />
-    <PaperSmartFilterEditView />
-    <PreferenceView />
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <EditView v-if="viewState.isEditViewShown" />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <FeedEditView v-if="viewState.isFeedEditViewShown" />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <PaperSmartFilterEditView
+        v-if="viewState.isPaperSmartFilterEditViewShown"
+      />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <PreferenceView v-if="viewState.isPreferenceViewShown" />
+    </Transition>
+
     <DeleteConfirmView />
-    <PresettingView />
-    <WhatsNewView />
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <PresettingView
+        v-if="
+          prefState.showPresettingLang ||
+          prefState.showPresettingScraper ||
+          prefState.showPresettingDB
+        "
+      />
+    </Transition>
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <WhatsNewView v-if="isWhatsNewShown" />
+    </Transition>
   </div>
 </template>
+@/renderer/services/log-service
+@/repositories/db-repository/categorizer-repository
+@/repositories/db-repository/feed-repository

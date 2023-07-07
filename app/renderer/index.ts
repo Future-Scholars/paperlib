@@ -8,26 +8,41 @@ import { createI18n } from "vue-i18n";
 import vSelect from "vue-select";
 import draggable from "vuedraggable";
 
-import { APIHost } from "@/api/api-host";
-import { AppInteractor } from "@/interactors/app-interactor";
-import { BrowserExtensionInteractor } from "@/interactors/browser-extension-interactor";
-import { EntityInteractor } from "@/interactors/entity-interactor";
-import { FeedInteractor } from "@/interactors/feed-interactor";
-import { PluginMainInteractor } from "@/interactors/plugin-main-interactor";
-import { RenderInteractor } from "@/interactors/render-interactor";
-import { WordAddinInteractor } from "@/interactors/word-addin-interactor";
+import { CacheDatabaseCore } from "@/base/database/cache-core";
+import { DatabaseCore } from "@/base/database/core";
+import { IInjectable } from "@/base/injection/injectable";
+import { InjectionContainer } from "@/base/injection/injection";
+import { NetworkTool } from "@/base/network";
+import { PreferenceService } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
 import { Preference } from "@/preference/preference";
-import { DBRepository } from "@/repositories/db-repository/db-repository";
-import { DownloaderRepository } from "@/repositories/downloader-repository/downloader-repository";
-import { FileRepository } from "@/repositories/file-repository/file-repository";
-import { ReferenceRepository } from "@/repositories/reference-repository/reference-repository";
+import { APPService } from "@/renderer/services/app-service";
+import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
+import { BufferService } from "@/renderer/services/buffer-service";
+import { CacheService } from "@/renderer/services/cache-service";
+import { CategorizerService } from "@/renderer/services/categorizer-service";
+import { DatabaseService } from "@/renderer/services/database-service";
+import { FeedService } from "@/renderer/services/feed-service";
+import { FileService } from "@/renderer/services/file-service";
+import { LogService } from "@/renderer/services/log-service";
+import { MSWordCommService } from "@/renderer/services/msword-comm-service";
+import { PaperService } from "@/renderer/services/paper-service";
+import { ReferenceService } from "@/renderer/services/reference-service";
+import { RenderService } from "@/renderer/services/render-service";
+import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
+import { SchedulerService } from "@/renderer/services/scheduler-service";
+import { ScrapeService } from "@/renderer/services/scrape-service";
+import { SmartFilterService } from "@/renderer/services/smartfilter-service";
+import { useProcessingState } from "@/renderer/services/state-service/processing";
+import { StateService } from "@/renderer/services/state-service/state-service";
+import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
+import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
+import { FeedRepository } from "@/repositories/db-repository/feed-repository";
+import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity-repository";
+import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
+import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
-import { ScraperRepository } from "@/repositories/scraper-repository/scraper-repository";
-import { WebImporterRepository } from "@/repositories/web-importer-repository/web-importer-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { NetworkTool } from "@/utils/got";
-import { Logger } from "@/utils/logger";
 
 import "./css/index.css";
 import "./css/katex.min.css";
@@ -54,14 +69,49 @@ app.component("RecycleScroller", RecycleScroller);
 // ====================================
 // Setup tools, interactors and repositories
 // ====================================
-const logger = new Logger();
+const processingState = useProcessingState();
+globalThis.processingState = processingState;
+
+new RendererRPCService();
+const injectionContainer = new InjectionContainer();
+const instances = injectionContainer.createInstance<IInjectable>({
+  appService: APPService,
+  preferenceService: PreferenceService,
+  stateService: StateService,
+  logService: LogService,
+  databaseCore: DatabaseCore,
+  databaseService: DatabaseService,
+  paperService: PaperService,
+  bufferService: BufferService,
+  paperEntityRepository: PaperEntityRepository,
+  categorizerRepository: CategorizerRepository,
+  scrapeService: ScrapeService,
+  fileService: FileService,
+  cacheDatabaseCore: CacheDatabaseCore,
+  cacheService: CacheService,
+  categorizerService: CategorizerService,
+  fileSourceRepository: FileSourceRepository,
+  smartFilterService: SmartFilterService,
+  paperSmartFilterRepository: PaperSmartFilterRepository,
+  browserExtensionService: BrowserExtensionService,
+  feedService: FeedService,
+  feedEntityRepository: FeedEntityRepository,
+  feedRepository: FeedRepository,
+  rssRepository: RSSRepository,
+  renderService: RenderService,
+  referenceService: ReferenceService,
+  schedulerService: SchedulerService,
+  msWordCommService: MSWordCommService,
+  networkTool: NetworkTool,
+});
+for (const [key, instance] of Object.entries(instances)) {
+  globalThis[key] = instance;
+}
+
 const preference = new Preference(true);
 const stateStore = new MainRendererStateStore(preference);
-const networkTool = new NetworkTool(stateStore, preference);
 
 // Inject
-window.logger = logger;
-window.networkTool = networkTool;
 window.preference = preference;
 window.stateStore = stateStore;
 
@@ -76,78 +126,11 @@ const i18n = createI18n({
 
 app.use(i18n);
 
-var initStartTime = Date.now();
-const dbRepository = new DBRepository(stateStore, preference);
-const scraperRepository = new ScraperRepository(stateStore, preference);
-const fileRepository = new FileRepository(stateStore, preference);
-const referenceRepository = new ReferenceRepository(stateStore, preference);
-const downloaderRepository = new DownloaderRepository(stateStore, preference);
-const rssRepository = new RSSRepository(stateStore, preference);
-const webImporterRepository = new WebImporterRepository(stateStore, preference);
-
-const appInteractor = new AppInteractor(
-  stateStore,
-  preference,
-  fileRepository,
-  dbRepository
-);
-const entityInteractor = new EntityInteractor(
-  stateStore,
-  preference,
-  dbRepository,
-  scraperRepository,
-  fileRepository,
-  referenceRepository,
-  downloaderRepository
-);
-const renderInteractor = new RenderInteractor(preference);
-const feedInteractor = new FeedInteractor(
-  stateStore,
-  preference,
-  dbRepository,
-  rssRepository,
-  scraperRepository
-);
-const pluginMainInteractor = new PluginMainInteractor(
-  stateStore,
-  preference,
-  referenceRepository
-);
-const browserExtensionInteractor = new BrowserExtensionInteractor(
-  stateStore,
-  preference,
-  webImporterRepository,
-  entityInteractor
-);
-const wordAddinInteractor = new WordAddinInteractor(
-  stateStore,
-  preference,
-  entityInteractor
-);
-
+// TODO: check if this is duplicated
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (event) => {
     stateStore.viewState.renderRequired = Date.now();
   });
-
-// ====================================
-// Inject
-// ====================================
-window.entityInteractor = entityInteractor;
-window.appInteractor = appInteractor;
-window.renderInteractor = renderInteractor;
-window.feedInteractor = feedInteractor;
-window.wordAddinInteractor = wordAddinInteractor;
-
-var initEndTime = Date.now();
-window.logger.info(
-  `Initialization time: ${initEndTime - initStartTime}ms`,
-  "",
-  false,
-  "App"
-);
-
-const apiHost = new APIHost();
 
 app.mount("#app");

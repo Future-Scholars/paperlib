@@ -1,8 +1,8 @@
 import { Response } from "got";
 import stringSimilarity from "string-similarity";
 
+import { formatString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
-import { formatString } from "@/utils/string";
 
 import { Scraper, ScraperRequestType } from "./scraper";
 
@@ -113,7 +113,7 @@ export class CitationCountScraper extends Scraper {
 
     const { scrapeURL, headers } = this.preProcess(paperEntityDraft);
 
-    const response = (await window.networkTool.get(
+    const response = (await networkTool.get(
       scrapeURL,
       headers,
       0,

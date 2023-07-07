@@ -2,7 +2,8 @@
 import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { MSWordCommService } from "@/renderer/services/msword-comm-service";
+import { IPreferenceStore } from "@/common/services/preference-service";
 
 import Replacement from "./components/replacement.vue";
 import Toggle from "./components/toggle.vue";
@@ -10,10 +11,10 @@ import Toggle from "./components/toggle.vue";
 const newReplacementFrom = ref("");
 const newReplacementTo = ref("");
 
-const prefState = MainRendererStateStore.usePreferenceState();
+const prefState = preferenceService.useState();
 
-const updatePref = (key: string, value: unknown) => {
-  window.appInteractor.setPreference(key, value);
+const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
+  preferenceService.set({ [key]: value });
 };
 
 const onReplacementAdd = () => {
@@ -27,7 +28,7 @@ const onReplacementAdd = () => {
     to: newReplacementTo.value,
   });
   // Update preference
-  window.appInteractor.setPreference("exportReplacement", replacements);
+  preferenceService.set({ exportReplacement: replacements });
 
   newReplacementFrom.value = "";
   newReplacementTo.value = "";
@@ -39,7 +40,7 @@ const onReplacementDelete = (replacement: { from: string; to: string }) => {
     (item) => item.from !== replacement.from && item.to !== replacement.to
   );
   // Update preference
-  window.appInteractor.setPreference("exportReplacement", replacements);
+  preferenceService.set({ exportReplacement: replacements });
 };
 
 const selectedCSLStyle = ref(prefState.selectedCSLStyle);
@@ -48,13 +49,12 @@ const CSLStyles = ref([]) as Ref<{ key: string; name: string }[]>;
 const onCSLStyleUpdate = async (CSLStyle: string) => {
   if (CSLStyle === "import-from-folder") {
     const pickedImportedCSLStylesPath = (
-      await window.appInteractor.showFolderPicker()
+      await PLMainAPI.fileSystemService.showFolderPicker()
     ).filePaths[0];
     if (pickedImportedCSLStylesPath) {
-      window.appInteractor.setPreference(
-        "importedCSLStylesPath",
-        pickedImportedCSLStylesPath
-      );
+      preferenceService.set({
+        importedCSLStylesPath: pickedImportedCSLStylesPath,
+      });
       loadCSLStyles();
     }
   } else {
@@ -63,13 +63,14 @@ const onCSLStyleUpdate = async (CSLStyle: string) => {
 };
 
 const loadCSLStyles = async () => {
-  CSLStyles.value = await window.appInteractor.loadCSLStyles();
+  CSLStyles.value = await referenceService.loadCSLStyles();
 };
 
 const installstate = ref(0);
 
 const installWordAddinClicked = async () => {
-  await window.wordAddinInteractor.installWordAddin();
+  // TODO: implement
+  // await MSWordCommService.installWordAddin();
   installstate.value = 1;
 };
 
@@ -182,3 +183,4 @@ onMounted(() => {
     </div>
   </div>
 </template>
+@/renderer/services/preference-service @/common/services/preference-service
