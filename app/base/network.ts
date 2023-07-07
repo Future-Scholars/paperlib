@@ -108,7 +108,8 @@ export class NetworkTool {
   }
 
   checkSystemProxy() {
-    const proxy = ipcRenderer.sendSync("get-system-proxy");
+    const proxy =
+      PLMainAPI.proxyService.getSystemProxySync() as unknown as string;
 
     if (proxy !== "DIRECT") {
       const proxyUrlComponents = proxy.split(":");

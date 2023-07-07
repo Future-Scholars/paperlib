@@ -6,6 +6,7 @@ import { ContextMenuService } from "@/main/services/contextmenu-service";
 import { FileSystemService } from "@/main/services/filesystem-service";
 import { MainRPCService } from "@/main/services/main-rpc-service";
 import { MenuService } from "@/main/services/menu-service";
+import { ProxyService } from "@/main/services/proxy-service";
 import { UpgradeService } from "@/main/services/upgrade-service";
 import { WindowProcessManagementService } from "@/main/services/window-management-service";
 import { APPService } from "@/renderer/services/app-service";
@@ -67,4 +68,5 @@ export type IInjectable =
   | FileSystemService
   | ContextMenuService
   | MenuService
-  | UpgradeService;
+  | UpgradeService
+  | ProxyService;

@@ -2,14 +2,12 @@ import { BrowserWindow, app, globalShortcut, ipcMain, screen } from "electron";
 // @ts-ignore
 import Store from "electron-store";
 import path from "node:path";
-import { platform, release } from "os";
-import { createPinia, setActivePinia } from "pinia";
+import { release } from "os";
 
 import { IInjectable } from "@/base/injection/injectable.ts";
 import { InjectionContainer } from "@/base/injection/injection.ts";
 import { PreferenceService } from "@/common/services/preference-service.ts";
 import { WindowStorage } from "@/main/window-storage.ts";
-import { Preference } from "@/preference/preference";
 
 import "./files.ts";
 import "./proxy.ts";
@@ -17,7 +15,6 @@ import { MainRPCService } from "./services/main-rpc-service.ts";
 import { WindowProcessManagementService } from "./services/window-management-service.ts";
 import "./theme.ts";
 import "./update.ts";
-import { createMainWindow } from "./win_main/index";
 import {
   createPluginWindow,
   setMainPluginCommunicationChannel,
@@ -28,9 +25,9 @@ import { FileSystemService } from "./services/filesystem-service.ts";
 import { ContextMenuService } from "./services/contextmenu-service.ts";
 import { MenuService } from "./services/menu-service.ts";
 import { UpgradeService } from "./services/upgrade-service.ts";
+import { ProxyService } from "./services/proxy-service.ts";
 
 Store.initRenderer();
-// const preference = new Preference();
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith("6.1")) app.disableHardwareAcceleration();
@@ -111,6 +108,7 @@ async function initialize() {
     menuService: MenuService,
     upgradeService: UpgradeService,
     mainRPCService: MainRPCService,
+    proxyService: ProxyService,
   });
   for (const [key, instance] of Object.entries(instances)) {
     globalThis[key] = instance;
@@ -155,5 +153,3 @@ ipcMain.handle("version", () => {
 });
 
 // registerSideworkWindowEvents(winSidework);
-
-// registerMainContextMenu(preference);

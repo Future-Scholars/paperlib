@@ -59,6 +59,9 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
         upgradeService: (protocol as EIRendererRPCProtocol).getProxy(
           "upgradeService"
         ),
+        proxyService: (protocol as EIRendererRPCProtocol).getProxy(
+          "proxyService"
+        ),
       };
     }
   }

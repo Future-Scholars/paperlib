@@ -17,6 +17,7 @@ import {
   UpgradeService,
 } from "@/main/services/upgrade-service";
 import { IMenuService, MenuService } from "@/main/services/menu-service";
+import { IProxyService, ProxyService } from "@/main/services/proxy-service";
 
 interface IMainRPCServiceState {
   initialized: number;
@@ -30,7 +31,8 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     @IContextMenuService
     private readonly _contextMenuService: ContextMenuService,
     @IMenuService private readonly _menuService: MenuService,
-    @IUpgradeService private readonly _upgradeService: UpgradeService
+    @IUpgradeService private readonly _upgradeService: UpgradeService,
+    @IProxyService private readonly _proxyService: ProxyService
   ) {
     super("mainRPCService", { initialized: 0 });
 
@@ -59,6 +61,7 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     protocol.set("contextMenuService", this._contextMenuService);
     protocol.set("menuService", this._menuService);
     protocol.set("upgradeService", this._upgradeService);
+    protocol.set("proxyService", this._proxyService);
   }
 
   _initProxy(protocol: RPCProtocol, protocolId: string): void {
