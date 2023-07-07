@@ -10,11 +10,8 @@ import { PreferenceService } from "@/common/services/preference-service.ts";
 import { WindowStorage } from "@/main/window-storage.ts";
 
 import "./files.ts";
-import "./proxy.ts";
 import { MainRPCService } from "./services/main-rpc-service.ts";
 import { WindowProcessManagementService } from "./services/window-management-service.ts";
-import "./theme.ts";
-import "./update.ts";
 import {
   createPluginWindow,
   setMainPluginCommunicationChannel,
@@ -114,42 +111,46 @@ async function initialize() {
     globalThis[key] = instance;
   }
 
+  app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") app.quit();
+  });
+
+  app.on("second-instance", () => {
+    if (windowProcessManagementService.browserWindows.has("rendererProcess")) {
+      if (
+        windowProcessManagementService.browserWindows
+          .get("browserWindows")
+          .isMinimized()
+      )
+        windowProcessManagementService.browserWindows
+          .get("browserWindows")
+          .restore();
+      windowProcessManagementService.browserWindows
+        .get("browserWindows")
+        .focus();
+    }
+  });
+
+  app.on("activate", () => {
+    if (windowProcessManagementService.browserWindows.has("rendererProcess")) {
+      windowProcessManagementService.browserWindows
+        .get("rendererProcess")
+        .show();
+      windowProcessManagementService.browserWindows
+        .get("rendererProcess")
+        .focus();
+    } else {
+      windowProcessManagementService.createMainRenderer();
+    }
+  });
+
+  ipcMain.handle("version", () => {
+    return app.getVersion();
+  });
+
   windowProcessManagementService.createMainRenderer();
 }
 
 app.whenReady().then(initialize);
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});
-
-app.on("second-instance", () => {
-  if (windowProcessManagementService.browserWindows.has("rendererProcess")) {
-    if (
-      windowProcessManagementService.browserWindows
-        .get("browserWindows")
-        .isMinimized()
-    )
-      windowProcessManagementService.browserWindows
-        .get("browserWindows")
-        .restore();
-    windowProcessManagementService.browserWindows.get("browserWindows").focus();
-  }
-});
-
-app.on("activate", () => {
-  if (windowProcessManagementService.browserWindows.has("rendererProcess")) {
-    windowProcessManagementService.browserWindows.get("rendererProcess").show();
-    windowProcessManagementService.browserWindows
-      .get("rendererProcess")
-      .focus();
-  } else {
-    windowProcessManagementService.createMainRenderer();
-  }
-});
-
-ipcMain.handle("version", () => {
-  return app.getVersion();
-});
 
 // registerSideworkWindowEvents(winSidework);

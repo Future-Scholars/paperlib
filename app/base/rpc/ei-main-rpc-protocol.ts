@@ -50,12 +50,26 @@ export class EIMainRPCProtocol {
           this._locals[channelName] = value[key];
 
           if (channelName.endsWith("Sync")) {
-            ipcMain.on(channelName, (event, args) => {
-              event.returnValue = (value[key] as Function)(...args);
+            ipcMain.on(channelName, async (event, args) => {
+              const result = (value[key] as Function)(...args);
+
+              // check is a promise
+              if (result && result.then) {
+                event.returnValue = await result;
+              } else {
+                event.returnValue = result;
+              }
             });
           } else {
-            ipcMain.handle(channelName, (event, args) => {
-              return (value[key] as Function)(...args);
+            ipcMain.handle(channelName, async (event, args) => {
+              const result = (value[key] as Function)(...args);
+
+              // check is a promise
+              if (result && result.then) {
+                return await result;
+              } else {
+                return result;
+              }
             });
           }
         }

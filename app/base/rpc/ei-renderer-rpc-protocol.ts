@@ -44,7 +44,11 @@ export class EIRendererRPCProtocol {
             if (name.endsWith("Sync")) {
               console.log("sendSync", `${rpcId}.${name}`, myArgs);
               return ipcRenderer.sendSync(`${rpcId}.${name}`, myArgs);
-            } else if (name === "on") {
+            } else if (
+              name === "on" ||
+              name === "onChanged" ||
+              name === "onClick"
+            ) {
               console.log("on", `${rpcId}.${name}`, myArgs);
 
               let eventNames: string[] = myArgs[0];
