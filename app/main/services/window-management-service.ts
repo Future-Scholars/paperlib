@@ -27,10 +27,11 @@ export enum APPTheme {
 }
 
 export interface IWindowProcessManagementServiceState {
-  "ready-to-show": number;
-  blur: number;
-  focus: number;
-  close: number;
+  "ready-to-show": string;
+  blur: string;
+  focus: string;
+  close: string;
+  created: string;
 }
 
 export const IWindowProcessManagementService = createDecorator(
@@ -38,25 +39,20 @@ export const IWindowProcessManagementService = createDecorator(
 );
 
 export class WindowProcessManagementService extends Eventable<IWindowProcessManagementServiceState> {
-  private readonly _extensionProcess: Electron.UtilityProcess;
   public browserWindows: WindowStorage;
 
   constructor(
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
     super("windowProcessManagementService", {
-      "ready-to-show": 0,
-      blur: 0,
-      focus: 0,
-      close: 0,
+      "ready-to-show": "",
+      blur: "",
+      focus: "",
+      close: "",
+      created: "",
     });
 
     this.browserWindows = new WindowStorage();
-
-    // 1. Create extension utility process
-    this._extensionProcess = utilityProcess.fork(
-      join(__dirname, "extension-entry.js")
-    );
   }
 
   /**
@@ -121,7 +117,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     for (const eventName of ["ready-to-show", "blur", "focus", "close"]) {
       this.browserWindows.get(id).on(eventName as any, () => {
         if (eventName !== "close") {
-          this.fire(eventName as any);
+          this.fire({ [eventName as any]: id });
         }
 
         if (eventCallbacks[eventName]) {
@@ -129,6 +125,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
         }
       });
     }
+
+    this.fire({ created: id });
   }
 
   createMainRenderer() {
@@ -158,7 +156,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       },
       {
         close: (win: BrowserWindow) => {
-          this._extensionProcess.kill();
+          this.fire({ close: "rendererProcess" });
 
           const winSize = win.getNormalBounds();
           if (winSize) {

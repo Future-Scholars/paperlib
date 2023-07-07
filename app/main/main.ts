@@ -23,6 +23,7 @@ import { ContextMenuService } from "./services/contextmenu-service.ts";
 import { MenuService } from "./services/menu-service.ts";
 import { UpgradeService } from "./services/upgrade-service.ts";
 import { ProxyService } from "./services/proxy-service.ts";
+import { MainExtensionService } from "./services/main-extension-service.ts";
 
 Store.initRenderer();
 
@@ -106,6 +107,7 @@ async function initialize() {
     upgradeService: UpgradeService,
     mainRPCService: MainRPCService,
     proxyService: ProxyService,
+    mainExtensionService: MainExtensionService,
   });
   for (const [key, instance] of Object.entries(instances)) {
     globalThis[key] = instance;

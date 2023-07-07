@@ -18,10 +18,13 @@ import {
 } from "@/main/services/upgrade-service";
 import { IMenuService, MenuService } from "@/main/services/menu-service";
 import { IProxyService, ProxyService } from "@/main/services/proxy-service";
+import { createDecorator } from "@/base/injection/injection";
 
 interface IMainRPCServiceState {
-  initialized: number;
+  initialized: string;
 }
+
+export const IMainRPCService = createDecorator("mainRPCService");
 
 export class MainRPCService extends RPCService<IMainRPCServiceState> {
   constructor(
@@ -34,7 +37,7 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     @IUpgradeService private readonly _upgradeService: UpgradeService,
     @IProxyService private readonly _proxyService: ProxyService
   ) {
-    super("mainRPCService", { initialized: 0 });
+    super("mainRPCService", { initialized: "" });
 
     this._listenProtocolCreation();
   }
@@ -49,10 +52,10 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     const eiMainRPCProtocol = new EIMainRPCProtocol(
       this._windowProcessManagementService.browserWindows
     );
-    this._initActionor(eiMainRPCProtocol);
+    this.initActionor(eiMainRPCProtocol);
   }
 
-  _initActionor(protocol: RPCProtocol): void {
+  initActionor(protocol: RPCProtocol): void {
     protocol.set(
       "windowProcessManagementService",
       this._windowProcessManagementService
@@ -64,7 +67,7 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     protocol.set("proxyService", this._proxyService);
   }
 
-  _initProxy(protocol: RPCProtocol, protocolId: string): void {
+  initProxy(protocol: RPCProtocol, protocolId: string): void {
     if (protocolId === "extensionProcess") {
     }
   }

@@ -4,7 +4,7 @@ import { EIRendererRPCProtocol } from "./ei-renderer-rpc-protocol";
 import { MessagePortRPCProtocol } from "./messageport-rpc-protocol";
 
 interface IRPCServiceState {
-  initialized: number;
+  initialized: string;
 }
 
 export type RPCProtocol =
@@ -22,9 +22,6 @@ export abstract class RPCService<
   }
 
   protected abstract _listenProtocolCreation(): void;
-  protected abstract _initActionor(protocol: RPCProtocol): void;
-  protected abstract _initProxy(
-    protocol: RPCProtocol,
-    protocolId: string
-  ): void;
+  abstract initActionor(protocol: RPCProtocol): void;
+  abstract initProxy(protocol: RPCProtocol, protocolId: string): void;
 }

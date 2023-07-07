@@ -2,12 +2,12 @@ import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { RPCProtocol, RPCService } from "@/base/rpc/rpc-service";
 
 interface IExtensionRPCServiceState {
-  initialized: number;
+  initialized: string;
 }
 
 export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
   constructor() {
-    super("extensionRPCService", { initialized: 0 });
+    super("extensionRPCService", { initialized: "" });
 
     this._listenProtocolCreation();
   }
@@ -21,24 +21,37 @@ export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
 
     process.parentPort.on("message", (e) => {
       if (e.data.startsWith("create-messageport-rpc-protocol")) {
+        console.log("create-protocol in extension");
+
         const [port] = e.ports;
         const protocolId = e.data.split(":")[1];
         const protocol = new MessagePortRPCProtocol(port, "extensionProcess");
-        this._initActionor(protocol);
-        this._initProxy(protocol, protocolId);
+        this.initActionor(protocol);
+        this.initProxy(protocol, protocolId);
         this._protocols[protocolId] = protocol;
 
-        this.fire("initialized");
+        this.fire({ initialized: protocolId });
       }
     });
   }
 
-  _initActionor(protocol: RPCProtocol): void {}
+  initActionor(protocol: RPCProtocol): void {}
 
-  _initProxy(protocol: RPCProtocol, protocolId: string): void {
+  initProxy(protocol: RPCProtocol, protocolId: string): void {
     if (protocolId === "rendererPreocess") {
       globalThis.PLAPI = {
         appService: protocol.getProxy("appService"),
+      };
+    } else if (protocolId === "mainProcess") {
+      globalThis.PLMainAPI = {
+        windowProcessManagementService: protocol.getProxy(
+          "windowProcessManagementService"
+        ),
+        fileSystemService: protocol.getProxy("fileSystemService"),
+        contextMenuService: protocol.getProxy("contextMenuService"),
+        menuService: protocol.getProxy("menuService"),
+        upgradeService: protocol.getProxy("upgradeService"),
+        proxyService: protocol.getProxy("proxyService"),
       };
     }
   }

@@ -1,4 +1,4 @@
-import { Proxied } from "@/base/rpc/ei-renderer-rpc-protocol";
+import { Proxied } from "@/base/rpc/proxied";
 import { ContextMenuService } from "@/main/services/contextmenu-service";
 import { FileSystemService } from "@/main/services/filesystem-service";
 import { MenuService } from "@/main/services/menu-service";

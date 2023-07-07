@@ -4,6 +4,7 @@ import { NetworkTool } from "@/base/network";
 import { PreferenceService } from "@/common/services/preference-service";
 import { ContextMenuService } from "@/main/services/contextmenu-service";
 import { FileSystemService } from "@/main/services/filesystem-service";
+import { MainExtensionService } from "@/main/services/main-extension-service";
 import { MainRPCService } from "@/main/services/main-rpc-service";
 import { MenuService } from "@/main/services/menu-service";
 import { ProxyService } from "@/main/services/proxy-service";
@@ -69,4 +70,5 @@ export type IInjectable =
   | ContextMenuService
   | MenuService
   | UpgradeService
-  | ProxyService;
+  | ProxyService
+  | MainExtensionService;

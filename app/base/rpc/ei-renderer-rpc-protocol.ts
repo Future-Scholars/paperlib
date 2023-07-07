@@ -1,19 +1,6 @@
 import { ipcRenderer } from "electron";
 import { uid } from "@/base/misc";
-
-export type Dto<T> = T extends { toJSON(): infer U }
-  ? U
-  : T extends string // VSBuffer is understood by rpc-logic
-  ? T
-  : T extends object // recurse
-  ? { [k in keyof T]: Dto<T[k]> }
-  : T;
-
-export type Proxied<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => infer R
-    ? (...args: { [K in keyof A]: Dto<A[K]> }) => Promise<Dto<Awaited<R>>>
-    : never;
-};
+import { Proxied } from "@/base/rpc/proxied";
 
 /**
  * Electron ipcRenderer (EI) based RPC Protocol*/
@@ -42,14 +29,14 @@ export class EIRendererRPCProtocol {
         if (typeof name === "string" && !target[name]) {
           target[name] = (...myArgs: any[]) => {
             if (name.endsWith("Sync")) {
-              console.log("sendSync", `${rpcId}.${name}`, myArgs);
+              // console.log("sendSync", `${rpcId}.${name}`, myArgs);
               return ipcRenderer.sendSync(`${rpcId}.${name}`, myArgs);
             } else if (
               name === "on" ||
               name === "onChanged" ||
               name === "onClick"
             ) {
-              console.log("on", `${rpcId}.${name}`, myArgs);
+              // console.log("on", `${rpcId}.${name}`, myArgs);
 
               let eventNames: string[] = myArgs[0];
               const callback = myArgs[1];
@@ -86,7 +73,7 @@ export class EIRendererRPCProtocol {
                 }
               };
             } else {
-              console.log("invoke", `${rpcId}.${name}`, myArgs);
+              // console.log("invoke", `${rpcId}.${name}`, myArgs);
               return ipcRenderer.invoke(`${rpcId}.${name}`, myArgs);
             }
           };

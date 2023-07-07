@@ -1,23 +1,8 @@
 // Thanks to https://github.dev/microsoft/vscode/
 import { MessagePortMain } from "electron";
 
-import { LazyPromise } from "./lazy-promise";
-
-export type Dto<T> = T extends { toJSON(): infer U }
-  ? U
-  : T extends string // VSBuffer is understood by rpc-logic
-  ? T
-  : T extends Function // functions are dropped during JSON-stringify
-  ? never
-  : T extends object // recurse
-  ? { [k in keyof T]: Dto<T[k]> }
-  : T;
-
-export type Proxied<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => infer R
-    ? (...args: { [K in keyof A]: Dto<A[K]> }) => Promise<Dto<Awaited<R>>>
-    : never;
-};
+import { LazyPromise } from "@/base/rpc/lazy-promise";
+import { Proxied } from "@/base/rpc/proxied";
 
 export enum MessageType {
   request = 0,

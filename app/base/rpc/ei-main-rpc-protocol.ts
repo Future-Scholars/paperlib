@@ -81,7 +81,7 @@ export class EIMainRPCProtocol {
         const signal = `${rpcId}.${eventName}`;
 
         value.on(eventName, (value) => {
-          console.log("event", signal, value);
+          // console.log("event", signal, value);
           for (const [windowId, window] of Object.entries(
             this._browserWindows.all()
           )) {

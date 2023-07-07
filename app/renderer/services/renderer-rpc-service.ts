@@ -6,12 +6,12 @@ import { MessagePortRPCProtocol } from "../../base/rpc/messageport-rpc-protocol"
 import { RPCProtocol, RPCService } from "../../base/rpc/rpc-service";
 
 interface IRendererRPCServiceState {
-  initialized: number;
+  initialized: string;
 }
 
 export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
   constructor() {
-    super("rendererRPCService", { initialized: 0 });
+    super("rendererRPCService", { initialized: "" });
 
     this._listenProtocolCreation();
   }
@@ -23,24 +23,25 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
       );
     }
 
+    // TODO: change this name
     ipcRenderer.on("create-messageport-rpc-protocol", (event, data) => {
       const port = event.ports[0];
       const protocolId = data;
       const protocol = new MessagePortRPCProtocol(port, "rendererProcess");
-      this._initActionor(protocol);
-      this._initProxy(protocol, protocolId);
+      this.initActionor(protocol);
+      this.initProxy(protocol, protocolId);
       this._protocols[protocolId] = protocol;
     });
 
     const eiRendererRPCProtocol = new EIRendererRPCProtocol();
-    this._initProxy(eiRendererRPCProtocol, "mainProcess");
+    this.initProxy(eiRendererRPCProtocol, "mainProcess");
   }
 
-  _initActionor(protocol: RPCProtocol): void {
+  initActionor(protocol: RPCProtocol): void {
     protocol.set("appService", appService);
   }
 
-  _initProxy(protocol: RPCProtocol, protocolId: string): void {
+  initProxy(protocol: RPCProtocol, protocolId: string): void {
     if (protocolId === "extensionProcess") {
     } else if (protocolId === "mainProcess") {
       globalThis.PLMainAPI = {
