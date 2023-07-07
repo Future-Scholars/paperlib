@@ -1,12 +1,13 @@
-import { BrowserWindow, Menu, ipcMain, nativeImage } from "electron";
+import { Menu, nativeImage } from "electron";
 
 import { loadLocales } from "@/locales/load";
-import { Preference, ScraperPreference } from "@/preference/preference";
+import { ScraperPreference } from "@/preference/preference";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
 import { createDecorator } from "@/base/injection/injection";
+import { Eventable } from "@/base/event";
 
 const isMac = process.platform === "darwin";
 
@@ -51,19 +52,67 @@ const pinkBuf = Buffer.from([203, 192, 255, 0]);
 let pinkIcon = nativeImage.createFromBuffer(pinkBuf, { width: 1, height: 1 });
 pinkIcon = pinkIcon.resize({ width: 3, height: 10 });
 
+export interface IContextMenuServiceState {
+  dataContextMenuScrapeFromClicked: string;
+  dataContextMenuOpenClicked: number;
+  dataContextMenuShowInFinderClicked: number;
+  dataContextMenuEditClicked: number;
+  dataContextMenuScrapeClicked: number;
+  dataContextMenuDeleteClicked: number;
+  dataContextMenuFlagClicked: number;
+  dataContextMenuExportBibTexClicked: number;
+  dataContextMenuExportBibTexKeyClicked: number;
+  dataContextMenuExportPlainTextClicked: number;
+  feedContextMenuAddToLibraryClicked: number;
+  feedContextMenuToogleReadClicked: number;
+  sidebarContextMenuFeedRefreshClicked: { data: string; type: string };
+  sidebarContextMenuEditClicked: { data: string; type: string };
+  sidebarContextMenuColorClicked: { data: string; type: string; color: string };
+  sidebarContextMenuDeleteClicked: { data: string; type: string };
+  supContextMenuDeleteClicked: string;
+  thumbnailContextMenuReplaceClicked: number;
+  thumbnailContextMenuRefreshClicked: number;
+}
+
 export const IContextMenuService = createDecorator("contextMenuService");
 
-export class ContextMenuService {
+export class ContextMenuService extends Eventable<IContextMenuServiceState> {
   private readonly _locales: { t: (key: string) => string };
 
   constructor(
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
+    super("contextMenuService", {
+      dataContextMenuScrapeFromClicked: "",
+      dataContextMenuOpenClicked: 0,
+      dataContextMenuShowInFinderClicked: 0,
+      dataContextMenuEditClicked: 0,
+      dataContextMenuScrapeClicked: 0,
+      dataContextMenuDeleteClicked: 0,
+      dataContextMenuFlagClicked: 0,
+      dataContextMenuExportBibTexClicked: 0,
+      dataContextMenuExportBibTexKeyClicked: 0,
+      dataContextMenuExportPlainTextClicked: 0,
+      feedContextMenuAddToLibraryClicked: 0,
+      feedContextMenuToogleReadClicked: 0,
+      sidebarContextMenuFeedRefreshClicked: { data: "", type: "" },
+      sidebarContextMenuEditClicked: { data: "", type: "" },
+      sidebarContextMenuColorClicked: { data: "", type: "", color: "" },
+      sidebarContextMenuDeleteClicked: { data: "", type: "" },
+      supContextMenuDeleteClicked: "",
+      thumbnailContextMenuReplaceClicked: 0,
+      thumbnailContextMenuRefreshClicked: 0,
+    });
+
     this._locales = loadLocales(
       this._preferenceService.get("language") as string
     );
   }
 
+  /**
+   * Shows the context menu for paper data.
+   * @param {boolean} allowEdit - Whether editing is allowed.
+   */
   showPaperDataMenu(allowEdit: boolean) {
     const scraperPrefs = this._preferenceService.get("scrapers") as Record<
       string,
@@ -76,9 +125,9 @@ export class ContextMenuService {
         scraperMenuTemplate.push({
           label: scraperPref.name,
           click: () => {
-            // event.sender.send("data-context-menu-scrape-from", [
-            //   scraperPref.name,
-            // ]);
+            this.fire({
+              dataContextMenuScrapeFromClicked: scraperPref.name,
+            });
           },
         });
       }
@@ -89,7 +138,7 @@ export class ContextMenuService {
         label: this._locales.t("menu.open"),
         accelerator: "Enter",
         click: () => {
-          // event.sender.send("data-context-menu-open");
+          this.fire("dataContextMenuOpenClicked");
         },
       },
       {
@@ -97,7 +146,7 @@ export class ContextMenuService {
           ? this._locales.t("menu.showinfinder")
           : this._locales.t("menu.showinexplore"),
         click: () => {
-          // event.sender.send("data-context-menu-showinfinder");
+          this.fire("dataContextMenuShowInFinderClicked");
         },
       },
       { type: "separator" },
@@ -106,14 +155,14 @@ export class ContextMenuService {
         enabled: allowEdit,
         accelerator: isMac ? "cmd+e" : "ctrl+e",
         click: () => {
-          // event.sender.send("data-context-menu-edit");
+          this.fire("dataContextMenuEditClicked");
         },
       },
       {
         label: this._locales.t("menu.rescrape"),
         accelerator: isMac ? "cmd+r" : "ctrl+r",
         click: () => {
-          // event.sender.send("data-context-menu-scrape");
+          this.fire("dataContextMenuScrapeClicked");
         },
       },
 
@@ -125,14 +174,14 @@ export class ContextMenuService {
       {
         label: this._locales.t("menu.delete"),
         click: () => {
-          // event.sender.send("data-context-menu-delete");
+          this.fire("dataContextMenuDeleteClicked");
         },
       },
       {
         label: this._locales.t("menu.toggleflag"),
         accelerator: isMac ? "cmd+f" : "ctrl+f",
         click: () => {
-          // event.sender.send("data-context-menu-flag");
+          this.fire("dataContextMenuFlagClicked");
         },
       },
       { type: "separator" },
@@ -143,20 +192,20 @@ export class ContextMenuService {
             label: "BibTex",
             accelerator: isMac ? "cmd+shift+c" : "ctrl+shift+c",
             click: () => {
-              // event.sender.send("data-context-menu-export-bibtex");
+              this.fire("dataContextMenuExportBibTexClicked");
             },
           },
           {
             label: this._locales.t("menu.bibtexkey"),
             accelerator: isMac ? "cmd+shift+k" : "ctrl+shift+k",
             click: () => {
-              // event.sender.send("data-context-menu-export-bibtex-key");
+              this.fire("dataContextMenuExportBibTexKeyClicked");
             },
           },
           {
             label: this._locales.t("menu.plaintext"),
             click: () => {
-              // event.sender.send("data-context-menu-export-plain");
+              this.fire("dataContextMenuExportPlainTextClicked");
             },
           },
         ],
@@ -167,26 +216,29 @@ export class ContextMenuService {
     menu.popup();
   }
 
+  /**
+   * Shows the context menu for feed data.
+   */
   showFeedDataMenu() {
     const template = [
       {
         label: this._locales.t("menu.open"),
         accelerator: "Enter",
         click: () => {
-          // event.sender.send("data-context-menu-open");
+          this.fire("dataContextMenuOpenClicked");
         },
       },
       { type: "separator" },
       {
         label: this._locales.t("menu.addtolibrary"),
         click: () => {
-          // event.sender.send("feed-data-context-menu-add");
+          this.fire("feedContextMenuAddToLibraryClicked");
         },
       },
       {
         label: this._locales.t("menu.toggleread"),
         click: () => {
-          // event.sender.send("feed-data-context-menu-read");
+          this.fire("feedContextMenuToogleReadClicked");
         },
       },
     ];
@@ -195,77 +247,114 @@ export class ContextMenuService {
     menu.popup();
   }
 
+  /**
+   * Shows the context menu for sidebar.
+   * @param {string} data - The data of the clicked item.
+   * @param {string} type - The type of the clicked item.
+   */
   showSidebarMenu(data: string, type: string) {
     const template = [
       {
         label: "Blue",
         click: () => {
-          // event.sender.send("sidebar-context-menu-color", [data, type, "blue"]);
+          this.fire({
+            sidebarContextMenuColorClicked: {
+              data: data,
+              type: type,
+              color: "blue",
+            },
+          });
         },
         icon: blueIcon,
       },
       {
         label: "Red",
         click: () => {
-          // event.sender.send("sidebar-context-menu-color", [data, type, "red"]);
+          this.fire({
+            sidebarContextMenuColorClicked: {
+              data: data,
+              type: type,
+              color: "red",
+            },
+          });
         },
         icon: redIcon,
       },
       {
         label: "Yellow",
         click: () => {
-          // event.sender.send("sidebar-context-menu-color", [
-          //   data,
-          //   type,
-          //   "yellow",
-          // ]);
+          this.fire({
+            sidebarContextMenuColorClicked: {
+              data: data,
+              type: type,
+              color: "yellow",
+            },
+          });
         },
         icon: yellowIcon,
       },
       {
         label: "Green",
         click: () => {
-          // event.sender.send("sidebar-context-menu-color", [
-          //   data,
-          //   type,
-          //   "green",
-          // ]);
+          this.fire({
+            sidebarContextMenuColorClicked: {
+              data: data,
+              type: type,
+              color: "green",
+            },
+          });
         },
         icon: greenIcon,
       },
       {
         label: "Orange",
         click: () => {
-          // event.sender.send("sidebar-context-menu-color", [
-          //   data,
-          //   type,
-          //   "orange",
-          // ]);
+          this.fire({
+            sidebarContextMenuColorClicked: {
+              data: data,
+              type: type,
+              color: "orange",
+            },
+          });
         },
         icon: orangeIcon,
       },
       {
         label: "Cyan",
         click: () => {
-          // event.sender.send("sidebar-context-menu-color", [data, type, "cyan"]);
+          this.fire({
+            sidebarContextMenuColorClicked: {
+              data: data,
+              type: type,
+              color: "cyan",
+            },
+          });
         },
         icon: cyanIcon,
       },
       {
         label: "Purple",
         click: () => {
-          // event.sender.send("sidebar-context-menu-color", [
-          //   data,
-          //   type,
-          //   "purple",
-          // ]);
+          this.fire({
+            sidebarContextMenuColorClicked: {
+              data: data,
+              type: type,
+              color: "purple",
+            },
+          });
         },
         icon: purpleIcon,
       },
       {
         label: "Pink",
         click: () => {
-          // event.sender.send("sidebar-context-menu-color", [data, type, "pink"]);
+          this.fire({
+            sidebarContextMenuColorClicked: {
+              data: data,
+              type: type,
+              color: "pink",
+            },
+          });
         },
         icon: pinkIcon,
       },
@@ -273,7 +362,7 @@ export class ContextMenuService {
       {
         label: this._locales.t("menu.delete"),
         click: () => {
-          // event.sender.send("sidebar-context-menu-delete", [data, type]);
+          this.fire({ sidebarContextMenuDeleteClicked: { data, type } });
         },
       },
     ];
@@ -281,7 +370,7 @@ export class ContextMenuService {
       template.push({
         label: this._locales.t("menu.refresh"),
         click: () => {
-          // event.sender.send("sidebar-context-menu-feed-refresh", [data, type]);
+          this.fire({ sidebarContextMenuFeedRefreshClicked: { data, type } });
         },
       });
     } else if (type === "PaperPaperSmartFilter") {
@@ -289,7 +378,7 @@ export class ContextMenuService {
       template.push({
         label: this._locales.t("menu.edit"),
         click: () => {
-          // event.sender.send("sidebar-context-menu-edit", [data, type]);
+          this.fire({ sidebarContextMenuEditClicked: { data, type } });
         },
       });
     }
@@ -298,12 +387,16 @@ export class ContextMenuService {
     menu.popup();
   }
 
+  /**
+   * Shows the context menu for the supplementary files.
+   * @param {string} fileURL - The URL of the file.
+   */
   showSupMenu(fileURL: string) {
     const template = [
       {
         label: this._locales.t("menu.delete"),
         click: () => {
-          // event.sender.send("sup-context-menu-delete", fileURL);
+          this.fire({ supContextMenuDeleteClicked: fileURL });
         },
       },
     ];
@@ -312,18 +405,22 @@ export class ContextMenuService {
     menu.popup();
   }
 
+  /**
+   * Shows the context menu for the thumbnail.
+   * @param {string} fileURL - The URL of the file.
+   */
   showThumbnailMenu(fileURL: string) {
     const template = [
       {
         label: this._locales.t("menu.replace"),
         click: () => {
-          // event.sender.send("thumbnail-context-menu-replace", args);
+          this.fire({ thumbnailContextMenuReplaceClicked: fileURL });
         },
       },
       {
         label: this._locales.t("menu.refresh"),
         click: () => {
-          // event.sender.send("thumbnail-context-menu-refresh", args);
+          this.fire("thumbnailContextMenuRefreshClicked");
         },
       },
     ];

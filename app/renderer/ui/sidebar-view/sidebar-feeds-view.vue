@@ -72,30 +72,30 @@ const onAddNewFeedClicked = () => {
 // Register Context Menu Callbacks
 // ================================
 
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-delete",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuDeleteClicked",
+  (payload: { data: string; type: string }) => {
     if (viewState.contentType === "feed") {
-      feedService.delete(args[0]);
+      feedService.delete(payload.data);
       selectionState.selectedFeed = "feed-all";
     }
   }
 );
 
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-feed-refresh",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuFeedRefreshClicked",
+  (payload: { data: string; type: string }) => {
     if (viewState.contentType === "feed") {
-      feedService.refresh([args[0]]);
+      feedService.refresh([payload.data]);
     }
   }
 );
 
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-color",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuColorClicked",
+  (payload: { data: string; type: string; color: string }) => {
     if (viewState.contentType === "feed") {
-      feedService.colorize(args[2], args[0]);
+      feedService.colorize(payload.color as any, payload.data);
     }
   }
 );

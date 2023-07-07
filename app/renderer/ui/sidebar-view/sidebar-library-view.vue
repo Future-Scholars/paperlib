@@ -139,40 +139,52 @@ const onAddNewPaperSmartFilterClicked = () => {
 // ================================
 // Register Context Menu Callbacks
 // ================================
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-delete",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuDeleteClicked",
+  (payload: { data: string; type: string }) => {
     if (viewState.contentType === "library") {
-      if (args[2] === "PaperPaperSmartFilter") {
-        smartFilterService.delete(args[1], args[0]);
+      if (payload.type === "PaperPaperSmartFilter") {
+        smartFilterService.delete(payload.type, payload.data);
       } else {
-        categorizerService.delete(args[1], args[0]);
+        categorizerService.delete(payload.type as any, payload.data);
       }
       selectionState.selectedCategorizer = "lib-all";
     }
   }
 );
 
-window.appInteractor.registerMainSignal(
-  "sidebar-context-menu-color",
-  (args) => {
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuColorClicked",
+  (payload: { data: string; type: string; color: string }) => {
     if (viewState.contentType === "library") {
-      if (args[2] === "PaperPaperSmartFilter") {
-        smartFilterService.colorize(args[2], args[1], args[0]);
+      if (payload.type === "PaperPaperSmartFilter") {
+        // TODO: check here
+        smartFilterService.colorize(
+          payload.color as any,
+          payload.type,
+          payload.data
+        );
       } else {
-        categorizerService.colorize(args[2], args[1], args[0]);
+        categorizerService.colorize(
+          payload.color as any,
+          payload.type as any,
+          payload.data
+        );
       }
     }
   }
 );
 
-window.appInteractor.registerMainSignal("sidebar-context-menu-edit", (args) => {
-  if (viewState.contentType === "library") {
-    selectionState.editingCategorizer = `${
-      { PaperTag: "tag", PaperFolder: "folder" }[args[1] as string]
-    }-${args[0]}`;
+PLMainAPI.contextMenuService.on(
+  "sidebarContextMenuEditClicked",
+  (payload: { data: ""; type: "" }) => {
+    if (viewState.contentType === "library") {
+      selectionState.editingCategorizer = `${
+        { PaperTag: "tag", PaperFolder: "folder" }[payload.type as string]
+      }-${payload.data}`;
+    }
   }
-});
+);
 
 watch(
   () => processingState.general,

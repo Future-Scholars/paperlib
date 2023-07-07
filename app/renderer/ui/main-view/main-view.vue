@@ -288,66 +288,54 @@ const onDetailPanelResized = (event: any) => {
 // ========================================================
 // Register Context Menu
 
-window.appInteractor.registerMainSignal("data-context-menu-edit", () => {
+PLMainAPI.contextMenuService.on("dataContextMenuEditClicked", () => {
   editSelectedEntities();
 });
 
-window.appInteractor.registerMainSignal("data-context-menu-flag", () => {
+PLMainAPI.contextMenuService.on("dataContextMenuFlagClicked", () => {
   flagSelectedEntities();
 });
 
-window.appInteractor.registerMainSignal("data-context-menu-delete", () => {
+PLMainAPI.contextMenuService.on("dataContextMenuDeleteClicked", () => {
   deleteSelectedEntities();
 });
 
-window.appInteractor.registerMainSignal("data-context-menu-scrape", () => {
+PLMainAPI.contextMenuService.on("dataContextMenuScrapeClicked", () => {
   scrapeSelectedEntities();
 });
 
-window.appInteractor.registerMainSignal(
-  "data-context-menu-scrape-from",
-  (args) => {
-    scrapeSelectedEntitiesFrom(args[0]);
+PLMainAPI.contextMenuService.on(
+  "dataContextMenuScrapeFromClicked",
+  (scraperName: string) => {
+    scrapeSelectedEntitiesFrom(scraperName);
   }
 );
 
-window.appInteractor.registerMainSignal("data-context-menu-open", () => {
+PLMainAPI.contextMenuService.on("dataContextMenuOpenClicked", () => {
   openSelectedEntities();
 });
 
-window.appInteractor.registerMainSignal(
-  "data-context-menu-showinfinder",
-  () => {
-    showInFinderSelectedEntities();
-  }
-);
+PLMainAPI.contextMenuService.on("dataContextMenuShowInFinderClicked", () => {
+  showInFinderSelectedEntities();
+});
 
-window.appInteractor.registerMainSignal(
-  "data-context-menu-export-bibtex",
-  () => {
-    exportSelectedEntities("BibTex");
-  }
-);
+PLMainAPI.contextMenuService.on("dataContextMenuExportBibTexClicked", () => {
+  exportSelectedEntities("BibTex");
+});
 
-window.appInteractor.registerMainSignal(
-  "data-context-menu-export-bibtex-key",
-  () => {
-    exportSelectedEntities("BibTex-Key");
-  }
-);
+PLMainAPI.contextMenuService.on("dataContextMenuExportBibTexKeyClicked", () => {
+  exportSelectedEntities("BibTex-Key");
+});
 
-window.appInteractor.registerMainSignal(
-  "data-context-menu-export-plain",
-  () => {
-    exportSelectedEntities("PlainText");
-  }
-);
+PLMainAPI.contextMenuService.on("dataContextMenuExportPlainTextClicked", () => {
+  exportSelectedEntities("PlainText");
+});
 
-window.appInteractor.registerMainSignal("feed-data-context-menu-add", () => {
+PLMainAPI.contextMenuService.on("feedContextMenuAddToLibraryClicked", () => {
   addSelectedFeedEntities();
 });
 
-window.appInteractor.registerMainSignal("feed-data-context-menu-read", () => {
+PLMainAPI.contextMenuService.on("feedContextMenuToogleReadClicked", () => {
   readSelectedFeedEntities(null);
 });
 
@@ -434,12 +422,13 @@ window.appInteractor.registerMainSignal("shortcut-cmd-shift-k", () => {
   if (selectedPaperEntities.value.length >= 1) {
     exportSelectedEntities("BibTex-Key");
   }
-}),
-  window.appInteractor.registerMainSignal("shortcut-cmd-e", () => {
-    if (selectedPaperEntities.value.length == 1) {
-      editSelectedEntities();
-    }
-  });
+});
+
+window.appInteractor.registerMainSignal("shortcut-cmd-e", () => {
+  if (selectedPaperEntities.value.length == 1) {
+    editSelectedEntities();
+  }
+});
 
 window.appInteractor.registerMainSignal("shortcut-cmd-f", () => {
   if (selectedPaperEntities.value.length >= 1) {

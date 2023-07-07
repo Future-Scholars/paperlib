@@ -83,9 +83,12 @@ const onDeleteSup = (url: string) => {
   paperService.deleteSup(paperEntityDraft, url);
 };
 
-window.appInteractor.registerMainSignal("sup-context-menu-delete", (args) => {
-  onDeleteSup(args);
-});
+PLMainAPI.contextMenuService.on(
+  "supContextMenuDeleteClicked",
+  (fileURL: string) => {
+    onDeleteSup(fileURL);
+  }
+);
 
 const registerDropHandler = () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call

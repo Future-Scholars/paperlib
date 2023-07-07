@@ -238,16 +238,12 @@ disposable(
   })
 );
 
-window.appInteractor.registerMainSignal("window-lost-focus", (_: any) => {
+PLMainAPI.windowProcessManagementService.on("blur", () => {
   viewState.mainViewFocused = false;
   databaseService.pauseSync();
 });
 
-PLMainAPI.windowProcessManagementService.on("blur", () => {
-  console.log("window-lost-focus");
-});
-
-window.appInteractor.registerMainSignal("window-gained-focus", (_) => {
+PLMainAPI.windowProcessManagementService.on("focus", () => {
   viewState.mainViewFocused = true;
   databaseService.resumeSync();
 });

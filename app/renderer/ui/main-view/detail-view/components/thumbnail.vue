@@ -10,6 +10,7 @@ import { onMounted, ref, watch } from "vue";
 import { PaperEntity } from "@/models/paper-entity";
 import { ThumbnailCache } from "@/models/paper-entity-cache";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { ipcMain } from "electron";
 
 const props = defineProps({
   entity: {
@@ -122,19 +123,13 @@ const onRightClicked = (event: MouseEvent) => {
   PLMainAPI.contextMenuService.showThumbnailMenu(props.entity.mainURL);
 };
 
-window.appInteractor.registerMainSignal(
-  "thumbnail-context-menu-replace",
-  (args) => {
-    showFilePicker();
-  }
-);
+PLMainAPI.contextMenuService.on("thumbnailContextMenuReplaceClicked", () => {
+  showFilePicker();
+});
 
-window.appInteractor.registerMainSignal(
-  "thumbnail-context-menu-refresh",
-  (args) => {
-    renderFromFile();
-  }
-);
+PLMainAPI.contextMenuService.on("thumbnailContextMenuRefreshClicked", () => {
+  renderFromFile();
+});
 
 watch(
   () => viewState.renderRequired,
