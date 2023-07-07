@@ -17,7 +17,6 @@ import { MainRPCService } from "./services/main-rpc-service.ts";
 import { WindowProcessManagementService } from "./services/window-management-service.ts";
 import "./theme.ts";
 import "./update.ts";
-import { registerMainContextMenu } from "./win_main/contextmenu";
 import { createMainWindow } from "./win_main/index";
 import {
   createPluginWindow,
@@ -27,6 +26,7 @@ import {
 import { registerSideworkWindowEvents } from "./win_sidework/event";
 import { FileSystemService } from "./services/filesystem-service.ts";
 import { ContextMenuService } from "./services/contextmenu-service.ts";
+import { MenuService } from "./services/menu-service.ts";
 
 Store.initRenderer();
 // const preference = new Preference();
@@ -108,6 +108,7 @@ async function initialize() {
     fileSystemService: FileSystemService,
     contextMenuService: ContextMenuService,
     mainRPCService: MainRPCService,
+    menuService: MenuService,
   });
   for (const [key, instance] of Object.entries(instances)) {
     globalThis[key] = instance;

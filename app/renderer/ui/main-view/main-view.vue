@@ -339,13 +339,14 @@ PLMainAPI.contextMenuService.on("feedContextMenuToogleReadClicked", () => {
   readSelectedFeedEntities(null);
 });
 
-// // ========================================================
-// // Register Shortcut
-window.appInteractor.registerMainSignal("shortcut-Preference", () => {
+// ========================================================
+// Register Shortcut
+
+PLMainAPI.menuService.onClick("preference", () => {
   viewState.isPreferenceViewShown = true;
 });
 
-window.appInteractor.registerMainSignal("shortcut-Enter", () => {
+PLMainAPI.menuService.onClick("File-enter", () => {
   if (
     viewState.mainViewFocused &&
     !viewState.inputFieldFocused &&
@@ -359,7 +360,7 @@ window.appInteractor.registerMainSignal("shortcut-Enter", () => {
   }
 });
 
-window.appInteractor.registerMainSignal("shortcut-Space", () => {
+PLMainAPI.menuService.onClick("View-preview", () => {
   if (
     viewState.mainViewFocused &&
     !viewState.inputFieldFocused &&
@@ -371,6 +372,43 @@ window.appInteractor.registerMainSignal("shortcut-Space", () => {
     previewSelectedEntities();
   }
 });
+
+PLMainAPI.menuService.onClick("File-copyBibTex", () => {
+  if (selectedPaperEntities.value.length >= 1) {
+    exportSelectedEntities("BibTex");
+  }
+});
+
+PLMainAPI.menuService.onClick("File-copyBibTexKey", () => {
+  if (selectedPaperEntities.value.length >= 1) {
+    exportSelectedEntities("BibTex-Key");
+  }
+});
+
+PLMainAPI.menuService.onClick("Edit-edit", () => {
+  if (selectedPaperEntities.value.length == 1) {
+    editSelectedEntities();
+  }
+});
+
+PLMainAPI.menuService.onClick("Edit-flag", () => {
+  if (selectedPaperEntities.value.length >= 1) {
+    flagSelectedEntities();
+  }
+});
+
+PLMainAPI.menuService.onClick("Edit-rescrape", () => {
+  if (selectedPaperEntities.value.length >= 1) {
+    scrapeSelectedEntities();
+  }
+});
+
+window.appInteractor.registerMainSignal("shortcut-arrow-up", onArrowUpPressed);
+
+window.appInteractor.registerMainSignal(
+  "shortcut-arrow-down",
+  onArrowDownPressed
+);
 
 function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
   if (!viewState.mainViewFocused) {
@@ -411,43 +449,6 @@ window.addEventListener("keydown", preventSpaceArrowScrollEvent, true);
 // =======================================
 // Register State Change
 // =======================================
-
-window.appInteractor.registerMainSignal("shortcut-cmd-shift-c", () => {
-  if (selectedPaperEntities.value.length >= 1) {
-    exportSelectedEntities("BibTex");
-  }
-});
-
-window.appInteractor.registerMainSignal("shortcut-cmd-shift-k", () => {
-  if (selectedPaperEntities.value.length >= 1) {
-    exportSelectedEntities("BibTex-Key");
-  }
-});
-
-window.appInteractor.registerMainSignal("shortcut-cmd-e", () => {
-  if (selectedPaperEntities.value.length == 1) {
-    editSelectedEntities();
-  }
-});
-
-window.appInteractor.registerMainSignal("shortcut-cmd-f", () => {
-  if (selectedPaperEntities.value.length >= 1) {
-    flagSelectedEntities();
-  }
-});
-
-window.appInteractor.registerMainSignal("shortcut-cmd-r", () => {
-  if (selectedPaperEntities.value.length >= 1) {
-    scrapeSelectedEntities();
-  }
-});
-
-window.appInteractor.registerMainSignal("shortcut-arrow-up", onArrowUpPressed);
-
-window.appInteractor.registerMainSignal(
-  "shortcut-arrow-down",
-  onArrowDownPressed
-);
 
 watch(
   () => selectionState.selectedIndex,

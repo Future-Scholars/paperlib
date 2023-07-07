@@ -1,6 +1,7 @@
 import { Proxied } from "@/base/rpc/ei-renderer-rpc-protocol";
 import { ContextMenuService } from "@/main/services/contextmenu-service";
 import { FileSystemService } from "@/main/services/filesystem-service";
+import { MenuService } from "@/main/services/menu-service";
 import { WindowProcessManagementService } from "@/main/services/window-management-service";
 import { APPService } from "@/renderer/services/app-service";
 
@@ -24,4 +25,5 @@ export interface MainAPIShape {
   windowProcessManagementService: Proxied<WindowProcessManagementService>;
   fileSystemService: Proxied<FileSystemService>;
   contextMenuService: Proxied<ContextMenuService>;
+  menuService: Proxied<MenuService>;
 }

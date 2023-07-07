@@ -5,7 +5,7 @@ import { PreferenceService } from "@/common/services/preference-service";
 import { ContextMenuService } from "@/main/services/contextmenu-service";
 import { FileSystemService } from "@/main/services/filesystem-service";
 import { MainRPCService } from "@/main/services/main-rpc-service";
-import { WindowControlService } from "@/main/services/window-control-service";
+import { MenuService } from "@/main/services/menu-service";
 import { WindowProcessManagementService } from "@/main/services/window-management-service";
 import { APPService } from "@/renderer/services/app-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
@@ -63,6 +63,6 @@ export type IInjectable =
   | NetworkTool
   | WindowProcessManagementService
   | MainRPCService
-  | WindowControlService
   | FileSystemService
-  | ContextMenuService;
+  | ContextMenuService
+  | MenuService;
