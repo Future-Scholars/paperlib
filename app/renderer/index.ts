@@ -14,7 +14,6 @@ import { IInjectable } from "@/base/injection/injectable";
 import { InjectionContainer } from "@/base/injection/injection";
 import { NetworkTool } from "@/base/network";
 import { PreferenceService } from "@/common/services/preference-service";
-import { AppInteractor } from "@/interactors/app-interactor";
 import { loadLocales } from "@/locales/load";
 import { Preference } from "@/preference/preference";
 import { APPService } from "@/renderer/services/app-service";
@@ -127,14 +126,11 @@ const i18n = createI18n({
 
 app.use(i18n);
 
-const appInteractor = new AppInteractor();
-
+// TODO: check if this is duplicated
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (event) => {
     stateStore.viewState.renderRequired = Date.now();
   });
-
-window.appInteractor = appInteractor;
 
 app.mount("#app");

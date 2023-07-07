@@ -12,6 +12,11 @@ import {
   ContextMenuService,
   IContextMenuService,
 } from "@/main/services/contextmenu-service";
+import {
+  IUpgradeService,
+  UpgradeService,
+} from "@/main/services/upgrade-service";
+import { IMenuService, MenuService } from "@/main/services/menu-service";
 
 interface IMainRPCServiceState {
   initialized: number;
@@ -23,7 +28,9 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     private readonly _windowProcessManagementService: WindowProcessManagementService,
     @IFileSystemService private readonly _fileSystemService: FileSystemService,
     @IContextMenuService
-    private readonly _contextMenuService: ContextMenuService
+    private readonly _contextMenuService: ContextMenuService,
+    @IMenuService private readonly _menuService: MenuService,
+    @IUpgradeService private readonly _upgradeService: UpgradeService
   ) {
     super("mainRPCService", { initialized: 0 });
 
@@ -50,6 +57,8 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     );
     protocol.set("fileSystemService", this._fileSystemService);
     protocol.set("contextMenuService", this._contextMenuService);
+    protocol.set("menuService", this._menuService);
+    protocol.set("upgradeService", this._upgradeService);
   }
 
   _initProxy(protocol: RPCProtocol, protocolId: string): void {

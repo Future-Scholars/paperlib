@@ -27,6 +27,7 @@ import { registerSideworkWindowEvents } from "./win_sidework/event";
 import { FileSystemService } from "./services/filesystem-service.ts";
 import { ContextMenuService } from "./services/contextmenu-service.ts";
 import { MenuService } from "./services/menu-service.ts";
+import { UpgradeService } from "./services/upgrade-service.ts";
 
 Store.initRenderer();
 // const preference = new Preference();
@@ -107,8 +108,9 @@ async function initialize() {
     windowProcessManagementService: WindowProcessManagementService,
     fileSystemService: FileSystemService,
     contextMenuService: ContextMenuService,
-    mainRPCService: MainRPCService,
     menuService: MenuService,
+    upgradeService: UpgradeService,
+    mainRPCService: MainRPCService,
   });
   for (const [key, instance] of Object.entries(instances)) {
     globalThis[key] = instance;

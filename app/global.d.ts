@@ -37,7 +37,6 @@ import { ContextMenuService } from "./main/services/contextmenu-service";
 
 declare global {
   interface Window {
-    appInteractor: AppInteractor;
     previewInteractor: PreviewInteractor;
     pluginSideInteractor: PluginSideInteractor;
 

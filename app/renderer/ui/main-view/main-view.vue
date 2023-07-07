@@ -403,12 +403,9 @@ PLMainAPI.menuService.onClick("Edit-rescrape", () => {
   }
 });
 
-window.appInteractor.registerMainSignal("shortcut-arrow-up", onArrowUpPressed);
+PLMainAPI.menuService.onClick("View-previous", onArrowUpPressed);
 
-window.appInteractor.registerMainSignal(
-  "shortcut-arrow-down",
-  onArrowDownPressed
-);
+PLMainAPI.menuService.onClick("View-next", onArrowDownPressed);
 
 function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
   if (!viewState.mainViewFocused) {

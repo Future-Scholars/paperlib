@@ -126,9 +126,10 @@ const checkLinkedFolder = () => {
     window.pluginSideInteractor.linkedFolder();
 };
 
-window.pluginSideInteractor.registerMainSignal("plugin-gain-focus", () => {
-  checkLinkedFolder();
-});
+// TODO: this
+// window.pluginSideInteractor.registerMainSignal("plugin-gain-focus", () => {
+//   checkLinkedFolder();
+// });
 
 onMounted(() => {
   checkLinkedFolder();
