@@ -79,11 +79,13 @@ onMounted(() => {
         <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.3</p>
 
         <ul class="list-disc mb-5">
-          <li>Fixed a bug of the code repository scraper.</li>
-          <li>Fixed a bug of the smart filter..</li>
+          <li> Browser extension supports https://pubs.acs.org/ </li>
         </ul>
 
         <p class="text-center text-2xl font-bold mb-8">About Paperlib 3.0.0</p>
+        <p class="mb-2">
+          If you wish to join me in the development of Paperlib, please contact me.
+        </p>
         <p class="mb-2">
           In this major update, we will introduce a
           <b>vscode-like extension system</b>
