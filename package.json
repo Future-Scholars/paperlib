@@ -75,8 +75,6 @@
     "katex": "0.16.2",
     "keytar": "7.9.0",
     "realm": "11.9.0",
-    "vue-observe-visibility": "^1.0.0",
-    "vue-resize": "^1.0.1",
     "ws": "8.6.0"
   },
   "debug": {
