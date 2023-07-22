@@ -28,20 +28,20 @@ export class EmbedWebImporter extends WebImporter {
 
       // @ts-ignore
       for (const meta of metaTags) {
-        if (meta.name === "citation_title") {
+        if (meta.name === "citation_title" || meta.name === "dc.Title") {
           entityDraft.setValue("title", meta.content);
           matched = true;
         }
-        if (meta.name === "citation_author") {
+        if (meta.name === "citation_author" || meta.name === "dc.Creator") {
           authors.push(meta.content);
         }
-        if (meta.name === "citation_publication_date") {
+        if (meta.name === "citation_publication_date" || meta.name == "dc.Date") {
           entityDraft.setValue("pubTime", meta.content.split("/")[0]);
         }
-        if (meta.name === "citation_doi") {
+        if (meta.name === "citation_doi" || meta.name === "dc.Identifier") {
           entityDraft.setValue("doi", meta.content);
         }
-        if (meta.name === "citation_pdf_url") {
+        if (meta.name === "citation_pdf_url" || meta.name === "dc.Identifier") {
           let downloadURL;
           if (webContent.url.includes('adsabs.harvard.edu')) {
             downloadURL = `https://ui.adsabs.harvard.edu${meta.content}`;
