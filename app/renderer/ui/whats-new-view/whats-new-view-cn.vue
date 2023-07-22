@@ -76,7 +76,7 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">版本 2.2.4 更新内容</p>
+        <p class="text-center text-2xl font-bold mb-8">版本 2.2.5 更新内容</p>
 
         <ul class="list-disc mb-5">
           <li>浏览器插件现在支持 https://pubs.acs.org/ 了。</li>

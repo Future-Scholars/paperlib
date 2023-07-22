@@ -1,4 +1,4 @@
-## v2.2.4 July 22 2023
+## v2.2.5 July 22 2023
 
 1. Browser extension supports https://pubs.acs.org/ now.
 
