@@ -1,3 +1,8 @@
+## v2.2.4 July 22 2023
+
+1. Browser extension supports https://pubs.acs.org/ now.
+
+
 ## v2.2.3 July 01 2023
 
 1. Fixed a bug of the code repository scraper.

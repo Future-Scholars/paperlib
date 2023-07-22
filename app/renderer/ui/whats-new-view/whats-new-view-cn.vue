@@ -76,14 +76,18 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">版本 2.2.3 更新内容</p>
+        <p class="text-center text-2xl font-bold mb-8">版本 2.2.4 更新内容</p>
 
         <ul class="list-disc mb-5">
-          <li>修复代码仓库搜刮器的 Bug。</li>
-          <li>修复了 Smart Filter 的一个 Bug。</li>
+          <li>浏览器插件现在支持 https://pubs.acs.org/ 了。</li>
         </ul>
 
         <p class="text-center text-2xl font-bold mb-8">关于 Paperlib 3.0.0</p>
+
+        <p class="mb-2">
+          如果你愿意参与开发，想让 Paperlib 变得更好，帮助缓解开发人手不足，请联系我。谢谢。
+        </p>
+
         <p class="mb-2">
           在这个大版本更新中，我们将会发布一个
           <b>类 vscode 的插件系统</b>
