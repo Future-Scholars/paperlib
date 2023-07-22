@@ -45,8 +45,6 @@ export class EmbedWebImporter extends WebImporter {
           let downloadURL;
           if (webContent.url.includes('adsabs.harvard.edu')) {
             downloadURL = `https://ui.adsabs.harvard.edu${meta.content}`;
-          } else if (webContent.url.includes('pubs.acs.org')) {
-            downloadURL = `https://pubs.acs.org/doi/pdf/${meta.content}?download=true`;
           } else {
             if (meta.content.endsWith(".pdf")) {
               downloadURL = meta.content;
