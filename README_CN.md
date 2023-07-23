@@ -95,8 +95,8 @@
 
 ## 快速开始
 
-[介绍 (EN)](https://paperlib.app/en/doc/getting-started.html)  
 [介绍 (CN)](https://paperlib.app/cn/doc/getting-started.html)
+[介绍 (EN)](https://paperlib.app/en/doc/getting-started.html)  
 
 ## 捐赠
 
