@@ -1,4 +1,9 @@
 <div align="center">
+
+**English** | [中文](./README_CN.md)
+
+</div>
+<div align="center">
 <img src="./assets/icon.png" height="95" />
 <br />
 <img src="https://img.shields.io/badge/dynamic/json?label=Release&query=version&url=https://raw.githubusercontent.com/Future-Scholars/paperlib/master/package.json" />
