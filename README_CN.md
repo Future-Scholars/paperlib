@@ -14,7 +14,7 @@
 </div>
 
 <p align='center'>
-加入我们的<a href="https://discord.gg/4unrSRjcM9">Discord 社区</a>！
+加入我们的<a href="https://discord.gg/4unrSRjcM9"> Discord 社区</a>！
 </p>
 
 
