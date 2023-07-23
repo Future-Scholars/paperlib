@@ -91,7 +91,7 @@
 
 ### Linux
 
-参见 [这里](https://paperlib.app/en/download-linux.html)。
+参见 [这里](https://paperlib.app/cn/download-linux.html)。
 
 ## 快速开始
 
