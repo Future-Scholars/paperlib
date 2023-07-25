@@ -1,6 +1,7 @@
 export const loadLocales = (code?: string) => {
   const locales: Record<string, any> = {};
 
+  // @ts-ignore
   const data = import.meta.glob("./locales/*.json", { eager: true });
 
   for (const path in data) {

@@ -8,19 +8,6 @@ const onClick = () => {
   viewState.isDeleteConfirmShown = false;
 };
 
-const keyDownListener = (e: KeyboardEvent) => {
-  e.preventDefault();
-  if (viewState.isDeleteConfirmShown) {
-    if (e.key === "Enter") {
-      onConfirm();
-    } else if (e.key === "Escape") {
-      onCancel();
-    }
-  }
-};
-
-document.addEventListener("keydown", keyDownListener, { once: true });
-
 const onCancel = () => {
   onClick();
 };
@@ -31,6 +18,9 @@ const onConfirm = () => {
   selectionState.selectedIndex = [];
   onClick();
 };
+
+shortcutService.register("Escape", onCancel);
+shortcutService.register("Enter", onConfirm);
 </script>
 
 <template>
@@ -45,7 +35,7 @@ const onConfirm = () => {
     <div
       id="modal-view"
       class="absolute w-full h-full top-0 left-0"
-      v-show="viewState.isDeleteConfirmShown"
+      v-if="viewState.isDeleteConfirmShown"
       @click="onClick"
     >
       <div

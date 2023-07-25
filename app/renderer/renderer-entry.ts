@@ -7,10 +7,11 @@ import { createApp } from "vue";
 import { createI18n } from "vue-i18n";
 import vSelect from "vue-select";
 import draggable from "vuedraggable";
+import { ipcRenderer } from "electron";
 
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
-import { IInjectable } from "@/base/injection/injectable";
+import { IInjectable } from "@/renderer/services/injectable";
 import { InjectionContainer } from "@/base/injection/injection";
 import { NetworkTool } from "@/base/network";
 import { PreferenceService } from "@/common/services/preference-service";
@@ -33,8 +34,10 @@ import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
 import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
+import { CommandService } from "@/renderer/services/command-service";
 import { useProcessingState } from "@/renderer/services/state-service/processing";
 import { StateService } from "@/renderer/services/state-service/state-service";
+import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
 import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
 import { FeedRepository } from "@/repositories/db-repository/feed-repository";
@@ -46,7 +49,8 @@ import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import "./css/index.css";
 import "./css/katex.min.css";
-import AppView from "./ui/app-view.vue";
+import AppView from "@/renderer/ui/app-view.vue";
+import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 
 // @ts-ignore
 vSelect.props.components.default = () => ({
@@ -72,7 +76,15 @@ app.component("RecycleScroller", RecycleScroller);
 const processingState = useProcessingState();
 globalThis.processingState = processingState;
 
-new RendererRPCService();
+const rendererRPCService = new RendererRPCService();
+const mainProcessExposedAPI = await ipcRenderer.invoke("request-exposed-api");
+const { port1, port2 } = new MessageChannel();
+ipcRenderer.postMessage("register-message-port", "renderer-process", [port2]);
+rendererRPCService.initProxy(
+  new MessagePortRPCProtocol(port1, "main-process"),
+  mainProcessExposedAPI
+);
+
 const injectionContainer = new InjectionContainer();
 const instances = injectionContainer.createInstance<IInjectable>({
   appService: APPService,
@@ -102,24 +114,21 @@ const instances = injectionContainer.createInstance<IInjectable>({
   referenceService: ReferenceService,
   schedulerService: SchedulerService,
   msWordCommService: MSWordCommService,
+  commandService: CommandService,
+  shortcutService: ShortcutService,
   networkTool: NetworkTool,
 });
+
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;
 }
-
-const preference = new Preference(true);
-const stateStore = new MainRendererStateStore(preference);
-
-// Inject
-window.preference = preference;
-window.stateStore = stateStore;
+// rendererRPCService.listenProtocolCreation(instances);
 
 const locales = loadLocales();
 
 const i18n = createI18n({
   allowComposition: true,
-  locale: preference.get("language") as string,
+  locale: preferenceService.get("language") as string,
   fallbackLocale: "en-GB",
   messages: locales,
 });
@@ -130,7 +139,7 @@ app.use(i18n);
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (event) => {
-    stateStore.viewState.renderRequired = Date.now();
+    stateService.viewState.renderRequired = Date.now();
   });
 
 app.mount("#app");

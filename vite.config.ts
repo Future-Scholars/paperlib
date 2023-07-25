@@ -39,7 +39,7 @@ export default defineConfig({
   plugins: [
     electron({
       entry: [
-        "app/main/main.ts",
+        "app/main/main-entry.ts",
         "app/preload/preload.ts",
         "app/extension/extension-entry.ts",
       ],

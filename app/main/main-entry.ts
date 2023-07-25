@@ -1,29 +1,29 @@
-import { BrowserWindow, app, globalShortcut, ipcMain, screen } from "electron";
-// @ts-ignore
+import {
+  IpcMainEvent,
+  IpcMainInvokeEvent,
+  MessageChannelMain,
+  app,
+  ipcMain,
+} from "electron";
 import Store from "electron-store";
 import path from "node:path";
 import { release } from "os";
 
-import { IInjectable } from "@/base/injection/injectable.ts";
+import { IInjectable } from "@/main/services/injectable.ts";
 import { InjectionContainer } from "@/base/injection/injection.ts";
 import { PreferenceService } from "@/common/services/preference-service.ts";
 import { WindowStorage } from "@/main/window-storage.ts";
 
-import "./files.ts";
 import { MainRPCService } from "./services/main-rpc-service.ts";
 import { WindowProcessManagementService } from "./services/window-management-service.ts";
-import {
-  createPluginWindow,
-  setMainPluginCommunicationChannel,
-  setWindowsSpecificStyles,
-} from "./win_plugin/index";
-import { registerSideworkWindowEvents } from "./win_sidework/event";
+
 import { FileSystemService } from "./services/filesystem-service.ts";
 import { ContextMenuService } from "./services/contextmenu-service.ts";
 import { MenuService } from "./services/menu-service.ts";
 import { UpgradeService } from "./services/upgrade-service.ts";
 import { ProxyService } from "./services/proxy-service.ts";
 import { MainExtensionService } from "./services/main-extension-service.ts";
+import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol.ts";
 
 Store.initRenderer();
 
@@ -93,8 +93,6 @@ if (process.defaultApp) {
 //   );
 // }
 
-globalThis.browserWindows = new WindowStorage();
-
 async function initialize() {
   const injectionContainer = new InjectionContainer();
 
@@ -105,13 +103,21 @@ async function initialize() {
     contextMenuService: ContextMenuService,
     menuService: MenuService,
     upgradeService: UpgradeService,
-    mainRPCService: MainRPCService,
     proxyService: ProxyService,
-    mainExtensionService: MainExtensionService,
+    // mainExtensionService: MainExtensionService,
   });
   for (const [key, instance] of Object.entries(instances)) {
     globalThis[key] = instance;
   }
+  globalThis.mainRPCService = new MainRPCService();
+  mainRPCService.setActionor({
+    windowProcessManagementService,
+    fileSystemService,
+    contextMenuService,
+    menuService,
+    upgradeService,
+    proxyService,
+  });
 
   app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();
@@ -149,6 +155,19 @@ async function initialize() {
   ipcMain.handle("version", () => {
     return app.getVersion();
   });
+
+  ipcMain.handle("request-exposed-api", () => {
+    return mainRPCService.exposedAPI();
+  });
+
+  ipcMain.on(
+    "register-message-port",
+    (event: IpcMainEvent, callerId: string) => {
+      const port = event.ports[0];
+
+      mainRPCService.initActionor(new MessagePortRPCProtocol(port, callerId));
+    }
+  );
 
   windowProcessManagementService.createMainRenderer();
 }

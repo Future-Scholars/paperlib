@@ -2,6 +2,7 @@ import { ObjectId } from "bson";
 import { promises } from "fs";
 import md5 from "md5-file";
 import * as pdfjs from "pdfjs-dist/build/pdf";
+// @ts-ignore
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import { PrimaryKey } from "realm";

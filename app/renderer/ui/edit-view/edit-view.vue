@@ -5,7 +5,7 @@ import { Ref, inject, ref, watch } from "vue";
 import { disposable } from "@/base/dispose";
 import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { CategorizerResults } from "@/repositories/db-repository/categorizer-repository";
+import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CodesInput from "./components/codes-input.vue";
@@ -26,15 +26,6 @@ const editingPaperEntityDraft = ref(
 );
 const viewState = MainRendererStateStore.useViewState();
 
-watch(
-  () => viewState.isEditViewShown,
-  (value) => {
-    if (value) {
-      window.addEventListener("keydown", keyDownListener, { once: true });
-    }
-  }
-);
-
 disposable(
   bufferService.onChanged("editingPaperEntityDraft", (payload) => {
     editingPaperEntityDraft.value.initialize(payload.value);
@@ -45,25 +36,8 @@ disposable(
 // Data
 // ==============================
 const pubTypes = ["Article", "Conference", "Others", "Book"];
-const tags = inject<Ref<CategorizerResults>>("tags");
-const folders = inject<Ref<CategorizerResults>>("folders");
-
-const keyDownListener = (e: KeyboardEvent) => {
-  if (
-    e.target instanceof HTMLInputElement ||
-    e.target instanceof HTMLTextAreaElement
-  ) {
-    if (e.key === "Escape") {
-      onCloseClicked();
-    }
-    return true;
-  }
-
-  e.preventDefault();
-  if (e.key === "Escape") {
-    onCloseClicked();
-  }
-};
+const tags = inject<Ref<ICategorizerResults>>("tags");
+const folders = inject<Ref<ICategorizerResults>>("folders");
 
 const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
   if (type === "PaperTag") {
@@ -94,6 +68,9 @@ const onSaveAndScrapeClicked = async () => {
   ]);
   paperService.scrape(savedPaperEntityDraft);
 };
+
+shortcutService.register("Escape", onCloseClicked);
+shortcutService.registerInInputField("Escape", onCloseClicked);
 </script>
 
 <template>

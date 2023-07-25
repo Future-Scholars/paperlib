@@ -15,13 +15,34 @@ export type RPCProtocol =
 export abstract class RPCService<
   T extends IRPCServiceState
 > extends Eventable<T> {
+  protected abstract _apiNamespace: string;
   protected _protocols: { [id: string]: RPCProtocol } = {};
+  protected _actionors: { [id: string]: { [key: string]: any } } = {};
 
   constructor(eventId: string, initialState: T) {
     super(eventId, initialState);
   }
 
-  protected abstract _listenProtocolCreation(): void;
-  abstract initActionor(protocol: RPCProtocol): void;
-  abstract initProxy(protocol: RPCProtocol, protocolId: string): void;
+  setActionor(actionors: { [key: string]: any }): void {
+    this._actionors = actionors;
+  }
+
+  protected abstract listenProtocolCreation(): void;
+
+  initActionor(protocol: RPCProtocol): void {
+    for (const [key, value] of Object.entries(this._actionors)) {
+      protocol.set(key, value);
+    }
+  }
+
+  exposedAPI(): { [namespace: string]: string[] } {
+    const exposedAPI: { [namespace: string]: string[] } = {};
+    exposedAPI[this._apiNamespace] = Object.keys(this._actionors);
+    return exposedAPI;
+  }
+
+  abstract initProxy(
+    protocol: RPCProtocol,
+    exposedAPI: { [namespace: string]: string[] }
+  ): void;
 }

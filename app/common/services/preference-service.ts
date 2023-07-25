@@ -568,9 +568,8 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
   constructor() {
     let _store: ElectronStore<IPreferenceStore>;
     if (isRendererProcess()) {
-      const userDataPath = PLMainAPI.fileSystemService.getSystemPathSync(
-        "userData"
-      ) as unknown as string;
+      const userDataPath = ipcRenderer.sendSync("getSystemPath", "userData");
+      console.log(userDataPath);
       _store = new ElectronStore<IPreferenceStore>({
         cwd: userDataPath,
       });

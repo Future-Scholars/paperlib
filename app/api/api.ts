@@ -6,10 +6,8 @@ import { ProxyService } from "@/main/services/proxy-service";
 import { UpgradeService } from "@/main/services/upgrade-service";
 import { WindowProcessManagementService } from "@/main/services/window-management-service";
 import { APPService } from "@/renderer/services/app-service";
-
-export interface APIShape {
-  appService: Proxied<APPService>;
-}
+import { CommandService } from "@/renderer/services/command-service";
+import { LogService } from "@/renderer/services/log-service";
 
 // type Pop<T extends any[]> = T extends [...infer U, any] ? U : never;
 
@@ -22,6 +20,12 @@ export interface APIShape {
 // > = {
 //   [K in keyof T]: RemoveLastParameter<T[K]>;
 // };
+
+export interface APIShape {
+  appService: Proxied<APPService>;
+  logService: Proxied<LogService>;
+  commandService: Proxied<CommandService>;
+}
 
 export interface MainAPIShape {
   windowProcessManagementService: Proxied<WindowProcessManagementService>;

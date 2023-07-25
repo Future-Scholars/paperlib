@@ -26,7 +26,6 @@ watch(
 
       filterMatchType.value = "AND";
       infoText.value = "";
-      window.addEventListener("keydown", keyDownListener, { once: true });
     }
   }
 );
@@ -44,22 +43,6 @@ watch(
 const filterMatchType = ref<string>("AND");
 const filterRules = ref<string[]>([]);
 const infoText = ref<string>("");
-
-const keyDownListener = (e: KeyboardEvent) => {
-  if (
-    e.target instanceof HTMLInputElement ||
-    e.target instanceof HTMLTextAreaElement
-  ) {
-    if (e.key === "Escape") {
-      onCloseClicked();
-    }
-    return true;
-  }
-  e.preventDefault();
-  if (e.key === "Escape") {
-    onCloseClicked();
-  }
-};
 
 const onCloseClicked = () => {
   viewState.isPaperSmartFilterEditViewShown = false;
@@ -100,6 +83,9 @@ const constructFilter = () => {
   const filter = filterRules.value.join(` ${filterMatchType.value} `);
   editingPaperSmartFilterDraft.value.filter = filter;
 };
+
+shortcutService.register("Escape", onCloseClicked);
+shortcutService.registerInInputField("Escape", onCloseClicked);
 
 onMounted(() => {
   editingPaperSmartFilterDraft.value = new PaperSmartFilter("", "");

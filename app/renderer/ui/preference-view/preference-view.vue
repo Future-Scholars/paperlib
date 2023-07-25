@@ -40,31 +40,8 @@ const onCloseClicked = () => {
   viewState.isPreferenceViewShown = false;
 };
 
-const keyDownListener = (e: KeyboardEvent) => {
-  if (
-    e.target instanceof HTMLInputElement ||
-    e.target instanceof HTMLTextAreaElement
-  ) {
-    if (e.key === "Escape") {
-      onCloseClicked();
-    }
-    return true;
-  }
-
-  e.preventDefault();
-  if (e.key === "Escape") {
-    onCloseClicked();
-  }
-};
-
-watch(
-  () => viewState.isPreferenceViewShown,
-  (value) => {
-    if (value) {
-      document.addEventListener("keydown", keyDownListener, { once: true });
-    }
-  }
-);
+shortcutService.register("Escape", onCloseClicked);
+shortcutService.registerInInputField("Escape", onCloseClicked);
 </script>
 
 <template>

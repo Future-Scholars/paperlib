@@ -407,42 +407,6 @@ PLMainAPI.menuService.onClick("View-previous", onArrowUpPressed);
 
 PLMainAPI.menuService.onClick("View-next", onArrowDownPressed);
 
-function preventSpaceArrowScrollEvent(event: KeyboardEvent) {
-  if (!viewState.mainViewFocused) {
-    return true;
-  }
-  if (
-    event.code === "Space" ||
-    event.code === "ArrowDown" ||
-    event.code === "ArrowUp"
-  ) {
-    if (
-      event.target instanceof HTMLInputElement ||
-      event.target instanceof HTMLTextAreaElement
-    ) {
-      return true;
-    }
-    if (event.target == document.body) {
-      event.preventDefault();
-    }
-
-    if (event.code === "ArrowDown") {
-      event.preventDefault();
-      onArrowDownPressed();
-    }
-
-    if (event.code === "ArrowUp") {
-      event.preventDefault();
-      onArrowUpPressed();
-    }
-
-    if (event.code === "Space" && selectedPaperEntities.value.length >= 1) {
-      previewSelectedEntities();
-    }
-  }
-}
-window.addEventListener("keydown", preventSpaceArrowScrollEvent, true);
-
 // =======================================
 // Register State Change
 // =======================================

@@ -27,48 +27,27 @@ interface IMainRPCServiceState {
 export const IMainRPCService = createDecorator("mainRPCService");
 
 export class MainRPCService extends RPCService<IMainRPCServiceState> {
-  constructor(
-    @IWindowProcessManagementService
-    private readonly _windowProcessManagementService: WindowProcessManagementService,
-    @IFileSystemService private readonly _fileSystemService: FileSystemService,
-    @IContextMenuService
-    private readonly _contextMenuService: ContextMenuService,
-    @IMenuService private readonly _menuService: MenuService,
-    @IUpgradeService private readonly _upgradeService: UpgradeService,
-    @IProxyService private readonly _proxyService: ProxyService
-  ) {
+  protected _apiNamespace = "PLMainAPI";
+
+  constructor() {
     super("mainRPCService", { initialized: "" });
 
-    this._listenProtocolCreation();
-  }
-
-  _listenProtocolCreation(): void {
     if (process.type !== "browser") {
       throw new Error(
         "MainRPCService should only be instantiated in the main process"
       );
     }
-
-    const eiMainRPCProtocol = new EIMainRPCProtocol(
-      this._windowProcessManagementService.browserWindows
-    );
-    this.initActionor(eiMainRPCProtocol);
   }
 
-  initActionor(protocol: RPCProtocol): void {
-    protocol.set(
-      "windowProcessManagementService",
-      this._windowProcessManagementService
-    );
-    protocol.set("fileSystemService", this._fileSystemService);
-    protocol.set("contextMenuService", this._contextMenuService);
-    protocol.set("menuService", this._menuService);
-    protocol.set("upgradeService", this._upgradeService);
-    protocol.set("proxyService", this._proxyService);
+  listenProtocolCreation(): void {
+    // const eiMainRPCProtocol = new EIMainRPCProtocol(
+    //   actionor["windowProcessManagementService"].browserWindows
+    // );
+    // this.initActionor(eiMainRPCProtocol, actionor);
   }
 
-  initProxy(protocol: RPCProtocol, protocolId: string): void {
-    if (protocolId === "extensionProcess") {
-    }
-  }
+  initProxy(
+    protocol: RPCProtocol,
+    exposedAPI: { [namespace: string]: string[] }
+  ): void {}
 }

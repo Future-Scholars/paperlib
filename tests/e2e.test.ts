@@ -308,6 +308,7 @@ testAndScreenshot("General Search", "general-search", async () => {
   await page.waitForTimeout(1000);
 
   const dataview = page.locator("#list-data-view").first();
+  // TODO: change name here
   await page.locator("#search-input > input").fill("correlation");
   await page.waitForTimeout(1000);
   const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height;

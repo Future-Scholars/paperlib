@@ -10,6 +10,7 @@
     "allfeeds": "All Feeds",
     "unread": "Unread",
     "search": "Search",
+    "commandBarPlaceholder": "type '\\' for commands",
     "generalsearch": "General Mode",
     "fulltextsearch": "Fulltext Mode",
     "advancedsearch": "Advanced Mode",

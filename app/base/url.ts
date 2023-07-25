@@ -53,13 +53,13 @@ export function getFileType(url: string): string {
   }
 }
 
-export const constructFileURL = (
+export function constructFileURL(
   url: string,
   joined: boolean,
   withProtocol = true,
   root = "",
   protocol = "file://"
-): string => {
+): string {
   let outURL: string;
 
   url = url.replace(protocol, "");
@@ -87,9 +87,9 @@ export const constructFileURL = (
   } else {
     return outURL.replace(protocol, "");
   }
-};
+}
 
-export const listAllFiles = function (
+export function listAllFiles(
   folderURL: string,
   arrayOfFiles: string[] | null = null
 ): string[] {
@@ -107,4 +107,15 @@ export const listAllFiles = function (
   });
 
   return arrayOfFiles;
-};
+}
+
+export function isLocalPath(string: string) {
+  const normalizedPath = path.normalize(string);
+  const isAbsolutePath = path.isAbsolute(normalizedPath);
+
+  if (isAbsolutePath) {
+    return true;
+  }
+
+  return /^\.{0,2}\//.test(string);
+}

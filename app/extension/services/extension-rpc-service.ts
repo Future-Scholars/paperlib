@@ -1,9 +1,12 @@
+import { createDecorator } from "@/base/injection/injection";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { RPCProtocol, RPCService } from "@/base/rpc/rpc-service";
 
 interface IExtensionRPCServiceState {
   initialized: string;
 }
+
+export const IExtensionRPCService = createDecorator("extensionRPCService");
 
 export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
   constructor() {
@@ -22,7 +25,6 @@ export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
     process.parentPort.on("message", (e) => {
       if (e.data.startsWith("create-messageport-rpc-protocol")) {
         console.log("create-protocol in extension");
-
         const [port] = e.ports;
         const protocolId = e.data.split(":")[1];
         const protocol = new MessagePortRPCProtocol(port, "extensionProcess");
@@ -37,10 +39,12 @@ export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
 
   initActionor(protocol: RPCProtocol): void {}
 
-  initProxy(protocol: RPCProtocol, protocolId: string): void {
-    if (protocolId === "rendererPreocess") {
+  initProxy(protocol: MessagePortRPCProtocol, protocolId: string): void {
+    if (protocolId === "rendererProcess") {
       globalThis.PLAPI = {
         appService: protocol.getProxy("appService"),
+        logService: protocol.getProxy("logService"),
+        commandService: protocol.getProxy("commandService"),
       };
     } else if (protocolId === "mainProcess") {
       globalThis.PLMainAPI = {

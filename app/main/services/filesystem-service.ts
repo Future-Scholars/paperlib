@@ -1,11 +1,45 @@
 import { createDecorator } from "@/base/injection/injection";
 import { eraseProtocol } from "@/base/url";
-import { BrowserWindow, OpenDialogReturnValue, app, dialog } from "electron";
+import {
+  BrowserWindow,
+  IpcMainEvent,
+  OpenDialogReturnValue,
+  app,
+  dialog,
+  ipcMain,
+} from "electron";
 
 export const IFileSystemService = createDecorator("fileSystemService");
 
 export class FileSystemService {
-  constructor() {}
+  constructor() {
+    ipcMain.on(
+      "getSystemPath",
+      (
+        event: IpcMainEvent,
+        key:
+          | "home"
+          | "appData"
+          | "userData"
+          | "sessionData"
+          | "temp"
+          | "exe"
+          | "module"
+          | "desktop"
+          | "documents"
+          | "downloads"
+          | "music"
+          | "pictures"
+          | "videos"
+          | "recent"
+          | "logs"
+          | "crashDumps"
+      ) => {
+        console.log("getSystemPath", key);
+        event.returnValue = app.getPath(key);
+      }
+    );
+  }
 
   /**
    * Get the path of the given key.
@@ -31,28 +65,6 @@ export class FileSystemService {
       | "logs"
       | "crashDumps",
     windowId: string
-  ): string {
-    return app.getPath(key);
-  }
-
-  getSystemPathSync(
-    key:
-      | "home"
-      | "appData"
-      | "userData"
-      | "sessionData"
-      | "temp"
-      | "exe"
-      | "module"
-      | "desktop"
-      | "documents"
-      | "downloads"
-      | "music"
-      | "pictures"
-      | "videos"
-      | "recent"
-      | "logs"
-      | "crashDumps"
   ): string {
     return app.getPath(key);
   }

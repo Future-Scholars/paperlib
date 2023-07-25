@@ -190,6 +190,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * Minimize the window with the given id.
    */
   minimize(windowId: string) {
+    console.log("minimize", windowId);
     if (windowId === "rendererProcess") {
       const win = this.browserWindows.get(windowId);
       win.minimize();

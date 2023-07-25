@@ -483,7 +483,7 @@ export class Preference {
 
   constructor(rendererProcess: boolean = false) {
     if (rendererProcess) {
-      const appPath = ipcRenderer.sendSync("user-data-path");
+      const appPath = ipcRenderer.sendSync("getSystemPath", "userData");
       this.store = new Store({
         cwd: appPath,
       });

@@ -2,6 +2,7 @@ import { franc } from "franc";
 import fs from "fs";
 // @ts-ignore
 import * as pdfjs from "pdfjs-dist/build/pdf";
+// @ts-ignore
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
 import {
   PDFDocumentProxy,

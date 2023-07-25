@@ -22,7 +22,7 @@ import {
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import MenuBarBtn from "./components/menu-bar-btn.vue";
-import SearchInput from "./components/search-input.vue";
+import CommandBar from "./components/command-bar.vue";
 
 const props = defineProps({
   disableSingleBtn: {
@@ -62,8 +62,8 @@ const onMaximizeClicked = () => {
     :class="viewState.os !== 'win32' ? 'h-12' : 'h-10 mb-1'"
   >
     <div class="grow my-auto px-2 nodraggable-item">
-      <SearchInput
-        id="search-input"
+      <CommandBar
+        id="command-bar"
         @focusin="viewState.inputFieldFocused = true"
         @focusout="viewState.inputFieldFocused = false"
       />

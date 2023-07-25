@@ -35,8 +35,8 @@ export class APPService {
    * Get the current user data path of the application.
    * @returns
    */
-  async userDataPath(): Promise<string> {
-    return await ipcRenderer.invoke("user-data-path");
+  userDataPath(): Promise<string> {
+    return ipcRenderer.sendSync("getSystemPath", "userData");
   }
 
   /**

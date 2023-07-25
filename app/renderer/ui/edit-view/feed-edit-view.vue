@@ -14,36 +14,11 @@ const viewState = MainRendererStateStore.useViewState();
 const bufferState = MainRendererStateStore.useBufferState();
 
 watch(
-  () => viewState.isFeedEditViewShown,
-  (value) => {
-    if (value) {
-      window.addEventListener("keydown", keyDownListener, { once: true });
-    }
-  }
-);
-
-watch(
   () => bufferState.editingFeedDraft,
   (value) => {
     editingFeedDraft.value.initialize(value);
   }
 );
-
-const keyDownListener = (e: KeyboardEvent) => {
-  if (
-    e.target instanceof HTMLInputElement ||
-    e.target instanceof HTMLTextAreaElement
-  ) {
-    if (e.key === "Escape") {
-      onCloseClicked();
-    }
-    return true;
-  }
-  e.preventDefault();
-  if (e.key === "Escape") {
-    onCloseClicked();
-  }
-};
 
 const onCloseClicked = () => {
   viewState.isFeedEditViewShown = false;
@@ -53,6 +28,9 @@ const onSaveClicked = async () => {
   feedService.create([new Feed(false).initialize(editingFeedDraft.value)]);
   onCloseClicked();
 };
+
+shortcutService.register("Escape", onCloseClicked);
+shortcutService.registerInInputField("Escape", onCloseClicked);
 </script>
 
 <template>
