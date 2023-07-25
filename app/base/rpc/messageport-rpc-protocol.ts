@@ -121,8 +121,6 @@ export class MessagePortRPCProtocol {
       },
     });
 
-    console.log("REMOTE_CALL", msg);
-
     this._port.postMessage(msg);
     return result;
   }
@@ -162,8 +160,6 @@ export class MessagePortRPCProtocol {
             },
           })
         );
-
-        console.log("REMOTE_EVENT_LISTEN", rpcId, eventName);
       }
     }
 
@@ -342,8 +338,6 @@ export class MessagePortRPCProtocol {
     const { eventName, args } = value;
 
     const remoteEventName = `${rpcId}.${eventName}`;
-
-    console.log("REMOTE_EVENT_FIRE", remoteEventName, args);
 
     const callbackList = this._eventListeners[remoteEventName];
     if (!callbackList) {

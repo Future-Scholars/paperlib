@@ -35,7 +35,6 @@ export class FileSystemService {
           | "logs"
           | "crashDumps"
       ) => {
-        console.log("getSystemPath", key);
         event.returnValue = app.getPath(key);
       }
     );
