@@ -77,11 +77,14 @@ const processingState = useProcessingState();
 globalThis.processingState = processingState;
 
 const rendererRPCService = new RendererRPCService();
-const mainProcessExposedAPI = await ipcRenderer.invoke("request-exposed-api");
 const { port1, port2 } = new MessageChannel();
-ipcRenderer.postMessage("register-message-port", "renderer-process", [port2]);
+ipcRenderer.postMessage("register-rpc-message-port", "rendererProcess", [
+  port2,
+]);
+
+const mainProcessExposedAPI = await rendererRPCService.requestExposedAPI(port1);
 rendererRPCService.initProxy(
-  new MessagePortRPCProtocol(port1, "main-process"),
+  new MessagePortRPCProtocol(port1, "mainProcess"),
   mainProcessExposedAPI
 );
 
@@ -122,7 +125,22 @@ const instances = injectionContainer.createInstance<IInjectable>({
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;
 }
-// rendererRPCService.listenProtocolCreation(instances);
+
+rendererRPCService.setActionor(instances);
+
+const { port1: portForRenderer, port2: portForExt } = new MessageChannel();
+ipcRenderer.postMessage(
+  "forward-rpc-message-port",
+  { callerId: "rendererProcess", destId: "extensionProcess" },
+  [portForExt]
+);
+rendererRPCService.initActionor(
+  new MessagePortRPCProtocol(portForRenderer, "extensionProcess")
+);
+// rendererRPCService.initProxy(
+//   new MessagePortRPCProtocol(port1, "main-process"),
+//   mainProcessExposedAPI
+// );
 
 const locales = loadLocales();
 

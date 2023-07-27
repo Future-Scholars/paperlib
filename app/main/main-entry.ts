@@ -22,8 +22,9 @@ import { ContextMenuService } from "./services/contextmenu-service.ts";
 import { MenuService } from "./services/menu-service.ts";
 import { UpgradeService } from "./services/upgrade-service.ts";
 import { ProxyService } from "./services/proxy-service.ts";
-import { MainExtensionService } from "./services/main-extension-service.ts";
+import { ExtensionProcessService } from "./services/extension-process-service.ts";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol.ts";
+import { CommService } from "./services/comm-service.ts";
 
 Store.initRenderer();
 
@@ -94,8 +95,9 @@ if (process.defaultApp) {
 // }
 
 async function initialize() {
-  const injectionContainer = new InjectionContainer();
+  const mainRPCService = new MainRPCService();
 
+  const injectionContainer = new InjectionContainer();
   const instances = injectionContainer.createInstance<IInjectable>({
     preferenceService: PreferenceService,
     windowProcessManagementService: WindowProcessManagementService,
@@ -104,12 +106,11 @@ async function initialize() {
     menuService: MenuService,
     upgradeService: UpgradeService,
     proxyService: ProxyService,
-    // mainExtensionService: MainExtensionService,
+    extensionProcessService: ExtensionProcessService,
   });
   for (const [key, instance] of Object.entries(instances)) {
     globalThis[key] = instance;
   }
-  globalThis.mainRPCService = new MainRPCService();
   mainRPCService.setActionor({
     windowProcessManagementService,
     fileSystemService,
@@ -156,18 +157,12 @@ async function initialize() {
     return app.getVersion();
   });
 
-  ipcMain.handle("request-exposed-api", () => {
-    return mainRPCService.exposedAPI();
-  });
-
-  ipcMain.on(
-    "register-message-port",
-    (event: IpcMainEvent, callerId: string) => {
-      const port = event.ports[0];
-
-      mainRPCService.initActionor(new MessagePortRPCProtocol(port, callerId));
-    }
+  const commService = new CommService(
+    mainRPCService,
+    extensionProcessService,
+    windowProcessManagementService
   );
+  commService.start();
 
   windowProcessManagementService.createMainRenderer();
 }

@@ -55,6 +55,21 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
     });
   }
 
+  requestExposedAPI(
+    port: MessagePort
+  ): Promise<{ [namespace: string]: string[] }> {
+    return new Promise((resolve) => {
+      port.onmessage = (event) => {
+        if (event.data.startsWith("exposed-api")) {
+          const exposedAPIs = JSON.parse(
+            event.data.replace("exposed-api:", "")
+          );
+          resolve(exposedAPIs);
+        }
+      };
+    });
+  }
+
   initProxy(
     protocol: RPCProtocol,
     exposedAPIs: { [namespace: string]: string[] }
