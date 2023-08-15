@@ -176,6 +176,6 @@
     "dbintro": "Setup Your Library",
     "cloudintro": "If you wish to use the cloud sync, please setup it later in the preference panel.",
     "scraperintro": "Choose Your Prefered Metadata Scrapers",
-    "scraperintrosub": "The metadata scraper is one of the most important part of Paperlib，Paperlib query your paper's metadata from these database. We are continually adding more scrapers for different subjects. Different combinations fit different research topics. Choosing a suitable scraper combination can improve matching accuracy and reduce query time."
+    "scraperintrosub": "The metadata scraper is one of the most important parts of Paperlib, Paperlib queries your paper's metadata from these databases. We are continually adding more scrapers for different subjects. Different combinations fit different research topics. Choosing a suitable scraper combination can improve matching accuracy and reduce query time."
   }
 }
