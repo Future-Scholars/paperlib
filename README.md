@@ -10,13 +10,12 @@
 <img src="https://img.shields.io/github/license/Future-Scholars/paperlib" />
 <img src="https://img.shields.io/github/stars/Future-Scholars/paperlib" />
 <h2><a href="https://paperlib.app/" > Paperlib </a></h2>
-An open-source academic paper management tool.
+An open-source reference manager.
 </div>
 
 <p align='center'>
 Join our <a href="https://discord.gg/4unrSRjcM9">Discord community</a>!
 </p>
-
 
 <p align='center'>
 <a href='https://paperlib.app/en/'>Webpage</a> | <a href='https://paperlib.app/en/download.html'>Download</a> | <a href='https://paperlib.app/en/doc/getting-started.html'>Quick Start</a> | <a href='https://github.com/users/Future-Scholars/projects/1/views/1'>Roadmap</a>
@@ -24,60 +23,59 @@ Join our <a href="https://discord.gg/4unrSRjcM9">Discord community</a>!
 
 ![](./assets/ui.png)
 
----
-
-
-📣 **I'm looking for someone to work with me on developing Paperlib.** 📣
-
- If you are interested please contact me. 
-
 ## Introduction
 
-I'm a computer science PhD student. Conference papers are in major in my research community, which is different from other disciplines. Without DOI, ISBN, metadata of a lot of conference papers are hard to look up (e.g., NIPS, ICLR etc.). When I cite a publication in a draft paper, I need to manually search the publication information of it in Google Scholar or DBLP over and over again.
+Paperlib is an open source reference manager designed to improve your citing experience by addressing some of the common painpoints found in other software, in particular Zotero and Mendely.
 
-**Why not Zotero, Mendely?**
+### Main Features
 
-- A good metadata scraping capability is one of the core functions of a paper management tool. Unfortunately, no software in this world does this well, not even commercial software.
+- Rich variety of scrapers to collect metadata for several disciplines
+- Fulltext and advanced search.
+- Rating, flag, tag, folder and markdown/plain text note.
+- RSS feed subscription to follow the newest publications on your research topic.
+- Locate and download PDF files from the web.
+- macOS and MS Word Plug-ins for inserting citations
+- Cloud sync
+- Supports macOS, Linux, and Windows.
+- Beautiful and clean UI.
 
-- A modern UI. No extra useless features.
+### Scrapers
 
-What we need may be to: import a paper, scrape the metadata of it as accurately as possible, simply organise the library, and export it to BibTex when we are writing our papers.
+Currently, Paperlib uses the following scrapers (more to come):
 
-That is Paperlib.
+- [x] **General**
+  - [x] arXiv
+  - [x] doi.org
+  - [x] Semantic Scholar
+  - [x] Crossref
+  - [x] Google Scholar
+  - [x] Springer
+  - [x] Elseivier Scopus
+- [x] **Computer Science and Electronic Engineering**
+  - [x] openreview.net
+  - [x] IEEE
+  - [x] DBLP
+  - [x] Paper with Code (scrape available in the code repository)
+- [x] **Earth Science**
+- [x] **Physics**
+  - [x] NASA Astrophysics Data System
+  - [x] SPIE: Inte. Society for Optics and Photonics
+- [ ] **Chemistry**
+  - [x] ChemRxiv
+- [ ] **Biology**
 
+  - [x] BioRxiv / MedRxiv
 
-## Highlights
--   Scrape paper’s metadata with many scrapers. Support writing your metadata scrapers. Tailored for many disciplines (still growing):
-    - [x] **General**
-        - [x] arXiv
-        - [x] doi.org
-        - [x] Semantic Scholar
-        - [x] Crossref
-        - [x] Google Scholar
-        - [x] Springer
-        - [x] Elseivier Scopus
-    - [x] **Computer Science and Electronic Engineering**
-        - [x] openreview.net
-        - [x] IEEE
-        - [x] DBLP
-        - [x] Paper with Code (scrape available in the code repository)
-    - [x] **Earth Science**
-    - [x] **Physics**
-        - [x] NASA Astrophysics Data System
-        - [x] SPIE: Inte. Society for Optics and Photonics
-    - [ ] **Chemistry**
-        - [x] ChemRxiv
-    - [ ] **Biology**
-        - [x] BioRxiv / MedRxiv
+## About this project
 
-    - ...
--   Fulltext and advanced search.
--   Rating, flag, tag, folder and markdown/plain text note.
--   RSS feed subscription to follow the newest publications on your research topic.
--   Locate and download PDF files from the web.
--   macOS spotlight-like plugin to copy-paste references easily when writing a draft paper. Also supports MS Word.
--   Cloud sync, supports macOS, Linux, and Windows.
--   Beautiful and clean UI.
+Conference papers are a big part of computer science research. Without DOI, ISBN, metadata of a lot of conference papers are hard to look up (e.g., NIPS, ICLR etc.). When I cite a publication in a draft paper, I need to manually search the publication information of it in Google Scholar or DBLP over and over again.
+
+**Why not Zotero or Mendely?**
+
+- The scraping capabilities of these tools are limited to what's on the page.
+
+- Outdated UI and bloated features
+- Expensive licenses
 
 ## Download and Install
 
@@ -109,17 +107,22 @@ See [here](https://paperlib.app/en/download-linux.html).
 ## Sponsors
 
 ### Apple Silicon Build
-<img src="https://user-images.githubusercontent.com/14183213/179353324-42ee9831-68a8-4816-97f5-cc7be7189ce8.png" style="width: 160px"/>
 
+<img src="https://user-images.githubusercontent.com/14183213/179353324-42ee9831-68a8-4816-97f5-cc7be7189ce8.png" style="width: 160px"/>
 
 ## Contribute to Paperlib
 
+📣 **Seeking contributors** 📣
+
+If you are interested in contributing, please contact @GeoffreyChen777
+
 ### Metadata Scrapers
+
 My research topic is computer vision, which is only one piece of the puzzle of computer science. I tried to contact some friends to provide information about the paper metadata database in different disciplines. However, However, it does not cover all disciplines. If the [builtin metadata scrapers](https://github.com/Future-Scholars/paperlib/tree/master/app/repositories/scraper-repository/scrapers) are not suitable for your research, feel free to open an issue or a pull request.
 
-### New Features
+### Feature Requests
 
-I'm open to any new feature request, we can discuss it in the issue.
+For feature requests please create an issue
 
 ## License
 
