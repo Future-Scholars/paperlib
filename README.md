@@ -16,7 +16,12 @@ An open-source reference manager.
 <p align='center'>
 Join our <a href="https://discord.gg/4unrSRjcM9">Discord community</a>!
 </p>
-
+<p align='center'>
+📣 <b>Seeking contributors</b> 📣
+</p>
+<p align='center'>
+If you are interested in contributing, please contact @GeoffreyChen777
+</p>
 <p align='center'>
 <a href='https://paperlib.app/en/'>Webpage</a> | <a href='https://paperlib.app/en/download.html'>Download</a> | <a href='https://paperlib.app/en/doc/getting-started.html'>Quick Start</a> | <a href='https://github.com/users/Future-Scholars/projects/1/views/1'>Roadmap</a>
 </p>
