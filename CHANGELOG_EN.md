@@ -1,3 +1,7 @@
+# v2.2.6 Oct 20 2023
+
+1. Update the certificate for MS Word add-in.
+
 ## v2.2.5 July 22 2023
 
 1. Browser extension supports https://pubs.acs.org/ now.
