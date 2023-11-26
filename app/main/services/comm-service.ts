@@ -13,13 +13,13 @@ import {
   MainRPCService,
 } from "@/main/services/main-rpc-service";
 import {
-  ExtensionProcessService,
-  IExtensionProcessService,
-} from "@/main/services/extension-process-service";
+  ExtensionProcessManagementService,
+  IExtensionProcessManagementService,
+} from "@/main/services/extension-process-management-service";
 import {
   IWindowProcessManagementService,
   WindowProcessManagementService,
-} from "@/main/services/window-management-service";
+} from "@/main/services/window-process-management-service";
 
 export const ICommService = createDecorator("commService");
 
@@ -32,8 +32,8 @@ export const ICommService = createDecorator("commService");
 export class CommService {
   constructor(
     @IMainRPCService private readonly _mainRPCService: MainRPCService,
-    @IExtensionProcessService
-    private readonly _extensionProcessService: ExtensionProcessService,
+    @IExtensionProcessManagementService
+    private readonly _extensionProcessService: ExtensionProcessManagementService,
     @IWindowProcessManagementService
     private readonly _windowProcessManagementService: WindowProcessManagementService
   ) {}
@@ -46,12 +46,7 @@ export class CommService {
         const port = event.ports[0];
 
         this._mainRPCService.initActionor(
-          new MessagePortRPCProtocol(port, callerId)
-        );
-
-        port.start();
-        port.postMessage(
-          `exposed-api:${JSON.stringify(this._mainRPCService.exposedAPI())}`
+          new MessagePortRPCProtocol(port, "PLMainAPI", callerId)
         );
       }
     );
@@ -68,7 +63,7 @@ export class CommService {
     const { port1, port2 } = new MessageChannelMain();
     this._extensionProcessService.registerPort(port2, "mainProcess");
     this._mainRPCService.initActionor(
-      new MessagePortRPCProtocol(port1, "extensionProcess")
+      new MessagePortRPCProtocol(port1, "PLMainAPI", "extensionProcess")
     );
 
     ipcMain.on(

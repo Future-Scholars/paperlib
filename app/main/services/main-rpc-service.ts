@@ -1,9 +1,12 @@
+import { MessageChannelMain, MessagePortMain, ipcMain } from "electron";
+import { Graph } from "graph-data-structure";
+
 import { EIMainRPCProtocol } from "@/base/rpc/ei-main-rpc-protocol";
 import { RPCProtocol, RPCService } from "@/base/rpc/rpc-service";
 import {
   IWindowProcessManagementService,
   WindowProcessManagementService,
-} from "@/main/services/window-management-service";
+} from "@/main/services/window-process-management-service";
 import {
   FileSystemService,
   IFileSystemService,
@@ -19,6 +22,7 @@ import {
 import { IMenuService, MenuService } from "@/main/services/menu-service";
 import { IProxyService, ProxyService } from "@/main/services/proxy-service";
 import { createDecorator } from "@/base/injection/injection";
+import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 
 interface IMainRPCServiceState {
   initialized: string;
@@ -26,8 +30,20 @@ interface IMainRPCServiceState {
 
 export const IMainRPCService = createDecorator("mainRPCService");
 
+interface IGraph {
+  addNode(id: string): void;
+  addEdge(id1: string, id2: string): void;
+  topologicalSort(): string[];
+  hasCycle(): boolean;
+  nodes(): string[];
+  hasEdge(id1: string, id2: string): boolean;
+}
+
 export class MainRPCService extends RPCService<IMainRPCServiceState> {
-  protected _apiNamespace = "PLMainAPI";
+  private _registeredAPIs: {
+    [processIdNamespace: string]: string[];
+  } = {};
+  private readonly _processGraph: IGraph;
 
   constructor() {
     super("mainRPCService", { initialized: "" });
@@ -37,6 +53,76 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
         "MainRPCService should only be instantiated in the main process"
       );
     }
+
+    this._processGraph = Graph();
+    this._processGraph.addNode("mainProcess");
+  }
+
+  async initCommunication(): Promise<void> {
+    // 1. Here is a bridge for all processes to exchange port for communication.
+    //    All other processes will try to send a request to here.
+    // 2. Once receiving a request, we loop through all registered processes.
+    //    If there is no channel between the requester and the registered process,
+    //    we will create a new MessagePort pair first. If the registered process is the main process,
+    //    we will create a new MessagePortProtocol for communication. Otherwise, we will transfer the
+    //    MessagePort to the registered process.
+    // 3. All actionors in the current process will be binded with this protocol immediately.
+    // 4. After the protocol is created, we will send a message through the protocol to broadcast the exposed APIs of the current process.
+
+    ipcMain.on("request-port", (event, senderID) => {
+      const processes = this._processGraph.nodes();
+
+      for (const process of processes) {
+        if (process === senderID) {
+          continue;
+        }
+
+        if (!this._processGraph.hasEdge(process, senderID)) {
+          if (process === "mainProcess") {
+            const { port1: portForMain, port2: portForRequester } =
+              new MessageChannelMain();
+
+            const protocol = new MessagePortRPCProtocol(
+              portForMain,
+              "mainProcess",
+              true
+            );
+            this._protocols[senderID] = protocol;
+            this.initActionor(protocol);
+
+            protocol.sendExposedAPI("PLMainAPI");
+
+            if (windowProcessManagementService.browserWindows.has(senderID)) {
+              windowProcessManagementService.browserWindows
+                .get(senderID)
+                .webContents.postMessage("response-port", "mainProcess", [
+                  portForRequester,
+                ]);
+            }
+            // TODO: Forward the messageport to the non-browserwindow process
+          }
+          // TODO: Forward the messageport to the non-browserwindow process
+
+          this._processGraph.addEdge(process, senderID);
+        }
+      }
+    });
+  }
+
+  broadcastAPI(): void {
+    console.log("broadcast api");
+  }
+
+  setActionor(actionors: { [key: string]: any }): void {
+    this._actionors = actionors;
+    this._registeredAPIs["mainProcess-PLMainAPI"] = [
+      "windowProcessManagementService",
+      "fileSystemService",
+      "contextMenuService",
+      "upgradeService",
+      "menuService",
+      "proxyService",
+    ];
   }
 
   listenProtocolCreation(): void {

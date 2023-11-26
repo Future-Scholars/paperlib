@@ -1,18 +1,35 @@
-let a = { kye1: 2 };
+async function mainFunc() {
+  const myArray = {};
 
-console.log(a);
+  async function waitForAPI(
+    namespace: string,
+    timeout: number
+  ): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      // check if the protocol is already created.
+      for (let i = 0; i < timeout / 100; i++) {
+        if (myArray[namespace]) {
+          resolve(true);
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
 
-function modify(obj: any) {
-  obj.kye1 = 3;
-  throw new Error("error");
+      if (myArray[namespace]) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  }
 
-  return obj;
+  setTimeout(() => {
+    myArray["PLAPI"] = true;
+  }, 500);
+
+  const hasAPI = await waitForAPI("PLAPI", 200);
+
+  console.log("RUNNNN", hasAPI);
 }
 
-try {
-  a = modify(a);
-} catch (e) {
-  console.log(e);
-}
-
-console.log(a);
+mainFunc();

@@ -12,6 +12,7 @@ export enum MessageType {
   eventListen = 3,
   fireEvent = 4,
   disposeEvent = 5,
+  exposeAPI = 6,
 }
 
 /**
@@ -33,6 +34,8 @@ export class MessagePortRPCProtocol {
   >;
   private readonly _eventDisposeCallbacks: Record<string, () => void>;
 
+  public exposedAPIs: { [namespace: string]: string[] };
+
   constructor(
     port: MessagePortMain | MessagePort,
     callerId: string,
@@ -44,6 +47,7 @@ export class MessagePortRPCProtocol {
     this._pendingRPCReplies = {};
     this._eventListeners = {};
     this._eventDisposeCallbacks = {};
+    this.exposedAPIs = {};
 
     this._lastCallId = 0;
 
@@ -210,6 +214,10 @@ export class MessagePortRPCProtocol {
         this._receiveEventDispose(callId);
         break;
       }
+      case MessageType.exposeAPI: {
+        this._receiveExposedAPI(callId, value);
+        break;
+      }
       default:
         console.error(`received unexpected message`);
         console.error(rawmsg);
@@ -346,6 +354,44 @@ export class MessagePortRPCProtocol {
 
     for (const callbackId in callbackList) {
       callbackList[callbackId](args);
+    }
+  }
+
+  public sendExposedAPI(namespace: string): void {
+    const callId = String(++this._lastCallId);
+
+    const msg = JSON.stringify({
+      callId,
+      type: MessageType.exposeAPI,
+      value: {
+        [namespace]: Object.keys(this._locals),
+      },
+    });
+
+    this._port.postMessage(msg);
+  }
+
+  private _receiveExposedAPI(
+    callId: string,
+    value: { [namespace: string]: string[] }
+  ): void {
+    for (const [namespace, APIs] of Object.entries(value)) {
+      if (!globalThis[namespace]) {
+        globalThis[namespace] = {};
+      }
+      if (!this.exposedAPIs[namespace]) {
+        this.exposedAPIs[namespace] = [];
+      }
+
+      for (const API of APIs) {
+        if (!globalThis[namespace][API]) {
+          globalThis[namespace][API] = this.getProxy(API);
+        }
+
+        if (!this.exposedAPIs[namespace].includes(API)) {
+          this.exposedAPIs[namespace].push(API);
+        }
+      }
     }
   }
 }

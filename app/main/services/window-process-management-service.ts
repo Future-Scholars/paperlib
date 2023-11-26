@@ -56,7 +56,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   }
 
   /**
-   * Create BrowserWindow
+   * Create Process with a BrowserWindow
    * @param id - window id
    * @param options - window options
    * @param eventCallbacks - callbacks for events

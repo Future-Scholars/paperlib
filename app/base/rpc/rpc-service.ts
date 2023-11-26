@@ -7,16 +7,15 @@ interface IRPCServiceState {
   initialized: string;
 }
 
-export type RPCProtocol =
-  | MessagePortRPCProtocol
-  | EIMainRPCProtocol
-  | EIRendererRPCProtocol;
+export type RPCProtocol = MessagePortRPCProtocol;
+// | EIMainRPCProtocol
+// | EIRendererRPCProtocol;
 
 export abstract class RPCService<
   T extends IRPCServiceState
 > extends Eventable<T> {
-  protected abstract _apiNamespace: string;
   protected _protocols: { [id: string]: RPCProtocol } = {};
+  protected _remoteAPIs: { [id: string]: { [key: string]: any } } = {};
   protected _actionors: { [id: string]: { [key: string]: any } } = {};
 
   constructor(eventId: string, initialState: T) {
@@ -33,12 +32,6 @@ export abstract class RPCService<
     for (const [key, value] of Object.entries(this._actionors)) {
       protocol.set(key, value);
     }
-  }
-
-  exposedAPI(): { [namespace: string]: string[] } {
-    const exposedAPI: { [namespace: string]: string[] } = {};
-    exposedAPI[this._apiNamespace] = Object.keys(this._actionors);
-    return exposedAPI;
   }
 
   abstract initProxy(

@@ -9,34 +9,31 @@ import { createDecorator } from "@/base/injection/injection";
 import {
   IWindowProcessManagementService,
   WindowProcessManagementService,
-} from "@/main/services/window-management-service";
+} from "@/main/services/window-process-management-service";
 
-export const IExtensionProcessService = createDecorator(
+export const IExtensionProcessManagementService = createDecorator(
   "extensionProcessService"
 );
 
 /**
- * ExtensionProcessService
+ * ExtensionProcessManagementService
  * Extension service in main process.
  */
-export class ExtensionProcessService {
-  readonly extensionProcess: Electron.UtilityProcess;
+export class ExtensionProcessManagementService {
+  // readonly extensionProcess: Electron.UtilityProcess;
 
   constructor() {
-    this.extensionProcess = utilityProcess.fork(
-      join(__dirname, "extension-entry.js")
-    );
-
+    // this.extensionProcess = utilityProcess.fork(
+    //   join(__dirname, "extension-entry.js")
+    // );
     // this._windowProcessManagementService.on(
     //   "created",
     //   (payload: { key: string; value: string }) => {
     //     const { port1, port2 } = new MessageChannelMain();
-
     //     this._extensionProcess.postMessage(
     //       `create-messageport-rpc-protocol:${payload.value}`,
     //       [port2]
     //     );
-
     //     this._windowProcessManagementService.browserWindows
     //       .get(payload.value)
     //       .webContents.postMessage(
@@ -46,7 +43,6 @@ export class ExtensionProcessService {
     //       );
     //   }
     // );
-
     // this._windowProcessManagementService.on(
     //   "close",
     //   (payload: { key: string; value: string }) => {
@@ -57,9 +53,9 @@ export class ExtensionProcessService {
     // );
   }
 
-  registerPort(port: MessagePortMain, callerId: string) {
-    this.extensionProcess.postMessage(`register-rpc-message-port:${callerId}`, [
-      port,
-    ]);
-  }
+  // registerPort(port: MessagePortMain, callerId: string) {
+  //   this.extensionProcess.postMessage(`register-rpc-message-port:${callerId}`, [
+  //     port,
+  //   ]);
+  // }
 }

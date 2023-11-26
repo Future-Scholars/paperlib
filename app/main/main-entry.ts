@@ -15,14 +15,14 @@ import { PreferenceService } from "@/common/services/preference-service.ts";
 import { WindowStorage } from "@/main/window-storage.ts";
 
 import { MainRPCService } from "./services/main-rpc-service.ts";
-import { WindowProcessManagementService } from "./services/window-management-service.ts";
+import { WindowProcessManagementService } from "./services/window-process-management-service.ts";
 
 import { FileSystemService } from "./services/filesystem-service.ts";
 import { ContextMenuService } from "./services/contextmenu-service.ts";
 import { MenuService } from "./services/menu-service.ts";
 import { UpgradeService } from "./services/upgrade-service.ts";
 import { ProxyService } from "./services/proxy-service.ts";
-import { ExtensionProcessService } from "./services/extension-process-service.ts";
+import { ExtensionProcessManagementService } from "./services/extension-process-management-service.ts";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol.ts";
 import { CommService } from "./services/comm-service.ts";
 
@@ -95,8 +95,17 @@ if (process.defaultApp) {
 // }
 
 async function initialize() {
+  // ============================================================
+  // 1. Initilize the RPC service for current process
   const mainRPCService = new MainRPCService();
 
+  // ============================================================
+  // 2. Request exposed APIs from other processes.
+  //    The current process (main process) is the first process to be initialized in the application.
+  //    Therefore, it request no APIs from other processes.
+
+  // ============================================================
+  // 3. Create the instances for all services, tools, etc. of the current process.
   const injectionContainer = new InjectionContainer();
   const instances = injectionContainer.createInstance<IInjectable>({
     preferenceService: PreferenceService,
@@ -106,11 +115,16 @@ async function initialize() {
     menuService: MenuService,
     upgradeService: UpgradeService,
     proxyService: ProxyService,
-    extensionProcessService: ExtensionProcessService,
+    extensionProcessService: ExtensionProcessManagementService,
   });
+  // 3.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
     globalThis[key] = instance;
   }
+
+  // ============================================================
+  // 4. Set actionors for RPC service with all initialized services.
+  //    Expose the APIs of the current process to other processes
   mainRPCService.setActionor({
     windowProcessManagementService,
     fileSystemService,
@@ -120,6 +134,8 @@ async function initialize() {
     proxyService,
   });
 
+  // ============================================================
+  // 5. Setup other things for the main process.
   app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();
   });
@@ -153,17 +169,25 @@ async function initialize() {
     }
   });
 
+  // TODO: check where we use this?
   ipcMain.handle("version", () => {
     return app.getVersion();
   });
 
-  const commService = new CommService(
-    mainRPCService,
-    extensionProcessService,
-    windowProcessManagementService
-  );
-  commService.start();
+  // TODO: Check this?
+  // const commService = new CommService(
+  //   mainRPCService,
+  //   extensionProcessService,
+  //   windowProcessManagementService
+  // );
+  // commService.start();
 
+  // ============================================================
+  // 6. Start the port exchange process.
+  mainRPCService.initCommunication();
+
+  // ============================================================
+  // 7. Create the main renderer process.
   windowProcessManagementService.createMainRenderer();
 }
 

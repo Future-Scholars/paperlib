@@ -70,94 +70,111 @@ app.component("v-select", vSelect);
 app.component("draggable", draggable);
 app.component("RecycleScroller", RecycleScroller);
 
+console.log("renderer process");
+
 // ====================================
-// Setup tools, interactors and repositories
+// Setup tools, services and repositories
 // ====================================
-const processingState = useProcessingState();
-globalThis.processingState = processingState;
+// const processingState = useProcessingState();
+// globalThis.processingState = processingState;
 
 const rendererRPCService = new RendererRPCService();
-const { port1, port2 } = new MessageChannel();
-ipcRenderer.postMessage("register-rpc-message-port", "rendererProcess", [
-  port2,
-]);
+await rendererRPCService.initCommunication();
 
-const mainProcessExposedAPI = await rendererRPCService.requestExposedAPI(port1);
-rendererRPCService.initProxy(
-  new MessagePortRPCProtocol(port1, "mainProcess"),
-  mainProcessExposedAPI
+const mainAPIExposed = await rendererRPCService.waitForAPI(
+  "mainProcess",
+  "PLMainAPI",
+  5000
 );
 
-const injectionContainer = new InjectionContainer();
-const instances = injectionContainer.createInstance<IInjectable>({
-  appService: APPService,
-  preferenceService: PreferenceService,
-  stateService: StateService,
-  logService: LogService,
-  databaseCore: DatabaseCore,
-  databaseService: DatabaseService,
-  paperService: PaperService,
-  bufferService: BufferService,
-  paperEntityRepository: PaperEntityRepository,
-  categorizerRepository: CategorizerRepository,
-  scrapeService: ScrapeService,
-  fileService: FileService,
-  cacheDatabaseCore: CacheDatabaseCore,
-  cacheService: CacheService,
-  categorizerService: CategorizerService,
-  fileSourceRepository: FileSourceRepository,
-  smartFilterService: SmartFilterService,
-  paperSmartFilterRepository: PaperSmartFilterRepository,
-  browserExtensionService: BrowserExtensionService,
-  feedService: FeedService,
-  feedEntityRepository: FeedEntityRepository,
-  feedRepository: FeedRepository,
-  rssRepository: RSSRepository,
-  renderService: RenderService,
-  referenceService: ReferenceService,
-  schedulerService: SchedulerService,
-  msWordCommService: MSWordCommService,
-  commandService: CommandService,
-  shortcutService: ShortcutService,
-  networkTool: NetworkTool,
-});
-
-for (const [key, instance] of Object.entries(instances)) {
-  globalThis[key] = instance;
+if (!mainAPIExposed) {
+  throw new Error("Main process API is not exposed");
 }
 
-rendererRPCService.setActionor(instances);
+// await rendererRPCService.registerAPI();
+// const { port1, port2 } = new MessageChannel();
 
-const { port1: portForRenderer, port2: portForExt } = new MessageChannel();
-ipcRenderer.postMessage(
-  "forward-rpc-message-port",
-  { callerId: "rendererProcess", destId: "extensionProcess" },
-  [portForExt]
-);
-rendererRPCService.initActionor(
-  new MessagePortRPCProtocol(portForRenderer, "extensionProcess")
-);
+// rendererRPCService.requestExposedAPI(port1);
+// ipcRenderer.postMessage("register-rpc-message-port", "rendererProcess", [
+//   port2,
+// ]);
+// const mainProcessExposedAPI = await rendererRPCService.receiveExposedAPI(port1);
+
 // rendererRPCService.initProxy(
-//   new MessagePortRPCProtocol(port1, "main-process"),
+//   new MessagePortRPCProtocol(port1, "PLAPI", "mainProcess"),
 //   mainProcessExposedAPI
 // );
 
-const locales = loadLocales();
+// const injectionContainer = new InjectionContainer();
+// const instances = injectionContainer.createInstance<IInjectable>({
+//   appService: APPService,
+//   preferenceService: PreferenceService,
+//   stateService: StateService,
+//   logService: LogService,
+//   databaseCore: DatabaseCore,
+//   databaseService: DatabaseService,
+//   paperService: PaperService,
+//   bufferService: BufferService,
+//   paperEntityRepository: PaperEntityRepository,
+//   categorizerRepository: CategorizerRepository,
+//   scrapeService: ScrapeService,
+//   fileService: FileService,
+//   cacheDatabaseCore: CacheDatabaseCore,
+//   cacheService: CacheService,
+//   categorizerService: CategorizerService,
+//   fileSourceRepository: FileSourceRepository,
+//   smartFilterService: SmartFilterService,
+//   paperSmartFilterRepository: PaperSmartFilterRepository,
+//   browserExtensionService: BrowserExtensionService,
+//   feedService: FeedService,
+//   feedEntityRepository: FeedEntityRepository,
+//   feedRepository: FeedRepository,
+//   rssRepository: RSSRepository,
+//   renderService: RenderService,
+//   referenceService: ReferenceService,
+//   schedulerService: SchedulerService,
+//   msWordCommService: MSWordCommService,
+//   commandService: CommandService,
+//   shortcutService: ShortcutService,
+//   networkTool: NetworkTool,
+// });
 
-const i18n = createI18n({
-  allowComposition: true,
-  locale: preferenceService.get("language") as string,
-  fallbackLocale: "en-GB",
-  messages: locales,
-});
+// for (const [key, instance] of Object.entries(instances)) {
+//   globalThis[key] = instance;
+// }
 
-app.use(i18n);
+// rendererRPCService.setActionor(instances);
 
-// TODO: check if this is duplicated
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", (event) => {
-    stateService.viewState.renderRequired = Date.now();
-  });
+// const { port1: portForRenderer, port2: portForExt } = new MessageChannel();
+// ipcRenderer.postMessage(
+//   "forward-rpc-message-port",
+//   { callerId: "rendererProcess", destId: "extensionProcess" },
+//   [portForExt]
+// );
+// rendererRPCService.initActionor(
+//   new MessagePortRPCProtocol(portForRenderer, "PLAPI", "extensionProcess")
+// );
+// // rendererRPCService.initProxy(
+// //   new MessagePortRPCProtocol(port1, "main-process"),
+// //   mainProcessExposedAPI
+// // );
 
-app.mount("#app");
+// const locales = loadLocales();
+
+// const i18n = createI18n({
+//   allowComposition: true,
+//   locale: preferenceService.get("language") as string,
+//   fallbackLocale: "en-GB",
+//   messages: locales,
+// });
+
+// app.use(i18n);
+
+// // TODO: check if this is duplicated
+// window
+//   .matchMedia("(prefers-color-scheme: dark)")
+//   .addEventListener("change", (event) => {
+//     stateService.viewState.renderRequired = Date.now();
+//   });
+
+// app.mount("#app");

@@ -6,7 +6,7 @@ import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
-import { APPTheme } from "@/main/services/window-management-service";
+import { APPTheme } from "@/main/services/window-process-management-service";
 
 export const IAPPService = createDecorator("appService");
 
