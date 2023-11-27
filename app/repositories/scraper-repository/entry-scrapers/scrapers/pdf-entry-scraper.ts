@@ -32,9 +32,9 @@ export class PDFEntryScraper extends AbstractEntryScraper {
       return false;
     }
     if (
-      (getProtocol(payload.url) === "file" ||
-        getProtocol(payload.url) === "") &&
-      getFileType(payload.url) === "pdf"
+      (getProtocol(payload.value) === "file" ||
+        getProtocol(payload.value) === "") &&
+      getFileType(payload.value) === "pdf"
     ) {
       return true;
     } else {

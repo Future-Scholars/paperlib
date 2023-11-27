@@ -27,7 +27,8 @@ export class WebcontentArXivEntryImporter extends AbstractEntryScraper {
     const urlRegExp = new RegExp(
       "^https?://([^\\.]+\\.)?(arxiv\\.org|xxx\\.lanl\\.gov)/(/\\w|abs/|pdf/)"
     );
-    return urlRegExp.test(payload.url);
+    // TODO: check all keyname of payload, some is url.
+    return urlRegExp.test(payload.value);
   }
 
   static async scrape(

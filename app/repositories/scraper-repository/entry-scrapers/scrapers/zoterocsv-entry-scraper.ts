@@ -20,9 +20,9 @@ export class ZoteroCSVEntryScraper extends AbstractEntryScraper {
       return false;
     }
     if (
-      (getProtocol(payload.url) === "file" ||
-        getProtocol(payload.url) === "") &&
-      getFileType(payload.url) === "csv"
+      (getProtocol(payload.value) === "file" ||
+        getProtocol(payload.value) === "") &&
+      getFileType(payload.value) === "csv"
     ) {
       // read first line
       const fileContent = readFileSync(eraseProtocol(payload.url), "utf8");

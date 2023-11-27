@@ -27,6 +27,7 @@ const SCRAPER_OBJS = new Map<string, typeof AbstractEntryScraper>([
 
 export class EntryScraperRepository {
   async scrape(payloads: any[]): Promise<PaperEntity[]> {
+    // TODO: check payload structure here.
     const paperEntityDrafts = await Promise.all(
       payloads.map(async (payload) => {
         const paperEntityDrafts = await Promise.all(

@@ -21,9 +21,9 @@ export class BibTexEntryScraper extends AbstractEntryScraper {
       return false;
     }
     if (
-      (getProtocol(payload.url) === "file" ||
-        getProtocol(payload.url) === "") &&
-      getFileType(payload.url) === "bib"
+      (getProtocol(payload.value) === "file" ||
+        getProtocol(payload.value) === "") &&
+      getFileType(payload.value) === "bib"
     ) {
       return true;
     } else {
