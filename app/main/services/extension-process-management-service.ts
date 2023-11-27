@@ -34,35 +34,6 @@ export class ExtensionProcessManagementService extends Eventable<IExtensionProce
     });
 
     this.extensionProcesses = {};
-
-    // this.extensionProcess = utilityProcess.fork(
-    //   join(__dirname, "extension-entry.js")
-    // );
-    // this._windowProcessManagementService.on(
-    //   "created",
-    //   (payload: { key: string; value: string }) => {
-    //     const { port1, port2 } = new MessageChannelMain();
-    //     this._extensionProcess.postMessage(
-    //       `create-messageport-rpc-protocol:${payload.value}`,
-    //       [port2]
-    //     );
-    //     this._windowProcessManagementService.browserWindows
-    //       .get(payload.value)
-    //       .webContents.postMessage(
-    //         "create-messageport-rpc-protocol",
-    //         "extensionProcess",
-    //         [port1]
-    //       );
-    //   }
-    // );
-    // this._windowProcessManagementService.on(
-    //   "close",
-    //   (payload: { key: string; value: string }) => {
-    //     if (payload.value === "rendererProcess") {
-    //       this._extensionProcess.kill();
-    //     }
-    //   }
-    // );
   }
 
   createExtensionProcess() {
@@ -82,12 +53,8 @@ export class ExtensionProcessManagementService extends Eventable<IExtensionProce
   }
 
   close() {
-    //TODO: close all extension processes if the renderer process is closed.
+    for (const processID in this.extensionProcesses) {
+      this.extensionProcesses[processID].kill();
+    }
   }
-
-  // registerPort(port: MessagePortMain, callerId: string) {
-  //   this.extensionProcess.postMessage(`register-rpc-message-port:${callerId}`, [
-  //     port,
-  //   ]);
-  // }
 }

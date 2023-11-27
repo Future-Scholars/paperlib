@@ -131,6 +131,8 @@ async function initialize() {
   // ============================================================
   // 5. Setup other things for the main process.
   app.on("window-all-closed", () => {
+    extensionProcessManagementService.close();
+
     if (process.platform !== "darwin") app.quit();
   });
 

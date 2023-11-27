@@ -121,8 +121,6 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
         const senderID = payload.value;
         const processIDs = this._processGraph.nodes();
 
-        console.log(senderID, processIDs);
-
         for (const processID of processIDs) {
           if (processID === senderID) {
             continue;
