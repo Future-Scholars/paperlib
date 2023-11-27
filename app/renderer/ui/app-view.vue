@@ -237,6 +237,13 @@ disposable(
       false,
       "UI"
     );
+
+    // Notify the main process that the app is ready,
+    //   so that the main process can initialize the extension process
+    // TODO: check if there is a way to do this without providing the processID manually.
+    PLMainAPI.windowProcessManagementService.fireServiceReady(
+      "rendererProcess"
+    );
   })
 );
 

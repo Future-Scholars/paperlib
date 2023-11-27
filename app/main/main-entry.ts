@@ -97,12 +97,9 @@ async function initialize() {
   // ============================================================
   // 1. Initilize the RPC service for current process
   const mainRPCService = new MainRPCService();
-  // ============================================================
-  // 2. Start the port exchange process.
-  mainRPCService.initCommunication();
 
   // ============================================================
-  // 3. Create the instances for all services, tools, etc. of the current process.
+  // 2. Create the instances for all services, tools, etc. of the current process.
   const injectionContainer = new InjectionContainer();
   const instances = injectionContainer.createInstance<IInjectable>({
     preferenceService: PreferenceService,
@@ -112,7 +109,7 @@ async function initialize() {
     menuService: MenuService,
     upgradeService: UpgradeService,
     proxyService: ProxyService,
-    extensionProcessService: ExtensionProcessManagementService,
+    extensionProcessManagementService: ExtensionProcessManagementService,
   });
   // 3.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
@@ -172,7 +169,25 @@ async function initialize() {
   });
 
   // ============================================================
-  // 6. Create the main renderer process.
+  // 6. Start the port exchange process.
+  mainRPCService.initCommunication(
+    windowProcessManagementService,
+    extensionProcessManagementService
+  );
+
+  // ============================================================
+  // 7. Once the main renderer process is ready, create the extension process
+  windowProcessManagementService.on(
+    "serviceReady",
+    (payload: { key: string; value: string }) => {
+      if (payload.value === "rendererProcess") {
+        extensionProcessManagementService.createExtensionProcess();
+      }
+    }
+  );
+
+  // ============================================================
+  // 8. Create the main renderer process.
   windowProcessManagementService.createMainRenderer();
 }
 

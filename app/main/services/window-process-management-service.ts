@@ -1,6 +1,7 @@
 import {
   BrowserWindow,
   app,
+  ipcMain,
   nativeTheme,
   shell,
   utilityProcess,
@@ -8,13 +9,13 @@ import {
 import { join, posix } from "node:path";
 import os from "os";
 
+import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
 import { WindowStorage } from "@/main/window-storage";
-import { Eventable } from "@/base/event";
-import { createDecorator } from "@/base/injection/injection";
 
 interface WindowOptions extends Electron.BrowserWindowConstructorOptions {
   entry: string;
@@ -32,6 +33,8 @@ export interface IWindowProcessManagementServiceState {
   focus: string;
   close: string;
   created: string;
+  serviceReady: string;
+  requestPort: string;
 }
 
 export const IWindowProcessManagementService = createDecorator(
@@ -50,9 +53,15 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       focus: "",
       close: "",
       created: "",
+      serviceReady: "",
+      requestPort: "",
     });
 
     this.browserWindows = new WindowStorage();
+
+    ipcMain.on("request-port", (event, senderID) => {
+      this.fire({ requestPort: senderID });
+    });
   }
 
   /**
@@ -184,6 +193,14 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
         },
       }
     );
+  }
+
+  /**
+   * Fire the serviceReady event. This event is fired when the service of the window is ready to be used by other processes.
+   * @param windowId - The id of the window that fires the event
+   */
+  fireServiceReady(windowId: string) {
+    this.fire({ serviceReady: windowId });
   }
 
   /**

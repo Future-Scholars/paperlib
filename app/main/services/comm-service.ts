@@ -1,21 +1,22 @@
 import {
+  IpcMainEvent,
   MessageChannelMain,
-  utilityProcess,
+  MessageEvent,
   MessagePortMain,
   ipcMain,
-  IpcMainEvent,
-  MessageEvent,
+  utilityProcess,
 } from "electron";
-import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
+
 import { createDecorator } from "@/base/injection/injection";
-import {
-  IMainRPCService,
-  MainRPCService,
-} from "@/main/services/main-rpc-service";
+import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import {
   ExtensionProcessManagementService,
   IExtensionProcessManagementService,
 } from "@/main/services/extension-process-management-service";
+import {
+  IMainRPCService,
+  MainRPCService,
+} from "@/main/services/main-rpc-service";
 import {
   IWindowProcessManagementService,
   WindowProcessManagementService,
@@ -33,7 +34,7 @@ export class CommService {
   constructor(
     @IMainRPCService private readonly _mainRPCService: MainRPCService,
     @IExtensionProcessManagementService
-    private readonly _extensionProcessService: ExtensionProcessManagementService,
+    private readonly _extensionProcessManagementService: ExtensionProcessManagementService,
     @IWindowProcessManagementService
     private readonly _windowProcessManagementService: WindowProcessManagementService
   ) {}
@@ -53,7 +54,7 @@ export class CommService {
 
     // For extension processe
 
-    this._extensionProcessService.extensionProcess.on(
+    this._extensionProcessManagementService.extensionProcess.on(
       "message",
       (message: MessageEvent) => {
         console.log(message);
@@ -61,7 +62,7 @@ export class CommService {
     );
 
     const { port1, port2 } = new MessageChannelMain();
-    this._extensionProcessService.registerPort(port2, "mainProcess");
+    this._extensionProcessManagementService.registerPort(port2, "mainProcess");
     this._mainRPCService.initActionor(
       new MessagePortRPCProtocol(port1, "PLMainAPI", "extensionProcess")
     );
@@ -72,7 +73,10 @@ export class CommService {
         const port = event.ports[0];
 
         if (payload.destId === "extensionProcess") {
-          this._extensionProcessService.registerPort(port, payload.callerId);
+          this._extensionProcessManagementService.registerPort(
+            port,
+            payload.callerId
+          );
         } else {
           const win = this._windowProcessManagementService.browserWindows.get(
             payload.destId

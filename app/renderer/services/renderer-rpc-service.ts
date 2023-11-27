@@ -44,7 +44,7 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
         const protocol = new MessagePortRPCProtocol(
           port,
           "rendererProcess",
-          true
+          false
         );
 
         this._protocols[senderID] = protocol;

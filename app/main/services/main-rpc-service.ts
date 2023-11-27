@@ -24,6 +24,8 @@ import {
   WindowProcessManagementService,
 } from "@/main/services/window-process-management-service";
 
+import { ExtensionProcessManagementService } from "./extension-process-management-service";
+
 interface IMainRPCServiceState {
   initialized: string;
 }
@@ -58,7 +60,10 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     this._processGraph.addNode("mainProcess");
   }
 
-  async initCommunication(): Promise<void> {
+  async initCommunication(
+    windowProcessManagementService: WindowProcessManagementService,
+    extensionProcessManagementService: ExtensionProcessManagementService
+  ): Promise<void> {
     // 1. Here is a bridge for all processes to exchange port for communication.
     //    All other processes will try to send a request to here.
     // 2. Once receiving a request, we loop through all registered processes.
@@ -69,44 +74,138 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     // 3. All actionors in the current process will be binded with this protocol immediately.
     // 4. After the protocol is created, we will send a message through the protocol to broadcast the exposed APIs of the current process.
 
-    ipcMain.on("request-port", (event, senderID) => {
-      const processes = this._processGraph.nodes();
+    windowProcessManagementService.on(
+      "requestPort",
+      (payload: { key: string; value: string }) => {
+        const senderID = payload.value;
+        const processIDs = this._processGraph.nodes();
 
-      for (const process of processes) {
-        if (process === senderID) {
-          continue;
-        }
+        for (const processID of processIDs) {
+          if (processID === senderID) {
+            continue;
+          }
 
-        if (!this._processGraph.hasEdge(process, senderID)) {
-          if (process === "mainProcess") {
-            const { port1: portForMain, port2: portForRequester } =
-              new MessageChannelMain();
+          if (!this._processGraph.hasEdge(processID, senderID)) {
+            if (processID === "mainProcess") {
+              const { port1: portForMain, port2: portForRequester } =
+                new MessageChannelMain();
 
-            const protocol = new MessagePortRPCProtocol(
-              portForMain,
-              "mainProcess",
-              true
-            );
-            this._protocols[senderID] = protocol;
-            this.initActionor(protocol);
+              const protocol = new MessagePortRPCProtocol(
+                portForMain,
+                "mainProcess",
+                false
+              );
+              this._protocols[senderID] = protocol;
+              this.initActionor(protocol);
 
-            protocol.sendExposedAPI("PLMainAPI");
+              protocol.sendExposedAPI("PLMainAPI");
 
-            if (windowProcessManagementService.browserWindows.has(senderID)) {
-              windowProcessManagementService.browserWindows
-                .get(senderID)
-                .webContents.postMessage("response-port", "mainProcess", [
-                  portForRequester,
-                ]);
+              if (windowProcessManagementService.browserWindows.has(senderID)) {
+                windowProcessManagementService.browserWindows
+                  .get(senderID)
+                  .webContents.postMessage("response-port", "mainProcess", [
+                    portForRequester,
+                  ]);
+              }
+              this._processGraph.addEdge(processID, senderID);
             }
             // TODO: Forward the messageport to the non-browserwindow process
           }
-          // TODO: Forward the messageport to the non-browserwindow process
-
-          this._processGraph.addEdge(process, senderID);
         }
       }
-    });
+    );
+
+    extensionProcessManagementService.on(
+      "requestPort",
+      (payload: { key: string; value: string }) => {
+        const senderID = payload.value;
+        const processIDs = this._processGraph.nodes();
+
+        console.log(senderID, processIDs);
+
+        for (const processID of processIDs) {
+          if (processID === senderID) {
+            continue;
+          }
+
+          if (!this._processGraph.hasEdge(processID, senderID)) {
+            if (processID === "mainProcess") {
+              const { port1: portForMain, port2: portForRequester } =
+                new MessageChannelMain();
+
+              const protocol = new MessagePortRPCProtocol(
+                portForMain,
+                "mainProcess",
+                false
+              );
+              this._protocols[senderID] = protocol;
+              this.initActionor(protocol);
+
+              protocol.sendExposedAPI("PLMainAPI");
+
+              if (windowProcessManagementService.browserWindows.has(senderID)) {
+                windowProcessManagementService.browserWindows
+                  .get(senderID)
+                  .webContents.postMessage("response-port", "mainProcess", [
+                    portForRequester,
+                  ]);
+              }
+
+              if (
+                extensionProcessManagementService.extensionProcesses[senderID]
+              ) {
+                extensionProcessManagementService.extensionProcesses[
+                  senderID
+                ].postMessage({ type: "response-port", value: "mainProcess" }, [
+                  portForRequester,
+                ]);
+              }
+              this._processGraph.addEdge(processID, senderID);
+            } else {
+              // TODO: Create and forward the messageports for other processes and the requester process.
+              const { port1: portForTheir, port2: portForRequester } =
+                new MessageChannelMain();
+              // Send the port to the requester
+              if (windowProcessManagementService.browserWindows.has(senderID)) {
+                windowProcessManagementService.browserWindows
+                  .get(senderID)
+                  .webContents.postMessage("response-port", processID, [
+                    portForRequester,
+                  ]);
+              }
+              if (
+                extensionProcessManagementService.extensionProcesses[senderID]
+              ) {
+                extensionProcessManagementService.extensionProcesses[
+                  senderID
+                ].postMessage({ type: "response-port", value: processID }, [
+                  portForRequester,
+                ]);
+              }
+              if (
+                windowProcessManagementService.browserWindows.has(processID)
+              ) {
+                windowProcessManagementService.browserWindows
+                  .get(processID)
+                  .webContents.postMessage("response-port", senderID, [
+                    portForTheir,
+                  ]);
+              }
+              if (
+                extensionProcessManagementService.extensionProcesses[processID]
+              ) {
+                extensionProcessManagementService.extensionProcesses[
+                  processID
+                ].postMessage({ type: "response-port", value: senderID }, [
+                  portForTheir,
+                ]);
+              }
+              this._processGraph.addEdge(processID, senderID);
+            }
+          }
+        }
+      }
+    );
   }
 
   setActionor(actionors: { [key: string]: any }): void {

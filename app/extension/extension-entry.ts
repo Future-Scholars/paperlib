@@ -1,44 +1,106 @@
 import { MessageEvent } from "electron";
-import { IInjectable } from "@/extension/services/injectable";
+
 import { InjectionContainer } from "@/base/injection/injection";
-import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
-import { ExtensionManagementService } from "@/extension/services/extension-management-service";
+import { LazyPromise } from "@/base/rpc/lazy-promise";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
+import { ExtensionManagementService } from "@/extension/services/extension-management-service";
+import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
+import { IInjectable } from "@/extension/services/injectable";
 
-const extensionRPCService = new ExtensionRPCService();
+async function initialize() {
+  // const p: any[] = [];
 
-process.parentPort.on("message", (message: MessageEvent) => {
-  if (message.data.startsWith("register-rpc-message-port")) {
-    const port = message.ports[0];
-    const callerId = message.data.split(":")[1];
+  // setTimeout(() => {
+  //   p[0].resolve();
+  // }, 1000);
 
-    const protocol = new MessagePortRPCProtocol(port, callerId);
-    extensionRPCService.initActionor(protocol);
+  // const func = (...myArgs: any[]) => {
+  //   const result: Promise<void> = new LazyPromise();
 
-    if (callerId === "mainProcess") {
-      process.parentPort.postMessage("initialized");
-    }
+  //   p.push(result);
+
+  //   return result;
+  // };
+
+  // await func();
+
+  // console.log("done");
+
+  // ============================================================
+  // 1. Initilize the RPC service for current process
+  const extensionRPCService = new ExtensionRPCService();
+  // ============================================================
+  // 2. Start the port exchange process.
+  extensionRPCService.initCommunication();
+  // ============================================================
+  // 3. Wait for the main/renderer process to expose its APIs (PLMainAPI/PLAPI)
+  const mainAPIExposed = await extensionRPCService.waitForAPI(
+    "mainProcess",
+    "PLMainAPI",
+    5000
+  );
+
+  if (!mainAPIExposed) {
+    throw new Error("Main process API is not exposed");
+    // TODO: show error message and exit
   }
-});
 
-// const injectionContainer = new InjectionContainer();
+  console.log(await PLMainAPI.upgradeService.currentVersion());
 
-// const instances = injectionContainer.createInstance<IInjectable>({
-//   extensionRPCService: ExtensionRPCService,
-//   extensionManagementService: ExtensionManagementService,
-// });
-// for (const [key, instance] of Object.entries(instances)) {
-//   globalThis[key] = instance;
-// }
+  const rendererAPIExposed = await extensionRPCService.waitForAPI(
+    "rendererProcess",
+    "PLAPI",
+    5000
+  );
 
-// extensionRPCService.on("initialized", async (protocolId) => {
-//   try {
-//     console.log(`extension process initialized: ${protocolId.value}`);
+  if (!rendererAPIExposed) {
+    throw new Error("Renderer process API is not exposed");
+  }
 
-//     if (protocolId.value === "rendererProcess") {
-//       extensionManagementService.installInnerPlugins();
-//     }
-//   } catch (e) {
-//     console.log(e);
-//   }
-// });
+  console.log(await PLAPI.appService.version());
+
+  // process.parentPort.postMessage({
+  //   type: "request-port",
+  //   value: "extensionProcess",
+  // });
+
+  // const extensionRPCService = new ExtensionRPCService();
+
+  // process.parentPort.on("message", (message: MessageEvent) => {
+  //   if (message.data.startsWith("register-rpc-message-port")) {
+  //     const port = message.ports[0];
+  //     const callerId = message.data.split(":")[1];
+
+  //     const protocol = new MessagePortRPCProtocol(port, callerId);
+  //     extensionRPCService.initActionor(protocol);
+
+  //     if (callerId === "mainProcess") {
+  //       process.parentPort.postMessage("initialized");
+  //     }
+  //   }
+  // });
+
+  // const injectionContainer = new InjectionContainer();
+
+  // const instances = injectionContainer.createInstance<IInjectable>({
+  //   extensionRPCService: ExtensionRPCService,
+  //   extensionManagementService: ExtensionManagementService,
+  // });
+  // for (const [key, instance] of Object.entries(instances)) {
+  //   globalThis[key] = instance;
+  // }
+
+  // extensionRPCService.on("initialized", async (protocolId) => {
+  //   try {
+  //     console.log(`extension process initialized: ${protocolId.value}`);
+
+  //     if (protocolId.value === "rendererProcess") {
+  //       extensionManagementService.installInnerPlugins();
+  //     }
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // });
+}
+
+initialize();

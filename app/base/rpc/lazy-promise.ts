@@ -22,7 +22,7 @@ export class LazyPromise implements Promise<any> {
   }
 
   get [Symbol.toStringTag](): string {
-    return this.toString();
+    return this._actual ? this._actual.toString() : "LazyPromise: null";
   }
 
   private _ensureActual(): Promise<any> {

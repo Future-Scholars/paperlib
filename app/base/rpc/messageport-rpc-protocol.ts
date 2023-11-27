@@ -191,7 +191,13 @@ export class MessagePortRPCProtocol {
 
     switch (type) {
       case MessageType.request: {
-        this._receiveRequest(callId, rpcId, value.methodName, value.args);
+        this._receiveRequest(
+          callId,
+          rpcId,
+          callerId,
+          value.methodName,
+          value.args
+        );
         break;
       }
       case MessageType.replySuccess: {
@@ -227,11 +233,12 @@ export class MessagePortRPCProtocol {
   private _receiveRequest(
     callId: string,
     rpcId: string,
+    callerId: string,
     method: string,
     args: any[]
   ): void {
     let promise: Promise<any>;
-    promise = this._invokeHandler(rpcId, method, args);
+    promise = this._invokeHandler(rpcId, callerId, method, args);
     promise.then(
       (r) => {
         const msg = JSON.stringify({
@@ -254,11 +261,14 @@ export class MessagePortRPCProtocol {
 
   private _invokeHandler(
     rpcId: string,
+    callerId: string,
     methodName: string,
     args: any[]
   ): Promise<any> {
     try {
-      return Promise.resolve(this._doInvokeHandler(rpcId, methodName, args));
+      return Promise.resolve(
+        this._doInvokeHandler(rpcId, callerId, methodName, args)
+      );
     } catch (err) {
       return Promise.reject(err);
     }
@@ -266,6 +276,7 @@ export class MessagePortRPCProtocol {
 
   protected _doInvokeHandler(
     rpcId: string,
+    callerId: string,
     methodName: string,
     args: any[]
   ): any {
@@ -278,7 +289,7 @@ export class MessagePortRPCProtocol {
       throw new Error("Unknown method " + methodName + " on actor " + rpcId);
     }
     if (this._callWithCallerId) {
-      return method.apply(actor, [this._callerId, ...args]);
+      return method.apply(actor, [callerId, ...args]);
     } else {
       return method.apply(actor, args);
     }
