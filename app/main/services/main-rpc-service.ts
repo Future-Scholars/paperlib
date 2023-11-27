@@ -1,28 +1,28 @@
 import { MessageChannelMain, MessagePortMain, ipcMain } from "electron";
 import { Graph } from "graph-data-structure";
 
+import { createDecorator } from "@/base/injection/injection";
 import { EIMainRPCProtocol } from "@/base/rpc/ei-main-rpc-protocol";
+import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { RPCProtocol, RPCService } from "@/base/rpc/rpc-service";
-import {
-  IWindowProcessManagementService,
-  WindowProcessManagementService,
-} from "@/main/services/window-process-management-service";
-import {
-  FileSystemService,
-  IFileSystemService,
-} from "@/main/services/filesystem-service";
 import {
   ContextMenuService,
   IContextMenuService,
 } from "@/main/services/contextmenu-service";
 import {
+  FileSystemService,
+  IFileSystemService,
+} from "@/main/services/filesystem-service";
+import { IMenuService, MenuService } from "@/main/services/menu-service";
+import { IProxyService, ProxyService } from "@/main/services/proxy-service";
+import {
   IUpgradeService,
   UpgradeService,
 } from "@/main/services/upgrade-service";
-import { IMenuService, MenuService } from "@/main/services/menu-service";
-import { IProxyService, ProxyService } from "@/main/services/proxy-service";
-import { createDecorator } from "@/base/injection/injection";
-import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
+import {
+  IWindowProcessManagementService,
+  WindowProcessManagementService,
+} from "@/main/services/window-process-management-service";
 
 interface IMainRPCServiceState {
   initialized: string;
@@ -109,10 +109,6 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     });
   }
 
-  broadcastAPI(): void {
-    console.log("broadcast api");
-  }
-
   setActionor(actionors: { [key: string]: any }): void {
     this._actionors = actionors;
     this._registeredAPIs["mainProcess-PLMainAPI"] = [
@@ -124,16 +120,4 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
       "proxyService",
     ];
   }
-
-  listenProtocolCreation(): void {
-    // const eiMainRPCProtocol = new EIMainRPCProtocol(
-    //   actionor["windowProcessManagementService"].browserWindows
-    // );
-    // this.initActionor(eiMainRPCProtocol, actionor);
-  }
-
-  initProxy(
-    protocol: RPCProtocol,
-    exposedAPI: { [namespace: string]: string[] }
-  ): void {}
 }

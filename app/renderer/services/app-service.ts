@@ -65,12 +65,4 @@ export class APPService {
   changeTheme(theme: APPTheme) {
     PLMainAPI.windowProcessManagementService.changeTheme(theme);
   }
-
-  /**
-   * Check if this is the first time running of the current version.
-   */
-  async isVersionChanged(): Promise<boolean> {
-    const lastVersion = this.preferenceService.get("lastVersion");
-    return lastVersion !== (await this.version());
-  }
 }

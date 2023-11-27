@@ -94,6 +94,8 @@ const reloadPaperEntities = async () => {
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
+
+  viewState.entitiesCount = paperEntities.value.length;
 };
 
 disposable(
@@ -311,12 +313,20 @@ const logProgress = () => {
 
 const isWhatsNewShown = ref(false);
 
+preferenceService.onChanged(["lastVersion"], async () => {
+  isWhatsNewShown.value =
+    prefState.lastVersion !== (await PLMainAPI.upgradeService.currentVersion());
+});
+
 // ================================
 // Mount Hook
 // ================================
 onMounted(async () => {
   nextTick(async () => {
-    isWhatsNewShown.value = await appService.isVersionChanged();
+    isWhatsNewShown.value =
+      prefState.lastVersion !==
+      (await PLMainAPI.upgradeService.currentVersion());
+
     await databaseService.initialize(true);
   });
 });

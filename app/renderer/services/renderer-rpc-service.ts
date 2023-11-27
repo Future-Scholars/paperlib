@@ -1,16 +1,15 @@
 import { ipcRenderer } from "electron";
 
+import { createDecorator } from "@/base/injection/injection";
 import { EIRendererRPCProtocol } from "@/base/rpc/ei-renderer-rpc-protocol";
-
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { RPCProtocol, RPCService } from "@/base/rpc/rpc-service";
 import { APPService, IAPPService } from "@/renderer/services/app-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   CommandService,
   ICommandService,
 } from "@/renderer/services/command-service";
-import { createDecorator } from "@/base/injection/injection";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 
 interface IRendererRPCServiceState {
   initialized: string;
@@ -27,18 +26,6 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
         "RendererRPCService should only be instantiated in the renderer process"
       );
     }
-
-    // const eiRendererRPCProtocol = new EIRendererRPCProtocol();
-    // this.initProxy(eiRendererRPCProtocol, {
-    //   PLMainAPI: [
-    //     "windowProcessManagementService",
-    //     "fileSystemService",
-    //     "contextMenuService",
-    //     "upgradeService",
-    //     "menuService",
-    //     "proxyService",
-    //   ],
-    // });
   }
 
   async initCommunication(): Promise<void> {
@@ -46,7 +33,6 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
     // 2. All other processes will try to send a messageport to here via the main process as a bridge.
     // 3. Once receiving a messageport, the current process will create a MessagePortProtocol for communication.
     // 4. All actionors in the current process will be binded with this protocol immediately.
-    //    TODO: When we update actionors, we should re-binded them with the protocol again.
 
     // 5. After the protocol is created, we will send a message through the protocol to request the exposed APIs.
     //    All this code should be in the protocol class.
@@ -63,6 +49,8 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
 
         this._protocols[senderID] = protocol;
         this.initActionor(protocol);
+
+        protocol.sendExposedAPI("PLAPI");
       }
     });
 
@@ -97,62 +85,12 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
     });
   }
 
-  async registerAPI() {
-    // 1. Expose the APIs of the current process to other processes by registering the API to the main process.
-    return new Promise((resolve) => {
-      // ipcRenderer.on("new-messageport", (event, data) => {
-      //   const port = event.ports[0];
-      //   console.log("port", data, port);
-      //   resolve();
-      // });
+  setActionor(actionors: { [key: string]: any }): void {
+    this._actionors = actionors;
 
-      ipcRenderer.postMessage("register-api", "PLAPI");
-    });
-  }
-
-  listenProtocolCreation(): void {
-    // TODO: change this name
-    // ipcRenderer.on("create-messageport-rpc-protocol", (event, data) => {
-    //   const port = event.ports[0];
-    //   const protocol = new MessagePortRPCProtocol(port, "rendererProcess");
-    //   this._protocols[data.protocolId] = protocol;
-    //   this.initActionor(protocol);
-    //   this.initProxy(protocol, data.exposedAPIs);
-    // });
-  }
-
-  requestExposedAPI(port: MessagePort) {
-    port.postMessage(`request-exposed-api`);
-  }
-
-  receiveExposedAPI(
-    port: MessagePort
-  ): Promise<{ [namespace: string]: string[] }> {
-    return new Promise((resolve) => {
-      port.onmessage = (event) => {
-        if (event.data.startsWith("exposed-api")) {
-          const exposedAPIs = JSON.parse(
-            event.data.replace("exposed-api:", "")
-          );
-          resolve(exposedAPIs);
-        }
-      };
-    });
-  }
-
-  initProxy(
-    protocol: RPCProtocol,
-    exposedAPIs: { [namespace: string]: string[] }
-  ): void {
-    for (const [namespace, APIs] of Object.entries(exposedAPIs)) {
-      if (!this._remoteAPIs[namespace]) {
-        this._remoteAPIs[namespace] = {};
-        globalThis[namespace] = {};
-      }
-
-      for (const API of APIs) {
-        globalThis[namespace][API] = protocol.getProxy(API);
-      }
+    for (const [processID, protocol] of Object.entries(this._protocols)) {
+      this.initActionor(protocol);
+      protocol.sendExposedAPI("PLAPI");
     }
   }
 }

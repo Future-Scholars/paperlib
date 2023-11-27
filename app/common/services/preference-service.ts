@@ -495,6 +495,13 @@ function _migrate(
     : 0;
 
   if (prevVersion === 0) {
+    // If there is no key in existing store, set the default value
+    for (const key of Object.keys(_defaultPreferences)) {
+      if (!store.has(key)) {
+        store.set(key, _defaultPreferences[key]);
+      }
+    }
+
     // depracated scrapers
     const existingScraperArray = store.get(
       "scrapers"
@@ -556,7 +563,7 @@ function _migrate(
 
 export const IPreferenceService = createDecorator("preferenceService");
 
-export const PREFEREMCE_VERSION: number = 1;
+export const PREFERENCE_VERSION: number = 1;
 
 /**
  * Preference service.
@@ -577,7 +584,7 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
       _store = new ElectronStore<IPreferenceStore>({});
     }
 
-    _store = _migrate(_store, PREFEREMCE_VERSION);
+    _store = _migrate(_store, PREFERENCE_VERSION);
 
     super("preferenceService", JSON.parse(JSON.stringify(_store.store)));
 
@@ -606,6 +613,7 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
    * @returns
    */
   set(patch: Partial<IPreferenceStore>) {
+    // TODO: when close, run many set windowSize
     this._store.set(patch);
     this.fire(patch);
   }

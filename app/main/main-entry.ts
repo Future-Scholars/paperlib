@@ -9,22 +9,21 @@ import Store from "electron-store";
 import path from "node:path";
 import { release } from "os";
 
-import { IInjectable } from "@/main/services/injectable.ts";
 import { InjectionContainer } from "@/base/injection/injection.ts";
+import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol.ts";
 import { PreferenceService } from "@/common/services/preference-service.ts";
+import { IInjectable } from "@/main/services/injectable.ts";
 import { WindowStorage } from "@/main/window-storage.ts";
 
-import { MainRPCService } from "./services/main-rpc-service.ts";
-import { WindowProcessManagementService } from "./services/window-process-management-service.ts";
-
-import { FileSystemService } from "./services/filesystem-service.ts";
-import { ContextMenuService } from "./services/contextmenu-service.ts";
-import { MenuService } from "./services/menu-service.ts";
-import { UpgradeService } from "./services/upgrade-service.ts";
-import { ProxyService } from "./services/proxy-service.ts";
-import { ExtensionProcessManagementService } from "./services/extension-process-management-service.ts";
-import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol.ts";
 import { CommService } from "./services/comm-service.ts";
+import { ContextMenuService } from "./services/contextmenu-service.ts";
+import { ExtensionProcessManagementService } from "./services/extension-process-management-service.ts";
+import { FileSystemService } from "./services/filesystem-service.ts";
+import { MainRPCService } from "./services/main-rpc-service.ts";
+import { MenuService } from "./services/menu-service.ts";
+import { ProxyService } from "./services/proxy-service.ts";
+import { UpgradeService } from "./services/upgrade-service.ts";
+import { WindowProcessManagementService } from "./services/window-process-management-service.ts";
 
 Store.initRenderer();
 
@@ -98,11 +97,9 @@ async function initialize() {
   // ============================================================
   // 1. Initilize the RPC service for current process
   const mainRPCService = new MainRPCService();
-
   // ============================================================
-  // 2. Request exposed APIs from other processes.
-  //    The current process (main process) is the first process to be initialized in the application.
-  //    Therefore, it request no APIs from other processes.
+  // 2. Start the port exchange process.
+  mainRPCService.initCommunication();
 
   // ============================================================
   // 3. Create the instances for all services, tools, etc. of the current process.
@@ -174,20 +171,8 @@ async function initialize() {
     return app.getVersion();
   });
 
-  // TODO: Check this?
-  // const commService = new CommService(
-  //   mainRPCService,
-  //   extensionProcessService,
-  //   windowProcessManagementService
-  // );
-  // commService.start();
-
   // ============================================================
-  // 6. Start the port exchange process.
-  mainRPCService.initCommunication();
-
-  // ============================================================
-  // 7. Create the main renderer process.
+  // 6. Create the main renderer process.
   windowProcessManagementService.createMainRenderer();
 }
 

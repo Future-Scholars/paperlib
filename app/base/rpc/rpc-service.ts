@@ -26,16 +26,9 @@ export abstract class RPCService<
     this._actionors = actionors;
   }
 
-  protected abstract listenProtocolCreation(): void;
-
   initActionor(protocol: RPCProtocol): void {
     for (const [key, value] of Object.entries(this._actionors)) {
       protocol.set(key, value);
     }
   }
-
-  abstract initProxy(
-    protocol: RPCProtocol,
-    exposedAPI: { [namespace: string]: string[] }
-  ): void;
 }
