@@ -23,7 +23,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <img
       src="../../assets/logo-dark.png"
       class="w-8 mb-2 ml-1"

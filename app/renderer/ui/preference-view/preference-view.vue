@@ -12,8 +12,9 @@ import {
   BIconLayoutSidebar,
   BIconViewList,
 } from "bootstrap-icons-vue";
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import AboutView from "./about-view.vue";
@@ -42,18 +43,21 @@ const onCloseClicked = () => {
 
 shortcutService.register("Escape", onCloseClicked);
 shortcutService.registerInInputField("Escape", onCloseClicked);
+
+const darkMode = ref(false);
+onMounted(async () => {
+  darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
+});
 </script>
 
 <template>
   <div
-    class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-800 dark:bg-neutral-900 bg-opacity-50 dark:bg-opacity-80"
+    class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-100 dark:bg-neutral-800"
   >
-    <div class="flex justify-center items-center w-full h-full">
-      <div
-        class="m-auto flex bg-neutral-100 dark:bg-neutral-800 h-[650px] w-[800px] rounded-lg shadow-lg select-none space-y-2"
-      >
+    <div class="flex h-full m-auto justify-center space-x-4 pt-20">
+      <div class="flex flex-col justify-between flex-none">
         <div
-          class="flex flex-col space-y-1 h-full w-36 rounded-l-lg px-2 py-14 border-r-[1px] dark:border-r-neutral-700"
+          class="flex flex-col space-y-1 h-full w-36 rounded-l-lg pr-4 border-r-[1px] dark:border-r-neutral-700"
         >
           <SectionItem
             :name="$t('preference.general')"
@@ -133,29 +137,26 @@ shortcutService.registerInInputField("Escape", onCloseClicked);
             <BIconInfoCircle class="my-auto text-xs" />
           </SectionItem>
         </div>
-        <div class="flex flex-col w-full pt-11 pb-4 px-8 justify-between">
-          <GeneralView v-if="preferenceTab === 'general'" />
-          <SidebarView v-if="preferenceTab === 'sidebar'" />
-          <MainviewView v-if="preferenceTab === 'mainview'" />
-          <ScraperView v-if="preferenceTab === 'scraper'" />
-          <DownloaderView v-if="preferenceTab === 'downloader'" />
-          <ProxyView v-if="preferenceTab === 'proxy'" />
-          <CloudView v-if="preferenceTab === 'cloud'" />
-          <ImportView v-if="preferenceTab === 'import'" />
-          <ExportView v-if="preferenceTab === 'export'" />
-          <HotkeyView v-if="preferenceTab === 'hotkey'" />
-
-          <AboutView v-if="preferenceTab === 'about'" />
-          <div class="flex justify-end space-x-2 py-1">
-            <div
-              class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm cursor-pointer"
-              @click="onCloseClicked"
-            >
-              <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
-            </div>
+        <div class="flex justify-end space-x-2 pb-14 pr-4">
+          <div
+            class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm cursor-pointer"
+            @click="onCloseClicked"
+          >
+            <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
           </div>
         </div>
       </div>
+      <GeneralView v-if="preferenceTab === 'general'" />
+      <SidebarView v-if="preferenceTab === 'sidebar'" />
+      <MainviewView v-if="preferenceTab === 'mainview'" />
+      <ScraperView v-if="preferenceTab === 'scraper'" />
+      <DownloaderView v-if="preferenceTab === 'downloader'" />
+      <ProxyView v-if="preferenceTab === 'proxy'" />
+      <CloudView v-if="preferenceTab === 'cloud'" />
+      <ImportView v-if="preferenceTab === 'import'" />
+      <ExportView v-if="preferenceTab === 'export'" />
+      <HotkeyView v-if="preferenceTab === 'hotkey'" />
+      <AboutView v-if="preferenceTab === 'about'" />
     </div>
   </div>
 </template>

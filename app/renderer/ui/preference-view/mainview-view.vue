@@ -15,11 +15,11 @@ import { Ref, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { disposable } from "@/base/dispose";
+import { IPreferenceStore } from "@/common/services/preference-service";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import ListItem from "@/renderer/ui/main-view/data-view/components/list-item.vue";
 import TableItem from "@/renderer/ui/main-view/data-view/components/table/table-item.vue";
-import { IPreferenceStore } from "@/services/preference-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import MainSection from "./components/main-section.vue";
@@ -151,12 +151,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-[600px] text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <div class="text-base font-semibold mb-4">
       {{ $t("preference.mainview") + " " + $t("mainview.preview") }}
     </div>
     <ListItem
-      class="bg-neutral-200 dark:bg-neutral-700 w-[600px] cursor-default"
+      class="bg-neutral-200 dark:bg-neutral-700 cursor-default"
       :item="item"
       :showPubTime="prefState.showMainYear"
       :showPublication="prefState.showMainPublication"
@@ -170,7 +172,7 @@ onMounted(() => {
     />
 
     <TableItem
-      class="bg-neutral-200 dark:bg-neutral-700 w-[600px] cursor-default mt-5"
+      class="bg-neutral-200 dark:bg-neutral-700 cursor-default mt-5"
       :item="item"
       :titles="tableTitleColumns"
       :showPubTime="prefState.showMainYear"
@@ -187,7 +189,7 @@ onMounted(() => {
       :striped="false"
     />
 
-    <div class="flex mt-6 flex-wrap w-[600px]">
+    <div class="flex mt-6 flex-wrap">
       <MainSection
         description="Year"
         :enable="prefState.showMainYear"

@@ -163,4 +163,3 @@ const prefState = preferenceService.useState();
     </div>
   </div>
 </template>
-@/base/string

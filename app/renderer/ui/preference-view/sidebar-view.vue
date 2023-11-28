@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IPreferenceStore } from "@/renderer/services/preference-service";
+import { IPreferenceStore } from "@/common/services/preference-service";
 
 import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
@@ -12,7 +12,9 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <div class="text-base font-semibold mb-4">
       {{ $t("preference.sidebar") }}
     </div>

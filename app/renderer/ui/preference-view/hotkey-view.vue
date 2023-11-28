@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { IPreferenceStore } from "@/renderer/services/preference-service";
+import { IPreferenceStore } from "@/common/services/preference-service";
 
 import HotkeyOption from "./components/hotkey-options.vue";
 
@@ -59,7 +59,9 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <div class="text-base font-semibold mb-2">
       {{ $t("preference.hotkeys") }}
     </div>

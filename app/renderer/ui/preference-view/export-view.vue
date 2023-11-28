@@ -2,8 +2,8 @@
 import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
-import { MSWordCommService } from "@/renderer/services/msword-comm-service";
 import { IPreferenceStore } from "@/common/services/preference-service";
+import { MSWordCommService } from "@/renderer/services/msword-comm-service";
 
 import Replacement from "./components/replacement.vue";
 import Toggle from "./components/toggle.vue";
@@ -80,7 +80,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col text-neutral-800 dark:text-neutral-300 max-w-xl">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <div class="text-base font-semibold mb-4">
       {{ $t("preference.export") }}
     </div>

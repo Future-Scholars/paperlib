@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { APPTheme } from "@/main/services/window-control-service";
 import { IPreferenceStore } from "@/common/services/preference-service";
+import { APPTheme } from "@/main/services/window-process-management-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Options from "./components/options.vue";
@@ -99,7 +99,9 @@ const onChangeLanguage = (language: string) => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <div class="text-base font-semibold mb-4">
       Paperlib {{ $t("preference.library") }}
     </div>
