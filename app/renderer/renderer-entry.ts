@@ -134,12 +134,12 @@ for (const [key, instance] of Object.entries(instances)) {
 }
 
 // ============================================================
-// 4. Set actionors for RPC service with all initialized services.
+// 5. Set actionors for RPC service with all initialized services.
 //    Expose the APIs of the current process to other processes
 rendererRPCService.setActionor(instances);
 
 // ============================================================
-// 5. Setup other things for the renderer process.
+// 6. Setup other things for the renderer process.
 const locales = loadLocales();
 
 const i18n = createI18n({

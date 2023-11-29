@@ -10,6 +10,7 @@ import {
   BIconInfoCircle,
   BIconKeyboard,
   BIconLayoutSidebar,
+  BIconPuzzle,
   BIconViewList,
 } from "bootstrap-icons-vue";
 import { onMounted, ref, watch } from "vue";
@@ -22,6 +23,7 @@ import CloudView from "./cloud-view.vue";
 import SectionItem from "./components/section-item.vue";
 import DownloaderView from "./downloader-view.vue";
 import ExportView from "./export-view.vue";
+import ExtensionView from "./extension-view.vue";
 import GeneralView from "./general-view.vue";
 import HotkeyView from "./hotkey-view.vue";
 import ImportView from "./import-view.vue";
@@ -55,7 +57,7 @@ onMounted(async () => {
     class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-100 dark:bg-neutral-800"
   >
     <div class="flex h-full m-auto justify-center space-x-4 pt-20">
-      <div class="flex flex-col justify-between flex-none">
+      <div class="flex flex-col justify-between flex-none overflow-scroll">
         <div
           class="flex flex-col space-y-1 h-full w-36 rounded-l-lg pr-4 border-r-[1px] dark:border-r-neutral-700"
         >
@@ -130,6 +132,13 @@ onMounted(async () => {
             <BIconKeyboard class="my-auto text-xs" />
           </SectionItem>
           <SectionItem
+            :name="$t('preference.extension')"
+            :active="preferenceTab === 'extension'"
+            @click="preferenceTab = 'extension'"
+          >
+            <BIconPuzzle class="my-auto text-xs" />
+          </SectionItem>
+          <SectionItem
             :name="$t('preference.about')"
             :active="preferenceTab === 'about'"
             @click="preferenceTab = 'about'"
@@ -146,17 +155,21 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <GeneralView v-if="preferenceTab === 'general'" />
-      <SidebarView v-if="preferenceTab === 'sidebar'" />
-      <MainviewView v-if="preferenceTab === 'mainview'" />
-      <ScraperView v-if="preferenceTab === 'scraper'" />
-      <DownloaderView v-if="preferenceTab === 'downloader'" />
-      <ProxyView v-if="preferenceTab === 'proxy'" />
-      <CloudView v-if="preferenceTab === 'cloud'" />
-      <ImportView v-if="preferenceTab === 'import'" />
-      <ExportView v-if="preferenceTab === 'export'" />
-      <HotkeyView v-if="preferenceTab === 'hotkey'" />
-      <AboutView v-if="preferenceTab === 'about'" />
+
+      <div class="overflow-scroll px-6">
+        <GeneralView v-if="preferenceTab === 'general'" />
+        <SidebarView v-if="preferenceTab === 'sidebar'" />
+        <MainviewView v-if="preferenceTab === 'mainview'" />
+        <ScraperView v-if="preferenceTab === 'scraper'" />
+        <DownloaderView v-if="preferenceTab === 'downloader'" />
+        <ProxyView v-if="preferenceTab === 'proxy'" />
+        <CloudView v-if="preferenceTab === 'cloud'" />
+        <ImportView v-if="preferenceTab === 'import'" />
+        <ExportView v-if="preferenceTab === 'export'" />
+        <HotkeyView v-if="preferenceTab === 'hotkey'" />
+        <AboutView v-if="preferenceTab === 'about'" />
+        <ExtensionView v-if="preferenceTab === 'extension'" />
+      </div>
     </div>
   </div>
 </template>

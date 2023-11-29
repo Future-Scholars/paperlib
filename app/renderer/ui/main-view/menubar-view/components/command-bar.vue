@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import {
+  BIconChevronRight,
   BIconQuestionCircle,
   BIconSearch,
   BIconX,
-  BIconChevronRight,
 } from "bootstrap-icons-vue";
 import { computed, ref, watch } from "vue";
 
 import { debounce } from "@/base/misc";
+import { ICommand } from "@/renderer/services/command-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 // ================================
@@ -41,16 +42,22 @@ const isCommand = computed(() => {
   return commandText.value.startsWith(`\\`);
 });
 
+const commandsBuffer = ref<ICommand[]>([]);
 const commands = computed(() => {
   if (!isCommand.value) {
     return [];
   }
-  return commandService.getRegisteredCommands(
-    commandText.value.split(" ")[0].substring(1).trim()
-  );
+  if (!isSelectingCommand.value) {
+    commandsBuffer.value = commandService.getRegisteredCommands(
+      commandText.value.split(" ")[0].substring(1).trim()
+    );
+    return commandsBuffer.value;
+  } else {
+    return commandsBuffer.value;
+  }
 });
 
-const selectedCommandIndex = ref(0);
+const selectedCommandIndex = ref(-1);
 
 const onClearClicked = (payload: Event) => {
   commandText.value = "";
@@ -62,47 +69,85 @@ let arrowUpDisposeHandler: () => void;
 let enterDisposeHandler: () => void;
 
 const isFocused = ref(false);
+const isSelectingCommand = ref(false);
+
+const onKeydown = (payload: KeyboardEvent) => {
+  if (
+    payload.key !== "ArrowDown" &&
+    payload.key !== "ArrowUp" &&
+    payload.key !== "Enter"
+  ) {
+    isSelectingCommand.value = false;
+  }
+};
 
 const onFocus = (payload: Event) => {
-  arrowDownDisposeHandler = shortcutService.register("ArrowDown", () => {
-    if (isCommandPanelShown.value) {
-      selectedCommandIndex.value =
-        (selectedCommandIndex.value + 1) % commands.value.length;
-    }
-  });
+  arrowDownDisposeHandler = shortcutService.registerInInputField(
+    "ArrowDown",
+    () => {
+      isSelectingCommand.value = true;
+      if (isCommandPanelShown.value) {
+        selectedCommandIndex.value =
+          (selectedCommandIndex.value + 1) % commands.value.length;
 
-  arrowUpDisposeHandler = shortcutService.register("ArrowUp", () => {
-    if (isCommandPanelShown.value) {
-      selectedCommandIndex.value =
-        (selectedCommandIndex.value - 1 + commands.value.length) %
-        commands.value.length;
-    }
-  });
-
-  enterDisposeHandler = shortcutService.register("Enter", (e: Event) => {
-    if (isCommandPanelShown.value) {
-      const commandComponents = commandText.value.split(" ").filter((x) => x);
-      const commandArgs = commandText.value
-        .replace(commandComponents[0], "")
-        .trimStart();
-
-      if (commands.value[selectedCommandIndex.value].handler.length === 0) {
-        commands.value[selectedCommandIndex.value].handler();
-        //@ts-ignore
-        e.target?.blur();
-      } else {
-        if (commandArgs) {
-          commands.value[selectedCommandIndex.value].handler(commandArgs);
-          //@ts-ignore
-          e.target?.blur();
-        } else {
-          commandText.value = `\\${
-            commands.value[selectedCommandIndex.value].id
-          } `;
-        }
+        commandText.value = `\\${
+          commands.value[selectedCommandIndex.value].id
+        } `;
       }
     }
-  });
+  );
+
+  arrowUpDisposeHandler = shortcutService.registerInInputField(
+    "ArrowUp",
+    () => {
+      isSelectingCommand.value = true;
+      if (isCommandPanelShown.value) {
+        if (selectedCommandIndex.value < 0) {
+          selectedCommandIndex.value = commands.value.length - 1;
+        } else {
+          selectedCommandIndex.value =
+            (selectedCommandIndex.value - 1 + commands.value.length) %
+            commands.value.length;
+        }
+
+        commandText.value = `\\${
+          commands.value[selectedCommandIndex.value].id
+        } `;
+      }
+    }
+  );
+
+  enterDisposeHandler = shortcutService.registerInInputField(
+    "Enter",
+    (e: Event) => {
+      if (isCommandPanelShown.value && selectedCommandIndex.value >= 0) {
+        const commandComponents = commandText.value.split(" ").filter((x) => x);
+        const commandStr = commandComponents[0].trim();
+        const commandID = commandStr.substring(1).trim();
+        const commandArgs = commandText.value
+          .replace(commandComponents[0], "")
+          .trimStart();
+
+        if (commandStr === "\\") {
+          commandText.value = "";
+          return;
+        }
+
+        commandService.run(commandID, commandArgs);
+
+        if (
+          ["search", "search_fulltext", "search_advanced"].includes(commandID)
+        ) {
+          commandText.value = commandArgs;
+          onSearchTextChanged();
+        } else {
+          //@ts-ignore
+          e.target?.blur();
+        }
+        selectedCommandIndex.value = -1;
+      }
+    }
+  );
 
   isFocused.value = true;
 };
@@ -112,6 +157,7 @@ const onBlur = (payload: Event) => {
   arrowUpDisposeHandler?.();
   enterDisposeHandler?.();
   isFocused.value = false;
+  isSelectingCommand.value = false;
 };
 
 const isCommandPanelShown = computed(() => {
@@ -133,6 +179,18 @@ const isCommandPanelShown = computed(() => {
       v-if="!isCommand"
     />
     <BIconChevronRight class="my-auto ml-1 mr-1 text-xs" v-else />
+    <div
+      class="text-xxs my-auto mr-2 px-1 border-[1px] border-neutral-300 rounded"
+      v-if="!isCommand && viewState.searchMode === 'fulltext'"
+    >
+      FullText
+    </div>
+    <div
+      class="text-xxs my-auto mr-2 px-1 border-[1px] border-neutral-300 rounded"
+      v-if="!isCommand && viewState.searchMode === 'advanced'"
+    >
+      Advanced
+    </div>
 
     <input
       class="grow py-2 my-auto nodraggable-item text-xs bg-transparent focus:outline-none peer"
@@ -142,6 +200,7 @@ const isCommandPanelShown = computed(() => {
       @input="onInput"
       @blur="onBlur"
       @focus="onFocus"
+      @keydown="onKeydown"
     />
     <BIconX
       id="search-clear-btn"
@@ -157,7 +216,7 @@ const isCommandPanelShown = computed(() => {
       leave-to-class="transform opacity-0"
     >
       <div
-        class="w-full max-h-64 bg-neutral-100 absolute left-0 top-8 z-50 rounded-bl-md rounded-br-md p-2 border-b-[1px] border-l-[1px] border-r-[1px]"
+        class="w-full max-h-64 bg-neutral-100 absolute left-0 top-8 z-50 rounded-bl-md rounded-br-md p-1 border-b-[1px] border-l-[1px] border-r-[1px] shadow-md"
         v-show="isCommandPanelShown"
       >
         <RecycleScroller
@@ -170,17 +229,17 @@ const isCommandPanelShown = computed(() => {
           :buffer="500"
         >
           <div
-            class="flex space-x-4 h-7 rounded-md px-2"
+            class="flex space-x-4 h-7 rounded-md px-2 justify-between"
             :class="
               selectedCommandIndex === index
                 ? 'bg-neutral-200 dark:bg-neutral-700'
                 : ''
             "
           >
-            <div class="text-xs font-semibold my-auto px-1 py-[1px] rounded-sm">
+            <div class="text-xs font-semibold my-auto truncate">
               \{{ item.id }}
             </div>
-            <div class="text-xs my-auto text-neutral-500">
+            <div class="text-xs my-auto text-neutral-500 truncate">
               {{ item.description }}
             </div>
           </div>

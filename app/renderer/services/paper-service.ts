@@ -48,7 +48,7 @@ export interface IPaperServiceState {
 
 export interface IPaperFilterOptions {
   search?: string;
-  searchMode?: "general" | "fulltext" | "advanced";
+  searchMode?: string;
   flaged?: boolean;
   tag?: string;
   folder?: string;
@@ -97,8 +97,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
     });
   }
 
-  constructFilter(filterOptions: IPaperFilterOptions) {
-    let filter = "";
+  constructFilter(filterOptions: IPaperFilterOptions): string[] {
+    let filter: string[] = [];
 
     if (filterOptions.search) {
       let formatedSearch = formatString({
@@ -112,7 +112,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
           .trim()
           .split(" ")
           .join("*")}*`;
-        filter += `(title LIKE[c] \"${fuzzyFormatedSearch}\" OR authors LIKE[c] \"${fuzzyFormatedSearch}\" OR publication LIKE[c] \"${fuzzyFormatedSearch}\" OR note LIKE[c] \"${fuzzyFormatedSearch}\") AND `;
+        filter.push(
+          `(title LIKE[c] \"${fuzzyFormatedSearch}\" OR authors LIKE[c] \"${fuzzyFormatedSearch}\" OR publication LIKE[c] \"${fuzzyFormatedSearch}\" OR note LIKE[c] \"${fuzzyFormatedSearch}\")`
+        );
       } else if (filterOptions.searchMode === "advanced") {
         // Replace comparison operators for 'addTime'
         const compareDateMatch = formatedSearch.match(
@@ -146,23 +148,20 @@ export class PaperService extends Eventable<IPaperServiceState> {
             date.toISOString().slice(0, -5).replace("T", "@")
           );
         }
-        filter += `${formatedSearch} `;
-        return filter;
+        filter.push(formatedSearch);
+      } else if (filterOptions.searchMode === "fulltext") {
+        filter.push(`(fulltext contains[c] \"${formatedSearch}\")`);
       }
     }
 
     if (filterOptions.flaged) {
-      filter += "flag == true AND ";
+      filter.push(`(flag == true)`);
     }
     if (filterOptions.tag) {
-      filter += `(ANY tags.name == \"${filterOptions.tag}\") AND `;
+      filter.push(`(ANY tags.name == \"${filterOptions.tag}\")`);
     }
     if (filterOptions.folder) {
-      filter += `(ANY folders.name == \"${filterOptions.folder}\") AND `;
-    }
-
-    if (filter.length > 0) {
-      filter = filter.slice(0, -5);
+      filter.push(`(ANY folders.name == \"${filterOptions.folder}\")`);
     }
 
     return filter;
@@ -177,15 +176,26 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * @returns - paper entities
    */
   @processing(ProcessingKey.General)
-  async load(filter: string, sortBy: string, sortOrder: "asce" | "desc") {
+  async load(filter: string[], sortBy: string, sortOrder: "asce" | "desc") {
     // TODO: fulltext filter
     try {
-      return this._paperEntityRepository.load(
-        await this._databaseCore.realm(),
-        filter,
-        sortBy,
-        sortOrder
-      );
+      if (filter.length > 0 && filter[0].startsWith("(fulltext contains[c]")) {
+        const allPaperEntities = this._paperEntityRepository.load(
+          await this._databaseCore.realm(),
+          filter.slice(1).join(" AND "),
+          sortBy,
+          sortOrder
+        );
+
+        return this._cacheService.fullTextFilter(filter[0], allPaperEntities);
+      } else {
+        return this._paperEntityRepository.load(
+          await this._databaseCore.realm(),
+          filter.join(" AND "),
+          sortBy,
+          sortOrder
+        );
+      }
     } catch (error) {
       this._logService.error(
         "Failed to load paper entities",
@@ -668,7 +678,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
   async renameAll() {
     this._logService.info(`Renaming all paper(s)...`, "", true, "PaperService");
     try {
-      let paperEntities = await this.load("", "title", "desc");
+      let paperEntities = await this.load([], "title", "desc");
       const paperEntityDrafts = paperEntities.map(
         (paperEntity: PaperEntity) => {
           return new PaperEntity(false).initialize(paperEntity);

@@ -8,24 +8,6 @@ import { ExtensionRPCService } from "@/extension/services/extension-rpc-service"
 import { IInjectable } from "@/extension/services/injectable";
 
 async function initialize() {
-  // const p: any[] = [];
-
-  // setTimeout(() => {
-  //   p[0].resolve();
-  // }, 1000);
-
-  // const func = (...myArgs: any[]) => {
-  //   const result: Promise<void> = new LazyPromise();
-
-  //   p.push(result);
-
-  //   return result;
-  // };
-
-  // await func();
-
-  // console.log("done");
-
   // ============================================================
   // 1. Initilize the RPC service for current process
   const extensionRPCService = new ExtensionRPCService();
@@ -39,68 +21,37 @@ async function initialize() {
     "PLMainAPI",
     5000
   );
-
   if (!mainAPIExposed) {
     throw new Error("Main process API is not exposed");
     // TODO: show error message and exit
   }
-
-  console.log(await PLMainAPI.upgradeService.currentVersion());
-
   const rendererAPIExposed = await extensionRPCService.waitForAPI(
     "rendererProcess",
     "PLAPI",
     5000
   );
-
   if (!rendererAPIExposed) {
     throw new Error("Renderer process API is not exposed");
   }
 
-  console.log(await PLAPI.appService.version());
+  // ============================================================
+  // 4. Create the instances for all services, tools, etc. of the current process.
+  const injectionContainer = new InjectionContainer();
 
-  // process.parentPort.postMessage({
-  //   type: "request-port",
-  //   value: "extensionProcess",
-  // });
+  const instances = injectionContainer.createInstance<IInjectable>({
+    extensionManagementService: ExtensionManagementService,
+  });
+  // 4.1 Expose the instances to the global scope for convenience.
+  for (const [key, instance] of Object.entries(instances)) {
+    globalThis[key] = instance;
+  }
 
-  // const extensionRPCService = new ExtensionRPCService();
+  // ============================================================
+  // 5. Set actionors for RPC service with all initialized services.
+  //    Expose the APIs of the current process to other processes
+  extensionRPCService.setActionor(instances);
 
-  // process.parentPort.on("message", (message: MessageEvent) => {
-  //   if (message.data.startsWith("register-rpc-message-port")) {
-  //     const port = message.ports[0];
-  //     const callerId = message.data.split(":")[1];
-
-  //     const protocol = new MessagePortRPCProtocol(port, callerId);
-  //     extensionRPCService.initActionor(protocol);
-
-  //     if (callerId === "mainProcess") {
-  //       process.parentPort.postMessage("initialized");
-  //     }
-  //   }
-  // });
-
-  // const injectionContainer = new InjectionContainer();
-
-  // const instances = injectionContainer.createInstance<IInjectable>({
-  //   extensionRPCService: ExtensionRPCService,
-  //   extensionManagementService: ExtensionManagementService,
-  // });
-  // for (const [key, instance] of Object.entries(instances)) {
-  //   globalThis[key] = instance;
-  // }
-
-  // extensionRPCService.on("initialized", async (protocolId) => {
-  //   try {
-  //     console.log(`extension process initialized: ${protocolId.value}`);
-
-  //     if (protocolId.value === "rendererProcess") {
-  //       extensionManagementService.installInnerPlugins();
-  //     }
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // });
+  extensionManagementService.installDemoPlugins();
 }
 
 initialize();

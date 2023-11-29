@@ -65,7 +65,7 @@ export class CacheService {
 
     const ids = realm
       .objects<PaperEntityCache>("PaperEntityCache")
-      .filtered(`(fulltext contains[c] \"${query}\")`)
+      .filtered(query)
       .map((p) => p._id);
 
     const filteredPaperEntities = (

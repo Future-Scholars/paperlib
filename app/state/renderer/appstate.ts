@@ -95,7 +95,7 @@ export class MainRendererStateStore extends RendererStateStore {
         viewType: "list",
         contentType: "library",
         searchText: "",
-        searchMode: "general",
+        searchMode: "general", // "general" | "fulltext" | "advanced
         feedEntityAddingStatus: 0,
         detailsOnDragging: false,
 

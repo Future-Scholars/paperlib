@@ -1,6 +1,7 @@
+import { IPluginInfo, PluginManager } from "live-plugin-manager";
+
 import { createDecorator } from "@/base/injection/injection";
 import { isLocalPath } from "@/base/url";
-import { IPluginInfo, PluginManager } from "live-plugin-manager";
 
 export const IExtensionManagementService = createDecorator(
   "extensionManagementService"
@@ -16,8 +17,8 @@ export class ExtensionManagementService {
     this._installedPlugins = {};
   }
 
-  async installInnerPlugins() {
-    this.install("/Users/administrator/Projects/paperlib_extension");
+  async installDemoPlugins() {
+    this.install("./plugin_packages/demo-command-extension");
   }
 
   async install(pluginName: string) {

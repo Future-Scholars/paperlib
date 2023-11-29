@@ -9,15 +9,16 @@ class SimpleExtension {
 }
 
 function initialize() {
+  console.log("Initialize extension");
   const extension = new SimpleExtension();
 
-  PLAPI.commandService.registerExternel({
-    id: "echo",
-    description: "Echo hello",
-    extensionName: extension.name,
-    methodName: "echo",
-  });
-  
+  // PLAPI.commandService.registerExternel({
+  //   id: "echo",
+  //   description: "Echo hello",
+  //   extensionName: extension.name,
+  //   methodName: "echo",
+  // });
+
   return extension;
 }
 
