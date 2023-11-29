@@ -46,9 +46,13 @@ declare module "paperlib" {
       registerExternel: (command: {
         id: string;
         description: string;
-        extensionName: string;
-        methodName: string;
+        event?: string;
       }) => void;
+
+      on(
+        key: keyof T | (keyof T)[],
+        callback: (newValues: { key: keyof T; value: any }) => void
+      )
     }
   }
 }

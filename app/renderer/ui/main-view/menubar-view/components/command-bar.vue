@@ -143,6 +143,7 @@ const onFocus = (payload: Event) => {
         } else {
           //@ts-ignore
           e.target?.blur();
+          commandText.value = "";
         }
         selectedCommandIndex.value = -1;
       }

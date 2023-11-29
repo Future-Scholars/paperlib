@@ -18,7 +18,7 @@ export class ExtensionManagementService {
   }
 
   async installDemoPlugins() {
-    this.install("./plugin_packages/demo-command-extension");
+    this.install("./plugin_packages/paperlib-demo-command-extension");
   }
 
   async install(pluginName: string) {
@@ -26,7 +26,7 @@ export class ExtensionManagementService {
       let info: IPluginInfo;
       if (isLocalPath(pluginName)) {
         info = await this._extManager.installFromPath(pluginName, {
-          force: true,
+          force: false,
         });
       } else {
         info = await this._extManager.install(pluginName);
@@ -35,6 +35,7 @@ export class ExtensionManagementService {
 
       this._installedPlugins[info.name] = plugin.initialize();
     } catch (e) {
+      console.log(e);
       PLAPI.logService.error(
         `Failed to install plugin ${pluginName}`,
         e as Error,

@@ -10,6 +10,7 @@ export const ICommandService = createDecorator("commandService");
 export interface ICommand {
   id: string;
   description: string;
+  priority: number;
   handler?: (...args: any[]) => void;
   event?: string;
 }
@@ -35,10 +36,10 @@ export class CommandService extends Eventable<{}> {
           .filter((c) => c.startsWith(filter))
           .map((c) => this._registeredCommands[c])
           .values()
-      ).sort((a, b) => a.id.localeCompare(b.id));
+      ).sort((a, b) => (a.priority < b.priority ? 1 : -1));
     }
     return Array.from(Object.values(this._registeredCommands)).sort((a, b) =>
-      a.id.localeCompare(b.id)
+      a.priority < b.priority ? 1 : -1
     );
   }
 
@@ -46,6 +47,7 @@ export class CommandService extends Eventable<{}> {
     this.register({
       id: "search",
       description: "Search the library by keyword.",
+      priority: 99999,
       handler: (keyword: string) => {
         this._stateService.set({
           "viewState.searchMode": "general",
@@ -56,6 +58,7 @@ export class CommandService extends Eventable<{}> {
     this.register({
       id: "search_fulltext",
       description: "Search the library in fulltext mode.",
+      priority: 99998,
       handler: (keyword: string) => {
         this._stateService.set({
           "viewState.searchMode": "fulltext",
@@ -66,6 +69,7 @@ export class CommandService extends Eventable<{}> {
     this.register({
       id: "search_advanced",
       description: "Search the library by advanced query.",
+      priority: 99997,
       handler: (keyword: string) => {
         this._stateService.set({
           "viewState.searchMode": "advanced",
@@ -113,6 +117,7 @@ export class CommandService extends Eventable<{}> {
       this._registeredCommands[command.id] = {
         id: command.id,
         description: command.description,
+        priority: 100,
         handler: (...args: any[]) => {},
         event: command.event,
       };

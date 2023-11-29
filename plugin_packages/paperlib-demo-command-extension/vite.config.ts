@@ -1,7 +1,7 @@
 import { rmSync } from "node:fs";
 import path from "node:path";
+import modify from "rollup-plugin-modify";
 import { defineConfig } from "vite";
-import modify from 'rollup-plugin-modify'
 
 import pkg from "./package.json";
 
@@ -21,11 +21,11 @@ export default defineConfig({
     },
     rollupOptions: {
       external: ["paperlib"],
-    }
-    
+    },
+    outDir: "dist",
   },
   esbuild: {
-    keepNames: true
+    keepNames: true,
   },
 
   resolve: {
@@ -40,7 +40,7 @@ export default defineConfig({
         port: pkg.debug.env.VITE_DEV_SERVER_PORT,
       }
     : undefined,
-  
+
   plugins: [
     // hypothetical({
     //   allowFallthrough: true,
@@ -53,7 +53,7 @@ export default defineConfig({
     modify({
       find: /import.*from "paperlib";?/,
       // find: /import { PLAPI } from "paperlib";/,
-      replace: (match, path) => ""
-    })
+      replace: (match, path) => "",
+    }),
   ],
 });
