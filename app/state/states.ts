@@ -30,6 +30,8 @@ export interface LogState {
 export interface ViewState {
   os: string;
 
+  isDevMode: boolean;
+
   isDeleteConfirmShown: boolean;
   isEditViewShown: boolean;
   isPreferenceViewShown: boolean;

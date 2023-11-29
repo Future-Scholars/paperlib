@@ -114,6 +114,12 @@ export class ExtensionManagementService {
     }
   }
 
+  async reloadAll() {
+    for (const extensionID in this._installedExtensionInfos) {
+      await this.reload(extensionID);
+    }
+  }
+
   installedExtensions() {
     return this._installedExtensionInfos;
   }

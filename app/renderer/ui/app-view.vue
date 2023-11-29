@@ -318,6 +318,9 @@ const logProgress = () => {
   const randomNumber = Math.floor(Math.random() * 100);
   logService.progress("Progress...", randomNumber, true, "DEVLOG");
 };
+const reloadExtensions = async () => {
+  await PLExtAPI.extensionManagementService.reloadAll();
+};
 
 const isWhatsNewShown = ref(false);
 
@@ -344,71 +347,80 @@ onMounted(async () => {
   <div class="flex text-neutral-700 dark:text-neutral-200">
     <div
       id="dev-btn-bar"
-      class="space-x-2 fixed right-0 bottom-0 text-xs hidden"
+      class="space-x-2 fixed right-2 bottom-2 text-xs bg-neutral-200 rounded-md"
+      v-if="viewState.isDevMode"
     >
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="reloadAll"
-      >
-        Reload all
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="addDummyData"
-      >
-        Add dummy
-      </button>
-      <button
-        id="dev-add-test-data-btn"
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="addTestData"
-      >
-        Add test
-      </button>
-      <button
-        id="dev-add-two-test-data-btn"
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="addTwoTestData"
-      >
-        Add two test
-      </button>
-      <button
-        id="dev-delete-all-btn"
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="removeAll"
-      >
-        Remove all
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="log"
-      >
-        Log
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="logInfo"
-      >
-        Notify Info
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="logWarn"
-      >
-        Notify Warn
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="logError"
-      >
-        Notify Error
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="logProgress"
-      >
-        Notify Progress
-      </button>
+      <div class="grid grid-cols-8 p-2 gap-2">
+        <button
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="reloadAll"
+        >
+          Reload all
+        </button>
+        <button
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="addDummyData"
+        >
+          Add dummy
+        </button>
+        <button
+          id="dev-add-test-data-btn"
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="addTestData"
+        >
+          Add test
+        </button>
+        <button
+          id="dev-add-two-test-data-btn"
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="addTwoTestData"
+        >
+          Add two test
+        </button>
+        <button
+          id="dev-delete-all-btn"
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="removeAll"
+        >
+          Remove all
+        </button>
+        <button
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="log"
+        >
+          Log
+        </button>
+        <button
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="logInfo"
+        >
+          Notify Info
+        </button>
+        <button
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="logWarn"
+        >
+          Notify Warn
+        </button>
+        <button
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="logError"
+        >
+          Notify Error
+        </button>
+        <button
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="logProgress"
+        >
+          Notify Progress
+        </button>
+        <button
+          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+          @click="reloadExtensions"
+        >
+          Reload Exts
+        </button>
+      </div>
     </div>
     <splitpanes @resized="onSidebarResized($event)">
       <pane :key="1" min-size="12" :size="prefState.sidebarWidth">

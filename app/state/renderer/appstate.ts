@@ -79,6 +79,8 @@ export class MainRendererStateStore extends RendererStateStore {
       return {
         os: process.platform,
 
+        isDevMode: false,
+
         // View Shown
         isDeleteConfirmShown: false,
         isEditViewShown: false,

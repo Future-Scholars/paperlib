@@ -6,7 +6,7 @@ class SimpleExtension {
   author: string = "Paperlib";
 
   echo() {
-    console.log("Hello - new log in extension");
+    console.log("Hello - log in extension");
   }
 }
 
