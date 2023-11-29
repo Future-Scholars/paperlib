@@ -74,6 +74,7 @@
   },
   "dependencies": {
     "@future-scholars/vue-virtual-scroller": "^1.0.0",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "chokidar": "3.5.3",
     "electron-store": "8.0.1",
     "electron-updater": "5.0.1",

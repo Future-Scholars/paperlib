@@ -1,4 +1,36 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+
+import ExtensionCard from "./components/extension-card.vue";
+
+const installedExtensions = ref<{
+  [id: string]: {
+    id: string;
+    name: string;
+    version: string;
+    author: string;
+    verified: boolean;
+    description: string;
+  };
+}>({});
+
+const reloadExtension = async (id: string) => {
+  await PLExtAPI.extensionManagementService.reload(id);
+  installedExtensions.value =
+    await PLExtAPI.extensionManagementService.installedExtensions();
+};
+
+const uninstallExtension = async (id: string) => {
+  await PLExtAPI.extensionManagementService.uninstall(id);
+  installedExtensions.value =
+    await PLExtAPI.extensionManagementService.installedExtensions();
+};
+
+onMounted(async () => {
+  installedExtensions.value =
+    await PLExtAPI.extensionManagementService.installedExtensions();
+});
+</script>
 
 <template>
   <div
@@ -21,7 +53,18 @@
         </div>
       </div>
     </div>
-    <div class="bg-neutral-500 flex grow">Market</div>
-    <div class="bg-neutral-500 flex grow">Installed</div>
+    <div class="grid grid-cols-3 p-2 gap-2">
+      <ExtensionCard
+        v-for="extension in installedExtensions"
+        :name="extension.name"
+        :verified="extension.verified"
+        :version="extension.version"
+        :author="extension.author"
+        :description="extension.description"
+        installed
+        @reload="reloadExtension(extension.id)"
+        @uninstall="uninstallExtension(extension.id)"
+      />
+    </div>
   </div>
 </template>

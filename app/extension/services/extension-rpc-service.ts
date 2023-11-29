@@ -84,4 +84,13 @@ export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
       }
     });
   }
+
+  setActionor(actionors: { [key: string]: any }): void {
+    this._actionors = actionors;
+
+    for (const [processID, protocol] of Object.entries(this._protocols)) {
+      this.initActionor(protocol);
+      protocol.sendExposedAPI("PLExtAPI");
+    }
+  }
 }
