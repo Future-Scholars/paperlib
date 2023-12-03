@@ -86,7 +86,7 @@ onMounted(() => {
           </li>
           <li>Fixed a searching bug in the tag/folder view.</li>
           <li>Fixed the preference window overflow bug.</li>
-          <li>Fixed a bug when drag a PDF onto a tag/folder directly.</li>
+          <li>Fixed a bug when dragging a PDF onto a tag/folder directly.</li>
         </ul>
 
         <p class="text-center text-2xl font-bold mb-8">
