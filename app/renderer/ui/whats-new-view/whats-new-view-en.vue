@@ -19,7 +19,7 @@ const loadHistoryReleaseNote = () => {
   xhr.open(
     "GET",
     "https://objectstorage.uk-london-1.oraclecloud.com/n/lrarf8ozesjn/b/bucket-20220130-2329/o/distribution%2Felectron-mac%2Fchangelog_en.html",
-    true
+    true,
   );
   xhr.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
@@ -76,30 +76,40 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.6</p>
+        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.7</p>
 
         <ul class="list-disc mb-5">
-          <li> Update the certificate for MS Word add-in.</li>
+          <li>
+            Now the sync backend supports the new `flexible` mode. (MongoDB
+            Atlas will never support the previous 'partition' based sync
+            anymore. This is an update for new users only.)
+          </li>
+          <li>Fixed a searching bug in the tag/folder view.</li>
+          <li>Fixed the preference window overflow bug.</li>
+          <li>Fixed a bug when drag a PDF onto a tag/folder directly.</li>
         </ul>
 
-        <p class="text-center text-2xl font-bold mb-8">About Paperlib 3.0.0</p>
-        <p class="mb-2">
-          If you wish to join me in the development of Paperlib, please contact me.
+        <p class="text-center text-2xl font-bold mb-8">
+          Development Update of Paperlib 3.0.0
         </p>
         <p class="mb-2">
-          In this major update, we will introduce a
-          <b>vscode-like extension system</b>
-          to Paperlib.
+          If you wish to join me in the development of Paperlib, please contact
+          me.
         </p>
         <p class="mb-2">
-          There are still a lot works to do to implement this extension
-          architecture, but we will release it as soon as possible. Please look
-          forward to it. We are currently working hard on it.
+          In this major update, a
+          <b>vscode-like extension system</b> will be introduced to Paperlib.
         </p>
+        <p class="mb-2">
+          I have completed the basic framework of the extension system.
+          Currently, I'm verifying it by developing some demo extensions and
+          writing the extension API documents. It may take a while to finish.
+        </p>
+
         <p class="mb-2">
           If you have any ideas about some useful extension use cases, please
-          feel free to tell us in the Discord channel or raise an issue in the
-          Github repo. More extension use cases will help us to design a better
+          feel free to tell me in the Discord channel or raise an issue in the
+          Github repo. More extension use cases will help me to design a better
           extension architecture.
         </p>
 

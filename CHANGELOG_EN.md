@@ -1,11 +1,17 @@
-# v2.2.6 Oct 20 2023
+## v2.2.7 Dec 03 2023
+
+1. Now the sync backend supports the new `flexible` mode. (MongoDB Atlas will never support the previous 'partition' based sync anymore. This is an update for new users only.)
+2. Fixed a searching bug in the tag/folder view.
+3. Fixed the preference window overflow bug.
+4. Fixed a bug when drag a PDF onto a tag/folder directly.
+
+## v2.2.6 Oct 20 2023
 
 1. Update the certificate for MS Word add-in.
 
 ## v2.2.5 July 22 2023
 
 1. Browser extension supports https://pubs.acs.org/ now.
-
 
 ## v2.2.3 July 01 2023
 
