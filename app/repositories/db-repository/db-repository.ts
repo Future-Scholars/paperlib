@@ -1,7 +1,7 @@
 import { ObjectId } from "bson";
 import { existsSync, promises } from "fs";
 import path from "path";
-import Realm from "realm";
+import Realm, { ConfigurationWithSync, FlexibleSyncConfiguration } from "realm";
 
 import {
   Categorizer,
@@ -55,7 +55,7 @@ export class DBRepository {
     this.paperEntityRepository = new PaperEntityRepository(this.stateStore);
     this.categorizerRepository = new CategorizerRepository(this.stateStore);
     this.smartfilterRepository = new PaperSmartFilterRepository(
-      this.stateStore
+      this.stateStore,
     );
 
     this.feedEntityRepository = new FeedEntityRepository(this.stateStore);
@@ -63,7 +63,7 @@ export class DBRepository {
 
     this.cacheRepository = new CacheRepository(
       this.stateStore,
-      this.preference
+      this.preference,
     );
 
     this._schemaVersion = 9;
@@ -115,6 +115,8 @@ export class DBRepository {
         this._realm = new Realm(this.cloudConfig);
         this.syncSession = this._realm.syncSession;
       } catch (err) {
+        console.error(err);
+
         // @ts-ignore
         if (err.message.includes("Unexpected future history schema")) {
           if (existsSync(this.cloudConfig.path ? this.cloudConfig.path : "")) {
@@ -190,7 +192,7 @@ export class DBRepository {
         window.appInteractor.getPreference("appLibFolder") as string,
         {
           recursive: true,
-        }
+        },
       );
     }
 
@@ -206,7 +208,7 @@ export class DBRepository {
       schemaVersion: this._schemaVersion,
       path: path.join(
         window.appInteractor.getPreference("appLibFolder") as string,
-        "default.realm"
+        "default.realm",
       ),
       migration: migrate,
     };
@@ -218,24 +220,106 @@ export class DBRepository {
     const cloudUser = await this.loginCloud();
 
     if (cloudUser) {
-      const config = {
-        schema: [
-          PaperEntity.schema,
-          PaperTag.schema,
-          PaperFolder.schema,
-          PaperSmartFilter.schema,
-          Feed.schema,
-          FeedEntity.schema,
-        ],
-        schemaVersion: this._schemaVersion,
-        sync: {
-          user: cloudUser,
-          partitionValue: cloudUser.id,
-        },
-        path: path.join(window.appInteractor.getUserDataPath(), "synced.realm"),
-      };
-      this.cloudConfig = config;
-      return config;
+      if (this.preference.get("isFlexibleSync")) {
+        const config: ConfigurationWithSync = {
+          schema: [
+            PaperEntity.schema,
+            PaperTag.schema,
+            PaperFolder.schema,
+            PaperSmartFilter.schema,
+            Feed.schema,
+            FeedEntity.schema,
+          ],
+          schemaVersion: this._schemaVersion,
+          sync: {
+            user: cloudUser,
+            flexible: true,
+            initialSubscriptions: {
+              update: (subs, realm) => {
+                subs.add(
+                  realm
+                    .objects<PaperEntity>("PaperEntity")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperEntity",
+                  },
+                );
+                subs.add(
+                  realm
+                    .objects<PaperTag>("PaperTag")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperTag",
+                  },
+                );
+                subs.add(
+                  realm
+                    .objects<PaperFolder>("PaperFolder")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperFolder",
+                  },
+                );
+                subs.add(
+                  realm
+                    .objects<PaperSmartFilter>("PaperPaperSmartFilter")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperSmartFilter",
+                  },
+                );
+                subs.add(
+                  realm
+                    .objects<Feed>("Feed")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "Feed",
+                  },
+                );
+                subs.add(
+                  realm
+                    .objects<FeedEntity>("FeedEntity")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "FeedEntity",
+                  },
+                );
+              },
+              rerunOnOpen: true,
+            },
+          },
+          path: path.join(
+            window.appInteractor.getUserDataPath(),
+            "synced.realm",
+          ),
+        };
+
+        this.cloudConfig = config;
+        return config;
+      } else {
+        const config = {
+          schema: [
+            PaperEntity.schema,
+            PaperTag.schema,
+            PaperFolder.schema,
+            PaperSmartFilter.schema,
+            Feed.schema,
+            FeedEntity.schema,
+          ],
+          schemaVersion: this._schemaVersion,
+          sync: {
+            user: cloudUser,
+            partitionValue: cloudUser.id,
+          },
+          path: path.join(
+            window.appInteractor.getUserDataPath(),
+            "synced.realm",
+          ),
+        };
+
+        this.cloudConfig = config;
+        return config;
+      }
     } else {
       this.stateStore.logState.alertLog = "Login cloud failed.";
       window.appInteractor.setPreference("useSync", false);
@@ -262,7 +346,7 @@ export class DBRepository {
       const syncPassword = await window.appInteractor.getPassword("realmSync");
       const credentials = Realm.Credentials.emailPassword(
         window.appInteractor.getPreference("syncEmail") as string,
-        syncPassword as string
+        syncPassword as string,
       );
 
       const loginedUser = await this.app.logIn(credentials);
@@ -289,7 +373,7 @@ export class DBRepository {
     }
     const syncDBPath = path.join(
       window.appInteractor.getUserDataPath(),
-      "synced.realm"
+      "synced.realm",
     );
     if (existsSync(syncDBPath)) {
       await promises.unlink(syncDBPath);
@@ -358,7 +442,7 @@ export class DBRepository {
     tag: string,
     folder: string,
     sortBy: string,
-    sortOrder: string
+    sortOrder: string,
   ) {
     const realm = await this.realm();
 
@@ -374,13 +458,13 @@ export class DBRepository {
       tag,
       folder,
       sortBy,
-      sortOrder
+      sortOrder,
     );
 
     if (this.stateStore.viewState.searchMode === "fulltext" && _search) {
       paperEntities = await this.cacheRepository.fullTextFilter(
         _search,
-        paperEntities
+        paperEntities,
       );
     }
 
@@ -405,7 +489,7 @@ export class DBRepository {
   async smartfilters(
     type: PaperSmartFilterType,
     sortBy: string,
-    sortOrder: string
+    sortOrder: string,
   ) {
     const realm = await this.realm();
     return this.smartfilterRepository.load(realm, type, sortBy, sortOrder);
@@ -421,7 +505,7 @@ export class DBRepository {
     name: string,
     unread: boolean,
     sortBy: string,
-    sortOrder: string
+    sortOrder: string,
   ) {
     const realm = await this.realm();
     return this.feedEntityRepository.load(
@@ -430,7 +514,7 @@ export class DBRepository {
       name,
       unread,
       sortBy,
-      sortOrder
+      sortOrder,
     );
   }
 
@@ -462,14 +546,14 @@ export class DBRepository {
           existingPaperEntity ? existingPaperEntity.tags : [],
           paperEntity.tags,
           "PaperTag",
-          this.getPartition()
+          this.getPartition(),
         );
         const folders = this.categorizerRepository.update(
           realm,
           existingPaperEntity ? existingPaperEntity.folders : [],
           paperEntity.folders,
           "PaperFolder",
-          this.getPartition()
+          this.getPartition(),
         );
 
         const success = this.paperEntityRepository.update(
@@ -478,7 +562,7 @@ export class DBRepository {
           tags,
           folders,
           existingPaperEntity,
-          this.getPartition()
+          this.getPartition(),
         );
         successes.push(success);
       }
@@ -490,7 +574,7 @@ export class DBRepository {
     color: Colors,
     type: CategorizerType,
     categorizer?: Categorizer,
-    name?: string
+    name?: string,
   ) {
     const realm = await this.realm();
     return this.categorizerRepository.colorize(
@@ -498,14 +582,14 @@ export class DBRepository {
       color,
       type,
       categorizer,
-      name
+      name,
     );
   }
 
   async renameCategorizer(
     oldName: string,
     newName: string,
-    type: CategorizerType
+    type: CategorizerType,
   ) {
     const realm = await this.realm();
     return this.categorizerRepository.rename(realm, oldName, newName, type);
@@ -513,14 +597,14 @@ export class DBRepository {
 
   async insertPaperSmartFilter(
     type: PaperSmartFilterType,
-    smartfilter: PaperSmartFilter
+    smartfilter: PaperSmartFilter,
   ) {
     const realm = await this.realm();
     return this.smartfilterRepository.insert(
       realm,
       smartfilter,
       type,
-      this.getPartition()
+      this.getPartition(),
     );
   }
 
@@ -528,7 +612,7 @@ export class DBRepository {
     color: Colors,
     type: PaperSmartFilterType,
     smartfilter?: PaperSmartFilter,
-    name?: string
+    name?: string,
   ) {
     const realm = await this.realm();
     return this.smartfilterRepository.colorize(
@@ -536,7 +620,7 @@ export class DBRepository {
       color,
       type,
       smartfilter,
-      name
+      name,
     );
   }
 
@@ -557,7 +641,7 @@ export class DBRepository {
           realm,
           existingFeed,
           feed,
-          this.getPartition()
+          this.getPartition(),
         );
         successes.push(success !== null);
       }
@@ -573,7 +657,7 @@ export class DBRepository {
 
   async updateFeedEntities(
     feedEntities: FeedEntity[],
-    ignoreReadState = false
+    ignoreReadState = false,
   ) {
     const realm = await this.realm();
 
@@ -595,13 +679,13 @@ export class DBRepository {
               realm,
               existingFeedEntity.feed,
               feedEntity.feed,
-              this.getPartition()
+              this.getPartition(),
             )
           : this.feedRepository.update(
               realm,
               null,
               feedEntity.feed,
-              this.getPartition()
+              this.getPartition(),
             );
         let success;
         if (feed) {
@@ -611,7 +695,7 @@ export class DBRepository {
             feed,
             existingFeedEntity,
             ignoreReadState,
-            this.getPartition()
+            this.getPartition(),
           );
 
           if (success === "updated") {
@@ -633,7 +717,7 @@ export class DBRepository {
 
   async updatePaperEntityCacheThumbnail(
     paperEntity: PaperEntity,
-    thumbnailCache: ThumbnailCache
+    thumbnailCache: ThumbnailCache,
   ) {
     await this.cacheRepository.updateThumbnail(paperEntity, thumbnailCache);
   }
@@ -645,7 +729,7 @@ export class DBRepository {
     deleteAll = true,
     type: CategorizerType,
     categorizer?: Categorizer,
-    name?: string
+    name?: string,
   ) {
     const realm = await this.realm();
     return this.categorizerRepository.delete(
@@ -653,14 +737,14 @@ export class DBRepository {
       deleteAll,
       type,
       categorizer,
-      name
+      name,
     );
   }
 
   async deletePaperSmartFilter(
     type: PaperSmartFilterType,
     smartfilter?: PaperSmartFilter,
-    name?: string
+    name?: string,
   ) {
     const realm = await this.realm();
     return this.smartfilterRepository.delete(realm, type, smartfilter, name);
@@ -681,7 +765,7 @@ export class DBRepository {
             realm,
             false,
             "PaperFolder",
-            folder
+            folder,
           );
         }
 
@@ -713,14 +797,14 @@ export class DBRepository {
       toBeDeletedName || "",
       false,
       "addTime",
-      "desc"
+      "desc",
     );
 
     return realm.safeWrite(async () => {
       await this.feedEntityRepository.delete(
         realm,
         undefined,
-        feedEntities.map((entity) => entity._id)
+        feedEntities.map((entity) => entity._id),
       );
       return await this.feedRepository.delete(realm, deleteAll, feed, name);
     });
@@ -734,13 +818,13 @@ export class DBRepository {
     const realm = await this.realm();
     const { tag, folder } = await this.categorizerRepository.addDummyData(
       realm,
-      this.getPartition()
+      this.getPartition(),
     );
     this.paperEntityRepository.addDummyData(
       tag,
       folder,
       realm,
-      this.getPartition()
+      this.getPartition(),
     );
 
     // const feed = await this.feedRepository.addDummyData(realm);

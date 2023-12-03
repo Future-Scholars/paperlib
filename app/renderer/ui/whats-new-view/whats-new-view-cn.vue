@@ -19,7 +19,7 @@ const loadHistoryReleaseNote = () => {
   xhr.open(
     "GET",
     "https://objectstorage.uk-london-1.oraclecloud.com/n/lrarf8ozesjn/b/bucket-20220130-2329/o/distribution%2Felectron-mac%2Fchangelog_cn.html",
-    true
+    true,
   );
   xhr.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
@@ -76,16 +76,26 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">版本 2.2.6 更新内容</p>
+        <p class="text-center text-2xl font-bold mb-8">版本 2.2.7 更新内容</p>
 
         <ul class="list-disc mb-5">
-          <li>更新 MS Word 证书。</li>
+          <li>
+            现在云同步可以连接 Flexible 模式的云数据库了。MongoDB Atlas
+            将不再支持之前的 Partition
+            模式。这是一个针对新用户的更新。老用户无需在意。
+          </li>
+          <li>修复了在标签/组视图下的搜索 Bug。</li>
+          <li>修复了设置窗口的溢出 Bug。</li>
+          <li>修复了直接拖拽 PDF 文件到标签/组失效的 Bug。</li>
         </ul>
 
-        <p class="text-center text-2xl font-bold mb-8">关于 Paperlib 3.0.0</p>
+        <p class="text-center text-2xl font-bold mb-8">
+          Paperlib 3.0.0 开发进度
+        </p>
 
         <p class="mb-2">
-          如果你愿意参与开发，想让 Paperlib 变得更好，帮助缓解开发人手不足，请联系我。谢谢。
+          如果你愿意参与开发，想让 Paperlib
+          变得更好，帮助缓解开发人手不足，请联系我。谢谢。
         </p>
 
         <p class="mb-2">
@@ -95,7 +105,9 @@ onMounted(() => {
           更多可能性。同时保持软件主体干净简洁。
         </p>
         <p class="mb-2">
-          仍然有许多开发工作需要做，需要对代码架构做大幅调整。但是我们会尽快发布这个版本。请期待。我们正在努力开发中。
+          插件系统的基本架构已经设计完成并且开发完毕。现在，我正在进行一些 Demo
+          插件的开发来验证并完善插件系统。同时在编写插件系统 API
+          文档。这可能还需要一定时间。
         </p>
         <p class="mb-2">
           如果你有任何关于使用插件系统完成功能的想法，请在 Discord
