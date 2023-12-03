@@ -19,7 +19,7 @@
   "devDependencies": {
     "@future-scholars/vite-plugin-electron-renderer": "^0.14.3",
     "@headlessui/vue": "1.5.0",
-    "@trivago/prettier-plugin-sort-imports": "3.3.0",
+    "@trivago/prettier-plugin-sort-imports": "4.3.0",
     "@types/katex": "0.14.0",
     "@types/markdown-it": "12.2.3",
     "@types/splitpanes": "2.2.1",
@@ -49,6 +49,7 @@
     "pinia": "2.0.21",
     "playwright": "1.27.1",
     "postcss": "8.4.12",
+    "prettier": "^3.1.0",
     "queue": "6.0.2",
     "splitpanes": "3.1.1",
     "string-similarity": "4.0.4",
@@ -74,7 +75,7 @@
     "electron-updater": "5.0.1",
     "katex": "0.16.2",
     "keytar": "7.9.0",
-    "realm": "11.9.0",
+    "realm": "11.10.2",
     "ws": "8.6.0"
   },
   "debug": {

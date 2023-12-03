@@ -4,6 +4,7 @@ import { ref } from "vue";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Options from "./components/options.vue";
+import Toggle from "./components/toggle.vue";
 
 const prefState = MainRendererStateStore.usePreferenceState();
 const viewState = MainRendererStateStore.useViewState();
@@ -131,6 +132,14 @@ const onWebdavDisconnectClicked = () => {
         </button>
       </div>
     </div>
+
+    <Toggle
+      class="mb-5"
+      :title="$t('preference.flexibleSyncTitle')"
+      :info="$t('preference.flexibleSyncIntro')"
+      :enable="prefState.isFlexibleSync"
+      @update="(value: any) => onUpdate('isFlexibleSync', value)"
+    />
 
     <div class="flex justify-between mb-5" v-if="prefState.useSync">
       <div class="flex flex-col">
