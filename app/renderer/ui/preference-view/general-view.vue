@@ -48,14 +48,14 @@ const getCustomRenamingFormatPreview = (customRenamingFormat: string) => {
 
 const customRenamingFormat = ref(prefState.customRenamingFormat);
 const customRenamingFormatPreview = ref(
-  getCustomRenamingFormatPreview(prefState.customRenamingFormat)
+  getCustomRenamingFormatPreview(prefState.customRenamingFormat),
 );
 
 const onCustomRenamingFormatUpdate = (payload: Event) => {
   let formatedFileName = "";
   try {
     formatedFileName = getCustomRenamingFormatPreview(
-      customRenamingFormat.value
+      customRenamingFormat.value,
     );
     updatePrefs("customRenamingFormat", customRenamingFormat.value);
   } catch (e) {
@@ -97,7 +97,9 @@ const onChangeLanguage = (language: string) => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col w-full text-neutral-800 dark:text-neutral-300 overflow-scroll"
+  >
     <div class="text-base font-semibold mb-4">
       Paperlib {{ $t("preference.library") }}
     </div>
