@@ -62,6 +62,11 @@ const smartfilters = inject<Ref<PaperSmartFilterResults>>("smartfilters");
 // Event Functions
 // ================================
 const onSelectCategorizer = (categorizer: string) => {
+  if (viewState.searchMode === "advanced") {
+    viewState.searchMode = "general";
+    viewState.searchText = "";
+  }
+
   if (categorizer === "lib-all") {
     viewState.searchMode = "general";
     viewState.searchText = "";
@@ -78,7 +83,7 @@ const onSelectSmartFilter = (smartfilter: PaperSmartFilter) => {
 const onItemRightClicked = (
   event: MouseEvent,
   categorizer: Categorizer | PaperSmartFilter,
-  type: CategorizerType | PaperSmartFilterType
+  type: CategorizerType | PaperSmartFilterType,
 ) => {
   window.appInteractor.showContextMenu("show-sidebar-context-menu", {
     data: categorizer.name,
@@ -89,7 +94,7 @@ const onItemRightClicked = (
 const onFileDroped = (
   categorizer: Categorizer,
   type: CategorizerType,
-  filePaths: string[]
+  filePaths: string[],
 ) => {
   window.entityInteractor.createIntoCategorizer(filePaths, categorizer, type);
 };
@@ -120,7 +125,7 @@ const onCategorizerNameChanged = (name: string) => {
       name,
       selectionState.editingCategorizer.startsWith("tag-")
         ? "PaperTag"
-        : "PaperFolder"
+        : "PaperFolder",
     );
   }
   selectionState.editingCategorizer = "";
@@ -150,7 +155,7 @@ window.appInteractor.registerMainSignal(
       }
       selectionState.selectedCategorizer = "lib-all";
     }
-  }
+  },
 );
 
 window.appInteractor.registerMainSignal(
@@ -161,13 +166,13 @@ window.appInteractor.registerMainSignal(
         window.entityInteractor.colorizePaperSmartFilter(
           args[2],
           args[1],
-          args[0]
+          args[0],
         );
       } else {
         window.entityInteractor.colorizeCategorizer(args[2], args[1], args[0]);
       }
     }
-  }
+  },
 );
 
 window.appInteractor.registerMainSignal("sidebar-context-menu-edit", (args) => {
@@ -186,7 +191,7 @@ watch(
     } else {
       isSpinnerShown.value = false;
     }
-  }
+  },
 );
 
 watch(
@@ -195,7 +200,7 @@ watch(
     if (value) {
       selectionState.selectedCategorizer = value;
     }
-  }
+  },
 );
 </script>
 
@@ -243,7 +248,11 @@ watch(
           `smartfilter-${smartfilter.name}`
         "
         @click="onSelectSmartFilter(smartfilter)"
-        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, smartfilter, 'PaperPaperSmartFilter')}"
+        @contextmenu="
+          (e: MouseEvent) => {
+            onItemRightClicked(e, smartfilter, 'PaperPaperSmartFilter');
+          }
+        "
       >
         <BIconFunnel
           class="text-sm my-auto min-w-[1em]"
@@ -264,7 +273,11 @@ watch(
         v-for="tag in tags"
         :active="selectionState.selectedCategorizer === `tag-${tag.name}`"
         @click="onSelectCategorizer(`tag-${tag.name}`)"
-        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, tag, 'PaperTag')}"
+        @contextmenu="
+          (e: MouseEvent) => {
+            onItemRightClicked(e, tag, 'PaperTag');
+          }
+        "
         @droped="
           (filePaths) => {
             onFileDroped(tag, 'PaperTag', filePaths);
@@ -301,7 +314,11 @@ watch(
         v-for="folder in folders"
         :active="selectionState.selectedCategorizer === `folder-${folder.name}`"
         @click="onSelectCategorizer(`folder-${folder.name}`)"
-        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, folder, 'PaperFolder')}"
+        @contextmenu="
+          (e: MouseEvent) => {
+            onItemRightClicked(e, folder, 'PaperFolder');
+          }
+        "
         @droped="
           (filePaths) => {
             onFileDroped(folder, 'PaperFolder', filePaths);
