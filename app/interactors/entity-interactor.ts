@@ -44,7 +44,7 @@ export class EntityInteractor {
     scraperRepository: ScraperRepository,
     fileRepository: FileRepository,
     referenceRepository: ReferenceRepository,
-    downloaderRepository: DownloaderRepository
+    downloaderRepository: DownloaderRepository,
   ) {
     this.stateStore = stateStore;
     this.preference = preference;
@@ -60,7 +60,7 @@ export class EntityInteractor {
       () => this.stateStore.viewState.realmReinited,
       () => {
         window.entityInteractor.setupRoutineScrapeScheduler();
-      }
+      },
     );
   }
 
@@ -74,7 +74,7 @@ export class EntityInteractor {
     tag: string,
     folder: string,
     sortBy: string,
-    sortOrder: string
+    sortOrder: string,
   ) {
     let entities;
     this.stateStore.viewState.processingQueueCount += 1;
@@ -85,7 +85,7 @@ export class EntityInteractor {
         tag,
         folder,
         sortBy,
-        sortOrder
+        sortOrder,
       );
     } catch (e) {
       console.error(e);
@@ -99,7 +99,7 @@ export class EntityInteractor {
   async loadCategorizers(
     type: CategorizerType,
     sortBy: string,
-    sortOrder: string
+    sortOrder: string,
   ) {
     return await this.dbRepository.categorizers(type, sortBy, sortOrder);
   }
@@ -107,7 +107,7 @@ export class EntityInteractor {
   async loadPaperSmartFilters(
     type: PaperSmartFilterType,
     sortBy: string,
-    sortOrder: string
+    sortOrder: string,
   ) {
     return await this.dbRepository.smartfilters(type, sortBy, sortOrder);
   }
@@ -117,9 +117,8 @@ export class EntityInteractor {
   }
 
   async loadCitationCount(paperEntity: PaperEntity) {
-    const citationCount = await this.scraperRepository.scrapeCitationCount(
-      paperEntity
-    );
+    const citationCount =
+      await this.scraperRepository.scrapeCitationCount(paperEntity);
     return citationCount;
   }
 
@@ -139,7 +138,7 @@ export class EntityInteractor {
         paperEntityDraftsFromBib.push(...paperEntityDrafts);
       }
       const successfulPaperEntityDraftsFromBib = await this._createPostProcess(
-        paperEntityDraftsFromBib
+        paperEntityDraftsFromBib,
       );
 
       // 2. Create from .pdf files
@@ -160,11 +159,11 @@ export class EntityInteractor {
           await Promise.all(pdfUrlsChunk.map((url) => this._createFromUrl(url)))
         ).filter((e) => e) as PaperEntity[];
         successfulPaperEntityDraftsFromPDF.push(
-          ...(await this._createPostProcess(paperEntityDraftsFromPDF))
+          ...(await this._createPostProcess(paperEntityDraftsFromPDF)),
         );
       }
 
-      const successfulEntityDrafts = [
+      successfulEntityDrafts = [
         ...successfulPaperEntityDraftsFromBib,
         ...successfulPaperEntityDraftsFromPDF,
       ];
@@ -179,7 +178,7 @@ export class EntityInteractor {
       }
       // 3. Create cache
       await this.dbRepository.updatePaperEntitiesCacheFullText(
-        successfulEntityDrafts
+        successfulEntityDrafts,
       );
     } catch (error) {
       console.error(error);
@@ -192,7 +191,7 @@ export class EntityInteractor {
   }
 
   async _createFromUrl(
-    url: string
+    url: string,
   ): Promise<PaperEntity | PaperEntity[] | null> {
     if (path.extname(url) !== ".pdf" && path.extname(url) !== ".bib") {
       return null;
@@ -221,9 +220,8 @@ export class EntityInteractor {
     // - move files of entities.
     const fileMovedPaperEntityDrafts = [];
     for (const paperEntityDraft of paperEntityDrafts) {
-      const fileMovedPaperEntityDraft = await this.fileRepository.move(
-        paperEntityDraft
-      );
+      const fileMovedPaperEntityDraft =
+        await this.fileRepository.move(paperEntityDraft);
       if (fileMovedPaperEntityDraft) {
         fileMovedPaperEntityDrafts.push(fileMovedPaperEntityDraft);
       } else {
@@ -237,23 +235,23 @@ export class EntityInteractor {
 
     // DB insertion.
     const dbSuccesses = await this.dbRepository.updatePaperEntities(
-      fileMovedPaperEntityDrafts
+      fileMovedPaperEntityDrafts,
     );
 
     // find unsuccessful entities.
     const unsuccessfulEntityDrafts = paperEntityDrafts.filter(
-      (_, index) => !dbSuccesses[index]
+      (_, index) => !dbSuccesses[index],
     );
 
     // find successful entities.
     const successfulEntityDrafts = paperEntityDrafts.filter(
-      (_, index) => dbSuccesses[index]
+      (_, index) => dbSuccesses[index],
     );
     // - remove files of unsuccessful entities.
     await Promise.all(
       unsuccessfulEntityDrafts.map((entityDraft) =>
-        this.fileRepository.remove(entityDraft)
-      )
+        this.fileRepository.remove(entityDraft),
+      ),
     );
 
     return successfulEntityDrafts;
@@ -262,7 +260,7 @@ export class EntityInteractor {
   async createIntoCategorizer(
     urlList: string[],
     categorizer: Categorizer,
-    type: CategorizerType
+    type: CategorizerType,
   ) {
     this.stateStore.logState.processLog = `Adding ${urlList.length} papers to ${categorizer.name}...`;
     this.stateStore.viewState.processingQueueCount += urlList.length;
@@ -283,8 +281,9 @@ export class EntityInteractor {
             ]);
           }
           return paperEntityDraft;
-        }
+        },
       );
+      console.log(toBeUpdatedPaperEntityDrafts);
       await this.dbRepository.updatePaperEntities(toBeUpdatedPaperEntityDrafts);
     } catch (error) {
       console.error(error);
@@ -299,7 +298,7 @@ export class EntityInteractor {
   async createFromWholeFolder(folder: string) {
     const files = await this.fileRepository.listPDFs(folder);
     const PDFfiles = files.filter(
-      (file) => path.extname(file) === ".pdf" || path.extname(file) === ".bib"
+      (file) => path.extname(file) === ".pdf" || path.extname(file) === ".bib",
     );
 
     this.create(PDFfiles);
@@ -307,9 +306,8 @@ export class EntityInteractor {
 
   async createFromZoteroCSV(csvFile: string) {
     if (path.extname(csvFile) === ".csv") {
-      const paperEntityDrafts = await this.fileRepository.parseZoteroCSV(
-        csvFile
-      );
+      const paperEntityDrafts =
+        await this.fileRepository.parseZoteroCSV(csvFile);
       this.update(paperEntityDrafts);
     }
   }
@@ -324,7 +322,7 @@ export class EntityInteractor {
       const removeFileURLs = await this.dbRepository.deletePaperEntities(ids);
 
       await Promise.all(
-        removeFileURLs.map((url) => this.fileRepository.removeFile(url))
+        removeFileURLs.map((url) => this.fileRepository.removeFile(url)),
       );
     } catch (error) {
       console.error(error);
@@ -338,7 +336,7 @@ export class EntityInteractor {
   async deleteCategorizer(
     type: CategorizerType,
     name?: string,
-    categorizer?: Categorizer
+    categorizer?: Categorizer,
   ) {
     this.stateStore.viewState.processingQueueCount += 1;
     try {
@@ -353,7 +351,7 @@ export class EntityInteractor {
   async deletePaperSmartFilter(
     type: PaperSmartFilterType,
     name?: string,
-    smartfilter?: PaperSmartFilter
+    smartfilter?: PaperSmartFilter,
   ) {
     this.stateStore.viewState.processingQueueCount += 1;
     try {
@@ -372,7 +370,7 @@ export class EntityInteractor {
     try {
       await this.fileRepository.removeFile(url);
       paperEntity.supURLs = paperEntity.supURLs.filter(
-        (supUrl) => supUrl !== path.basename(url)
+        (supUrl) => supUrl !== path.basename(url),
       );
       await this.dbRepository.updatePaperEntities([paperEntity]);
     } catch (error) {
@@ -389,7 +387,7 @@ export class EntityInteractor {
   async update(
     paperEntities: PaperEntity[],
     forceDelete = true,
-    forceNotLink = false
+    forceNotLink = false,
   ) {
     this.stateStore.logState.processLog = `Updating ${paperEntities.length} paper(s)...`;
     this.stateStore.viewState.processingQueueCount += paperEntities.length;
@@ -402,9 +400,9 @@ export class EntityInteractor {
             this.fileRepository.move(
               paperEntityDraft,
               forceDelete,
-              forceNotLink
-            )
-          )
+              forceNotLink,
+            ),
+          ),
         );
 
         for (let i = 0; i < movedPaperEntityDrafts.length; i++) {
@@ -414,11 +412,11 @@ export class EntityInteractor {
         }
 
         const successes = await this.dbRepository.updatePaperEntities(
-          movedPaperEntityDrafts as PaperEntity[]
+          movedPaperEntityDrafts as PaperEntity[],
         );
 
         const successfulPaperEntityDrafts = movedPaperEntityDrafts.filter(
-          (_, index) => successes[index]
+          (_, index) => successes[index],
         ) as PaperEntity[];
 
         return successfulPaperEntityDrafts;
@@ -446,7 +444,9 @@ export class EntityInteractor {
 
     try {
       paperEntities = await Promise.all(
-        paperEntities.map((paperEntityDraft) => scrapePromise(paperEntityDraft))
+        paperEntities.map((paperEntityDraft) =>
+          scrapePromise(paperEntityDraft),
+        ),
       );
     } catch (error) {
       console.error(error);
@@ -466,13 +466,15 @@ export class EntityInteractor {
     const scrapePromise = async (paperEntityDraft: PaperEntity) => {
       return await this.scraperRepository.scrapeFrom(
         paperEntityDraft,
-        scraperName
+        scraperName,
       );
     };
 
     try {
       paperEntities = await Promise.all(
-        paperEntities.map((paperEntityDraft) => scrapePromise(paperEntityDraft))
+        paperEntities.map((paperEntityDraft) =>
+          scrapePromise(paperEntityDraft),
+        ),
       );
     } catch (error) {
       console.error(error);
@@ -488,7 +490,7 @@ export class EntityInteractor {
   async updateWithCategorizer(
     ids: (string | ObjectId)[],
     categorizer: Categorizer,
-    type: CategorizerType
+    type: CategorizerType,
   ) {
     this.stateStore.logState.processLog = `Updating ${ids.length} paper(s)...`;
     this.stateStore.viewState.processingQueueCount += ids.length;
@@ -510,7 +512,7 @@ export class EntityInteractor {
         }
         if (type === "PaperFolder") {
           let folderNames = paperEntityDraft.folders.map(
-            (folder) => folder.name
+            (folder) => folder.name,
           );
           if (!folderNames.includes(categorizer.name)) {
             paperEntityDraft.folders.push(categorizer);
@@ -535,7 +537,7 @@ export class EntityInteractor {
     color: Colors,
     type: CategorizerType,
     name?: string,
-    categorizer?: Categorizer
+    categorizer?: Categorizer,
   ) {
     this.stateStore.viewState.processingQueueCount += 1;
     try {
@@ -543,7 +545,7 @@ export class EntityInteractor {
         color,
         type,
         categorizer,
-        name
+        name,
       );
     } catch (error) {
       console.error(error);
@@ -555,12 +557,12 @@ export class EntityInteractor {
   async renameCategorizer(
     oldName: string,
     newName: string,
-    type: CategorizerType
+    type: CategorizerType,
   ) {
     const success = await this.dbRepository.renameCategorizer(
       oldName,
       newName,
-      type
+      type,
     );
 
     if (
@@ -575,7 +577,7 @@ export class EntityInteractor {
 
   async insertPaperSmartFilter(
     smartfilter: PaperSmartFilter,
-    type: PaperSmartFilterType
+    type: PaperSmartFilterType,
   ) {
     this.stateStore.logState.processLog = `Inserting smart filter ${smartfilter.name}...`;
     this.stateStore.viewState.processingQueueCount += 1;
@@ -596,7 +598,7 @@ export class EntityInteractor {
     color: Colors,
     type: PaperSmartFilterType,
     name?: string,
-    smartfilter?: PaperSmartFilter
+    smartfilter?: PaperSmartFilter,
   ) {
     this.stateStore.viewState.processingQueueCount += 1;
     try {
@@ -604,7 +606,7 @@ export class EntityInteractor {
         color,
         type,
         smartfilter,
-        name
+        name,
       );
     } catch (error) {
       console.error(error);
@@ -633,12 +635,12 @@ export class EntityInteractor {
 
   async updateThumbnailCache(
     paperEntity: PaperEntity,
-    thumbnailCache: ThumbnailCache
+    thumbnailCache: ThumbnailCache,
   ) {
     try {
       await this.dbRepository.updatePaperEntityCacheThumbnail(
         paperEntity,
-        thumbnailCache
+        thumbnailCache,
       );
     } catch (error) {
       console.error(error);
@@ -665,8 +667,8 @@ export class EntityInteractor {
 
       paperEntityDrafts = await Promise.all(
         paperEntityDrafts.map((paperEntityDraft) =>
-          downloadPromise(paperEntityDraft)
-        )
+          downloadPromise(paperEntityDraft),
+        ),
       );
 
       updatedPaperEntities = await this.update(paperEntityDrafts, false, true);
@@ -691,7 +693,7 @@ export class EntityInteractor {
         "",
         "",
         "title",
-        "desc"
+        "desc",
       );
       const paperEntityDrafts = paperEntities.map((paperEntity) => {
         return new PaperEntity(false).initialize(paperEntity);
@@ -699,8 +701,8 @@ export class EntityInteractor {
 
       const movedEntityDrafts = await Promise.all(
         paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
-          this.fileRepository.move(paperEntityDraft, true)
-        )
+          this.fileRepository.move(paperEntityDraft, true),
+        ),
       );
 
       for (let i = 0; i < movedEntityDrafts.length; i++) {
@@ -710,7 +712,7 @@ export class EntityInteractor {
       }
 
       await this.dbRepository.updatePaperEntities(
-        movedEntityDrafts as PaperEntity[]
+        movedEntityDrafts as PaperEntity[],
       );
     } catch (error) {
       console.error(error);
@@ -734,15 +736,15 @@ export class EntityInteractor {
     let copyStr = "";
     if (format === "BibTex") {
       copyStr = this.referenceRepository.exportBibTexBody(
-        this.referenceRepository.toCite(paperEntityDrafts)
+        this.referenceRepository.toCite(paperEntityDrafts),
       );
     } else if (format === "BibTex-Key") {
       copyStr = this.referenceRepository.exportBibTexKey(
-        this.referenceRepository.toCite(paperEntityDrafts)
+        this.referenceRepository.toCite(paperEntityDrafts),
       );
     } else if (format === "PlainText") {
       copyStr = await this.referenceRepository.exportPlainText(
-        this.referenceRepository.toCite(paperEntityDrafts)
+        this.referenceRepository.toCite(paperEntityDrafts),
       );
     }
 
@@ -754,7 +756,7 @@ export class EntityInteractor {
   // ========================
   async routineScrape() {
     const allowRoutineMatch = this.preference.get(
-      "allowRoutineMatch"
+      "allowRoutineMatch",
     ) as boolean;
     if (allowRoutineMatch) {
       this.stateStore.logState.processLog = "Start routine scraping...";
@@ -821,7 +823,7 @@ export class EntityInteractor {
     const job = new SimpleIntervalJob(
       { seconds: 7 * 86400, runImmediately: false },
       task,
-      "routineScrape"
+      "routineScrape",
     );
 
     this.scheduler.addSimpleIntervalJob(job);
