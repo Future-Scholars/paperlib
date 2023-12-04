@@ -276,5 +276,3 @@ const onChangeLanguage = (language: string) => {
     </div>
   </div>
 </template>
-@/renderer/services/app-service@/renderer/services/preference-service
-@/common/services/preference-service

@@ -4,12 +4,18 @@ import fs from "node:fs";
 import { createDecorator } from "@/base/injection/injection";
 import { isLocalPath } from "@/base/url";
 
+import {
+  ExtensionPreferenceService,
+  IExtensionPreferenceService,
+} from "./extension-preference-service";
+
 export const IExtensionManagementService = createDecorator(
   "extensionManagementService"
 );
 
 export class ExtensionManagementService {
   private readonly _extManager: PluginManager;
+  private readonly _extensionPreferenceService: ExtensionPreferenceService;
 
   private readonly _installedExtensions: { [key: string]: any };
   private readonly _installedExtensionInfos: {
@@ -20,13 +26,19 @@ export class ExtensionManagementService {
       author: string;
       verified: boolean;
       description: string;
+      preference: { [key: string]: any };
       location: string;
       originLocation?: string;
     };
   };
 
-  constructor() {
+  constructor(
+    @IExtensionPreferenceService
+    extensionPreferenceService: ExtensionPreferenceService
+  ) {
     this._extManager = new PluginManager();
+    this._extensionPreferenceService = extensionPreferenceService;
+
     this._installedExtensions = {};
     this._installedExtensionInfos = {};
   }
@@ -49,11 +61,12 @@ export class ExtensionManagementService {
       }
       const extension = this._extManager.require(info.name);
 
-      this._installedExtensions[info.name] = extension.initialize();
+      this._installedExtensions[info.name] = await extension.initialize();
 
       //TODO: verify extension
+      // Can we use || here?
       this._installedExtensionInfos[info.name] = {
-        id: info.name,
+        id: this._installedExtensions[info.name].id,
         name: this._installedExtensions[info.name].name
           ? this._installedExtensions[info.name].name
           : info.name,
@@ -65,6 +78,10 @@ export class ExtensionManagementService {
         description: this._installedExtensions[info.name].description
           ? this._installedExtensions[info.name].description
           : "",
+        preference:
+          this._extensionPreferenceService.getAllMetadata(
+            this._installedExtensions[info.name].id
+          ) || {},
         location: info.location,
         originLocation: installFromFile ? extensionName : undefined,
       };
@@ -80,6 +97,9 @@ export class ExtensionManagementService {
   }
 
   async uninstall(extensionID: string) {
+    if (this._installedExtensions[extensionID]) {
+      await this._installedExtensions[extensionID].dispose();
+    }
     delete this._installedExtensions[extensionID];
     delete this._installedExtensionInfos[extensionID];
     await this._extManager.uninstall(extensionID);
@@ -105,6 +125,7 @@ export class ExtensionManagementService {
         await this.install(location);
       }
     } catch (e) {
+      console.error(e);
       PLAPI.logService.error(
         `Failed to reload extension ${extensionID}`,
         e as Error,

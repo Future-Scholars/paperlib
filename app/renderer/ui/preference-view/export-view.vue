@@ -130,7 +130,7 @@ onMounted(() => {
         </div>
       </div>
       <button
-        class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
+        class="flex h-8 w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
         @click="installWordAddinClicked"
       >
         <span class="m-auto text-xs">{{
@@ -166,7 +166,7 @@ onMounted(() => {
         v-model="newReplacementTo"
       />
       <div
-        class="flex h-full w-20 my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500 text-xs cursor-pointer"
+        class="flex h-8 w-20 my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500 text-xs cursor-pointer"
         @click="onReplacementAdd"
       >
         <BIconPlus class="m-auto text-lg" />
@@ -185,4 +185,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-@/renderer/services/preference-service @/common/services/preference-service

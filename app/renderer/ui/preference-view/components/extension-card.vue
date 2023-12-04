@@ -2,6 +2,7 @@
 import {
   BIconArrowClockwise,
   BIconDownload,
+  BIconGear,
   BIconPatchCheckFill,
   BIconTrash3,
 } from "bootstrap-icons-vue";
@@ -15,11 +16,11 @@ defineProps<{
   installed: boolean;
 }>();
 
-defineEmits(["install", "uninstall", "reload"]);
+defineEmits(["install", "uninstall", "reload", "setting"]);
 </script>
 
 <template>
-  <div class="h-34 bg-neutral-200 flex flex-col py-2 px-3 rounded-md shadow-sm">
+  <div class="bg-neutral-200 flex flex-col py-2 px-3 rounded-md shadow-sm">
     <div class="flex space-x-2">
       <span class="font-semibold text-sm truncate my-auto"> {{ name }} </span>
       <BIconPatchCheckFill class="my-auto text-sm" v-if="verified" />
@@ -51,6 +52,12 @@ defineEmits(["install", "uninstall", "reload"]);
         class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
         v-if="installed"
         @click="$emit('reload')"
+      />
+      <BIconGear
+        title="Settings"
+        class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
+        v-if="installed"
+        @click="$emit('setting')"
       />
     </div>
   </div>

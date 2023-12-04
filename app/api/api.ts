@@ -1,5 +1,6 @@
 import { Proxied } from "@/base/rpc/proxied";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
+import { ExtensionPreferenceService } from "@/extension/services/extension-preference-service";
 import { ContextMenuService } from "@/main/services/contextmenu-service";
 import { FileSystemService } from "@/main/services/filesystem-service";
 import { MenuService } from "@/main/services/menu-service";
@@ -39,4 +40,5 @@ export interface MainAPIShape {
 
 export interface ExtAPIShape {
   extensionManagementService: Proxied<ExtensionManagementService>;
+  extensionPreferenceService: Proxied<ExtensionPreferenceService>;
 }

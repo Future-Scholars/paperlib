@@ -55,4 +55,31 @@ declare module "paperlib" {
       )
     }
   }
+
+  export namespace PLExtAPI {
+    export var extensionPreferenceService: {
+      register<T>(extensionID: string, defaultValues: T): Promise<void>;
+      unregister(extensionID: string): void;
+
+      get(extensionID: string, key: any): any;
+
+      set(extensionID: string, patch: any): void;
+
+      getPassword(extensionID: string, key: string): Promise<string>;
+
+      setPassword(extensionID: string, key: string, pwd: string): Promise<void>;
+
+      onChanged(
+        extensionID: string,
+        key: keyof T | (keyof T)[],
+        callback: (newValues: { key: keyof T; value: any }) => void
+      ): () => void;
+
+      on(
+        extensionID: string,
+        key: keyof T | (keyof T)[],
+        callback: (newValues: { key: keyof T; value: any }) => void
+      ): () => void;
+    }
+  }
 }

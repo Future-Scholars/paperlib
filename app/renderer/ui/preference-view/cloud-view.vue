@@ -92,7 +92,7 @@ const onWebdavDisconnectClicked = () => {
 
     <div class="flex space-x-2 justify-between mb-5">
       <input
-        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
         type="text"
         placeholder="Username"
         v-model="syncEmail"
@@ -100,14 +100,14 @@ const onWebdavDisconnectClicked = () => {
         :class="prefState.useSync ? 'text-neutral-400' : ''"
       />
       <input
-        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
         type="password"
         placeholder="Password"
         v-model="syncPassword"
         :disabled="prefState.useSync"
         :class="prefState.useSync ? 'text-neutral-400' : ''"
       />
-      <div class="flex justify-between text-xs">
+      <div class="flex justify-between text-xs flex-none">
         <button
           class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
           v-if="!prefState.useSync"
@@ -183,9 +183,9 @@ const onWebdavDisconnectClicked = () => {
         :class="viewState.syncFileStorageAvaliable ? 'text-neutral-400' : ''"
       />
 
-      <div class="flex space-x-2 justify-between">
+      <div class="flex space-x-2">
         <input
-          class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
+          class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
           type="text"
           placeholder="Username"
           v-model="webdavUsername"
@@ -193,14 +193,14 @@ const onWebdavDisconnectClicked = () => {
           :class="viewState.syncFileStorageAvaliable ? 'text-neutral-400' : ''"
         />
         <input
-          class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none w-56"
+          class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
           type="password"
           placeholder="Password"
           v-model="webdavPassword"
           :disabled="viewState.syncFileStorageAvaliable"
           :class="viewState.syncFileStorageAvaliable ? 'text-neutral-400' : ''"
         />
-        <div class="flex text-xs">
+        <div class="flex text-xs flex-none">
           <div
             class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500"
             v-if="!viewState.syncFileStorageAvaliable"
@@ -220,4 +220,3 @@ const onWebdavDisconnectClicked = () => {
     </div>
   </div>
 </template>
-@/renderer/services/preference-service @/common/services/preference-service

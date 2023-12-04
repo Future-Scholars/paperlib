@@ -7,6 +7,8 @@ import { ExtensionManagementService } from "@/extension/services/extension-manag
 import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
 import { IInjectable } from "@/extension/services/injectable";
 
+import { ExtensionPreferenceService } from "./services/extension-preference-service";
+
 async function initialize() {
   // ============================================================
   // 1. Initilize the RPC service for current process
@@ -40,10 +42,15 @@ async function initialize() {
 
   const instances = injectionContainer.createInstance<IInjectable>({
     extensionManagementService: ExtensionManagementService,
+    extensionPreferenceService: ExtensionPreferenceService,
   });
   // 4.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
+    if (!globalThis["PLExtAPI"]) {
+      globalThis["PLExtAPI"] = {} as any;
+    }
     globalThis[key] = instance;
+    globalThis["PLExtAPI"][key] = instance;
   }
 
   // ============================================================
