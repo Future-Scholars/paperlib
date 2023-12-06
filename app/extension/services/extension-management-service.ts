@@ -44,7 +44,7 @@ export class ExtensionManagementService {
   }
 
   async installDemoPlugins() {
-    this.install("./extension_demos/paperlib-demo-command-extension");
+    this.install("./extension_demos/paperlib-demo-hook-extension");
   }
 
   async install(extensionName: string) {
@@ -142,19 +142,26 @@ export class ExtensionManagementService {
   }
 
   installedExtensions() {
+    console.log(this._installedExtensionInfos);
     return this._installedExtensionInfos;
   }
 
-  callPluginMethod(extensionName: string, methodName: string, ...args: any) {
+  async callExtensionMethod(
+    extensionID: string,
+    methodName: string,
+    ...args: any
+  ) {
     try {
-      return this._installedExtensions[extensionName][methodName](...args);
+      return await this._installedExtensions[extensionID][methodName](...args);
     } catch (e) {
+      // TODO: check error obj transfer
       PLAPI.logService.error(
-        `Failed to call extension method ${methodName} of extension ${extensionName},
+        `Failed to call extension method ${methodName} of extension ${extensionID}`,
         e as Error,
         true,
-        "extensionManagementService"`
+        "ExtensionManagementService"
       );
+      throw e;
     }
   }
 }

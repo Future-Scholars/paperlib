@@ -415,6 +415,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     categorizer: Categorizer,
     type: CategorizerType
   ) {
+    // TODO: check categorizer logic
     try {
       // 1. Get Entities by IDs.
       const paperEntities = await this.loadByIds(ids);

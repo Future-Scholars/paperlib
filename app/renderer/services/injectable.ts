@@ -7,16 +7,20 @@ import { BrowserExtensionService } from "@/renderer/services/browser-extension-s
 import { BufferService } from "@/renderer/services/buffer-service";
 import { CacheService } from "@/renderer/services/cache-service";
 import { CategorizerService } from "@/renderer/services/categorizer-service";
+import { CommandService } from "@/renderer/services/command-service";
 import { DatabaseService } from "@/renderer/services/database-service";
 import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
+import { HookService } from "@/renderer/services/hook-service";
 import { LogService } from "@/renderer/services/log-service";
 import { MSWordCommService } from "@/renderer/services/msword-comm-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";
+import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
 import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
+import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
 import { StateService } from "@/renderer/services/state-service/state-service";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
@@ -26,9 +30,6 @@ import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
 import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
-import { CommandService } from "@/renderer/services/command-service";
-import { ShortcutService } from "@/renderer/services/shortcut-service";
-import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
 
 export type IInjectable =
   | APPService
@@ -61,4 +62,5 @@ export type IInjectable =
   | NetworkTool
   | CommandService
   | ShortcutService
-  | RendererRPCService;
+  | RendererRPCService
+  | HookService;

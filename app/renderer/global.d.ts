@@ -5,6 +5,7 @@ import { Store } from "pinia";
 import { APIShape, MainAPIShape } from "@/api/api";
 import { NetworkTool } from "@/base/network";
 import { PreferenceService } from "@/common/services/preference-service";
+import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
 import { EntityInteractor } from "@/interactors/entity-interactor";
 import { FeedInteractor } from "@/interactors/feed-interactor";
 import { PluginSideInteractor } from "@/interactors/plugin-side-interactor";
@@ -16,6 +17,7 @@ import { APPService } from "@/renderer/services/app-service";
 import { BufferService } from "@/renderer/services/buffer-service";
 import { CacheService } from "@/renderer/services/cache-service";
 import { CategorizerService } from "@/renderer/services/categorizer-service";
+import { CommandService } from "@/renderer/services/command-service";
 import { DatabaseService } from "@/renderer/services/database-service";
 import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
@@ -23,15 +25,13 @@ import { LogService } from "@/renderer/services/log-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";
-import { CommandService } from "@/renderer/services/command-service";
+import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
 import { SchedulerService } from "@/renderer/services/scheduler-service";
+import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
 import { StateService } from "@/renderer/services/state-service/state-service";
-import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { IProcessingState } from "@/renderer/services/state-service/state/processing";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
-
-import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
 
 declare global {
   var appService: APPService;
@@ -53,6 +53,7 @@ declare global {
   var mainRPCService: MainRPCService;
   var commandService: CommandService;
   var shortcutService: ShortcutService;
+  var rendererRPCService: RendererRPCService;
 
   var processingState: Store<"processingState", IProcessingState>;
 }

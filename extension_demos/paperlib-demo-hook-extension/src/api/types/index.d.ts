@@ -54,6 +54,10 @@ declare module "paperlib" {
         callback: (newValues: { key: keyof T; value: any }) => void
       )
     }
+
+    export var hookService: {
+      hook: (hookName: string, extensionID: string, callbackName: string) => Promise<void>;
+    }
   }
 
   export namespace PLExtAPI {

@@ -26,6 +26,7 @@ import { CommandService } from "@/renderer/services/command-service";
 import { DatabaseService } from "@/renderer/services/database-service";
 import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
+import { HookService } from "@/renderer/services/hook-service";
 import { IInjectable } from "@/renderer/services/injectable";
 import { LogService } from "@/renderer/services/log-service";
 import { MSWordCommService } from "@/renderer/services/msword-comm-service";
@@ -126,12 +127,14 @@ const instances = injectionContainer.createInstance<IInjectable>({
   msWordCommService: MSWordCommService,
   commandService: CommandService,
   shortcutService: ShortcutService,
+  hookService: HookService,
   networkTool: NetworkTool,
 });
 // 4.1 Expose the instances to the global scope for convenience.
 for (const [key, instance] of Object.entries(instances)) {
   globalThis[key] = instance;
 }
+globalThis["rendererRPCService"] = rendererRPCService;
 
 // ============================================================
 // 5. Set actionors for RPC service with all initialized services.

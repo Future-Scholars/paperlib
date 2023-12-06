@@ -71,26 +71,26 @@ const reloadPaperEntities = async () => {
   let folder = "";
 
   // TODO: should we clear the search text when switching categorizer?
-  // if (selectionState.selectedCategorizer.startsWith("tag-")) {
-  //   tag = selectionState.selectedCategorizer.replace("tag-", "");
-  //   viewState.searchText = "";
-  //   viewState.searchMode = "general";
-  // } else if (selectionState.selectedCategorizer.startsWith("folder-")) {
-  //   folder = selectionState.selectedCategorizer.replace("folder-", "");
-  //   viewState.searchText = "";
-  //   viewState.searchMode = "general";
-  // } else if (selectionState.selectedCategorizer === "lib-flaged") {
-  //   flaged = true;
-  //   viewState.searchText = "";
-  //   viewState.searchMode = "general";
-  // }
+  if (selectionState.selectedCategorizer.startsWith("tag-")) {
+    tag = selectionState.selectedCategorizer.replace("tag-", "");
+    // viewState.searchText = "";
+    // viewState.searchMode = "general";
+  } else if (selectionState.selectedCategorizer.startsWith("folder-")) {
+    folder = selectionState.selectedCategorizer.replace("folder-", "");
+    // viewState.searchText = "";
+    // viewState.searchMode = "general";
+  } else if (selectionState.selectedCategorizer === "lib-flaged") {
+    flaged = true;
+    // viewState.searchText = "";
+    // viewState.searchMode = "general";
+  }
   paperEntities.value = await paperService.load(
     paperService.constructFilter({
       search: viewState.searchText,
       searchMode: viewState.searchMode,
       flaged,
-      tag: selectionState.selectedCategorizer.replace("tag-", ""),
-      folder: selectionState.selectedCategorizer.replace("folder-", ""),
+      tag: tag,
+      folder: folder,
     }),
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder

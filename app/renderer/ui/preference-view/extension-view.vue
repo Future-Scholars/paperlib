@@ -47,6 +47,16 @@ const uninstallExtension = async (id: string) => {
   editingExtension.value = installedExtensions.value[id];
 };
 
+const onLocalInstallClicked = async () => {
+  const pickedFolder = (await PLMainAPI.fileSystemService.showFolderPicker())
+    .filePaths[0];
+  if (pickedFolder) {
+    await PLExtAPI.extensionManagementService.install(pickedFolder);
+    installedExtensions.value =
+      await PLExtAPI.extensionManagementService.installedExtensions();
+  }
+};
+
 const editingExtension = ref<{
   id: string;
   name: string;
@@ -121,7 +131,7 @@ onMounted(async () => {
   <div
     class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px] h-full pb-20"
   >
-    <div class="flex justify-between items-end mb-4 flex-none">
+    <div class="flex justify-between items-end mb-2 flex-none">
       <div class="text-base font-semibold">
         {{ $t("preference.extension") }}
       </div>
@@ -139,6 +149,14 @@ onMounted(async () => {
         >
           Installed
         </div>
+
+        <div
+          class="transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300"
+          @click="onLocalInstallClicked"
+        >
+          Install from Local
+        </div>
+
         <div
           class="transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300"
           :class="

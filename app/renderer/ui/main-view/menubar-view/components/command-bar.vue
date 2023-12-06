@@ -11,6 +11,7 @@ import { debounce } from "@/base/misc";
 import { ICommand } from "@/renderer/services/command-service";
 import { MainRendererStateStore } from "@/state/renderer/appstate";
 
+// TODO: Click command to run
 // ================================
 // State
 // ================================
