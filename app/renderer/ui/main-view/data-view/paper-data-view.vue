@@ -6,7 +6,6 @@ import { useI18n } from "vue-i18n";
 
 import { disposable } from "@/base/dispose";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ListItem from "./components/list-item.vue";
 import TableComponent from "./components/table/table-component.vue";
@@ -14,9 +13,9 @@ import TableComponent from "./components/table/table-component.vue";
 // ================================
 // State
 // ================================
-const viewState = MainRendererStateStore.useViewState();
-const selectionState = MainRendererStateStore.useSelectionState();
 const prefState = preferenceService.useState();
+const uiState = uiStateService.useState();
+
 const i18n = useI18n();
 
 // ================================
@@ -24,7 +23,6 @@ const i18n = useI18n();
 // ================================
 const paperEntities = inject<Ref<IPaperEntityResults>>("paperEntities");
 
-const selectedIndex: Ref<number[]> = ref([]);
 const selectedLastSingleIndex = ref(-1);
 
 const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
@@ -203,44 +201,42 @@ const onTableTitleWidthChanged = (
 };
 
 const onItemClicked = (event: MouseEvent, index: number) => {
+  let selectedIndex = JSON.parse(JSON.stringify(uiState.selectedIndex));
   if (event.shiftKey) {
     const minIndex = Math.min(selectedLastSingleIndex.value, index);
     const maxIndex = Math.max(selectedLastSingleIndex.value, index);
-    selectedIndex.value = [];
+    selectedIndex = [];
     for (let i = minIndex; i <= maxIndex; i++) {
-      selectedIndex.value.push(i);
+      selectedIndex.push(i);
     }
   } else if (
     (event.ctrlKey && appService.platform() !== "darwin") ||
     (event.metaKey && appService.platform() === "darwin")
   ) {
-    if (selectedIndex.value.indexOf(index) >= 0) {
-      selectedIndex.value.splice(selectedIndex.value.indexOf(index), 1);
+    if (selectedIndex.indexOf(index) >= 0) {
+      selectedIndex.splice(selectedIndex.indexOf(index), 1);
     } else {
-      selectedIndex.value.push(index);
+      selectedIndex.push(index);
     }
   } else {
-    selectedIndex.value = [index];
+    selectedIndex = [index];
     selectedLastSingleIndex.value = index;
   }
-  selectionState.selectedIndex = JSON.parse(
-    JSON.stringify(selectedIndex.value)
-  );
+  uiState.selectedIndex = selectedIndex;
 };
 
 const onItemRightClicked = (event: MouseEvent, index: number) => {
-  if (selectedIndex.value.indexOf(index) === -1) {
+  if (uiState.selectedIndex.indexOf(index) === -1) {
     onItemClicked(event, index);
   }
 
   PLMainAPI.contextMenuService.showPaperDataMenu(
-    selectedIndex.value.length === 1
+    uiState.selectedIndex.length === 1
   );
 };
 
 const onItemDoubleClicked = (event: MouseEvent, index: number, url: string) => {
-  selectedIndex.value = [index];
-  selectionState.selectedIndex = selectedIndex.value;
+  uiState.selectedIndex = [index];
   fileService.open(url);
 };
 
@@ -266,7 +262,7 @@ const dragHandler = (event: DragEvent) => {
   event.dataTransfer?.setDragImage(el, 0, 0);
   event.dataTransfer?.setData("text/plain", "paperlibEvent-drag-main-item");
 
-  selectionState.dragedIds = [el.id];
+  uiState.dragingIds = [el.id];
 };
 
 const showingUrl = ref("");
@@ -275,8 +271,11 @@ const accessMainFile = async (index: number) => {
   if (paperEntity) {
     const url = await fileService.access(paperEntity!.mainURL, false);
 
-    if (viewState.searchMode === "fulltext" && viewState.searchText !== "") {
-      showingUrl.value = `../viewer/viewer.html?file=${url}&search=${viewState.searchText}`;
+    if (
+      uiState.commandBarMode === "fulltext" &&
+      uiState.commandBarText !== ""
+    ) {
+      showingUrl.value = `../viewer/viewer.html?file=${url}&search=${uiState.commandBarText}`;
     } else {
       showingUrl.value = `../viewer/viewer.html?file=${url}`;
     }
@@ -285,30 +284,21 @@ const accessMainFile = async (index: number) => {
   }
 };
 
-watch(
-  () => selectionState.selectedIndex,
-  (newSelectedIndex) => {
-    if (newSelectedIndex.length === 1 && selectedIndex.value.length === 1) {
-      selectedLastSingleIndex.value = newSelectedIndex[0];
-    }
-
-    selectedIndex.value = newSelectedIndex;
-
-    if (newSelectedIndex.length === 0) {
-      selectedIndex.value = [];
-    }
-
+disposable(
+  uiStateService.onChanged("selectedIndex", (newValue) => {
     if (prefState.mainviewType === "tableandpreview") {
-      accessMainFile(newSelectedIndex[0]);
+      // TODO: check if select multiple.
+      accessMainFile(newValue.value[0]);
     }
-  }
+  })
 );
 
 disposable(
   preferenceService.onChanged("mainviewType", (newMainviewType) => {
     if (newMainviewType.value === "tableandpreview") {
-      if (selectionState.selectedIndex.length === 1) {
-        accessMainFile(selectionState.selectedIndex[0]);
+      if (uiState.selectedIndex.length === 1) {
+        // TODO: check if select multiple.
+        accessMainFile(uiState.selectedIndex[0]);
       }
     }
   })
@@ -352,7 +342,7 @@ onMounted(() => {
       <ListItem
         :id="item.id"
         :item="item"
-        :active="selectedIndex.indexOf(index) >= 0"
+        :active="uiState.selectedIndex.indexOf(index) >= 0"
         :showPubTime="prefState.showMainYear"
         :showPublication="prefState.showMainPublication"
         :showRating="prefState.showMainRating"
@@ -397,7 +387,7 @@ onMounted(() => {
         min-size="12"
         v-if="
           prefState.mainviewType === 'tableandpreview' &&
-          selectedIndex.length === 1
+          uiState.selectedIndex.length === 1
         "
       >
         <div class="w-full h-full">
@@ -407,4 +397,3 @@ onMounted(() => {
     </splitpanes>
   </div>
 </template>
-@/renderer/services/preference-service

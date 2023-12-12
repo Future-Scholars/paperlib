@@ -2,12 +2,10 @@
 import { BIconDash } from "bootstrap-icons-vue";
 import { ref } from "vue";
 
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
 // ================================
 // State
 // ================================
-const viewState = MainRendererStateStore.useViewState();
+const uiState = uiStateService.useState();
 
 // ================================
 // Data
@@ -142,8 +140,8 @@ const constructFilter = () => {
         v-model="value"
         :name="value"
         @input="onInput"
-        @focus="viewState.inputFieldFocused = true"
-        @blur="viewState.inputFieldFocused = false"
+        @focus="uiState.inputFieldFocused = true"
+        @blur="uiState.inputFieldFocused = false"
       />
     </div>
     <div

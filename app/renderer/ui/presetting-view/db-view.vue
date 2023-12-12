@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
 const emit = defineEmits(["close"]);
 
-const viewState = MainRendererStateStore.useViewState();
 const prefState = preferenceService.useState();
 
 const onPickerClicked = async () => {
@@ -11,7 +8,8 @@ const onPickerClicked = async () => {
     .filePaths[0];
   if (pickedFolder) {
     preferenceService.set({ appLibFolder: pickedFolder });
-    viewState.realmReiniting = Date.now();
+    //TODO: reinit db here
+    // viewState.realmReiniting = Date.now();
   }
 };
 </script>

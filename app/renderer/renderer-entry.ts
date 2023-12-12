@@ -13,10 +13,8 @@ import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { InjectionContainer } from "@/base/injection/injection";
 import { NetworkTool } from "@/base/network";
-import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { PreferenceService } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
-import { Preference } from "@/preference/preference";
 import { APPService } from "@/renderer/services/app-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
 import { BufferService } from "@/renderer/services/buffer-service";
@@ -38,8 +36,7 @@ import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
 import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
-import { useProcessingState } from "@/renderer/services/state-service/processing";
-import { StateService } from "@/renderer/services/state-service/state-service";
+import { UIStateService } from "@/renderer/services/uistate-service";
 import AppView from "@/renderer/ui/app-view.vue";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
 import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
@@ -48,7 +45,6 @@ import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
 import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import "./css/index.css";
 import "./css/katex.min.css";
@@ -70,9 +66,6 @@ app.component("Pane", Pane);
 app.component("v-select", vSelect);
 app.component("draggable", draggable);
 app.component("RecycleScroller", RecycleScroller);
-
-const processingState = useProcessingState();
-globalThis.processingState = processingState;
 
 // ============================================================
 // 1. Initilize the RPC service for current process
@@ -100,7 +93,6 @@ const injectionContainer = new InjectionContainer();
 const instances = injectionContainer.createInstance<IInjectable>({
   appService: APPService,
   preferenceService: PreferenceService,
-  stateService: StateService,
   logService: LogService,
   databaseCore: DatabaseCore,
   databaseService: DatabaseService,
@@ -128,6 +120,7 @@ const instances = injectionContainer.createInstance<IInjectable>({
   commandService: CommandService,
   shortcutService: ShortcutService,
   hookService: HookService,
+  uiStateService: UIStateService,
   networkTool: NetworkTool,
 });
 // 4.1 Expose the instances to the global scope for convenience.
@@ -158,7 +151,7 @@ app.use(i18n);
 window
   .matchMedia("(prefers-color-scheme: dark)")
   .addEventListener("change", (event) => {
-    stateService.viewState.renderRequired = Date.now();
+    uiStateService.setState({ renderRequired: Date.now() });
   });
 
 app.mount("#app");

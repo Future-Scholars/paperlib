@@ -1,9 +1,9 @@
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import {
-  IStateService,
-  StateService,
-} from "@/renderer/services/state-service/state-service";
+  IUIStateService,
+  UIStateService,
+} from "@/renderer/services/uistate-service";
 
 export const ICommandService = createDecorator("commandService");
 
@@ -24,7 +24,9 @@ export interface IExternelCommand {
 export class CommandService extends Eventable<{}> {
   private readonly _registeredCommands: { [id: string]: ICommand } = {};
 
-  constructor(@IStateService private readonly _stateService: StateService) {
+  constructor(
+    @IUIStateService private readonly _uiStateService: UIStateService
+  ) {
     super("commandService", {});
     this._registerInnerCommands();
   }
@@ -49,8 +51,8 @@ export class CommandService extends Eventable<{}> {
       description: "Search the library by keyword.",
       priority: 99999,
       handler: (keyword: string) => {
-        this._stateService.set({
-          "viewState.searchMode": "general",
+        this._uiStateService.setState({
+          commandBarMode: "general",
         });
       },
     });
@@ -60,8 +62,8 @@ export class CommandService extends Eventable<{}> {
       description: "Search the library in fulltext mode.",
       priority: 99998,
       handler: (keyword: string) => {
-        this._stateService.set({
-          "viewState.searchMode": "fulltext",
+        this._uiStateService.setState({
+          commandBarMode: "fulltext",
         });
       },
     });
@@ -71,8 +73,8 @@ export class CommandService extends Eventable<{}> {
       description: "Search the library by advanced query.",
       priority: 99997,
       handler: (keyword: string) => {
-        this._stateService.set({
-          "viewState.searchMode": "advanced",
+        this._uiStateService.setState({
+          commandBarMode: "advanced",
         });
       },
     });

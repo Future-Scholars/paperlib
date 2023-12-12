@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
-const viewState = MainRendererStateStore.useViewState();
-const selectionState = MainRendererStateStore.useSelectionState();
+const uiState = uiStateService.useState();
 
 const onClick = () => {
-  viewState.isDeleteConfirmShown = false;
+  uiState.isDeleteConfirmShown = false;
 };
 
 const onCancel = () => {
@@ -13,9 +10,10 @@ const onCancel = () => {
 };
 
 const onConfirm = () => {
-  paperService.delete(selectionState.selectedIds);
-  selectionState.selectedIds = [];
-  selectionState.selectedIndex = [];
+  paperService.delete(uiState.selectedIds);
+  // TODO: seems like this is not needed
+  uiState.selectedIndex = [];
+  uiState.selectedIds = [];
   onClick();
 };
 
@@ -35,7 +33,7 @@ shortcutService.register("Enter", onConfirm);
     <div
       id="modal-view"
       class="absolute w-full h-full top-0 left-0"
-      v-if="viewState.isDeleteConfirmShown"
+      v-if="uiState.isDeleteConfirmShown"
       @click="onClick"
     >
       <div

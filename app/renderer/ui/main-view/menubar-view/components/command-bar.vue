@@ -7,30 +7,30 @@ import {
 } from "bootstrap-icons-vue";
 import { computed, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
 import { ICommand } from "@/renderer/services/command-service";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 // TODO: Click command to run
 // ================================
 // State
 // ================================
-const viewState = MainRendererStateStore.useViewState();
+const uiState = uiStateService.useState();
 
 // ================================
 // Data
 // ================================
+// TODO: move this to buffer state
 const commandText = ref("");
 
 const onSearchTextChanged = debounce(() => {
-  viewState.searchText = `${commandText.value}`;
+  uiState.commandBarText = `${commandText.value}`;
 }, 300);
 
-watch(
-  () => viewState.searchText,
-  (newVal) => {
-    commandText.value = newVal;
-  }
+disposable(
+  uiStateService.onChanged("commandBarText", (newVal) => {
+    commandText.value = newVal.value;
+  })
 );
 
 const onInput = (payload: Event) => {
@@ -183,13 +183,13 @@ const isCommandPanelShown = computed(() => {
     <BIconChevronRight class="my-auto ml-1 mr-1 text-xs" v-else />
     <div
       class="text-xxs my-auto mr-2 px-1 border-[1px] border-neutral-300 rounded"
-      v-if="!isCommand && viewState.searchMode === 'fulltext'"
+      v-if="!isCommand && uiState.commandBarMode === 'fulltext'"
     >
       FullText
     </div>
     <div
       class="text-xxs my-auto mr-2 px-1 border-[1px] border-neutral-300 rounded"
-      v-if="!isCommand && viewState.searchMode === 'advanced'"
+      v-if="!isCommand && uiState.commandBarMode === 'advanced'"
     >
       Advanced
     </div>

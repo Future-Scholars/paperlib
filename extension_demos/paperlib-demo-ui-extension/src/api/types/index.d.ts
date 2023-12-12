@@ -58,6 +58,32 @@ declare module "paperlib" {
     export var hookService: {
       hook: (hookName: string, extensionID: string, callbackName: string) => Promise<void>;
     }
+
+    export var uiStateService: {
+      setState: (patch: {[key: string]: any}) => void;
+      getState: (stateKey: string) => any;
+
+      on(
+        key: keyof T | (keyof T)[],
+        callback: (newValues: { key: keyof T; value: any }) => void
+      )
+
+      onChanged(
+        key: keyof T | (keyof T)[],
+        callback: (newValues: { key: keyof T; value: any }) => void
+      )
+    }
+
+    export var networkTool: {
+      get: (
+        url: string,
+        headers?: Record<string, string>,
+        retry: number,
+        safe: boolean,
+        timeout: number,
+        cache: boolean
+      ) => Promise<any>;
+    }
   }
 
   export namespace PLExtAPI {

@@ -9,7 +9,6 @@ import { ExtensionRPCService } from "./extension/services/extension-rpc-service"
 import { ContextMenuService } from "./main/services/contextmenu-service";
 import { FileSystemService } from "./main/services/filesystem-service";
 import { Preference } from "./preference/preference";
-import { MainRendererStateStore } from "./state/renderer/appstate";
 
 declare global {
   interface Window {
@@ -17,7 +16,6 @@ declare global {
     pluginSideInteractor: PluginSideInteractor;
 
     preference: Preference;
-    stateStore: MainRendererStateStore;
   }
 
   interface Realm {

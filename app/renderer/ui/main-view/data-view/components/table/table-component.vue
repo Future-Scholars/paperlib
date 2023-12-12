@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import TableItem from "./table-item.vue";
 import TableTitle from "./table-title.vue";
@@ -24,7 +23,7 @@ const props = defineProps({
 // ================================
 // State
 // ================================
-const selectionState = MainRendererStateStore.useSelectionState();
+const uiState = uiStateService.useState();
 const prefState = preferenceService.useState();
 
 // ================================
@@ -83,7 +82,7 @@ const dragHandler = (event: DragEvent) => {
         :id="item.id"
         :item="item"
         :titles="titleColumns"
-        :active="selectionState.selectedIndex.indexOf(index) >= 0"
+        :active="uiState.selectedIndex.indexOf(index) >= 0"
         :showPubTime="prefState.showMainYear"
         :showPublication="prefState.showMainPublication"
         :showRating="isFeedTable ? false : prefState.showMainRating"

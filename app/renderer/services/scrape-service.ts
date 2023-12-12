@@ -8,12 +8,9 @@ import {
   PreferenceService,
 } from "@/common/services/preference-service";
 import { PaperEntity } from "@/models/paper-entity";
-import {
-  ProcessingKey,
-  processing,
-} from "@/renderer/services//state-service/processing";
 import { HookService, IHookService } from "@/renderer/services/hook-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
+import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import { EntryScraperRepository } from "@/repositories/scraper-repository/entry-scrapers/entry-scraper-repository";
 import { MetadataScraperRepository } from "@/repositories/scraper-repository/metadata-scraper/metadata-scraper-repository";
 

@@ -4,10 +4,13 @@ import { watch } from "vue";
 
 import { createDecorator } from "@/base/injection/injection";
 import { isMetadataCompleted, mergeMetadata } from "@/base/metadata";
+import {
+  IPreferenceService,
+  IScraperPreference,
+  PreferenceService,
+} from "@/common/services/preference-service";
 import { PaperEntity } from "@/models/paper-entity";
-import { Preference, ScraperPreference } from "@/preference/preference";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import { AdsabsScraper } from "./scrapers/adsabs";
 import { ArXivScraper } from "./scrapers/arxiv";
@@ -118,22 +121,15 @@ const CLIENTSIDE_SCRAPER_OBJS = new Map<string, typeof Scraper | CustomScraper>(
 export const IScraperRepository = createDecorator("IScraperRepository");
 
 export class ScraperRepository {
-  stateStore: MainRendererStateStore;
-  preference: Preference;
-
   // Enabled scrapers
   fileScraperList: Array<string>;
   builtinScraperList: Array<string>;
   clientsideScraperList: Array<string>;
 
   constructor(
-    stateStore: MainRendererStateStore,
-    preference: Preference,
-    @ILogService private readonly logService: LogService
+    @IPreferenceService private readonly _preferenceService: PreferenceService,
+    @ILogService private readonly _logService: LogService
   ) {
-    this.stateStore = stateStore;
-    this.preference = preference;
-
     this.fileScraperList = ["pdf", "bibtex"];
     this.builtinScraperList = [];
     this.clientsideScraperList = [];
@@ -142,24 +138,22 @@ export class ScraperRepository {
 
     void got("https://api.paperlib.app/version");
 
-    watch(
-      () => this.stateStore.viewState.scraperReinited,
-      () => {
-        this.initScrapers();
-      }
-    );
+    // TODO: reinit scrapers here
+    // watch(
+    //   () => this.stateStore.viewState.scraperReinited,
+    //   () => {
+    //     this.initScrapers();
+    //   }
+    // );
   }
 
   async initScrapers() {
     this.builtinScraperList = [];
     this.clientsideScraperList = [];
 
-    const scraperPrefs = this.preference.get("scrapers") as Record<
-      string,
-      ScraperPreference
-    >;
+    const scraperPrefs = this._preferenceService.get("scrapers");
 
-    const sortedScraperPrefs: ScraperPreference[] = [];
+    const sortedScraperPrefs: IScraperPreference[] = [];
     for (const [name, scraperPref] of Object.entries(scraperPrefs)) {
       if (scraperPref.enable) {
         sortedScraperPrefs.push(scraperPref);
@@ -210,7 +204,7 @@ export class ScraperRepository {
         : this.clientsideScraperList;
 
     // 1. Scrape from file inner metadata
-    this.logService.info(
+    this._logService.info(
       "Scraping metadata from file(s) ...",
       "",
       true,
@@ -223,7 +217,7 @@ export class ScraperRepository {
     );
 
     // 2. Scrape from default Paperlib metadata service
-    this.logService.info("Paperlib Metadata service ...", "", true, "Scraper");
+    this._logService.info("Paperlib Metadata service ...", "", true, "Scraper");
     let paperlibMetadataServiceSuccess = false;
     try {
       paperEntityDraft = await PaperlibMetadataServiceScraper.scrape(
@@ -234,7 +228,7 @@ export class ScraperRepository {
       paperlibMetadataServiceSuccess = true;
     } catch (error) {
       paperlibMetadataServiceSuccess = false;
-      this.logService.error(
+      this._logService.error(
         "Paperlib Metadata service error",
         error as Error,
         true,
@@ -367,7 +361,6 @@ export class ScraperRepository {
     priority_offset = 0,
     force: boolean = false
   ): Promise<PaperEntity> {
-    const stateStore = this.stateStore;
     const thisArg = this;
     return new Promise(async function (resolve, reject) {
       const q = queue();
@@ -407,7 +400,7 @@ export class ScraperRepository {
 
             let scrapedPaperEntity: PaperEntity;
             try {
-              thisArg.logService.info(
+              thisArg._logService.info(
                 `Scraping metadata from [${scraper}] ...`,
                 "",
                 true,
@@ -421,7 +414,7 @@ export class ScraperRepository {
               );
             } catch (error) {
               if (error) {
-                thisArg.logService.error(
+                thisArg._logService.error(
                   `Scraper [${scraper}] error`,
                   `${error}`,
                   true,

@@ -1,7 +1,7 @@
 {
-  "name": "paperlib-demo-hook-extension",
+  "name": "paperlib-demo-ui-extension",
   "version": "0.0.1",
-  "description": "Demo hook extension for Paperlib",
+  "description": "Demo UI extension for Paperlib",
   "main": "dist/main.js",
   "scripts": {
     "prebuild": "tsc --noEmit",

@@ -3,12 +3,10 @@ import { ref } from "vue";
 
 import { IPreferenceStore } from "@/common/services/preference-service";
 import { APPTheme } from "@/main/services/window-process-management-service";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
 
-const viewState = MainRendererStateStore.useViewState();
 const prefState = preferenceService.useState();
 
 const updatePrefs = (key: keyof IPreferenceStore, value: unknown) => {
@@ -20,7 +18,7 @@ const onPickerClicked = async () => {
     .filePaths[0];
   if (pickedFolder) {
     updatePrefs("appLibFolder", pickedFolder);
-    viewState.realmReiniting = Date.now();
+    //TODO: reinit db here
   }
 };
 

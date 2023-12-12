@@ -5,11 +5,9 @@ import { Ref, onBeforeUpdate, onMounted, ref, watch } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Authors from "./components/authors.vue";
 import Categorizers from "./components/categorizers.vue";
-import CitationCount from "./components/citationcount.vue";
 import Code from "./components/code.vue";
 import Markdown from "./components/markdown.vue";
 import PubDetails from "./components/pub-details.vue";
@@ -23,9 +21,25 @@ const props = defineProps({
     type: Object as () => PaperEntity,
     required: true,
   },
-});
 
-const viewState = MainRendererStateStore.useViewState();
+  slot1: {
+    type: Object as () => { [id: string]: { title: string; content: string } },
+    default: {},
+  },
+
+  slot2: {
+    type: Object as () => { [id: string]: { title: string; content: string } },
+    default: {},
+  },
+
+  slot3: {
+    type: Object as () => { [id: string]: { title: string; content: string } },
+    default: {},
+  },
+});
+// TODO: shall we support button slots? html slots?
+
+const uiState = uiStateService.useState();
 
 const onRatingChanged = (value: number) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
@@ -59,7 +73,7 @@ const modifyMainFile = async (url: string) => {
   );
   await cacheService.updateCache(updatedPaperEntity);
   setTimeout(() => {
-    viewState.renderRequired = Date.now();
+    uiState.renderRequired = Date.now();
   }, 500);
 };
 
@@ -69,7 +83,7 @@ const locateMainFile = async () => {
     paperEntityDraft,
   ]);
   await paperService.update(updatedPaperEntity);
-  viewState.renderRequired = Date.now();
+  uiState.renderRequired = Date.now();
 };
 
 const addSups = (urls: string[]) => {
@@ -177,44 +191,12 @@ const renderTitle = async () => {
   }
 };
 
-const citationCount = ref({}) as Ref<
-  Record<
-    "semanticscholarId" | "citationCount" | "influentialCitationCount",
-    string
-  >
->;
-const requestCitationCount = async () => {
-  // TODO: move to a seperate plugin.
-  // citationCount.value = {
-  //   semanticscholarId: "",
-  //   citationCount: "N/A",
-  //   influentialCitationCount: "N/A",
-  // };
-  // const responseCitationCount = await window.entityInteractor.loadCitationCount(
-  //   props.entity
-  // );
-  // citationCount.value.semanticscholarId =
-  //   responseCitationCount.semanticscholarId;
-  // citationCount.value.citationCount = responseCitationCount.citationCount;
-  // citationCount.value.influentialCitationCount =
-  //   responseCitationCount.influentialCitationCount;
-};
-
 watch(
   () => props.entity._id,
   () => {
     renderTitle();
-    requestCitationCount();
   }
 );
-
-const onCitationCountClicked = (semanticscholarId: string) => {
-  if (semanticscholarId) {
-    fileService.open(
-      `https://www.semanticscholar.org/paper/${semanticscholarId}`
-    );
-  }
-};
 
 onMounted(() => {
   registerDropHandler();
@@ -245,13 +227,17 @@ onMounted(() => {
           {{ entity.pubTime }}
         </div>
       </Section>
-      <Section :title="$t('mainview.citationcount')">
-        <CitationCount
-          :citation-count="citationCount.citationCount"
-          :influential-citation-count="citationCount.influentialCitationCount"
-          @click="onCitationCountClicked(citationCount.semanticscholarId)"
-        />
+
+      <Section
+        :id="`detailspanel-slot1-${id}`"
+        v-for="[id, item] of Object.entries(slot1)"
+        :title="item.title"
+      >
+        <div class="text-xxs">
+          {{ item.content }}
+        </div>
       </Section>
+
       <Section
         id="detail-tag-section"
         :title="$t('mainview.tags')"
@@ -286,6 +272,17 @@ onMounted(() => {
       <Section :title="$t('mainview.rating')">
         <Rating :rating="entity.rating" @changed="onRatingChanged" />
       </Section>
+
+      <Section
+        :id="`detailspanel-slot2-${id}`"
+        v-for="[id, item] of Object.entries(slot2)"
+        :title="item.title"
+      >
+        <div class="text-xxs">
+          {{ item.content }}
+        </div>
+      </Section>
+
       <Section :title="$t('mainview.preview')">
         <Thumbnail
           :entity="entity"
@@ -316,6 +313,16 @@ onMounted(() => {
         <Supplementary :sups="entity.supURLs" />
       </Section>
       <Markdown :title="'Markdown'" :sups="entity.supURLs" />
+
+      <Section
+        :id="`detailspanel-slot3-${id}`"
+        v-for="[id, item] of Object.entries(slot3)"
+        :title="item.title"
+      >
+        <div class="text-xxs">
+          {{ item.content }}
+        </div>
+      </Section>
     </div>
 
     <div

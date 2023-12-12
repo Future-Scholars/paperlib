@@ -44,7 +44,7 @@ export class ExtensionManagementService {
   }
 
   async installDemoPlugins() {
-    this.install("./extension_demos/paperlib-demo-hook-extension");
+    this.install("./extension_demos/paperlib-demo-ui-extension");
   }
 
   async install(extensionName: string) {

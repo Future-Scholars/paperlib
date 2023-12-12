@@ -20,7 +20,6 @@ import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import ListItem from "@/renderer/ui/main-view/data-view/components/list-item.vue";
 import TableItem from "@/renderer/ui/main-view/data-view/components/table/table-item.vue";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import MainSection from "./components/main-section.vue";
 

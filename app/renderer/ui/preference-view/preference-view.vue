@@ -15,9 +15,6 @@ import {
 } from "bootstrap-icons-vue";
 import { onMounted, ref, watch } from "vue";
 
-import { disposable } from "@/base/dispose";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
 import AboutView from "./about-view.vue";
 import CloudView from "./cloud-view.vue";
 import SectionItem from "./components/section-item.vue";
@@ -35,12 +32,11 @@ import SidebarView from "./sidebar-view.vue";
 // ==============================
 // State
 // ==============================
-const viewState = MainRendererStateStore.useViewState();
-
+const uiState = uiStateService.useState();
 const preferenceTab = ref("general");
 
 const onCloseClicked = () => {
-  viewState.isPreferenceViewShown = false;
+  uiState.isPreferenceViewShown = false;
 };
 
 shortcutService.register("Escape", onCloseClicked);

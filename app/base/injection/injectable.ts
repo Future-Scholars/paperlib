@@ -3,8 +3,8 @@ import { DatabaseCore } from "@/base/database/core";
 import { NetworkTool } from "@/base/network";
 import { PreferenceService } from "@/common/services/preference-service";
 import { ContextMenuService } from "@/main/services/contextmenu-service";
+import { ExtensionProcessManagementService } from "@/main/services/extension-process-management-service";
 import { FileSystemService } from "@/main/services/filesystem-service";
-import { MainExtensionService } from "@/main/services/extension-process-management-service";
 import { MainRPCService } from "@/main/services/main-rpc-service";
 import { MenuService } from "@/main/services/menu-service";
 import { ProxyService } from "@/main/services/proxy-service";
@@ -26,7 +26,6 @@ import { RenderService } from "@/renderer/services/render-service";
 import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
-import { StateService } from "@/renderer/services/state-service/state-service";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
 import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
 import { FeedRepository } from "@/repositories/db-repository/feed-repository";
@@ -38,7 +37,6 @@ import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 export type IInjectable =
   | APPService
   | PreferenceService
-  | StateService
   | LogService
   | DatabaseService
   | DatabaseCore
@@ -71,4 +69,4 @@ export type IInjectable =
   | MenuService
   | UpgradeService
   | ProxyService
-  | MainExtensionService;
+  | ExtensionProcessManagementService;

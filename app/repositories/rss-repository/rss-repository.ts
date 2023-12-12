@@ -4,20 +4,13 @@ import { Response } from "got";
 import { createDecorator } from "@/base/injection/injection";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
-import { Preference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 export const IRSSRepository = createDecorator("rssRepository");
 
 export class RSSRepository {
-  stateStore: MainRendererStateStore;
-  preference: Preference;
-
   xmlParser: XMLParser;
 
-  constructor(stateStore: MainRendererStateStore, preference: Preference) {
-    this.stateStore = stateStore;
-    this.preference = preference;
+  constructor() {
     this.xmlParser = new XMLParser({ ignoreAttributes: false });
   }
 

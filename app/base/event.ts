@@ -50,6 +50,7 @@ export class Eventable<T extends IEventState> implements IDisposable {
           mutation as SubscriptionCallbackMutationPatchObject<IEventState>
         ).payload;
       }
+
       for (const key in payload) {
         if (key in this._listeners) {
           const callbacks = this._listeners[key]!;
@@ -70,6 +71,7 @@ export class Eventable<T extends IEventState> implements IDisposable {
   }
 
   useState() {
+    // TODO: check memory leak ?
     return defineStore(this._eventGroupId, {
       state: (): T => {
         return this._eventDefaultState;

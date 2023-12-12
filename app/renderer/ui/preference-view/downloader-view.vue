@@ -2,12 +2,13 @@
 import { BIconPlus } from "bootstrap-icons-vue";
 
 import { DownloaderPreference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DownloaderItem from "./components/downloader.vue";
 
 const prefState = preferenceService.useState();
-const viewState = MainRendererStateStore.useViewState();
+// const viewState = MainRendererStateStore.useViewState();
+
+// TODO: move to extension
 
 const onAddNewDownloaderClicked = () => {
   const newDownloaderPref = {

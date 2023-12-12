@@ -21,10 +21,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import { PaperEntityCache, ThumbnailCache } from "@/models/paper-entity-cache";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-import {
-  ProcessingKey,
-  processing,
-} from "@/renderer/services/state-service/processing";
+import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 
 export const ICacheService = createDecorator("cacheService");

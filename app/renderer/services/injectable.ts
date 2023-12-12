@@ -22,7 +22,7 @@ import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
 import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
-import { StateService } from "@/renderer/services/state-service/state-service";
+import { UIStateService } from "@/renderer/services/uistate-service";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
 import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
 import { FeedRepository } from "@/repositories/db-repository/feed-repository";
@@ -34,7 +34,6 @@ import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 export type IInjectable =
   | APPService
   | PreferenceService
-  | StateService
   | LogService
   | DatabaseService
   | DatabaseCore
@@ -63,4 +62,5 @@ export type IInjectable =
   | CommandService
   | ShortcutService
   | RendererRPCService
-  | HookService;
+  | HookService
+  | UIStateService;

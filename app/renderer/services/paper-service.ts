@@ -28,10 +28,7 @@ import {
   IScrapeService,
   ScrapeService,
 } from "@/renderer/services/scrape-service";
-import {
-  ProcessingKey,
-  processing,
-} from "@/renderer/services/state-service/processing";
+import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   CategorizerRepository,
   ICategorizerRepository,

@@ -2,9 +2,7 @@
 import { BIconPlus } from "bootstrap-icons-vue";
 import { onMounted, ref, watch } from "vue";
 
-import { Feed } from "@/models/feed";
 import { PaperSmartFilter } from "@/models/smart-filter";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import InputBox from "./components/input-box.vue";
 import SelectBox from "./components/select-box.vue";
@@ -13,29 +11,9 @@ import SmartFilterRuleBox from "./components/smart-filter-rule-box.vue";
 // ==============================
 // State
 // ==============================
-const editingPaperSmartFilterDraft = ref(new PaperSmartFilter("", ""));
-const viewState = MainRendererStateStore.useViewState();
-const bufferState = MainRendererStateStore.useBufferState();
+const uiState = uiStateService.useState();
 
-watch(
-  () => viewState.isPaperSmartFilterEditViewShown,
-  (value) => {
-    if (value) {
-      editingPaperSmartFilterDraft.value = new PaperSmartFilter("", "");
-      filterRules.value = [];
-
-      filterMatchType.value = "AND";
-      infoText.value = "";
-    }
-  }
-);
-
-watch(
-  () => bufferState.editingPaperSmartFilterDraft,
-  (value) => {
-    editingPaperSmartFilterDraft.value.initialize(value);
-  }
-);
+// TODO: check all watch
 
 // ==============================
 // Data
@@ -45,21 +23,23 @@ const filterRules = ref<string[]>([]);
 const infoText = ref<string>("");
 
 const onCloseClicked = () => {
-  viewState.isPaperSmartFilterEditViewShown = false;
+  uiState.isPaperSmartFilterEditViewShown = false;
 };
 
 const onSaveClicked = async () => {
-  if (editingPaperSmartFilterDraft.value.name === "") {
+  if (uiState.editingPaperSmartFilterDraft.name === "") {
     infoText.value = "Name is empty.";
     return;
   }
-  if (editingPaperSmartFilterDraft.value.filter === "") {
+  if (uiState.editingPaperSmartFilterDraft.filter === "") {
     infoText.value = "Filter string is empty.";
     return;
   }
 
   smartFilterService.insert(
-    new PaperSmartFilter("", "").initialize(editingPaperSmartFilterDraft.value),
+    new PaperSmartFilter("", "").initialize(
+      uiState.editingPaperSmartFilterDraft
+    ),
     "PaperPaperSmartFilter"
   );
 
@@ -81,14 +61,14 @@ const onRuleUpdated = (index: number, filter: string) => {
 
 const constructFilter = () => {
   const filter = filterRules.value.join(` ${filterMatchType.value} `);
-  editingPaperSmartFilterDraft.value.filter = filter;
+  uiState.editingPaperSmartFilterDraft.filter = filter;
 };
 
 shortcutService.register("Escape", onCloseClicked);
 shortcutService.registerInInputField("Escape", onCloseClicked);
 
 onMounted(() => {
-  editingPaperSmartFilterDraft.value = new PaperSmartFilter("", "");
+  uiState.editingPaperSmartFilterDraft = new PaperSmartFilter("", "");
   filterRules.value = [];
 
   filterMatchType.value = "AND";
@@ -106,13 +86,17 @@ onMounted(() => {
       >
         <InputBox
           placeholder="Name"
-          :value="editingPaperSmartFilterDraft.name"
-          @changed="(value) => (editingPaperSmartFilterDraft.name = value)"
+          :value="uiState.editingPaperSmartFilterDraft.name"
+          @changed="
+            (value) => (uiState.editingPaperSmartFilterDraft.name = value)
+          "
         />
         <InputBox
           placeholder="Filter"
-          :value="editingPaperSmartFilterDraft.filter"
-          @changed="(value) => (editingPaperSmartFilterDraft.filter = value)"
+          :value="uiState.editingPaperSmartFilterDraft.filter"
+          @changed="
+            (value) => (uiState.editingPaperSmartFilterDraft.filter = value)
+          "
         />
         <div class="dark:bg-neutral-700 w-full h-[1px]" />
 

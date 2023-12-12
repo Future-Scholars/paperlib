@@ -8,10 +8,9 @@ import {
 import { Ref, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
-import { useProcessingState } from "@/renderer/services/state-service/processing";
 
 const logState = logService.useState();
-const processingState = useProcessingState();
+const processingState = uiStateService.processingState.useState();
 
 const isShown = ref(false);
 const showingInfo = ref("");
@@ -239,4 +238,3 @@ const onLeave = () => {
     />
   </div>
 </template>
-@/renderer/services/state-service/processing

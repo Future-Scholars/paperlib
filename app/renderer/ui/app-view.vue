@@ -9,7 +9,6 @@ import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-rep
 import { IFeedResults } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
 import EditView from "./edit-view/edit-view.vue";
@@ -25,9 +24,7 @@ import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 // State
 // ================================
 
-const viewState = MainRendererStateStore.useViewState();
-const dbState = MainRendererStateStore.useDBState();
-const selectionState = MainRendererStateStore.useSelectionState();
+const uiState = uiStateService.useState();
 const prefState = preferenceService.useState();
 
 // ================================
@@ -71,23 +68,23 @@ const reloadPaperEntities = async () => {
   let folder = "";
 
   // TODO: should we clear the search text when switching categorizer?
-  if (selectionState.selectedCategorizer.startsWith("tag-")) {
-    tag = selectionState.selectedCategorizer.replace("tag-", "");
+  if (uiState.selectedCategorizer.startsWith("tag-")) {
+    tag = uiState.selectedCategorizer.replace("tag-", "");
     // viewState.searchText = "";
     // viewState.searchMode = "general";
-  } else if (selectionState.selectedCategorizer.startsWith("folder-")) {
-    folder = selectionState.selectedCategorizer.replace("folder-", "");
+  } else if (uiState.selectedCategorizer.startsWith("folder-")) {
+    folder = uiState.selectedCategorizer.replace("folder-", "");
     // viewState.searchText = "";
     // viewState.searchMode = "general";
-  } else if (selectionState.selectedCategorizer === "lib-flaged") {
+  } else if (uiState.selectedCategorizer === "lib-flaged") {
     flaged = true;
     // viewState.searchText = "";
     // viewState.searchMode = "general";
   }
   paperEntities.value = await paperService.load(
     paperService.constructFilter({
-      search: viewState.searchText,
-      searchMode: viewState.searchMode,
+      search: uiState.commandBarText,
+      searchMode: uiState.commandBarMode,
       flaged,
       tag: tag,
       folder: folder,
@@ -96,7 +93,7 @@ const reloadPaperEntities = async () => {
     prefState.mainviewSortOrder
   );
 
-  viewState.entitiesCount = paperEntities.value.length;
+  uiState.entitiesCount = paperEntities.value.length;
 };
 
 disposable(
@@ -145,20 +142,20 @@ const reloadFeedEntities = async () => {
   let feed = "";
   let unread = false;
 
-  if (selectionState.selectedFeed === "feed-all") {
+  if (uiState.selectedFeed === "feed-all") {
     feed = "";
-  } else if (selectionState.selectedFeed === "feed-unread") {
+  } else if (uiState.selectedFeed === "feed-unread") {
     unread = true;
     feed = "";
   } else {
-    feed = selectionState.selectedFeed.replace("feed-", "");
+    feed = uiState.selectedFeed.replace("feed-", "");
   }
 
   // TODO: fix any here
   feedEntities.value = await feedService.loadEntities(
     feedService.constructFilter({
-      search: viewState.searchText,
-      searchMode: viewState.searchMode as any,
+      search: uiState.commandBarText,
+      searchMode: uiState.commandBarMode as any,
       feedName: feed,
       unread,
     }),
@@ -175,9 +172,9 @@ disposable(
   preferenceService.onChanged(
     ["mainviewSortBy", "mainviewSortOrder"],
     (value) => {
-      if (viewState.contentType === "library") {
+      if (uiState.contentType === "library") {
         reloadPaperEntities();
-      } else if (viewState.contentType === "feed") {
+      } else if (uiState.contentType === "feed") {
         reloadFeedEntities();
       }
     }
@@ -194,30 +191,37 @@ disposable(
   )
 );
 
-watch(
-  () =>
-    viewState.contentType +
-    viewState.searchText +
-    selectionState.selectedCategorizer +
-    selectionState.selectedFeed,
-  (value) => {
-    if (viewState.contentType === "library") {
+disposable(
+  uiStateService.onChanged(["selectedCategorizer", "selectedFeed"], (value) => {
+    console.log("selectedCategorizer changed");
+    if (uiState.contentType === "library") {
       reloadPaperEntities();
-    } else if (viewState.contentType === "feed") {
+    } else if (uiState.contentType === "feed") {
       reloadFeedEntities();
     }
-  }
+  })
+);
+
+disposable(
+  uiStateService.onChanged(["contentType", "commandBarText"], (value) => {
+    if (uiState.contentType === "library") {
+      reloadPaperEntities();
+    } else if (uiState.contentType === "feed") {
+      reloadFeedEntities();
+    }
+  })
 );
 
 disposable(
   databaseService.on("dbInitialized", async () => {
-    selectionState.selectedCategorizer = "";
-    selectionState.selectedFeed = "";
-    selectionState.selectedIds = [];
-    selectionState.selectedIndex = [];
-    selectionState.dragedIds = [];
-    selectionState.pluginLinkedFolder = "";
-    selectionState.editingCategorizer = "";
+    // TODO: check if this is the first time to init.
+    uiState.selectedCategorizer = "";
+    uiState.selectedFeed = "";
+    uiState.selectedIds = [];
+    uiState.selectedIndex = [];
+    uiState.dragingIds = [];
+    uiState.pluginLinkedFolder = "";
+    uiState.editingCategorizerDraft = "";
     paperEntities.value = [];
     tags.value = [];
     folders.value = [];
@@ -233,7 +237,7 @@ disposable(
     reloadFeeds();
     var endTime = Date.now();
     logService.info(
-      `Data reinited in ${endTime - startTime}ms`,
+      `Database initialized in ${endTime - startTime}ms`,
       "",
       false,
       "UI"
@@ -249,12 +253,12 @@ disposable(
 );
 
 PLMainAPI.windowProcessManagementService.on("blur", () => {
-  viewState.mainViewFocused = false;
+  uiState.mainViewFocused = false;
   databaseService.pauseSync();
 });
 
 PLMainAPI.windowProcessManagementService.on("focus", () => {
-  viewState.mainViewFocused = true;
+  uiState.mainViewFocused = true;
   databaseService.resumeSync();
 });
 
@@ -265,6 +269,7 @@ PLMainAPI.upgradeService.on("downloading", (value: number) => {
 // ================================
 // Dev Functions
 // ================================
+// TODO: make a better dev bar
 const addDummyData = async () => {
   await paperService.addDummyData();
 };
@@ -341,6 +346,8 @@ onMounted(async () => {
     await databaseService.initialize(true);
   });
 });
+
+// TODO: check all vue files' ending
 </script>
 
 <template>
@@ -348,7 +355,7 @@ onMounted(async () => {
     <div
       id="dev-btn-bar"
       class="space-x-2 fixed right-2 bottom-2 text-xs bg-neutral-200 rounded-md"
-      v-if="viewState.isDevMode"
+      v-if="uiState.isDevMode"
     >
       <div class="grid grid-cols-8 p-2 gap-2">
         <button
@@ -439,7 +446,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <EditView v-if="viewState.isEditViewShown" />
+      <EditView v-if="uiState.isEditViewShown" />
     </Transition>
 
     <Transition
@@ -450,7 +457,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <FeedEditView v-if="viewState.isFeedEditViewShown" />
+      <FeedEditView v-if="uiState.isFeedEditViewShown" />
     </Transition>
 
     <Transition
@@ -462,7 +469,7 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <PaperSmartFilterEditView
-        v-if="viewState.isPaperSmartFilterEditViewShown"
+        v-if="uiState.isPaperSmartFilterEditViewShown"
       />
     </Transition>
 
@@ -474,7 +481,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <PreferenceView v-if="viewState.isPreferenceViewShown" />
+      <PreferenceView v-if="uiState.isPreferenceViewShown" />
     </Transition>
 
     <DeleteConfirmView />
@@ -507,6 +514,3 @@ onMounted(async () => {
     </Transition>
   </div>
 </template>
-@/renderer/services/log-service
-@/repositories/db-repository/categorizer-repository
-@/repositories/db-repository/feed-repository

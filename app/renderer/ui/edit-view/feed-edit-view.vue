@@ -1,31 +1,19 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-
 import { Feed } from "@/models/feed";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import InputBox from "./components/input-box.vue";
 
 // ==============================
 // State
 // ==============================
-const editingFeedDraft = ref(new Feed(false));
-const viewState = MainRendererStateStore.useViewState();
-const bufferState = MainRendererStateStore.useBufferState();
-
-watch(
-  () => bufferState.editingFeedDraft,
-  (value) => {
-    editingFeedDraft.value.initialize(value);
-  }
-);
+const uiState = uiStateService.useState();
 
 const onCloseClicked = () => {
-  viewState.isFeedEditViewShown = false;
+  uiState.isFeedEditViewShown = false;
 };
 
 const onSaveClicked = async () => {
-  feedService.create([new Feed(false).initialize(editingFeedDraft.value)]);
+  feedService.create([new Feed(false).initialize(uiState.editingFeedDraft)]);
   onCloseClicked();
 };
 
@@ -43,13 +31,13 @@ shortcutService.registerInInputField("Escape", onCloseClicked);
       >
         <InputBox
           placeholder="Feed Name"
-          :value="editingFeedDraft.name"
-          @changed="(value) => (editingFeedDraft.name = value)"
+          :value="uiState.editingFeedDraft.name"
+          @changed="(value) => (uiState.editingFeedDraft.name = value)"
         />
         <InputBox
           placeholder="Feed URL"
-          :value="editingFeedDraft.url"
-          @changed="(value) => (editingFeedDraft.url = value)"
+          :value="uiState.editingFeedDraft.url"
+          @changed="(value) => (uiState.editingFeedDraft.url = value)"
         />
         <div class="flex justify-end space-x-2 py-1">
           <div

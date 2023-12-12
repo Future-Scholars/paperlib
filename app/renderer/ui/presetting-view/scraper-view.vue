@@ -4,11 +4,9 @@ import { Ref, onMounted, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { ScraperPreference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 const emit = defineEmits(["close"]);
 
-const viewState = MainRendererStateStore.useViewState();
 const prefState = preferenceService.useState();
 
 const presetSelection = ref("");
@@ -65,7 +63,9 @@ const onEnabledChanged = (change: any) => {
     scraperPrefs[disabledScraper.name].enable = false;
   }
   preferenceService.set({ scrapers: JSON.parse(JSON.stringify(scraperPrefs)) });
-  viewState.scraperReinited = Date.now();
+
+  // TODO: reinit scraper here.
+  // viewState.scraperReinited = Date.now();
 };
 
 const presets = {
@@ -108,7 +108,9 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
     scraper.priority = 1000 - presets[preset].indexOf(name);
   }
   preferenceService.set({ scrapers: scraperPrefs });
-  viewState.scraperReinited = Date.now();
+
+  // TODO: reinit scraper here.
+  // viewState.scraperReinited = Date.now();
 };
 
 disposable(

@@ -2,7 +2,6 @@
 import { BIconXLg } from "bootstrap-icons-vue";
 
 import { Categorizer } from "@/models/categorizer";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 const props = defineProps({
   categorizers: {
@@ -17,16 +16,16 @@ const emits = defineEmits(["delete-categorizer"]);
 // ==============================
 // State
 // ==============================
-const viewState = MainRendererStateStore.useViewState();
+const uiState = uiStateService.useState();
 
 const onClick = (e: MouseEvent, categorizerName: string) => {
   e.preventDefault();
   e.stopPropagation();
-  viewState.searchMode = "advanced";
+  uiState.commandBarMode = "advanced";
 
   const key = props.categorizerType === "PaperTag" ? "tags" : "folders";
 
-  viewState.searchText = `${key}.name contains '${categorizerName}'`;
+  uiState.commandBarText = `${key}.name contains '${categorizerName}'`;
 };
 
 const onDeleteClick = (e: MouseEvent, categorizer: Categorizer) => {

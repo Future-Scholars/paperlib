@@ -4,10 +4,7 @@ import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-import {
-  ProcessingKey,
-  processing,
-} from "@/renderer/services/state-service/processing";
+import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   IPaperSmartFilterRepository,
   PaperSmartFilterRepository,

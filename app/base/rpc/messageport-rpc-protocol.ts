@@ -241,11 +241,25 @@ export class MessagePortRPCProtocol {
     promise = this._invokeHandler(rpcId, callerId, method, args);
     promise.then(
       (r) => {
-        const msg = JSON.stringify({
-          callId,
-          type: MessageType.replySuccess,
-          value: r,
-        });
+        let msg: any;
+        if (rpcId === "networkTool" && method === "get") {
+          // TODO: deal with post download etc.
+          msg = JSON.stringify({
+            callId,
+            type: MessageType.replySuccess,
+            value: {
+              body: r.body,
+              headers: r.headers,
+              statusCode: r.statusCode,
+            },
+          });
+        } else {
+          msg = JSON.stringify({
+            callId,
+            type: MessageType.replySuccess,
+            value: r,
+          });
+        }
         this._port.postMessage(msg);
       },
       (err) => {

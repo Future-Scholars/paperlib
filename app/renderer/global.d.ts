@@ -29,14 +29,11 @@ import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
 import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
-import { StateService } from "@/renderer/services/state-service/state-service";
-import { IProcessingState } from "@/renderer/services/state-service/state/processing";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import { UIStateService } from "@/renderer/services/uistate-service";
 
 declare global {
   var appService: APPService;
   var preferenceService: PreferenceService;
-  var stateService: StateService;
   var logService: LogService;
   var databaseService: DatabaseService;
   var paperService: PaperService;
@@ -54,6 +51,5 @@ declare global {
   var commandService: CommandService;
   var shortcutService: ShortcutService;
   var rendererRPCService: RendererRPCService;
-
-  var processingState: Store<"processingState", IProcessingState>;
+  var uiStateService: UIStateService;
 }
