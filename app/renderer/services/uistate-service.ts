@@ -1,4 +1,4 @@
-import { Eventable } from "@/base/event";
+import { Eventable, IEventState } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
@@ -8,9 +8,15 @@ import { PaperSmartFilter } from "@/models/smart-filter";
 export interface IUIStateServiceState {
   // =========================================
   // Details panel
-  paperDetailsPanelSlot1: { [id: string]: { title: string; content: string } };
-  paperDetailsPanelSlot2: { [id: string]: { title: string; content: string } };
-  paperDetailsPanelSlot3: { [id: string]: { title: string; content: string } };
+  "slotsState.paperDetailsPanelSlot1": {
+    [id: string]: { title: string; content: string };
+  };
+  "slotsState.paperDetailsPanelSlot2": {
+    [id: string]: { title: string; content: string };
+  };
+  "slotsState.paperDetailsPanelSlot3": {
+    [id: string]: { title: string; content: string };
+  };
 
   // =========================================
   // Main Paper/Feed panel
@@ -26,8 +32,14 @@ export interface IUIStateServiceState {
   renderRequired: number;
   feedEntityAddingStatus: number;
 
+  // selectedIndex: contains the index of the selected papers in the dataview.
+  // It should be the only state that is used to control the selection.
   selectedIndex: Array<number>;
+  // selectedIds: contains the ids of the selected papers in the current dataview.
+  // It can be accessed in any component. But it is read-only. It can be only changed by the event listener of selectedIndex in the dataview.
   selectedIds: Array<string>;
+  // selectedPaperEntities/selectedFeedEntities: contains the selected paper/feed entities in the current dataview.
+  // It can be accessed in any component. But it is read-only. It can be only changed by the event listener of selectedIndex in the dataview.
   selectedPaperEntities: Array<PaperEntity>;
   selectedFeedEntities: Array<FeedEntity>;
   selectedCategorizer: string;
@@ -71,19 +83,14 @@ export const IUIStateService = createDecorator("uiStateService");
 /**
  * UI service is responsible for managing the UI state.*/
 export class UIStateService extends Eventable<IUIStateServiceState> {
-  private readonly _slotKeys = [
-    "paperDetailsPanelSlot1",
-    "paperDetailsPanelSlot2",
-    "paperDetailsPanelSlot3",
-  ];
-
-  public readonly processingState: ProcessingState;
+  public readonly processingState: SubStateGroup<IProcessingState>;
+  public readonly slotsState: SubStateGroup<ISlotsState>;
 
   constructor() {
     super("uiStateService", {
-      paperDetailsPanelSlot1: {},
-      paperDetailsPanelSlot2: {},
-      paperDetailsPanelSlot3: {},
+      "slotsState.paperDetailsPanelSlot1": {},
+      "slotsState.paperDetailsPanelSlot2": {},
+      "slotsState.paperDetailsPanelSlot3": {},
 
       contentType: "library",
       mainViewFocused: true,
@@ -124,31 +131,37 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
 
     // =========================================
     // Processing States Group
-    this.processingState = new ProcessingState();
+    this.processingState = new SubStateGroup("processingState", {
+      general: 0,
+    });
     for (const [key, value] of Object.entries(
       this.processingState.getStates()
     )) {
       this._state[`processingState.${key}`] = value;
 
       this.processingState.on(key as any, (value) => {
-        this._state[`processingState.${key}`] = value;
+        this.fire({
+          [`processingState.${key}`]: value.value,
+        });
       });
     }
-  }
 
-  private _setSlot(slotKey: string, value: any) {
-    if (!(value instanceof Object)) {
-      throw new Error("Slot value must be an object!");
+    // =========================================
+    // Slots States Group
+    this.slotsState = new SubStateGroup("slotsState", {
+      paperDetailsPanelSlot1: {},
+      paperDetailsPanelSlot2: {},
+      paperDetailsPanelSlot3: {},
+    });
+    for (const [key, value] of Object.entries(this.slotsState.getStates())) {
+      this._state[`slotsState.${key}`] = value;
+
+      this.slotsState.on(key as any, (value) => {
+        this.fire({
+          [`slotsState.${key}`]: value.value,
+        });
+      });
     }
-    if (!("id" in value)) {
-      throw new Error("Slot value must have an id!");
-    }
-
-    const slot = this._state[slotKey] as {
-      [id: string]: { title: string; content: string };
-    };
-
-    slot[value.id] = value;
   }
 
   setState(patch: Partial<IUIStateServiceState>) {
@@ -165,6 +178,12 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
         const [stateGroup, stateKey] = keyParts;
         if (stateGroup === "processingState") {
           this.processingState.setState({ [stateKey]: value });
+        } else if (stateGroup === "slotsState") {
+          const slotID = value["id"];
+          const slotState = this.slotsState.getState(stateKey as any);
+          slotState[slotID] = value;
+
+          this.slotsState.setState({ [stateKey]: slotState });
         } else {
           throw new Error(`State group '${stateGroup}' is not supported!`);
         }
@@ -176,6 +195,61 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
 
   getState(stateKey: keyof IUIStateServiceState) {
     return this._state[stateKey];
+  }
+
+  getStates() {
+    return this._state;
+  }
+
+  resetStates() {
+    const patch = {
+      contentType: "library",
+      mainViewFocused: true,
+      inputFieldFocused: false,
+      isEditViewShown: false,
+      isFeedEditViewShown: false,
+      isPaperSmartFilterEditViewShown: false,
+      isDeleteConfirmShown: false,
+      renderRequired: -1,
+      feedEntityAddingStatus: 0,
+
+      selectedIndex: [],
+      selectedIds: [],
+      selectedPaperEntities: [],
+      selectedFeedEntities: [],
+      selectedCategorizer: "lib-all",
+      selectedFeed: "feed-all",
+      dragingIds: [],
+      pluginLinkedFolder: "",
+
+      editingPaperEntityDraft: new PaperEntity(false),
+      editingFeedEntityDraft: new FeedEntity(false),
+      editingFeedDraft: new Feed(false),
+      editingPaperSmartFilterDraft: new PaperSmartFilter("", ""),
+      editingCategorizerDraft: "",
+      entitiesCount: 0,
+      feedEntitiesCount: 0,
+
+      commandBarText: "",
+      commandBarMode: "general",
+
+      os: process.platform,
+    };
+    this.setState(patch);
+  }
+}
+
+class SubStateGroup<T extends IEventState> extends Eventable<T> {
+  constructor(stateID: string, defaultState: T) {
+    super(stateID, defaultState);
+  }
+
+  setState(patch: Partial<T>) {
+    this.fire(patch);
+  }
+
+  getState(stateKey: keyof T) {
+    return this._state[stateKey as string];
   }
 
   getStates() {
@@ -203,36 +277,53 @@ export function processing(key: ProcessingKey) {
     const originalMethod = descriptor.value;
     const isAsync = originalMethod.constructor.name === "AsyncFunction";
 
-    if (isAsync)
+    if (isAsync) {
       descriptor.value = async function (...args: any[]) {
         // TODO: check handle error
 
-        if (globalThis["uiStateService"]) {
-          uiStateService.processingState[key] += 1;
+        if (
+          globalThis["uiStateService"] &&
+          globalThis["uiStateService"].processingState
+        ) {
+          uiStateService.processingState.setState({
+            [key]: uiStateService.processingState.getState(key) + 1,
+          });
 
           try {
             const results = await originalMethod.apply(this, args);
-            uiStateService.processingState[key] -= 1;
+            uiStateService.processingState.setState({
+              [key]: uiStateService.processingState.getState(key) - 1,
+            });
             return results;
           } catch (error) {
-            uiStateService.processingState[key] -= 1;
+            uiStateService.processingState.setState({
+              [key]: uiStateService.processingState.getState(key) - 1,
+            });
             throw error;
           }
         } else {
           return await originalMethod.apply(this, args);
         }
       };
-    else {
+    } else {
       descriptor.value = function (...args: any[]) {
-        if (globalThis["uiStateService"]) {
-          uiStateService.processingState[key] += 1;
-
+        if (
+          globalThis["uiStateService"] &&
+          globalThis["uiStateService"].processingState
+        ) {
+          uiStateService.processingState.setState({
+            [key]: uiStateService.processingState.getState(key) + 1,
+          });
           try {
             const results = originalMethod.apply(this, args);
-            uiStateService.processingState[key] -= 1;
+            uiStateService.processingState.setState({
+              [key]: uiStateService.processingState.getState(key) - 1,
+            });
             return results;
           } catch (error) {
-            uiStateService.processingState[key] -= 1;
+            uiStateService.processingState.setState({
+              [key]: uiStateService.processingState.getState(key) - 1,
+            });
             throw error;
           }
         } else {
@@ -247,24 +338,17 @@ export interface IProcessingState {
   general: number;
 }
 
-class ProcessingState extends Eventable<IProcessingState> {
-  constructor() {
-    super("processingState", {
-      general: 0,
-    });
-  }
+// =========================================
+// Slots State Sub State
 
-  setState(patch: Partial<IProcessingState>) {
-    for (const [key, value] of Object.entries(patch)) {
-      this._state[key] = value;
-    }
-  }
-
-  getState(stateKey: keyof IProcessingState) {
-    return this._state[stateKey];
-  }
-
-  getStates() {
-    return this._state;
-  }
+export interface ISlotsState {
+  paperDetailsPanelSlot1: {
+    [id: string]: { title: string; content: string };
+  };
+  paperDetailsPanelSlot2: {
+    [id: string]: { title: string; content: string };
+  };
+  paperDetailsPanelSlot3: {
+    [id: string]: { title: string; content: string };
+  };
 }

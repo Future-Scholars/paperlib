@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { PropType, ref } from "vue";
 
-import TableTitleItem from "./table-title-item.vue";
+import { PaperEntity } from "@/models/paper-entity";
+
+import TableHeaderItem from "./table-header-item.vue";
 
 const props = defineProps({
   sortBy: {
@@ -12,8 +14,12 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  titles: {
-    type: Object as () => Record<string, { name: string; width: number }>,
+  fieldLabel: {
+    type: Object as PropType<Partial<Record<keyof PaperEntity, string>>>,
+    required: true,
+  },
+  fieldWidth: {
+    type: Object as PropType<Partial<Record<keyof PaperEntity, number>>>,
     required: true,
   },
   minWidth: {
@@ -23,13 +29,9 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(["title-clicked", "title-width-changed"]);
+const emits = defineEmits(["event:click", "event:width-change"]);
 
 const titleContainer = ref<HTMLDivElement | null>(null);
-
-const onTitleClicked = (key: string) => {
-  emits("title-clicked", key);
-};
 
 const onResizeBarMouseDown = (event: MouseEvent, index: number) => {
   const moveListener = (moveEvent: MouseEvent) =>
@@ -39,13 +41,13 @@ const onResizeBarMouseDown = (event: MouseEvent, index: number) => {
     "mouseup",
     () => {
       document.removeEventListener("mousemove", moveListener);
-      emits("title-width-changed", [
+      emits("event:width-change", [
         {
-          key: Object.keys(props.titles)[index - 1],
+          key: Object.keys(props.fieldWidth)[index - 1],
           width: resizingPrevWidth.value,
         },
         {
-          key: Object.keys(props.titles)[index],
+          key: Object.keys(props.fieldWidth)[index],
           width: resizingNextWidth.value,
         },
       ]);
@@ -103,19 +105,21 @@ const onResizeBarMouseMove = (event: MouseEvent, moveEvent: MouseEvent) => {
   >
     <div
       class="flex"
-      :style="{ width: `${title.width}%` }"
-      v-for="[index, [key, title]] of Object.entries(Object.entries(titles))"
+      :style="{ width: `${fieldWidth[key]}%` }"
+      v-for="[index, [key, label]] of Object.entries(
+        Object.entries(fieldLabel)
+      )"
     >
       <div
         class="w-1 cursor-col-resize hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md transition-colors duration-50"
         v-if="parseInt(index) > 0"
         @mousedown="(e) => onResizeBarMouseDown(e, parseInt(index))"
       ></div>
-      <TableTitleItem
-        :title="title.name"
+      <TableHeaderItem
+        :title="label!"
         :sortBy="sortBy === key"
         :sortOrder="sortOrder"
-        @title-clicked="onTitleClicked(key)"
+        @event:click="() => emits('event:click', key)"
       />
     </div>
   </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "splitpanes/dist/splitpanes.css";
 import { Ref, inject, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
@@ -8,6 +9,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 
+import SidebarView from "../sidebar-view/sidebar-view.vue";
 import FeedDataView from "./data-view/feed-data-view.vue";
 import PaperDataView from "./data-view/paper-data-view.vue";
 import FeedDetailView from "./detail-view/feed-detail-view.vue";
@@ -35,6 +37,11 @@ const feedEntities = inject<Ref<IFeedEntityResults>>("feedEntities");
 // ================================
 // Event Handlers
 // ================================
+const onSidebarResized = (event: any) => {
+  const width = event[0].size ? event[0].size : 20;
+  preferenceService.set({ sidebarWidth: width });
+};
+
 const openSelectedEntities = () => {
   if (uiState.contentType === "library") {
     uiState.selectedPaperEntities.forEach((paperEntity) => {
@@ -63,8 +70,6 @@ const previewSelectedEntities = () => {
 
 const reloadSelectedEntities = () => {
   if (uiState.contentType === "library") {
-    uiState.selectedPaperEntities = [];
-
     let selectedPaperEntities: PaperEntity[] = [];
     let selectedIds: string[] = [];
     if (paperEntities) {
@@ -74,26 +79,15 @@ const reloadSelectedEntities = () => {
           selectedIds.push(`${paperEntities.value[index].id}`);
         } else if (uiState.selectedIndex.length === 1) {
           uiState.selectedIndex = [];
-          uiState.selectedIds = [];
           break;
         }
       }
-      uiState.selectedPaperEntities = selectedPaperEntities;
       uiState.selectedIds = selectedIds;
-
-      // TODO: init this after click edit button.
-      if (selectedPaperEntities.length > 0) {
-        uiState.editingPaperEntityDraft = new PaperEntity(false).initialize(
-          selectedPaperEntities[0]
-        );
-      }
+      uiState.selectedPaperEntities = selectedPaperEntities;
     } else {
-      uiState.selectedPaperEntities = [];
       uiState.selectedIndex = [];
-      uiState.selectedIds = [];
     }
   } else {
-    uiState.selectedFeedEntities = [];
     let selectedFeedEntities: FeedEntity[] = [];
     let selectedIds: string[] = [];
     if (feedEntities) {
@@ -103,25 +97,19 @@ const reloadSelectedEntities = () => {
           selectedIds.push(`${feedEntities.value[index].id}`);
         } else if (uiState.selectedIndex.length === 1) {
           uiState.selectedIndex = [];
-          uiState.selectedIds = [];
           break;
         }
       }
-      uiState.selectedFeedEntities = selectedFeedEntities;
       uiState.selectedIds = selectedIds;
+      uiState.selectedFeedEntities = selectedFeedEntities;
     } else {
-      uiState.selectedFeedEntities = [];
       uiState.selectedIndex = [];
-      uiState.selectedIds = [];
     }
   }
 };
 
 const clearSelected = () => {
   uiState.selectedIndex = [];
-  uiState.selectedIds = [];
-  uiState.selectedFeedEntities = [];
-  uiState.selectedPaperEntities = [];
 };
 
 const scrapeSelectedEntities = () => {
@@ -300,127 +288,174 @@ const onDetailPanelResized = (event: any) => {
 // ========================================================
 // Register Context Menu
 
-PLMainAPI.contextMenuService.on("dataContextMenuEditClicked", () => {
-  editSelectedEntities();
-});
-
-PLMainAPI.contextMenuService.on("dataContextMenuFlagClicked", () => {
-  flagSelectedEntities();
-});
-
-PLMainAPI.contextMenuService.on("dataContextMenuDeleteClicked", () => {
-  deleteSelectedEntities();
-});
-
-PLMainAPI.contextMenuService.on("dataContextMenuScrapeClicked", () => {
-  scrapeSelectedEntities();
-});
-
-PLMainAPI.contextMenuService.on(
-  "dataContextMenuScrapeFromClicked",
-  (scraperName: string) => {
-    scrapeSelectedEntitiesFrom(scraperName);
-  }
+// TODO use on or onClick? consitent with other menu handlers
+disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuEditClicked", () => {
+    editSelectedEntities();
+  })
 );
 
-PLMainAPI.contextMenuService.on("dataContextMenuOpenClicked", () => {
-  openSelectedEntities();
-});
+disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuFlagClicked", () => {
+    flagSelectedEntities();
+  })
+);
 
-PLMainAPI.contextMenuService.on("dataContextMenuShowInFinderClicked", () => {
-  showInFinderSelectedEntities();
-});
+disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuDeleteClicked", () => {
+    deleteSelectedEntities();
+  })
+);
 
-PLMainAPI.contextMenuService.on("dataContextMenuExportBibTexClicked", () => {
-  exportSelectedEntities("BibTex");
-});
+disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuScrapeClicked", () => {
+    scrapeSelectedEntities();
+  })
+);
 
-PLMainAPI.contextMenuService.on("dataContextMenuExportBibTexKeyClicked", () => {
-  exportSelectedEntities("BibTex-Key");
-});
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "dataContextMenuScrapeFromClicked",
+    (scraperName: string) => {
+      scrapeSelectedEntitiesFrom(scraperName);
+    }
+  )
+);
 
-PLMainAPI.contextMenuService.on("dataContextMenuExportPlainTextClicked", () => {
-  exportSelectedEntities("PlainText");
-});
+disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuOpenClicked", () => {
+    openSelectedEntities();
+  })
+);
 
-PLMainAPI.contextMenuService.on("feedContextMenuAddToLibraryClicked", () => {
-  addSelectedFeedEntities();
-});
+disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuShowInFinderClicked", () => {
+    showInFinderSelectedEntities();
+  })
+);
 
-PLMainAPI.contextMenuService.on("feedContextMenuToogleReadClicked", () => {
-  readSelectedFeedEntities(null);
-});
+disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuExportBibTexClicked", () => {
+    exportSelectedEntities("BibTex");
+  })
+);
+
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "dataContextMenuExportBibTexKeyClicked",
+    () => {
+      exportSelectedEntities("BibTex-Key");
+    }
+  )
+);
+
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "dataContextMenuExportPlainTextClicked",
+    () => {
+      exportSelectedEntities("PlainText");
+    }
+  )
+);
+
+disposable(
+  PLMainAPI.contextMenuService.on("feedContextMenuAddToLibraryClicked", () => {
+    addSelectedFeedEntities();
+  })
+);
+
+disposable(
+  PLMainAPI.contextMenuService.on("feedContextMenuToogleReadClicked", () => {
+    readSelectedFeedEntities(null);
+  })
+);
 
 // ========================================================
 // Register Shortcut
 
-PLMainAPI.menuService.onClick("preference", () => {
-  uiState.isPreferenceViewShown = true;
-});
+disposable(
+  PLMainAPI.menuService.onClick("preference", () => {
+    uiState.isPreferenceViewShown = true;
+  })
+);
 
-PLMainAPI.menuService.onClick("File-enter", () => {
-  if (
-    uiState.mainViewFocused &&
-    !uiState.inputFieldFocused &&
-    (uiState.selectedPaperEntities.length >= 1 ||
-      uiState.selectedFeedEntities.length >= 1) &&
-    !uiState.isDeleteConfirmShown &&
-    !uiState.isEditViewShown &&
-    !uiState.isPreferenceViewShown
-  ) {
-    openSelectedEntities();
-  }
-});
+disposable(
+  PLMainAPI.menuService.onClick("File-enter", () => {
+    if (
+      uiState.mainViewFocused &&
+      !uiState.inputFieldFocused &&
+      (uiState.selectedPaperEntities.length >= 1 ||
+        uiState.selectedFeedEntities.length >= 1) &&
+      !uiState.isDeleteConfirmShown &&
+      !uiState.isEditViewShown &&
+      !uiState.isPreferenceViewShown
+    ) {
+      openSelectedEntities();
+    }
+  })
+);
 
-PLMainAPI.menuService.onClick("View-preview", () => {
-  if (
-    uiState.mainViewFocused &&
-    !uiState.inputFieldFocused &&
-    uiState.selectedPaperEntities.length >= 1 &&
-    !uiState.isDeleteConfirmShown &&
-    !uiState.isEditViewShown &&
-    !uiState.isPreferenceViewShown
-  ) {
-    previewSelectedEntities();
-  }
-});
+disposable(
+  PLMainAPI.menuService.onClick("View-preview", () => {
+    if (
+      uiState.mainViewFocused &&
+      !uiState.inputFieldFocused &&
+      uiState.selectedPaperEntities.length >= 1 &&
+      !uiState.isDeleteConfirmShown &&
+      !uiState.isEditViewShown &&
+      !uiState.isPreferenceViewShown
+    ) {
+      previewSelectedEntities();
+    }
+  })
+);
 
-PLMainAPI.menuService.onClick("File-copyBibTex", () => {
-  if (uiState.selectedPaperEntities.length >= 1) {
-    exportSelectedEntities("BibTex");
-  }
-});
+disposable(
+  PLMainAPI.menuService.onClick("File-copyBibTex", () => {
+    if (uiState.selectedPaperEntities.length >= 1) {
+      exportSelectedEntities("BibTex");
+    }
+  })
+);
 
-PLMainAPI.menuService.onClick("File-copyBibTexKey", () => {
-  if (uiState.selectedPaperEntities.length >= 1) {
-    exportSelectedEntities("BibTex-Key");
-  }
-});
+disposable(
+  PLMainAPI.menuService.onClick("File-copyBibTexKey", () => {
+    if (uiState.selectedPaperEntities.length >= 1) {
+      exportSelectedEntities("BibTex-Key");
+    }
+  })
+);
 
-PLMainAPI.menuService.onClick("Edit-edit", () => {
-  if (uiState.selectedPaperEntities.length == 1) {
-    editSelectedEntities();
-  }
-});
+disposable(
+  PLMainAPI.menuService.onClick("Edit-edit", () => {
+    if (uiState.selectedPaperEntities.length == 1) {
+      editSelectedEntities();
+    }
+  })
+);
 
-PLMainAPI.menuService.onClick("Edit-flag", () => {
-  if (uiState.selectedPaperEntities.length >= 1) {
-    flagSelectedEntities();
-  }
-});
+disposable(
+  PLMainAPI.menuService.onClick("Edit-flag", () => {
+    if (uiState.selectedPaperEntities.length >= 1) {
+      flagSelectedEntities();
+    }
+  })
+);
 
-PLMainAPI.menuService.onClick("Edit-rescrape", () => {
-  if (uiState.selectedPaperEntities.length >= 1) {
-    scrapeSelectedEntities();
-  }
-});
+disposable(
+  PLMainAPI.menuService.onClick("Edit-rescrape", () => {
+    if (uiState.selectedPaperEntities.length >= 1) {
+      scrapeSelectedEntities();
+    }
+  })
+);
 
-PLMainAPI.menuService.onClick("View-previous", onArrowUpPressed);
+disposable(PLMainAPI.menuService.onClick("View-previous", onArrowUpPressed));
 
-PLMainAPI.menuService.onClick("View-next", onArrowDownPressed);
+disposable(PLMainAPI.menuService.onClick("View-next", onArrowDownPressed));
 
 // =======================================
-// Register State Change
+// Register State Changes
 // =======================================
 disposable(uiStateService.onChanged("selectedIndex", reloadSelectedEntities));
 
@@ -434,86 +469,88 @@ watch(
 disposable(
   preferenceService.onChanged(
     ["mainviewSortBy", "mainviewSortOrder"],
-    (value) => {
-      clearSelected();
-    }
+    clearSelected
   )
 );
 
 disposable(
   uiStateService.onChanged(
     ["contentType", "commandBarText", "selectedCategorizer", "selectedFeed"],
-    (value) => {
-      clearSelected();
-    }
+    clearSelected
   )
 );
 </script>
 
 <template>
-  <div class="grow flex flex-col h-screen bg-white dark:bg-neutral-800">
-    <WindowMenuBar
-      class="flex-none"
-      @click="onMenuButtonClicked"
-      :disableSingleBtn="uiState.selectedIndex.length !== 1"
-      :disableMultiBtn="uiState.selectedIndex.length === 0"
-    />
-    <div id="main-view" class="h-full w-full">
-      <splitpanes @resized="onDetailPanelResized($event)">
-        <pane
-          :key="1"
-          :size="
-            uiState.selectedPaperEntities.length === 1 ||
-            uiState.selectedFeedEntities.length === 1
-              ? prefState.detailPanelWidth
-              : 100
-          "
-        >
-          <PaperDataView
-            v-if="uiState.contentType === 'library'"
-            class="h-full w-full"
-          />
+  <splitpanes @resized="onSidebarResized($event)">
+    <pane :key="1" min-size="12" :size="prefState.sidebarWidth">
+      <SidebarView class="sidebar-windows-bg" />
+    </pane>
+    <pane :key="2">
+      <div class="grow flex flex-col h-screen bg-white dark:bg-neutral-800">
+        <WindowMenuBar
+          class="flex-none"
+          @click="onMenuButtonClicked"
+          :disableSingleBtn="uiState.selectedIndex.length !== 1"
+          :disableMultiBtn="uiState.selectedIndex.length === 0"
+        />
+        <div id="main-view" class="h-full w-full">
+          <splitpanes @resized="onDetailPanelResized($event)">
+            <pane
+              :key="1"
+              :size="
+                uiState.selectedPaperEntities.length === 1 ||
+                uiState.selectedFeedEntities.length === 1
+                  ? prefState.detailPanelWidth
+                  : 100
+              "
+            >
+              <PaperDataView
+                v-if="uiState.contentType === 'library'"
+                class="h-full w-full"
+              />
 
-          <FeedDataView
-            v-if="uiState.contentType === 'feed'"
-            class="h-full w-full"
-          />
-        </pane>
-        <pane
-          :key="2"
-          :size="
-            uiState.selectedPaperEntities.length === 1 ||
-            uiState.selectedFeedEntities.length === 1
-              ? 100 - prefState.detailPanelWidth
-              : 0
-          "
-        >
-          <PaperDetailView
-            :entity="
-              uiState.selectedPaperEntities.length === 1
-                ? uiState.selectedPaperEntities[0]
-                : selectedEntityPlaceHolder
-            "
-            :slot1="uiState.paperDetailsPanelSlot1"
-            v-show="uiState.selectedIndex.length === 1"
-            v-if="uiState.contentType === 'library'"
-          />
+              <FeedDataView
+                v-if="uiState.contentType === 'feed'"
+                class="h-full w-full"
+              />
+            </pane>
+            <pane
+              :key="2"
+              :size="
+                uiState.selectedPaperEntities.length === 1 ||
+                uiState.selectedFeedEntities.length === 1
+                  ? 100 - prefState.detailPanelWidth
+                  : 0
+              "
+            >
+              <PaperDetailView
+                :entity="
+                  uiState.selectedPaperEntities.length === 1
+                    ? uiState.selectedPaperEntities[0]
+                    : selectedEntityPlaceHolder
+                "
+                :slot1="uiState['slotsState.paperDetailsPanelSlot1']"
+                v-show="uiState.selectedPaperEntities.length === 1"
+                v-if="uiState.contentType === 'library'"
+              />
 
-          <FeedDetailView
-            :entity="
-              uiState.selectedFeedEntities.length === 1
-                ? uiState.selectedFeedEntities[0]
-                : selectedFeedEntityPlaceHolder
-            "
-            v-show="uiState.selectedIndex.length === 1"
-            v-if="uiState.contentType === 'feed'"
-            @add-clicked="addSelectedFeedEntities"
-            @read-timeout="readSelectedFeedEntities(true)"
-            @read-timeout-in-unread="readSelectedFeedEntities(true, true)"
-          />
-        </pane>
-      </splitpanes>
-    </div>
-  </div>
+              <FeedDetailView
+                :entity="
+                  uiState.selectedFeedEntities.length === 1
+                    ? uiState.selectedFeedEntities[0]
+                    : selectedFeedEntityPlaceHolder
+                "
+                v-show="uiState.selectedFeedEntities.length === 1"
+                v-if="uiState.contentType === 'feed'"
+                @add-clicked="addSelectedFeedEntities"
+                @read-timeout="readSelectedFeedEntities(true)"
+                @read-timeout-in-unread="readSelectedFeedEntities(true, true)"
+              />
+            </pane>
+          </splitpanes>
+        </div>
+      </div>
+    </pane>
+  </splitpanes>
 </template>
-@/base/misc

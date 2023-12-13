@@ -40,8 +40,7 @@ const colorClass = (color?: string) => {
 // ================================
 const prefState = preferenceService.useState();
 const uiState = uiStateService.useState();
-
-const isSpinnerShown = ref(false);
+const processingState = uiStateService.processingState.useState();
 
 // ================================
 // Data
@@ -96,17 +95,6 @@ PLMainAPI.contextMenuService.on(
     }
   }
 );
-
-watch(
-  () => processingState.general,
-  (value) => {
-    if (value > 0) {
-      isSpinnerShown.value = true;
-    } else {
-      isSpinnerShown.value = false;
-    }
-  }
-);
 </script>
 
 <template>
@@ -115,7 +103,7 @@ watch(
       :name="$t('mainview.allfeeds')"
       :count="uiState.feedEntitiesCount"
       :with-counter="prefState.showSidebarCount"
-      :with-spinner="isSpinnerShown"
+      :with-spinner="processingState.general > 0"
       :compact="prefState.isSidebarCompact"
       :active="uiState.selectedFeed === 'feed-all'"
       @click="onSelectFeed('feed-all')"

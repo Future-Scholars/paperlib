@@ -141,6 +141,7 @@ const registerDropHandler = () => {
     },
   });
 
+  // TODO: use native drag and drop
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   dragDrop("#detail-view", {
     // @ts-ignore

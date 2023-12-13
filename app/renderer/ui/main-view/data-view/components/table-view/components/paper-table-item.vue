@@ -10,61 +10,42 @@ const props = defineProps({
     type: Object as PropType<PaperEntity>,
     required: true,
   },
-  titles: {
-    type: Object as PropType<Record<string, { name: string; width: number }>>,
+  fieldEnable: {
+    type: Object as PropType<Partial<Record<keyof PaperEntity, boolean>>>,
     required: true,
+    default: {
+      pubTime: true,
+      publication: true,
+      pubType: false,
+      rating: true,
+      tags: false,
+      folders: false,
+      flag: true,
+      note: false,
+      addTime: false,
+    },
   },
-  showPubTime: {
-    type: Boolean,
-    default: true,
-  },
-  showPublication: {
-    type: Boolean,
-    default: true,
-  },
-  showRating: {
-    type: Boolean,
-    default: false,
-  },
-  showPubType: {
-    type: Boolean,
-    default: false,
-  },
-  showTags: {
-    type: Boolean,
-    default: false,
-  },
-  showFolders: {
-    type: Boolean,
-    default: false,
-  },
-  showFlag: {
-    type: Boolean,
-    default: true,
-  },
-  showNote: {
-    type: Boolean,
-    default: false,
-  },
-  showAddTime: {
-    type: Boolean,
-    default: false,
+  fieldWidth: {
+    type: Object as PropType<Partial<Record<keyof PaperEntity, number>>>,
+    required: true,
   },
   active: {
     type: Boolean,
     default: false,
   },
+  categorizerSortBy: {
+    type: String,
+    default: "name",
+  },
+  categorizerSortOrder: {
+    type: String,
+    default: "asce",
+  },
   striped: {
     type: Boolean,
     required: true,
   },
-  read: {
-    type: Boolean,
-    default: true,
-  },
 });
-
-const prefState = preferenceService.useState();
 </script>
 
 <template>
@@ -79,97 +60,85 @@ const prefState = preferenceService.useState();
         : '')
     "
   >
-    <div
-      class="my-auto pl-2 pr-1 flex"
-      :style="`width: ${titles['title']?.width || 0}%`"
-    >
-      <div
-        class="my-auto h-1.5 w-1.5 rounded-md flex-none mr-1"
-        :class="active ? 'bg-red-400' : 'bg-red-500 '"
-        v-if="!read"
-      />
+    <div class="my-auto pl-2 pr-1 flex" :style="`width: ${fieldWidth.title}%`">
       <div class="truncate">{{ item.title }}</div>
     </div>
 
     <div
       class="truncate overflow-hidden my-auto pl-3 pr-1"
-      :style="`width: ${titles['authors']?.width || 0}%`"
+      :style="`width: ${fieldWidth.authors}%`"
     >
       {{ item.authors }}
     </div>
 
     <div
       class="truncate overflow-hidden my-auto pl-3 pr-1"
-      :style="`width: ${titles['publication']?.width || 0}%`"
-      v-if="showPublication"
+      :style="`width: ${fieldWidth.publication}%`"
+      v-if="fieldEnable.publication"
     >
       {{ item.publication }}
     </div>
 
     <div
       class="truncate overflow-hidden my-auto pl-3 pr-1"
-      :style="`width: ${titles['pubTime']?.width || 0}%`"
-      v-if="showPubTime"
+      :style="`width: ${fieldWidth.pubTime}%`"
+      v-if="fieldEnable.pubTime"
     >
       {{ item.pubTime }}
     </div>
 
     <div
       class="truncate overflow-hidden my-auto pl-3 pr-1"
-      :style="`width: ${titles['pubType']?.width || 0}%`"
-      v-if="showPubType"
+      :style="`width: ${fieldWidth.pubType}%`"
+      v-if="fieldEnable.pubType"
     >
       {{ getPubTypeString(item.pubType) }}
     </div>
 
     <div
       class="truncate overflow-hidden my-auto pl-3 pr-1"
-      :style="`width: ${titles['tags']?.width || 0}%`"
-      v-if="showTags"
+      :style="`width: ${fieldWidth.tags}%`"
+      v-if="fieldEnable.tags"
     >
       {{
-        getCategorizerString(
-          item.tags,
-          prefState.sidebarSortBy,
-          prefState.sidebarSortOrder
-        )
+        getCategorizerString(item.tags, categorizerSortBy, categorizerSortOrder)
       }}
     </div>
 
     <div
       class="truncate overflow-hidden my-auto pl-3 pr-1"
-      :style="`width: ${titles['folders']?.width || 0}%`"
-      v-if="showFolders"
+      :style="`width: ${fieldWidth.folders}%`"
+      v-if="fieldEnable.folders"
     >
       {{
         getCategorizerString(
           item.folders,
-          prefState.sidebarSortBy,
-          prefState.sidebarSortOrder
+          categorizerSortBy,
+          categorizerSortOrder
         )
       }}
     </div>
 
     <div
       class="truncate overflow-hidden my-auto pl-3 pr-1"
-      :style="`width: ${titles['note']?.width || 0}%`"
-      v-if="showNote"
+      :style="`width: ${fieldWidth.note}%`"
+      v-if="fieldEnable.note"
     >
       {{ item.note }}
     </div>
 
     <div
       class="flex my-auto text-xxxs truncate overflow-hidden pl-3 pr-1"
-      :style="`width: ${titles['rating']?.width || 0}%`"
-      v-if="showRating"
+      :style="`width: ${fieldWidth.rating}%`"
+      v-if="fieldEnable.rating"
     >
       <BIconStarFill v-for="_ in item.rating" class="my-auto mr-[1px]" />
     </div>
 
     <div
       class="truncate overflow-hidden my-auto pl-3 pr-1"
-      :style="`width: ${titles['flag']?.width || 0}%`"
-      v-if="showFlag"
+      :style="`width: ${fieldWidth.flag}%`"
+      v-if="fieldEnable.flag"
     >
       <BIconFlagFill
         class="my-auto text-xxs"
@@ -180,8 +149,8 @@ const prefState = preferenceService.useState();
 
     <div
       class="truncate overflow-hidden my-auto pl-3 pr-1"
-      :style="`width: ${titles['addTime']?.width || 0}%`"
-      v-if="showAddTime"
+      :style="`width: ${fieldWidth.addTime}%`"
+      v-if="fieldEnable.addTime"
     >
       {{ new Date(item.addTime).toLocaleString().slice(0, 10) }}
     </div>

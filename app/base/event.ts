@@ -12,7 +12,7 @@ import { UnwrapRef } from "vue";
 import { IDisposable } from "@/base/dispose";
 import { uid } from "@/base/misc";
 
-interface IEventState {
+export interface IEventState {
   [key: string]: any;
 }
 

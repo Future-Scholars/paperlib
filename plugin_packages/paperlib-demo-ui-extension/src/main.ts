@@ -106,7 +106,7 @@ class SimpleUIExtension extends PLExtension {
     }
 
     PLAPI.uiStateService.setState({
-      paperDetailsPanelSlot1: {
+      "slotsState.paperDetailsPanelSlot1": {
         id: "citationCount",
         title: "Citation Count",
         content: `N/A (N/A)`,
@@ -182,7 +182,7 @@ class SimpleUIExtension extends PLExtension {
     }
 
     PLAPI.uiStateService.setState({
-      paperDetailsPanelSlot1: {
+      "slotsState.paperDetailsPanelSlot1": {
         id: "citationCount",
         title: "Citation Count",
         content: `${citationCount.citationCount} (${citationCount.influentialCitationCount})`,

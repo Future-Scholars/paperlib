@@ -10,11 +10,11 @@ const onCancel = () => {
 };
 
 const onConfirm = () => {
-  paperService.delete(uiState.selectedIds);
-  // TODO: seems like this is not needed
-  uiState.selectedIndex = [];
-  uiState.selectedIds = [];
   onClick();
+
+  const deleteIds = JSON.parse(JSON.stringify(uiState.selectedIds));
+  uiState.selectedIndex = [];
+  paperService.delete(deleteIds);
 };
 
 shortcutService.register("Escape", onCancel);

@@ -12,7 +12,6 @@ import { disposable } from "@/base/dispose";
 const logState = logService.useState();
 const processingState = uiStateService.processingState.useState();
 
-const isShown = ref(false);
 const showingInfo = ref("");
 
 // TODO: show same info but different ID messages.
@@ -27,17 +26,6 @@ const historyMsgs = ref([]) as Ref<
     show: boolean;
   }>
 >;
-
-watch(
-  () => processingState.general,
-  (value) => {
-    if (value > 0) {
-      isShown.value = true;
-    } else {
-      isShown.value = false;
-    }
-  }
-);
 
 const pushMsgToHistory = (
   level: "info" | "warn" | "error" | "progress",
@@ -229,7 +217,7 @@ const onLeave = () => {
       class="flex justify-center my-auto w-5/6 h-8 truncate text-center text-xxs text-neutral-500 peer"
       @click="onClicked"
     >
-      <span class="my-auto" v-show="isShown">
+      <span class="my-auto" v-show="processingState.general > 0">
         {{ showingInfo }}
       </span>
     </div>

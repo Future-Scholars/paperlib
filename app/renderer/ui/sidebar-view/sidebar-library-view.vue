@@ -49,8 +49,6 @@ const processingState = uiStateService.processingState.useState();
 const prefState = preferenceService.useState();
 const uiState = uiStateService.useState();
 
-const isSpinnerShown = ref(false);
-
 // ================================
 // Data
 // ================================
@@ -67,8 +65,6 @@ const onSelectCategorizer = (categorizer: string) => {
     uiState.commandBarText = "";
   }
   uiState.selectedCategorizer = categorizer;
-  // @ts-ignore
-  console.log(uiStateService._state["selectedCategorizer"]);
 };
 
 disposable(
@@ -191,17 +187,6 @@ PLMainAPI.contextMenuService.on(
   }
 );
 
-watch(
-  () => processingState.general,
-  (value) => {
-    if (value > 0) {
-      isSpinnerShown.value = true;
-    } else {
-      isSpinnerShown.value = false;
-    }
-  }
-);
-
 disposable(
   uiStateService.onChanged("editingCategorizerDraft", (value) => {
     if (value) {
@@ -218,7 +203,7 @@ disposable(
       :name="$t('mainview.allpapers')"
       :count="uiState.entitiesCount"
       :with-counter="prefState.showSidebarCount"
-      :with-spinner="isSpinnerShown"
+      :with-spinner="processingState.general > 0"
       :compact="prefState.isSidebarCompact"
       :active="uiState.selectedCategorizer === 'lib-all'"
       @click="onSelectCategorizer('lib-all')"

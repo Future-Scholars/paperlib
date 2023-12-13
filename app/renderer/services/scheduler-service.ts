@@ -28,6 +28,13 @@ export class SchedulerService {
     runImmediately: boolean = false,
     runOnce: boolean = false
   ) {
+    try {
+      const task = this._scheduler.getById(taskId);
+      if (task) {
+        this._scheduler.removeById(taskId);
+      }
+    } catch (e) {}
+
     const task = new Task(
       taskId,
       runOnce

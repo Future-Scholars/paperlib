@@ -16,13 +16,13 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(["title-clicked"]);
+const emits = defineEmits(["event:click"]);
 </script>
 
 <template>
   <div
     class="flex h-6 px-2 truncate overflow-hidden my-auto hover:bg-neutral-200 hover:dark:bg-neutral-700 w-full font-semibold text-xs rounded-md select-none cursor-pointer"
-    @click="emits('title-clicked')"
+    @click="emits('event:click')"
   >
     <span class="my-auto truncate"> {{ title }} </span>
     <BIconArrowDown

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import "splitpanes/dist/splitpanes.css";
 import { Ref, computed, nextTick, onMounted, provide, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
@@ -17,7 +16,6 @@ import PaperSmartFilterEditView from "./edit-view/smartfilter-edit-view.vue";
 import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import PresettingView from "./presetting-view/presetting-view.vue";
-import SidebarView from "./sidebar-view/sidebar-view.vue";
 import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 
 // ================================
@@ -33,7 +31,7 @@ const prefState = preferenceService.useState();
 const paperEntities: Ref<IPaperEntityResults> = ref([]);
 provide(
   "paperEntities",
-  computed(() => paperEntities.value) // TODO: ?
+  paperEntities // TODO: ?
 );
 const tags: Ref<ICategorizerResults> = ref([]);
 provide("tags", tags);
@@ -48,15 +46,6 @@ provide(
   "feedEntities",
   computed(() => feedEntities.value)
 );
-
-// ================================
-// UI
-// ================================
-
-const onSidebarResized = (event: any) => {
-  const width = event[0].size ? event[0].size : 20;
-  preferenceService.set({ sidebarWidth: width });
-};
 
 // ================================
 // Data load
@@ -93,9 +82,9 @@ const reloadPaperEntities = async () => {
     prefState.mainviewSortOrder
   );
 
+  // TODO: Should not update here
   uiState.entitiesCount = paperEntities.value.length;
 };
-
 disposable(
   paperService.on("updated", () => {
     reloadPaperEntities();
@@ -193,7 +182,6 @@ disposable(
 
 disposable(
   uiStateService.onChanged(["selectedCategorizer", "selectedFeed"], (value) => {
-    console.log("selectedCategorizer changed");
     if (uiState.contentType === "library") {
       reloadPaperEntities();
     } else if (uiState.contentType === "feed") {
@@ -213,21 +201,27 @@ disposable(
 );
 
 disposable(
-  databaseService.on("dbInitialized", async () => {
-    // TODO: check if this is the first time to init.
-    uiState.selectedCategorizer = "";
-    uiState.selectedFeed = "";
-    uiState.selectedIds = [];
-    uiState.selectedIndex = [];
-    uiState.dragingIds = [];
-    uiState.pluginLinkedFolder = "";
-    uiState.editingCategorizerDraft = "";
+  preferenceService.onChanged("appLibFolder", async (value) => {
+    await databaseService.initialize();
+  })
+);
+
+var initStartTime = Date.now();
+disposable(
+  databaseService.on("dbInitializing", async () => {
+    initStartTime = Date.now();
+
+    uiStateService.resetStates();
+
     paperEntities.value = [];
     tags.value = [];
     folders.value = [];
     feeds.value = [];
     feedEntities.value = [];
-    var startTime = Date.now();
+  })
+);
+disposable(
+  databaseService.on("dbInitialized", async () => {
     await reloadPaperEntities();
     await reloadTags();
     await reloadFolders();
@@ -237,7 +231,7 @@ disposable(
     reloadFeeds();
     var endTime = Date.now();
     logService.info(
-      `Database initialized in ${endTime - startTime}ms`,
+      `Database initialized in ${endTime - initStartTime}ms`,
       "",
       false,
       "UI"
@@ -252,19 +246,26 @@ disposable(
   })
 );
 
-PLMainAPI.windowProcessManagementService.on("blur", () => {
-  uiState.mainViewFocused = false;
-  databaseService.pauseSync();
-});
+// TODO: Check all event disposable
+disposable(
+  PLMainAPI.windowProcessManagementService.on("blur", () => {
+    uiState.mainViewFocused = false;
+    databaseService.pauseSync();
+  })
+);
 
-PLMainAPI.windowProcessManagementService.on("focus", () => {
-  uiState.mainViewFocused = true;
-  databaseService.resumeSync();
-});
+disposable(
+  PLMainAPI.windowProcessManagementService.on("focus", () => {
+    uiState.mainViewFocused = true;
+    databaseService.resumeSync();
+  })
+);
 
-PLMainAPI.upgradeService.on("downloading", (value: number) => {
-  logService.progress("Downloading Update...", value, true, "Version");
-});
+disposable(
+  PLMainAPI.upgradeService.on("downloading", (value: number) => {
+    logService.progress("Downloading Update...", value, true, "Version");
+  })
+);
 
 // ================================
 // Dev Functions
@@ -329,10 +330,13 @@ const reloadExtensions = async () => {
 
 const isWhatsNewShown = ref(false);
 
-preferenceService.onChanged(["lastVersion"], async () => {
-  isWhatsNewShown.value =
-    prefState.lastVersion !== (await PLMainAPI.upgradeService.currentVersion());
-});
+disposable(
+  preferenceService.onChanged(["lastVersion"], async () => {
+    isWhatsNewShown.value =
+      prefState.lastVersion !==
+      (await PLMainAPI.upgradeService.currentVersion());
+  })
+);
 
 // ================================
 // Mount Hook
@@ -429,14 +433,8 @@ onMounted(async () => {
         </button>
       </div>
     </div>
-    <splitpanes @resized="onSidebarResized($event)">
-      <pane :key="1" min-size="12" :size="prefState.sidebarWidth">
-        <SidebarView class="sidebar-windows-bg" />
-      </pane>
-      <pane :key="2">
-        <MainView />
-      </pane>
-    </splitpanes>
+
+    <MainView />
 
     <Transition
       enter-active-class="transition ease-out duration-75"
@@ -502,6 +500,7 @@ onMounted(async () => {
         "
       />
     </Transition>
+
     <Transition
       enter-active-class="transition ease-out duration-75"
       enter-from-class="transform opacity-0"

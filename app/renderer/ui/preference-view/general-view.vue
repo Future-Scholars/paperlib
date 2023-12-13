@@ -18,7 +18,6 @@ const onPickerClicked = async () => {
     .filePaths[0];
   if (pickedFolder) {
     updatePrefs("appLibFolder", pickedFolder);
-    //TODO: reinit db here
   }
 };
 

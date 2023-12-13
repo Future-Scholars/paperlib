@@ -9,11 +9,9 @@ const uiState = uiStateService.useState();
 
 const onViewContentSwitch = (view: number) => {
   if (view === 0) {
-    uiState.selectedIds = [];
     uiState.selectedIndex = [];
     uiState.selectedCategorizer = "lib-all";
   } else {
-    uiState.selectedIds = [];
     uiState.selectedIndex = [];
     uiState.selectedFeed = "feed-all";
   }
