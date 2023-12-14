@@ -105,13 +105,7 @@ export class ExtensionPreferenceService {
       throw new Error(`Preference store for ${extensionID} already exists.`);
     }
 
-    const preferenceFilePath = path.join(
-      await PLMainAPI.fileSystemService.getSystemPath(
-        "userData",
-        "extensionProcess"
-      ),
-      "extensions"
-    );
+    const preferenceFilePath = path.join(globalThis["extensionWorkingDir"]);
 
     this._stores[extensionID] = new ExtensionPreferenceStore<T>(
       extensionID,

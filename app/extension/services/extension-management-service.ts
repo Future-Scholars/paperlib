@@ -1,5 +1,5 @@
+import fs from "fs";
 import { IPluginInfo, PluginManager } from "live-plugin-manager";
-import fs from "node:fs";
 
 import { createDecorator } from "@/base/injection/injection";
 import { isLocalPath } from "@/base/url";
@@ -36,15 +36,21 @@ export class ExtensionManagementService {
     @IExtensionPreferenceService
     extensionPreferenceService: ExtensionPreferenceService
   ) {
-    this._extManager = new PluginManager();
+    // TODO: log all for this service
+    // TODO: different npm url for China
+    this._extManager = new PluginManager({
+      pluginsPath: globalThis["extensionWorkingDir"],
+    });
     this._extensionPreferenceService = extensionPreferenceService;
 
     this._installedExtensions = {};
     this._installedExtensionInfos = {};
   }
 
-  async installDemoPlugins() {
-    this.install("./extension_demos/paperlib-demo-ui-extension");
+  async installDefaultPlugins() {
+    this.install(
+      "/Users/administrator/Projects/extension_demos/paperlib-entry-scrape-extension"
+    );
   }
 
   async install(extensionName: string) {
@@ -89,7 +95,9 @@ export class ExtensionManagementService {
       console.log(e);
       PLAPI.logService.error(
         `Failed to install extension ${extensionName}`,
-        e as Error,
+        `${(e as Error).name} \n ${(e as Error).message} \n ${
+          (e as Error).stack
+        }`,
         true,
         "extensionManagementService"
       );
@@ -97,14 +105,33 @@ export class ExtensionManagementService {
   }
 
   async uninstall(extensionID: string) {
-    if (this._installedExtensions[extensionID]) {
-      await this._installedExtensions[extensionID].dispose();
-    }
-    delete this._installedExtensions[extensionID];
-    delete this._installedExtensionInfos[extensionID];
-    await this._extManager.uninstall(extensionID);
+    try {
+      if (
+        this._installedExtensions[extensionID] &&
+        this._installedExtensions[extensionID].dispose
+      ) {
+        await this._installedExtensions[extensionID].dispose();
+      }
+      delete this._installedExtensions[extensionID];
+      delete this._installedExtensionInfos[extensionID];
 
-    console.log("Uninstalled", this._extManager.list());
+      await this._extManager.uninstall(extensionID);
+
+      PLAPI.logService.info(
+        `Uninstalled extension ${extensionID}`,
+        "",
+        false,
+        "extensionManagementService"
+      );
+    } catch (e) {
+      console.error(e);
+      PLAPI.logService.error(
+        `Failed to uninstall extension ${extensionID}`,
+        e as Error,
+        true,
+        "extensionManagementService"
+      );
+    }
   }
 
   async reload(extensionID: string) {
@@ -142,7 +169,6 @@ export class ExtensionManagementService {
   }
 
   installedExtensions() {
-    console.log(this._installedExtensionInfos);
     return this._installedExtensionInfos;
   }
 
@@ -155,9 +181,13 @@ export class ExtensionManagementService {
       return await this._installedExtensions[extensionID][methodName](...args);
     } catch (e) {
       // TODO: check error obj transfer
+      console.error(e);
+
       PLAPI.logService.error(
         `Failed to call extension method ${methodName} of extension ${extensionID}`,
-        e as Error,
+        `${(e as Error).name} \n ${(e as Error).message} \n ${
+          (e as Error).stack
+        }`,
         true,
         "ExtensionManagementService"
       );

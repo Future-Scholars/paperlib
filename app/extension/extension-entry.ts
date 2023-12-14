@@ -1,8 +1,7 @@
-import { MessageEvent } from "electron";
+import fs from "fs";
+import path from "path";
 
 import { InjectionContainer } from "@/base/injection/injection";
-import { LazyPromise } from "@/base/rpc/lazy-promise";
-import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
 import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
 import { IInjectable } from "@/extension/services/injectable";
@@ -35,6 +34,18 @@ async function initialize() {
   if (!rendererAPIExposed) {
     throw new Error("Renderer process API is not exposed");
   }
+  // 3.1 Get extension working path
+  const extensionWorkingDir = await PLMainAPI.fileSystemService.getSystemPath(
+    "userData",
+    "extensionProcess"
+  );
+  globalThis["extensionWorkingDir"] = path.join(
+    extensionWorkingDir,
+    "extensions"
+  );
+  if (!fs.existsSync(globalThis["extensionWorkingDir"])) {
+    fs.mkdirSync(globalThis["extensionWorkingDir"]);
+  }
 
   // ============================================================
   // 4. Create the instances for all services, tools, etc. of the current process.
@@ -58,7 +69,7 @@ async function initialize() {
   //    Expose the APIs of the current process to other processes
   extensionRPCService.setActionor(instances);
 
-  extensionManagementService.installDemoPlugins();
+  extensionManagementService.installDefaultPlugins();
 }
 
 initialize();

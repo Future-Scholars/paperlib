@@ -9,10 +9,12 @@ export enum MessageType {
   request = 0,
   replySuccess = 1,
   replyError = 2,
-  eventListen = 3,
+  listenEvent = 3,
   fireEvent = 4,
   disposeEvent = 5,
   exposeAPI = 6,
+  registerHook = 7,
+  disposeHook = 8,
 }
 
 /**
@@ -34,6 +36,8 @@ export class MessagePortRPCProtocol {
   >;
   private readonly _eventDisposeCallbacks: Record<string, () => void>;
 
+  private readonly _hookDisposeCallbacks: Record<string, () => void>;
+
   public exposedAPIs: { [namespace: string]: string[] };
 
   constructor(
@@ -48,6 +52,7 @@ export class MessagePortRPCProtocol {
     this._eventListeners = {};
     this._eventDisposeCallbacks = {};
     this.exposedAPIs = {};
+    this._hookDisposeCallbacks = {};
 
     this._lastCallId = 0;
 
@@ -82,20 +87,22 @@ export class MessagePortRPCProtocol {
       get: (target: any, name: PropertyKey) => {
         if (
           typeof name === "string" &&
-          !target[name] &&
-          name !== "on" &&
-          name !== "onChanged" &&
-          name !== "onClick"
-        ) {
-          target[name] = (...myArgs: any[]) => {
-            return this._remoteCall(rpcId, name, myArgs);
-          };
-        } else if (
-          typeof name === "string" &&
           (name === "on" || name === "onChanged" || name === "onClick")
         ) {
           target[name] = (...myArgs: any[]) => {
             return this._remoteEventListen(rpcId, myArgs[0], myArgs[1]);
+          };
+        } else if (
+          typeof name === "string" &&
+          name === "hook" &&
+          rpcId === "hookService"
+        ) {
+          target[name] = (...myArgs: any[]) => {
+            return this._remoteHookRegister(rpcId, name, myArgs);
+          };
+        } else if (typeof name === "string" && !target[name]) {
+          target[name] = (...myArgs: any[]) => {
+            return this._remoteCall(rpcId, name, myArgs);
           };
         }
         return target[name];
@@ -158,7 +165,7 @@ export class MessagePortRPCProtocol {
             callId,
             callerId: this._callerId,
             rpcId,
-            type: MessageType.eventListen,
+            type: MessageType.listenEvent,
             value: {
               eventName,
             },
@@ -183,6 +190,40 @@ export class MessagePortRPCProtocol {
           })
         );
       }
+    };
+  }
+
+  private _remoteHookRegister(rpcId: string, methodName: string, args: any[]) {
+    const callId = String(++this._lastCallId);
+
+    const callbackId = uid();
+
+    const msg = JSON.stringify({
+      callId,
+      callerId: this._callerId,
+      rpcId,
+      type: MessageType.registerHook,
+      value: {
+        methodName,
+        args,
+        callbackId,
+      },
+    });
+
+    this._port.postMessage(msg);
+
+    return () => {
+      this._port.postMessage(
+        JSON.stringify({
+          callId,
+          callerId: this._callerId,
+          rpcId,
+          type: MessageType.disposeHook,
+          value: {
+            callbackId,
+          },
+        })
+      );
     };
   }
 
@@ -212,7 +253,7 @@ export class MessagePortRPCProtocol {
         this._receiveEventFire(callId, rpcId, value);
         break;
       }
-      case MessageType.eventListen: {
+      case MessageType.listenEvent: {
         this._receiveEventListen(callId, rpcId, value);
         break;
       }
@@ -222,6 +263,14 @@ export class MessagePortRPCProtocol {
       }
       case MessageType.exposeAPI: {
         this._receiveExposedAPI(callId, value);
+        break;
+      }
+      case MessageType.registerHook: {
+        this._receiveHookRegister(callId, rpcId, value);
+        break;
+      }
+      case MessageType.disposeHook: {
+        this._receiveHookDispose(callId, rpcId, value);
         break;
       }
       default:
@@ -242,7 +291,10 @@ export class MessagePortRPCProtocol {
     promise.then(
       (r) => {
         let msg: any;
-        if (rpcId === "networkTool" && method === "get") {
+        if (
+          rpcId === "networkTool" &&
+          (method === "get" || method === "post" || method === "postForm")
+        ) {
           // TODO: deal with post download etc.
           msg = JSON.stringify({
             callId,
@@ -418,5 +470,32 @@ export class MessagePortRPCProtocol {
         }
       }
     }
+  }
+
+  private async _receiveHookRegister(
+    callId: string,
+    rpcId: string,
+    value: any
+  ) {
+    const { methodName, args, callbackId } = value;
+
+    const actor = this._locals[rpcId];
+    if (!actor) {
+      throw new Error("Unknown actor " + rpcId);
+    }
+
+    this._hookDisposeCallbacks[callbackId] = await actor[methodName](...args);
+  }
+
+  private _receiveHookDispose(callId: string, rpcId: string, value: any) {
+    const { callbackId } = value;
+
+    const disposeCallback = this._hookDisposeCallbacks[callbackId];
+    if (!disposeCallback) {
+      return;
+    }
+
+    disposeCallback();
+    delete this._hookDisposeCallbacks[callbackId];
   }
 }

@@ -36,9 +36,9 @@ export const IScrapeService = createDecorator("scrapeService");
  * | ----------------
  */
 export class ScrapeService extends Eventable<{}> {
-  private readonly _entryScraperRepository: EntryScraperRepository;
-  private readonly _metadataScraperRepository: MetadataScraperRepository;
-  // TODO: deperacated custom scraper
+  // private readonly _entryScraperRepository: EntryScraperRepository;
+  // private readonly _metadataScraperRepository: MetadataScraperRepository;
+  // // TODO: deperacated custom scraper
 
   constructor(
     @IHookService private readonly _hookService: HookService,
@@ -46,9 +46,6 @@ export class ScrapeService extends Eventable<{}> {
     @ILogService private readonly _logService: LogService
   ) {
     super("scrapeService", {});
-
-    this._entryScraperRepository = new EntryScraperRepository();
-    this._metadataScraperRepository = new MetadataScraperRepository();
   }
 
   @processing(ProcessingKey.General)
@@ -105,36 +102,48 @@ export class ScrapeService extends Eventable<{}> {
   async scrapeEntry(payloads: any[]) {
     // TODO: test performance of this._hookService.hookPoint
     if (this._hookService.hasHook("beforeScrapeEntry")) {
-      [payloads] = await this._hookService.hookPoint(
+      [payloads] = await this._hookService.modifyHookPoint(
         "beforeScrapeEntry",
         payloads
       );
     }
 
-    // TODO: check all promise.all and chunkRun
-    const { results: _paperEntityDrafts, errors: entryScraperErrors } =
-      await chunkRun<PaperEntity[], null>(
-        payloads,
-        async (payload): Promise<PaperEntity[]> => {
-          return await this._entryScraperRepository.scrape([payload]);
-        }
-      );
-    let paperEntityDrafts = _paperEntityDrafts
-      .flat()
-      .filter((p) => p) as PaperEntity[];
+    // // TODO: check all promise.all and chunkRun
+    // const { results: _paperEntityDrafts, errors: entryScraperErrors } =
+    //   await chunkRun<PaperEntity[], null>(
+    //     payloads,
+    //     async (payload): Promise<PaperEntity[]> => {
+    //       return await this._entryScraperRepository.scrape([payload]);
+    //     }
+    //   );
+    // let paperEntityDrafts = _paperEntityDrafts
+    //   .flat()
+    //   .filter((p) => p) as PaperEntity[];
 
-    for (const error of entryScraperErrors) {
-      // TODO: check all logService call ID.
-      this._logService.error(
-        "Failed to transform data source into PaperEntity.",
-        error,
-        true,
-        "ScrapeService"
-      );
+    // for (const error of entryScraperErrors) {
+    //   // TODO: check all logService call ID.
+    //   this._logService.error(
+    //     "Failed to transform data source into PaperEntity.",
+    //     error,
+    //     true,
+    //     "ScrapeService"
+    //   );
+    // }
+
+    let paperEntityDrafts: PaperEntity[] = [];
+    if (this._hookService.hasHook("scrapeEntry")) {
+      paperEntityDrafts = (
+        await this._hookService.transformhookPoint<any[], Object[]>(
+          "scrapeEntry",
+          payloads
+        )
+      ).map((p) => {
+        return new PaperEntity(false).initialize(p);
+      });
     }
 
     if (this._hookService.hasHook("afterScrapeEntry")) {
-      [paperEntityDrafts] = await this._hookService.hookPoint(
+      [paperEntityDrafts] = await this._hookService.modifyHookPoint(
         "afterScrapeEntry",
         paperEntityDrafts
       );
@@ -157,84 +166,98 @@ export class ScrapeService extends Eventable<{}> {
     scrapers: string[],
     force: boolean = false
   ) {
-    if (this._hookService.hasHook("beforeScrapePMS")) {
-      [paperEntityDrafts, scrapers, force] = await this._hookService.hookPoint(
-        "beforeScrapePMS",
-        paperEntityDrafts,
-        scrapers,
-        force
-      );
+    if (this._hookService.hasHook("beforeScrapeMetadata")) {
+      [paperEntityDrafts, scrapers, force] =
+        await this._hookService.modifyHookPoint(
+          "beforeScrapeMetadata",
+          paperEntityDrafts,
+          scrapers,
+          force
+        );
     }
 
     // TODO: only scrape unfullfilled metadata
-    const {
-      results: _scrapedPaperEntityDrafts,
-      errors: metadataScraperErrors,
-    } = await chunkRun<PaperEntity, PaperEntity>(
-      paperEntityDrafts,
-      async (paperEntityDraft): Promise<PaperEntity> => {
-        const paperEntityDraftAndErrors =
-          await this._metadataScraperRepository.scrapePMS(
-            paperEntityDraft,
-            scrapers,
-            force
-          );
-        paperEntityDraft = paperEntityDraftAndErrors.paperEntityDraft;
+    // const {
+    //   results: _scrapedPaperEntityDrafts,
+    //   errors: metadataScraperErrors,
+    // } = await chunkRun<PaperEntity, PaperEntity>(
+    //   paperEntityDrafts,
+    //   async (paperEntityDraft): Promise<PaperEntity> => {
+    //     const paperEntityDraftAndErrors =
+    //       await this._metadataScraperRepository.scrapePMS(
+    //         paperEntityDraft,
+    //         scrapers,
+    //         force
+    //       );
+    //     paperEntityDraft = paperEntityDraftAndErrors.paperEntityDraft;
 
-        if (paperEntityDraftAndErrors.errors.length > 0) {
-          this._logService.error(
-            "Paperlib metadata service failed.",
-            paperEntityDraftAndErrors.errors[0],
-            true,
-            "ScrapeService"
-          );
-        }
+    //     if (paperEntityDraftAndErrors.errors.length > 0) {
+    //       this._logService.error(
+    //         "Paperlib metadata service failed.",
+    //         paperEntityDraftAndErrors.errors[0],
+    //         true,
+    //         "ScrapeService"
+    //       );
+    //     }
 
-        if (!isMetadataCompleted(paperEntityDraft)) {
-          // 2.2 Run some force-clientside scrapers such as Google Scholar
-          const paperEntityDraftAndErrors =
-            await this._metadataScraperRepository.scrapeClientside(
-              paperEntityDraft,
-              scrapers,
-              force
-            );
-          paperEntityDraft = paperEntityDraftAndErrors.paperEntityDraft;
+    //     if (!isMetadataCompleted(paperEntityDraft)) {
+    //       // 2.2 Run some force-clientside scrapers such as Google Scholar
+    //       const paperEntityDraftAndErrors =
+    //         await this._metadataScraperRepository.scrapeClientside(
+    //           paperEntityDraft,
+    //           scrapers,
+    //           force
+    //         );
+    //       paperEntityDraft = paperEntityDraftAndErrors.paperEntityDraft;
 
-          if (paperEntityDraftAndErrors.errors.length > 0) {
-            for (const error of paperEntityDraftAndErrors.errors) {
-              this._logService.error(
-                "Clientside metadata service failed.",
-                error,
-                true,
-                "ScrapeService"
-              );
-            }
-          }
-        }
+    //       if (paperEntityDraftAndErrors.errors.length > 0) {
+    //         for (const error of paperEntityDraftAndErrors.errors) {
+    //           this._logService.error(
+    //             "Clientside metadata service failed.",
+    //             error,
+    //             true,
+    //             "ScrapeService"
+    //           );
+    //         }
+    //       }
+    //     }
 
-        return paperEntityDraft;
-      },
-      async (paperEntityDraft): Promise<PaperEntity> => {
-        return paperEntityDraft;
-      }
-    );
+    //     return paperEntityDraft;
+    //   },
+    //   async (paperEntityDraft): Promise<PaperEntity> => {
+    //     return paperEntityDraft;
+    //   }
+    // );
 
-    for (const error of metadataScraperErrors) {
-      this._logService.error(
-        "Failed to scrape metadata of Paper.",
-        error,
-        true,
-        "ScrapeService"
-      );
+    // for (const error of metadataScraperErrors) {
+    //   this._logService.error(
+    //     "Failed to scrape metadata of Paper.",
+    //     error,
+    //     true,
+    //     "ScrapeService"
+    //   );
+    // }
+    // let scrapedPaperEntityDrafts = _scrapedPaperEntityDrafts.flat();
+
+    let scrapedPaperEntityDrafts = paperEntityDrafts;
+    if (this._hookService.hasHook("scrapeMetadata")) {
+      [scrapedPaperEntityDrafts, scrapers, force] =
+        await this._hookService.modifyHookPoint(
+          "scrapeMetadata",
+          paperEntityDrafts,
+          scrapers,
+          force
+        );
     }
 
-    let scrapedPaperEntityDrafts = _scrapedPaperEntityDrafts.flat();
-
-    if (this._hookService.hasHook("afterScrapePMS")) {
-      [scrapedPaperEntityDrafts] = await this._hookService.hookPoint(
-        "afterScrapePMS",
-        scrapedPaperEntityDrafts
-      );
+    if (this._hookService.hasHook("afterScrapeMetadata")) {
+      [scrapedPaperEntityDrafts, scrapers, force] =
+        await this._hookService.modifyHookPoint(
+          "afterScrapeMetadata",
+          scrapedPaperEntityDrafts,
+          scrapers,
+          force
+        );
     }
 
     return scrapedPaperEntityDrafts;

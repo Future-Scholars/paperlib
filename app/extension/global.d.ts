@@ -8,4 +8,5 @@ declare global {
     extensionRPCService: ExtensionRPCService;
     extensionManagementService: ExtensionManagementService;
   };
+  var extensionWorkingDir: string;
 }

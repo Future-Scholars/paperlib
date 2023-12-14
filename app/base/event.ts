@@ -1,3 +1,4 @@
+import { isEqual } from "lodash-es";
 import {
   Store,
   SubscriptionCallbackMutationPatchObject,
@@ -23,7 +24,9 @@ export interface IEventState {
  *   2. Directly modify the state by calling `useState().key = value`
  */
 export class Eventable<T extends IEventState> implements IDisposable {
+  private readonly _useStateFunc: () => Store<string, T>;
   protected readonly _state: Store<string, T>;
+  private _stateProxy?: Store<string, T>;
   protected readonly _listeners: Partial<
     Record<keyof T, { [callbackId: string]: (value: any) => void }>
   >;
@@ -40,7 +43,27 @@ export class Eventable<T extends IEventState> implements IDisposable {
       setActivePinia(createPinia());
     }
 
-    this._state = this.useState();
+    this._useStateFunc = defineStore(this._eventGroupId, {
+      state: (): T => {
+        return this._eventDefaultState;
+      },
+    });
+
+    this._state = this.useState(false);
+    // @ts-ignore
+    this._state.$oripatch = this._state.$patch;
+    this._state.$patch = (patch: _DeepPartial<UnwrapRef<T>>) => {
+      const realPatch: _DeepPartial<UnwrapRef<T>> = {};
+      for (const key in patch) {
+        if (isEqual(patch[key], this._state[key])) {
+          continue;
+        } else {
+          realPatch[key] = patch[key];
+        }
+      }
+      this._state.$oripatch(realPatch);
+    };
+
     this._state.$subscribe((mutation, state) => {
       let payload: { [key: string]: any };
       if (mutation.type === "direct") {
@@ -70,13 +93,30 @@ export class Eventable<T extends IEventState> implements IDisposable {
     });
   }
 
-  useState() {
+  useState(proxied: boolean = true) {
     // TODO: check memory leak ?
-    return defineStore(this._eventGroupId, {
-      state: (): T => {
-        return this._eventDefaultState;
+
+    const state = this._useStateFunc();
+
+    if (!proxied) {
+      return state;
+    }
+
+    if (this._stateProxy) {
+      return this._stateProxy;
+    }
+
+    this._stateProxy = new Proxy(state, {
+      get: (target, prop) => {
+        return target[prop as any];
       },
-    })();
+      set: (target, prop, value) => {
+        target.$patch({ [prop]: value } as _DeepPartial<UnwrapRef<T>>);
+        return true;
+      },
+    });
+
+    return this._stateProxy;
   }
 
   getEvents(): string[] {

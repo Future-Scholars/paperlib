@@ -10,10 +10,9 @@ const onCancel = () => {
 };
 
 const onConfirm = () => {
-  onClick();
-
   const deleteIds = JSON.parse(JSON.stringify(uiState.selectedIds));
   uiState.selectedIndex = [];
+  onClick();
   paperService.delete(deleteIds);
 };
 

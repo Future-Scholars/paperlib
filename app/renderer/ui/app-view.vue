@@ -10,6 +10,7 @@ import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-r
 import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
+import DevView from "./dev-view/dev-view.vue";
 import EditView from "./edit-view/edit-view.vue";
 import FeedEditView from "./edit-view/feed-edit-view.vue";
 import PaperSmartFilterEditView from "./edit-view/smartfilter-edit-view.vue";
@@ -31,7 +32,7 @@ const prefState = preferenceService.useState();
 const paperEntities: Ref<IPaperEntityResults> = ref([]);
 provide(
   "paperEntities",
-  paperEntities // TODO: ?
+  computed(() => paperEntities.value) as Ref<IPaperEntityResults> // TODO: ?
 );
 const tags: Ref<ICategorizerResults> = ref([]);
 provide("tags", tags);
@@ -81,13 +82,15 @@ const reloadPaperEntities = async () => {
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
-
-  // TODO: Should not update here
-  uiState.entitiesCount = paperEntities.value.length;
 };
 disposable(
   paperService.on("updated", () => {
     reloadPaperEntities();
+  })
+);
+disposable(
+  paperService.on("count", (value) => {
+    uiState.entitiesCount = value.value;
   })
 );
 
@@ -270,29 +273,28 @@ disposable(
 // ================================
 // Dev Functions
 // ================================
-// TODO: make a better dev bar
-const addDummyData = async () => {
-  await paperService.addDummyData();
+const onAddDummyClicked = async () => {
+  paperService.addDummyData();
 };
-const addTestData = async () => {
+const onAddFromFileClicked = async () => {
   await paperService.create([`${process.cwd()}/tests/pdfs/cs/1.pdf`]);
 };
-const addTwoTestData = async () => {
+const onAddFromFilesClicked = async () => {
   await paperService.create([
     `${process.cwd()}/tests/pdfs/cs/1.pdf`,
     `${process.cwd()}/tests/pdfs/cs/2.pdf`,
   ]);
 };
-const removeAll = async () => {
-  await paperService.removeAll();
+const onRemoveAllClicked = async () => {
+  paperService.removeAll();
 };
-const reloadAll = async () => {
+const onReloadAllClicked = async () => {
   await reloadPaperEntities();
   await reloadTags();
   await reloadFolders();
   await reloadPaperSmartFilters();
 };
-const log = () => {
+const onPrintClicked = () => {
   console.log("paperEntities ========");
   for (let i = 0; i < Math.min(10, paperEntities.value.length); i++) {
     console.log(paperEntities.value[i]);
@@ -308,24 +310,21 @@ const log = () => {
     console.log(folders.value[i]);
   }
 };
-const logInfo = () => {
+const onNotifyInfoClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
   logService.info(randomString, "additional info", true, "DEVLOG");
 };
-const logWarn = () => {
+const onNotifyWarnClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
   logService.warn(randomString, "additional info", true, "DEVLOG");
 };
-const logError = () => {
+const onNotifyErrorClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
   logService.error(randomString, "additional info", true, "DEVLOG");
 };
-const logProgress = () => {
+const onNotifyProgressClicked = () => {
   const randomNumber = Math.floor(Math.random() * 100);
   logService.progress("Progress...", randomNumber, true, "DEVLOG");
-};
-const reloadExtensions = async () => {
-  await PLExtAPI.extensionManagementService.reloadAll();
 };
 
 const isWhatsNewShown = ref(false);
@@ -356,83 +355,18 @@ onMounted(async () => {
 
 <template>
   <div class="flex text-neutral-700 dark:text-neutral-200">
-    <div
-      id="dev-btn-bar"
-      class="space-x-2 fixed right-2 bottom-2 text-xs bg-neutral-200 rounded-md"
-      v-if="uiState.isDevMode"
-    >
-      <div class="grid grid-cols-8 p-2 gap-2">
-        <button
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="reloadAll"
-        >
-          Reload all
-        </button>
-        <button
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="addDummyData"
-        >
-          Add dummy
-        </button>
-        <button
-          id="dev-add-test-data-btn"
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="addTestData"
-        >
-          Add test
-        </button>
-        <button
-          id="dev-add-two-test-data-btn"
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="addTwoTestData"
-        >
-          Add two test
-        </button>
-        <button
-          id="dev-delete-all-btn"
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="removeAll"
-        >
-          Remove all
-        </button>
-        <button
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="log"
-        >
-          Log
-        </button>
-        <button
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="logInfo"
-        >
-          Notify Info
-        </button>
-        <button
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="logWarn"
-        >
-          Notify Warn
-        </button>
-        <button
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="logError"
-        >
-          Notify Error
-        </button>
-        <button
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="logProgress"
-        >
-          Notify Progress
-        </button>
-        <button
-          class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
-          @click="reloadExtensions"
-        >
-          Reload Exts
-        </button>
-      </div>
-    </div>
+    <DevView
+      @event:add-dummy="onAddDummyClicked"
+      @event:add-from-file="onAddFromFileClicked"
+      @event:add-from-files="onAddFromFilesClicked"
+      @event:remove-all="onRemoveAllClicked"
+      @event:reload-all="onReloadAllClicked"
+      @event:print="onPrintClicked"
+      @event:notify-info="onNotifyInfoClicked"
+      @event:notify-warn="onNotifyWarnClicked"
+      @event:notify-error="onNotifyErrorClicked"
+      @event:notify-progress="onNotifyProgressClicked"
+    />
 
     <MainView />
 

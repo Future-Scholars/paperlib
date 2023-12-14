@@ -9,16 +9,20 @@ export const IHookService = createDecorator("hookService");
  *
  */
 export class HookService {
-  private readonly _hookPoints: { [key: string]: any };
+  private readonly _hookPoints: {
+    [key: string]: {
+      [key: string]: (...args: any[]) => Promise<any>;
+    };
+  };
   constructor(@ILogService private readonly _logService: LogService) {
     this._hookPoints = {};
   }
 
   hasHook(hookName: string) {
-    return !!this._hookPoints[hookName];
+    return this._hookPoints[hookName];
   }
 
-  async hookPoint<T extends any[]>(hookName: string, ...args: T) {
+  async modifyHookPoint<T extends any[]>(hookName: string, ...args: T) {
     if (this._hookPoints[hookName]) {
       const extensionAPIExposed = await rendererRPCService.waitForAPI(
         "extensionProcess",
@@ -31,7 +35,9 @@ export class HookService {
       }
 
       let processedArgs = args;
-      for (const runHook of this._hookPoints[hookName]) {
+      for (const [hookID, runHook] of Object.entries(
+        this._hookPoints[hookName]
+      )) {
         processedArgs = await runHook(processedArgs);
         processedArgs = this.recoverClass(args, processedArgs);
       }
@@ -42,7 +48,43 @@ export class HookService {
     }
   }
 
+  async transformhookPoint<T extends any[], O extends any[]>(
+    hookName: string,
+    ...args: T
+  ) {
+    if (this._hookPoints[hookName]) {
+      const extensionAPIExposed = await rendererRPCService.waitForAPI(
+        "extensionProcess",
+        "PLExtAPI",
+        5000
+      );
+
+      if (!extensionAPIExposed) {
+        return args;
+      }
+
+      const results: O = [] as any;
+
+      for (const [hookID, runHook] of Object.entries(
+        this._hookPoints[hookName]
+      )) {
+        const result = await runHook(args);
+        results.push(result);
+      }
+
+      return results.flat();
+    } else {
+      return args;
+    }
+  }
+
   async hook(hookName: string, extensionID: string, callbackName: string) {
+    this._logService.info(
+      `Hooking ${hookName} of extension ${extensionID}-${callbackName}`,
+      "",
+      false,
+      "HookService"
+    );
     const extensionAPIExposed = await rendererRPCService.waitForAPI(
       "extensionProcess",
       "PLExtAPI",
@@ -54,7 +96,7 @@ export class HookService {
     }
 
     if (!this._hookPoints[hookName]) {
-      this._hookPoints[hookName] = [];
+      this._hookPoints[hookName] = {};
     }
 
     // TODO: if hook error, the processing spin should be stopped
@@ -76,9 +118,18 @@ export class HookService {
       }
     };
 
-    this._hookPoints[hookName].push(runHook);
+    this._hookPoints[hookName][`${extensionID}-${callbackName}`] = runHook;
 
     //TODO: Dispose callback
+    return () => {
+      this._logService.info(
+        `Disposing hook ${hookName} of extension ${extensionID}-${callbackName}`,
+        "",
+        false,
+        "HookService"
+      );
+      delete this._hookPoints[hookName][`${extensionID}-${callbackName}`];
+    };
   }
 
   recoverClass<T>(originalObj: T, obj: any): T {

@@ -70,12 +70,14 @@ const previewSelectedEntities = () => {
 
 const reloadSelectedEntities = () => {
   if (uiState.contentType === "library") {
-    let selectedPaperEntities: PaperEntity[] = [];
+    const selectedPaperEntities: PaperEntity[] = [];
     let selectedIds: string[] = [];
     if (paperEntities) {
       for (const index of uiState.selectedIndex) {
         if (paperEntities.value.length > index) {
-          selectedPaperEntities.push(paperEntities.value[index]);
+          selectedPaperEntities.push(
+            new PaperEntity(false).initialize(paperEntities.value[index])
+          );
           selectedIds.push(`${paperEntities.value[index].id}`);
         } else if (uiState.selectedIndex.length === 1) {
           uiState.selectedIndex = [];
@@ -88,12 +90,14 @@ const reloadSelectedEntities = () => {
       uiState.selectedIndex = [];
     }
   } else {
-    let selectedFeedEntities: FeedEntity[] = [];
+    const selectedFeedEntities: FeedEntity[] = [];
     let selectedIds: string[] = [];
     if (feedEntities) {
       for (const index of uiState.selectedIndex) {
         if (feedEntities.value.length > index) {
-          selectedFeedEntities.push(feedEntities.value[index]);
+          selectedFeedEntities.push(
+            new FeedEntity(false).initialize(feedEntities.value[index])
+          );
           selectedIds.push(`${feedEntities.value[index].id}`);
         } else if (uiState.selectedIndex.length === 1) {
           uiState.selectedIndex = [];

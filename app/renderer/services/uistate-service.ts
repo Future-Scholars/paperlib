@@ -135,10 +135,12 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       general: 0,
     });
     for (const [key, value] of Object.entries(
-      this.processingState.getStates()
+      this.processingState.useState()
     )) {
-      this._state[`processingState.${key}`] = value;
-
+      if (key.startsWith("$")) {
+        continue;
+      }
+      this.fire({ [`processingState.${key}`]: value });
       this.processingState.on(key as any, (value) => {
         this.fire({
           [`processingState.${key}`]: value.value,
@@ -153,9 +155,11 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       paperDetailsPanelSlot2: {},
       paperDetailsPanelSlot3: {},
     });
-    for (const [key, value] of Object.entries(this.slotsState.getStates())) {
-      this._state[`slotsState.${key}`] = value;
-
+    for (const [key, value] of Object.entries(this.slotsState.useState())) {
+      if (key.startsWith("$")) {
+        continue;
+      }
+      this.fire({ [`slotsState.${key}`]: value });
       this.slotsState.on(key as any, (value) => {
         this.fire({
           [`slotsState.${key}`]: value.value,
@@ -180,7 +184,9 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
           this.processingState.setState({ [stateKey]: value });
         } else if (stateGroup === "slotsState") {
           const slotID = value["id"];
-          const slotState = this.slotsState.getState(stateKey as any);
+          const slotState = JSON.parse(
+            JSON.stringify(this.slotsState.getState(stateKey as any))
+          );
           slotState[slotID] = value;
 
           this.slotsState.setState({ [stateKey]: slotState });
@@ -188,7 +194,7 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
           throw new Error(`State group '${stateGroup}' is not supported!`);
         }
       } else {
-        this._state[key] = value;
+        this.fire({ [key]: value });
       }
     }
   }
@@ -212,7 +218,6 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       isDeleteConfirmShown: false,
       renderRequired: -1,
       feedEntityAddingStatus: 0,
-
       selectedIndex: [],
       selectedIds: [],
       selectedPaperEntities: [],
@@ -221,7 +226,6 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       selectedFeed: "feed-all",
       dragingIds: [],
       pluginLinkedFolder: "",
-
       editingPaperEntityDraft: new PaperEntity(false),
       editingFeedEntityDraft: new FeedEntity(false),
       editingFeedDraft: new Feed(false),
@@ -229,13 +233,11 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       editingCategorizerDraft: "",
       entitiesCount: 0,
       feedEntitiesCount: 0,
-
       commandBarText: "",
       commandBarMode: "general",
-
       os: process.platform,
     };
-    this.setState(patch);
+    this.fire(patch);
   }
 }
 
@@ -250,10 +252,6 @@ class SubStateGroup<T extends IEventState> extends Eventable<T> {
 
   getState(stateKey: keyof T) {
     return this._state[stateKey as string];
-  }
-
-  getStates() {
-    return this._state;
   }
 }
 

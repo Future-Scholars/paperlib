@@ -8,7 +8,7 @@
   publish: [
     {
       provider: "generic",
-      url: "https://paperlib.app/distribution/electron-mac/",
+      url: "https://distribution.paperlib.app/electron-mac-arm/",
     },
   ],
   directories: {
@@ -17,11 +17,15 @@
   mac: {
     icon: "./icons/icon.icns",
     artifactName: "${productName}_${version}.${ext}",
-    target: ["dmg"],
+    target: {
+      target: "default",
+      arch: ["arm64"],
+    },
     releaseInfo: {
       releaseNotesFile: "./release-notes.md",
     },
   },
+  buildDependenciesFromSource: true,
   files: [
     "dist",
     "!node_modules/realm/react-native${/*}",

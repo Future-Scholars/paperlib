@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import { createWriteStream } from "fs";
+import { createWriteStream, existsSync, mkdirSync } from "fs";
 import got, { HTTPError } from "got";
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import os from "os";
@@ -213,6 +213,16 @@ export class NetworkTool {
     retry = 1,
     timeout = 5000
   ) {
+    if (!(data instanceof FormData)) {
+      if (typeof data === "object") {
+        const formData = new FormData();
+        for (const key in data as Record<string, any>) {
+          formData.append(key, data[key]);
+        }
+        data = formData;
+      }
+    }
+
     const options = {
       form: data,
       headers: headers,
@@ -272,6 +282,12 @@ export class NetworkTool {
           if (!filename.endsWith(".pdf")) {
             filename += ".pdf";
           }
+
+          const targetFolder = path.join(os.homedir(), "Downloads");
+          if (!existsSync(targetFolder)) {
+            mkdirSync(targetFolder);
+          }
+
           const targetPath = path.join(os.homedir(), "Downloads", filename);
           return this.download(url, targetPath, cookies);
         })

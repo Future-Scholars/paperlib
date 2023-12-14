@@ -49,109 +49,113 @@ import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import "./css/index.css";
 import "./css/katex.min.css";
 
-// @ts-ignore
-vSelect.props.components.default = () => ({
-  Deselect: BIconX,
-  OpenIndicator: BIconChevronUp,
-});
-
-const pinia = createPinia();
-
-const app = createApp(AppView);
-
-app.use(pinia);
-
-app.component("Splitpanes", Splitpanes);
-app.component("Pane", Pane);
-app.component("v-select", vSelect);
-app.component("draggable", draggable);
-app.component("RecycleScroller", RecycleScroller);
-
-// ============================================================
-// 1. Initilize the RPC service for current process
-const rendererRPCService = new RendererRPCService();
-// ============================================================
-// 2. Start the port exchange process.
-await rendererRPCService.initCommunication();
-
-// ============================================================
-// 3. Wait for the main process to expose its APIs (PLMainAPI)
-const mainAPIExposed = await rendererRPCService.waitForAPI(
-  "mainProcess",
-  "PLMainAPI",
-  5000
-);
-
-if (!mainAPIExposed) {
-  throw new Error("Main process API is not exposed");
-  // TODO: show error message and exit
-}
-
-// ============================================================
-// 4. Create the instances for all services, tools, etc. of the current process.
-const injectionContainer = new InjectionContainer();
-const instances = injectionContainer.createInstance<IInjectable>({
-  appService: APPService,
-  preferenceService: PreferenceService,
-  logService: LogService,
-  databaseCore: DatabaseCore,
-  databaseService: DatabaseService,
-  paperService: PaperService,
-  bufferService: BufferService,
-  paperEntityRepository: PaperEntityRepository,
-  categorizerRepository: CategorizerRepository,
-  scrapeService: ScrapeService,
-  fileService: FileService,
-  cacheDatabaseCore: CacheDatabaseCore,
-  cacheService: CacheService,
-  categorizerService: CategorizerService,
-  fileSourceRepository: FileSourceRepository,
-  smartFilterService: SmartFilterService,
-  paperSmartFilterRepository: PaperSmartFilterRepository,
-  browserExtensionService: BrowserExtensionService,
-  feedService: FeedService,
-  feedEntityRepository: FeedEntityRepository,
-  feedRepository: FeedRepository,
-  rssRepository: RSSRepository,
-  renderService: RenderService,
-  referenceService: ReferenceService,
-  schedulerService: SchedulerService,
-  msWordCommService: MSWordCommService,
-  commandService: CommandService,
-  shortcutService: ShortcutService,
-  hookService: HookService,
-  uiStateService: UIStateService,
-  networkTool: NetworkTool,
-});
-// 4.1 Expose the instances to the global scope for convenience.
-for (const [key, instance] of Object.entries(instances)) {
-  globalThis[key] = instance;
-}
-globalThis["rendererRPCService"] = rendererRPCService;
-
-// ============================================================
-// 5. Set actionors for RPC service with all initialized services.
-//    Expose the APIs of the current process to other processes
-rendererRPCService.setActionor(instances);
-
-// ============================================================
-// 6. Setup other things for the renderer process.
-const locales = loadLocales();
-
-const i18n = createI18n({
-  allowComposition: true,
-  locale: preferenceService.get("language") as string,
-  fallbackLocale: "en-GB",
-  messages: locales,
-});
-
-app.use(i18n);
-
-// TODO: check if this is duplicated
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", (event) => {
-    uiStateService.setState({ renderRequired: Date.now() });
+async function initialize() {
+  // @ts-ignore
+  vSelect.props.components.default = () => ({
+    Deselect: BIconX,
+    OpenIndicator: BIconChevronUp,
   });
 
-app.mount("#app");
+  const pinia = createPinia();
+
+  const app = createApp(AppView);
+
+  app.use(pinia);
+
+  app.component("Splitpanes", Splitpanes);
+  app.component("Pane", Pane);
+  app.component("v-select", vSelect);
+  app.component("draggable", draggable);
+  app.component("RecycleScroller", RecycleScroller);
+
+  // ============================================================
+  // 1. Initilize the RPC service for current process
+  const rendererRPCService = new RendererRPCService();
+  // ============================================================
+  // 2. Start the port exchange process.
+  await rendererRPCService.initCommunication();
+
+  // ============================================================
+  // 3. Wait for the main process to expose its APIs (PLMainAPI)
+  const mainAPIExposed = await rendererRPCService.waitForAPI(
+    "mainProcess",
+    "PLMainAPI",
+    5000
+  );
+
+  if (!mainAPIExposed) {
+    throw new Error("Main process API is not exposed");
+    // TODO: show error message and exit
+  }
+
+  // ============================================================
+  // 4. Create the instances for all services, tools, etc. of the current process.
+  const injectionContainer = new InjectionContainer();
+  const instances = injectionContainer.createInstance<IInjectable>({
+    appService: APPService,
+    preferenceService: PreferenceService,
+    logService: LogService,
+    databaseCore: DatabaseCore,
+    databaseService: DatabaseService,
+    paperService: PaperService,
+    bufferService: BufferService,
+    paperEntityRepository: PaperEntityRepository,
+    categorizerRepository: CategorizerRepository,
+    scrapeService: ScrapeService,
+    fileService: FileService,
+    cacheDatabaseCore: CacheDatabaseCore,
+    cacheService: CacheService,
+    categorizerService: CategorizerService,
+    fileSourceRepository: FileSourceRepository,
+    smartFilterService: SmartFilterService,
+    paperSmartFilterRepository: PaperSmartFilterRepository,
+    browserExtensionService: BrowserExtensionService,
+    feedService: FeedService,
+    feedEntityRepository: FeedEntityRepository,
+    feedRepository: FeedRepository,
+    rssRepository: RSSRepository,
+    renderService: RenderService,
+    referenceService: ReferenceService,
+    schedulerService: SchedulerService,
+    msWordCommService: MSWordCommService,
+    commandService: CommandService,
+    shortcutService: ShortcutService,
+    hookService: HookService,
+    uiStateService: UIStateService,
+    networkTool: NetworkTool,
+  });
+  // 4.1 Expose the instances to the global scope for convenience.
+  for (const [key, instance] of Object.entries(instances)) {
+    globalThis[key] = instance;
+  }
+  globalThis["rendererRPCService"] = rendererRPCService;
+
+  // ============================================================
+  // 5. Set actionors for RPC service with all initialized services.
+  //    Expose the APIs of the current process to other processes
+  rendererRPCService.setActionor(instances);
+
+  // ============================================================
+  // 6. Setup other things for the renderer process.
+  const locales = loadLocales();
+
+  const i18n = createI18n({
+    allowComposition: true,
+    locale: preferenceService.get("language") as string,
+    fallbackLocale: "en-GB",
+    messages: locales,
+  });
+
+  app.use(i18n);
+
+  // TODO: check if this is duplicated
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", (event) => {
+      uiStateService.setState({ renderRequired: Date.now() });
+    });
+
+  app.mount("#app");
+}
+
+initialize();

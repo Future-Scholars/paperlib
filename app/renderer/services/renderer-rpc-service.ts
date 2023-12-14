@@ -1,15 +1,8 @@
 import { ipcRenderer } from "electron";
 
 import { createDecorator } from "@/base/injection/injection";
-import { EIRendererRPCProtocol } from "@/base/rpc/ei-renderer-rpc-protocol";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
-import { RPCProtocol, RPCService } from "@/base/rpc/rpc-service";
-import { APPService, IAPPService } from "@/renderer/services/app-service";
-import {
-  CommandService,
-  ICommandService,
-} from "@/renderer/services/command-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
+import { RPCService } from "@/base/rpc/rpc-service";
 
 interface IRendererRPCServiceState {
   initialized: string;
