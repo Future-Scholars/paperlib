@@ -161,21 +161,34 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param realm - Realm instance.
    * @param ids - OR Paper ids.
    * @param paperEntity - Paper entity.
-   * @returns - Deleted boolean flag.
+   * @returns - Deleted boolean flags.
    */
-  delete(realm: Realm, ids?: (ObjectId | string)[], paperEntity?: PaperEntity) {
+  delete(
+    realm: Realm,
+    ids?: (ObjectId | string)[],
+    paperEntitys?: PaperEntity[]
+  ) {
     return realm.safeWrite(() => {
-      if (paperEntity) {
-        realm.delete(paperEntity);
-        return true;
-      } else if (ids) {
+      if (paperEntitys) {
+        ids = paperEntitys.map((paperEntity) => paperEntity._id);
+      }
+      if (ids) {
         const idsQuery = ids
           .map((id) => `_id == oid(${id as string})`)
           .join(" OR ");
-        realm.delete(
-          realm.objects<PaperEntity>("PaperEntity").filtered(`(${idsQuery})`)
-        );
-        return true;
+
+        const toBeDeleted = realm
+          .objects<PaperEntity>("PaperEntity")
+          .filtered(`(${idsQuery})`);
+
+        const toBeDeletedFiles = toBeDeleted
+          .map((paperEntity) => {
+            return [paperEntity.mainURL, ...paperEntity.supURLs];
+          })
+          .flat();
+
+        realm.delete(toBeDeleted);
+        return toBeDeletedFiles;
       } else {
         throw new Error("Either ids or paperEntity should be provided.");
       }

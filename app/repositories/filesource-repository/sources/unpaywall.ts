@@ -45,8 +45,7 @@ export class UnpayWallFileSource extends FileSource {
       const response = (await networkTool.get(
         queryUrl,
         headers,
-        0,
-        false
+        0
       )) as Response<string>;
       const responseBody = JSON.parse(response.body);
 

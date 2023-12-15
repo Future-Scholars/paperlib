@@ -15,7 +15,7 @@ class ExtensionPreferenceStore<
     defaultValues: T,
     preferenceFilePath?: string
   ) {
-    super(`{extensionID}-preferenceStore`, defaultValues);
+    super(`${extensionID}-preferenceStore`, defaultValues);
 
     this._store = new ElectronStore({
       name: extensionID,
@@ -25,6 +25,16 @@ class ExtensionPreferenceStore<
     for (const [key, value] of Object.entries(defaultValues)) {
       if (!this._store.has(key)) {
         this._store.set(key, value);
+      } else {
+        if (typeof value === "object" && !(value instanceof Array)) {
+          const oldValue = this._store.get(key);
+          for (const [subKey, subValue] of Object.entries(value)) {
+            if (!(subKey in oldValue)) {
+              oldValue[subKey] = subValue;
+            }
+          }
+          this._store.set(key, oldValue);
+        }
       }
     }
   }
@@ -67,16 +77,14 @@ class ExtensionPreferenceStore<
    */
   set(patch: any) {
     const newData = {};
-
     for (const key in patch) {
       if (this._store.has(key)) {
         newData[key] = this.getMetadata(key);
         newData[key].value = patch[key];
       }
     }
-
     this._store.set(newData);
-    this.fire(patch);
+    this.fire(newData);
   }
 }
 
@@ -207,7 +215,6 @@ export class ExtensionPreferenceService {
     if (!this._stores[extensionID]) {
       throw new Error(`Preference store for ${extensionID} does not exist.`);
     }
-
     return this._stores[extensionID].onChanged(key, callback);
   }
 

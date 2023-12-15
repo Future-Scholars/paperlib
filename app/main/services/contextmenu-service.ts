@@ -1,13 +1,13 @@
 import { Menu, nativeImage } from "electron";
 
-import { loadLocales } from "@/locales/load";
-import { ScraperPreference } from "@/preference/preference";
+import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
-import { createDecorator } from "@/base/injection/injection";
-import { Eventable } from "@/base/event";
+import { loadLocales } from "@/locales/load";
+import { ScraperPreference } from "@/preference/preference";
 
 const isMac = process.platform === "darwin";
 

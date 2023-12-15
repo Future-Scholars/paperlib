@@ -1,12 +1,12 @@
 import { Menu, app } from "electron";
 
-import { loadLocales } from "@/locales/load";
+import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
-import { createDecorator } from "@/base/injection/injection";
-import { Eventable } from "@/base/event";
+import { loadLocales } from "@/locales/load";
 
 const isMac = process.platform === "darwin";
 
@@ -31,7 +31,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
   constructor(
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
-    super("contextMenuService", {
+    super("menuService", {
       preference: 0,
       "File-enter": 0,
       "File-copyBibTex": 0,

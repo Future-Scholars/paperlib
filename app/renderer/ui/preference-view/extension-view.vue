@@ -97,23 +97,32 @@ const updateExtensionPreference = async (key: string, value: any) => {
 
 const saveExtensionPreference = async () => {
   if (editingExtension.value && editingExtensionBuffer.value) {
-    const patch = {};
+    try {
+      const patch = {};
 
-    for (const [key, value] of Object.entries(
-      editingExtensionBuffer.value.preference
-    )) {
-      if (value.value !== editingExtension.value.preference[key].value) {
-        patch[key] = value.value;
+      for (const [key, value] of Object.entries(
+        editingExtensionBuffer.value.preference
+      )) {
+        if (value.value !== editingExtension.value.preference[key].value) {
+          patch[key] = value.value;
+        }
       }
+
+      await PLExtAPI.extensionPreferenceService.set(
+        editingExtension.value.id,
+        patch
+      );
+
+      installedExtensions.value =
+        await PLExtAPI.extensionManagementService.installedExtensions();
+    } catch (e) {
+      logService.error(
+        "Failed to save extension preference",
+        e as Error,
+        true,
+        "Extension"
+      );
     }
-
-    await PLExtAPI.extensionPreferenceService.set(
-      editingExtension.value.id,
-      patch
-    );
-
-    installedExtensions.value =
-      await PLExtAPI.extensionManagementService.installedExtensions();
   }
 
   isSettingShown.value = false;
@@ -231,7 +240,9 @@ onMounted(async () => {
           <ExtensionSetting
             v-for="[key, value] of Object.entries(
               editingExtension?.preference || {}
-            )"
+            ).sort((a, b) => {
+              return a[1].order > b[1].order ? 1 : -1;
+            })"
             :title="value.name"
             :description="value.description"
             :type="value.type"

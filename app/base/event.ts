@@ -50,8 +50,8 @@ export class Eventable<T extends IEventState> implements IDisposable {
     });
 
     this._state = this.useState(false);
-    // @ts-ignore
-    this._state.$oripatch = this._state.$patch;
+
+    const oripatch = this._state.$patch;
     this._state.$patch = (patch: _DeepPartial<UnwrapRef<T>>) => {
       const realPatch: _DeepPartial<UnwrapRef<T>> = {};
       for (const key in patch) {
@@ -61,7 +61,9 @@ export class Eventable<T extends IEventState> implements IDisposable {
           realPatch[key] = patch[key];
         }
       }
-      this._state.$oripatch(realPatch);
+      if (Object.keys(realPatch).length > 0) {
+        oripatch(realPatch);
+      }
     };
 
     this._state.$subscribe((mutation, state) => {

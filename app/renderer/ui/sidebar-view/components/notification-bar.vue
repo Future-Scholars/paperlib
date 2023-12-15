@@ -5,7 +5,7 @@ import {
   BIconExclamationTriangle,
   BIconInfoCircle,
 } from "bootstrap-icons-vue";
-import { Ref, ref, watch } from "vue";
+import { Ref, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 
@@ -20,6 +20,7 @@ const historyMsgs = ref([]) as Ref<
   Array<{
     id: string;
     level: "info" | "warn" | "error" | "progress";
+    name: string;
     msg: string;
     additional: string;
     value?: number;
@@ -29,17 +30,19 @@ const historyMsgs = ref([]) as Ref<
 
 const pushMsgToHistory = (
   level: "info" | "warn" | "error" | "progress",
-  logMessage: { id: string; msg: string; additional?: string; value?: number }
+  logMessage: {
+    id: string;
+    name: string;
+    msg: string;
+    additional?: string;
+    value?: number;
+  }
 ) => {
   const newMsg = {
     id: logMessage.id,
     level: level,
-    msg: `${new Date().getHours().toString().padStart(2, "0")}:${new Date()
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")} [${
-      logMessage.id === "default" ? "Paperlib" : logMessage.id
-    }] ${logMessage.msg}`,
+    name: logMessage.id === "default" ? "Paperlib" : logMessage.id,
+    msg: logMessage.msg,
     additional: logMessage.additional || "",
     value: logMessage.value || 0,
     show: level === "warn" || level === "error" || level === "progress",
@@ -168,40 +171,50 @@ const onLeave = () => {
         v-show="historyMsgs.filter((msg) => msg.show).length > 0"
       >
         <div
-          class="flex flex-col text-xxs py-1 px-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto"
+          class="flex flex-col text-xxs pb-1 pt-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto"
           v-for="historyMsg of historyMsgs"
           v-show="historyMsg.show"
           @mouseleave="onLeave"
           @mouseenter="onEnter"
         >
-          <div class="flex space-x-2">
-            <div class="w-2 my-auto">
-              <BIconBug
-                class="my-auto text-red-600"
-                v-if="historyMsg.level === 'error'"
-              />
-              <BIconExclamationTriangle
-                class="my-auto text-yellow-600"
-                v-if="historyMsg.level === 'warn'"
-              />
-              <BIconInfoCircle
-                class="my-auto"
-                v-if="
-                  historyMsg.level === 'info' || historyMsg.level === 'progress'
-                "
-              />
+          <div class="flex space-x-3 px-2 mb-1">
+            <div class="flex space-x-2">
+              <div
+                class="flex text-neutral-200 rounded-sm bg-neutral-400 pl-1 dark:bg-neutral-800 dark:text-neutral-300"
+              >
+                <BIconBug
+                  class="my-auto text-xxs"
+                  v-if="historyMsg.level === 'error'"
+                />
+                <BIconExclamationTriangle
+                  class="my-auto text-xxs"
+                  v-if="historyMsg.level === 'warn'"
+                />
+                <BIconInfoCircle
+                  class="my-auto text-xxs"
+                  v-if="
+                    historyMsg.level === 'info' ||
+                    historyMsg.level === 'progress'
+                  "
+                />
+
+                <span class="my-auto truncate hover:whitespace-normal px-1">{{
+                  historyMsg.name
+                }}</span>
+              </div>
+
+              <span class="my-auto truncate hover:whitespace-normal">{{
+                historyMsg.msg
+              }}</span>
             </div>
-            <span class="my-auto truncate hover:whitespace-normal">{{
-              historyMsg.msg
-            }}</span>
           </div>
           <span
-            class="truncate hover:whitespace-normal pl-2"
+            class="truncate hover:whitespace-normal text-neutral-400 dark:text-neutral-400 px-1"
             v-if="historyMsg.additional !== ''"
             >{{ historyMsg.additional }}</span
           >
           <div
-            class="rounded-full h-0.5 my-1 pl-2"
+            class="rounded-full h-0.5 my-1 px-1"
             v-if="historyMsg.level === 'progress'"
           >
             <div

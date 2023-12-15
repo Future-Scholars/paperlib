@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, computed, nextTick, onMounted, provide, ref, watch } from "vue";
+import { Ref, computed, nextTick, onMounted, provide, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/preload/loading";
@@ -366,6 +366,7 @@ onMounted(async () => {
       @event:notify-warn="onNotifyWarnClicked"
       @event:notify-error="onNotifyErrorClicked"
       @event:notify-progress="onNotifyProgressClicked"
+      v-if="uiState.isDevMode"
     />
 
     <MainView />

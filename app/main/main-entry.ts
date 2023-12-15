@@ -1,21 +1,12 @@
-import {
-  IpcMainEvent,
-  IpcMainInvokeEvent,
-  MessageChannelMain,
-  app,
-  ipcMain,
-} from "electron";
+import { app, ipcMain } from "electron";
 import Store from "electron-store";
 import path from "node:path";
 import { release } from "os";
 
 import { InjectionContainer } from "@/base/injection/injection.ts";
-import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol.ts";
 import { PreferenceService } from "@/common/services/preference-service.ts";
 import { IInjectable } from "@/main/services/injectable.ts";
-import { WindowStorage } from "@/main/window-storage.ts";
 
-import { CommService } from "./services/comm-service.ts";
 import { ContextMenuService } from "./services/contextmenu-service.ts";
 import { ExtensionProcessManagementService } from "./services/extension-process-management-service.ts";
 import { FileSystemService } from "./services/filesystem-service.ts";

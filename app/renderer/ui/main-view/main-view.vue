@@ -44,8 +44,10 @@ const onSidebarResized = (event: any) => {
 
 const openSelectedEntities = () => {
   if (uiState.contentType === "library") {
-    uiState.selectedPaperEntities.forEach((paperEntity) => {
-      fileService.open(paperEntity.mainURL);
+    uiState.selectedPaperEntities.forEach(async (paperEntity) => {
+      const fileURL = await fileService.access(paperEntity.mainURL, true);
+
+      fileService.open(fileURL);
     });
   } else {
     uiState.selectedFeedEntities.forEach((entity) => {

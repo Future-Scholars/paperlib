@@ -458,7 +458,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * @returns - flag
    */
   @processing(ProcessingKey.General)
-  async delete(ids?: (ObjectId | string)[], paperEntity?: PaperEntity) {
+  async delete(ids?: (ObjectId | string)[], paperEntities?: PaperEntity[]) {
     this._logService.info(
       `Deleting ${ids?.length + " " || ""}paper(s)...`,
       "",
@@ -466,10 +466,16 @@ export class PaperService extends Eventable<IPaperServiceState> {
       "Entity"
     );
     try {
-      return this._paperEntityRepository.delete(
+      const toBeDeletedFiles = this._paperEntityRepository.delete(
         await this._databaseCore.realm(),
         ids,
-        paperEntity
+        paperEntities
+      );
+
+      await Promise.all(
+        toBeDeletedFiles.map((url) => {
+          return this._fileService.removeFile(url);
+        })
       );
     } catch (error) {
       this._logService.error(
