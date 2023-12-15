@@ -3,10 +3,7 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Categorizer, CategorizerType, Colors } from "@/models/categorizer";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-import {
-  ProcessingKey,
-  processing,
-} from "@/renderer/services/state-service/processing";
+import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   CategorizerRepository,
   ICategorizerRepository,

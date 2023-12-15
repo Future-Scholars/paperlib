@@ -10,6 +10,8 @@ function shortcutHandler(event: KeyboardEvent) {
   }
 }
 window.addEventListener("keydown", shortcutHandler, true);
+
+// TODO: extensionify this
 </script>
 
 <template>

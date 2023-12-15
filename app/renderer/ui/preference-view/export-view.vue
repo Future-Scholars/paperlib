@@ -2,8 +2,8 @@
 import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
-import { MSWordCommService } from "@/renderer/services/msword-comm-service";
 import { IPreferenceStore } from "@/common/services/preference-service";
+import { MSWordCommService } from "@/renderer/services/msword-comm-service";
 
 import Replacement from "./components/replacement.vue";
 import Toggle from "./components/toggle.vue";
@@ -80,7 +80,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col text-neutral-800 dark:text-neutral-300 max-w-xl">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <div class="text-base font-semibold mb-4">
       {{ $t("preference.export") }}
     </div>
@@ -128,7 +130,7 @@ onMounted(() => {
         </div>
       </div>
       <button
-        class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
+        class="flex h-8 w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
         @click="installWordAddinClicked"
       >
         <span class="m-auto text-xs">{{
@@ -164,7 +166,7 @@ onMounted(() => {
         v-model="newReplacementTo"
       />
       <div
-        class="flex h-full w-20 my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500 text-xs cursor-pointer"
+        class="flex h-8 w-20 my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500 text-xs cursor-pointer"
         @click="onReplacementAdd"
       >
         <BIconPlus class="m-auto text-lg" />
@@ -183,4 +185,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-@/renderer/services/preference-service @/common/services/preference-service

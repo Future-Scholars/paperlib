@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IPreferenceStore } from "@/renderer/services/preference-service";
+import { IPreferenceStore } from "@/common/services/preference-service";
 
 import DbView from "./db-view.vue";
 import LangView from "./lang-view.vue";

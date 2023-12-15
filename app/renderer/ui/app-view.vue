@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import "splitpanes/dist/splitpanes.css";
 import { Ref, computed, nextTick, onMounted, provide, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
@@ -9,25 +8,22 @@ import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-rep
 import { IFeedResults } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
+import DevView from "./dev-view/dev-view.vue";
 import EditView from "./edit-view/edit-view.vue";
 import FeedEditView from "./edit-view/feed-edit-view.vue";
 import PaperSmartFilterEditView from "./edit-view/smartfilter-edit-view.vue";
 import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import PresettingView from "./presetting-view/presetting-view.vue";
-import SidebarView from "./sidebar-view/sidebar-view.vue";
 import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 
 // ================================
 // State
 // ================================
 
-const viewState = MainRendererStateStore.useViewState();
-const dbState = MainRendererStateStore.useDBState();
-const selectionState = MainRendererStateStore.useSelectionState();
+const uiState = uiStateService.useState();
 const prefState = preferenceService.useState();
 
 // ================================
@@ -36,7 +32,7 @@ const prefState = preferenceService.useState();
 const paperEntities: Ref<IPaperEntityResults> = ref([]);
 provide(
   "paperEntities",
-  computed(() => paperEntities.value) // TODO: ?
+  computed(() => paperEntities.value) as Ref<IPaperEntityResults> // TODO: ?
 );
 const tags: Ref<ICategorizerResults> = ref([]);
 provide("tags", tags);
@@ -53,15 +49,6 @@ provide(
 );
 
 // ================================
-// UI
-// ================================
-
-const onSidebarResized = (event: any) => {
-  const width = event[0].size ? event[0].size : 20;
-  preferenceService.set({ sidebarWidth: width });
-};
-
-// ================================
 // Data load
 // ================================
 const reloadPaperEntities = async () => {
@@ -69,36 +56,41 @@ const reloadPaperEntities = async () => {
 
   let tag = "";
   let folder = "";
-  if (selectionState.selectedCategorizer.startsWith("tag-")) {
-    tag = selectionState.selectedCategorizer.replace("tag-", "");
-    viewState.searchText = "";
-    viewState.searchMode = "general";
-  } else if (selectionState.selectedCategorizer.startsWith("folder-")) {
-    folder = selectionState.selectedCategorizer.replace("folder-", "");
-    viewState.searchText = "";
-    viewState.searchMode = "general";
-  } else if (selectionState.selectedCategorizer === "lib-flaged") {
+
+  // TODO: should we clear the search text when switching categorizer?
+  if (uiState.selectedCategorizer.startsWith("tag-")) {
+    tag = uiState.selectedCategorizer.replace("tag-", "");
+    // viewState.searchText = "";
+    // viewState.searchMode = "general";
+  } else if (uiState.selectedCategorizer.startsWith("folder-")) {
+    folder = uiState.selectedCategorizer.replace("folder-", "");
+    // viewState.searchText = "";
+    // viewState.searchMode = "general";
+  } else if (uiState.selectedCategorizer === "lib-flaged") {
     flaged = true;
-    viewState.searchText = "";
-    viewState.searchMode = "general";
+    // viewState.searchText = "";
+    // viewState.searchMode = "general";
   }
-  // TODO: fix any here
   paperEntities.value = await paperService.load(
     paperService.constructFilter({
-      search: viewState.searchText,
-      searchMode: viewState.searchMode as any,
+      search: uiState.commandBarText,
+      searchMode: uiState.commandBarMode,
       flaged,
-      tag,
-      folder,
+      tag: tag,
+      folder: folder,
     }),
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
 };
-
 disposable(
   paperService.on("updated", () => {
     reloadPaperEntities();
+  })
+);
+disposable(
+  paperService.on("count", (value) => {
+    uiState.entitiesCount = value.value;
   })
 );
 
@@ -142,20 +134,20 @@ const reloadFeedEntities = async () => {
   let feed = "";
   let unread = false;
 
-  if (selectionState.selectedFeed === "feed-all") {
+  if (uiState.selectedFeed === "feed-all") {
     feed = "";
-  } else if (selectionState.selectedFeed === "feed-unread") {
+  } else if (uiState.selectedFeed === "feed-unread") {
     unread = true;
     feed = "";
   } else {
-    feed = selectionState.selectedFeed.replace("feed-", "");
+    feed = uiState.selectedFeed.replace("feed-", "");
   }
 
   // TODO: fix any here
   feedEntities.value = await feedService.loadEntities(
     feedService.constructFilter({
-      search: viewState.searchText,
-      searchMode: viewState.searchMode as any,
+      search: uiState.commandBarText,
+      searchMode: uiState.commandBarMode as any,
       feedName: feed,
       unread,
     }),
@@ -172,9 +164,9 @@ disposable(
   preferenceService.onChanged(
     ["mainviewSortBy", "mainviewSortOrder"],
     (value) => {
-      if (viewState.contentType === "library") {
+      if (uiState.contentType === "library") {
         reloadPaperEntities();
-      } else if (viewState.contentType === "feed") {
+      } else if (uiState.contentType === "feed") {
         reloadFeedEntities();
       }
     }
@@ -191,36 +183,48 @@ disposable(
   )
 );
 
-watch(
-  () =>
-    viewState.contentType +
-    viewState.searchText +
-    selectionState.selectedCategorizer +
-    selectionState.selectedFeed,
-  (value) => {
-    if (viewState.contentType === "library") {
+disposable(
+  uiStateService.onChanged(["selectedCategorizer", "selectedFeed"], (value) => {
+    if (uiState.contentType === "library") {
       reloadPaperEntities();
-    } else if (viewState.contentType === "feed") {
+    } else if (uiState.contentType === "feed") {
       reloadFeedEntities();
     }
-  }
+  })
 );
 
 disposable(
-  databaseService.on("dbInitialized", async () => {
-    selectionState.selectedCategorizer = "";
-    selectionState.selectedFeed = "";
-    selectionState.selectedIds = [];
-    selectionState.selectedIndex = [];
-    selectionState.dragedIds = [];
-    selectionState.pluginLinkedFolder = "";
-    selectionState.editingCategorizer = "";
+  uiStateService.onChanged(["contentType", "commandBarText"], (value) => {
+    if (uiState.contentType === "library") {
+      reloadPaperEntities();
+    } else if (uiState.contentType === "feed") {
+      reloadFeedEntities();
+    }
+  })
+);
+
+disposable(
+  preferenceService.onChanged("appLibFolder", async (value) => {
+    await databaseService.initialize();
+  })
+);
+
+var initStartTime = Date.now();
+disposable(
+  databaseService.on("dbInitializing", async () => {
+    initStartTime = Date.now();
+
+    uiStateService.resetStates();
+
     paperEntities.value = [];
     tags.value = [];
     folders.value = [];
     feeds.value = [];
     feedEntities.value = [];
-    var startTime = Date.now();
+  })
+);
+disposable(
+  databaseService.on("dbInitialized", async () => {
     await reloadPaperEntities();
     await reloadTags();
     await reloadFolders();
@@ -230,53 +234,67 @@ disposable(
     reloadFeeds();
     var endTime = Date.now();
     logService.info(
-      `Data reinited in ${endTime - startTime}ms`,
+      `Database initialized in ${endTime - initStartTime}ms`,
       "",
       false,
       "UI"
     );
+
+    // Notify the main process that the app is ready,
+    //   so that the main process can initialize the extension process
+    // TODO: check if there is a way to do this without providing the processID manually.
+    PLMainAPI.windowProcessManagementService.fireServiceReady(
+      "rendererProcess"
+    );
   })
 );
 
-PLMainAPI.windowProcessManagementService.on("blur", () => {
-  viewState.mainViewFocused = false;
-  databaseService.pauseSync();
-});
+// TODO: Check all event disposable
+disposable(
+  PLMainAPI.windowProcessManagementService.on("blur", () => {
+    uiState.mainViewFocused = false;
+    databaseService.pauseSync();
+  })
+);
 
-PLMainAPI.windowProcessManagementService.on("focus", () => {
-  viewState.mainViewFocused = true;
-  databaseService.resumeSync();
-});
+disposable(
+  PLMainAPI.windowProcessManagementService.on("focus", () => {
+    uiState.mainViewFocused = true;
+    databaseService.resumeSync();
+  })
+);
 
-PLMainAPI.upgradeService.on("downloading", (value: number) => {
-  logService.progress("Downloading Update...", value, true, "Version");
-});
+disposable(
+  PLMainAPI.upgradeService.on("downloading", (value: number) => {
+    logService.progress("Downloading Update...", value, true, "Version");
+  })
+);
 
 // ================================
 // Dev Functions
 // ================================
-const addDummyData = async () => {
-  await paperService.addDummyData();
+const onAddDummyClicked = async () => {
+  paperService.addDummyData();
 };
-const addTestData = async () => {
+const onAddFromFileClicked = async () => {
   await paperService.create([`${process.cwd()}/tests/pdfs/cs/1.pdf`]);
 };
-const addTwoTestData = async () => {
+const onAddFromFilesClicked = async () => {
   await paperService.create([
     `${process.cwd()}/tests/pdfs/cs/1.pdf`,
     `${process.cwd()}/tests/pdfs/cs/2.pdf`,
   ]);
 };
-const removeAll = async () => {
-  await paperService.removeAll();
+const onRemoveAllClicked = async () => {
+  paperService.removeAll();
 };
-const reloadAll = async () => {
+const onReloadAllClicked = async () => {
   await reloadPaperEntities();
   await reloadTags();
   await reloadFolders();
   await reloadPaperSmartFilters();
 };
-const log = () => {
+const onPrintClicked = () => {
   console.log("paperEntities ========");
   for (let i = 0; i < Math.min(10, paperEntities.value.length); i++) {
     console.log(paperEntities.value[i]);
@@ -292,114 +310,65 @@ const log = () => {
     console.log(folders.value[i]);
   }
 };
-const logInfo = () => {
+const onNotifyInfoClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
   logService.info(randomString, "additional info", true, "DEVLOG");
 };
-const logWarn = () => {
+const onNotifyWarnClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
   logService.warn(randomString, "additional info", true, "DEVLOG");
 };
-const logError = () => {
+const onNotifyErrorClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
   logService.error(randomString, "additional info", true, "DEVLOG");
 };
-const logProgress = () => {
+const onNotifyProgressClicked = () => {
   const randomNumber = Math.floor(Math.random() * 100);
   logService.progress("Progress...", randomNumber, true, "DEVLOG");
 };
 
 const isWhatsNewShown = ref(false);
 
+disposable(
+  preferenceService.onChanged(["lastVersion"], async () => {
+    isWhatsNewShown.value =
+      prefState.lastVersion !==
+      (await PLMainAPI.upgradeService.currentVersion());
+  })
+);
+
 // ================================
 // Mount Hook
 // ================================
 onMounted(async () => {
   nextTick(async () => {
-    isWhatsNewShown.value = await appService.isVersionChanged();
+    isWhatsNewShown.value =
+      prefState.lastVersion !==
+      (await PLMainAPI.upgradeService.currentVersion());
+
     await databaseService.initialize(true);
   });
 });
+
+// TODO: check all vue files' ending
 </script>
 
 <template>
   <div class="flex text-neutral-700 dark:text-neutral-200">
-    <div
-      id="dev-btn-bar"
-      class="space-x-2 fixed right-0 bottom-0 text-xs hidden"
-    >
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="reloadAll"
-      >
-        Reload all
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="addDummyData"
-      >
-        Add dummy
-      </button>
-      <button
-        id="dev-add-test-data-btn"
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="addTestData"
-      >
-        Add test
-      </button>
-      <button
-        id="dev-add-two-test-data-btn"
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="addTwoTestData"
-      >
-        Add two test
-      </button>
-      <button
-        id="dev-delete-all-btn"
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="removeAll"
-      >
-        Remove all
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="log"
-      >
-        Log
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="logInfo"
-      >
-        Notify Info
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="logWarn"
-      >
-        Notify Warn
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="logError"
-      >
-        Notify Error
-      </button>
-      <button
-        class="bg-neutral-400 dark:bg-neutral-700 p-1 rounded-md"
-        @click="logProgress"
-      >
-        Notify Progress
-      </button>
-    </div>
-    <splitpanes @resized="onSidebarResized($event)">
-      <pane :key="1" min-size="12" :size="prefState.sidebarWidth">
-        <SidebarView class="sidebar-windows-bg" />
-      </pane>
-      <pane :key="2">
-        <MainView />
-      </pane>
-    </splitpanes>
+    <DevView
+      @event:add-dummy="onAddDummyClicked"
+      @event:add-from-file="onAddFromFileClicked"
+      @event:add-from-files="onAddFromFilesClicked"
+      @event:remove-all="onRemoveAllClicked"
+      @event:reload-all="onReloadAllClicked"
+      @event:print="onPrintClicked"
+      @event:notify-info="onNotifyInfoClicked"
+      @event:notify-warn="onNotifyWarnClicked"
+      @event:notify-error="onNotifyErrorClicked"
+      @event:notify-progress="onNotifyProgressClicked"
+    />
+
+    <MainView />
 
     <Transition
       enter-active-class="transition ease-out duration-75"
@@ -409,7 +378,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <EditView v-if="viewState.isEditViewShown" />
+      <EditView v-if="uiState.isEditViewShown" />
     </Transition>
 
     <Transition
@@ -420,7 +389,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <FeedEditView v-if="viewState.isFeedEditViewShown" />
+      <FeedEditView v-if="uiState.isFeedEditViewShown" />
     </Transition>
 
     <Transition
@@ -432,7 +401,7 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <PaperSmartFilterEditView
-        v-if="viewState.isPaperSmartFilterEditViewShown"
+        v-if="uiState.isPaperSmartFilterEditViewShown"
       />
     </Transition>
 
@@ -444,7 +413,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <PreferenceView v-if="viewState.isPreferenceViewShown" />
+      <PreferenceView v-if="uiState.isPreferenceViewShown" />
     </Transition>
 
     <DeleteConfirmView />
@@ -465,6 +434,7 @@ onMounted(async () => {
         "
       />
     </Transition>
+
     <Transition
       enter-active-class="transition ease-out duration-75"
       enter-from-class="transform opacity-0"
@@ -477,6 +447,3 @@ onMounted(async () => {
     </Transition>
   </div>
 </template>
-@/renderer/services/log-service
-@/repositories/db-repository/categorizer-repository
-@/repositories/db-repository/feed-repository

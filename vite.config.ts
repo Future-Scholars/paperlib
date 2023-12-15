@@ -21,6 +21,7 @@ export default defineConfig({
         index_plugin: path.join(__dirname, "app/index_plugin.html"),
       },
     },
+    minify: false,
   },
 
   resolve: {
@@ -39,7 +40,7 @@ export default defineConfig({
   plugins: [
     electron({
       entry: [
-        "app/main/main.ts",
+        "app/main/main-entry.ts",
         "app/preload/preload.ts",
         "app/extension/extension-entry.ts",
       ],
@@ -47,9 +48,9 @@ export default defineConfig({
         build: {
           outDir: "dist",
           sourcemap: process.env.NODE_ENV === "development" ? "inline" : false,
-          minify: process.env.NODE_ENV === "production",
+          minify: false,
           rollupOptions: {
-            external: ["keytar"],
+            external: ["keytar", "live-plugin-manager"],
           },
         },
         resolve: {

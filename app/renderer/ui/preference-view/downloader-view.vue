@@ -2,12 +2,13 @@
 import { BIconPlus } from "bootstrap-icons-vue";
 
 import { DownloaderPreference } from "@/preference/preference";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import DownloaderItem from "./components/downloader.vue";
 
 const prefState = preferenceService.useState();
-const viewState = MainRendererStateStore.useViewState();
+// const viewState = MainRendererStateStore.useViewState();
+
+// TODO: move to extension
 
 const onAddNewDownloaderClicked = () => {
   const newDownloaderPref = {
@@ -57,7 +58,9 @@ const onClickGuide = () => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <div class="text-base font-semibold mb-4">
       Paper PDF File {{ $t("preference.downloader") }}
     </div>

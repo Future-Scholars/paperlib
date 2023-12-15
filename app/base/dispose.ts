@@ -2,6 +2,8 @@ import { getCurrentScope, onScopeDispose } from "vue";
 
 /**
  * Disposable decorator.
+ * Release some resource when component destroy.
+ * For example, release some event listener of a service.
  */
 export function disposable(cancelHandler?: () => void) {
   if (cancelHandler) {

@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
-
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+const uiState = uiStateService.useState();
 
 const props = defineProps({
   placeholder: {
@@ -14,8 +12,6 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(["changed"]);
-
-const viewState = MainRendererStateStore.useViewState();
 
 const onInput = (payload: Event) => {
   emit("changed", (payload.target as HTMLInputElement).value);
@@ -39,8 +35,8 @@ const onInput = (payload: Event) => {
       :value="value"
       :name="placeholder"
       @input="onInput"
-      @focus="viewState.inputFieldFocused = true"
-      @blur="viewState.inputFieldFocused = false"
+      @focus="uiState.inputFieldFocused = true"
+      @blur="uiState.inputFieldFocused = false"
     />
   </div>
 </template>

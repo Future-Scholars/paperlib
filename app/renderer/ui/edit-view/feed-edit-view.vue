@@ -1,58 +1,24 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-
 import { Feed } from "@/models/feed";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import InputBox from "./components/input-box.vue";
 
 // ==============================
 // State
 // ==============================
-const editingFeedDraft = ref(new Feed(false));
-const viewState = MainRendererStateStore.useViewState();
-const bufferState = MainRendererStateStore.useBufferState();
-
-watch(
-  () => viewState.isFeedEditViewShown,
-  (value) => {
-    if (value) {
-      window.addEventListener("keydown", keyDownListener, { once: true });
-    }
-  }
-);
-
-watch(
-  () => bufferState.editingFeedDraft,
-  (value) => {
-    editingFeedDraft.value.initialize(value);
-  }
-);
-
-const keyDownListener = (e: KeyboardEvent) => {
-  if (
-    e.target instanceof HTMLInputElement ||
-    e.target instanceof HTMLTextAreaElement
-  ) {
-    if (e.key === "Escape") {
-      onCloseClicked();
-    }
-    return true;
-  }
-  e.preventDefault();
-  if (e.key === "Escape") {
-    onCloseClicked();
-  }
-};
+const uiState = uiStateService.useState();
 
 const onCloseClicked = () => {
-  viewState.isFeedEditViewShown = false;
+  uiState.isFeedEditViewShown = false;
 };
 
 const onSaveClicked = async () => {
-  feedService.create([new Feed(false).initialize(editingFeedDraft.value)]);
+  feedService.create([new Feed(false).initialize(uiState.editingFeedDraft)]);
   onCloseClicked();
 };
+
+shortcutService.register("Escape", onCloseClicked);
+shortcutService.registerInInputField("Escape", onCloseClicked);
 </script>
 
 <template>
@@ -65,13 +31,13 @@ const onSaveClicked = async () => {
       >
         <InputBox
           placeholder="Feed Name"
-          :value="editingFeedDraft.name"
-          @changed="(value) => (editingFeedDraft.name = value)"
+          :value="uiState.editingFeedDraft.name"
+          @changed="(value) => (uiState.editingFeedDraft.name = value)"
         />
         <InputBox
           placeholder="Feed URL"
-          :value="editingFeedDraft.url"
-          @changed="(value) => (editingFeedDraft.url = value)"
+          :value="uiState.editingFeedDraft.url"
+          @changed="(value) => (uiState.editingFeedDraft.url = value)"
         />
         <div class="flex justify-end space-x-2 py-1">
           <div

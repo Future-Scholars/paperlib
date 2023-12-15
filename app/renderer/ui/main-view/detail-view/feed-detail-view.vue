@@ -4,7 +4,6 @@ import { onBeforeUpdate, ref, watch } from "vue";
 
 import { FeedEntity } from "@/models/feed-entity";
 import Spinner from "@/renderer/ui/sidebar-view/components/spinner.vue";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import Authors from "./components/authors.vue";
 import PubDetails from "./components/pub-details.vue";
@@ -23,11 +22,10 @@ const emits = defineEmits([
   "read-timeout-in-unread",
 ]);
 
-const viewState = MainRendererStateStore.useViewState();
-const selectionState = MainRendererStateStore.useSelectionState();
+const uiState = uiStateService.useState();
 
 const onAddClicked = () => {
-  if (viewState.feedEntityAddingStatus === 0) {
+  if (uiState.feedEntityAddingStatus === 0) {
     emits("add-clicked");
   }
 };
@@ -46,7 +44,7 @@ const debounce = (fn: Function, delay: number) => {
 };
 
 const onReadTimeout = () => {
-  if (selectionState.selectedFeed !== "feed-unread") {
+  if (uiState.selectedFeed !== "feed-unread") {
     debounce(() => {
       emits("read-timeout");
     }, 2000)();
@@ -96,21 +94,21 @@ watch(props, (props, prevProps) => {
     >
       <div
         class="m-auto h-8 flex space-x-1"
-        v-if="viewState.feedEntityAddingStatus === 0"
+        v-if="uiState.feedEntityAddingStatus === 0"
       >
         <BIconPlus class="my-auto" />
         <span class="my-auto text-xs select-none">Add to Library</span>
       </div>
       <div
         class="m-auto h-8 flex space-x-2"
-        v-if="viewState.feedEntityAddingStatus === 1"
+        v-if="uiState.feedEntityAddingStatus === 1"
       >
         <Spinner class="my-auto" />
         <span class="my-auto text-xs select-none">Adding...</span>
       </div>
       <div
         class="m-auto h-8 flex space-x-1"
-        v-if="viewState.feedEntityAddingStatus === 2"
+        v-if="uiState.feedEntityAddingStatus === 2"
       >
         <BIconCheck2 class="my-auto" />
         <span class="my-auto text-xs select-none">Added</span>

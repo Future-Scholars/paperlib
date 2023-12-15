@@ -6,7 +6,7 @@ import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
-import { APPTheme } from "@/main/services/window-management-service";
+import { APPTheme } from "@/main/services/window-process-management-service";
 
 export const IAPPService = createDecorator("appService");
 
@@ -35,8 +35,8 @@ export class APPService {
    * Get the current user data path of the application.
    * @returns
    */
-  async userDataPath(): Promise<string> {
-    return await ipcRenderer.invoke("user-data-path");
+  userDataPath(): Promise<string> {
+    return ipcRenderer.sendSync("getSystemPath", "userData");
   }
 
   /**
@@ -64,13 +64,5 @@ export class APPService {
    * @param {APPTheme} theme The theme to change to. */
   changeTheme(theme: APPTheme) {
     PLMainAPI.windowProcessManagementService.changeTheme(theme);
-  }
-
-  /**
-   * Check if this is the first time running of the current version.
-   */
-  async isVersionChanged(): Promise<boolean> {
-    const lastVersion = this.preferenceService.get("lastVersion");
-    return lastVersion !== (await this.version());
   }
 }

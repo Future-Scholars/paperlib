@@ -82,4 +82,8 @@ export class UpgradeService extends Eventable<IUpgradeServiceState> {
       }
     });
   }
+
+  public currentVersion(): string {
+    return autoUpdater.currentVersion.version;
+  }
 }

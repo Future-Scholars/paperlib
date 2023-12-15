@@ -2,6 +2,10 @@
 import { BIconCoin, BIconGithub, BIconGlobe } from "bootstrap-icons-vue";
 import { onMounted, ref } from "vue";
 
+import Toggle from "./components/toggle.vue";
+
+const uiState = uiStateService.useState();
+
 const version = ref("");
 appService.version().then((v) => {
   version.value = v;
@@ -23,7 +27,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <img
       src="../../assets/logo-dark.png"
       class="w-8 mb-2 ml-1"
@@ -58,5 +64,13 @@ onMounted(() => {
         <span class="my-auto text-xs">Donate</span>
       </div>
     </div>
+
+    <Toggle
+      class="mb-5"
+      title="Turn on the Development Mode"
+      info="This is for developers only."
+      :enable="uiState.isDevMode"
+      @update="(value) => (uiState.isDevMode = value)"
+    />
   </div>
 </template>

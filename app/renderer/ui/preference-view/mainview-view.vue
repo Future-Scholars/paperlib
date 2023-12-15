@@ -11,16 +11,15 @@ import {
   BIconTag,
 } from "bootstrap-icons-vue";
 import { ObjectId } from "bson";
-import { Ref, onMounted, ref, watch } from "vue";
+import { Ref, computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { disposable } from "@/base/dispose";
+import { IPreferenceStore } from "@/common/services/preference-service";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import ListItem from "@/renderer/ui/main-view/data-view/components/list-item.vue";
-import TableItem from "@/renderer/ui/main-view/data-view/components/table/table-item.vue";
-import { IPreferenceStore } from "@/services/preference-service";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
+import PaperListItem from "@/renderer/ui/main-view/data-view/components/list-view/components/paper-list-item.vue";
+import PaperTableItem from "@/renderer/ui/main-view/data-view/components/table-view/components/paper-table-item.vue";
 
 import MainSection from "./components/main-section.vue";
 
@@ -55,73 +54,102 @@ item.value.initialize({
   _partition: "",
 });
 
-const tableTitleColumns: Ref<Record<string, { name: string; width: number }>> =
-  ref({});
+const fieldEnable = computed(() => {
+  return {
+    pubTime: prefState.showMainYear,
+    publication: prefState.showMainPublication,
+    pubType: prefState.showMainPubType,
+    rating: prefState.showMainRating,
+    tags: prefState.showMainTags,
+    folders: prefState.showMainFolders,
+    flag: prefState.showMainFlag,
+    note: prefState.showMainNote,
+    addTime: prefState.showMainAddTime,
+  };
+});
+const fieldWidth = ref({});
 
-const resetTableTitleColumns = () => {
-  var newTitleColumns = {
-    title: { name: i18n.t("mainview.title"), width: -1 },
-    authors: { name: i18n.t("mainview.authors"), width: -1 },
-  } as Record<string, { name: string; width: number }>;
+const calTableFieldWidth = (reset = false) => {
+  if (reset) {
+    preferenceService.set({
+      mainTitleWidth: -1,
+      mainAuthorsWidth: -1,
+      mainPublicationWidth: -1,
+      mainYearWidth: -1,
+      mainPubTypeWidth: -1,
+      mainTagsWidth: -1,
+      mainFoldersWidth: -1,
+      mainNoteWidth: -1,
+      mainRatingWidth: -1,
+      mainFlagWidth: -1,
+      mainAddTimeWidth: -1,
+    });
+  }
 
-  if (prefState.showMainPublication) {
-    newTitleColumns["publication"] = {
-      name: i18n.t("mainview.publicationtitle"),
-      width: -1,
-    };
-  }
-  if (prefState.showMainYear) {
-    newTitleColumns["pubTime"] = {
-      name: i18n.t("mainview.pubyear"),
-      width: -1,
-    };
-  }
-  if (prefState.showMainPubType) {
-    newTitleColumns["pubType"] = {
-      name: i18n.t("mainview.pubtype"),
-      width: -1,
-    };
-  }
-  if (prefState.showMainTags) {
-    newTitleColumns["tags"] = {
-      name: i18n.t("mainview.tags"),
-      width: -1,
-    };
-  }
-  if (prefState.showMainFolders) {
-    newTitleColumns["folders"] = {
-      name: i18n.t("mainview.folders"),
-      width: -1,
-    };
-  }
-  if (prefState.showMainNote) {
-    newTitleColumns["note"] = {
-      name: i18n.t("mainview.note"),
-      width: -1,
-    };
-  }
-  if (prefState.showMainRating) {
-    newTitleColumns["rating"] = {
-      name: i18n.t("mainview.rating"),
-      width: -1,
-    };
-  }
-  if (prefState.showMainFlag) {
-    newTitleColumns["flag"] = { name: i18n.t("mainview.flag"), width: -1 };
-  }
-  if (prefState.showMainAddTime) {
-    newTitleColumns["addTime"] = {
-      name: i18n.t("mainview.addtime"),
-      width: -1,
-    };
+  const keyPrefMap: Record<string, Record<string, string>> = {
+    title: { widthKey: "mainTitleWidth", enableKey: "showMainTitle" },
+    authors: { widthKey: "mainAuthorsWidth", enableKey: "showMainAuthors" },
+    publication: {
+      widthKey: "mainPublicationWidth",
+      enableKey: "showMainPublication",
+    },
+    pubTime: { widthKey: "mainYearWidth", enableKey: "showMainYear" },
+    pubType: { widthKey: "mainPubTypeWidth", enableKey: "showMainPubType" },
+    tags: { widthKey: "mainTagsWidth", enableKey: "showMainTags" },
+    folders: { widthKey: "mainFoldersWidth", enableKey: "showMainFolders" },
+    note: { widthKey: "mainNoteWidth", enableKey: "showMainNote" },
+    rating: { widthKey: "mainRatingWidth", enableKey: "showMainRating" },
+    flag: { widthKey: "mainFlagWidth", enableKey: "showMainFlag" },
+    addTime: { widthKey: "mainAddTimeWidth", enableKey: "showMainAddTime" },
+  };
+  const alwaysShowKeys = ["title", "authors"];
+
+  let totalWidth = 0;
+  let autoWidthNumber = 0;
+
+  const fieldWidthBuffer: Record<string, number> = {};
+
+  for (const [key, prefKey] of Object.entries(keyPrefMap)) {
+    const prefWidth = prefState[prefKey.widthKey];
+    const prefEnable =
+      prefState[prefKey.enableKey] || alwaysShowKeys.includes(key);
+
+    if (!prefEnable) {
+      continue;
+    }
+
+    if (prefWidth !== -1) {
+      fieldWidthBuffer[key] = prefWidth;
+      totalWidth += prefWidth;
+    } else {
+      autoWidthNumber += 1;
+    }
   }
 
   // Calculate the width percentage of each column
-  Object.keys(newTitleColumns).forEach((key) => {
-    newTitleColumns[key].width = 100 / Object.keys(newTitleColumns).length;
-  });
+  const autoWidth = (100 - totalWidth) / autoWidthNumber;
+  for (const [key, prefKey] of Object.entries(keyPrefMap)) {
+    const prefWidth = prefState[prefKey.widthKey];
+    const prefEnable =
+      prefState[prefKey.enableKey] || alwaysShowKeys.includes(key);
 
-  tableTitleColumns.value = newTitleColumns;
+    if (!prefEnable) {
+      continue;
+    }
+
+    if (prefWidth === -1) {
+      fieldWidthBuffer[key] = autoWidth;
+    }
+  }
+
+  let restWidth = 0;
+  for (const [key, width] of Object.entries(fieldWidthBuffer)) {
+    restWidth += width;
+  }
+  restWidth = 100 - restWidth;
+  fieldWidthBuffer.title += restWidth;
+
+  fieldWidth.value = fieldWidthBuffer;
 };
 
 const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
@@ -141,53 +169,43 @@ disposable(
       "showMainFlag",
       "showMainAddTime",
     ],
-    resetTableTitleColumns
+    () => calTableFieldWidth(true)
   )
 );
 
 onMounted(() => {
-  resetTableTitleColumns();
+  calTableFieldWidth();
 });
 </script>
 
 <template>
-  <div class="flex flex-col w-[600px] text-neutral-800 dark:text-neutral-300">
+  <div
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
+  >
     <div class="text-base font-semibold mb-4">
       {{ $t("preference.mainview") + " " + $t("mainview.preview") }}
     </div>
-    <ListItem
-      class="bg-neutral-200 dark:bg-neutral-700 w-[600px] cursor-default"
+    <PaperListItem
+      class="bg-neutral-200 dark:bg-neutral-700 cursor-default mb-2"
       :item="item"
-      :showPubTime="prefState.showMainYear"
-      :showPublication="prefState.showMainPublication"
-      :showRating="prefState.showMainRating"
-      :showPubType="prefState.showMainPubType"
-      :showTags="prefState.showMainTags"
-      :showFolders="prefState.showMainFolders"
-      :showNote="prefState.showMainNote"
-      :showFlag="prefState.showMainFlag"
-      :read="true"
+      :field-enable="fieldEnable"
+      :active="false"
+      :categorizer-sort-by="prefState.sidebarSortBy"
+      :categorizer-sort-order="prefState.sidebarSortOrder"
     />
 
-    <TableItem
-      class="bg-neutral-200 dark:bg-neutral-700 w-[600px] cursor-default mt-5"
+    <PaperTableItem
+      class="bg-neutral-200 dark:bg-neutral-700 cursor-default"
       :item="item"
-      :titles="tableTitleColumns"
-      :showPubTime="prefState.showMainYear"
-      :showPublication="prefState.showMainPublication"
-      :showRating="prefState.showMainRating"
-      :showPubType="prefState.showMainPubType"
-      :showTags="prefState.showMainTags"
-      :showFolders="prefState.showMainFolders"
-      :showNote="prefState.showMainNote"
-      :showFlag="prefState.showMainFlag"
-      :showAddTime="prefState.showMainAddTime"
-      :read="true"
+      :field-enable="fieldEnable"
+      :field-width="fieldWidth"
+      :categorizer-sort-by="prefState.sidebarSortBy"
+      :categorizer-sort-order="prefState.sidebarSortOrder"
       :active="false"
       :striped="false"
     />
 
-    <div class="flex mt-6 flex-wrap w-[600px]">
+    <div class="flex mt-6 flex-wrap">
       <MainSection
         description="Year"
         :enable="prefState.showMainYear"
@@ -256,4 +274,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-@/renderer/services/preference-service

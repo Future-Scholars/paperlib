@@ -10,12 +10,11 @@ import {
 import { ObjectID } from "bson";
 import { Ref, inject, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
-import { useProcessingState } from "@/renderer/services/state-service/processing";
 import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CollopseGroup from "./components/collopse-group.vue";
 import SectionItem from "./components/section-item.vue";
@@ -46,13 +45,9 @@ const colorClass = (color?: string) => {
 // ================================
 // State
 // ================================
-const viewState = MainRendererStateStore.useViewState();
-const processingState = useProcessingState();
-const selectionState = MainRendererStateStore.useSelectionState();
+const processingState = uiStateService.processingState.useState();
 const prefState = preferenceService.useState();
-const bufferState = MainRendererStateStore.useBufferState();
-
-const isSpinnerShown = ref(false);
+const uiState = uiStateService.useState();
 
 // ================================
 // Data
@@ -66,16 +61,22 @@ const smartfilters = inject<Ref<IPaperSmartFilterResults>>("smartfilters");
 // ================================
 const onSelectCategorizer = (categorizer: string) => {
   if (categorizer === "lib-all") {
-    viewState.searchMode = "general";
-    viewState.searchText = "";
+    uiState.commandBarMode = "general";
+    uiState.commandBarText = "";
   }
-  selectionState.selectedCategorizer = categorizer;
+  uiState.selectedCategorizer = categorizer;
 };
 
+disposable(
+  uiStateService.onChanged("selectedCategorizer", (value) => {
+    console.log("selectedCategorizer changed");
+  })
+);
+
 const onSelectSmartFilter = (smartfilter: PaperSmartFilter) => {
-  selectionState.selectedCategorizer = `smartfilter-${smartfilter.name}`;
-  viewState.searchMode = "advanced";
-  viewState.searchText = smartfilter.filter;
+  uiState.selectedCategorizer = `smartfilter-${smartfilter.name}`;
+  uiState.commandBarMode = "advanced";
+  uiState.commandBarText = smartfilter.filter;
 };
 
 const onItemRightClicked = (
@@ -95,45 +96,45 @@ const onFileDroped = (
 };
 
 const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
-  let dragedIds: (string | ObjectID)[] = [];
-  if (selectionState.selectedIds.includes(selectionState.dragedIds[0])) {
-    selectionState.dragedIds = selectionState.selectedIds;
-    dragedIds = selectionState.selectedIds;
+  let dragingIds: (string | ObjectID)[] = [];
+  if (uiState.selectedIds.includes(uiState.dragingIds[0])) {
+    uiState.dragingIds = uiState.selectedIds;
+    dragingIds = uiState.selectedIds;
   } else {
-    dragedIds = selectionState.dragedIds;
+    dragingIds = uiState.dragingIds;
   }
-  paperService.updateWithCategorizer(dragedIds, categorizer, type);
+  paperService.updateWithCategorizer(dragingIds, categorizer, type);
 };
 
 const onCategorizerNameChanged = (name: string) => {
   if (
-    selectionState.editingCategorizer &&
-    selectionState.editingCategorizer
+    uiState.editingCategorizerDraft &&
+    uiState.editingCategorizerDraft
       .replace("folder-", "")
       .replace("tag-", "") !== name &&
-    viewState.contentType === "library"
+    uiState.contentType === "library"
   ) {
     categorizerService.rename(
-      selectionState.editingCategorizer
+      uiState.editingCategorizerDraft
         .replace("folder-", "")
         .replace("tag-", ""),
       name,
-      selectionState.editingCategorizer.startsWith("tag-")
+      uiState.editingCategorizerDraft.startsWith("tag-")
         ? "PaperTag"
         : "PaperFolder"
     );
   }
-  selectionState.editingCategorizer = "";
+  uiState.editingCategorizerDraft = "";
 };
 
 const onCategorizerNameInputBlured = () => {
-  selectionState.editingCategorizer = "";
+  uiState.editingCategorizerDraft = "";
 };
 
 const onAddNewPaperSmartFilterClicked = () => {
   const smartfilterDraft = new PaperSmartFilter("", "");
-  bufferState.editingPaperSmartFilterDraft = smartfilterDraft;
-  viewState.isPaperSmartFilterEditViewShown = true;
+  uiState.editingPaperSmartFilterDraft = smartfilterDraft;
+  uiState.isPaperSmartFilterEditViewShown = true;
 };
 
 // ================================
@@ -142,13 +143,13 @@ const onAddNewPaperSmartFilterClicked = () => {
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuDeleteClicked",
   (payload: { data: string; type: string }) => {
-    if (viewState.contentType === "library") {
+    if (uiState.contentType === "library") {
       if (payload.type === "PaperPaperSmartFilter") {
         smartFilterService.delete(payload.type, payload.data);
       } else {
         categorizerService.delete(payload.type as any, payload.data);
       }
-      selectionState.selectedCategorizer = "lib-all";
+      uiState.selectedCategorizer = "lib-all";
     }
   }
 );
@@ -156,7 +157,7 @@ PLMainAPI.contextMenuService.on(
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuColorClicked",
   (payload: { data: string; type: string; color: string }) => {
-    if (viewState.contentType === "library") {
+    if (uiState.contentType === "library") {
       if (payload.type === "PaperPaperSmartFilter") {
         // TODO: check here
         smartFilterService.colorize(
@@ -178,32 +179,20 @@ PLMainAPI.contextMenuService.on(
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuEditClicked",
   (payload: { data: ""; type: "" }) => {
-    if (viewState.contentType === "library") {
-      selectionState.editingCategorizer = `${
+    if (uiState.contentType === "library") {
+      uiState.editingCategorizerDraft = `${
         { PaperTag: "tag", PaperFolder: "folder" }[payload.type as string]
       }-${payload.data}`;
     }
   }
 );
 
-watch(
-  () => processingState.general,
-  (value) => {
-    if (value > 0) {
-      isSpinnerShown.value = true;
-    } else {
-      isSpinnerShown.value = false;
-    }
-  }
-);
-
-watch(
-  () => selectionState.editingCategorizer,
-  (value) => {
+disposable(
+  uiStateService.onChanged("editingCategorizerDraft", (value) => {
     if (value) {
-      selectionState.selectedCategorizer = value;
+      uiState.selectedCategorizer = value.value;
     }
-  }
+  })
 );
 </script>
 
@@ -212,11 +201,11 @@ watch(
     <SectionItem
       id="sidebar-library-section"
       :name="$t('mainview.allpapers')"
-      :count="viewState.entitiesCount"
+      :count="uiState.entitiesCount"
       :with-counter="prefState.showSidebarCount"
-      :with-spinner="isSpinnerShown"
+      :with-spinner="processingState.general > 0"
       :compact="prefState.isSidebarCompact"
-      :active="selectionState.selectedCategorizer === 'lib-all'"
+      :active="uiState.selectedCategorizer === 'lib-all'"
       @click="onSelectCategorizer('lib-all')"
     >
       <BIconCollection class="text-sm my-auto text-blue-500 min-w-[1em]" />
@@ -227,7 +216,7 @@ watch(
       :with-counter="false"
       :with-spinner="false"
       :compact="prefState.isSidebarCompact"
-      :active="selectionState.selectedCategorizer === 'lib-flaged'"
+      :active="uiState.selectedCategorizer === 'lib-flaged'"
       @click="onSelectCategorizer('lib-flaged')"
     >
       <BIconFlag class="text-sm my-auto text-blue-500 min-w-[1em]" />
@@ -247,8 +236,7 @@ watch(
         :editing="false"
         v-for="smartfilter in smartfilters"
         :active="
-          selectionState.selectedCategorizer ===
-          `smartfilter-${smartfilter.name}`
+          uiState.selectedCategorizer === `smartfilter-${smartfilter.name}`
         "
         @click="onSelectSmartFilter(smartfilter)"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, smartfilter, 'PaperPaperSmartFilter')}"
@@ -268,9 +256,9 @@ watch(
         :with-counter="prefState.showSidebarCount"
         :with-spinner="false"
         :compact="prefState.isSidebarCompact"
-        :editing="selectionState.editingCategorizer === `tag-${tag.name}`"
+        :editing="uiState.editingCategorizerDraft === `tag-${tag.name}`"
         v-for="tag in tags"
-        :active="selectionState.selectedCategorizer === `tag-${tag.name}`"
+        :active="uiState.selectedCategorizer === `tag-${tag.name}`"
         @click="onSelectCategorizer(`tag-${tag.name}`)"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, tag, 'PaperTag')}"
         @droped="
@@ -305,9 +293,9 @@ watch(
         :with-counter="prefState.showSidebarCount"
         :with-spinner="false"
         :compact="prefState.isSidebarCompact"
-        :editing="selectionState.editingCategorizer === `folder-${folder.name}`"
+        :editing="uiState.editingCategorizerDraft === `folder-${folder.name}`"
         v-for="folder in folders"
-        :active="selectionState.selectedCategorizer === `folder-${folder.name}`"
+        :active="uiState.selectedCategorizer === `folder-${folder.name}`"
         @click="onSelectCategorizer(`folder-${folder.name}`)"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, folder, 'PaperFolder')}"
         @droped="
@@ -335,7 +323,7 @@ watch(
             'text-green-500': folder.color === 'green',
             'text-yellow-500': folder.color === 'yellow',
           }"
-          v-if="folder.name !== selectionState.pluginLinkedFolder"
+          v-if="folder.name !== uiState.pluginLinkedFolder"
         />
         <BIconFolderSymlink
           class="text-sm my-auto min-w-[1em]"
@@ -345,10 +333,9 @@ watch(
             'text-green-500': folder.color === 'green',
             'text-yellow-500': folder.color === 'yellow',
           }"
-          v-if="folder.name === selectionState.pluginLinkedFolder"
+          v-if="folder.name === uiState.pluginLinkedFolder"
         />
       </SectionItem>
     </CollopseGroup>
   </div>
 </template>
-@/renderer/services/state-service/processing

@@ -8,7 +8,6 @@ import { Ref, inject, ref, watch } from "vue";
 
 import { Feed } from "@/models/feed";
 import { IFeedResults } from "@/repositories/db-repository/feed-repository";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import CollopseGroup from "./components/collopse-group.vue";
 import SectionItem from "./components/section-item.vue";
@@ -39,12 +38,9 @@ const colorClass = (color?: string) => {
 // ================================
 // State
 // ================================
-const viewState = MainRendererStateStore.useViewState();
-const selectionState = MainRendererStateStore.useSelectionState();
 const prefState = preferenceService.useState();
-const bufferState = MainRendererStateStore.useBufferState();
-
-const isSpinnerShown = ref(false);
+const uiState = uiStateService.useState();
+const processingState = uiStateService.processingState.useState();
 
 // ================================
 // Data
@@ -55,7 +51,7 @@ const feeds = inject<Ref<IFeedResults>>("feeds");
 // Event Functions
 // ================================
 const onSelectFeed = (feed: string) => {
-  selectionState.selectedFeed = feed;
+  uiState.selectedFeed = feed;
 };
 
 const onItemRightClicked = (event: MouseEvent, feed: Feed) => {
@@ -64,8 +60,8 @@ const onItemRightClicked = (event: MouseEvent, feed: Feed) => {
 
 const onAddNewFeedClicked = () => {
   const feedDraft = new Feed(true);
-  bufferState.editingFeedDraft = feedDraft;
-  viewState.isFeedEditViewShown = true;
+  uiState.editingFeedDraft = feedDraft;
+  uiState.isFeedEditViewShown = true;
 };
 
 // ================================
@@ -75,9 +71,9 @@ const onAddNewFeedClicked = () => {
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuDeleteClicked",
   (payload: { data: string; type: string }) => {
-    if (viewState.contentType === "feed") {
+    if (uiState.contentType === "feed") {
       feedService.delete(payload.data);
-      selectionState.selectedFeed = "feed-all";
+      uiState.selectedFeed = "feed-all";
     }
   }
 );
@@ -85,7 +81,7 @@ PLMainAPI.contextMenuService.on(
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuFeedRefreshClicked",
   (payload: { data: string; type: string }) => {
-    if (viewState.contentType === "feed") {
+    if (uiState.contentType === "feed") {
       feedService.refresh([payload.data]);
     }
   }
@@ -94,19 +90,8 @@ PLMainAPI.contextMenuService.on(
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuColorClicked",
   (payload: { data: string; type: string; color: string }) => {
-    if (viewState.contentType === "feed") {
+    if (uiState.contentType === "feed") {
       feedService.colorize(payload.color as any, payload.data);
-    }
-  }
-);
-
-watch(
-  () => viewState.processingQueueCount,
-  (value) => {
-    if (value > 0) {
-      isSpinnerShown.value = true;
-    } else {
-      isSpinnerShown.value = false;
     }
   }
 );
@@ -116,11 +101,11 @@ watch(
   <div>
     <SectionItem
       :name="$t('mainview.allfeeds')"
-      :count="viewState.feedEntitiesCount"
+      :count="uiState.feedEntitiesCount"
       :with-counter="prefState.showSidebarCount"
-      :with-spinner="isSpinnerShown"
+      :with-spinner="processingState.general > 0"
       :compact="prefState.isSidebarCompact"
-      :active="selectionState.selectedFeed === 'feed-all'"
+      :active="uiState.selectedFeed === 'feed-all'"
       @click="onSelectFeed('feed-all')"
     >
       <BIconRss class="text-sm my-auto text-blue-500 min-w-[1em]" />
@@ -130,7 +115,7 @@ watch(
       :with-counter="false"
       :with-spinner="false"
       :compact="prefState.isSidebarCompact"
-      :active="selectionState.selectedFeed === 'feed-unread'"
+      :active="uiState.selectedFeed === 'feed-unread'"
       @click="onSelectFeed('feed-unread')"
     >
       <BIconAppIndicator class="text-sm my-auto text-blue-500 min-w-[1em]" />
@@ -148,7 +133,7 @@ watch(
         :with-spinner="false"
         :compact="prefState.isSidebarCompact"
         v-for="feed in feeds"
-        :active="selectionState.selectedFeed === `feed-${feed.name}`"
+        :active="uiState.selectedFeed === `feed-${feed.name}`"
         @click="onSelectFeed(`feed-${feed.name}`)"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, feed)}"
       >

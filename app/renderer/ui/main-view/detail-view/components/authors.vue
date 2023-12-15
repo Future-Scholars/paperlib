@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
 const props = defineProps({
   authors: String,
 });
 
-const viewState = MainRendererStateStore.useViewState();
+const uiState = uiStateService.useState();
 
 const onClick = (e: MouseEvent, author: string) => {
   e.preventDefault();
   e.stopPropagation();
-  viewState.searchMode = "advanced";
-  viewState.searchText = `authors contains '${author}'`;
+  uiState.commandBarMode = "advanced";
+  uiState.commandBarText = `authors contains '${author}'`;
 };
 
 const onRightClick = (e: MouseEvent, author: string) => {

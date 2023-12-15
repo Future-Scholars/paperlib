@@ -1,20 +1,7 @@
 import { ipcMain } from "electron";
 import { Eventable } from "../event";
 import { WindowStorage } from "@/main/window-storage";
-
-export type Dto<T> = T extends { toJSON(): infer U }
-  ? U
-  : T extends string // VSBuffer is understood by rpc-logic
-  ? T
-  : T extends object // recurse
-  ? { [k in keyof T]: Dto<T[k]> }
-  : T;
-
-export type Proxied<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => infer R
-    ? (...args: { [K in keyof A]: Dto<A[K]> }) => Promise<Dto<Awaited<R>>>
-    : never;
-};
+import { Proxied } from "@/base/rpc/proxied";
 
 /**
  * Electron ipcMain (EI) based RPC Protocol*/
@@ -76,6 +63,7 @@ export class EIMainRPCProtocol {
       }
     }
 
+    // Emit event to all paired protocols.
     if (value instanceof Eventable) {
       for (const eventName of value.getEvents()) {
         const signal = `${rpcId}.${eventName}`;

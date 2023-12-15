@@ -5,8 +5,6 @@ import {
 } from "bootstrap-icons-vue";
 import { ref } from "vue";
 
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-
 const props = defineProps({
   placeholder: {
     type: String,
@@ -26,7 +24,7 @@ const props = defineProps({
   },
 });
 
-const viewState = MainRendererStateStore.useViewState();
+const uiState = uiStateService.useState();
 
 const isExpanded = ref(props.isExpanded);
 const emit = defineEmits(["changed", "expand"]);
@@ -34,6 +32,8 @@ const emit = defineEmits(["changed", "expand"]);
 const onInput = (payload: Event) => {
   emit("changed", (payload.target as HTMLTextAreaElement).value);
 };
+
+// TODO: merge input field and text area
 </script>
 
 <template>
@@ -75,8 +75,8 @@ const onInput = (payload: Event) => {
       :value="value"
       :name="placeholder"
       @input="onInput"
-      @focus="viewState.inputFieldFocused = true"
-      @blur="viewState.inputFieldFocused = false"
+      @focus="uiState.inputFieldFocused = true"
+      @blur="uiState.inputFieldFocused = false"
     />
   </div>
 </template>

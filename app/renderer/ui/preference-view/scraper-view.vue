@@ -3,15 +3,13 @@ import { BIconGear, BIconGripVertical, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
+import { IPreferenceStore } from "@/common/services/preference-service";
 import { ScraperPreference } from "@/preference/preference";
-import { IPreferenceStore } from "@/renderer/services/preference-service";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
 
 import ScraperItem from "./components/scraper.vue";
 import Toggle from "./components/toggle.vue";
 
 const prefState = preferenceService.useState();
-const viewState = MainRendererStateStore.useViewState();
 const presetSelection = ref("");
 
 const enabledScraperList: Ref<ScraperPreference[]> = ref([]);
@@ -68,7 +66,8 @@ const onEnabledChanged = (change: any) => {
     scraperPrefs[disabledScraper.name].enable = false;
   }
   preferenceService.set({ scrapers: JSON.parse(JSON.stringify(scraperPrefs)) });
-  viewState.scraperReinited = Date.now();
+  // TODO: reinit scraper
+  // viewState.scraperReinited = Date.now();
 };
 
 const onEditClicked = (scraper: ScraperPreference) => {
@@ -93,7 +92,8 @@ const onAddNewScraperClicked = () => {
   if (!scraperPrefs[newScraperPref.name]) {
     scraperPrefs[newScraperPref.name] = newScraperPref;
     preferenceService.set({ scrapers: scraperPrefs });
-    viewState.scraperReinited = Date.now();
+    // TODO: reinit scraper
+    // viewState.scraperReinited = Date.now();
   }
 };
 
@@ -106,7 +106,8 @@ const onDeleteScraper = () => {
     }
   }
   preferenceService.set({ scrapers: newScrapers });
-  viewState.scraperReinited = Date.now();
+  // TODO: reinit scraper
+  // viewState.scraperReinited = Date.now();
   editingScraper.value = null;
 };
 
@@ -115,7 +116,8 @@ const onUpdateScraper = (scraperPref: ScraperPreference) => {
   delete scraperPrefs[editingScraperName.value];
   scraperPrefs[scraperPref.name] = scraperPref;
   preferenceService.set({ scrapers: scraperPrefs });
-  viewState.scraperReinited = Date.now();
+  // TODO: reinit scraper
+  // viewState.scraperReinited = Date.now();
   editingScraper.value = null;
 };
 
@@ -163,7 +165,8 @@ const onChangePreset = (preset: "cs" | "es" | "phys" | "default") => {
     scraper.priority = 1000 - presets[preset].indexOf(name);
   }
   preferenceService.set({ scrapers: scraperPrefs });
-  viewState.scraperReinited = Date.now();
+  // TODO: reinit scraper
+  // viewState.scraperReinited = Date.now();
 };
 
 const onClickGuide = () => {
@@ -183,7 +186,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="flex flex-col w-full text-neutral-800 dark:text-neutral-300 max-w-xl overflow-scroll"
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 overflow-scroll w-[400px] md:w-[500px] lg:w-[700px]"
   >
     <div class="text-base font-semibold mb-4">
       Metadata {{ $t("preference.scraper") }}
@@ -356,4 +359,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-@/renderer/services/preference-service @/common/services/preference-service

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { IPreferenceStore } from "@/renderer/services/preference-service";
+import { IPreferenceStore } from "@/common/services/preference-service";
 
 import Toggle from "./components/toggle.vue";
 
@@ -17,7 +17,7 @@ const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
 
 <template>
   <div
-    class="flex flex-col w-full text-neutral-800 dark:text-neutral-300 max-w-xl"
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px]"
   >
     <div class="text-base font-semibold mb-1">{{ $t("preference.proxy") }}</div>
 
@@ -50,4 +50,3 @@ const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
     />
   </div>
 </template>
-@/renderer/services/preference-service @/common/services/preference-service

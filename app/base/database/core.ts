@@ -17,8 +17,7 @@ import { PaperSmartFilter } from "@/models/smart-filter";
 import { APPService, IAPPService } from "@/renderer/services/app-service";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-import { processing } from "@/renderer/services/state-service/processing";
-import { ProcessingKey } from "@/renderer/services/state-service/state/processing";
+import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 
 export const DATABASE_SCHEMA_VERSION = 9;
 

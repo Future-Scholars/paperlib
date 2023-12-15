@@ -10,7 +10,7 @@ export interface InjectableConstructor<K> {
   injections?: IInjectDependencyConfig[];
 }
 
-interface IGraph {
+export interface IGraph {
   addNode(id: string): void;
   addEdge(id1: string, id2: string): void;
   topologicalSort(): string[];

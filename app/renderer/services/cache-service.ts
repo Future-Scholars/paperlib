@@ -2,6 +2,7 @@ import { ObjectId } from "bson";
 import { promises } from "fs";
 import md5 from "md5-file";
 import * as pdfjs from "pdfjs-dist/build/pdf";
+// @ts-ignore
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import { PrimaryKey } from "realm";
@@ -20,10 +21,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import { PaperEntityCache, ThumbnailCache } from "@/models/paper-entity-cache";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-import {
-  ProcessingKey,
-  processing,
-} from "@/renderer/services/state-service/processing";
+import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 
 export const ICacheService = createDecorator("cacheService");
@@ -64,7 +62,7 @@ export class CacheService {
 
     const ids = realm
       .objects<PaperEntityCache>("PaperEntityCache")
-      .filtered(`(fulltext contains[c] \"${query}\")`)
+      .filtered(query)
       .map((p) => p._id);
 
     const filteredPaperEntities = (

@@ -5,12 +5,12 @@ import {
   BIconPlus,
   BIconSearch,
 } from "bootstrap-icons-vue";
+import { ipcMain } from "electron";
 import { onMounted, ref, watch } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { PaperEntity } from "@/models/paper-entity";
 import { ThumbnailCache } from "@/models/paper-entity-cache";
-import { MainRendererStateStore } from "@/state/renderer/appstate";
-import { ipcMain } from "electron";
 
 const props = defineProps({
   entity: {
@@ -21,7 +21,7 @@ const props = defineProps({
 
 const emit = defineEmits(["modifyMainFile", "locateMainFile"]);
 
-const viewState = MainRendererStateStore.useViewState();
+const uiState = uiStateService.useState();
 
 const isRendering = ref(true);
 const fileExistingStatus = ref(1);
@@ -131,11 +131,10 @@ PLMainAPI.contextMenuService.on("thumbnailContextMenuRefreshClicked", () => {
   renderFromFile();
 });
 
-watch(
-  () => viewState.renderRequired,
-  () => {
+disposable(
+  uiStateService.on("renderRequired", () => {
     render();
-  }
+  })
 );
 
 onMounted(() => {

@@ -4,6 +4,8 @@ import { Feed } from "@/models/feed";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 
+//TODO: Merge this with UIStateService
+
 export interface IBufferServiceState {
   editingPaperEntityDraft: PaperEntity;
   editingFeedDraft: Feed;

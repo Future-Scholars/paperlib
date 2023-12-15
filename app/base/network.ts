@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import { createWriteStream } from "fs";
+import { createWriteStream, existsSync, mkdirSync } from "fs";
 import got, { HTTPError } from "got";
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import os from "os";
@@ -14,6 +14,8 @@ import {
   PreferenceService,
 } from "@/common/services/preference-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
+
+import { compressString } from "./string";
 
 const cache = new Map();
 
@@ -108,8 +110,7 @@ export class NetworkTool {
   }
 
   checkSystemProxy() {
-    const proxy =
-      PLMainAPI.proxyService.getSystemProxySync() as unknown as string;
+    const proxy = ipcRenderer.sendSync("checkSystemProxy");
 
     if (proxy !== "DIRECT") {
       const proxyUrlComponents = proxy.split(":");
@@ -190,20 +191,48 @@ export class NetworkTool {
 
   async post(
     url: string,
-    data: Record<string, any>,
+    data: Record<string, any> | string,
     headers?: Record<string, string>,
     retry = 1,
-    timeout = 5000
+    timeout = 5000,
+    compress = false
   ) {
-    const options = {
-      json: data,
-      headers: headers,
-      retry: retry,
-      timeout: {
-        request: timeout,
-      },
-      agent: this._agent,
-    };
+    let options;
+    if (compress) {
+      const dataString = typeof data === "string" ? data : JSON.stringify(data);
+      const buffer = compressString(dataString);
+
+      options = {
+        body: buffer,
+        headers: headers,
+        retry: retry,
+        timeout: {
+          request: timeout,
+        },
+        agent: this._agent,
+      };
+      console.log(options);
+    } else if (typeof data === "string") {
+      options = {
+        stringifyJson: data,
+        headers: headers,
+        retry: retry,
+        timeout: {
+          request: timeout,
+        },
+        agent: this._agent,
+      };
+    } else {
+      options = {
+        json: data,
+        headers: headers,
+        retry: retry,
+        timeout: {
+          request: timeout,
+        },
+        agent: this._agent,
+      };
+    }
     return await got.post(url, options);
   }
 
@@ -214,6 +243,16 @@ export class NetworkTool {
     retry = 1,
     timeout = 5000
   ) {
+    if (!(data instanceof FormData)) {
+      if (typeof data === "object") {
+        const formData = new FormData();
+        for (const key in data as Record<string, any>) {
+          formData.append(key, data[key]);
+        }
+        data = formData;
+      }
+    }
+
     const options = {
       form: data,
       headers: headers,
@@ -273,6 +312,12 @@ export class NetworkTool {
           if (!filename.endsWith(".pdf")) {
             filename += ".pdf";
           }
+
+          const targetFolder = path.join(os.homedir(), "Downloads");
+          if (!existsSync(targetFolder)) {
+            mkdirSync(targetFolder);
+          }
+
           const targetPath = path.join(os.homedir(), "Downloads", filename);
           return this.download(url, targetPath, cookies);
         })
