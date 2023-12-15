@@ -176,7 +176,7 @@ onMounted(async () => {
         class="p-2"
         :class="
           isSettingShown
-            ? 'w-1/2 flex-none flex flex-col'
+            ? 'w-1/2 flex-none flex flex-col space-y-2'
             : 'grid grid-cols-3 gap-2'
         "
         v-if="viewMode == 'installed'"

@@ -1,7 +1,6 @@
 import { RecycleScroller } from "@future-scholars/vue-virtual-scroller";
 import "@future-scholars/vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import { BIconChevronUp, BIconX } from "bootstrap-icons-vue";
-import { ipcRenderer } from "electron";
 import { createPinia } from "pinia";
 import { Pane, Splitpanes } from "splitpanes";
 import { createApp } from "vue";

@@ -15,6 +15,8 @@ import {
 } from "@/common/services/preference-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 
+import { compressString } from "./string";
+
 const cache = new Map();
 
 const gotWithCache = got.extend({
@@ -189,20 +191,48 @@ export class NetworkTool {
 
   async post(
     url: string,
-    data: Record<string, any>,
+    data: Record<string, any> | string,
     headers?: Record<string, string>,
     retry = 1,
-    timeout = 5000
+    timeout = 5000,
+    compress = false
   ) {
-    const options = {
-      json: data,
-      headers: headers,
-      retry: retry,
-      timeout: {
-        request: timeout,
-      },
-      agent: this._agent,
-    };
+    let options;
+    if (compress) {
+      const dataString = typeof data === "string" ? data : JSON.stringify(data);
+      const buffer = compressString(dataString);
+
+      options = {
+        body: buffer,
+        headers: headers,
+        retry: retry,
+        timeout: {
+          request: timeout,
+        },
+        agent: this._agent,
+      };
+      console.log(options);
+    } else if (typeof data === "string") {
+      options = {
+        stringifyJson: data,
+        headers: headers,
+        retry: retry,
+        timeout: {
+          request: timeout,
+        },
+        agent: this._agent,
+      };
+    } else {
+      options = {
+        json: data,
+        headers: headers,
+        retry: retry,
+        timeout: {
+          request: timeout,
+        },
+        agent: this._agent,
+      };
+    }
     return await got.post(url, options);
   }
 

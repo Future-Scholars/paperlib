@@ -51,6 +51,9 @@ export class ExtensionManagementService {
     this.install(
       "/Users/administrator/Projects/extension_demos/paperlib-entry-scrape-extension"
     );
+    this.install(
+      "/Users/administrator/Projects/extension_demos/paperlib-metadata-scrape-extension"
+    );
   }
 
   async install(extensionName: string) {
