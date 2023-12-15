@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, computed, nextTick, onMounted, provide, ref, watch } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 
 // ================================
 // State
@@ -70,7 +70,7 @@ onMounted(async () => {
 <template>
   <div
     id="dev-btn-bar"
-    class="fixed right-2 bottom-2 text-xs bg-neutral-200 rounded-md py-2 px-4 z-50"
+    class="fixed right-2 bottom-2 text-xs bg-neutral-200 dark:bg-neutral-900 rounded-md py-2 px-4 z-50"
   >
     <div class="mb-1 font-semibold">DATA TEST</div>
     <div class="grid grid-cols-5 gap-1 mb-4">
