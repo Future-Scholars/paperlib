@@ -234,6 +234,8 @@ export class NetworkTool {
         "user-agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
       };
+
+      let percent = 0;
       await pipeline(
         got
           .stream(url, {
@@ -243,15 +245,16 @@ export class NetworkTool {
             cookieJar: cookies,
           })
           .on("downloadProgress", (progress) => {
-            const percent = progress.percent;
-
-            // TODO: Log only every 5 percent
-            this._logService.progress(
-              "Downloading...",
-              percent * 100,
-              true,
-              "Network"
-            );
+            if (progress.percent - percent > 0.05) {
+              // TODO: Log only every 5 percent
+              this._logService.progress(
+                "Downloading...",
+                percent * 100,
+                true,
+                "Network"
+              );
+              percent = progress.percent;
+            }
           }),
         createWriteStream(constructFileURL(targetPath, false, false))
       );

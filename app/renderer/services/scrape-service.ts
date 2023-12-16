@@ -2,7 +2,6 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import {
   IPreferenceService,
-  IScraperPreference,
   PreferenceService,
 } from "@/common/services/preference-service";
 import { PaperEntity } from "@/models/paper-entity";
@@ -64,25 +63,9 @@ export class ScrapeService extends Eventable<{}> {
     // TODO merge duplicated paperEntityDrafts
 
     // 2. Metadata scraper fullfills the metadata of PaperEntitys.
-    // Get enabled scrapers
-    let scrapers: string[] = [];
-    if (specificScrapers.length > 0) {
-      scrapers = specificScrapers;
-    } else {
-      const scraperPref = this._preferenceService.get("scrapers") as Record<
-        string,
-        IScraperPreference
-      >;
-      for (const [name, pref] of Object.entries(scraperPref)) {
-        if (pref.enable) {
-          scrapers.push(name);
-        }
-      }
-    }
-
-    const scrapedPaperEntityDrafts = await this.scrapePMS(
+    const scrapedPaperEntityDrafts = await this.scrapeMetadata(
       paperEntityDrafts,
-      scrapers,
+      specificScrapers,
       force
     );
 
@@ -133,7 +116,7 @@ export class ScrapeService extends Eventable<{}> {
    * @param scrapers - list of metadata scrapers.
    * @param force - force scraping metadata.
    * @returns - list of paper entities. */
-  async scrapePMS(
+  async scrapeMetadata(
     paperEntityDrafts: PaperEntity[],
     scrapers: string[],
     force: boolean = false

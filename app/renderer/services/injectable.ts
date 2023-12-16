@@ -28,7 +28,6 @@ import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-r
 import { FeedRepository } from "@/repositories/db-repository/feed-repository";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity-repository";
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
-import { FileSourceRepository } from "@/repositories/filesource-repository/filesource-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 
 export type IInjectable =
@@ -46,7 +45,6 @@ export type IInjectable =
   | CacheService
   | CacheDatabaseCore
   | CategorizerService
-  | FileSourceRepository
   | SmartFilterService
   | BrowserExtensionService
   | PaperSmartFilterRepository

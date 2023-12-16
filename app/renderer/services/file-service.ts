@@ -1,10 +1,9 @@
 import { SpawnOptions, spawn } from "child_process";
-import { ipcRenderer, shell } from "electron";
+import { shell } from "electron";
 import { existsSync } from "fs";
 import os from "os";
 import path from "path";
 
-import { chunkRun } from "@/base/chunk";
 import { createDecorator } from "@/base/injection/injection";
 import {
   eraseProtocol,
@@ -14,28 +13,22 @@ import {
   listAllFiles,
 } from "@/base/url";
 import {
-  IDownloaderPreference,
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
 import { PaperEntity } from "@/models/paper-entity";
+import { HookService, IHookService } from "@/renderer/services/hook-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { IFileBackend } from "@/repositories/file-repository/backend";
 import { LocalFileBackend } from "@/repositories/file-repository/local-backend";
 import { WebDavFileBackend } from "@/repositories/file-repository/webdav-backend";
-import {
-  FileSourceRepository,
-  IFileSourceRepository,
-} from "@/repositories/filesource-repository/filesource-repository";
-
 export const IFileService = createDecorator("fileService");
 
 export class FileService {
   private _backend: IFileBackend;
 
   constructor(
-    @IFileSourceRepository
-    private readonly _fileSourceRepository: FileSourceRepository,
+    @IHookService private readonly _hookService: HookService,
     @ILogService private readonly _logService: LogService,
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
@@ -292,44 +285,18 @@ export class FileService {
       "FileService"
     );
 
-    const downloaderPref = this._preferenceService.get(
-      "downloaders"
-    ) as IDownloaderPreference[];
-    let fileSources: string[] = [];
-    for (const pref of downloaderPref) {
-      if (pref.enable) {
-        fileSources.push(pref.name);
-      }
+    let updatedPaperEntityDrafts = paperEntities.map((paperEntity) => {
+      paperEntity.mainURL = "";
+      return paperEntity;
+    });
+    if (this._hookService.hasHook("scrapeMetadata")) {
+      [updatedPaperEntityDrafts] = await this._hookService.modifyHookPoint(
+        "locateFile",
+        updatedPaperEntityDrafts
+      );
     }
 
-    let paperEntityDrafts = paperEntities.map((paperEntity) => {
-      return new PaperEntity(false).initialize(paperEntity);
-    });
-
-    const { results: updatedPaperEntities, errors } = await chunkRun(
-      paperEntityDrafts,
-      async (paperEntityDraft: PaperEntity) => {
-        const { paperEntityDraft: updatedPaperEntity, errors } =
-          await this._fileSourceRepository.download(
-            paperEntityDraft,
-            fileSources
-          );
-        errors.forEach((error) => {
-          this._logService.error(
-            "Download paper failed",
-            error as Error,
-            true,
-            "FileService"
-          );
-        });
-
-        return updatedPaperEntity;
-      },
-      async (paperEntityDraft: PaperEntity) => {
-        return paperEntityDraft;
-      }
-    );
-    return updatedPaperEntities;
+    return updatedPaperEntityDrafts;
   }
 
   /**

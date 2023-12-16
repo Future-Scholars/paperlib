@@ -54,6 +54,9 @@ export class ExtensionManagementService {
     this.install(
       "/Users/administrator/Projects/extension_demos/paperlib-metadata-scrape-extension"
     );
+    this.install(
+      "/Users/administrator/Projects/extension_demos/paperlib-paper-locate-extension"
+    );
   }
 
   async install(extensionName: string) {
