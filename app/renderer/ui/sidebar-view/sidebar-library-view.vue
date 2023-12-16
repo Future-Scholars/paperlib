@@ -136,12 +136,15 @@ const onAddNewPaperSmartFilterClicked = () => {
 // ================================
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuDeleteClicked",
-  (payload: { data: string; type: string }) => {
+  (newValue: { value: { data: string; type: string } }) => {
     if (uiState.contentType === "library") {
-      if (payload.type === "PaperPaperSmartFilter") {
-        smartFilterService.delete(payload.type, payload.data);
+      if (newValue.value.type === "PaperPaperSmartFilter") {
+        smartFilterService.delete(newValue.value.type, newValue.value.data);
       } else {
-        categorizerService.delete(payload.type as any, payload.data);
+        categorizerService.delete(
+          newValue.value.type as any,
+          newValue.value.data
+        );
       }
       uiState.selectedCategorizer = "lib-all";
     }
@@ -150,20 +153,20 @@ PLMainAPI.contextMenuService.on(
 
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuColorClicked",
-  (payload: { data: string; type: string; color: string }) => {
+  (newValue: { value: { data: string; type: string; color: string } }) => {
     if (uiState.contentType === "library") {
-      if (payload.type === "PaperPaperSmartFilter") {
+      if (newValue.value.type === "PaperPaperSmartFilter") {
         // TODO: check here
         smartFilterService.colorize(
-          payload.color as any,
-          payload.type,
-          payload.data
+          newValue.value.color as any,
+          newValue.value.type,
+          newValue.value.data
         );
       } else {
         categorizerService.colorize(
-          payload.color as any,
-          payload.type as any,
-          payload.data
+          newValue.value.color as any,
+          newValue.value.type as any,
+          newValue.value.data
         );
       }
     }
@@ -172,11 +175,13 @@ PLMainAPI.contextMenuService.on(
 
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuEditClicked",
-  (payload: { data: ""; type: "" }) => {
+  (newValue: { value: { data: string; type: string } }) => {
     if (uiState.contentType === "library") {
       uiState.editingCategorizerDraft = `${
-        { PaperTag: "tag", PaperFolder: "folder" }[payload.type as string]
-      }-${payload.data}`;
+        { PaperTag: "tag", PaperFolder: "folder" }[
+          newValue.value.type as string
+        ]
+      }-${newValue.value.data}`;
     }
   }
 );

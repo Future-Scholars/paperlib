@@ -98,9 +98,7 @@ export class ExtensionManagementService {
       console.log(e);
       PLAPI.logService.error(
         `Failed to install extension ${extensionName}`,
-        `${(e as Error).name} \n ${(e as Error).message} \n ${
-          (e as Error).stack
-        }`,
+        e as Error,
         true,
         "extensionManagementService"
       );
@@ -188,9 +186,7 @@ export class ExtensionManagementService {
 
       PLAPI.logService.error(
         `Failed to call extension method ${methodName} of extension ${extensionID}`,
-        `${(e as Error).name} \n ${(e as Error).message} \n ${
-          (e as Error).stack
-        }`,
+        e as Error,
         true,
         "ExtensionManagementService"
       );

@@ -121,6 +121,19 @@ export class MessagePortRPCProtocol {
 
     this._pendingRPCReplies[callId] = result;
 
+    // Process Error Object for Jsonify
+    args = args.map((arg) => {
+      if (arg instanceof Error) {
+        return {
+          name: arg.name,
+          message: arg.message,
+          stack: arg.stack,
+        };
+      } else {
+        return arg;
+      }
+    });
+
     const msg = JSON.stringify({
       callId,
       callerId: this._callerId,
@@ -391,22 +404,20 @@ export class MessagePortRPCProtocol {
       throw new Error("Unknown actor " + rpcId);
     }
 
-    this._eventDisposeCallbacks[callId] = actor.on(
-      eventName,
-      (...args: any[]) => {
-        const msg = JSON.stringify({
-          callId,
-          callerId: this._callerId,
-          rpcId,
-          type: MessageType.fireEvent,
-          value: {
-            eventName,
-            args,
-          },
-        });
-        this._port.postMessage(msg);
-      }
-    );
+    this._eventDisposeCallbacks[callId] = actor.on(eventName, (args: any[]) => {
+      const msg = JSON.stringify({
+        callId,
+        callerId: this._callerId,
+        rpcId,
+        type: MessageType.fireEvent,
+        value: {
+          eventName,
+          args,
+        },
+      });
+
+      this._port.postMessage(msg);
+    });
   }
 
   private _receiveEventDispose(callId: string): void {

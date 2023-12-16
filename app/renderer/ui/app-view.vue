@@ -265,8 +265,13 @@ disposable(
 );
 
 disposable(
-  PLMainAPI.upgradeService.on("downloading", (value: number) => {
-    logService.progress("Downloading Update...", value, true, "Version");
+  PLMainAPI.upgradeService.on("downloading", (newValue: { value: number }) => {
+    logService.progress(
+      "Downloading Update...",
+      newValue.value,
+      true,
+      "Version"
+    );
   })
 );
 

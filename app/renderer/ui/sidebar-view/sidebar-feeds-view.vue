@@ -4,7 +4,7 @@ import {
   BIconBroadcast,
   BIconRss,
 } from "bootstrap-icons-vue";
-import { Ref, inject, ref, watch } from "vue";
+import { Ref, inject } from "vue";
 
 import { Feed } from "@/models/feed";
 import { IFeedResults } from "@/repositories/db-repository/feed-repository";
@@ -70,9 +70,9 @@ const onAddNewFeedClicked = () => {
 
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuDeleteClicked",
-  (payload: { data: string; type: string }) => {
+  (newValue: { value: { data: string; type: string } }) => {
     if (uiState.contentType === "feed") {
-      feedService.delete(payload.data);
+      feedService.delete(newValue.value.data);
       uiState.selectedFeed = "feed-all";
     }
   }
@@ -80,18 +80,18 @@ PLMainAPI.contextMenuService.on(
 
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuFeedRefreshClicked",
-  (payload: { data: string; type: string }) => {
+  (newValue: { value: { data: string; type: string } }) => {
     if (uiState.contentType === "feed") {
-      feedService.refresh([payload.data]);
+      feedService.refresh([newValue.value.data]);
     }
   }
 );
 
 PLMainAPI.contextMenuService.on(
   "sidebarContextMenuColorClicked",
-  (payload: { data: string; type: string; color: string }) => {
+  (newValue: { value: { data: string; color: string } }) => {
     if (uiState.contentType === "feed") {
-      feedService.colorize(payload.color as any, payload.data);
+      feedService.colorize(newValue.value.color as any, newValue.value.data);
     }
   }
 );

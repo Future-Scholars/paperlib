@@ -47,11 +47,7 @@ class ExtensionPreferenceStore<
   get(key: any) {
     if (this._store.has(key)) {
       const value = this._store.get(key);
-      if (value.value !== undefined) {
-        return value.value;
-      } else {
-        return value;
-      }
+      return value;
     } else {
       return null;
     }

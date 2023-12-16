@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // @ts-ignore
 import dragDrop from "drag-drop";
-import { Ref, onBeforeUpdate, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
@@ -99,8 +99,8 @@ const onDeleteSup = (url: string) => {
 
 PLMainAPI.contextMenuService.on(
   "supContextMenuDeleteClicked",
-  (fileURL: string) => {
-    onDeleteSup(fileURL);
+  (newValue: { value: string }) => {
+    onDeleteSup(newValue.value);
   }
 );
 

@@ -9,7 +9,6 @@ import { Ref, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 
-const logState = logService.useState();
 const processingState = uiStateService.processingState.useState();
 
 const showingInfo = ref("");
@@ -171,48 +170,49 @@ const onLeave = () => {
         v-show="historyMsgs.filter((msg) => msg.show).length > 0"
       >
         <div
-          class="flex flex-col text-xxs pb-1 pt-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto"
+          class="flex flex-col text-xxs pb-1 pt-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto w-full"
           v-for="historyMsg of historyMsgs"
           v-show="historyMsg.show"
           @mouseleave="onLeave"
           @mouseenter="onEnter"
         >
-          <div class="flex space-x-3 px-2 mb-1">
-            <div class="flex space-x-2">
+          <div class="flex space-x-3 px-2 mb-1 w-full">
+            <div class="flex space-x-2 w-full">
               <div
-                class="flex text-neutral-200 rounded-sm bg-neutral-400 pl-1 dark:bg-neutral-800 dark:text-neutral-300"
+                class="flex text-neutral-200 rounded-sm bg-neutral-400 px-1 dark:bg-neutral-800 dark:text-neutral-300 max-w-1/2"
               >
-                <BIconBug
-                  class="my-auto text-xxs"
-                  v-if="historyMsg.level === 'error'"
-                />
-                <BIconExclamationTriangle
-                  class="my-auto text-xxs"
-                  v-if="historyMsg.level === 'warn'"
-                />
-                <BIconInfoCircle
-                  class="my-auto text-xxs"
-                  v-if="
-                    historyMsg.level === 'info' ||
-                    historyMsg.level === 'progress'
-                  "
-                />
+                <div class="flex-none my-auto">
+                  <BIconBug
+                    class="my-auto text-xxs"
+                    v-if="historyMsg.level === 'error'"
+                  />
+                  <BIconExclamationTriangle
+                    class="my-auto text-xxs"
+                    v-if="historyMsg.level === 'warn'"
+                  />
+                  <BIconInfoCircle
+                    class="my-auto text-xxs"
+                    v-if="
+                      historyMsg.level === 'info' ||
+                      historyMsg.level === 'progress'
+                    "
+                  />
+                </div>
 
-                <span class="my-auto truncate hover:whitespace-normal px-1">{{
-                  historyMsg.name
-                }}</span>
+                <span class="my-auto px-1 truncate">{{ historyMsg.name }}</span>
               </div>
 
-              <span class="my-auto truncate hover:whitespace-normal">{{
-                historyMsg.msg
-              }}</span>
+              <span class="truncate hover:whitespace-normal">
+                {{ historyMsg.msg }}
+              </span>
             </div>
           </div>
-          <span
+          <div
             class="truncate hover:whitespace-normal text-neutral-400 dark:text-neutral-400 px-1"
             v-if="historyMsg.additional !== ''"
-            >{{ historyMsg.additional }}</span
           >
+            {{ historyMsg.additional }}
+          </div>
           <div
             class="rounded-full h-0.5 my-1 px-1"
             v-if="historyMsg.level === 'progress'"

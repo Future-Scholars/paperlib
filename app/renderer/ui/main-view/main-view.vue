@@ -322,8 +322,10 @@ disposable(
 disposable(
   PLMainAPI.contextMenuService.on(
     "dataContextMenuScrapeFromClicked",
-    (scraperName: string) => {
-      scrapeSelectedEntitiesFrom(scraperName);
+    (newValues: { value: { extID: string; scraperID: string } }) => {
+      scrapeSelectedEntitiesFrom(
+        `${newValues.value.extID}-${newValues.value.scraperID}`
+      );
     }
   )
 );

@@ -7,7 +7,6 @@ import {
   PreferenceService,
 } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
-import { ScraperPreference } from "@/preference/preference";
 
 const isMac = process.platform === "darwin";
 
@@ -79,6 +78,10 @@ export const IContextMenuService = createDecorator("contextMenuService");
 export class ContextMenuService extends Eventable<IContextMenuServiceState> {
   private readonly _locales: { t: (key: string) => string };
 
+  private readonly _registedScraperExtensions: {
+    [extID: string]: { [id: string]: string };
+  };
+
   constructor(
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
@@ -107,6 +110,16 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     this._locales = loadLocales(
       this._preferenceService.get("language") as string
     );
+
+    this._registedScraperExtensions = {};
+  }
+
+  registerScraperExtension(extID: string, scrapers: { [id: string]: string }) {
+    this._registedScraperExtensions[extID] = scrapers;
+  }
+
+  unregisterScraperExtension(extID: string) {
+    delete this._registedScraperExtensions[extID];
   }
 
   /**
@@ -114,19 +127,17 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
    * @param {boolean} allowEdit - Whether editing is allowed.
    */
   showPaperDataMenu(allowEdit: boolean) {
-    const scraperPrefs = this._preferenceService.get("scrapers") as Record<
-      string,
-      ScraperPreference
-    >;
-
     let scraperMenuTemplate: Record<string, any> = [];
-    for (const [name, scraperPref] of Object.entries(scraperPrefs)) {
-      if (scraperPref.enable) {
+
+    for (const [extID, scrapers] of Object.entries(
+      this._registedScraperExtensions
+    )) {
+      for (const [id, name] of Object.entries(scrapers)) {
         scraperMenuTemplate.push({
-          label: scraperPref.name,
+          label: name,
           click: () => {
             this.fire({
-              dataContextMenuScrapeFromClicked: scraperPref.name,
+              dataContextMenuScrapeFromClicked: { extID: extID, scraperID: id },
             });
           },
         });
