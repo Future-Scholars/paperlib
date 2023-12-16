@@ -27,8 +27,8 @@ enum ConfigType {
 }
 
 export interface IDatabaseCoreState {
-  dbInitializing: number;
-  dbInitialized: number;
+  dbInitializing: boolean;
+  dbInitialized: boolean;
 }
 
 export const IDatabaseCore = createDecorator("databaseCore");
@@ -46,13 +46,13 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
     @ILogService private readonly _logService: LogService
   ) {
     super("databaseCore", {
-      dbInitializing: 0,
-      dbInitialized: 0,
+      dbInitializing: false,
+      dbInitialized: false,
     });
   }
 
   async realm(): Promise<Realm> {
-    if (!this._realm) {
+    if (!this._realm && !this._state.dbInitializing) {
       await this.initRealm(true);
     }
     return this._realm as Realm;
@@ -70,7 +70,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
 
     if (this._realm || reinit) {
       this._realm?.removeAllListeners();
-      this.fire("dbInitializing");
+      this.fire({ dbInitializing: true });
 
       // TODO: Check all injected object use this. nor global
       Realm.defaultPath = await this._appService.userDataPath();
@@ -143,7 +143,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
     this._realm!.feedEntityListened = false;
     this._realm!.feedListened = false;
 
-    this.fire("dbInitialized");
+    this.fire({ dbInitialized: true, dbInitializing: false });
     await this._fileService.startWatch();
 
     this._logService.info("Database initialized.", "", true, "Database");

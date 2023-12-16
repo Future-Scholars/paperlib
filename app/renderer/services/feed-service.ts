@@ -98,6 +98,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
    */
   @processing(ProcessingKey.General)
   async load(sortBy: string, sortOrder: string) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return [];
+    }
     try {
       return this._feedRepository.load(
         await this._databaseCore.realm(),
@@ -159,6 +162,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
     sortBy: string,
     sortOrder: "asce" | "desc"
   ) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return [];
+    }
     try {
       return this._feedEntityRepository.load(
         await this._databaseCore.realm(),
@@ -184,14 +190,17 @@ export class FeedService extends Eventable<IFeedServiceState> {
    */
   @processing(ProcessingKey.General)
   async update(feeds: Feed[]) {
-    this._logService.info(
-      `Updating ${feeds.length} feeds...`,
-      "",
-      true,
-      "FeedService"
-    );
+    if (this._databaseCore.getState("dbInitializing")) {
+      return [];
+    }
 
     try {
+      this._logService.info(
+        `Updating ${feeds.length} feeds...`,
+        "",
+        true,
+        "FeedService"
+      );
       const realm = await this._databaseCore.realm();
 
       return realm.safeWrite(() => {
@@ -236,14 +245,17 @@ export class FeedService extends Eventable<IFeedServiceState> {
    */
   @processing(ProcessingKey.General)
   async updateEntities(feedEntities: FeedEntity[], ignoreReadState = false) {
-    this._logService.info(
-      `Updating ${feedEntities.length} feed entities...`,
-      "",
-      true,
-      "FeedEntityService"
-    );
-
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     try {
+      this._logService.info(
+        `Updating ${feedEntities.length} feed entities...`,
+        "",
+        true,
+        "FeedEntityService"
+      );
+
       // TODO: make the following logic clearer
       const realm = await this._databaseCore.realm();
 
@@ -305,6 +317,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
    */
   @processing(ProcessingKey.General)
   async create(feeds: Feed[]) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     try {
       const updatedFeeds = await this.update(feeds);
 
@@ -330,15 +345,19 @@ export class FeedService extends Eventable<IFeedServiceState> {
    */
   @processing(ProcessingKey.General)
   async refresh(feedNames: string[]) {
-    // TODO: user id rather than name here.
-    this._logService.info(
-      `Refreshing ${feedNames.length} feeds...`,
-      "",
-      true,
-      "FeedService"
-    );
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
 
     try {
+      // TODO: user id rather than name here.
+      this._logService.info(
+        `Refreshing ${feedNames.length} feeds...`,
+        "",
+        true,
+        "FeedService"
+      );
+
       let feedEntityDrafts: FeedEntity[] = [];
 
       const feeds = (await this.load("name", "asce")) as Realm.Results<
@@ -376,6 +395,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
    */
   @processing(ProcessingKey.General)
   async colorize(color: Colors, name?: string, feed?: Feed) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     try {
       this._feedRepository.colorize(
         await this._databaseCore.realm(),
@@ -401,8 +423,11 @@ export class FeedService extends Eventable<IFeedServiceState> {
    */
   @processing(ProcessingKey.General)
   async delete(name?: string, feed?: Feed) {
-    const realm = await this._databaseCore.realm();
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     try {
+      const realm = await this._databaseCore.realm();
       const toBeDeletedEntities = this._feedEntityRepository.load(
         realm,
         this.constructFilter({
@@ -434,14 +459,18 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @returns
    */
   async addToLib(feedEntities: FeedEntity[]) {
-    this._logService.info(
-      `Adding ${feedEntities.length} feed entities to library...`,
-      "",
-      true,
-      "Feed"
-    );
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
 
     try {
+      this._logService.info(
+        `Adding ${feedEntities.length} feed entities to library...`,
+        "",
+        true,
+        "Feed"
+      );
+
       const paperEntityDrafts = await this._scrapeService.scrape(
         feedEntities.map((feedEntityDraft: FeedEntity) => {
           const paperEntityDraft = new PaperEntity(true);
@@ -470,6 +499,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
   @processing(ProcessingKey.General)
   private async _routineRefresh() {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     const feeds = await this.load("name", "desc");
     await this.refresh(feeds.map((feed: Feed) => feed.name));
     this._feedEntityRepository.deleteOutdate(await this._databaseCore.realm());

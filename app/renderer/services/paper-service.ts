@@ -174,7 +174,10 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   async load(filter: string[], sortBy: string, sortOrder: "asce" | "desc") {
-    // TODO: fulltext filter
+    if (this._databaseCore.getState("dbInitializing")) {
+      return [];
+    }
+    // TODO: fulltext filte.getStater
     try {
       if (filter.length > 0 && filter[0].startsWith("(fulltext contains[c]")) {
         const allPaperEntities = this._paperEntityRepository.load(
@@ -211,6 +214,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   async loadByIds(ids: (string | ObjectId)[]) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return [];
+    }
     try {
       return this._paperEntityRepository.loadByIds(
         await this._databaseCore.realm(),
@@ -241,7 +247,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
     forceNotLink = true
   ): Promise<PaperEntity[]> {
     // TODO: why we need forceDelete and forceNotLink?
-
+    if (this._databaseCore.getState("dbInitializing")) {
+      return [];
+    }
     this._logService.info(
       `Updating ${paperEntityDrafts.length} paper(s)...`,
       "",
@@ -412,6 +420,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
     categorizer: Categorizer,
     type: CategorizerType
   ) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     // TODO: check categorizer logic
     try {
       // 1. Get Entities by IDs.
@@ -459,6 +470,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   async delete(ids?: (ObjectId | string)[], paperEntities?: PaperEntity[]) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     this._logService.info(
       `Deleting ${ids?.length + " " || ""}paper(s)...`,
       "",
@@ -561,6 +575,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
     categorizer: Categorizer,
     type: CategorizerType
   ) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     try {
       const paperEntityDrafts = await this.create(urlList);
 
@@ -596,14 +613,17 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   async scrape(paperEntities: PaperEntity[], specificScrapers?: string[]) {
-    this._logService.info(
-      `Scraping ${paperEntities.length} paper(s)...`,
-      "",
-      true,
-      "PaperService"
-    );
-
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     try {
+      this._logService.info(
+        `Scraping ${paperEntities.length} paper(s)...`,
+        "",
+        true,
+        "PaperService"
+      );
+
       // 1. Scrape
       const scrapedPaperEntityDrafts = await this._scrapeService.scrape(
         paperEntities.map((paperEntity) => {
@@ -634,6 +654,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   async scrapePreprint() {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     if (this._preferenceService.get("allowRoutineMatch") as boolean) {
       if (
         Math.round(Date.now() / 1000) -
@@ -680,6 +703,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   async renameAll() {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     this._logService.info(`Renaming all paper(s)...`, "", true, "PaperService");
     try {
       let paperEntities = await this.load([], "title", "desc");

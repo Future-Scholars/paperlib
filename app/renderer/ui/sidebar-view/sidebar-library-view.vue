@@ -8,7 +8,7 @@ import {
   BIconTag,
 } from "bootstrap-icons-vue";
 import { ObjectID } from "bson";
-import { Ref, inject, ref, watch } from "vue";
+import { Ref, inject } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { Categorizer, CategorizerType } from "@/models/categorizer";
@@ -66,12 +66,6 @@ const onSelectCategorizer = (categorizer: string) => {
   }
   uiState.selectedCategorizer = categorizer;
 };
-
-disposable(
-  uiStateService.onChanged("selectedCategorizer", (value) => {
-    console.log("selectedCategorizer changed");
-  })
-);
 
 const onSelectSmartFilter = (smartfilter: PaperSmartFilter) => {
   uiState.selectedCategorizer = `smartfilter-${smartfilter.name}`;

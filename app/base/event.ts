@@ -51,8 +51,9 @@ export class Eventable<T extends IEventState> implements IDisposable {
 
     this._state = this.useState(false);
 
-    const oripatch = this._state.$patch;
-    this._state.$patch = (patch: _DeepPartial<UnwrapRef<T>>) => {
+    // Create a function for patching state if the new value is different from the old value
+    // @ts-ignore
+    this._state.$patchupdate = (patch: _DeepPartial<UnwrapRef<T>>) => {
       const realPatch: _DeepPartial<UnwrapRef<T>> = {};
       for (const key in patch) {
         if (isEqual(patch[key], this._state[key])) {
@@ -62,7 +63,7 @@ export class Eventable<T extends IEventState> implements IDisposable {
         }
       }
       if (Object.keys(realPatch).length > 0) {
-        oripatch(realPatch);
+        this._state.$patch(realPatch);
       }
     };
 
@@ -121,8 +122,8 @@ export class Eventable<T extends IEventState> implements IDisposable {
     return this._stateProxy;
   }
 
-  getEvents(): string[] {
-    return Object.keys(this._state.$state);
+  getState(key: keyof T) {
+    return this._state[key as string];
   }
 
   /**
@@ -130,14 +131,21 @@ export class Eventable<T extends IEventState> implements IDisposable {
    * @param event - event name or object of events
    * @returns
    */
-  fire(event: { [key in keyof T]?: any } | keyof T) {
+  fire(
+    event: { [key in keyof T]?: any } | keyof T,
+    onlyIfChanged: boolean = false
+  ) {
     let patch: _DeepPartial<UnwrapRef<T>> = {};
     if (typeof event === "string") {
       patch = { [event]: this._state[event] + 1 } as _DeepPartial<UnwrapRef<T>>;
     } else {
       patch = event as _DeepPartial<UnwrapRef<T>>;
     }
-    this._state.$patch(patch);
+    if (onlyIfChanged) {
+      this._state.$patchupdate(patch);
+    } else {
+      this._state.$patch(patch);
+    }
   }
 
   /**
