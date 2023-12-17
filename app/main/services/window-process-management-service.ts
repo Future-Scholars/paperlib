@@ -3,11 +3,12 @@ import {
   app,
   ipcMain,
   nativeTheme,
+  screen,
   shell,
-  utilityProcess,
 } from "electron";
 import { join, posix } from "node:path";
 import os from "os";
+import path from "path";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -73,7 +74,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   create(
     id: string,
     options: WindowOptions,
-    eventCallbacks: Record<string, (win: BrowserWindow) => void>
+    eventCallbacks?: Record<string, (win: BrowserWindow) => void>
   ) {
     if (this.browserWindows.has(id)) {
       this.browserWindows.destroy(id);
@@ -83,10 +84,14 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
     this.browserWindows.set(id, new BrowserWindow(windowOptions));
 
-    if (app.isPackaged || process.env.NODE_ENV === "test") {
-      this.browserWindows.get(id).loadFile(this._constructEntryURL(entry));
+    const entryURL = this._constructEntryURL(entry);
+    if (entryURL.startsWith("http")) {
+      this.browserWindows.get(id).loadURL(entryURL);
     } else {
-      this.browserWindows.get(id).loadURL(this._constructEntryURL(entry));
+      this.browserWindows.get(id).loadFile(entryURL);
+    }
+    if (app.isPackaged || process.env.NODE_ENV === "test") {
+    } else {
       this.browserWindows.get(id).webContents.openDevTools();
     }
 
@@ -125,17 +130,15 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
     for (const eventName of ["ready-to-show", "blur", "focus", "close"]) {
       this.browserWindows.get(id).on(eventName as any, () => {
-        if (eventName !== "close") {
-          this.fire({ [eventName as any]: id });
-        }
+        this.fire({ [id]: eventName });
 
-        if (eventCallbacks[eventName]) {
+        if (eventCallbacks && eventCallbacks[eventName]) {
           eventCallbacks[eventName](this.browserWindows.get(id));
         }
       });
     }
 
-    this.fire({ created: id });
+    this.fire({ [id]: "created" });
   }
 
   createMainRenderer() {
@@ -165,8 +168,6 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       },
       {
         close: (win: BrowserWindow) => {
-          this.fire({ close: "rendererProcess" });
-
           const winSize = win.getNormalBounds();
           if (winSize) {
             this._preferenceService.set({
@@ -204,10 +205,31 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   }
 
   /**
+   * Show the window with the given id.
+   * @param windowId - The id of the window to be shown
+   */
+  show(windowId: string) {
+    const win = this.browserWindows.get(windowId);
+    if (win) {
+      win.show();
+    }
+  }
+
+  /**
+   * Hide the window with the given id.
+   * @param windowId - The id of the window to be hidden
+   */
+  hide(windowId: string) {
+    const win = this.browserWindows.get(windowId);
+    if (win) {
+      win.hide();
+    }
+  }
+
+  /**
    * Minimize the window with the given id.
    */
   minimize(windowId: string) {
-    console.log("minimize", windowId);
     if (windowId === "rendererProcess") {
       const win = this.browserWindows.get(windowId);
       win.minimize();
@@ -290,7 +312,24 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     return nativeTheme.shouldUseDarkColors;
   }
 
+  /**
+   * Get the size of the screen.
+   * @returns - The size of the screen
+   */
+  getScreenSize() {
+    const { x, y } = screen.getCursorScreenPoint();
+    const currentDisplay = screen.getDisplayNearestPoint({ x, y });
+    const { width, height } = currentDisplay.workAreaSize;
+
+    return { width, height };
+  }
+
   private _constructEntryURL(url: string) {
+    // Is absolute path
+    if (path.isAbsolute(url)) {
+      return url;
+    }
+
     if (app.isPackaged) {
       return join(__dirname, url);
     } else if (process.env.NODE_ENV === "test") {

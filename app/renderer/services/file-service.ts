@@ -372,7 +372,7 @@ export class FileService {
   }
 
   /**
-   * Preview the URL.
+   * Preview the URL only for MacOS.
    * @param url - URL to preview
    */
   async preview(url: string) {

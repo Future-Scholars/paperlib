@@ -251,17 +251,18 @@ disposable(
 
 // TODO: Check all event disposable
 disposable(
-  PLMainAPI.windowProcessManagementService.on("blur", () => {
-    uiState.mainViewFocused = false;
-    databaseService.pauseSync();
-  })
-);
-
-disposable(
-  PLMainAPI.windowProcessManagementService.on("focus", () => {
-    uiState.mainViewFocused = true;
-    databaseService.resumeSync();
-  })
+  PLMainAPI.windowProcessManagementService.on(
+    "rendererProcess",
+    (newValue: { value: string }) => {
+      if (newValue.value === "blur") {
+        uiState.mainViewFocused = false;
+        databaseService.pauseSync();
+      } else if (newValue.value === "focus") {
+        uiState.mainViewFocused = true;
+        databaseService.resumeSync();
+      }
+    }
+  )
 );
 
 disposable(

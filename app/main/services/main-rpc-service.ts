@@ -1,28 +1,10 @@
-import { MessageChannelMain, MessagePortMain, ipcMain } from "electron";
+import { MessageChannelMain } from "electron";
 import { Graph } from "graph-data-structure";
 
 import { createDecorator } from "@/base/injection/injection";
-import { EIMainRPCProtocol } from "@/base/rpc/ei-main-rpc-protocol";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
-import { RPCProtocol, RPCService } from "@/base/rpc/rpc-service";
-import {
-  ContextMenuService,
-  IContextMenuService,
-} from "@/main/services/contextmenu-service";
-import {
-  FileSystemService,
-  IFileSystemService,
-} from "@/main/services/filesystem-service";
-import { IMenuService, MenuService } from "@/main/services/menu-service";
-import { IProxyService, ProxyService } from "@/main/services/proxy-service";
-import {
-  IUpgradeService,
-  UpgradeService,
-} from "@/main/services/upgrade-service";
-import {
-  IWindowProcessManagementService,
-  WindowProcessManagementService,
-} from "@/main/services/window-process-management-service";
+import { RPCService } from "@/base/rpc/rpc-service";
+import { WindowProcessManagementService } from "@/main/services/window-process-management-service";
 
 import { ExtensionProcessManagementService } from "./extension-process-management-service";
 
@@ -108,8 +90,37 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
                   ]);
               }
               this._processGraph.addEdge(processID, senderID);
+            } else {
+              const { port1: portForTheir, port2: portForRequester } =
+                new MessageChannelMain();
+              // Send the port to the requester
+              if (windowProcessManagementService.browserWindows.has(senderID)) {
+                windowProcessManagementService.browserWindows
+                  .get(senderID)
+                  .webContents.postMessage("response-port", processID, [
+                    portForRequester,
+                  ]);
+              }
+              if (
+                windowProcessManagementService.browserWindows.has(processID)
+              ) {
+                windowProcessManagementService.browserWindows
+                  .get(processID)
+                  .webContents.postMessage("response-port", senderID, [
+                    portForTheir,
+                  ]);
+              }
+              if (
+                extensionProcessManagementService.extensionProcesses[processID]
+              ) {
+                extensionProcessManagementService.extensionProcesses[
+                  processID
+                ].postMessage({ type: "response-port", value: senderID }, [
+                  portForTheir,
+                ]);
+              }
+              this._processGraph.addEdge(processID, senderID);
             }
-            // TODO: Forward the messageport to the non-browserwindow process
           }
         }
       }

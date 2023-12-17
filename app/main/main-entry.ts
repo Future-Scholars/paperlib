@@ -129,17 +129,19 @@ async function initialize() {
 
   app.on("second-instance", () => {
     if (windowProcessManagementService.browserWindows.has("rendererProcess")) {
+      // TODO: check this logic
       if (
         windowProcessManagementService.browserWindows
-          .get("browserWindows")
+          .get("rendererProcess")
           .isMinimized()
-      )
+      ) {
         windowProcessManagementService.browserWindows
-          .get("browserWindows")
+          .get("rendererProcess")
           .restore();
-      windowProcessManagementService.browserWindows
-        .get("browserWindows")
-        .focus();
+        windowProcessManagementService.browserWindows
+          .get("rendererProcess")
+          .focus();
+      }
     }
   });
 

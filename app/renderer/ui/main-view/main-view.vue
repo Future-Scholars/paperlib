@@ -65,9 +65,10 @@ const showInFinderSelectedEntities = () => {
 };
 
 const previewSelectedEntities = () => {
-  if (uiState.contentType === "library") {
-    fileService.preview(uiState.selectedPaperEntities[0].mainURL);
-  }
+  // TODO: Disable preview for now
+  // if (uiState.contentType === "library" && uiState.os === "darwin") {
+  //   fileService.preview(uiState.selectedPaperEntities[0].mainURL);
+  // }
 };
 
 const reloadSelectedEntities = () => {

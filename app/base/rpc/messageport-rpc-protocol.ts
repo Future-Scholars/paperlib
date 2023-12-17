@@ -192,7 +192,14 @@ export class MessagePortRPCProtocol {
         remoteEventName,
         callbackId,
       ] of remoteEventNameAndCallbackId) {
-        delete this._eventListeners[remoteEventName]![callbackId];
+        // TODO: check delete logic
+        if (this._eventListeners[remoteEventName]) {
+          delete this._eventListeners[remoteEventName][callbackId];
+
+          if (Object.keys(this._eventListeners[remoteEventName]).length === 0) {
+            delete this._eventListeners[remoteEventName];
+          }
+        }
 
         this._port.postMessage(
           JSON.stringify({

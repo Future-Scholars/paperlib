@@ -34,7 +34,7 @@
     "citation-js": "0.6.4",
     "cssnano": "5.1.7",
     "drag-drop": "7.2.0",
-    "electron": "^22.3.27",
+    "electron": "22.3.27",
     "electron-builder": "23.6.0",
     "electron-log": "^4.4.8",
     "fast-xml-parser": "4.0.6",

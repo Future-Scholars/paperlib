@@ -57,6 +57,9 @@ export class ExtensionManagementService {
     this.install(
       "/Users/administrator/Projects/extension_demos/paperlib-paper-locate-extension"
     );
+    this.install(
+      "/Users/administrator/Projects/extension_demos/paperlib-preview-extension"
+    );
   }
 
   async install(extensionName: string) {
@@ -97,6 +100,13 @@ export class ExtensionManagementService {
         location: info.location,
         originLocation: installFromFile ? extensionName : undefined,
       };
+
+      PLAPI.logService.info(
+        `Installed extension ${extensionName}`,
+        "",
+        false,
+        "extensionManagementService"
+      );
     } catch (e) {
       console.log(e);
       PLAPI.logService.error(
