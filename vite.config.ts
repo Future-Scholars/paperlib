@@ -17,7 +17,6 @@ export default defineConfig({
       input: {
         // multiple entry
         index: path.join(__dirname, "app/index.html"),
-        index_preview: path.join(__dirname, "app/index_preview.html"),
         index_plugin: path.join(__dirname, "app/index_plugin.html"),
       },
     },
