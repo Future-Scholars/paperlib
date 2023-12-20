@@ -71,6 +71,7 @@ export interface IContextMenuServiceState {
   supContextMenuDeleteClicked: string;
   thumbnailContextMenuReplaceClicked: number;
   thumbnailContextMenuRefreshClicked: number;
+  linkToFolderClicked: string;
 }
 
 export const IContextMenuService = createDecorator("contextMenuService");
@@ -105,6 +106,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       supContextMenuDeleteClicked: "",
       thumbnailContextMenuReplaceClicked: 0,
       thumbnailContextMenuRefreshClicked: 0,
+      linkToFolderClicked: "",
     });
 
     this._locales = loadLocales(
@@ -435,6 +437,32 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         },
       },
     ];
+    // @ts-ignore
+    const menu = Menu.buildFromTemplate(template);
+    menu.popup();
+  }
+
+  showQuickpasteLinkMenu(folderNames: { id: string; name: string }[]) {
+    const template = [
+      {
+        label: `Create New`,
+        click: () => {
+          const newFolderName = `Folder_${Date.now()}`;
+          this.fire({ linkToFolderClicked: newFolderName });
+        },
+      },
+      { type: "separator" },
+    ];
+
+    for (const folder of folderNames) {
+      template.push({
+        label: `${folder.name}`,
+        click: () => {
+          this.fire({ linkToFolderClicked: folder.name });
+        },
+      });
+    }
+
     // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();

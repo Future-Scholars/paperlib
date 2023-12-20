@@ -1,6 +1,7 @@
 import {
   BrowserWindow,
   app,
+  globalShortcut,
   ipcMain,
   nativeTheme,
   screen,
@@ -128,7 +129,13 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
     this._setNonMacSpecificStyles(this.browserWindows.get(id));
 
-    for (const eventName of ["ready-to-show", "blur", "focus", "close"]) {
+    for (const eventName of [
+      "ready-to-show",
+      "blur",
+      "focus",
+      "close",
+      "show",
+    ]) {
       this.browserWindows.get(id).on(eventName as any, () => {
         this.fire({ [id]: eventName });
 
@@ -192,6 +199,62 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
           if (process.platform !== "darwin") app.quit();
         },
+      }
+    );
+  }
+
+  createQuickpasteRenderer() {
+    this.create(
+      "quickpasteProcess",
+      {
+        entry: "app/index_quickpaste.html",
+        title: "Quickpaste",
+        width: 600,
+        height: 76,
+        minWidth: 600,
+        minHeight: 76,
+        maxWidth: 600,
+        maxHeight: 394,
+        useContentSize: true,
+        webPreferences: {
+          webSecurity: false,
+          nodeIntegration: true,
+          contextIsolation: false,
+        },
+        frame: false,
+        vibrancy: "sidebar",
+        visualEffectState: "active",
+        show: false,
+      },
+      {
+        blur: (win: BrowserWindow) => {
+          win.hide();
+          win.setSize(600, 76);
+          // TODO: check focus logic on all platforms
+          if (os.platform() === "darwin") {
+            app.hide();
+          }
+        },
+        focus: (win: BrowserWindow) => {
+          win.setSize(600, 76);
+        },
+        show: (win: BrowserWindow) => {
+          win.setSize(600, 76);
+        },
+      }
+    );
+
+    if (os.platform() === "darwin") {
+      this.browserWindows
+        .get("quickpasteProcess")
+        .setVisibleOnAllWorkspaces(true);
+    }
+
+    globalShortcut.register(
+      (this._preferenceService.get("shortcutPlugin") as string) ||
+        "CommandOrControl+Shift+I",
+      async () => {
+        this.browserWindows.get("quickpasteProcess").show();
       }
     );
   }
@@ -310,6 +373,16 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    */
   isDarkMode(): boolean {
     return nativeTheme.shouldUseDarkColors;
+  }
+
+  /**
+   * Resize the window with the given id.
+   */
+  resize(windowId: string, width: number, height: number) {
+    const win = this.browserWindows.get(windowId);
+    if (win) {
+      win.setSize(width, height);
+    }
   }
 
   /**

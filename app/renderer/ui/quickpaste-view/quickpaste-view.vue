@@ -5,85 +5,132 @@ import {
   BIconLink,
   BIconShift,
 } from "bootstrap-icons-vue";
-import { Ref, onMounted, ref } from "vue";
+import { Ref, nextTick, onMounted, ref } from "vue";
 
 import { debounce } from "@/base/misc";
+import { PaperFolder } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { PluginRendererStateStore } from "@/state/renderer/appstate";
 
-import PluginTableItem from "./components/table-item.vue";
+import { PaperFilterOptions } from "@/renderer/services/paper-service";
+import TableItem from "./components/table-item.vue";
 
-const selectionState = PluginRendererStateStore.useSelectionState();
+// ====================
+// Data
+// ====================
+const paperEntities: Ref<PaperEntity[]> = ref([]);
+const folders: Ref<PaperFolder[]> = ref([]);
 
+// ====================
+// State
+// ====================
 const searchInput = ref(null);
-
 const exportMode = ref("BibTex");
 const searchText = ref("");
 const searchDebounce = ref(300);
 const selectedIndex: Ref<number> = ref(0);
-
-const entities: Ref<PaperEntity[]> = ref([]);
+const linkedFolder = ref("");
+const mainviewSortBy = ref("addTime");
+const mainviewSortOrder: Ref<"desc" | "asce"> = ref("desc");
 
 const onSearchTextChanged = debounce(async () => {
   if (searchText.value) {
-    const results = await window.pluginSideInteractor.search(searchText.value);
-    entities.value = results;
+    paperEntities.value = (await PLAPI.paperService.load(
+      new PaperFilterOptions({
+        search: searchText.value,
+        searchMode: "general",
+        flaged: false,
+        tag: "",
+        folder: "",
+        limit: 2,
+      }),
+      mainviewSortBy.value,
+      mainviewSortOrder.value
+    )) as PaperEntity[];
+
     // @ts-ignore
-    entities.value.push({
+    paperEntities.value.push({
       id: "search-in-google-scholar",
       title: "Search in Google Scholar...",
     });
+
+    const newHeight = Math.min(28 * paperEntities.value.length + 78, 394);
+
+    await PLMainAPI.windowProcessManagementService.resize(
+      "quickpasteProcess",
+      600,
+      newHeight
+    );
   } else {
-    window.pluginSideInteractor.resize();
-    entities.value = [];
+    await PLMainAPI.windowProcessManagementService.resize(
+      "quickpasteProcess",
+      600,
+      76
+    );
+    paperEntities.value = [];
   }
 }, searchDebounce.value);
 
-const onInput = (payload: Event) => {
-  onSearchTextChanged();
-};
-
-const exportSelectedEntity = (shiftKey: boolean, ctrlOrCmdKey: boolean) => {
-  const selectedEntity = entities.value[selectedIndex.value];
+const exportSelectedEntity = async (
+  shiftKey: boolean,
+  ctrlOrCmdKey: boolean
+) => {
+  const selectedEntity = paperEntities.value[selectedIndex.value];
   if (selectedEntity && selectedEntity.id === "search-in-google-scholar") {
-    window.pluginSideInteractor.open(
+    await PLAPI.fileService.open(
       `https://scholar.google.com/scholar?q=${searchText.value}`
     );
   } else {
-    if (shiftKey) {
-      window.pluginSideInteractor.export(
-        JSON.stringify([selectedEntity]),
-        "BibTex-Key"
-      );
-    } else if (ctrlOrCmdKey) {
+    if (ctrlOrCmdKey) {
       if (exportMode.value === "BibTex") {
-        window.pluginSideInteractor.export(
-          JSON.stringify([selectedEntity]),
+        await PLAPI.referenceService.export(
+          [selectedEntity] as any,
           "BibTex-In-Folder"
         );
       } else if (exportMode.value === "PlainText") {
-        window.pluginSideInteractor.export(
-          JSON.stringify([selectedEntity]),
+        await PLAPI.referenceService.export(
+          [selectedEntity] as any,
           "PlainText-In-Folder"
         );
       }
+
+      searchText.value = "";
+      paperEntities.value = [];
+
+      await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
+      return;
+    } else if (shiftKey) {
+      await PLAPI.referenceService.export(
+        [selectedEntity] as any,
+        "BibTex-Key"
+      );
     } else {
-      window.pluginSideInteractor.export(
-        JSON.stringify([selectedEntity]),
+      await PLAPI.referenceService.export(
+        [selectedEntity] as any,
         exportMode.value
       );
     }
+
+    searchText.value = "";
+    paperEntities.value = [];
+
+    await PLAPI.paperService.updateWithCategorizer(
+      [`${selectedEntity.id}`],
+      new PaperFolder(linkedFolder.value, 1) as any,
+      "PaperFolder"
+    );
   }
+
   searchText.value = "";
-  entities.value = [];
-  window.pluginSideInteractor.hide();
+  paperEntities.value = [];
+
+  await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
 };
 
-function shortcutHandler(event: KeyboardEvent) {
+const shortcutHandler = async (event: KeyboardEvent) => {
   if (event.code === "ArrowDown") {
     event.preventDefault();
     selectedIndex.value = Math.min(
-      entities.value.length - 1,
+      paperEntities.value.length - 1,
       selectedIndex.value + 1
     );
   } else if (event.code === "ArrowUp") {
@@ -95,8 +142,8 @@ function shortcutHandler(event: KeyboardEvent) {
   } else if (event.code === "Escape") {
     event.preventDefault();
     searchText.value = "";
-    entities.value = [];
-    window.pluginSideInteractor.hide();
+    paperEntities.value = [];
+    await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
   } else if (event.code === "Tab") {
     event.preventDefault();
     exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
@@ -106,33 +153,61 @@ function shortcutHandler(event: KeyboardEvent) {
 
   // @ts-ignore
   searchInput.value.focus();
-}
+};
 window.addEventListener("keydown", shortcutHandler, true);
 
 const onLinkClicked = async () => {
-  await window.pluginSideInteractor.showFolderList();
+  folders.value = (await PLAPI.categorizerService.load(
+    "PaperFolder",
+    "name",
+    "desc"
+  )) as PaperFolder[];
+  PLMainAPI.contextMenuService.showQuickpasteLinkMenu(folders.value as any);
+};
+
+const onUnlinkClicked = async () => {
+  await PLAPI.preferenceService.set({ pluginLinkedFolder: "" });
+  linkedFolder.value = "";
   // @ts-ignore
   searchInput.value.focus();
 };
 
-const onUnlinkClicked = () => {
-  window.pluginSideInteractor.pluginUnlinkFolder();
-  // @ts-ignore
-  searchInput.value.focus();
-};
+PLMainAPI.contextMenuService.on(
+  "linkToFolderClicked",
+  async (newValue: { value: string }) => {
+    const folderName = newValue.value;
+    if (
+      !Object.values(folders.value)
+        .map((f) => f.name)
+        .includes(folderName)
+    ) {
+      await PLAPI.categorizerService.create("PaperFolder", folderName);
+    }
 
-const checkLinkedFolder = () => {
-  selectionState.pluginLinkedFolder =
-    window.pluginSideInteractor.linkedFolder();
-};
+    await PLAPI.preferenceService.set({ pluginLinkedFolder: folderName });
+    linkedFolder.value = folderName;
+  }
+);
 
-// TODO: this
-// window.pluginSideInteractor.registerMainSignal("plugin-gain-focus", () => {
-//   checkLinkedFolder();
-// });
+const checkLinkedFolder = async () => {
+  folders.value = (await PLAPI.categorizerService.load(
+    "PaperFolder",
+    "name",
+    "desc"
+  )) as PaperFolder[];
+  linkedFolder.value = (await PLAPI.preferenceService.get(
+    "pluginLinkedFolder"
+  )) as string;
+
+  if (!folders.value.map((f) => f.name).includes(linkedFolder.value)) {
+    linkedFolder.value = "";
+  }
+};
 
 onMounted(() => {
-  checkLinkedFolder();
+  nextTick(async () => {
+    await checkLinkedFolder();
+  });
 });
 </script>
 
@@ -146,7 +221,7 @@ onMounted(() => {
         autofocus
         :placeholder="$t('plugin.searchinpaperlib')"
         v-model="searchText"
-        @input="onInput"
+        @input="onSearchTextChanged"
       />
       <div
         class="flex space-x-2 mr-2 text-xxs my-auto select-none text-neutral-400 border-[1px] border-neutral-400 dark:border-neutral-500 rounded-md px-2 py-1 hover:dark:border-neutral-200 hover:dark:text-neutral-200 hover:border-neutral-600 hover:text-neutral-600 transition-colors"
@@ -159,28 +234,18 @@ onMounted(() => {
     <hr class="border-neutral-300 dark:border-neutral-700 mx-2" />
 
     <div class="w-full px-2">
-      <RecycleScroller
-        class="scroller"
-        :class="'max-h-[calc(100vh-4.8em)]'"
-        :items="entities"
-        :item-size="28"
-        key-field="id"
-        v-slot="{ item, index }"
-      >
-        <PluginTableItem
+      <div class="flex flex-col pt-1">
+        <TableItem
+          v-for="(item, index) in paperEntities"
           :title="item.title"
           :authors="item.authors"
           :year="item.pubTime"
           :publication="item.publication"
           :active="selectedIndex == index"
-          @click="
-            () => {
-              selectedIndex = index;
-              exportSelectedEntity(false, false);
-            }
-          "
+          class="h-[28px]"
+          @click="() => {}"
         />
-      </RecycleScroller>
+      </div>
     </div>
 
     <div
@@ -192,7 +257,7 @@ onMounted(() => {
         <div
           class="flex space-x-1"
           @click="onLinkClicked"
-          v-if="selectionState.pluginLinkedFolder === ''"
+          v-if="linkedFolder === ''"
         >
           <BIconLink class="my-auto text-base" />
           <span class="my-auto mr-1 select-none">{{
@@ -202,17 +267,15 @@ onMounted(() => {
         <div
           class="flex space-x-1"
           @click="onUnlinkClicked"
-          v-if="selectionState.pluginLinkedFolder !== ''"
+          v-if="linkedFolder !== ''"
           :class="
-            selectionState.pluginLinkedFolder !== ''
+            linkedFolder !== ''
               ? 'text-neutral-600 dark:text-neutral-300'
               : 'text-neutral-400'
           "
         >
           <BIconLink class="my-auto text-base" />
-          <span class="my-auto mr-1 select-none">{{
-            selectionState.pluginLinkedFolder
-          }}</span>
+          <span class="my-auto mr-1 select-none">{{ linkedFolder }}</span>
         </div>
       </div>
 
@@ -227,7 +290,7 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="flex" v-if="selectionState.pluginLinkedFolder !== ''">
+        <div class="flex" v-if="linkedFolder !== ''">
           <span class="my-auto mr-1 select-none">{{
             $t("plugin.allref")
           }}</span>
@@ -248,4 +311,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-@/base/misc

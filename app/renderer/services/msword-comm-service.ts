@@ -11,7 +11,11 @@ import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
-import { IPaperService, PaperService } from "@/renderer/services/paper-service";
+import {
+  IPaperService,
+  PaperFilterOptions,
+  PaperService,
+} from "@/renderer/services/paper-service";
 
 interface ISearchParams {
   query: string;
@@ -63,7 +67,7 @@ export class MSWordCommService {
 
   async search(params: ISearchParams) {
     const result = await this._paperService.load(
-      this._paperService.constructFilter({
+      new PaperFilterOptions({
         search: params.query,
         searchMode: "general",
       }),

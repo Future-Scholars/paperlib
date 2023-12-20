@@ -48,6 +48,8 @@ export class MenuService extends Eventable<IMenuServiceState> {
       this._preferenceService.get("language") as string
     );
 
+    // ============================================================
+    // 1. Create the app menu.
     const template = [
       ...(isMac
         ? [

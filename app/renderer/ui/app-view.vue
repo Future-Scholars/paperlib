@@ -3,6 +3,8 @@ import { Ref, computed, nextTick, onMounted, provide, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/preload/loading";
+import { FeedEntityFilterOptions } from "@/renderer/services/feed-service";
+import { PaperFilterOptions } from "@/renderer/services/paper-service";
 import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
 import { IFeedResults } from "@/repositories/db-repository/feed-repository";
@@ -72,7 +74,7 @@ const reloadPaperEntities = async () => {
     // viewState.searchMode = "general";
   }
   paperEntities.value = await paperService.load(
-    paperService.constructFilter({
+    new PaperFilterOptions({
       search: uiState.commandBarText,
       searchMode: uiState.commandBarMode,
       flaged,
@@ -145,7 +147,7 @@ const reloadFeedEntities = async () => {
 
   // TODO: fix any here
   feedEntities.value = await feedService.loadEntities(
-    feedService.constructFilter({
+    new FeedEntityFilterOptions({
       search: uiState.commandBarText,
       searchMode: uiState.commandBarMode as any,
       feedName: feed,

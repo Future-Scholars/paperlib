@@ -322,7 +322,7 @@ disposable(
             'text-green-500': folder.color === 'green',
             'text-yellow-500': folder.color === 'yellow',
           }"
-          v-if="folder.name !== uiState.pluginLinkedFolder"
+          v-if="folder.name !== prefState.pluginLinkedFolder"
         />
         <BIconFolderSymlink
           class="text-sm my-auto min-w-[1em]"
@@ -332,7 +332,7 @@ disposable(
             'text-green-500': folder.color === 'green',
             'text-yellow-500': folder.color === 'yellow',
           }"
-          v-if="folder.name === uiState.pluginLinkedFolder"
+          v-if="folder.name === prefState.pluginLinkedFolder"
         />
       </SectionItem>
     </CollopseGroup>

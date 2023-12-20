@@ -1,8 +1,8 @@
 import Cite from "citation-js";
 import { clipboard } from "electron";
+import { XMLParser } from "fast-xml-parser";
 import { existsSync, readFileSync, readdirSync } from "fs";
 import path from "path";
-import { XMLParser } from "fast-xml-parser";
 
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";

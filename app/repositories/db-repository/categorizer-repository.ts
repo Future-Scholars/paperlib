@@ -231,8 +231,8 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
           } else {
             const categorizer =
               type === "PaperTag"
-                ? new PaperTag(name, 1)
-                : new PaperFolder(name, 1);
+                ? new PaperTag(name, 0)
+                : new PaperFolder(name, 0);
             if (partition) {
               categorizer["_partition"] = partition;
             }

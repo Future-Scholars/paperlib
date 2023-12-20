@@ -46,7 +46,6 @@ export interface IUIStateServiceState {
   selectedFeed: string;
 
   dragingIds: Array<string>;
-  pluginLinkedFolder: string;
 
   // =========================================
   // Buffer
@@ -110,7 +109,6 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       selectedCategorizer: "lib-all",
       selectedFeed: "feed-all",
       dragingIds: [],
-      pluginLinkedFolder: "",
 
       editingPaperEntityDraft: new PaperEntity(false),
       editingFeedEntityDraft: new FeedEntity(false),

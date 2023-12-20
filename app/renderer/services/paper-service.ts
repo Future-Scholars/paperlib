@@ -38,17 +38,113 @@ import {
   PaperEntityRepository,
 } from "@/repositories/db-repository/paper-entity-repository";
 
-export interface IPaperServiceState {
-  count: number;
-  updated: number;
-}
-
 export interface IPaperFilterOptions {
   search?: string;
   searchMode?: string;
   flaged?: boolean;
   tag?: string;
   folder?: string;
+  limit?: number;
+}
+
+export class PaperFilterOptions implements IPaperFilterOptions {
+  public filters: string[] = [];
+  public search?: string;
+  public searchMode?: string;
+  public flaged?: boolean;
+  public tag?: string;
+  public folder?: string;
+  public limit?: number;
+
+  constructor(options?: Partial<IPaperFilterOptions>) {
+    if (options) {
+      this.update(options);
+    }
+  }
+
+  update(options: Partial<IPaperFilterOptions>) {
+    for (const key in options) {
+      this[key] = options[key];
+    }
+
+    if (this.search) {
+      let formatedSearch = formatString({
+        str: this.search,
+        removeNewline: true,
+        trimWhite: true,
+      });
+
+      if (!this.searchMode || this.searchMode === "general") {
+        const fuzzyFormatedSearch = `*${formatedSearch
+          .trim()
+          .split(" ")
+          .join("*")}*`;
+        this.filters.push(
+          `(title LIKE[c] \"${fuzzyFormatedSearch}\" OR authors LIKE[c] \"${fuzzyFormatedSearch}\" OR publication LIKE[c] \"${fuzzyFormatedSearch}\" OR note LIKE[c] \"${fuzzyFormatedSearch}\")`
+        );
+      } else if (this.searchMode === "advanced") {
+        // Replace comparison operators for 'addTime'
+        const compareDateMatch = formatedSearch.match(
+          /(<|<=|>|>=)\s*\[\d+ DAYS\]/g
+        );
+        if (compareDateMatch) {
+          for (const match of compareDateMatch) {
+            if (formatedSearch.includes("<")) {
+              formatedSearch = formatedSearch.replaceAll(
+                match,
+                match.replaceAll("<", ">")
+              );
+            } else if (formatedSearch.includes(">")) {
+              formatedSearch = formatedSearch.replaceAll(
+                match,
+                match.replaceAll(">", "<")
+              );
+            }
+          }
+        }
+
+        // Replace Date string
+        const dateRegex = /\[\d+ DAYS\]/g;
+        const dateMatch = formatedSearch.match(dateRegex);
+        if (dateMatch) {
+          const date = new Date();
+          // replace with date like: 2021-02-20@17:30:15:00
+          date.setDate(date.getDate() - parseInt(dateMatch[0].slice(1, -6)));
+          formatedSearch = formatedSearch.replace(
+            dateRegex,
+            date.toISOString().slice(0, -5).replace("T", "@")
+          );
+        }
+        this.filters.push(formatedSearch);
+      } else if (this.searchMode === "fulltext") {
+        this.filters.push(`(fulltext contains[c] \"${formatedSearch}\")`);
+      }
+    }
+
+    if (this.flaged) {
+      this.filters.push(`(flag == true)`);
+    }
+    if (this.tag) {
+      this.filters.push(`(ANY tags.name == \"${this.tag}\")`);
+    }
+    if (this.folder) {
+      this.filters.push(`(ANY folders.name == \"${this.folder}\")`);
+    }
+  }
+
+  toString() {
+    const filterStr = this.filters.join(" AND ");
+    if (this.limit) {
+      return `${filterStr} LIMIT(${this.limit})`;
+    } else {
+      return filterStr;
+    }
+  }
+}
+
+export interface IPaperServiceState {
+  count: number;
+  updated: number;
 }
 
 export const IPaperService = createDecorator("paperService");
@@ -94,104 +190,56 @@ export class PaperService extends Eventable<IPaperServiceState> {
     });
   }
 
-  constructFilter(filterOptions: IPaperFilterOptions): string[] {
-    let filter: string[] = [];
-
-    if (filterOptions.search) {
-      let formatedSearch = formatString({
-        str: filterOptions.search,
-        removeNewline: true,
-        trimWhite: true,
-      });
-
-      if (!filterOptions.searchMode || filterOptions.searchMode === "general") {
-        const fuzzyFormatedSearch = `*${formatedSearch
-          .trim()
-          .split(" ")
-          .join("*")}*`;
-        filter.push(
-          `(title LIKE[c] \"${fuzzyFormatedSearch}\" OR authors LIKE[c] \"${fuzzyFormatedSearch}\" OR publication LIKE[c] \"${fuzzyFormatedSearch}\" OR note LIKE[c] \"${fuzzyFormatedSearch}\")`
-        );
-      } else if (filterOptions.searchMode === "advanced") {
-        // Replace comparison operators for 'addTime'
-        const compareDateMatch = formatedSearch.match(
-          /(<|<=|>|>=)\s*\[\d+ DAYS\]/g
-        );
-        if (compareDateMatch) {
-          for (const match of compareDateMatch) {
-            if (formatedSearch.includes("<")) {
-              formatedSearch = formatedSearch.replaceAll(
-                match,
-                match.replaceAll("<", ">")
-              );
-            } else if (formatedSearch.includes(">")) {
-              formatedSearch = formatedSearch.replaceAll(
-                match,
-                match.replaceAll(">", "<")
-              );
-            }
-          }
-        }
-
-        // Replace Date string
-        const dateRegex = /\[\d+ DAYS\]/g;
-        const dateMatch = formatedSearch.match(dateRegex);
-        if (dateMatch) {
-          const date = new Date();
-          // replace with date like: 2021-02-20@17:30:15:00
-          date.setDate(date.getDate() - parseInt(dateMatch[0].slice(1, -6)));
-          formatedSearch = formatedSearch.replace(
-            dateRegex,
-            date.toISOString().slice(0, -5).replace("T", "@")
-          );
-        }
-        filter.push(formatedSearch);
-      } else if (filterOptions.searchMode === "fulltext") {
-        filter.push(`(fulltext contains[c] \"${formatedSearch}\")`);
-      }
-    }
-
-    if (filterOptions.flaged) {
-      filter.push(`(flag == true)`);
-    }
-    if (filterOptions.tag) {
-      filter.push(`(ANY tags.name == \"${filterOptions.tag}\")`);
-    }
-    if (filterOptions.folder) {
-      filter.push(`(ANY folders.name == \"${filterOptions.folder}\")`);
-    }
-
-    return filter;
-  }
-
   // TODO: can we use a decorator to do error log?
   /**
    * Load paper entities with filter and sort.
-   * @param filter - filter string
+   * @param filter - filter object
    * @param sortBy - Sort: by
    * @param sortOrder - Sort: order
    * @returns - paper entities
    */
   @processing(ProcessingKey.General)
-  async load(filter: string[], sortBy: string, sortOrder: "asce" | "desc") {
+  async load(
+    filterOptions: PaperFilterOptions,
+    sortBy: string,
+    sortOrder: "asce" | "desc"
+  ) {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
     // TODO: fulltext filte.getStater
     try {
-      if (filter.length > 0 && filter[0].startsWith("(fulltext contains[c]")) {
+      if (!(filterOptions instanceof PaperFilterOptions)) {
+        filterOptions = new PaperFilterOptions(filterOptions);
+      }
+
+      const isFulltextFilter = filterOptions.filters.find((filter) => {
+        return filter.startsWith("(fulltext contains[c]");
+      });
+
+      if (isFulltextFilter) {
+        const filterOptionsWithoutFulltext = new PaperFilterOptions();
+        filterOptionsWithoutFulltext.update(filterOptions);
+        filterOptionsWithoutFulltext.filters =
+          filterOptionsWithoutFulltext.filters.filter((filter) => {
+            return !filter.startsWith("(fulltext contains[c]");
+          });
+
         const allPaperEntities = this._paperEntityRepository.load(
           await this._databaseCore.realm(),
-          filter.slice(1).join(" AND "),
+          filterOptionsWithoutFulltext.toString(),
           sortBy,
           sortOrder
         );
 
-        return this._cacheService.fullTextFilter(filter[0], allPaperEntities);
+        return this._cacheService.fullTextFilter(
+          filterOptions.toString(),
+          allPaperEntities
+        );
       } else {
         return this._paperEntityRepository.load(
           await this._databaseCore.realm(),
-          filter.join(" AND "),
+          filterOptions.toString(),
           sortBy,
           sortOrder
         );
@@ -337,6 +385,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
                 this._databaseCore.getPartition()
               );
 
+              // TODO: Check duplicate tag/folder if failed
               const success = this._paperEntityRepository.update(
                 realm,
                 paperEntity,
@@ -708,7 +757,11 @@ export class PaperService extends Eventable<IPaperServiceState> {
     }
     this._logService.info(`Renaming all paper(s)...`, "", true, "PaperService");
     try {
-      let paperEntities = await this.load([], "title", "desc");
+      let paperEntities = await this.load(
+        new PaperFilterOptions(),
+        "title",
+        "desc"
+      );
       const paperEntityDrafts = paperEntities.map(
         (paperEntity: PaperEntity) => {
           return new PaperEntity(false).initialize(paperEntity);

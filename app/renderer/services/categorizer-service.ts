@@ -1,7 +1,12 @@
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { Categorizer, CategorizerType, Colors } from "@/models/categorizer";
+import {
+  Categorizer,
+  CategorizerType,
+  Colors,
+  PaperFolder,
+} from "@/models/categorizer";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
@@ -62,6 +67,52 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
         "CategoryService"
       );
       return [];
+    }
+  }
+
+  async create(type: CategorizerType, name: string, color?: Colors) {
+    try {
+      const realm = await this._databaseCore.realm();
+
+      if (type === "PaperTag") {
+        const newTag = new Categorizer(
+          name,
+          -1,
+          color,
+          this._databaseCore.getPartition()
+        );
+
+        const tags = this._categorizerRepository.update(
+          realm,
+          [],
+          [newTag],
+          "PaperTag",
+          this._databaseCore.getPartition()
+        );
+      } else {
+        // TODO: check all calling with getPartition
+        const newFolder = new PaperFolder(
+          name,
+          -1,
+          color,
+          this._databaseCore.getPartition()
+        );
+
+        const folders = this._categorizerRepository.update(
+          realm,
+          [],
+          [newFolder],
+          "PaperFolder",
+          this._databaseCore.getPartition()
+        );
+      }
+    } catch (error) {
+      this._logService.error(
+        `Create categorizer failed: ${type} ${name}`,
+        error as Error,
+        true,
+        "CategorizerService"
+      );
     }
   }
 

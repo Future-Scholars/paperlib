@@ -171,11 +171,12 @@ async function initialize() {
   );
 
   // ============================================================
-  // 7. Once the main renderer process is ready, create the extension process
+  // 7. Once the main renderer process is ready, create the extension process and the quickpaste renderer process.
   windowProcessManagementService.on(
     "serviceReady",
     (payload: { key: string; value: string }) => {
       if (payload.value === "rendererProcess") {
+        windowProcessManagementService.createQuickpasteRenderer();
         extensionProcessManagementService.createExtensionProcess();
       }
     }
@@ -187,5 +188,3 @@ async function initialize() {
 }
 
 app.whenReady().then(initialize);
-
-// registerSideworkWindowEvents(winSidework);

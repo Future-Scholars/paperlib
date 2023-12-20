@@ -31,17 +31,64 @@ import {
   RSSRepository,
 } from "@/repositories/rss-repository/rss-repository";
 
-export interface IFeedServiceState {
-  updated: number;
-  entitiesCount: number;
-  entitiesUpdated: number;
-}
-
 export interface IFeedEntityFilterOptions {
   search?: string;
   searchMode?: "general" | "fulltext" | "advanced";
   feedName?: string;
   unread?: boolean;
+}
+
+export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
+  public filters: string[] = [];
+  public search?: string;
+  public searchMode?: "general" | "fulltext" | "advanced";
+  feedName?: string;
+  unread?: boolean;
+
+  constructor(options?: Partial<IFeedEntityFilterOptions>) {
+    if (options) {
+      this.update(options);
+    }
+  }
+
+  update(options: Partial<IFeedEntityFilterOptions>) {
+    for (const key in options) {
+      this[key] = options[key];
+    }
+
+    if (this.search) {
+      const formatedSearch = formatString({
+        str: this.search,
+        removeNewline: true,
+        trimWhite: true,
+      });
+
+      if (this.searchMode === "general") {
+        this.filters.push(
+          `(title contains[c] \"${formatedSearch}\" OR authors contains[c] \"${formatedSearch}\" OR publication contains[c] \"${formatedSearch}\" OR abstract contains[c] \"${formatedSearch}\")`
+        );
+      } else if (this.searchMode === "advanced") {
+        this.filters.push(`(${formatedSearch})`);
+      }
+    }
+    if (this.feedName) {
+      this.filters.push(`(feed.name == \"${this.feedName}\")`);
+    }
+    if (this.unread) {
+      this.filters.push(`(read == false)`);
+    }
+  }
+
+  toString() {
+    const filterStr = this.filters.join(" AND ");
+    return filterStr;
+  }
+}
+
+export interface IFeedServiceState {
+  updated: number;
+  entitiesCount: number;
+  entitiesUpdated: number;
 }
 
 export const IFeedService = createDecorator("feedService");
@@ -118,35 +165,6 @@ export class FeedService extends Eventable<IFeedServiceState> {
     }
   }
 
-  constructFilter(filterOptions: IFeedEntityFilterOptions) {
-    let filter = "";
-
-    if (filterOptions.search) {
-      const formatedSearch = formatString({
-        str: filterOptions.search,
-        removeNewline: true,
-        trimWhite: true,
-      });
-
-      if (filterOptions.searchMode === "general") {
-        filter += `(title contains[c] \"${formatedSearch}\" OR authors contains[c] \"${formatedSearch}\" OR publication contains[c] \"${formatedSearch}\" OR abstract contains[c] \"${formatedSearch}\") AND `;
-      } else if (filterOptions.searchMode === "advanced") {
-        filter += `(${formatedSearch}) AND `;
-      }
-    }
-    if (filterOptions.feedName) {
-      filter += `(feed.name == \"${filterOptions.feedName}\") AND `;
-    }
-    if (filterOptions.unread) {
-      filter += `(read == false) AND `;
-    }
-    if (filter.length > 0) {
-      filter = filter.slice(0, -5);
-    }
-
-    return filter;
-  }
-
   /**
    * Load feed entities from the database.
    * @param search Search string.
@@ -158,7 +176,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
    */
   @processing(ProcessingKey.General)
   async loadEntities(
-    filter: string,
+    filter: FeedEntityFilterOptions,
     sortBy: string,
     sortOrder: "asce" | "desc"
   ) {
@@ -166,9 +184,13 @@ export class FeedService extends Eventable<IFeedServiceState> {
       return [];
     }
     try {
+      if (!(filter instanceof FeedEntityFilterOptions)) {
+        filter = new FeedEntityFilterOptions(filter);
+      }
+
       return this._feedEntityRepository.load(
         await this._databaseCore.realm(),
-        filter,
+        filter.toString(),
         sortBy,
         sortOrder
       );
@@ -430,9 +452,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
       const realm = await this._databaseCore.realm();
       const toBeDeletedEntities = this._feedEntityRepository.load(
         realm,
-        this.constructFilter({
+        new FeedEntityFilterOptions({
           feedName: name || feed?.name,
-        }),
+        }).toString(),
         "addTime",
         "asce"
       );
