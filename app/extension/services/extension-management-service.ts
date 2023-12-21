@@ -62,7 +62,7 @@ export class ExtensionManagementService {
   async loadInstalledExtensions() {
     for (const [ie, extInfo] of Object.entries(this._extStore.store)) {
       try {
-        this.install(extInfo.originLocation || extInfo.id);
+        this.install(extInfo.originLocation || extInfo.id, false);
       } catch (e) {
         console.error(e);
         PLAPI.logService.error(
@@ -87,7 +87,7 @@ export class ExtensionManagementService {
     // );
   }
 
-  async install(extensionID: string) {
+  async install(extensionID: string, notify = true) {
     try {
       let info: IPluginInfo;
       let installFromFile = false;
@@ -123,7 +123,7 @@ export class ExtensionManagementService {
       PLAPI.logService.info(
         `Installed extension ${extensionID}`,
         "",
-        true,
+        notify,
         "ExtManagementService"
       );
     } catch (e) {
