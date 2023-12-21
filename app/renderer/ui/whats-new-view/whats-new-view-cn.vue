@@ -81,6 +81,7 @@ onMounted(() => {
         <ul class="list-disc mb-5">
           <li>
             更新 MS Word 插件证书。
+          </li>
         </ul>
 
         <p class="text-center text-2xl font-bold mb-8">
