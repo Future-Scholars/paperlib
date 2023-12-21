@@ -376,7 +376,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
       this._logService.info(
         `Refreshing ${feedNames.length} feeds...`,
         "",
-        true,
+        false,
         "FeedService"
       );
 

@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  BIconArrowBarUp,
-  BIconBug,
-  BIconExclamationTriangle,
-  BIconInfoCircle,
-} from "bootstrap-icons-vue";
+import { BIconArrowBarUp } from "bootstrap-icons-vue";
 import { Ref, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
@@ -183,12 +178,35 @@ const onLeave = () => {
           @mouseenter="onEnter"
         >
           <div class="flex space-x-3 px-2 mb-1 w-full">
-            <div class="flex space-x-2 w-full">
+            <div class="flex space-x-2 w-full hover:flex-col hover:space-y-2">
               <div
-                class="flex text-neutral-200 rounded-sm bg-neutral-400 px-1 dark:bg-neutral-800 dark:text-neutral-300 max-w-1/2"
+                class="flex rounded-sm px-1 max-w-1/2"
+                :class="
+                  {
+                    info: 'text-neutral-500   dark:text-neutral-300',
+                    warn: 'text-orange-400   dark:text-orange-400',
+                    error: 'text-red-600   dark:text-red-600',
+                  }[historyMsg.level]
+                "
               >
                 <div class="flex-none my-auto">
-                  <BIconBug
+                  <div
+                    class="my-auto w-[3px] h-3 bg-red-600 rounded-sm"
+                    v-if="historyMsg.level === 'error'"
+                  />
+                  <div
+                    class="my-auto w-[3px] h-3 bg-orange-400 rounded-sm"
+                    v-if="historyMsg.level === 'warn'"
+                  />
+                  <div
+                    class="my-auto w-[3px] h-3 bg-neutral-500 dark:bg-neutral-300 rounded-sm"
+                    v-if="
+                      historyMsg.level === 'info' ||
+                      historyMsg.level === 'progress'
+                    "
+                  />
+
+                  <!-- <BIconBug
                     class="my-auto text-xxs"
                     v-if="historyMsg.level === 'error'"
                   />
@@ -202,7 +220,7 @@ const onLeave = () => {
                       historyMsg.level === 'info' ||
                       historyMsg.level === 'progress'
                     "
-                  />
+                  /> -->
                 </div>
 
                 <span class="my-auto px-1 truncate">{{ historyMsg.name }}</span>
