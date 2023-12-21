@@ -88,6 +88,7 @@
     "hotkeys": "快捷键",
     "about": "关于",
     "extension": "插件",
+    "extensionmarketplace": "插件市场",
     "library": "文献库",
     "storagefolder": "存储文件夹",
     "storagefolderintro": "选择存储文件夹来存储 PDF 文件以及本地数据库（如果不使用云同步）。",

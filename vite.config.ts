@@ -49,7 +49,7 @@ export default defineConfig({
           sourcemap: process.env.NODE_ENV === "development" ? "inline" : false,
           minify: false,
           rollupOptions: {
-            external: ["keytar", "live-plugin-manager"],
+            external: ["keytar", "@future-scholars/live-plugin-manager"],
           },
         },
         resolve: {

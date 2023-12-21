@@ -3,8 +3,8 @@
 import dragDrop from "drag-drop";
 import { onMounted, ref } from "vue";
 
+import Spinner from "../../components/spinner.vue";
 import Counter from "./counter.vue";
-import Spinner from "./spinner.vue";
 
 const props = defineProps({
   name: String,

@@ -44,7 +44,7 @@ const pushMsgToHistory = (
     msg: logMessage.msg,
     additional: logMessage.additional || "",
     value: logMessage.value || 0,
-    show: level === "warn" || level === "error" || level === "progress",
+    show: true,
   };
 
   if (level === "info") {
@@ -83,6 +83,12 @@ const pushMsgToHistory = (
 disposable(
   logService.on("infoLogMessage", (payload) => {
     pushMsgToHistory("info", payload.value);
+    debounce(() => {
+      historyMsgs.value = historyMsgs.value.map((msg) => {
+        msg.show = false;
+        return msg;
+      });
+    }, 3000)();
   })
 );
 
@@ -166,7 +172,7 @@ const onLeave = () => {
       leave-to-class="transform opacity-0"
     >
       <div
-        class="flex flex-col justify-end fixed top-0 space-y-1 h-full pl-3 pb-8 w-64 pointer-events-none overflow-auto"
+        class="flex flex-col justify-end fixed top-0 space-y-1 h-full pl-3 pb-8 w-64 pointer-events-none overflow-auto z-50"
         v-show="historyMsgs.filter((msg) => msg.show).length > 0"
       >
         <div

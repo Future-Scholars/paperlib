@@ -3,7 +3,7 @@ import { BIconCheck2, BIconPlus } from "bootstrap-icons-vue";
 import { onBeforeUpdate, ref, watch } from "vue";
 
 import { FeedEntity } from "@/models/feed-entity";
-import Spinner from "@/renderer/ui/sidebar-view/components/spinner.vue";
+import Spinner from "../../components/spinner.vue";
 
 import Authors from "./components/authors.vue";
 import PubDetails from "./components/pub-details.vue";

@@ -69,7 +69,7 @@ async function initialize() {
   //    Expose the APIs of the current process to other processes
   extensionRPCService.setActionor(instances);
 
-  extensionManagementService.installDefaultPlugins();
+  extensionManagementService.loadInstalledExtensions();
 }
 
 initialize();

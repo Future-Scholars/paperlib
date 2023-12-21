@@ -6,6 +6,7 @@ import {
   BIconPatchCheckFill,
   BIconTrash3,
 } from "bootstrap-icons-vue";
+import Spinner from "../../components/spinner.vue";
 
 defineProps<{
   name: string;
@@ -14,6 +15,7 @@ defineProps<{
   author: string;
   description: string;
   installed: boolean;
+  installing: boolean;
 }>();
 
 defineEmits(["install", "uninstall", "reload", "setting"]);
@@ -22,8 +24,13 @@ defineEmits(["install", "uninstall", "reload", "setting"]);
 <template>
   <div class="bg-neutral-200 flex flex-col py-2 px-3 rounded-md shadow-sm">
     <div class="flex space-x-2">
-      <span class="font-semibold text-sm truncate my-auto"> {{ name }} </span>
-      <BIconPatchCheckFill class="my-auto text-sm" v-if="verified" />
+      <BIconPatchCheckFill
+        class="my-auto text-sm flex-none w-4"
+        v-if="verified"
+      />
+      <span class="font-semibold text-sm truncate my-auto grow">
+        {{ name }}
+      </span>
     </div>
     <span class="text-xxs text-neutral-500 truncate mb-1">
       {{ version }} by {{ author }}
@@ -35,10 +42,11 @@ defineEmits(["install", "uninstall", "reload", "setting"]);
     <div
       class="flex justify-end space-x-2 text-neutral-400 dark:text-neutral-500"
     >
+      <Spinner class="my-auto" v-if="installing" />
       <BIconDownload
         title="Install"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
-        v-if="!installed"
+        v-if="!installed && !installing"
         @click="$emit('install')"
       />
       <BIconTrash3

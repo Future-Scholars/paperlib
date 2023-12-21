@@ -13,7 +13,7 @@ import {
   BIconPuzzle,
   BIconViewList,
 } from "bootstrap-icons-vue";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 
 import AboutView from "./about-view.vue";
 import CloudView from "./cloud-view.vue";
@@ -50,7 +50,7 @@ onMounted(async () => {
 
 <template>
   <div
-    class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-100 dark:bg-neutral-800"
+    class="fixed top-0 right-0 left-0 z-40 w-screen h-screen bg-neutral-100 dark:bg-neutral-800"
   >
     <div class="flex h-full m-auto justify-center space-x-4 pt-20">
       <div class="flex flex-col justify-between flex-none overflow-scroll">

@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { BIconPatchCheckFill } from "bootstrap-icons-vue";
+import {
+  BIconEmojiTear,
+  BIconFire,
+  BIconPatchCheckFill,
+  BIconSearch,
+} from "bootstrap-icons-vue";
 import { onMounted, ref } from "vue";
-
+import Spinner from "../components/spinner.vue";
 import ExtensionCard from "./components/extension-card.vue";
 import ExtensionSetting from "./components/extension-setting.vue";
 
@@ -32,6 +37,9 @@ const marketExtensions = ref<{
 
 const viewMode = ref<"installed" | "marketplace">("installed");
 const isSettingShown = ref(false);
+const isMarketLoading = ref(false);
+const marketSearchText = ref("");
+const installingExtID = ref("");
 
 const reloadExtension = async (id: string) => {
   await PLExtAPI.extensionManagementService.reload(id);
@@ -128,6 +136,39 @@ const saveExtensionPreference = async () => {
   isSettingShown.value = false;
 };
 
+const onMarketClicked = async () => {
+  viewMode.value = "marketplace";
+  reloadMarket();
+};
+
+const reloadMarket = async () => {
+  isMarketLoading.value = true;
+  marketExtensions.value =
+    await PLExtAPI.extensionManagementService.listExtensionMarketplace();
+  isMarketLoading.value = false;
+};
+
+const installExtension = async (id: string) => {
+  installingExtID.value = id;
+  try {
+    await PLExtAPI.extensionManagementService.install(id);
+  } catch (e) {
+    logService.error(
+      "Failed to install extension",
+      e as Error,
+      true,
+      "Extension"
+    );
+  }
+
+  installedExtensions.value =
+    await PLExtAPI.extensionManagementService.installedExtensions();
+
+  editingExtension.value = installedExtensions.value[id];
+
+  installingExtID.value = "";
+};
+
 onMounted(async () => {
   installedExtensions.value =
     await PLExtAPI.extensionManagementService.installedExtensions();
@@ -141,8 +182,18 @@ onMounted(async () => {
     class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px] h-full pb-20"
   >
     <div class="flex justify-between items-end mb-2 flex-none">
-      <div class="text-base font-semibold">
-        {{ $t("preference.extension") }}
+      <div class="flex space-x-2">
+        <span class="text-base font-semibold my-auto">
+          {{
+            viewMode === "installed"
+              ? $t("preference.extension")
+              : $t("preference.extensionmarketplace")
+          }}
+        </span>
+        <Spinner
+          class="my-auto"
+          v-if="viewMode === 'marketplace' && isMarketLoading"
+        />
       </div>
       <div
         class="flex text-xs space-x-4 text-neutral-400 dark:text-neutral-500 cursor-pointer"
@@ -173,11 +224,22 @@ onMounted(async () => {
               ? 'text-neutral-500 hover:text-neutral-600 dark:text-neutral-400 dark:hover:text-neutral-200'
               : ''
           "
-          @click="viewMode = 'marketplace'"
+          @click="onMarketClicked"
         >
           Marketplace
         </div>
       </div>
+    </div>
+
+    <div
+      class="flex space-x-2 mx-auto text-neutral-400 mt-4"
+      v-if="
+        Object.keys(installedExtensions).length === 0 &&
+        viewMode === 'installed'
+      "
+    >
+      <BIconEmojiTear class="my-auto" />
+      <span class="my-auto text-xs">No Extension Installed</span>
     </div>
 
     <div class="h-full" :class="isSettingShown ? 'flex' : ''">
@@ -186,7 +248,7 @@ onMounted(async () => {
         :class="
           isSettingShown
             ? 'w-1/2 flex-none flex flex-col space-y-2'
-            : 'grid grid-cols-3 gap-2'
+            : 'grid grid-cols-2 gap-2'
         "
         v-if="viewMode == 'installed'"
       >
@@ -199,23 +261,42 @@ onMounted(async () => {
           :author="extension.author"
           :description="extension.description"
           installed
+          :installing="false"
           @reload="reloadExtension(extension.id)"
           @uninstall="uninstallExtension(extension.id)"
           @setting="showSettingView(extension.id)"
         />
       </div>
-      <div class="grid grid-cols-3 p-2 gap-2 flex-none" v-else>
-        <ExtensionCard
-          v-for="extension in marketExtensions"
-          :name="extension.name"
-          :verified="extension.verified"
-          :version="extension.version"
-          :author="extension.author"
-          :description="extension.description"
-          installed
-          @reload="reloadExtension(extension.id)"
-          @uninstall="uninstallExtension(extension.id)"
+      <div class="flex flex-col flex-none" v-else>
+        <div class="ml-2 flex space-x-2 mt-4">
+          <BIconSearch />
+          <span class="text-sm font-semibold">Search</span>
+        </div>
+
+        <input
+          class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none mt-2 mb-4"
+          type="text"
+          placeholder="Search in Marketplace"
+          v-model="marketSearchText"
         />
+
+        <div class="ml-2 flex space-x-2">
+          <BIconFire />
+          <span class="text-sm font-semibold">Hotest</span>
+        </div>
+        <div class="grid grid-cols-2 p-2 gap-2">
+          <ExtensionCard
+            v-for="extension in marketExtensions"
+            :name="extension.name.replace('@future-scholars/', '')"
+            :verified="extension.verified"
+            :version="extension.version"
+            :author="extension.author"
+            :description="extension.description"
+            :installed="false"
+            :installing="installingExtID === extension.id"
+            @install="installExtension(extension.id)"
+          />
+        </div>
       </div>
 
       <div class="w-1/2 my-2 flex flex-col p-2" v-if="isSettingShown">

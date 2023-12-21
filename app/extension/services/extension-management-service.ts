@@ -1,5 +1,9 @@
+import {
+  IPluginInfo,
+  PluginManager,
+} from "@future-scholars/live-plugin-manager";
+import ElectronStore from "electron-store";
 import fs from "fs";
-import { IPluginInfo, PluginManager } from "live-plugin-manager";
 
 import { createDecorator } from "@/base/injection/injection";
 import { isLocalPath } from "@/base/url";
@@ -13,29 +17,37 @@ export const IExtensionManagementService = createDecorator(
   "extensionManagementService"
 );
 
+interface IExtensionInfo {
+  id: string;
+  name: string;
+  version: string;
+  author: string;
+  verified: boolean;
+  description: string;
+  preference: { [key: string]: any };
+  location: string;
+  originLocation?: string;
+}
+
 export class ExtensionManagementService {
+  private readonly _extStore: ElectronStore<Record<string, IExtensionInfo>>;
   private readonly _extManager: PluginManager;
   private readonly _extensionPreferenceService: ExtensionPreferenceService;
 
   private readonly _installedExtensions: { [key: string]: any };
   private readonly _installedExtensionInfos: {
-    [key: string]: {
-      id: string;
-      name: string;
-      version: string;
-      author: string;
-      verified: boolean;
-      description: string;
-      preference: { [key: string]: any };
-      location: string;
-      originLocation?: string;
-    };
+    [key: string]: IExtensionInfo;
   };
 
   constructor(
     @IExtensionPreferenceService
     extensionPreferenceService: ExtensionPreferenceService
   ) {
+    this._extStore = new ElectronStore({
+      name: "extensions",
+      cwd: globalThis["extensionWorkingDir"],
+    });
+
     // TODO: log all for this service
     // TODO: different npm url for China
     this._extManager = new PluginManager({
@@ -47,32 +59,45 @@ export class ExtensionManagementService {
     this._installedExtensionInfos = {};
   }
 
-  async installDefaultPlugins() {
-    this.install(
-      "/Users/administrator/Projects/extension_demos/paperlib-entry-scrape-extension"
-    );
-    this.install(
-      "/Users/administrator/Projects/extension_demos/paperlib-metadata-scrape-extension"
-    );
-    this.install(
-      "/Users/administrator/Projects/extension_demos/paperlib-paper-locate-extension"
-    );
-    this.install(
-      "/Users/administrator/Projects/extension_demos/paperlib-preview-extension"
-    );
+  async loadInstalledExtensions() {
+    for (const [ie, extInfo] of Object.entries(this._extStore.store)) {
+      try {
+        this.install(extInfo.originLocation || extInfo.id);
+      } catch (e) {
+        console.error(e);
+        PLAPI.logService.error(
+          `Failed to load installed extension ${extInfo.id}`,
+          e as Error,
+          true,
+          "ExtManagementService"
+        );
+      }
+    }
+    // this.install(
+    //   "/Users/administrator/Projects/extension_demos/paperlib-entry-scrape-extension"
+    // );
+    // this.install(
+    //   "/Users/administrator/Projects/extension_demos/paperlib-metadata-scrape-extension"
+    // );
+    // this.install(
+    //   "/Users/administrator/Projects/extension_demos/paperlib-paper-locate-extension"
+    // );
+    // this.install(
+    //   "/Users/administrator/Projects/extension_demos/paperlib-preview-extension"
+    // );
   }
 
-  async install(extensionName: string) {
+  async install(extensionID: string) {
     try {
       let info: IPluginInfo;
       let installFromFile = false;
-      if (isLocalPath(extensionName)) {
-        info = await this._extManager.installFromPath(extensionName, {
+      if (isLocalPath(extensionID)) {
+        info = await this._extManager.installFromPath(extensionID, {
           force: false,
         });
         installFromFile = true;
       } else {
-        info = await this._extManager.install(extensionName);
+        info = await this._extManager.install(extensionID);
       }
       const extension = this._extManager.require(info.name);
 
@@ -81,39 +106,33 @@ export class ExtensionManagementService {
       //TODO: verify extension
       // Can we use || here?
       this._installedExtensionInfos[info.name] = {
-        id: this._installedExtensions[info.name].id,
-        name: this._installedExtensions[info.name].name
-          ? this._installedExtensions[info.name].name
-          : info.name,
+        id: info.name,
+        name: info.name.replace("@future-scholars/", ""),
         version: info.version,
-        author: this._installedExtensions[info.name].author
-          ? this._installedExtensions[info.name].author
-          : "community",
-        verified: true,
-        description: this._installedExtensions[info.name].description
-          ? this._installedExtensions[info.name].description
-          : "",
+        author: info.author ? info.author.name : "community",
+        verified: info.name.startsWith("@future-scholars/"),
+        description: info.description || "",
         preference:
-          this._extensionPreferenceService.getAllMetadata(
-            this._installedExtensions[info.name].id
-          ) || {},
+          this._extensionPreferenceService.getAllMetadata(info.name) || {},
         location: info.location,
-        originLocation: installFromFile ? extensionName : undefined,
+        originLocation: installFromFile ? extensionID : undefined,
       };
 
+      this._extStore.set(extensionID, this._installedExtensionInfos[info.name]);
+
       PLAPI.logService.info(
-        `Installed extension ${extensionName}`,
+        `Installed extension ${extensionID}`,
         "",
-        false,
-        "extensionManagementService"
+        true,
+        "ExtManagementService"
       );
     } catch (e) {
       console.log(e);
       PLAPI.logService.error(
-        `Failed to install extension ${extensionName}`,
+        `Failed to install extension ${extensionID}`,
         e as Error,
         true,
-        "extensionManagementService"
+        "ExtManagementService"
       );
     }
   }
@@ -126,16 +145,32 @@ export class ExtensionManagementService {
       ) {
         await this._installedExtensions[extensionID].dispose();
       }
+      PLAPI.logService.info(
+        `Uninstalling extension ${extensionID}`,
+        "",
+        true,
+        "ExtManagementService"
+      );
+
+      fs.rmSync(this._installedExtensionInfos[extensionID].location, {
+        recursive: true,
+        force: true,
+      });
+      fs.rmSync(this._installedExtensionInfos[extensionID].location + ".json", {
+        force: true,
+      });
+      await this._extManager.uninstall(extensionID);
+
+      this._extStore.delete(extensionID);
+
       delete this._installedExtensions[extensionID];
       delete this._installedExtensionInfos[extensionID];
-
-      await this._extManager.uninstall(extensionID);
 
       PLAPI.logService.info(
         `Uninstalled extension ${extensionID}`,
         "",
-        false,
-        "extensionManagementService"
+        true,
+        "ExtManagementService"
       );
     } catch (e) {
       console.error(e);
@@ -184,6 +219,52 @@ export class ExtensionManagementService {
 
   installedExtensions() {
     return this._installedExtensionInfos;
+  }
+
+  async listExtensionMarketplace() {
+    const packages = JSON.parse(
+      (
+        await PLAPI.networkTool.get(
+          "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20"
+        )
+      ).body
+    ).objects as {
+      package: {
+        name: string;
+        version: string;
+        publisher: {
+          username: string;
+        };
+        author?: { name: string };
+        description?: string;
+      };
+    }[];
+
+    const extensions: {
+      [id: string]: {
+        id: string;
+        name: string;
+        version: string;
+        author: string;
+        verified: boolean;
+        description: string;
+      };
+    } = {};
+
+    for (const pkg of packages) {
+      extensions[pkg.package.name] = {
+        id: pkg.package.name,
+        name: pkg.package.name.replaceAll("@future-scholars/", ""),
+        version: pkg.package.version,
+        author: pkg.package.author
+          ? pkg.package.author.name
+          : pkg.package.publisher.username,
+        verified: pkg.package.name.startsWith("@future-scholars/"),
+        description: pkg.package.description || "",
+      };
+    }
+
+    return extensions;
   }
 
   async callExtensionMethod(
