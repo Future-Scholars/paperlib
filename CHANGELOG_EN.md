@@ -1,3 +1,7 @@
+## v2.2.8 Dec 21 2023
+
+1. Update the certificate for MS Word add-in.
+
 ## v2.2.7 Dec 03 2023
 
 1. Now the sync backend supports the new `flexible` mode. (MongoDB Atlas will never support the previous 'partition' based sync anymore. This is an update for new users only.)
