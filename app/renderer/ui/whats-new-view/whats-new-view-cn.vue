@@ -76,17 +76,11 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">版本 2.2.7 更新内容</p>
+        <p class="text-center text-2xl font-bold mb-8">版本 2.2.8 更新内容</p>
 
         <ul class="list-disc mb-5">
           <li>
-            现在云同步可以连接 Flexible 模式的云数据库了。MongoDB Atlas
-            将不再支持之前的 Partition
-            模式。这是一个针对新用户的更新。老用户无需在意。
-          </li>
-          <li>修复了在标签/组视图下的搜索 Bug。</li>
-          <li>修复了设置窗口的溢出 Bug。</li>
-          <li>修复了直接拖拽 PDF 文件到标签/组失效的 Bug。</li>
+            更新 MS Word 插件证书。
         </ul>
 
         <p class="text-center text-2xl font-bold mb-8">
