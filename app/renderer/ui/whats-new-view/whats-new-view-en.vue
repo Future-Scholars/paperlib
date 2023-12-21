@@ -76,17 +76,10 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.7</p>
+        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.8</p>
 
         <ul class="list-disc mb-5">
-          <li>
-            Now the sync backend supports the new `flexible` mode. (MongoDB
-            Atlas will never support the previous 'partition' based sync
-            anymore. This is an update for new users only.)
-          </li>
-          <li>Fixed a searching bug in the tag/folder view.</li>
-          <li>Fixed the preference window overflow bug.</li>
-          <li>Fixed a bug when dragging a PDF onto a tag/folder directly.</li>
+          <li>Update the certificate for MS Word add-in.</li>
         </ul>
 
         <p class="text-center text-2xl font-bold mb-8">
