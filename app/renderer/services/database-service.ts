@@ -1,7 +1,6 @@
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 
 export interface IDatabaseServiceState {
   dbInitializing: number;
@@ -14,10 +13,7 @@ export const IDatabaseService = createDecorator("databaseService");
  * Service for database operations except data access and modification.
  */
 export class DatabaseService extends Eventable<IDatabaseServiceState> {
-  constructor(
-    @IDatabaseCore private readonly _databaseCore: DatabaseCore,
-    @ILogService private readonly _logService: LogService
-  ) {
+  constructor(@IDatabaseCore private readonly _databaseCore: DatabaseCore) {
     super("databaseService", {
       dbInitializing: 0,
       dbInitialized: 0,

@@ -246,7 +246,6 @@ export class NetworkTool {
           })
           .on("downloadProgress", (progress) => {
             if (progress.percent - percent > 0.05) {
-              // TODO: Log only every 5 percent
               this._logService.progress(
                 "Downloading...",
                 percent * 100,

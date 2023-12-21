@@ -87,7 +87,12 @@ export class CommandService extends Eventable<{}> {
   run(id: string, ...args: any[]): void {
     const command = this._registeredCommands[id];
     if (command) {
-      logService.log("info", `Run command: ${command.id} with args: ${args}`);
+      logService.info(
+        `Run command.`,
+        `${command.id} with args: ${args}`,
+        false,
+        "CommandService"
+      );
       if (command.event) {
         this.fire({ [command.event]: args });
       }
@@ -102,15 +107,18 @@ export class CommandService extends Eventable<{}> {
   }
 
   registerExternel(command: IExternelCommand) {
-    logService.log(
-      "info",
-      `Register externel command: ID - ${command.id} | Event - ${command.event} | Description - ${command.description} `
+    logService.info(
+      `Register externel command.`,
+      `ID - ${command.id} | Event - ${command.event} | Description - ${command.description}`,
+      false,
+      "CommandService"
     );
 
     if (this._registeredCommands[command.id]) {
-      logService.log(
-        "warn",
-        `Externel command ID ${command.id} has already been registered.`
+      logService.warn(
+        "Already registered.",
+        `Externel command ID ${command.id}`,
+        true
       );
       throw new Error(
         `Externel command ID ${command.id} has already been registered.`

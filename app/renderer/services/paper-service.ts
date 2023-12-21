@@ -301,7 +301,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     this._logService.info(
       `Updating ${paperEntityDrafts.length} paper(s)...`,
       "",
-      true,
+      false,
       "PaperService"
     );
 

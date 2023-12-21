@@ -58,7 +58,7 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
     this._logService.info(
       "Initializing cache database...",
       "",
-      true,
+      false,
       "Database"
     );
 
@@ -101,7 +101,7 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
 
     this.fire("dbInitialized");
 
-    this._logService.info("Cache database initialized.", "", true, "Database");
+    this._logService.info("Cache database initialized.", "", false, "Database");
     return this._realm!;
   }
 

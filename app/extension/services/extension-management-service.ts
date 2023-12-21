@@ -148,7 +148,7 @@ export class ExtensionManagementService {
       PLAPI.logService.info(
         `Uninstalling extension ${extensionID}`,
         "",
-        true,
+        false,
         "ExtManagementService"
       );
 

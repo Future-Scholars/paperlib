@@ -65,7 +65,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
    */
   @processing(ProcessingKey.General)
   async initRealm(reinit = false): Promise<Realm> {
-    this._logService.info("Initializing database...", "", true, "Database");
+    this._logService.info("Initializing database...", "", false, "Database");
     await this._fileService.stopWatch();
 
     if (this._realm || reinit) {
@@ -146,7 +146,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
     this.fire({ dbInitialized: true, dbInitializing: false });
     await this._fileService.startWatch();
 
-    this._logService.info("Database initialized.", "", true, "Database");
+    this._logService.info("Database initialized.", "", false, "Database");
     return this._realm!;
   }
 
@@ -295,7 +295,12 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
 
       const loginedUser = await this._app.logIn(credentials);
 
-      this._logService.info("Logged in!", "", true, "Database");
+      this._logService.info(
+        "Logged in to online database.",
+        "",
+        true,
+        "Database"
+      );
 
       this._app.switchUser(loginedUser);
 

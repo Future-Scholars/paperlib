@@ -220,7 +220,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
       this._logService.info(
         `Updating ${feeds.length} feeds...`,
         "",
-        true,
+        false,
         "FeedService"
       );
       const realm = await this._databaseCore.realm();
@@ -274,7 +274,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
       this._logService.info(
         `Updating ${feedEntities.length} feed entities...`,
         "",
-        true,
+        false,
         "FeedEntityService"
       );
 
