@@ -22,23 +22,26 @@ defineEmits(["install", "uninstall", "reload", "setting"]);
 </script>
 
 <template>
-  <div class="bg-neutral-200 flex flex-col py-2 px-3 rounded-md shadow-sm">
-    <div class="flex space-x-2">
-      <BIconPatchCheckFill
-        class="my-auto text-sm flex-none w-4"
-        v-if="verified"
-      />
-      <span class="font-semibold text-sm truncate my-auto grow">
-        {{ name }}
+  <div
+    class="bg-neutral-200 flex flex-col py-2 px-3 rounded-md shadow-sm justify-between"
+  >
+    <div class="flex flex-col">
+      <div class="flex space-x-2">
+        <BIconPatchCheckFill
+          class="my-auto text-sm flex-none w-4"
+          v-if="verified"
+        />
+        <span class="font-semibold text-sm truncate my-auto grow">
+          {{ name }}
+        </span>
+      </div>
+      <span class="text-xxs text-neutral-500 truncate mb-1">
+        {{ version }} by {{ author }}
+      </span>
+      <span class="text-xs text-neutral-600 line-clamp-4 mb-1">
+        {{ description }}
       </span>
     </div>
-    <span class="text-xxs text-neutral-500 truncate mb-1">
-      {{ version }} by {{ author }}
-    </span>
-    <span class="text-xs text-neutral-600 line-clamp-4 mb-1">
-      {{ description }}
-    </span>
-
     <div
       class="flex justify-end space-x-2 text-neutral-400 dark:text-neutral-500"
     >

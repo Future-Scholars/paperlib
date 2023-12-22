@@ -4,6 +4,7 @@ import {
 } from "@future-scholars/live-plugin-manager";
 import ElectronStore from "electron-store";
 import fs from "fs";
+import path from "path";
 
 import { createDecorator } from "@/base/injection/injection";
 import { isLocalPath } from "@/base/url";
@@ -87,16 +88,19 @@ export class ExtensionManagementService {
     // );
   }
 
-  async install(extensionID: string, notify = true) {
+  async install(extensionIDorPath: string, notify = true) {
+    let extensionID;
     try {
       let info: IPluginInfo;
       let installFromFile = false;
-      if (isLocalPath(extensionID)) {
-        info = await this._extManager.installFromPath(extensionID, {
+      if (isLocalPath(extensionIDorPath)) {
+        info = await this._extManager.installFromPath(extensionIDorPath, {
           force: false,
         });
         installFromFile = true;
+        extensionID = info.name;
       } else {
+        extensionID = extensionIDorPath;
         info = await this._extManager.install(extensionID);
       }
       const extension = this._extManager.require(info.name);
@@ -115,7 +119,7 @@ export class ExtensionManagementService {
         preference:
           this._extensionPreferenceService.getAllMetadata(info.name) || {},
         location: info.location,
-        originLocation: installFromFile ? extensionID : undefined,
+        originLocation: installFromFile ? extensionIDorPath : undefined,
       };
 
       this._extStore.set(extensionID, this._installedExtensionInfos[info.name]);
@@ -127,6 +131,19 @@ export class ExtensionManagementService {
         "ExtManagementService"
       );
     } catch (e) {
+      const tryToDeletePath = path.join(
+        globalThis["extensionWorkingDir"],
+        extensionID
+      );
+      console.log(tryToDeletePath);
+      try {
+        if (fs.existsSync(tryToDeletePath)) {
+          fs.rmSync(tryToDeletePath, { recursive: true, force: true });
+        }
+
+        this._extStore.delete(extensionID);
+      } catch (e) {}
+
       console.log(e);
       PLAPI.logService.error(
         `Failed to install extension ${extensionID}`,
@@ -143,6 +160,12 @@ export class ExtensionManagementService {
         this._installedExtensions[extensionID] &&
         this._installedExtensions[extensionID].dispose
       ) {
+        PLAPI.logService.info(
+          `Disposing extension ${extensionID}`,
+          "",
+          false,
+          "ExtManagementService"
+        );
         await this._installedExtensions[extensionID].dispose();
       }
       PLAPI.logService.info(

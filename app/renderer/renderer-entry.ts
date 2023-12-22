@@ -26,7 +26,6 @@ import { FileService } from "@/renderer/services/file-service";
 import { HookService } from "@/renderer/services/hook-service";
 import { IInjectable } from "@/renderer/services/injectable";
 import { LogService } from "@/renderer/services/log-service";
-import { MSWordCommService } from "@/renderer/services/msword-comm-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";
@@ -114,7 +113,6 @@ async function initialize() {
     renderService: RenderService,
     referenceService: ReferenceService,
     schedulerService: SchedulerService,
-    msWordCommService: MSWordCommService,
     commandService: CommandService,
     shortcutService: ShortcutService,
     hookService: HookService,

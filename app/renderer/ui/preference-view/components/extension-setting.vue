@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Input from "./Input.vue";
+import PathPicker from "./path-picker.vue";
 import Select from "./select.vue";
 import Toggle from "./toggle.vue";
 
@@ -31,6 +32,25 @@ const emit = defineEmits(["update"]);
 
 <template>
   <div>
+    <div class="flex flex-col space-y-1" v-if="type === 'pathpicker'">
+      <div class="flex flex-col">
+        <div class="text-xs font-semibold">{{ title }}</div>
+        <div class="text-xxs text-neutral-600 dark:text-neutral-500">
+          {{ description }}
+        </div>
+      </div>
+      <PathPicker
+        class="h-8"
+        type="folder"
+        :picked-path="value as string"
+        @event:picked-path="
+          (value) => {
+            emit('update', value);
+          }
+        "
+      />
+    </div>
+
     <Toggle
       :title="title"
       :info="description"

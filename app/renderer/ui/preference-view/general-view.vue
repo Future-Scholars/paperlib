@@ -5,20 +5,13 @@ import { IPreferenceStore } from "@/common/services/preference-service";
 import { APPTheme } from "@/main/services/window-process-management-service";
 
 import Options from "./components/options.vue";
+import PathPicker from "./components/path-picker.vue";
 import Toggle from "./components/toggle.vue";
 
 const prefState = preferenceService.useState();
 
 const updatePrefs = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set({ [key]: value });
-};
-
-const onPickerClicked = async () => {
-  const pickedFolder = (await PLMainAPI.fileSystemService.showFolderPicker())
-    .filePaths[0];
-  if (pickedFolder) {
-    updatePrefs("appLibFolder", pickedFolder);
-  }
 };
 
 const onThemeUpdated = (value: APPTheme) => {
@@ -108,14 +101,12 @@ const onChangeLanguage = (language: string) => {
     <div class="text-xxs text-neutral-600 dark:text-neutral-500">
       {{ $t("preference.storagefolderintro") }}
     </div>
-    <div
-      class="bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 hover:dark:bg-neutral-600 cursor-pointer rounded-md px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 mb-5"
-      @click="onPickerClicked"
-    >
-      <span class="w-full">
-        {{ prefState.appLibFolder }}
-      </span>
-    </div>
+
+    <PathPicker
+      type="folder"
+      :picked-path="prefState.appLibFolder"
+      @event:picked-path="updatePrefs('appLibFolder', $event)"
+    />
 
     <Options
       class="mb-5"

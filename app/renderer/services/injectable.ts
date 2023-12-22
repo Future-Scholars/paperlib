@@ -13,7 +13,6 @@ import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
 import { HookService } from "@/renderer/services/hook-service";
 import { LogService } from "@/renderer/services/log-service";
-import { MSWordCommService } from "@/renderer/services/msword-comm-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";
@@ -55,7 +54,6 @@ export type IInjectable =
   | RenderService
   | ReferenceService
   | SchedulerService
-  | MSWordCommService
   | NetworkTool
   | CommandService
   | ShortcutService
