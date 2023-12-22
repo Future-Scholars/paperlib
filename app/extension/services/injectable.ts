@@ -5,6 +5,4 @@ import { ExtensionRPCService } from "@/extension/services/extension-rpc-service"
 export type IInjectable =
   | ExtensionRPCService
   | ExtensionManagementService
-  | ExtensionPreferenceService<{
-      [key: string]: any;
-    }>;
+  | ExtensionPreferenceService;

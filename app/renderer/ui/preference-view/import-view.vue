@@ -61,7 +61,10 @@ const importFromZoteroCSVClicked = async () => {
         <span class="m-auto text-xs"> {{ $t("preference.import") }}</span>
       </button>
     </div>
-    <div class="text-base font-semibold mb-4 mt-5">
+
+    <hr class="mb-5 dark:border-neutral-600" />
+
+    <div class="text-base font-semibold mb-4">
       {{ $t("preference.importfromzotero") }}
     </div>
     <div class="text-xxs text-neutral-600 dark:text-neutral-500">

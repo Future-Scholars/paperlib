@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import {
-  BIconBinoculars,
   BIconBoxArrowDown,
   BIconBoxArrowInDown,
   BIconCloudArrowUp,
-  BIconDownload,
   BIconGearWideConnected,
   BIconGlobe,
   BIconInfoCircle,
@@ -18,7 +16,6 @@ import { onMounted, ref } from "vue";
 import AboutView from "./about-view.vue";
 import CloudView from "./cloud-view.vue";
 import SectionItem from "./components/section-item.vue";
-import DownloaderView from "./downloader-view.vue";
 import ExportView from "./export-view.vue";
 import ExtensionView from "./extension-view.vue";
 import GeneralView from "./general-view.vue";
@@ -26,7 +23,6 @@ import HotkeyView from "./hotkey-view.vue";
 import ImportView from "./import-view.vue";
 import MainviewView from "./mainview-view.vue";
 import ProxyView from "./proxy-view.vue";
-import ScraperView from "./scraper-view.vue";
 import SidebarView from "./sidebar-view.vue";
 
 // ==============================
@@ -77,20 +73,6 @@ onMounted(async () => {
             @click="preferenceTab = 'mainview'"
           >
             <BIconViewList class="my-auto text-xs" />
-          </SectionItem>
-          <SectionItem
-            :name="$t('preference.scraper')"
-            :active="preferenceTab === 'scraper'"
-            @click="preferenceTab = 'scraper'"
-          >
-            <BIconBinoculars class="my-auto text-xs" />
-          </SectionItem>
-          <SectionItem
-            :name="$t('preference.downloader')"
-            :active="preferenceTab === 'downloader'"
-            @click="preferenceTab = 'downloader'"
-          >
-            <BIconDownload class="my-auto text-xs" />
           </SectionItem>
           <SectionItem
             :name="$t('preference.proxy')"
@@ -156,8 +138,6 @@ onMounted(async () => {
         <GeneralView v-if="preferenceTab === 'general'" />
         <SidebarView v-if="preferenceTab === 'sidebar'" />
         <MainviewView v-if="preferenceTab === 'mainview'" />
-        <ScraperView v-if="preferenceTab === 'scraper'" />
-        <DownloaderView v-if="preferenceTab === 'downloader'" />
         <ProxyView v-if="preferenceTab === 'proxy'" />
         <CloudView v-if="preferenceTab === 'cloud'" />
         <ImportView v-if="preferenceTab === 'import'" />

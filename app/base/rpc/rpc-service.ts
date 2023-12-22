@@ -1,6 +1,4 @@
 import { Eventable } from "../event";
-import { EIMainRPCProtocol } from "./ei-main-rpc-protocol";
-import { EIRendererRPCProtocol } from "./ei-renderer-rpc-protocol";
 import { MessagePortRPCProtocol } from "./messageport-rpc-protocol";
 
 interface IRPCServiceState {
@@ -8,8 +6,6 @@ interface IRPCServiceState {
 }
 
 export type RPCProtocol = MessagePortRPCProtocol;
-// | EIMainRPCProtocol
-// | EIRendererRPCProtocol;
 
 export abstract class RPCService<
   T extends IRPCServiceState

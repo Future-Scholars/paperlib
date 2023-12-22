@@ -3,7 +3,6 @@ import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
 import { IPreferenceStore } from "@/common/services/preference-service";
-import { MSWordCommService } from "@/renderer/services/msword-comm-service";
 
 import Replacement from "./components/replacement.vue";
 import Toggle from "./components/toggle.vue";
@@ -66,14 +65,6 @@ const loadCSLStyles = async () => {
   CSLStyles.value = await referenceService.loadCSLStyles();
 };
 
-const installstate = ref(0);
-
-const installWordAddinClicked = async () => {
-  // TODO: implement
-  // await MSWordCommService.installWordAddin();
-  installstate.value = 1;
-};
-
 onMounted(() => {
   loadCSLStyles();
 });
@@ -116,29 +107,6 @@ onMounted(() => {
           </option>
         </select>
       </div>
-    </div>
-
-    <hr class="my-5 dark:border-neutral-600" />
-
-    <div class="flex justify-between">
-      <div class="flex flex-col">
-        <div class="text-xs font-semibold">
-          {{ $t("preference.mswordaddintitle") }}
-        </div>
-        <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-          {{ $t("preference.mswordaddinintro") }}
-        </div>
-      </div>
-      <button
-        class="flex h-8 w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
-        @click="installWordAddinClicked"
-      >
-        <span class="m-auto text-xs">{{
-          installstate === 0
-            ? $t("preference.install")
-            : $t("preference.installdone")
-        }}</span>
-      </button>
     </div>
 
     <hr class="my-5 dark:border-neutral-600" />
