@@ -3,7 +3,7 @@ import Realm, { PrimaryKey, Results } from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { PaperFolder, PaperTag } from "@/models/categorizer";
+import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 
 export interface IPaperEntityRepositoryState {
@@ -233,11 +233,11 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           id as PrimaryKey
         );
         const tagObj = realm.objectForPrimaryKey<PaperTag>(
-          "PaperTag",
+          CategorizerType.PaperTag,
           tag._id as PrimaryKey
         );
         const folderObj = realm.objectForPrimaryKey<PaperFolder>(
-          "PaperFolder",
+          CategorizerType.PaperFolder,
           folder._id as PrimaryKey
         );
         if (createdEntity && tagObj && folderObj) {

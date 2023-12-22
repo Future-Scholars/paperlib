@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Process } from "@/base/process-id";
+
 const emit = defineEmits(["close"]);
 
 const prefState = preferenceService.useState();
@@ -8,7 +10,7 @@ const onChangeLanguage = (language: string) => {
 };
 
 const onRestartClicked = () => {
-  appService.forceClose();
+  PLMainAPI.windowProcessManagementService.forceClose(Process.renderer);
 };
 </script>
 

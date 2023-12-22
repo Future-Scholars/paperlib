@@ -64,14 +64,18 @@ export class PaperFolder extends Categorizer {
   }
 }
 
-// TODO: enumable
-export type CategorizerType = "PaperTag" | "PaperFolder";
-export type Colors =
-  | "red"
-  | "green"
-  | "blue"
-  | "yellow"
-  | "orange"
-  | "cyan"
-  | "purple"
-  | "pink";
+export enum Colors {
+  red = "red",
+  green = "green",
+  blue = "blue",
+  yellow = "yellow",
+  orange = "orange",
+  cyan = "cyan",
+  purple = "purple",
+  pink = "pink",
+}
+
+export enum CategorizerType {
+  PaperTag = "PaperTag",
+  PaperFolder = "PaperFolder",
+}

@@ -1,16 +1,17 @@
 <script setup lang="ts">
+import { Process } from "@/base/process-id";
 import { BIconDash, BIconPlus, BIconX } from "bootstrap-icons-vue";
 
 const onCloseClicked = () => {
-  appService.close();
+  PLMainAPI.windowProcessManagementService.close(Process.renderer);
 };
 
 const onMinimizeClicked = () => {
-  appService.minimize();
+  PLMainAPI.windowProcessManagementService.minimize(Process.renderer);
 };
 
 const onMaximizeClicked = () => {
-  appService.maximize();
+  PLMainAPI.windowProcessManagementService.maximize(Process.renderer);
 };
 </script>
 

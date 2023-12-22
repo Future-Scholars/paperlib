@@ -11,6 +11,8 @@ import { IFeedResults } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
 import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 
+import { Process } from "@/base/process-id";
+import { CategorizerType } from "@/models/categorizer";
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
 import DevView from "./dev-view/dev-view.vue";
 import EditView from "./edit-view/edit-view.vue";
@@ -98,7 +100,7 @@ disposable(
 
 const reloadTags = async () => {
   tags.value = await categorizerService.load(
-    "PaperTag",
+    CategorizerType.PaperTag,
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
@@ -107,7 +109,7 @@ disposable(categorizerService.on("tagsUpdated", () => reloadTags()));
 
 const reloadFolders = async () => {
   folders.value = await categorizerService.load(
-    "PaperFolder",
+    CategorizerType.PaperFolder,
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
@@ -158,6 +160,11 @@ const reloadFeedEntities = async () => {
   );
 };
 disposable(feedService.on("entitiesUpdated", () => reloadFeedEntities()));
+disposable(
+  feedService.on("entitiesCount", (value) => {
+    uiState.feedEntitiesCount = value.value;
+  })
+);
 
 // ================================
 // Register State
@@ -245,16 +252,14 @@ disposable(
     // Notify the main process that the app is ready,
     //   so that the main process can initialize the extension process
     // TODO: check if there is a way to do this without providing the processID manually.
-    PLMainAPI.windowProcessManagementService.fireServiceReady(
-      "rendererProcess"
-    );
+    PLMainAPI.windowProcessManagementService.fireServiceReady(Process.renderer);
   })
 );
 
 // TODO: Check all event disposable
 disposable(
   PLMainAPI.windowProcessManagementService.on(
-    "rendererProcess",
+    Process.renderer,
     (newValue: { value: string }) => {
       if (newValue.value === "blur") {
         uiState.mainViewFocused = false;

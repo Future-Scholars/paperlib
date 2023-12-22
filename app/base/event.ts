@@ -97,8 +97,6 @@ export class Eventable<T extends IEventState> implements IDisposable {
   }
 
   useState(proxied: boolean = true) {
-    // TODO: check memory leak ?
-
     const state = this._useStateFunc();
 
     if (!proxied) {

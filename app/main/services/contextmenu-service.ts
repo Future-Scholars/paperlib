@@ -7,6 +7,7 @@ import {
   PreferenceService,
 } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
+import { Colors } from "@/models/categorizer";
 
 const isMac = process.platform === "darwin";
 
@@ -63,7 +64,7 @@ export interface IContextMenuServiceState {
   dataContextMenuExportBibTexKeyClicked: number;
   dataContextMenuExportPlainTextClicked: number;
   feedContextMenuAddToLibraryClicked: number;
-  feedContextMenuToogleReadClicked: number;
+  feedContextMenuToggleReadClicked: number;
   sidebarContextMenuFeedRefreshClicked: { data: string; type: string };
   sidebarContextMenuEditClicked: { data: string; type: string };
   sidebarContextMenuColorClicked: { data: string; type: string; color: string };
@@ -98,7 +99,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       dataContextMenuExportBibTexKeyClicked: 0,
       dataContextMenuExportPlainTextClicked: 0,
       feedContextMenuAddToLibraryClicked: 0,
-      feedContextMenuToogleReadClicked: 0,
+      feedContextMenuToggleReadClicked: 0,
       sidebarContextMenuFeedRefreshClicked: { data: "", type: "" },
       sidebarContextMenuEditClicked: { data: "", type: "" },
       sidebarContextMenuColorClicked: { data: "", type: "", color: "" },
@@ -251,7 +252,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       {
         label: this._locales.t("menu.toggleread"),
         click: () => {
-          this.fire("feedContextMenuToogleReadClicked");
+          this.fire("feedContextMenuToggleReadClicked");
         },
       },
     ];
@@ -274,7 +275,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             sidebarContextMenuColorClicked: {
               data: data,
               type: type,
-              color: "blue",
+              color: Colors.blue,
             },
           });
         },
@@ -287,7 +288,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             sidebarContextMenuColorClicked: {
               data: data,
               type: type,
-              color: "red",
+              color: Colors.red,
             },
           });
         },
@@ -300,7 +301,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             sidebarContextMenuColorClicked: {
               data: data,
               type: type,
-              color: "yellow",
+              color: Colors.yellow,
             },
           });
         },
@@ -313,7 +314,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             sidebarContextMenuColorClicked: {
               data: data,
               type: type,
-              color: "green",
+              color: Colors.green,
             },
           });
         },
@@ -326,7 +327,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             sidebarContextMenuColorClicked: {
               data: data,
               type: type,
-              color: "orange",
+              color: Colors.orange,
             },
           });
         },
@@ -339,7 +340,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             sidebarContextMenuColorClicked: {
               data: data,
               type: type,
-              color: "cyan",
+              color: Colors.cyan,
             },
           });
         },
@@ -352,7 +353,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             sidebarContextMenuColorClicked: {
               data: data,
               type: type,
-              color: "purple",
+              color: Colors.purple,
             },
           });
         },
@@ -365,7 +366,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             sidebarContextMenuColorClicked: {
               data: data,
               type: type,
-              color: "pink",
+              color: Colors.pink,
             },
           });
         },

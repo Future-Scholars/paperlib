@@ -239,7 +239,9 @@ export class LogService extends Eventable<ILogEventState> {
     id?: string
   ) {
     loglib.error(
-      `${id ? `[${id}]` : ""} ${msg}${additional ? `: ${additional}` : ""}`
+      `${id ? `[${id}]` : ""} ${msg}${
+        typeof additional === "string" ? `: ${additional}` : ""
+      }`
     );
     if (additional.hasOwnProperty("name")) {
       loglib.error((additional as Error).name);

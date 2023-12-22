@@ -4,7 +4,6 @@ import path, { isAbsolute } from "path";
 import { WebDAVClient, createClient } from "webdav";
 
 import { constructFileURL, eraseProtocol } from "@/base/url";
-import { PaperEntity } from "@/models/paper-entity";
 
 import { IFileBackend } from "./backend";
 

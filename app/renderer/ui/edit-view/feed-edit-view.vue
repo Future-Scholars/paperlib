@@ -1,24 +1,31 @@
 <script setup lang="ts">
 import { Feed } from "@/models/feed";
 
+import { disposable } from "@/base/dispose";
+import { onMounted, ref } from "vue";
 import InputBox from "./components/input-box.vue";
 
 // ==============================
 // State
 // ==============================
 const uiState = uiStateService.useState();
+const editingFeedDraft = ref<Feed>(new Feed(false));
 
 const onCloseClicked = () => {
   uiState.isFeedEditViewShown = false;
 };
 
 const onSaveClicked = async () => {
-  feedService.create([new Feed(false).initialize(uiState.editingFeedDraft)]);
+  feedService.create([new Feed(true).initialize(editingFeedDraft.value)]);
   onCloseClicked();
 };
 
-shortcutService.register("Escape", onCloseClicked);
-shortcutService.registerInInputField("Escape", onCloseClicked);
+disposable(shortcutService.register("Escape", onCloseClicked));
+disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
+
+onMounted(() => {
+  editingFeedDraft.value.initialize(new Feed(false));
+});
 </script>
 
 <template>
@@ -31,13 +38,13 @@ shortcutService.registerInInputField("Escape", onCloseClicked);
       >
         <InputBox
           placeholder="Feed Name"
-          :value="uiState.editingFeedDraft.name"
-          @changed="(value) => (uiState.editingFeedDraft.name = value)"
+          :value="editingFeedDraft.name"
+          @changed="(value) => (editingFeedDraft.name = value)"
         />
         <InputBox
           placeholder="Feed URL"
-          :value="uiState.editingFeedDraft.url"
-          @changed="(value) => (uiState.editingFeedDraft.url = value)"
+          :value="editingFeedDraft.url"
+          @changed="(value) => (editingFeedDraft.url = value)"
         />
         <div class="flex justify-end space-x-2 py-1">
           <div

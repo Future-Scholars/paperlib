@@ -2,9 +2,7 @@ import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { NetworkTool } from "@/base/network";
 import { PreferenceService } from "@/common/services/preference-service";
-import { APPService } from "@/renderer/services/app-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
-import { BufferService } from "@/renderer/services/buffer-service";
 import { CacheService } from "@/renderer/services/cache-service";
 import { CategorizerService } from "@/renderer/services/categorizer-service";
 import { CommandService } from "@/renderer/services/command-service";
@@ -30,14 +28,12 @@ import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfi
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 
 export type IInjectable =
-  | APPService
   | PreferenceService
   | LogService
   | DatabaseService
   | DatabaseCore
   | PaperEntityRepository
   | PaperService
-  | BufferService
   | CategorizerRepository
   | ScrapeService
   | FileService

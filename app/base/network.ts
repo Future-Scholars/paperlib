@@ -8,6 +8,7 @@ import stream from "stream";
 import { CookieJar } from "tough-cookie";
 import { promisify } from "util";
 
+import { createDecorator } from "@/base/injection/injection";
 import { constructFileURL } from "@/base/url";
 import {
   IPreferenceService,
@@ -44,6 +45,8 @@ const gotWithCache = got.extend({
     },
   ],
 });
+
+export const INetworkTool = createDecorator("networkTool");
 
 export class NetworkTool {
   private _agent: {

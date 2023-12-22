@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { BIconQuestionCircle } from "bootstrap-icons-vue";
-import { Ref, inject, ref } from "vue";
+import { Ref, inject, onMounted, ref } from "vue";
 
 import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
 
+import { disposable } from "@/base/dispose";
 import CodesInput from "./components/codes-input.vue";
 import InputBox from "./components/input-box.vue";
 import InputField from "./components/input-field.vue";
@@ -18,6 +19,7 @@ import SelectBox from "./components/select-box.vue";
 const uiState = uiStateService.useState();
 const wideMode = ref(false);
 const advancedMode = ref(false);
+const editingPaperEntityDraft = ref(new PaperEntity(false));
 
 // ==============================
 // Data
@@ -27,12 +29,12 @@ const tags = inject<Ref<ICategorizerResults>>("tags");
 const folders = inject<Ref<ICategorizerResults>>("folders");
 
 const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
-  if (type === "PaperTag") {
-    uiState.editingPaperEntityDraft.tags = names.map((name: string) => {
+  if (type === CategorizerType.PaperTag) {
+    editingPaperEntityDraft.value.tags = names.map((name: string) => {
       return new PaperTag(name, 1, "blue");
     });
-  } else if (type === "PaperFolder") {
-    uiState.editingPaperEntityDraft.folders = names.map((name: string) => {
+  } else if (type === CategorizerType.PaperFolder) {
+    editingPaperEntityDraft.value.folders = names.map((name: string) => {
       return new PaperFolder(name, 1, "blue");
     });
   }
@@ -44,20 +46,25 @@ const onCloseClicked = () => {
 
 const onSaveClicked = async () => {
   paperService.update([
-    new PaperEntity(false).initialize(uiState.editingPaperEntityDraft),
+    new PaperEntity(false).initialize(editingPaperEntityDraft.value),
   ]);
   onCloseClicked();
 };
 
 const onSaveAndScrapeClicked = async () => {
   const savedPaperEntityDraft = await paperService.update([
-    new PaperEntity(false).initialize(uiState.editingPaperEntityDraft),
+    new PaperEntity(false).initialize(editingPaperEntityDraft.value),
   ]);
   paperService.scrape(savedPaperEntityDraft);
 };
 
-shortcutService.register("Escape", onCloseClicked);
-shortcutService.registerInInputField("Escape", onCloseClicked);
+// TODO: check all register dispose callback, and success to dispose
+disposable(shortcutService.register("Escape", onCloseClicked));
+disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
+
+onMounted(() => {
+  editingPaperEntityDraft.value.initialize(uiState.selectedPaperEntities[0]);
+});
 </script>
 
 <template>
@@ -77,38 +84,38 @@ shortcutService.registerInInputField("Escape", onCloseClicked);
           >
             <InputBox
               :placeholder="$t('mainview.title')"
-              :value="uiState.editingPaperEntityDraft.title"
-              @changed="(value: string) => (uiState.editingPaperEntityDraft.title = value)"
+              :value="editingPaperEntityDraft.title"
+              @changed="(value: string) => (editingPaperEntityDraft.title = value)"
             />
             <InputBox
               id="paper-edit-view-author-input"
               :placeholder="$t('mainview.authors')"
-              :value="uiState.editingPaperEntityDraft.authors"
-              @changed="(value: string) => (uiState.editingPaperEntityDraft.authors = value)"
+              :value="editingPaperEntityDraft.authors"
+              @changed="(value: string) => (editingPaperEntityDraft.authors = value)"
             />
             <InputBox
               id="paper-edit-view-publication-input"
               :placeholder="$t('mainview.publicationtitle')"
-              :value="uiState.editingPaperEntityDraft.publication"
+              :value="editingPaperEntityDraft.publication"
               @changed="
-                (value: string) => (uiState.editingPaperEntityDraft.publication = value)
+                (value: string) => (editingPaperEntityDraft.publication = value)
               "
             />
             <div class="flex w-full space-x-2">
               <InputBox
                 :placeholder="$t('mainview.publicationyear')"
                 class="w-1/2"
-                :value="uiState.editingPaperEntityDraft.pubTime"
-                @changed="(value: string) => (uiState.editingPaperEntityDraft.pubTime = value)"
+                :value="editingPaperEntityDraft.pubTime"
+                @changed="(value: string) => (editingPaperEntityDraft.pubTime = value)"
               />
               <SelectBox
                 :placeholder="$t('mainview.publicationtype')"
                 class="w-1/2"
                 :options="pubTypes"
-                :value="pubTypes[uiState.editingPaperEntityDraft.pubType]"
+                :value="pubTypes[editingPaperEntityDraft.pubType]"
                 @changed="
                   (value: string) => {
-                    uiState.editingPaperEntityDraft.pubType = pubTypes.indexOf(value);
+                    editingPaperEntityDraft.pubType = pubTypes.indexOf(value);
                   }
                 "
               />
@@ -118,29 +125,29 @@ shortcutService.registerInInputField("Escape", onCloseClicked);
                 <InputBox
                   class="basis-1/2 w-8"
                   placeholder="Volumn"
-                  :value="uiState.editingPaperEntityDraft.volume"
-                  @changed="(value: string) => (uiState.editingPaperEntityDraft.volume = value)"
+                  :value="editingPaperEntityDraft.volume"
+                  @changed="(value: string) => (editingPaperEntityDraft.volume = value)"
                 />
                 <InputBox
                   class="basis-1/2 w-8"
                   placeholder="Pages"
-                  :value="uiState.editingPaperEntityDraft.pages"
-                  @changed="(value: string) => (uiState.editingPaperEntityDraft.pages = value)"
+                  :value="editingPaperEntityDraft.pages"
+                  @changed="(value: string) => (editingPaperEntityDraft.pages = value)"
                 />
               </div>
               <div class="basis-1/2 flex space-x-2">
                 <InputBox
                   class="basis-1/2 w-8"
                   placeholder="Number"
-                  :value="uiState.editingPaperEntityDraft.number"
-                  @changed="(value: string) => (uiState.editingPaperEntityDraft.number = value)"
+                  :value="editingPaperEntityDraft.number"
+                  @changed="(value: string) => (editingPaperEntityDraft.number = value)"
                 />
                 <InputBox
                   class="basis-1/2 w-8"
                   placeholder="Publisher"
-                  :value="uiState.editingPaperEntityDraft.publisher"
+                  :value="editingPaperEntityDraft.publisher"
                   @changed="
-                    (value: string) => (uiState.editingPaperEntityDraft.publisher = value)
+                    (value: string) => (editingPaperEntityDraft.publisher = value)
                   "
                 />
               </div>
@@ -149,26 +156,24 @@ shortcutService.registerInInputField("Escape", onCloseClicked);
               <InputBox
                 placeholder="arXiv ID"
                 class="w-1/2"
-                :value="uiState.editingPaperEntityDraft.arxiv"
-                @changed="(value: string) => (uiState.editingPaperEntityDraft.arxiv = value)"
+                :value="editingPaperEntityDraft.arxiv"
+                @changed="(value: string) => (editingPaperEntityDraft.arxiv = value)"
               />
               <InputBox
                 placeholder="DOI"
                 class="w-1/2"
-                :value="uiState.editingPaperEntityDraft.doi"
-                @changed="(value: string) => (uiState.editingPaperEntityDraft.doi = value)"
+                :value="editingPaperEntityDraft.doi"
+                @changed="(value: string) => (editingPaperEntityDraft.doi = value)"
               />
             </div>
             <MultiselectBox
               id="paper-edit-view-tags-input"
               :placeholder="$t('mainview.tags')"
               :options="(tags ? tags : []).map((tag) => tag.name)"
-              :existValues="
-                uiState.editingPaperEntityDraft.tags.map((tag) => tag.name)
-              "
+              :existValues="editingPaperEntityDraft.tags.map((tag) => tag.name)"
               @changed="
                 (values: string[]) => {
-                  onCategorizerUpdated(values, 'PaperTag');
+                  onCategorizerUpdated(values, CategorizerType.PaperTag);
                 }
               "
             />
@@ -177,23 +182,21 @@ shortcutService.registerInInputField("Escape", onCloseClicked);
               :placeholder="$t('mainview.folders')"
               :options="(folders ? folders : []).map((folder) => folder.name)"
               :existValues="
-                uiState.editingPaperEntityDraft.folders.map(
-                  (folder) => folder.name
-                )
+                editingPaperEntityDraft.folders.map((folder) => folder.name)
               "
               @changed="
                 (values: string[]) => {
-                  onCategorizerUpdated(values, 'PaperFolder');
+                  onCategorizerUpdated(values, CategorizerType.PaperFolder);
                 }
               "
             />
             <InputField
               :placeholder="$t('mainview.note')"
               class="h-28"
-              :value="uiState.editingPaperEntityDraft.note"
+              :value="editingPaperEntityDraft.note"
               :is-expanded="wideMode"
               :can-expand="true"
-              @changed="(value: string) => (uiState.editingPaperEntityDraft.note = value)"
+              @changed="(value: string) => (editingPaperEntityDraft.note = value)"
               v-if="!wideMode"
               @expand="(expanded: boolean) => (wideMode = expanded)"
             />
@@ -203,10 +206,10 @@ shortcutService.registerInInputField("Escape", onCloseClicked);
             <InputField
               placeholder="Note (start with '<md>' to use markdown)"
               class="h-full w-full"
-              :value="uiState.editingPaperEntityDraft.note"
+              :value="editingPaperEntityDraft.note"
               :is-expanded="wideMode"
               :can-expand="true"
-              @changed="(value: string) => (uiState.editingPaperEntityDraft.note = value)"
+              @changed="(value: string) => (editingPaperEntityDraft.note = value)"
               v-if="wideMode"
               @expand="(expanded: boolean) => (wideMode = expanded)"
             />
@@ -216,10 +219,8 @@ shortcutService.registerInInputField("Escape", onCloseClicked);
         <div class="flex" v-show="advancedMode">
           <CodesInput
             class="max-h-40 w-full"
-            :codes="uiState.editingPaperEntityDraft.codes"
-            @changed="
-              (codes) => (uiState.editingPaperEntityDraft.codes = codes)
-            "
+            :codes="editingPaperEntityDraft.codes"
+            @changed="(codes) => (editingPaperEntityDraft.codes = codes)"
           />
         </div>
 

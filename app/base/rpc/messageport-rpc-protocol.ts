@@ -168,8 +168,7 @@ export class MessagePortRPCProtocol {
       this._eventListeners[remoteEventName] =
         this._eventListeners[remoteEventName] || {};
       const callbackId = uid();
-      const callbackList = this._eventListeners[remoteEventName]!;
-      callbackList[callbackId] = callback;
+      this._eventListeners[remoteEventName]![callbackId] = callback;
       remoteEventNameAndCallbackId.push([remoteEventName, callbackId]);
 
       if (firstTimeRegister) {
@@ -192,7 +191,6 @@ export class MessagePortRPCProtocol {
         remoteEventName,
         callbackId,
       ] of remoteEventNameAndCallbackId) {
-        // TODO: check delete logic
         if (this._eventListeners[remoteEventName]) {
           delete this._eventListeners[remoteEventName][callbackId];
 
@@ -315,7 +313,6 @@ export class MessagePortRPCProtocol {
           rpcId === "networkTool" &&
           (method === "get" || method === "post" || method === "postForm")
         ) {
-          // TODO: deal with post download etc.
           msg = JSON.stringify({
             callId,
             type: MessageType.replySuccess,

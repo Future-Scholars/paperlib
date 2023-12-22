@@ -374,14 +374,14 @@ export class PaperService extends Eventable<IPaperServiceState> {
                 realm,
                 existingPaperEntity ? existingPaperEntity.tags : [],
                 paperEntity.tags,
-                "PaperTag",
+                CategorizerType.PaperTag,
                 this._databaseCore.getPartition()
               );
               const folders = this._categorizerRepository.update(
                 realm,
                 existingPaperEntity ? existingPaperEntity.folders : [],
                 paperEntity.folders,
-                "PaperFolder",
+                CategorizerType.PaperFolder,
                 this._databaseCore.getPartition()
               );
 
@@ -482,13 +482,13 @@ export class PaperService extends Eventable<IPaperServiceState> {
       });
 
       paperEntityDrafts = paperEntityDrafts.map((paperEntityDraft) => {
-        if (type === "PaperTag") {
+        if (type === CategorizerType.PaperTag) {
           let tagNames = paperEntityDraft.tags.map((tag) => tag.name);
           if (!tagNames.includes(categorizer.name)) {
             paperEntityDraft.tags.push(categorizer);
           }
         }
-        if (type === "PaperFolder") {
+        if (type === CategorizerType.PaperFolder) {
           let folderNames = paperEntityDraft.folders.map(
             (folder) => folder.name
           );
@@ -632,11 +632,11 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
       const toBeUpdatedPaperEntityDrafts = paperEntityDrafts.map(
         (paperEntityDraft) => {
-          if ((type = "PaperTag")) {
+          if ((type = CategorizerType.PaperTag)) {
             paperEntityDraft.setValue("tags", [
               new PaperTag("", 0, "").initialize(categorizer),
             ]);
-          } else if (type === "PaperFolder") {
+          } else if (type === CategorizerType.PaperFolder) {
             paperEntityDraft.setValue("folders", [
               new PaperFolder("", 0, "").initialize(categorizer),
             ]);

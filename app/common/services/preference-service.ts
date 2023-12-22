@@ -576,7 +576,6 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
     let _store: ElectronStore<IPreferenceStore>;
     if (isRendererProcess()) {
       const userDataPath = ipcRenderer.sendSync("getSystemPath", "userData");
-      console.log(userDataPath);
       _store = new ElectronStore<IPreferenceStore>({
         cwd: userDataPath,
       });
@@ -613,7 +612,6 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
    * @returns
    */
   set(patch: Partial<IPreferenceStore>) {
-    // TODO: when close, run many set windowSize
     this._store.set(patch);
     this.fire(patch);
   }

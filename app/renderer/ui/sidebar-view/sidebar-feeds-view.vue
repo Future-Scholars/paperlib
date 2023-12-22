@@ -59,8 +59,6 @@ const onItemRightClicked = (event: MouseEvent, feed: Feed) => {
 };
 
 const onAddNewFeedClicked = () => {
-  const feedDraft = new Feed(true);
-  uiState.editingFeedDraft = feedDraft;
   uiState.isFeedEditViewShown = true;
 };
 

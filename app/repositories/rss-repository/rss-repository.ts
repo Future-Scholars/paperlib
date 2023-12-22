@@ -2,6 +2,7 @@ import { XMLParser } from "fast-xml-parser";
 import { Response } from "got";
 
 import { createDecorator } from "@/base/injection/injection";
+import { INetworkTool, NetworkTool } from "@/base/network";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 
@@ -10,12 +11,14 @@ export const IRSSRepository = createDecorator("rssRepository");
 export class RSSRepository {
   xmlParser: XMLParser;
 
-  constructor() {
+  constructor(@INetworkTool private _networkTool: NetworkTool) {
     this.xmlParser = new XMLParser({ ignoreAttributes: false });
   }
 
   async fetch(feed: Feed): Promise<FeedEntity[]> {
-    const response = (await networkTool.get(feed.url)) as Response<string>;
+    const response = (await this._networkTool.get(
+      feed.url
+    )) as Response<string>;
 
     let feedEntityDrafts = this.parse(response);
 

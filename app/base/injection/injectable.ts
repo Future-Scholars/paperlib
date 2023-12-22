@@ -10,9 +10,7 @@ import { MenuService } from "@/main/services/menu-service";
 import { ProxyService } from "@/main/services/proxy-service";
 import { UpgradeService } from "@/main/services/upgrade-service";
 import { WindowProcessManagementService } from "@/main/services/window-process-management-service";
-import { APPService } from "@/renderer/services/app-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
-import { BufferService } from "@/renderer/services/buffer-service";
 import { CacheService } from "@/renderer/services/cache-service";
 import { CategorizerService } from "@/renderer/services/categorizer-service";
 import { DatabaseService } from "@/renderer/services/database-service";
@@ -33,14 +31,12 @@ import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfi
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 
 export type IInjectable =
-  | APPService
   | PreferenceService
   | LogService
   | DatabaseService
   | DatabaseCore
   | PaperEntityRepository
   | PaperService
-  | BufferService
   | CategorizerRepository
   | ScrapeService
   | FileService

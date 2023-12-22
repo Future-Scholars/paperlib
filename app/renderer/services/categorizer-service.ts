@@ -2,10 +2,15 @@ import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/common/services/preference-service";
+import {
   Categorizer,
   CategorizerType,
   Colors,
   PaperFolder,
+  PaperTag,
 } from "@/models/categorizer";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
@@ -26,7 +31,8 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
     @IDatabaseCore private readonly _databaseCore: DatabaseCore,
     @ICategorizerRepository
     private readonly _categorizerRepository: CategorizerRepository,
-    @ILogService private readonly _logService: LogService
+    @ILogService private readonly _logService: LogService,
+    @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
     super("categorizerService", {
       tagsUpdated: 0,
@@ -74,35 +80,22 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
     try {
       const realm = await this._databaseCore.realm();
 
-      if (type === "PaperTag") {
-        const newTag = new Categorizer(
-          name,
-          -1,
-          color,
-          this._databaseCore.getPartition()
-        );
-
+      if (type === CategorizerType.PaperTag) {
+        const newTag = new PaperTag(name, -1, color);
         const tags = this._categorizerRepository.update(
           realm,
           [],
           [newTag],
-          "PaperTag",
+          CategorizerType.PaperTag,
           this._databaseCore.getPartition()
         );
       } else {
-        // TODO: check all calling with getPartition
-        const newFolder = new PaperFolder(
-          name,
-          -1,
-          color,
-          this._databaseCore.getPartition()
-        );
-
+        const newFolder = new PaperFolder(name, -1, color);
         const folders = this._categorizerRepository.update(
           realm,
           [],
           [newFolder],
-          "PaperFolder",
+          CategorizerType.PaperFolder,
           this._databaseCore.getPartition()
         );
       }
@@ -196,14 +189,12 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
         type
       );
 
-      // TODO: make the following eventable
-      // if (
-      //   type === "PaperFolder" &&
-      //   stateService.selectionState.pluginLinkedFolder === oldName
-      // ) {
-      //   stateService.selectionState.pluginLinkedFolder = newName;
-      //   preferenceService.set({ pluginLinkedFolder: newName });
-      // }
+      if (
+        type === "PaperFolder" &&
+        this._preferenceService.get("pluginLinkedFolder") === oldName
+      ) {
+        this._preferenceService.set({ pluginLinkedFolder: newName });
+      }
     } catch (error) {
       this._logService.error(
         `Failed to rename categorizer ${oldName} to ${newName}`,

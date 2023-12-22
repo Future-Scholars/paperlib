@@ -1,4 +1,5 @@
 import { createDecorator } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
 import { PaperEntity } from "@/models/paper-entity";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 
@@ -25,7 +26,7 @@ export class HookService {
   async modifyHookPoint<T extends any[]>(hookName: string, ...args: T) {
     if (this._hookPoints[hookName]) {
       const extensionAPIExposed = await rendererRPCService.waitForAPI(
-        "extensionProcess",
+        Process.extension,
         "PLExtAPI",
         5000
       );
@@ -54,7 +55,7 @@ export class HookService {
   ) {
     if (this._hookPoints[hookName]) {
       const extensionAPIExposed = await rendererRPCService.waitForAPI(
-        "extensionProcess",
+        Process.extension,
         "PLExtAPI",
         5000
       );
@@ -86,7 +87,7 @@ export class HookService {
       "HookService"
     );
     const extensionAPIExposed = await rendererRPCService.waitForAPI(
-      "extensionProcess",
+      Process.extension,
       "PLExtAPI",
       5000
     );

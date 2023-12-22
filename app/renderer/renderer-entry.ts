@@ -12,11 +12,10 @@ import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { InjectionContainer } from "@/base/injection/injection";
 import { NetworkTool } from "@/base/network";
+import { Process } from "@/base/process-id";
 import { PreferenceService } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
-import { APPService } from "@/renderer/services/app-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
-import { BufferService } from "@/renderer/services/buffer-service";
 import { CacheService } from "@/renderer/services/cache-service";
 import { CategorizerService } from "@/renderer/services/categorizer-service";
 import { CommandService } from "@/renderer/services/command-service";
@@ -75,27 +74,25 @@ async function initialize() {
   // ============================================================
   // 3. Wait for the main process to expose its APIs (PLMainAPI)
   const mainAPIExposed = await rendererRPCService.waitForAPI(
-    "mainProcess",
+    Process.main,
     "PLMainAPI",
     5000
   );
 
   if (!mainAPIExposed) {
+    console.error("Main process API is not exposed");
     throw new Error("Main process API is not exposed");
-    // TODO: show error message and exit
   }
 
   // ============================================================
   // 4. Create the instances for all services, tools, etc. of the current process.
   const injectionContainer = new InjectionContainer();
   const instances = injectionContainer.createInstance<IInjectable>({
-    appService: APPService,
     preferenceService: PreferenceService,
     logService: LogService,
     databaseCore: DatabaseCore,
     databaseService: DatabaseService,
     paperService: PaperService,
-    bufferService: BufferService,
     paperEntityRepository: PaperEntityRepository,
     categorizerRepository: CategorizerRepository,
     scrapeService: ScrapeService,
@@ -142,14 +139,6 @@ async function initialize() {
   });
 
   app.use(i18n);
-
-  // TODO: check if this is duplicated
-  window
-    .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", (event) => {
-      uiStateService.setState({ renderRequired: Date.now() });
-    });
-
   app.mount("#app");
 }
 

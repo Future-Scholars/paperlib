@@ -15,7 +15,7 @@ const updatePrefs = (key: keyof IPreferenceStore, value: unknown) => {
 };
 
 const onThemeUpdated = (value: APPTheme) => {
-  appService.changeTheme(value);
+  PLMainAPI.windowProcessManagementService.changeTheme(value);
   updatePrefs("preferedTheme", value);
 };
 

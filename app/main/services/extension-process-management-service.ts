@@ -1,17 +1,9 @@
-import { MessageChannelMain, MessagePortMain, utilityProcess } from "electron";
+import { utilityProcess } from "electron";
 import { join } from "node:path";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
-import {
-  IMainRPCService,
-  MainRPCService,
-} from "@/main/services/main-rpc-service";
-import {
-  IWindowProcessManagementService,
-  WindowProcessManagementService,
-} from "@/main/services/window-process-management-service";
+import { Process } from "@/base/process-id";
 
 export interface IExtensionProcessManagementServiceState {
   requestPort: string;
@@ -41,7 +33,6 @@ export class ExtensionProcessManagementService extends Eventable<IExtensionProce
       join(__dirname, "extension-entry.js")
     );
 
-    // TODO: how to make the process ID consistency
     extensionProcess.on("message", (message: { [key: string]: string }) => {
       if (message["type"] === "request-port") {
         const senderID = message["value"];
@@ -49,7 +40,7 @@ export class ExtensionProcessManagementService extends Eventable<IExtensionProce
       }
     });
 
-    this.extensionProcesses["extensionProcess"] = extensionProcess;
+    this.extensionProcesses[Process.extension] = extensionProcess;
   }
 
   close() {

@@ -4,12 +4,12 @@ import Realm from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
 import { PaperEntityCache } from "@/models/paper-entity-cache";
-import { APPService, IAPPService } from "@/renderer/services/app-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 
@@ -31,7 +31,6 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
   private _app?: Realm.App;
 
   constructor(
-    @IAPPService private readonly _appService: APPService,
     @IPreferenceService private readonly _preferenceService: PreferenceService,
     @ILogService private readonly _logService: LogService
   ) {
@@ -65,8 +64,10 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
     if (this._realm || reinit) {
       this.fire("dbInitializing");
 
-      // TODO: Check all injected with this
-      Realm.defaultPath = await this._appService.userDataPath();
+      Realm.defaultPath = await PLMainAPI.fileSystemService.getSystemPath(
+        "userData",
+        Process.renderer
+      );
       if (this._realm) {
         this._realm.close();
       }
@@ -133,7 +134,10 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
         )
       )
     ) {
-      const userDataPath = await this._appService.userDataPath();
+      const userDataPath = await PLMainAPI.fileSystemService.getSystemPath(
+        "userData",
+        Process.renderer
+      );
       try {
         if (path.join(userDataPath, "cache.realm")) {
           await promises.unlink(path.join(userDataPath, "cache.realm"));
@@ -199,7 +203,13 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
     const config = {
       schema: [PaperEntityCache.schema],
       schemaVersion: DATABASE_SCHEMA_VERSION,
-      path: path.join(await this._appService.userDataPath(), "cache.realm"),
+      path: path.join(
+        await PLMainAPI.fileSystemService.getSystemPath(
+          "userData",
+          Process.renderer
+        ),
+        "cache.realm"
+      ),
     };
     return config;
   }

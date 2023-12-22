@@ -1,7 +1,7 @@
 import { dialog } from "electron";
 
-import { createDecorator } from "@/base/injection/injection";
 import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import { autoUpdater } from "electron-updater";
 
 export interface IUpgradeServiceState {
@@ -25,8 +25,6 @@ export class UpgradeService extends Eventable<IUpgradeServiceState> {
       downloaded: 0,
       downloading: 0,
     });
-
-    autoUpdater.checkForUpdates();
 
     autoUpdater.on("checking-for-update", () => {
       this.fire("checking");
@@ -81,6 +79,12 @@ export class UpgradeService extends Eventable<IUpgradeServiceState> {
         this.fire({ downloading: progressObj.percent });
       }
     });
+
+    autoUpdater.checkForUpdates();
+  }
+
+  public checkForUpdates(): void {
+    autoUpdater.checkForUpdates();
   }
 
   public currentVersion(): string {

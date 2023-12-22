@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconPlus } from "bootstrap-icons-vue";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 
 import { PaperSmartFilter } from "@/models/smart-filter";
 
@@ -12,6 +12,9 @@ import SmartFilterRuleBox from "./components/smart-filter-rule-box.vue";
 // State
 // ==============================
 const uiState = uiStateService.useState();
+const editingPaperSmartFilterDraft = ref<PaperSmartFilter>(
+  new PaperSmartFilter("", "")
+);
 
 // TODO: check all watch
 
@@ -27,19 +30,17 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
-  if (uiState.editingPaperSmartFilterDraft.name === "") {
+  if (editingPaperSmartFilterDraft.value.name === "") {
     infoText.value = "Name is empty.";
     return;
   }
-  if (uiState.editingPaperSmartFilterDraft.filter === "") {
+  if (editingPaperSmartFilterDraft.value.filter === "") {
     infoText.value = "Filter string is empty.";
     return;
   }
 
   smartFilterService.insert(
-    new PaperSmartFilter("", "").initialize(
-      uiState.editingPaperSmartFilterDraft
-    ),
+    new PaperSmartFilter("", "").initialize(editingPaperSmartFilterDraft.value),
     "PaperPaperSmartFilter"
   );
 
@@ -61,14 +62,14 @@ const onRuleUpdated = (index: number, filter: string) => {
 
 const constructFilter = () => {
   const filter = filterRules.value.join(` ${filterMatchType.value} `);
-  uiState.editingPaperSmartFilterDraft.filter = filter;
+  editingPaperSmartFilterDraft.value.filter = filter;
 };
 
 shortcutService.register("Escape", onCloseClicked);
 shortcutService.registerInInputField("Escape", onCloseClicked);
 
 onMounted(() => {
-  uiState.editingPaperSmartFilterDraft = new PaperSmartFilter("", "");
+  editingPaperSmartFilterDraft.value = new PaperSmartFilter("", "");
   filterRules.value = [];
 
   filterMatchType.value = "AND";
@@ -86,17 +87,13 @@ onMounted(() => {
       >
         <InputBox
           placeholder="Name"
-          :value="uiState.editingPaperSmartFilterDraft.name"
-          @changed="
-            (value) => (uiState.editingPaperSmartFilterDraft.name = value)
-          "
+          :value="editingPaperSmartFilterDraft.name"
+          @changed="(value) => (editingPaperSmartFilterDraft.name = value)"
         />
         <InputBox
           placeholder="Filter"
-          :value="uiState.editingPaperSmartFilterDraft.filter"
-          @changed="
-            (value) => (uiState.editingPaperSmartFilterDraft.filter = value)
-          "
+          :value="editingPaperSmartFilterDraft.filter"
+          @changed="(value) => (editingPaperSmartFilterDraft.filter = value)"
         />
         <div class="dark:bg-neutral-700 w-full h-[1px]" />
 

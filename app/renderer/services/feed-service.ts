@@ -1,3 +1,4 @@
+import { chunkRun } from "@/base/chunk";
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -215,21 +216,21 @@ export class FeedService extends Eventable<IFeedServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
+    this._logService.info(
+      `Updating ${feeds.length} feeds...`,
+      "",
+      false,
+      "FeedService"
+    );
 
     try {
-      this._logService.info(
-        `Updating ${feeds.length} feeds...`,
-        "",
-        false,
-        "FeedService"
-      );
       const realm = await this._databaseCore.realm();
 
       return realm.safeWrite(() => {
         const updatedFeeds: (Feed | null)[] = [];
 
         for (const feed of feeds) {
-          let existingFeed: Feed | null = null;
+          let existingFeed: Feed | undefined;
           if (feed._id) {
             const existingObjs = this._feedRepository.loadByIds(realm, [
               feed._id,
@@ -270,56 +271,61 @@ export class FeedService extends Eventable<IFeedServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
-    try {
-      this._logService.info(
-        `Updating ${feedEntities.length} feed entities...`,
-        "",
-        false,
-        "FeedEntityService"
-      );
+    this._logService.info(
+      `Updating ${feedEntities.length} feed entities...`,
+      "",
+      false,
+      "FeedEntityService"
+    );
 
+    try {
       // TODO: make the following logic clearer
       const realm = await this._databaseCore.realm();
 
       return realm.safeWrite(() => {
-        const successes: boolean[] = [];
         for (const feedEntity of feedEntities) {
           let existingFeedEntity: FeedEntity | null = null;
-          if (feedEntity._id) {
-            const existingObjs = this._feedEntityRepository.loadByIds(realm, [
-              feedEntity._id,
-            ]);
-            if (existingObjs.length > 0) {
-              existingFeedEntity = existingObjs[0];
+          try {
+            if (feedEntity._id) {
+              const existingObjs = this._feedEntityRepository.loadByIds(realm, [
+                feedEntity._id,
+              ]);
+              if (existingObjs.length > 0) {
+                existingFeedEntity = existingObjs[0];
+              } else {
+                const reduplicatedFeedEntities = realm
+                  .objects<FeedEntity>("FeedEntity")
+                  .filtered(
+                    "title == $0 and authors == $1",
+                    feedEntity.title,
+                    feedEntity.authors
+                  );
+                if (reduplicatedFeedEntities.length > 0) {
+                  existingFeedEntity = reduplicatedFeedEntities[0];
+                }
+              }
             }
-          }
+          } catch (error) {}
 
           const feed = this._feedRepository.update(
             realm,
-            existingFeedEntity ? existingFeedEntity.feed : null,
+            existingFeedEntity?.feed,
             feedEntity.feed,
             this._databaseCore.getPartition()
           );
-          let success;
           if (feed) {
-            const createMode = this._feedEntityRepository.update(
+            if (ignoreReadState) {
+              feedEntity.read = existingFeedEntity?.read || false;
+            }
+
+            return this._feedEntityRepository.update(
               realm,
               feedEntity,
               feed,
               existingFeedEntity,
-              ignoreReadState,
               this._databaseCore.getPartition()
             );
-
-            if (createMode === "updated") {
-              this._feedRepository.delete(realm, false, feed);
-            }
-
-            success = createMode ? true : false;
-          } else {
-            success = false;
           }
-          successes.push(success);
         }
       });
     } catch (error) {
@@ -366,37 +372,65 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
-  async refresh(feedNames: string[]) {
+  async refresh(feedNames?: string[], feeds?: Feed[]) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
 
-    try {
-      // TODO: user id rather than name here.
-      this._logService.info(
-        `Refreshing ${feedNames.length} feeds...`,
-        "",
+    if (!feedNames && !feeds) {
+      this._logService.error(
+        "Failed to refresh feeds",
+        "No feed names or feeds provided.",
         false,
         "FeedService"
       );
+      return;
+    }
 
-      let feedEntityDrafts: FeedEntity[] = [];
+    // TODO: user id rather than name here.
+    this._logService.info(
+      `Refreshing ${feedNames?.length || feeds?.length} feeds...`,
+      "",
+      false,
+      "FeedService"
+    );
 
-      const feeds = (await this.load("name", "asce")) as Realm.Results<
-        Feed & Realm.Object
-      >;
-      feedEntityDrafts = (
-        await Promise.all(
-          feedNames.map((feedName) => {
-            const feed = feeds.filtered(`name = "${feedName}"`);
-            if (feed.length === 0) {
-              return Promise.resolve([] as FeedEntity[]);
-            } else {
-              return this._rssRepository.fetch(feed[0]);
-            }
-          })
-        )
-      ).flat();
+    try {
+      if (!feeds && feedNames) {
+        feeds = (
+          (await this.load("name", "asce")) as Realm.Results<Feed>
+        ).filtered(
+          feedNames.map((feedName) => `name = "${feedName}"`).join(" OR ")
+        ) as unknown as Feed[];
+      } else {
+        feeds = feeds!;
+      }
+
+      const feedEntityDraftsAndErrors = await chunkRun<
+        FeedEntity[],
+        FeedEntity[]
+      >(
+        feeds,
+        async (feed: Feed) => {
+          const feedEntityDrafts = await this._rssRepository.fetch(feed);
+          return feedEntityDrafts;
+        },
+        async () => {
+          return [];
+        },
+        5
+      );
+
+      for (const error of feedEntityDraftsAndErrors.errors) {
+        this._logService.error(
+          `Failed to refresh feeds`,
+          error as Error,
+          true,
+          "Feed"
+        );
+      }
+      const feedEntityDrafts = feedEntityDraftsAndErrors.results.flat();
+
       await this.updateEntities(feedEntityDrafts, true);
     } catch (error) {
       this._logService.error(

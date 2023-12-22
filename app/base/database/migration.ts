@@ -2,6 +2,7 @@ import { ObjectId } from "bson";
 import path from "path";
 import Realm from "realm";
 
+import { CategorizerType } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 
 export function migrate(oldRealm: Realm, newRealm: Realm) {
@@ -56,15 +57,19 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
   }
 
   if (oldVersion <= 4) {
-    const oldTags = oldRealm.objects<PaperEntity>("PaperTag");
-    const newTags = newRealm.objects<PaperEntity>("PaperTag");
+    const oldTags = oldRealm.objects<PaperEntity>(CategorizerType.PaperTag);
+    const newTags = newRealm.objects<PaperEntity>(CategorizerType.PaperTag);
     for (const objectIndex in oldTags) {
       const newTag = newTags[objectIndex];
       newTag["_id"] = new ObjectId();
     }
 
-    const oldFolders = oldRealm.objects<PaperEntity>("PaperFolder");
-    const newFolders = newRealm.objects<PaperEntity>("PaperFolder");
+    const oldFolders = oldRealm.objects<PaperEntity>(
+      CategorizerType.PaperFolder
+    );
+    const newFolders = newRealm.objects<PaperEntity>(
+      CategorizerType.PaperFolder
+    );
     for (const objectIndex in oldFolders) {
       const newFolder = newFolders[objectIndex];
       newFolder["_id"] = new ObjectId();

@@ -151,10 +151,6 @@ const deleteSelectedEntities = () => {
 
 const editSelectedEntities = () => {
   if (uiState.contentType === "library") {
-    const paperEntityDraft = new PaperEntity(false).initialize(
-      uiState.selectedPaperEntities[0]
-    );
-    uiState.editingPaperEntityDraft = paperEntityDraft;
     uiState.isEditViewShown = true;
   }
 };
@@ -374,7 +370,7 @@ disposable(
 );
 
 disposable(
-  PLMainAPI.contextMenuService.on("feedContextMenuToogleReadClicked", () => {
+  PLMainAPI.contextMenuService.on("feedContextMenuToggleReadClicked", () => {
     readSelectedFeedEntities(null);
   })
 );

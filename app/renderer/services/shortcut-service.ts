@@ -13,6 +13,8 @@ export class ShortcutService {
     [code: string]: { [id: string]: (...args: any[]) => void };
   } = {};
 
+  // TODO: check if all short cuts use this service
+
   constructor() {
     window.addEventListener("keydown", (e) => {
       let shortcut = "";

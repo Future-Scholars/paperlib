@@ -57,18 +57,18 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
           changes.newModifications.length + changes.oldModifications.length;
 
         if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
-          if (type === "PaperTag") {
+          if (type === CategorizerType.PaperTag) {
             this.fire("tagsUpdated");
-          } else if (type === "PaperFolder") {
+          } else if (type === CategorizerType.PaperFolder) {
             this.fire("foldersUpdated");
           } else {
             throw new Error(`Unknown categorizer type: ${type}`);
           }
         }
       });
-      if (type === "PaperTag") {
+      if (type === CategorizerType.PaperTag) {
         realm.tagsListened = true;
-      } else if (type === "PaperFolder") {
+      } else if (type === CategorizerType.PaperFolder) {
         realm.foldersListened = true;
       } else {
         throw new Error(`Unknown categorizer type: ${type}`);
@@ -230,7 +230,7 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
             newCategorizers.push(categorizer);
           } else {
             const categorizer =
-              type === "PaperTag"
+              type === CategorizerType.PaperTag
                 ? new PaperTag(name, 0)
                 : new PaperFolder(name, 0);
             if (partition) {

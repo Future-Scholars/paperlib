@@ -149,13 +149,13 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    */
   update(
     realm: Realm,
-    existFeed: Feed | null,
-    updateFeed: Feed | null,
+    existFeed: Feed | undefined,
+    updateFeed: Feed | undefined,
     partition: string
   ) {
-    // exist = null, undate != null, means create (or link once).
-    // exist != null, update != null, means update.
-    // exist != null, update = null, means delete (or unlink once).
+    // exist = undefined, undate != undefined, means create (or link once).
+    // exist != undefined, update != undefined, means update.
+    // exist != undefined, update = undefined, means delete (or unlink once).
     return realm.safeWrite(() => {
       let newFeed: Feed;
       const existName = existFeed?.name;

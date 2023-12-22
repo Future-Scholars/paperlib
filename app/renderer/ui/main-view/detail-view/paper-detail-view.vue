@@ -52,7 +52,7 @@ const onDeleteCategorizer = (
   type: CategorizerType
 ) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
-  if (type === "PaperTag") {
+  if (type === CategorizerType.PaperTag) {
     paperEntityDraft.tags = paperEntityDraft.tags.filter((tag) => {
       return tag.name !== categorizer.name;
     });
@@ -248,7 +248,8 @@ onMounted(() => {
           :categorizers="entity.tags"
           categorizerType="PaperTag"
           @delete-categorizer="
-            (categorizer) => onDeleteCategorizer(categorizer, 'PaperTag')
+            (categorizer) =>
+              onDeleteCategorizer(categorizer, CategorizerType.PaperTag)
           "
         />
       </Section>
@@ -261,7 +262,8 @@ onMounted(() => {
           :categorizers="entity.folders"
           categorizerType="PaperFolder"
           @delete-categorizer="
-            (categorizer) => onDeleteCategorizer(categorizer, 'PaperFolder')
+            (categorizer) =>
+              onDeleteCategorizer(categorizer, CategorizerType.PaperFolder)
           "
         />
       </Section>

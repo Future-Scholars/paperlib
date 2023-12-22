@@ -1,7 +1,7 @@
 import { ObjectId } from "bson";
 import Mathml2latex from "mathml-to-latex";
 
-import { PaperFolder, PaperTag } from "./categorizer";
+import { CategorizerType, PaperFolder, PaperTag } from "./categorizer";
 import { FeedEntity } from "./feed-entity";
 
 export class PaperEntity {
@@ -29,11 +29,11 @@ export class PaperEntity {
       rating: "int",
       tags: {
         type: "list",
-        objectType: "PaperTag",
+        objectType: CategorizerType.PaperTag,
       },
       folders: {
         type: "list",
-        objectType: "PaperFolder",
+        objectType: CategorizerType.PaperFolder,
       },
       flag: "bool",
       note: "string",

@@ -1,13 +1,14 @@
 import { RecycleScroller } from "@future-scholars/vue-virtual-scroller";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
-import { QuickpasteRPCService } from "./services/quickpaste-rpc-service";
-
-import { loadLocales } from "@/locales/load";
 import { createI18n } from "vue-i18n";
 
+import { Process } from "@/base/process-id";
+import { loadLocales } from "@/locales/load";
 import QuickpasteView from "@/renderer/ui/quickpaste-view/quickpaste-view.vue";
+
 import "./css/index.css";
+import { QuickpasteRPCService } from "./services/quickpaste-rpc-service";
 
 async function initialize() {
   const pinia = createPinia();
@@ -27,12 +28,12 @@ async function initialize() {
   // ============================================================
   // 3. Wait for the main process to expose its APIs (PLMainAPI & PLAPI)
   const mainAPIExposed = await quickpasteRPCService.waitForAPI(
-    "mainProcess",
+    Process.main,
     "PLMainAPI",
     5000
   );
   const rendererAPIExposed = await quickpasteRPCService.waitForAPI(
-    "rendererProcess",
+    Process.renderer,
     "PLAPI",
     5000
   );

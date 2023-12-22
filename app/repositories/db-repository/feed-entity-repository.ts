@@ -97,7 +97,6 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
     feedEntity: FeedEntity,
     feed: Feed,
     existingFeedEntity: FeedEntity | null,
-    ignoreReadState: boolean,
     partition: string
   ) {
     return realm.safeWrite(() => {
@@ -118,52 +117,16 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
         updateObj.volume = feedEntity.volume;
         updateObj.number = feedEntity.number;
         updateObj.publisher = feedEntity.publisher;
-        if (!ignoreReadState) {
-          updateObj.read = feedEntity.read;
-        }
         updateObj.feed = feed;
 
-        return "updated";
+        return updateObj;
       } else {
         // Add
-        const reduplicatedFeedEntities = realm
-          .objects<FeedEntity>("FeedEntity")
-          .filtered(
-            "title == $0 and authors == $1",
-            feedEntity.title,
-            feedEntity.authors
-          );
-        if (reduplicatedFeedEntities.length === 0) {
-          feedEntity.feed = feed;
-          if (partition) {
-            feedEntity._partition = partition;
-          }
-          realm.create("FeedEntity", feedEntity);
-
-          return "created";
-        } else {
-          const updateObj = reduplicatedFeedEntities[0];
-          updateObj.feedTime = feedEntity.feedTime;
-          updateObj.title = feedEntity.title;
-          updateObj.authors = feedEntity.authors;
-          updateObj.abstract = feedEntity.abstract;
-          updateObj.publication = feedEntity.publication;
-          updateObj.pubTime = feedEntity.pubTime;
-          updateObj.pubType = feedEntity.pubType;
-          updateObj.doi = feedEntity.doi;
-          updateObj.arxiv = feedEntity.arxiv;
-          updateObj.mainURL = feedEntity.mainURL;
-          updateObj.pages = feedEntity.pages;
-          updateObj.volume = feedEntity.volume;
-          updateObj.number = feedEntity.number;
-          updateObj.publisher = feedEntity.publisher;
-          if (!ignoreReadState) {
-            updateObj.read = feedEntity.read;
-          }
-          updateObj.feed = feed;
-
-          return "updated";
+        feedEntity.feed = feed;
+        if (partition) {
+          feedEntity._partition = partition;
         }
+        return realm.create("FeedEntity", feedEntity);
       }
     });
   }

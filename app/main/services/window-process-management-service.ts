@@ -13,6 +13,7 @@ import path from "path";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
 import {
   IPreferenceService,
   PreferenceService,
@@ -30,13 +31,9 @@ export enum APPTheme {
 }
 
 export interface IWindowProcessManagementServiceState {
-  "ready-to-show": string;
-  blur: string;
-  focus: string;
-  close: string;
-  created: string;
   serviceReady: string;
   requestPort: string;
+  rendererProcess: string;
 }
 
 export const IWindowProcessManagementService = createDecorator(
@@ -50,13 +47,9 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
     super("windowProcessManagementService", {
-      "ready-to-show": "",
-      blur: "",
-      focus: "",
-      close: "",
-      created: "",
       serviceReady: "",
       requestPort: "",
+      rendererProcess: "",
     });
 
     this.browserWindows = new WindowStorage();
@@ -136,7 +129,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       "close",
       "show",
     ]) {
-      this.browserWindows.get(id).on(eventName as any, () => {
+      this.browserWindows.get(id).on(eventName as any, (e) => {
         this.fire({ [id]: eventName });
 
         if (eventCallbacks && eventCallbacks[eventName]) {
@@ -154,7 +147,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       width: number;
     };
     return this.create(
-      "rendererProcess",
+      Process.renderer,
       {
         entry: "app/index.html",
         title: "Paperlib",
@@ -188,14 +181,12 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           for (const [windowId, window] of Object.entries(
             this.browserWindows.all()
           )) {
-            if (windowId !== "mainRenderer") {
+            if (windowId !== Process.renderer) {
               window.close();
-              this.browserWindows.get(windowId).destroy();
+              window.destroy();
             }
           }
-
-          win.close();
-          this.browserWindows.get("mainRenderer").destroy();
+          this.browserWindows.get(Process.renderer).destroy();
 
           if (process.platform !== "darwin") app.quit();
         },
@@ -293,12 +284,12 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * Minimize the window with the given id.
    */
   minimize(windowId: string) {
-    if (windowId === "rendererProcess") {
+    if (windowId === Process.renderer) {
       const win = this.browserWindows.get(windowId);
       win.minimize();
 
       for (const [windowId, win] of Object.entries(this.browserWindows.all())) {
-        if (windowId !== "rendererProcess") {
+        if (windowId !== Process.renderer) {
           win.hide();
         }
       }
@@ -309,7 +300,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * Maximize the window with the given id.
    */
   maximize(windowId: string) {
-    if (windowId === "rendererProcess") {
+    if (windowId === Process.renderer) {
       const win = this.browserWindows.get(windowId);
       win.maximize();
     }
@@ -320,7 +311,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    */
   close(windowId: string) {
     if (os.platform() === "darwin") {
-      if (windowId === "rendererProcess") {
+      if (windowId === Process.renderer) {
         for (const [windowId, win] of Object.entries(
           this.browserWindows.all()
         )) {
@@ -331,7 +322,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
         win.hide();
       }
     } else {
-      if (windowId === "rendererProcess") {
+      if (windowId === Process.renderer) {
         for (const [windowId, win] of Object.entries(
           this.browserWindows.all()
         )) {
@@ -349,7 +340,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * Force close the window with the given id.
    */
   forceClose(windowId: string) {
-    if (windowId === "rendererProcess") {
+    if (windowId === Process.renderer) {
       for (const [windowId, win] of Object.entries(this.browserWindows.all())) {
         win.close();
       }

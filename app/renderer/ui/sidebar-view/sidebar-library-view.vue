@@ -114,8 +114,8 @@ const onCategorizerNameChanged = (name: string) => {
         .replace("tag-", ""),
       name,
       uiState.editingCategorizerDraft.startsWith("tag-")
-        ? "PaperTag"
-        : "PaperFolder"
+        ? CategorizerType.PaperTag
+        : CategorizerType.PaperFolder
     );
   }
   uiState.editingCategorizerDraft = "";
@@ -126,8 +126,6 @@ const onCategorizerNameInputBlured = () => {
 };
 
 const onAddNewPaperSmartFilterClicked = () => {
-  const smartfilterDraft = new PaperSmartFilter("", "");
-  uiState.editingPaperSmartFilterDraft = smartfilterDraft;
   uiState.isPaperSmartFilterEditViewShown = true;
 };
 
@@ -259,15 +257,15 @@ disposable(
         v-for="tag in tags"
         :active="uiState.selectedCategorizer === `tag-${tag.name}`"
         @click="onSelectCategorizer(`tag-${tag.name}`)"
-        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, tag, 'PaperTag')}"
+        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, tag, CategorizerType.PaperTag)}"
         @droped="
           (filePaths) => {
-            onFileDroped(tag, 'PaperTag', filePaths);
+            onFileDroped(tag, CategorizerType.PaperTag, filePaths);
           }
         "
         @item-droped="
           () => {
-            onItemDroped(tag, 'PaperTag');
+            onItemDroped(tag, CategorizerType.PaperTag);
           }
         "
         @name-changed="
@@ -296,15 +294,15 @@ disposable(
         v-for="folder in folders"
         :active="uiState.selectedCategorizer === `folder-${folder.name}`"
         @click="onSelectCategorizer(`folder-${folder.name}`)"
-        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, folder, 'PaperFolder')}"
+        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, folder, CategorizerType.PaperFolder)}"
         @droped="
           (filePaths) => {
-            onFileDroped(folder, 'PaperFolder', filePaths);
+            onFileDroped(folder, CategorizerType.PaperFolder, filePaths);
           }
         "
         @item-droped="
           () => {
-            onItemDroped(folder, 'PaperFolder');
+            onItemDroped(folder, CategorizerType.PaperFolder);
           }
         "
         @name-changed="

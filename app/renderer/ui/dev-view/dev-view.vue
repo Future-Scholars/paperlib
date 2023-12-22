@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Process } from "@/base/process-id";
 import { nextTick, onMounted, ref } from "vue";
 
 // ================================
@@ -54,7 +55,7 @@ const emits = defineEmits([
 onMounted(async () => {
   nextTick(async () => {
     const extAPIExposed = await rendererRPCService.waitForAPI(
-      "extensionProcess",
+      Process.extension,
       "PLExtAPI",
       5000
     );

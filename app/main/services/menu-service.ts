@@ -8,6 +8,8 @@ import {
 } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
 
+import { IUpgradeService, UpgradeService } from "./upgrade-service";
+
 const isMac = process.platform === "darwin";
 
 export interface IMenuServiceState {
@@ -29,7 +31,8 @@ export class MenuService extends Eventable<IMenuServiceState> {
   private readonly _locales: { t: (key: string) => string };
 
   constructor(
-    @IPreferenceService private readonly _preferenceService: PreferenceService
+    @IPreferenceService private readonly _preferenceService: PreferenceService,
+    @IUpgradeService private readonly _upgradeService: UpgradeService
   ) {
     super("menuService", {
       preference: 0,
@@ -67,21 +70,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
                 {
                   label: this._locales.t("menu.checkforupdate"),
                   click: () => {
-                    // TODO: here
-                    // autoUpdater
-                    //   .checkForUpdates()
-                    //   .then((results) => {
-                    //     BrowserWindow.getFocusedWindow()?.webContents.send(
-                    //       "log",
-                    //       results
-                    //     );
-                    //   })
-                    //   .catch((err) => {
-                    //     BrowserWindow.getFocusedWindow()?.webContents.send(
-                    //       "log",
-                    //       err
-                    //     );
-                    //   });
+                    this._upgradeService.checkForUpdates();
                   },
                 },
                 { type: "separator" },

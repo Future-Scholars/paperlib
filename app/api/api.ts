@@ -9,7 +9,6 @@ import { MenuService } from "@/main/services/menu-service";
 import { ProxyService } from "@/main/services/proxy-service";
 import { UpgradeService } from "@/main/services/upgrade-service";
 import { WindowProcessManagementService } from "@/main/services/window-process-management-service";
-import { APPService } from "@/renderer/services/app-service";
 import { CategorizerService } from "@/renderer/services/categorizer-service";
 import { CommandService } from "@/renderer/services/command-service";
 import { FileService } from "@/renderer/services/file-service";
@@ -30,7 +29,6 @@ import { ReferenceService } from "@/renderer/services/reference-service";
 // };
 
 export interface APIShape {
-  appService: Proxied<APPService>;
   logService: Proxied<LogService>;
   commandService: Proxied<CommandService>;
   preferenceService: Proxied<PreferenceService>;

@@ -1,6 +1,7 @@
 import { ipcRenderer } from "electron";
 
 import { createDecorator } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { RPCService } from "@/base/rpc/rpc-service";
 
@@ -36,7 +37,7 @@ export class QuickpasteRPCService extends RPCService<IQuickpasteRPCServiceState>
       if (!this._protocols[senderID]) {
         const protocol = new MessagePortRPCProtocol(
           port,
-          "rendererProcess",
+          Process.renderer,
           false
         );
 

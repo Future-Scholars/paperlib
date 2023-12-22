@@ -8,9 +8,10 @@ import {
 import { Ref, nextTick, onMounted, ref } from "vue";
 
 import { debounce } from "@/base/misc";
-import { PaperFolder } from "@/models/categorizer";
+import { CategorizerType, PaperFolder } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 
+import { disposable } from "@/base/dispose";
 import { PaperFilterOptions } from "@/renderer/services/paper-service";
 import TableItem from "./components/table-item.vue";
 
@@ -116,7 +117,7 @@ const exportSelectedEntity = async (
     await PLAPI.paperService.updateWithCategorizer(
       [`${selectedEntity.id}`],
       new PaperFolder(linkedFolder.value, 1) as any,
-      "PaperFolder"
+      CategorizerType.PaperFolder
     );
   }
 
@@ -158,7 +159,7 @@ window.addEventListener("keydown", shortcutHandler, true);
 
 const onLinkClicked = async () => {
   folders.value = (await PLAPI.categorizerService.load(
-    "PaperFolder",
+    CategorizerType.PaperFolder,
     "name",
     "desc"
   )) as PaperFolder[];
@@ -181,7 +182,10 @@ PLMainAPI.contextMenuService.on(
         .map((f) => f.name)
         .includes(folderName)
     ) {
-      await PLAPI.categorizerService.create("PaperFolder", folderName);
+      await PLAPI.categorizerService.create(
+        CategorizerType.PaperFolder,
+        folderName
+      );
     }
 
     await PLAPI.preferenceService.set({ pluginLinkedFolder: folderName });
@@ -191,7 +195,7 @@ PLMainAPI.contextMenuService.on(
 
 const checkLinkedFolder = async () => {
   folders.value = (await PLAPI.categorizerService.load(
-    "PaperFolder",
+    CategorizerType.PaperFolder,
     "name",
     "desc"
   )) as PaperFolder[];
@@ -203,6 +207,15 @@ const checkLinkedFolder = async () => {
     linkedFolder.value = "";
   }
 };
+
+disposable(
+  PLAPI.preferenceService.onChanged(
+    "pluginLinkedFolder",
+    (newValue: { value: string }) => {
+      linkedFolder.value = newValue.value as string;
+    }
+  )
+);
 
 onMounted(() => {
   nextTick(async () => {

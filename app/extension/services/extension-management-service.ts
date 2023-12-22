@@ -49,7 +49,6 @@ export class ExtensionManagementService {
       cwd: globalThis["extensionWorkingDir"],
     });
 
-    // TODO: log all for this service
     // TODO: different npm url for China
     this._extManager = new PluginManager({
       pluginsPath: globalThis["extensionWorkingDir"],
@@ -61,6 +60,13 @@ export class ExtensionManagementService {
   }
 
   async loadInstalledExtensions() {
+    PLAPI.logService.info(
+      `Loading installed extensions`,
+      "",
+      false,
+      "ExtManagementService"
+    );
+
     for (const [ie, extInfo] of Object.entries(this._extStore.store)) {
       try {
         this.install(extInfo.originLocation || extInfo.id, false);
@@ -74,18 +80,6 @@ export class ExtensionManagementService {
         );
       }
     }
-    // this.install(
-    //   "/Users/administrator/Projects/extension_demos/paperlib-entry-scrape-extension"
-    // );
-    // this.install(
-    //   "/Users/administrator/Projects/extension_demos/paperlib-metadata-scrape-extension"
-    // );
-    // this.install(
-    //   "/Users/administrator/Projects/extension_demos/paperlib-paper-locate-extension"
-    // );
-    // this.install(
-    //   "/Users/administrator/Projects/extension_demos/paperlib-preview-extension"
-    // );
   }
 
   async install(extensionIDorPath: string, notify = true) {
@@ -107,8 +101,6 @@ export class ExtensionManagementService {
 
       this._installedExtensions[info.name] = await extension.initialize();
 
-      //TODO: verify extension
-      // Can we use || here?
       this._installedExtensionInfos[info.name] = {
         id: info.name,
         name: info.name.replace("@future-scholars/", ""),
@@ -201,7 +193,7 @@ export class ExtensionManagementService {
         `Failed to uninstall extension ${extensionID}`,
         e as Error,
         true,
-        "extensionManagementService"
+        "ExtManagementService"
       );
     }
   }
@@ -229,7 +221,7 @@ export class ExtensionManagementService {
         `Failed to reload extension ${extensionID}`,
         e as Error,
         true,
-        "extensionManagementService"
+        "ExtManagementService"
       );
     }
   }
@@ -244,50 +236,64 @@ export class ExtensionManagementService {
     return this._installedExtensionInfos;
   }
 
-  async listExtensionMarketplace() {
-    const packages = JSON.parse(
-      (
-        await PLAPI.networkTool.get(
-          "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20"
-        )
-      ).body
-    ).objects as {
-      package: {
-        name: string;
-        version: string;
-        publisher: {
-          username: string;
+  async listExtensionMarketplace(query: string) {
+    // TODO: implement search in view
+    try {
+      const packages = JSON.parse(
+        (
+          await PLAPI.networkTool.get(
+            query
+              ? `https://registry.npmjs.org/-/v1/search?text=${query}&size=20`
+              : "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20"
+          )
+        ).body
+      ).objects as {
+        package: {
+          name: string;
+          version: string;
+          publisher: {
+            username: string;
+          };
+          author?: { name: string };
+          description?: string;
         };
-        author?: { name: string };
-        description?: string;
-      };
-    }[];
+      }[];
 
-    const extensions: {
-      [id: string]: {
-        id: string;
-        name: string;
-        version: string;
-        author: string;
-        verified: boolean;
-        description: string;
-      };
-    } = {};
+      const extensions: {
+        [id: string]: {
+          id: string;
+          name: string;
+          version: string;
+          author: string;
+          verified: boolean;
+          description: string;
+        };
+      } = {};
 
-    for (const pkg of packages) {
-      extensions[pkg.package.name] = {
-        id: pkg.package.name,
-        name: pkg.package.name.replaceAll("@future-scholars/", ""),
-        version: pkg.package.version,
-        author: pkg.package.author
-          ? pkg.package.author.name
-          : pkg.package.publisher.username,
-        verified: pkg.package.name.startsWith("@future-scholars/"),
-        description: pkg.package.description || "",
-      };
+      for (const pkg of packages) {
+        extensions[pkg.package.name] = {
+          id: pkg.package.name,
+          name: pkg.package.name.replaceAll("@future-scholars/", ""),
+          version: pkg.package.version,
+          author: pkg.package.author
+            ? pkg.package.author.name
+            : pkg.package.publisher.username,
+          verified: pkg.package.name.startsWith("@future-scholars/"),
+          description: pkg.package.description || "",
+        };
+      }
+
+      return extensions;
+    } catch (e) {
+      console.error(e);
+      PLAPI.logService.error(
+        `Failed to get extension marketplace`,
+        e as Error,
+        true,
+        "ExtManagementService"
+      );
+      return {};
     }
-
-    return extensions;
   }
 
   async callExtensionMethod(
@@ -298,14 +304,12 @@ export class ExtensionManagementService {
     try {
       return await this._installedExtensions[extensionID][methodName](...args);
     } catch (e) {
-      // TODO: check error obj transfer
       console.error(e);
-
       PLAPI.logService.error(
         `Failed to call extension method ${methodName} of extension ${extensionID}`,
         e as Error,
         true,
-        "ExtensionManagementService"
+        "ExtManagementService"
       );
       throw e;
     }

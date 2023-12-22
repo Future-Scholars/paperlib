@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import { InjectionContainer } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
 import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
 import { IInjectable } from "@/extension/services/injectable";
@@ -18,16 +19,17 @@ async function initialize() {
   // ============================================================
   // 3. Wait for the main/renderer process to expose its APIs (PLMainAPI/PLAPI)
   const mainAPIExposed = await extensionRPCService.waitForAPI(
-    "mainProcess",
+    Process.main,
     "PLMainAPI",
     5000
   );
+
   if (!mainAPIExposed) {
+    console.error("Main process API is not exposed");
     throw new Error("Main process API is not exposed");
-    // TODO: show error message and exit
   }
   const rendererAPIExposed = await extensionRPCService.waitForAPI(
-    "rendererProcess",
+    Process.renderer,
     "PLAPI",
     5000
   );
@@ -37,7 +39,7 @@ async function initialize() {
   // 3.1 Get extension working path
   const extensionWorkingDir = await PLMainAPI.fileSystemService.getSystemPath(
     "userData",
-    "extensionProcess"
+    Process.extension
   );
   globalThis["extensionWorkingDir"] = path.join(
     extensionWorkingDir,

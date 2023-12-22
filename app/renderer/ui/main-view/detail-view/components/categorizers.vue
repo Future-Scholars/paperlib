@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { BIconXLg } from "bootstrap-icons-vue";
 
-import { Categorizer } from "@/models/categorizer";
+import { Categorizer, CategorizerType } from "@/models/categorizer";
 
 const props = defineProps({
   categorizers: {
@@ -23,7 +23,8 @@ const onClick = (e: MouseEvent, categorizerName: string) => {
   e.stopPropagation();
   uiState.commandBarMode = "advanced";
 
-  const key = props.categorizerType === "PaperTag" ? "tags" : "folders";
+  const key =
+    props.categorizerType === CategorizerType.PaperTag ? "tags" : "folders";
 
   uiState.commandBarText = `${key}.name contains '${categorizerName}'`;
 };

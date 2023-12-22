@@ -1,4 +1,4 @@
-import { app, ipcMain } from "electron";
+import { app } from "electron";
 import Store from "electron-store";
 import path from "node:path";
 import { release } from "os";
@@ -7,6 +7,7 @@ import { InjectionContainer } from "@/base/injection/injection.ts";
 import { PreferenceService } from "@/common/services/preference-service.ts";
 import { IInjectable } from "@/main/services/injectable.ts";
 
+import { Process } from "@/base/process-id.ts";
 import { ContextMenuService } from "./services/contextmenu-service.ts";
 import { ExtensionProcessManagementService } from "./services/extension-process-management-service.ts";
 import { FileSystemService } from "./services/filesystem-service.ts";
@@ -128,39 +129,33 @@ async function initialize() {
   });
 
   app.on("second-instance", () => {
-    if (windowProcessManagementService.browserWindows.has("rendererProcess")) {
-      // TODO: check this logic
+    if (windowProcessManagementService.browserWindows.has(Process.renderer)) {
       if (
         windowProcessManagementService.browserWindows
-          .get("rendererProcess")
+          .get(Process.renderer)
           .isMinimized()
       ) {
         windowProcessManagementService.browserWindows
-          .get("rendererProcess")
+          .get(Process.renderer)
           .restore();
         windowProcessManagementService.browserWindows
-          .get("rendererProcess")
+          .get(Process.renderer)
           .focus();
       }
     }
   });
 
   app.on("activate", () => {
-    if (windowProcessManagementService.browserWindows.has("rendererProcess")) {
+    if (windowProcessManagementService.browserWindows.has(Process.renderer)) {
       windowProcessManagementService.browserWindows
-        .get("rendererProcess")
+        .get(Process.renderer)
         .show();
       windowProcessManagementService.browserWindows
-        .get("rendererProcess")
+        .get(Process.renderer)
         .focus();
     } else {
       windowProcessManagementService.createMainRenderer();
     }
-  });
-
-  // TODO: check where we use this?
-  ipcMain.handle("version", () => {
-    return app.getVersion();
   });
 
   // ============================================================
@@ -175,7 +170,7 @@ async function initialize() {
   windowProcessManagementService.on(
     "serviceReady",
     (payload: { key: string; value: string }) => {
-      if (payload.value === "rendererProcess") {
+      if (payload.value === Process.renderer) {
         windowProcessManagementService.createQuickpasteRenderer();
         extensionProcessManagementService.createExtensionProcess();
       }

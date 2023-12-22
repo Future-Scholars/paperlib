@@ -5,7 +5,7 @@ import WhatsNewHeader from "./header.vue";
 
 const hide = async () => {
   preferenceService.set({
-    lastVersion: await appService.version(),
+    lastVersion: await PLMainAPI.upgradeService.currentVersion(),
   });
 };
 
@@ -28,14 +28,9 @@ const loadHistoryReleaseNote = () => {
 };
 
 const darkMode = ref(false);
-onMounted(() => {
+onMounted(async () => {
   loadHistoryReleaseNote();
-  if (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  ) {
-    darkMode.value = true;
-  }
+  darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
 });
 </script>
 

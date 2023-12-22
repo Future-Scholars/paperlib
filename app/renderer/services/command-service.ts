@@ -1,5 +1,6 @@
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   IUIStateService,
   UIStateService,
@@ -25,7 +26,8 @@ export class CommandService extends Eventable<{}> {
   private readonly _registeredCommands: { [id: string]: ICommand } = {};
 
   constructor(
-    @IUIStateService private readonly _uiStateService: UIStateService
+    @IUIStateService private readonly _uiStateService: UIStateService,
+    @ILogService private readonly _logService: LogService
   ) {
     super("commandService", {});
     this._registerInnerCommands();
@@ -87,7 +89,7 @@ export class CommandService extends Eventable<{}> {
   run(id: string, ...args: any[]): void {
     const command = this._registeredCommands[id];
     if (command) {
-      logService.info(
+      this._logService.info(
         `Run command.`,
         `${command.id} with args: ${args}`,
         false,
@@ -107,7 +109,7 @@ export class CommandService extends Eventable<{}> {
   }
 
   registerExternel(command: IExternelCommand) {
-    logService.info(
+    this._logService.info(
       `Register externel command.`,
       `ID - ${command.id} | Event - ${command.event} | Description - ${command.description}`,
       false,
@@ -115,7 +117,7 @@ export class CommandService extends Eventable<{}> {
     );
 
     if (this._registeredCommands[command.id]) {
-      logService.warn(
+      this._logService.warn(
         "Already registered.",
         `Externel command ID ${command.id}`,
         true

@@ -1,9 +1,7 @@
 import { Eventable, IEventState } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
-import { PaperSmartFilter } from "@/models/smart-filter";
 
 export interface IUIStateServiceState {
   // =========================================
@@ -51,11 +49,8 @@ export interface IUIStateServiceState {
   // Buffer
   // TODO: rename to buffer
   // TODO: check if all buffer need to be exposed globally
-  editingPaperEntityDraft: PaperEntity;
   // TODO: check where use this?
   editingFeedEntityDraft: FeedEntity;
-  editingFeedDraft: Feed;
-  editingPaperSmartFilterDraft: PaperSmartFilter;
   editingCategorizerDraft: string;
   entitiesCount: number;
   feedEntitiesCount: number;
@@ -110,10 +105,7 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       selectedFeed: "feed-all",
       dragingIds: [],
 
-      editingPaperEntityDraft: new PaperEntity(false),
       editingFeedEntityDraft: new FeedEntity(false),
-      editingFeedDraft: new Feed(false),
-      editingPaperSmartFilterDraft: new PaperSmartFilter("", ""),
       editingCategorizerDraft: "",
       entitiesCount: 0,
       feedEntitiesCount: 0,
@@ -164,6 +156,14 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
         });
       });
     }
+
+    // =========================================
+    // Theme Listener
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (event) => {
+        this.setState({ renderRequired: Date.now() });
+      });
   }
 
   setState(patch: Partial<IUIStateServiceState>) {
@@ -224,10 +224,7 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       selectedFeed: "feed-all",
       dragingIds: [],
       pluginLinkedFolder: "",
-      editingPaperEntityDraft: new PaperEntity(false),
       editingFeedEntityDraft: new FeedEntity(false),
-      editingFeedDraft: new Feed(false),
-      editingPaperSmartFilterDraft: new PaperSmartFilter("", ""),
       editingCategorizerDraft: "",
       entitiesCount: 0,
       feedEntitiesCount: 0,

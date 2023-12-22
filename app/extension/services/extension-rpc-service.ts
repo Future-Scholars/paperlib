@@ -1,6 +1,7 @@
 import { createDecorator } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
-import { RPCProtocol, RPCService } from "@/base/rpc/rpc-service";
+import { RPCService } from "@/base/rpc/rpc-service";
 
 interface IExtensionRPCServiceState {
   initialized: string;
@@ -40,7 +41,7 @@ export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
       if (!this._protocols[senderID]) {
         const protocol = new MessagePortRPCProtocol(
           port,
-          "extensionProcess",
+          Process.extension,
           false
         );
 
@@ -53,7 +54,7 @@ export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
 
     process.parentPort.postMessage({
       type: "request-port",
-      value: "extensionProcess",
+      value: Process.extension,
     });
   }
 

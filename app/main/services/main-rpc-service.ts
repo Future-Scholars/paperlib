@@ -2,6 +2,7 @@ import { MessageChannelMain } from "electron";
 import { Graph } from "graph-data-structure";
 
 import { createDecorator } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { RPCService } from "@/base/rpc/rpc-service";
 import { WindowProcessManagementService } from "@/main/services/window-process-management-service";
@@ -39,7 +40,7 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     }
 
     this._processGraph = Graph();
-    this._processGraph.addNode("mainProcess");
+    this._processGraph.addNode(Process.main);
   }
 
   async initCommunication(
@@ -68,13 +69,13 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
           }
 
           if (!this._processGraph.hasEdge(processID, senderID)) {
-            if (processID === "mainProcess") {
+            if (processID === Process.main) {
               const { port1: portForMain, port2: portForRequester } =
                 new MessageChannelMain();
 
               const protocol = new MessagePortRPCProtocol(
                 portForMain,
-                "mainProcess",
+                Process.main,
                 false
               );
               this._protocols[senderID] = protocol;
@@ -85,7 +86,7 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
               if (windowProcessManagementService.browserWindows.has(senderID)) {
                 windowProcessManagementService.browserWindows
                   .get(senderID)
-                  .webContents.postMessage("response-port", "mainProcess", [
+                  .webContents.postMessage("response-port", Process.main, [
                     portForRequester,
                   ]);
               }
@@ -138,13 +139,13 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
           }
 
           if (!this._processGraph.hasEdge(processID, senderID)) {
-            if (processID === "mainProcess") {
+            if (processID === Process.main) {
               const { port1: portForMain, port2: portForRequester } =
                 new MessageChannelMain();
 
               const protocol = new MessagePortRPCProtocol(
                 portForMain,
-                "mainProcess",
+                Process.main,
                 false
               );
               this._protocols[senderID] = protocol;
@@ -155,7 +156,7 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
               if (windowProcessManagementService.browserWindows.has(senderID)) {
                 windowProcessManagementService.browserWindows
                   .get(senderID)
-                  .webContents.postMessage("response-port", "mainProcess", [
+                  .webContents.postMessage("response-port", Process.main, [
                     portForRequester,
                   ]);
               }
@@ -165,13 +166,12 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
               ) {
                 extensionProcessManagementService.extensionProcesses[
                   senderID
-                ].postMessage({ type: "response-port", value: "mainProcess" }, [
+                ].postMessage({ type: "response-port", value: Process.main }, [
                   portForRequester,
                 ]);
               }
               this._processGraph.addEdge(processID, senderID);
             } else {
-              // TODO: Create and forward the messageports for other processes and the requester process.
               const { port1: portForTheir, port2: portForRequester } =
                 new MessageChannelMain();
               // Send the port to the requester
@@ -219,7 +219,7 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
 
   setActionor(actionors: { [key: string]: any }): void {
     this._actionors = actionors;
-    this._registeredAPIs["mainProcess-PLMainAPI"] = [
+    this._registeredAPIs[`${Process.main}-PLMainAPI`] = [
       "windowProcessManagementService",
       "fileSystemService",
       "contextMenuService",

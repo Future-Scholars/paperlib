@@ -5,6 +5,7 @@ import Realm from "realm";
 import { migrate } from "@/base/database/migration";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
 import {
   IPreferenceService,
   PreferenceService,
@@ -14,7 +15,6 @@ import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
-import { APPService, IAPPService } from "@/renderer/services/app-service";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
@@ -40,7 +40,6 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
   private _partition?: string;
 
   constructor(
-    @IAPPService private readonly _appService: APPService,
     @IFileService private readonly _fileService: FileService,
     @IPreferenceService private readonly _preferenceService: PreferenceService,
     @ILogService private readonly _logService: LogService
@@ -72,8 +71,10 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       this._realm?.removeAllListeners();
       this.fire({ dbInitializing: true });
 
-      // TODO: Check all injected object use this. nor global
-      Realm.defaultPath = await this._appService.userDataPath();
+      Realm.defaultPath = await PLMainAPI.fileSystemService.getSystemPath(
+        "userData",
+        Process.renderer
+      );
       if (this._realm) {
         this._realm.close();
       }
@@ -251,7 +252,13 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
           user: cloudUser,
           partitionValue: cloudUser.id,
         },
-        path: path.join(await this._appService.userDataPath(), "synced.realm"),
+        path: path.join(
+          await PLMainAPI.fileSystemService.getSystemPath(
+            "userData",
+            Process.renderer
+          ),
+          "synced.realm"
+        ),
       };
       return config;
     } else {
@@ -272,7 +279,12 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
    */
   private async _loginCloud(): Promise<Realm.User | null> {
     if (!this._app) {
-      process.chdir(await this._appService.userDataPath());
+      process.chdir(
+        await PLMainAPI.fileSystemService.getSystemPath(
+          "userData",
+          Process.renderer
+        )
+      );
 
       const id = this._preferenceService.get("syncAPPID") as string;
       this._app = new Realm.App({
@@ -330,7 +342,10 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       }
     }
     const syncDBPath = path.join(
-      await this._appService.userDataPath(),
+      await PLMainAPI.fileSystemService.getSystemPath(
+        "userData",
+        Process.renderer
+      ),
       "synced.realm"
     );
     if (existsSync(syncDBPath)) {

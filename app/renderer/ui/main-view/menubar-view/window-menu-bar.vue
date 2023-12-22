@@ -19,6 +19,7 @@ import {
   BIconX,
 } from "bootstrap-icons-vue";
 
+import { Process } from "@/base/process-id";
 import CommandBar from "./components/command-bar.vue";
 import MenuBarBtn from "./components/menu-bar-btn.vue";
 
@@ -42,15 +43,15 @@ const uiState = uiStateService.useState();
 const prefState = preferenceService.useState();
 
 const onCloseClicked = () => {
-  appService.close();
+  PLMainAPI.windowProcessManagementService.close(Process.renderer);
 };
 
 const onMinimizeClicked = () => {
-  appService.minimize();
+  PLMainAPI.windowProcessManagementService.minimize(Process.renderer);
 };
 
 const onMaximizeClicked = () => {
-  appService.maximize();
+  PLMainAPI.windowProcessManagementService.maximize(Process.renderer);
 };
 </script>
 

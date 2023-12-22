@@ -7,22 +7,15 @@ import Toggle from "./components/toggle.vue";
 const uiState = uiStateService.useState();
 
 const version = ref("");
-appService.version().then((v) => {
-  version.value = v;
-});
 
 const onLinkClicked = (url: string) => {
   fileService.open(url);
 };
 
 const darkMode = ref(false);
-onMounted(() => {
-  if (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  ) {
-    darkMode.value = true;
-  }
+onMounted(async () => {
+  darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
+  version.value = await PLMainAPI.upgradeService.currentVersion();
 });
 </script>
 
