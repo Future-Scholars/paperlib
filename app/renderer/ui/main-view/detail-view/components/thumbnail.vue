@@ -20,8 +20,6 @@ const props = defineProps({
 
 const emits = defineEmits(["event:modify", "event:locate"]);
 
-const uiState = uiStateService.useState();
-
 const isRendering = ref(true);
 const fileExistingStatus = ref(1);
 
