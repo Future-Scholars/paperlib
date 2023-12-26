@@ -1,9 +1,7 @@
 import { ObjectId } from "bson";
 import { promises } from "fs";
 import md5 from "md5-file";
-import * as pdfjs from "pdfjs-dist/build/pdf";
-// @ts-ignore
-import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
+import * as pdfjs from "pdfjs-dist/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import { PrimaryKey } from "realm";
 
@@ -136,7 +134,13 @@ export class CacheService {
     }
     // 2. Update the cache
     if (pdfjs.GlobalWorkerOptions.workerPort === null) {
-      const pdfWorker = new pdfjsWorker();
+      const pdfWorker = new Worker(
+        new URL(
+          "../../../node_modules/pdfjs-dist/build/pdf.worker.mjs",
+          import.meta.url
+        ),
+        { type: "module" }
+      );
       pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
     }
 
@@ -217,7 +221,13 @@ export class CacheService {
   async updateFullTextCache(paperEntities: IPaperEntityCollection) {
     const realm = await this._cacheDatabaseCore.realm();
     if (pdfjs.GlobalWorkerOptions.workerPort === null) {
-      const pdfWorker = new pdfjsWorker();
+      const pdfWorker = new Worker(
+        new URL(
+          "../../../node_modules/pdfjs-dist/build/pdf.worker.mjs",
+          import.meta.url
+        ),
+        { type: "module" }
+      );
       pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
     }
 

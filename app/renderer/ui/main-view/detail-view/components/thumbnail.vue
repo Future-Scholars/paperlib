@@ -5,7 +5,7 @@ import {
   BIconPlus,
   BIconSearch,
 } from "bootstrap-icons-vue";
-import { onMounted, onUpdated, ref } from "vue";
+import { ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { PaperEntity } from "@/models/paper-entity";
@@ -53,12 +53,14 @@ const renderFromFile = async () => {
 
 const render = async () => {
   isRendering.value = true;
+  fileExistingStatus.value = -1;
   const fileURL = await fileService.access(props.entity.mainURL, false);
   if (
     props.entity.mainURL &&
     fileURL &&
     !fileURL.startsWith("downloadRequired://")
   ) {
+    fileExistingStatus.value = 0;
     const cachedThumbnail = await cacheService.loadThumbnail(props.entity);
     if (cachedThumbnail?.blob && cachedThumbnail?.blob.byteLength > 0) {
       try {
@@ -68,13 +70,12 @@ const render = async () => {
         );
       } catch (e) {
         console.error(e);
-        renderFromFile();
+        await renderFromFile();
       }
-      fileExistingStatus.value = 0;
-      isRendering.value = false;
     } else {
-      renderFromFile();
+      await renderFromFile();
     }
+    isRendering.value = false;
   } else {
     isRendering.value = false;
     if (fileURL.startsWith("downloadRequired://")) {
@@ -138,13 +139,12 @@ disposable(
   })
 );
 
-onMounted(() => {
-  render();
-});
-
-onUpdated(() => {
-  render();
-});
+watch(
+  () => props.entity.mainURL,
+  () => {
+    render();
+  }
+);
 </script>
 
 <template>
@@ -201,7 +201,7 @@ onUpdated(() => {
     >
       <div
         class="absolute top-0 left-0 rounded-md w-40 h-52 border-[1px] dark:border-neutral-700 p-4 bg-white dark:bg-neutral-800"
-        v-if="isRendering"
+        v-if="isRendering && fileExistingStatus === 0"
       >
         <div class="flex h-full">
           <svg

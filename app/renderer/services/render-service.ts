@@ -2,13 +2,7 @@ import { promises as fsPromise } from "fs";
 import katex from "katex";
 import MarkdownIt from "markdown-it";
 import tm from "markdown-it-texmath";
-import * as pdfjs from "pdfjs-dist/build/pdf";
-// @ts-ignore
-import pdfjsWorker from "pdfjs-dist/build/pdf.worker?worker";
-import {
-  PDFPageProxy,
-  RenderParameters,
-} from "pdfjs-dist/types/src/display/api";
+import * as pdfjs from "pdfjs-dist/build/pdf.mjs";
 
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
@@ -21,18 +15,15 @@ import { ThumbnailCache } from "@/models/paper-entity-cache";
 export const IRenderService = createDecorator("renderService");
 
 export class RenderService {
-  private _pdfWorker: Worker | null;
-  private _renderingPage: PDFPageProxy | null;
-  private _renderingPDF: pdfjs.PDFDocumentProxy | null;
+  private _pdfWorker?: Worker;
+  private _renderingPage?: pdfjs.PDFPageProxy;
+  private _renderingPDF?: pdfjs.PDFDocumentProxy;
 
   private _markdownIt: MarkdownIt;
 
   constructor(
     @IPreferenceService private _preferenceService: PreferenceService
   ) {
-    this._pdfWorker = null;
-    this._renderingPage = null;
-    this._renderingPDF = null;
     this._createPDFWorker();
 
     this._markdownIt = new MarkdownIt({ html: true }).use(tm, {
@@ -44,14 +35,17 @@ export class RenderService {
 
   private async _createPDFWorker() {
     if (this._pdfWorker) {
-      this._pdfWorker.terminate();
+      return;
     }
-    this._pdfWorker = new pdfjsWorker();
-    pdfjs.GlobalWorkerOptions.workerPort = this._pdfWorker;
 
-    if (this._renderingPage) {
-      this._renderingPage.cleanup();
-    }
+    this._pdfWorker = new Worker(
+      new URL(
+        "../../../node_modules/pdfjs-dist/build/pdf.worker.mjs",
+        import.meta.url
+      ),
+      { type: "module" }
+    );
+    pdfjs.GlobalWorkerOptions.workerPort = this._pdfWorker;
   }
 
   /**
@@ -60,13 +54,8 @@ export class RenderService {
    * @param canvasId - canvas id
    * @returns - {blob: ArrayBuffer | null, width: number, height: number}
    */
-  @errorcatching("Failed to render PDF file.", true, "RendererService", {
-    blob: null,
-    width: 0,
-    height: 0,
-  })
+
   async renderPDF(fileURL: string, canvasId: string) {
-    this._createPDFWorker();
     if (this._renderingPDF) {
       this._renderingPDF.destroy();
     }
@@ -89,12 +78,12 @@ export class RenderService {
     canvas.width = Math.floor(viewport.width * outputScale);
     canvas.height = Math.floor(viewport.height * outputScale);
     var transform =
-      outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
-    var renderContext = {
+      outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined;
+    const renderContext = {
       canvasContext: context,
       transform: transform,
       viewport: viewport,
-    } as RenderParameters;
+    };
 
     await page.render(renderContext).promise;
 
@@ -111,7 +100,13 @@ export class RenderService {
       context.filter = "invert(0.9)";
       context.drawImage(canvas, 0, 0);
     }
-    pdf.destroy();
+
+    this._renderingPDF?.destroy();
+    this._renderingPage?.cleanup();
+
+    this._renderingPDF = undefined;
+    this._renderingPage = undefined;
+
     return { blob: blob, width: canvas.width, height: canvas.height };
   }
 

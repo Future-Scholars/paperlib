@@ -88,11 +88,21 @@ export class ExtensionManagementService {
       let info: IPluginInfo;
       let installFromFile = false;
       if (isLocalPath(extensionIDorPath)) {
-        info = await this._extManager.installFromPath(extensionIDorPath, {
-          force: false,
-        });
-        installFromFile = true;
-        extensionID = info.name;
+        if (fs.existsSync(extensionIDorPath)) {
+          info = await this._extManager.installFromPath(extensionIDorPath, {
+            force: false,
+          });
+          installFromFile = true;
+          extensionID = info.name;
+        } else {
+          PLAPI.logService.error(
+            `Failed to install extension.`,
+            new Error(`File not found: ${extensionIDorPath}`),
+            true,
+            "ExtManagementService"
+          );
+          return;
+        }
       } else {
         extensionID = extensionIDorPath;
         info = await this._extManager.install(extensionID);

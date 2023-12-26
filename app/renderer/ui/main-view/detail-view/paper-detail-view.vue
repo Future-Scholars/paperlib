@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-ignore
 import { onUpdated, ref } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
@@ -43,7 +42,7 @@ const props = defineProps({
 // State
 // ======================
 const uiState = uiStateService.useState();
-const thumbnailShown = ref(false);
+
 // ==============================
 // Event Handler
 // ==============================
@@ -195,19 +194,8 @@ const renderTitle = async () => {
   }
 };
 
-onUpdated(async () => {
+onUpdated(() => {
   renderTitle();
-
-  thumbnailShown.value = false;
-
-  const fileURL = await fileService.access(props.entity.mainURL, false);
-  if (
-    props.entity.mainURL &&
-    fileURL &&
-    !fileURL.startsWith("downloadRequired://")
-  ) {
-    thumbnailShown.value = true;
-  }
 });
 </script>
 
@@ -297,10 +285,9 @@ onUpdated(async () => {
 
       <Section :title="$t('mainview.preview')">
         <Thumbnail
-          :entity="entity"
           @event:modify="modifyMainFile"
           @event:locate="locateMainFile"
-          v-if="thumbnailShown"
+          :entity="entity"
         />
       </Section>
       <Section

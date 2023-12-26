@@ -1,17 +1,15 @@
-import renderer from "@future-scholars/vite-plugin-electron-renderer";
 import vue from "@vitejs/plugin-vue";
 import { rmSync } from "node:fs";
 import path from "node:path";
-import { defineConfig } from "vite";
 import electron from "vite-plugin-electron";
+import renderer from "vite-plugin-electron-renderer";
 
 import pkg from "./package.json";
 
 rmSync("dist", { recursive: true, force: true });
 rmSync("release", { recursive: true, force: true });
-
 // https://vitejs.dev/config/
-export default defineConfig({
+export default {
   build: {
     rollupOptions: {
       input: {
@@ -21,6 +19,17 @@ export default defineConfig({
       },
     },
     minify: false,
+  },
+
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "es2022",
+      tsconfig: "tsconfig.json",
+    },
+  },
+
+  esbuild: {
+    target: "es2022",
   },
 
   resolve: {
@@ -37,28 +46,63 @@ export default defineConfig({
     : undefined,
 
   plugins: [
-    electron({
-      entry: [
-        "app/main/main-entry.ts",
-        "app/preload/preload.ts",
-        "app/extension/extension-entry.ts",
-      ],
-      vite: {
-        build: {
-          outDir: "dist",
-          sourcemap: process.env.NODE_ENV === "development" ? "inline" : false,
-          minify: false,
-          rollupOptions: {
-            external: ["keytar", "@future-scholars/live-plugin-manager"],
+    electron([
+      {
+        entry: "app/main/main-entry.ts",
+        vite: {
+          build: {
+            outDir: "dist",
+            sourcemap:
+              process.env.NODE_ENV === "development" ? "inline" : false,
+            minify: false,
+            rollupOptions: {
+              external: ["keytar"],
+            },
           },
-        },
-        resolve: {
-          alias: {
-            "@": path.join(__dirname, "app") + "/",
+          resolve: {
+            alias: {
+              "@": path.join(__dirname, "app") + "/",
+            },
           },
         },
       },
-    }),
+      {
+        entry: "app/extension/extension-entry.ts",
+        vite: {
+          build: {
+            outDir: "dist",
+            sourcemap:
+              process.env.NODE_ENV === "development" ? "inline" : false,
+            minify: false,
+            rollupOptions: {
+              external: ["keytar", "@future-scholars/live-plugin-manager"],
+            },
+          },
+          resolve: {
+            alias: {
+              "@": path.join(__dirname, "app") + "/",
+            },
+          },
+        },
+      },
+      {
+        entry: ["app/preload/preload.ts"],
+        vite: {
+          build: {
+            outDir: "dist",
+            sourcemap:
+              process.env.NODE_ENV === "development" ? "inline" : false,
+            minify: false,
+          },
+          resolve: {
+            alias: {
+              "@": path.join(__dirname, "app") + "/",
+            },
+          },
+        },
+      },
+    ]),
+
     renderer({
       resolve: {
         "electron-store": {
@@ -85,9 +129,12 @@ export default defineConfig({
         "electron-log": {
           type: "esm",
         },
+        "pdfjs-dist": {
+          type: "esm",
+        },
       },
-      browserField: false,
     }),
+
     vue(),
   ],
-});
+};
