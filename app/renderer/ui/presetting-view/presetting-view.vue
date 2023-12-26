@@ -3,7 +3,6 @@ import { IPreferenceStore } from "@/common/services/preference-service";
 
 import DbView from "./db-view.vue";
 import LangView from "./lang-view.vue";
-import ScraperView from "./scraper-view.vue";
 
 const prefState = preferenceService.useState();
 
@@ -20,22 +19,12 @@ const hide = (key: keyof IPreferenceStore) => {
     <LangView
       id="presetting-lang-view"
       v-if="prefState.showPresettingLang"
-      @close="hide('showPresettingLang')"
+      @event:close="hide('showPresettingLang')"
     />
     <DbView
       id="presetting-db-view"
       v-if="!prefState.showPresettingLang && prefState.showPresettingDB"
-      @close="hide('showPresettingDB')"
-    />
-    <ScraperView
-      id="presetting-scraper-view"
-      v-if="
-        !prefState.showPresettingLang &&
-        !prefState.showPresettingDB &&
-        prefState.showPresettingScraper
-      "
-      @close="hide('showPresettingScraper')"
+      @event:close="hide('showPresettingDB')"
     />
   </div>
 </template>
-@/renderer/services/preference-service @/common/services/preference-service

@@ -1,21 +1,19 @@
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
+import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
-import {
-  Categorizer,
-  CategorizerType,
-  Colors,
-  PaperFolder,
-  PaperTag,
-} from "@/models/categorizer";
+import { Categorizer, CategorizerType, Colors } from "@/models/categorizer";
+import { OID } from "@/models/id";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   CategorizerRepository,
+  ICategorizerCollection,
+  ICategorizerObject,
   ICategorizerRepository,
 } from "@/repositories/db-repository/categorizer-repository";
 
@@ -57,56 +55,32 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to load categorizer.", true, "CategorizerService", [])
   async load(type: CategorizerType, sortBy: string, sortOrder: string) {
-    try {
-      return this._categorizerRepository.load(
-        await this._databaseCore.realm(),
-        type,
-        sortBy,
-        sortOrder
-      );
-    } catch (error) {
-      this._logService.error(
-        `Load categorizer failed: ${type} ${sortBy} ${sortOrder}`,
-        error as Error,
-        true,
-        "CategoryService"
-      );
-      return [];
-    }
+    return this._categorizerRepository.load(
+      await this._databaseCore.realm(),
+      type,
+      sortBy,
+      sortOrder
+    );
   }
 
-  async create(type: CategorizerType, name: string, color?: Colors) {
-    try {
-      const realm = await this._databaseCore.realm();
-
-      if (type === CategorizerType.PaperTag) {
-        const newTag = new PaperTag(name, -1, color);
-        const tags = this._categorizerRepository.update(
-          realm,
-          [],
-          [newTag],
-          CategorizerType.PaperTag,
-          this._databaseCore.getPartition()
-        );
-      } else {
-        const newFolder = new PaperFolder(name, -1, color);
-        const folders = this._categorizerRepository.update(
-          realm,
-          [],
-          [newFolder],
-          CategorizerType.PaperFolder,
-          this._databaseCore.getPartition()
-        );
-      }
-    } catch (error) {
-      this._logService.error(
-        `Create categorizer failed: ${type} ${name}`,
-        error as Error,
-        true,
-        "CategorizerService"
-      );
-    }
+  /**
+   * Update a categorizer.
+   * @param type - The type of categorizer.
+   * @param categorizer - The categorizer.
+   * @returns
+   */
+  @processing(ProcessingKey.General)
+  @errorcatching("Failed to create categorizers.", true, "CategorizerService")
+  async create(type: CategorizerType, categorizer: Categorizer) {
+    const realm = await this._databaseCore.realm();
+    return this._categorizerRepository.update(
+      realm,
+      type,
+      categorizer,
+      this._databaseCore.getPartition()
+    );
   }
 
   /**
@@ -117,27 +91,19 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to delete categorizers.", true, "CategorizerService")
   async delete(
     type: CategorizerType,
-    name?: string,
-    categorizer?: Categorizer
+    ids?: OID[],
+    categorizers?: ICategorizerCollection
   ) {
-    try {
-      this._categorizerRepository.delete(
-        await this._databaseCore.realm(),
-        true,
-        type,
-        categorizer,
-        name
-      );
-    } catch (error) {
-      this._logService.error(
-        `Delete categorizer failed: ${type} ${name} ${categorizer}`,
-        error as Error,
-        true,
-        "CategoryService"
-      );
-    }
+    this._categorizerRepository.delete(
+      await this._databaseCore.realm(),
+      true,
+      type,
+      ids,
+      categorizers
+    );
   }
 
   /**
@@ -149,28 +115,20 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to colorize categorizers.", true, "CategorizerService")
   async colorize(
     color: Colors,
     type: CategorizerType,
-    name?: string,
-    categorizer?: Categorizer
+    id?: OID,
+    categorizer?: ICategorizerObject
   ) {
-    try {
-      this._categorizerRepository.colorize(
-        await this._databaseCore.realm(),
-        color,
-        type,
-        categorizer,
-        name
-      );
-    } catch (error) {
-      this._logService.error(
-        `Failed to colorize categorizer ${type} ${name} ${categorizer}`,
-        error as Error,
-        true,
-        "CategoryService"
-      );
-    }
+    this._categorizerRepository.colorize(
+      await this._databaseCore.realm(),
+      color,
+      type,
+      id,
+      categorizer
+    );
   }
 
   /**
@@ -180,28 +138,21 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
    * @param type - The type of the categorizer.
    * @returns
    */
+  @processing(ProcessingKey.General)
+  @errorcatching("Failed to rename categorizers.", true, "CategorizerService")
   async rename(oldName: string, newName: string, type: CategorizerType) {
-    try {
-      this._categorizerRepository.rename(
-        await this._databaseCore.realm(),
-        oldName,
-        newName,
-        type
-      );
+    this._categorizerRepository.rename(
+      await this._databaseCore.realm(),
+      oldName,
+      newName,
+      type
+    );
 
-      if (
-        type === "PaperFolder" &&
-        this._preferenceService.get("pluginLinkedFolder") === oldName
-      ) {
-        this._preferenceService.set({ pluginLinkedFolder: newName });
-      }
-    } catch (error) {
-      this._logService.error(
-        `Failed to rename categorizer ${oldName} to ${newName}`,
-        error as Error,
-        true,
-        "CategoryService"
-      );
+    if (
+      type === CategorizerType.PaperFolder &&
+      this._preferenceService.get("pluginLinkedFolder") === oldName
+    ) {
+      this._preferenceService.set({ pluginLinkedFolder: newName });
     }
   }
 }

@@ -1,5 +1,3 @@
-import { ObjectId } from "bson";
-
 export interface ThumbnailCache {
   blob: ArrayBuffer;
   width: number;
@@ -21,7 +19,7 @@ export class PaperEntityCache {
     },
   };
 
-  _id: ObjectId | string = "";
+  _id: OID = "";
   _partition?: string;
   fulltext: string = "";
   thumbnail?: ArrayBuffer;

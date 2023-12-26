@@ -29,6 +29,7 @@ export const IMenuService = createDecorator("menuService");
 
 export class MenuService extends Eventable<IMenuServiceState> {
   private readonly _locales: { t: (key: string) => string };
+  private _isDisabled: boolean = false;
 
   constructor(
     @IPreferenceService private readonly _preferenceService: PreferenceService,
@@ -64,7 +65,9 @@ export class MenuService extends Eventable<IMenuServiceState> {
                   label: this._locales.t("menu.preference"),
                   accelerator: "Cmd+,",
                   click: () => {
-                    this.fire("preference");
+                    if (!this._isDisabled) {
+                      this.fire("preference");
+                    }
                   },
                 },
                 {
@@ -92,7 +95,9 @@ export class MenuService extends Eventable<IMenuServiceState> {
             label: this._locales.t("menu.open"),
             accelerator: this._preferenceService.get("shortcutOpen") || "Enter",
             click: () => {
-              this.fire("File-enter");
+              if (!this._isDisabled) {
+                this.fire("File-enter");
+              }
             },
           },
           { type: "separator" },
@@ -102,7 +107,9 @@ export class MenuService extends Eventable<IMenuServiceState> {
               this._preferenceService.get("shortcutCopy") ||
               "CommandOrControl+Shift+C",
             click: () => {
-              this.fire("File-copyBibTex");
+              if (!this._isDisabled) {
+                this.fire("File-copyBibTex");
+              }
             },
           },
           {
@@ -111,7 +118,9 @@ export class MenuService extends Eventable<IMenuServiceState> {
               this._preferenceService.get("shortcutCopyKey") ||
               "CommandOrControl+Shift+K",
             click: () => {
-              this.fire("File-copyBibTexKey");
+              if (!this._isDisabled) {
+                this.fire("File-copyBibTexKey");
+              }
             },
           },
           isMac ? { role: "close" } : { role: "quit" },
@@ -127,7 +136,9 @@ export class MenuService extends Eventable<IMenuServiceState> {
               this._preferenceService.get("shortcutScrape") ||
               "CommandOrControl+R",
             click: () => {
-              this.fire("Edit-rescrape");
+              if (!this._isDisabled) {
+                this.fire("Edit-rescrape");
+              }
             },
           },
           {
@@ -136,7 +147,9 @@ export class MenuService extends Eventable<IMenuServiceState> {
               this._preferenceService.get("shortcutEdit") ||
               "CommandOrControl+E",
             click: () => {
-              this.fire("Edit-edit");
+              if (!this._isDisabled) {
+                this.fire("Edit-edit");
+              }
             },
           },
           {
@@ -145,7 +158,9 @@ export class MenuService extends Eventable<IMenuServiceState> {
               this._preferenceService.get("shortcutFlag") ||
               "CommandOrControl+F",
             click: () => {
-              this.fire("Edit-flag");
+              if (!this._isDisabled) {
+                this.fire("Edit-flag");
+              }
             },
           },
           { type: "separator" },
@@ -173,21 +188,27 @@ export class MenuService extends Eventable<IMenuServiceState> {
             accelerator:
               this._preferenceService.get("shortcutPreview") || "Space",
             click: () => {
-              this.fire("View-preview");
+              if (!this._isDisabled) {
+                this.fire("View-preview");
+              }
             },
           },
           {
             label: "Next",
             accelerator: "Down",
             click: () => {
-              this.fire("View-next");
+              if (!this._isDisabled) {
+                this.fire("View-next");
+              }
             },
           },
           {
             label: "Previous",
             accelerator: "Up",
             click: () => {
-              this.fire("View-previous");
+              if (!this._isDisabled) {
+                this.fire("View-previous");
+              }
             },
           },
           { type: "separator" },
@@ -234,4 +255,12 @@ export class MenuService extends Eventable<IMenuServiceState> {
   }
 
   onClick = this.onChanged;
+
+  enableAll() {
+    this._isDisabled = false;
+  }
+
+  disableAll() {
+    this._isDisabled = true;
+  }
 }

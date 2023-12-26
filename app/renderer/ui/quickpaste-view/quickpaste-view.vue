@@ -7,12 +7,12 @@ import {
 } from "bootstrap-icons-vue";
 import { Ref, nextTick, onMounted, ref } from "vue";
 
+import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
 import { CategorizerType, PaperFolder } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-
-import { disposable } from "@/base/dispose";
 import { PaperFilterOptions } from "@/renderer/services/paper-service";
+
 import TableItem from "./components/table-item.vue";
 
 // ====================
@@ -33,6 +33,9 @@ const linkedFolder = ref("");
 const mainviewSortBy = ref("addTime");
 const mainviewSortOrder: Ref<"desc" | "asce"> = ref("desc");
 
+// ====================
+// Event Handler
+// ====================
 const onSearchTextChanged = debounce(async () => {
   if (searchText.value) {
     paperEntities.value = (await PLAPI.paperService.load(
@@ -71,54 +74,22 @@ const onSearchTextChanged = debounce(async () => {
   }
 }, searchDebounce.value);
 
-const exportSelectedEntity = async (
-  shiftKey: boolean,
-  ctrlOrCmdKey: boolean
-) => {
+const exportSelectedCiteKeys = async () => {
   const selectedEntity = paperEntities.value[selectedIndex.value];
   if (selectedEntity && selectedEntity.id === "search-in-google-scholar") {
     await PLAPI.fileService.open(
       `https://scholar.google.com/scholar?q=${searchText.value}`
     );
   } else {
-    if (ctrlOrCmdKey) {
-      if (exportMode.value === "BibTex") {
-        await PLAPI.referenceService.export(
-          [selectedEntity] as any,
-          "BibTex-In-Folder"
-        );
-      } else if (exportMode.value === "PlainText") {
-        await PLAPI.referenceService.export(
-          [selectedEntity] as any,
-          "PlainText-In-Folder"
-        );
-      }
+    await PLAPI.referenceService.export([selectedEntity] as any, "BibTex-Key");
 
-      searchText.value = "";
-      paperEntities.value = [];
-
-      await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
-      return;
-    } else if (shiftKey) {
-      await PLAPI.referenceService.export(
-        [selectedEntity] as any,
-        "BibTex-Key"
-      );
-    } else {
-      await PLAPI.referenceService.export(
-        [selectedEntity] as any,
-        exportMode.value
+    if (linkedFolder.value) {
+      await PLAPI.paperService.updateWithCategorizer(
+        [`${selectedEntity.id}`],
+        new PaperFolder(linkedFolder.value, 1, undefined, undefined, false),
+        CategorizerType.PaperFolder
       );
     }
-
-    searchText.value = "";
-    paperEntities.value = [];
-
-    await PLAPI.paperService.updateWithCategorizer(
-      [`${selectedEntity.id}`],
-      new PaperFolder(linkedFolder.value, 1) as any,
-      CategorizerType.PaperFolder
-    );
   }
 
   searchText.value = "";
@@ -127,35 +98,66 @@ const exportSelectedEntity = async (
   await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
 };
 
-const shortcutHandler = async (event: KeyboardEvent) => {
-  if (event.code === "ArrowDown") {
-    event.preventDefault();
-    selectedIndex.value = Math.min(
-      paperEntities.value.length - 1,
-      selectedIndex.value + 1
+const exportSelectedCiteBodies = async () => {
+  const selectedEntity = paperEntities.value[selectedIndex.value];
+  if (selectedEntity && selectedEntity.id === "search-in-google-scholar") {
+    await PLAPI.fileService.open(
+      `https://scholar.google.com/scholar?q=${searchText.value}`
     );
-  } else if (event.code === "ArrowUp") {
-    event.preventDefault();
-    selectedIndex.value = Math.max(0, selectedIndex.value - 1);
-  } else if (event.code === "Enter") {
-    event.preventDefault();
-    exportSelectedEntity(event.shiftKey, event.ctrlKey || event.metaKey);
-  } else if (event.code === "Escape") {
-    event.preventDefault();
-    searchText.value = "";
-    paperEntities.value = [];
-    await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
-  } else if (event.code === "Tab") {
-    event.preventDefault();
-    exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
-  } else if (event.code === "Space") {
-    event.stopPropagation();
+  } else {
+    await PLAPI.referenceService.export(
+      [selectedEntity] as any,
+      exportMode.value
+    );
+
+    if (linkedFolder.value) {
+      await PLAPI.paperService.updateWithCategorizer(
+        [`${selectedEntity.id}`],
+        new PaperFolder(linkedFolder.value, 1, undefined, undefined, false),
+        CategorizerType.PaperFolder
+      );
+    }
   }
 
-  // @ts-ignore
-  searchInput.value.focus();
+  searchText.value = "";
+  paperEntities.value = [];
+
+  await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
 };
-window.addEventListener("keydown", shortcutHandler, true);
+
+const exportSelectedCiteBodiesInFolder = async () => {
+  const selectedEntity = paperEntities.value[selectedIndex.value];
+  if (selectedEntity && selectedEntity.id === "search-in-google-scholar") {
+    await PLAPI.fileService.open(
+      `https://scholar.google.com/scholar?q=${searchText.value}`
+    );
+  } else {
+    if (exportMode.value === "BibTex") {
+      await PLAPI.referenceService.export(
+        [selectedEntity] as any,
+        "BibTex-In-Folder"
+      );
+    } else if (exportMode.value === "PlainText") {
+      await PLAPI.referenceService.export(
+        [selectedEntity] as any,
+        "PlainText-In-Folder"
+      );
+    }
+
+    if (linkedFolder.value) {
+      await PLAPI.paperService.updateWithCategorizer(
+        [`${selectedEntity.id}`],
+        new PaperFolder(linkedFolder.value, 1, undefined, undefined, false),
+        CategorizerType.PaperFolder
+      );
+    }
+  }
+
+  searchText.value = "";
+  paperEntities.value = [];
+
+  await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
+};
 
 const onLinkClicked = async () => {
   folders.value = (await PLAPI.categorizerService.load(
@@ -173,26 +175,6 @@ const onUnlinkClicked = async () => {
   searchInput.value.focus();
 };
 
-PLMainAPI.contextMenuService.on(
-  "linkToFolderClicked",
-  async (newValue: { value: string }) => {
-    const folderName = newValue.value;
-    if (
-      !Object.values(folders.value)
-        .map((f) => f.name)
-        .includes(folderName)
-    ) {
-      await PLAPI.categorizerService.create(
-        CategorizerType.PaperFolder,
-        folderName
-      );
-    }
-
-    await PLAPI.preferenceService.set({ pluginLinkedFolder: folderName });
-    linkedFolder.value = folderName;
-  }
-);
-
 const checkLinkedFolder = async () => {
   folders.value = (await PLAPI.categorizerService.load(
     CategorizerType.PaperFolder,
@@ -207,6 +189,88 @@ const checkLinkedFolder = async () => {
     linkedFolder.value = "";
   }
 };
+
+disposable(
+  shortcutService.registerInInputField("ArrowDown", () => {
+    selectedIndex.value = Math.min(
+      paperEntities.value.length - 1,
+      selectedIndex.value + 1
+    );
+    // @ts-ignore
+    searchInput.value.focus();
+  })
+);
+
+disposable(
+  shortcutService.registerInInputField("ArrowUp", () => {
+    selectedIndex.value = Math.max(0, selectedIndex.value - 1);
+    // @ts-ignore
+    searchInput.value.focus();
+  })
+);
+
+disposable(
+  shortcutService.registerInInputField("ctrlmeta+Enter", async () => {
+    await exportSelectedCiteBodiesInFolder();
+
+    // @ts-ignore
+    searchInput.value.focus();
+  })
+);
+
+disposable(
+  shortcutService.registerInInputField("Tab", () => {
+    exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
+    // @ts-ignore
+    searchInput.value.focus();
+  })
+);
+
+disposable(
+  shortcutService.registerInInputField("shift+Enter", async () => {
+    await exportSelectedCiteKeys();
+    // @ts-ignore
+    searchInput.value.focus();
+  })
+);
+
+disposable(
+  shortcutService.registerInInputField("Enter", async () => {
+    await exportSelectedCiteBodies();
+    // @ts-ignore
+    searchInput.value.focus();
+  })
+);
+
+disposable(
+  shortcutService.registerInInputField("Eascape", async () => {
+    searchText.value = "";
+    paperEntities.value = [];
+    await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
+  })
+);
+
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "linkToFolderClicked",
+    async (newValue: { value: string }) => {
+      const folderName = newValue.value;
+      if (
+        !Object.values(folders.value)
+          .map((f) => f.name)
+          .includes(folderName)
+      ) {
+        await PLAPI.categorizerService.create(
+          CategorizerType.PaperFolder,
+          new PaperFolder(folderName, 0)
+        );
+      }
+
+      await PLAPI.preferenceService.set({ pluginLinkedFolder: folderName });
+      linkedFolder.value = folderName;
+    }
+  )
+);
 
 disposable(
   PLAPI.preferenceService.onChanged(

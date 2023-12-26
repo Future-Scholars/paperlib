@@ -2,18 +2,17 @@
 import { PropType, ref } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 
 import PaperListItem from "./components/paper-list-item.vue";
 
-
 const props = defineProps({
   entities: {
-    type: Object as PropType<IPaperEntityResults>,
+    type: Object as PropType<IPaperEntityCollection>,
     required: true,
   },
   fieldEnable: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity , boolean>>>,
+    type: Object as PropType<Partial<Record<keyof PaperEntity, boolean>>>,
     required: true,
   },
   categorizerSortBy: {
@@ -36,12 +35,18 @@ const props = defineProps({
 
 // ================
 // State
+// ================
 const lastSelectedSingleIndex = ref<number>(-1);
 
 // =================
 // Event handlers
-// TODO: check all emits name style
-const emits = defineEmits(["event:click", "event:dblclick", "event:contextmenu", "event:drag"]);
+// =================
+const emits = defineEmits([
+  "event:click",
+  "event:dblclick",
+  "event:contextmenu",
+  "event:drag",
+]);
 
 const calSelectedIndex = (event: MouseEvent, index: number) => {
   let selectedIndexBuffer = JSON.parse(JSON.stringify(props.selectedIndex));
@@ -66,7 +71,7 @@ const calSelectedIndex = (event: MouseEvent, index: number) => {
     lastSelectedSingleIndex.value = index;
   }
   return selectedIndexBuffer;
-}
+};
 
 const onItemClicked = (event: MouseEvent, index: number) => {
   const selectedIndex = calSelectedIndex(event, index);

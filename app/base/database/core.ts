@@ -1,6 +1,6 @@
 import { existsSync, promises } from "fs";
 import path from "path";
-import Realm from "realm";
+import Realm, { ConfigurationWithSync } from "realm";
 
 import { migrate } from "@/base/database/migration";
 import { Eventable } from "@/base/event";
@@ -175,18 +175,18 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       }
       if (this._preferenceService.get("syncEmail") !== "" && syncPassword) {
         return {
-          config: await this._getCloudConfig(),
+          config: await this.getCloudConfig(),
           type: ConfigType.Cloud,
         };
       } else {
         return {
-          config: await this._getLocalConfig(),
+          config: await this.getLocalConfig(),
           type: ConfigType.Local,
         };
       }
     } else {
       return {
-        config: await this._getLocalConfig(),
+        config: await this.getLocalConfig(),
         type: ConfigType.Local,
       };
     }
@@ -197,7 +197,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
    * @param logout - if true, will logout from cloud
    * @returns - Realm configuration
    */
-  private async _getLocalConfig(logout = true): Promise<Realm.Configuration> {
+  async getLocalConfig(logout = true): Promise<Realm.Configuration> {
     if (logout) {
       await this._logoutCloud();
     }
@@ -234,33 +234,112 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
    * Get realm configuration for the cloud database
    * @returns - Realm configuration
    */
-  private async _getCloudConfig(): Promise<Realm.Configuration> {
+  async getCloudConfig(): Promise<Realm.Configuration> {
     const cloudUser = await this._loginCloud();
 
     if (cloudUser) {
-      const config = {
-        schema: [
-          PaperEntity.schema,
-          PaperTag.schema,
-          PaperFolder.schema,
-          PaperSmartFilter.schema,
-          Feed.schema,
-          FeedEntity.schema,
-        ],
-        schemaVersion: DATABASE_SCHEMA_VERSION,
-        sync: {
-          user: cloudUser,
-          partitionValue: cloudUser.id,
-        },
-        path: path.join(
-          await PLMainAPI.fileSystemService.getSystemPath(
-            "userData",
-            Process.renderer
+      if (this._preferenceService.get("isFlexibleSync")) {
+        const config: ConfigurationWithSync = {
+          schema: [
+            PaperEntity.schema,
+            PaperTag.schema,
+            PaperFolder.schema,
+            PaperSmartFilter.schema,
+            Feed.schema,
+            FeedEntity.schema,
+          ],
+          schemaVersion: DATABASE_SCHEMA_VERSION,
+          sync: {
+            user: cloudUser,
+            flexible: true,
+            initialSubscriptions: {
+              update: (subs, realm) => {
+                subs.add(
+                  realm
+                    .objects<PaperEntity>("PaperEntity")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperEntity",
+                  }
+                );
+                subs.add(
+                  realm
+                    .objects<PaperTag>("PaperTag")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperTag",
+                  }
+                );
+                subs.add(
+                  realm
+                    .objects<PaperFolder>("PaperFolder")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperFolder",
+                  }
+                );
+                subs.add(
+                  realm
+                    .objects<PaperSmartFilter>("PaperPaperSmartFilter")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperPaperSmartFilter",
+                  }
+                );
+                subs.add(
+                  realm
+                    .objects<Feed>("Feed")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "Feed",
+                  }
+                );
+                subs.add(
+                  realm
+                    .objects<FeedEntity>("FeedEntity")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "FeedEntity",
+                  }
+                );
+              },
+              rerunOnOpen: true,
+            },
+          },
+          path: path.join(
+            await PLMainAPI.fileSystemService.getSystemPath(
+              "userData",
+              Process.renderer
+            ),
+            "synced.realm"
           ),
-          "synced.realm"
-        ),
-      };
-      return config;
+        };
+        return config;
+      } else {
+        const config = {
+          schema: [
+            PaperEntity.schema,
+            PaperTag.schema,
+            PaperFolder.schema,
+            PaperSmartFilter.schema,
+            Feed.schema,
+            FeedEntity.schema,
+          ],
+          schemaVersion: DATABASE_SCHEMA_VERSION,
+          sync: {
+            user: cloudUser,
+            partitionValue: cloudUser.id,
+          },
+          path: path.join(
+            await PLMainAPI.fileSystemService.getSystemPath(
+              "userData",
+              Process.renderer
+            ),
+            "synced.realm"
+          ),
+        };
+        return config;
+      }
     } else {
       this._logService.warn(
         "Failed to login to cloud database",
@@ -269,7 +348,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
         "Database"
       );
       this._preferenceService.set({ useSync: false });
-      return this._getLocalConfig();
+      return this.getLocalConfig();
     }
   }
 

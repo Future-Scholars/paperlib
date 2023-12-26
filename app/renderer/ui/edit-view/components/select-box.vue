@@ -17,11 +17,11 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["changed"]);
+const emit = defineEmits(["event:change"]);
 const selectedValue = ref(props.value);
 
 const onChanged = (value: string) => {
-  emit("changed", value);
+  emit("event:change", value);
 };
 </script>
 

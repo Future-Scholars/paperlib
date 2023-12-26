@@ -1,10 +1,10 @@
-import { ObjectId } from "bson";
-import Realm, { Results } from "realm";
+import Realm, { List, Results } from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
+import { OID } from "@/models/id";
 
 export interface IFeedRepositoryState {
   updated: number;
@@ -20,13 +20,35 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
   }
 
   /**
+   * Transform feed to realm object if exists in database. Otherwise, return undefined.
+   * @param realm - Realm instance
+   * @param feed - Feed
+   * @returns Realm object
+   */
+  toRealmObject(realm: Realm, feed: IFeedObject) {
+    if (feed instanceof Realm.Object) {
+      return feed as IFeedRealmObject;
+    } else {
+      const objects = realm
+        .objects<Feed>("Feed")
+        .filtered(`name == "${feed.name}"`);
+
+      if (objects.length > 0) {
+        return objects[0] as IFeedRealmObject;
+      } else {
+        return undefined;
+      }
+    }
+  }
+
+  /**
    * Load all feeds.
    * @param realm - Realm instance
    * @param sortBy - Sort by field
    * @param sortOrder - Sort order
    * @returns Results of feed
    */
-  load(realm: Realm, sortBy: string, sortOrder: string) {
+  load(realm: Realm, sortBy: string, sortOrder: string): IFeedCollection {
     const objects = realm
       .objects<Feed>("Feed")
       .sorted(sortBy, sortOrder == "desc");
@@ -50,15 +72,15 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
   /**
    * Load feed by id.
    * @param realm - Realm instance
-   * @param id - Feed id
+   * @param ids - Feed ids
    * @returns Feed
    */
-  loadByIds(realm: Realm, ids: (ObjectId | string)[]) {
-    const idsQuery = ids
-      .map((id) => `_id == oid(${id as string})`)
-      .join(" OR ");
+  loadByIds(realm: Realm, ids: OID[]): IFeedCollection {
+    const idsQuery = ids.map((id) => `oid(${id})`).join(", ");
 
-    let objects = realm.objects<Feed>("Feed").filtered(`(${idsQuery})`);
+    let objects = realm
+      .objects<Feed>("Feed")
+      .filtered(`_id IN { ${idsQuery} }`);
 
     return objects;
   }
@@ -66,33 +88,24 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
   /**
    * Delete feed.
    * @param realm - Realm instance
-   * @param deleteAll - Delete all feed
-   * @param feed - Feed
-   * @param name - Feed name
+   * @param ids - Feed ids
+   * @param feeds - Feeds
    */
-  delete(realm: Realm, deleteAll = true, feed?: Feed, name?: string) {
+  delete(realm: Realm, ids?: OID[], feeds?: IFeedCollection) {
     return realm.safeWrite(() => {
-      let objects: IFeedResults;
-      if (feed) {
-        objects = realm
-          .objects<Feed>("Feed")
-          .filtered(`name == "${feed.name}"`);
-      } else if (name) {
-        objects = realm.objects<Feed>("Feed").filtered(`name == "${name}"`);
+      let objects: IFeedCollection;
+      if (feeds) {
+        objects = feeds
+          .map((feed: IFeedObject) => this.toRealmObject(realm, feed))
+          .filter((feed) => feed) as IFeedCollection;
+      } else if (ids) {
+        objects = this.loadByIds(realm, ids);
       } else {
-        throw new Error(`Invalid arguments: ${feed}, ${name}`);
+        throw new Error(`Invalid arguments: ${feeds}, ${ids}`);
       }
 
-      if (deleteAll) {
-        realm.delete(objects);
-      } else {
-        for (const object of objects) {
-          object.count -= 1;
-          if (object.count <= 0) {
-            realm.delete(object);
-          }
-        }
-      }
+      realm.delete(objects);
+
       return true;
     });
   }
@@ -101,20 +114,18 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * Colorize feed.
    * @param realm - Realm instance
    * @param color - Color
+   * @param id - Feed Id
    * @param feed - Feed
-   * @param name - Feed name
    */
-  colorize(realm: Realm, color: Colors, feed?: Feed, name?: string) {
+  colorize(realm: Realm, color: Colors, id?: OID, feed?: Feed) {
     realm.safeWrite(() => {
-      let objects: IFeedResults;
+      let objects: IFeedCollection;
       if (feed) {
-        objects = realm
-          .objects<Feed>("Feed")
-          .filtered(`name == "${feed.name}"`);
-      } else if (name) {
-        objects = realm.objects<Feed>("Feed").filtered(`name == "${name}"`);
+        objects = [feed];
+      } else if (id) {
+        objects = this.loadByIds(realm, [id]);
       } else {
-        throw new Error(`Invalid arguments: ${feed}, ${name}`);
+        throw new Error(`Invalid arguments: ${feed}, ${id}`);
       }
       for (const object of objects) {
         object.color = color;
@@ -142,103 +153,53 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
   /**
    * Update feed.
    * @param realm - Realm instance
-   * @param existFeed - Exist feed
-   * @param updateFeed - Update feed
+   * @param feed - Feed
    * @param partition - Partition
    * @returns Feed
    */
-  update(
-    realm: Realm,
-    existFeed: Feed | undefined,
-    updateFeed: Feed | undefined,
-    partition: string
-  ) {
-    // exist = undefined, undate != undefined, means create (or link once).
-    // exist != undefined, update != undefined, means update.
-    // exist != undefined, update = undefined, means delete (or unlink once).
+  update(realm: Realm, feed: Feed, partition: string) {
     return realm.safeWrite(() => {
-      let newFeed: Feed;
-      const existName = existFeed?.name;
-      const updateName = updateFeed?.name;
+      const object = this.toRealmObject(realm, feed);
 
-      if (!existName && updateName) {
-        const objects = realm
-          .objects<Feed>("Feed")
-          .filtered(`name == "${updateName}"`);
-        if (objects.length > 0) {
-          // Link
-          const object = objects[0];
-          object.count += 1;
-          newFeed = objects[0];
-        } else {
-          // Create
-          const toBeCreatedObject = new Feed(true).initialize(updateFeed);
-          if (partition) {
-            toBeCreatedObject._partition = partition;
-          }
-          newFeed = realm.create<Feed>("Feed", toBeCreatedObject);
-        }
-      } else if (existName && updateName) {
+      if (object) {
         // Update
-        const objects = realm
-          .objects<Feed>("Feed")
-          .filtered(`name == "${existName}"`);
-        if (objects.length > 0) {
-          const object = objects[0];
-          object.name = updateName;
-          object.color = updateFeed?.color;
-          object.count = updateFeed?.count;
-          if (partition) {
-            object._partition = partition;
-          }
-          newFeed = objects[0];
-        } else {
-          throw new Error(`No feed found: ${existName}`);
+        object.name = feed.name;
+        object.url = feed.url;
+        object.color = feed.color;
+        object.count = feed.count;
+        if (partition) {
+          object._partition = partition;
         }
-      } else if (existName && !updateName) {
-        // Delete
-        const objects = realm
-          .objects<Feed>("Feed")
-          .filtered(`name == "${existName}"`);
-        if (objects.length > 0) {
-          const object = objects[0];
-          object.count -= 1;
-          if (object.count <= 0) {
-            object.count = 0;
-          }
-          newFeed = objects[0];
-        } else {
-          throw new Error(`No feed found: ${existName}`);
-        }
+        return object;
       } else {
-        throw new Error(`Invalid arguments: ${existFeed}, ${updateFeed}`);
+        const newObject = realm.create<Feed>("Feed", feed);
+        if (partition) {
+          newObject._partition = partition;
+        }
+        return newObject;
       }
-      return newFeed;
     });
   }
 
-  // ========================
-  // Dev Functions
-  // ========================
-  async addDummyData(realm: Realm) {
-    const feed = new Feed(true);
-    feed.name = "object-detection";
-    feed.url =
-      "http://export.arxiv.org/api/query?search_query=(ti:%22object%20detection%22+OR+abs:%22object%20detection%22)+AND+cat:%22cs.CV%22&amp;sortBy=lastUpdatedDate&amp;sortOrder=descending";
-    feed.count = 1;
-    realm.write(() => {
-      realm.create("Feed", feed);
-    });
+  updateCount(realm: Realm, feeds: IFeedCollection) {
+    return realm.safeWrite(() => {
+      const feedRealmObjects = feeds.map((feed) => {
+        return this.toRealmObject(realm, feed);
+      }) as IFeedRealmObject[];
 
-    return feed;
-  }
-
-  async deleteAll(realm: Realm) {
-    realm.write(() => {
-      const feeds = realm.objects<Feed>("Feed");
-      realm.delete(feeds);
+      for (const feed of feedRealmObjects) {
+        feed.count = feed.linkingObjectsCount();
+      }
     });
   }
 }
 
-export type IFeedResults = Results<Feed & Realm.Object> | Array<Feed>;
+export type IFeedRealmObject = Feed &
+  Realm.Object<Feed, "_id" | "name" | "count" | "url">;
+
+export type IFeedObject = Feed | IFeedRealmObject;
+
+export type IFeedCollection =
+  | Results<IFeedObject>
+  | List<IFeedObject>
+  | Array<IFeedObject>;

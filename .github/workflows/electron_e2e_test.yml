@@ -1,5 +1,6 @@
 name: End-to-End Testing
 
+# TODO: update all yml for 3.0
 on:
   pull_request_target:
     types: [opened, reopened, synchronize]
@@ -12,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ['16.17.1']
+        node-versions: ["16.17.1"]
 
     steps:
       - name: Checkout Project
@@ -46,7 +47,7 @@ jobs:
       - name: Cleanup Env
         run: |
           rm -rf ~/Documents/paperlib
-          rm -rf ~/Library/Application\ Support/paperlib 
+          rm -rf ~/Library/Application\ Support/paperlib
 
       - name: End-to-End Testing
         run: |
@@ -72,11 +73,11 @@ jobs:
           mv config ~/.oci
           echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode -o oraclekey.cer
           mv oraclekey.cer ~/.oci
-          
+
       - name: Upload to Oracle Storage
         if: ${{ !cancelled() && (success() || failure()) }}
         run: |
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-arm-screenshots.zip'        
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-arm-screenshots.zip'
 
   e2e_test_mac_x86:
     runs-on: macos-latest
@@ -143,11 +144,11 @@ jobs:
           mv config ~/.oci
           echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode --output oraclekey.cer
           mv oraclekey.cer ~/.oci
-          
+
       - name: Upload to Oracle Storage
         if: ${{ !cancelled() && (success() || failure()) }}
         run: |
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-screenshots.zip'        
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/macos-screenshots.zip'
 
   e2e_test_win:
     runs-on: windows-latest
@@ -199,11 +200,11 @@ jobs:
         run: |
           cat tests/e2e.test.ts
           npm run test:e2e
-        
+
       - name: Print Log
         if: ${{ !cancelled() && (success() || failure()) }}
         run: cat 'C:\Users\runneradmin\AppData\Roaming\paperlib\logs\renderer.log'
-        
+
       - name: Zip screenshots
         if: ${{ !cancelled() && (success() || failure()) }}
         uses: vimtor/action-zip@v1
@@ -224,13 +225,12 @@ jobs:
           echo ${{ secrets.OCI_KEY_DATA }} > oraclekey.cer.secret
           base64 --decode oraclekey.cer.secret > oraclekey.cer
           mv oraclekey.cer ~/.oci
-          
+
       - name: Upload to Oracle Storage
         if: ${{ !cancelled() && (success() || failure()) }}
         run: |
           ls ./
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/windows-screenshots.zip'        
-
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/windows-screenshots.zip'
 
   e2e_test_linux:
     runs-on: ubuntu-latest
@@ -280,11 +280,11 @@ jobs:
         run: |
           cat tests/e2e.test.ts
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" -- npm run test:e2e
-        
+
       - name: Print Log
         if: ${{ !cancelled() && (success() || failure()) }}
-        run: cat ~/.config/paperlib/logs/renderer.log 
-        
+        run: cat ~/.config/paperlib/logs/renderer.log
+
       - name: Zip screenshots
         if: ${{ !cancelled() && (success() || failure()) }}
         uses: vimtor/action-zip@v1
@@ -302,7 +302,7 @@ jobs:
           mv config ~/.oci
           echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode > oraclekey.cer
           mv oraclekey.cer ~/.oci
-          
+
       - name: Upload to Oracle Storage
         if: ${{ !cancelled() && (success() || failure()) }}
         run: |

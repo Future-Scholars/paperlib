@@ -7,8 +7,9 @@ import {
 import { Ref, inject } from "vue";
 
 import { Feed } from "@/models/feed";
-import { IFeedResults } from "@/repositories/db-repository/feed-repository";
+import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
 
+import { disposable } from "@/base/dispose";
 import CollopseGroup from "./components/collopse-group.vue";
 import SectionItem from "./components/section-item.vue";
 
@@ -40,12 +41,13 @@ const colorClass = (color?: string) => {
 // ================================
 const prefState = preferenceService.useState();
 const uiState = uiStateService.useState();
+const feedState = feedService.useState();
 const processingState = uiStateService.processingState.useState();
 
 // ================================
 // Data
 // ================================
-const feeds = inject<Ref<IFeedResults>>("feeds");
+const feeds = inject<Ref<IFeedCollection>>("feeds");
 
 // ================================
 // Event Functions
@@ -55,43 +57,48 @@ const onSelectFeed = (feed: string) => {
 };
 
 const onItemRightClicked = (event: MouseEvent, feed: Feed) => {
-  PLMainAPI.contextMenuService.showSidebarMenu(feed.name, "feed");
+  PLMainAPI.contextMenuService.showSidebarMenu(`${feed.id}`, "feed");
 };
 
 const onAddNewFeedClicked = () => {
-  uiState.isFeedEditViewShown = true;
+  uiState.feedEditViewShown = true;
 };
 
 // ================================
 // Register Context Menu Callbacks
 // ================================
-
-PLMainAPI.contextMenuService.on(
-  "sidebarContextMenuDeleteClicked",
-  (newValue: { value: { data: string; type: string } }) => {
-    if (uiState.contentType === "feed") {
-      feedService.delete(newValue.value.data);
-      uiState.selectedFeed = "feed-all";
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "sidebarContextMenuDeleteClicked",
+    (newValue: { value: { data: string; type: string } }) => {
+      if (uiState.contentType === "feed") {
+        feedService.delete([newValue.value.data]);
+        uiState.selectedFeed = "feed-all";
+      }
     }
-  }
+  )
 );
 
-PLMainAPI.contextMenuService.on(
-  "sidebarContextMenuFeedRefreshClicked",
-  (newValue: { value: { data: string; type: string } }) => {
-    if (uiState.contentType === "feed") {
-      feedService.refresh([newValue.value.data]);
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "sidebarContextMenuFeedRefreshClicked",
+    (newValue: { value: { data: string; type: string } }) => {
+      if (uiState.contentType === "feed") {
+        feedService.refresh([newValue.value.data]);
+      }
     }
-  }
+  )
 );
 
-PLMainAPI.contextMenuService.on(
-  "sidebarContextMenuColorClicked",
-  (newValue: { value: { data: string; color: string } }) => {
-    if (uiState.contentType === "feed") {
-      feedService.colorize(newValue.value.color as any, newValue.value.data);
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "sidebarContextMenuColorClicked",
+    (newValue: { value: { data: string; color: string } }) => {
+      if (uiState.contentType === "feed") {
+        feedService.colorize(newValue.value.color as any, newValue.value.data);
+      }
     }
-  }
+  )
 );
 </script>
 
@@ -99,7 +106,7 @@ PLMainAPI.contextMenuService.on(
   <div>
     <SectionItem
       :name="$t('mainview.allfeeds')"
-      :count="uiState.feedEntitiesCount"
+      :count="feedState.entitiesCount"
       :with-counter="prefState.showSidebarCount"
       :with-spinner="processingState.general > 0"
       :compact="prefState.isSidebarCompact"
@@ -122,7 +129,7 @@ PLMainAPI.contextMenuService.on(
     <CollopseGroup
       :title="$t('mainview.feeds')"
       :with-add="true"
-      @add="onAddNewFeedClicked"
+      @event:add-click="onAddNewFeedClicked"
     >
       <SectionItem
         :name="feed.name"

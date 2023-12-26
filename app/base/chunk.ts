@@ -1,7 +1,7 @@
-export const chunkRun = async <T, Q>(
-  argsList: any[],
-  process: (...arg: any) => Promise<T>,
-  errorProcess?: (...arg: any) => Promise<Q>,
+export const chunkRun = async <S, T, Q>(
+  argsList: Iterable<S>,
+  process: (arg: S) => Promise<T>,
+  errorProcess?: (arg: S) => Promise<Q>,
   chunkSize = 10
 ): Promise<{
   results: Q extends null ? (T | null)[] : (T | Q)[];
@@ -11,16 +11,23 @@ export const chunkRun = async <T, Q>(
 
   const errors: Error[] = [];
 
-  for (let i = 0; i < argsList.length; i += chunkSize) {
-    const chunkArgs = argsList.slice(i, i + chunkSize);
+  let argsArray: Array<S>;
+  if (!argsList.hasOwnProperty("length") || !argsList.hasOwnProperty("slice")) {
+    argsArray = Array.from(argsList) as Array<S>;
+  } else {
+    argsArray = argsList as Array<S>;
+  }
+
+  for (let i = 0; i < argsArray.length; i += chunkSize) {
+    const chunkArgs = argsArray.slice(i, i + chunkSize);
 
     const chunkResult = await Promise.allSettled(
-      chunkArgs.map(async (args) => {
+      chunkArgs.map(async (arg) => {
         // if process is a arrow function
         if (process.prototype === undefined) {
-          return await process(args);
+          return await process(arg);
         } else {
-          return await process.apply(this, args);
+          return await (process as Function).apply(this, arg);
         }
       })
     );
@@ -33,7 +40,9 @@ export const chunkRun = async <T, Q>(
           if (errorProcess.prototype === undefined) {
             results.push(await errorProcess(chunkArgs[j]));
           } else {
-            results.push(await errorProcess.apply(this, chunkArgs[j]));
+            results.push(
+              await (errorProcess as Function).apply(this, chunkArgs[j])
+            );
           }
         } else {
           results.push(null);

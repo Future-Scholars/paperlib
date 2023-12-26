@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Process } from "@/base/process-id";
 
-const emit = defineEmits(["close"]);
+const emits = defineEmits(["event:close"]);
 
 const prefState = preferenceService.useState();
 
@@ -59,7 +59,7 @@ const onRestartClicked = () => {
           <div
             id="presetting-lang-continue-btn"
             class="flex h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 hover:shadow-sm w-20"
-            @click.stop="emit('close')"
+            @click.stop="emits('event:close')"
           >
             <span class="m-auto text-xs cursor-pointer">
               {{ $t("presetting.continue") }}

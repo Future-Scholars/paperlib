@@ -2,6 +2,7 @@ import ElectronStore from "electron-store";
 import keytar from "keytar";
 import path from "path";
 
+import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 
@@ -101,6 +102,16 @@ export class ExtensionPreferenceService {
     this._stores = {};
   }
 
+  /**
+   * Register a preference store.
+   * @param extensionID - extension ID
+   * @param defaultPreference - default preference
+   */
+  @errorcatching(
+    "Failed to register preference store.",
+    true,
+    "ExtPreferenceService"
+  )
   async register<T extends { [key: string]: any }>(
     extensionID: string,
     defaultPreference: T
@@ -118,6 +129,15 @@ export class ExtensionPreferenceService {
     );
   }
 
+  /**
+   * Unregister a preference store.
+   * @param extensionID - extension ID
+   */
+  @errorcatching(
+    "Failed to unregister preference store.",
+    true,
+    "ExtPreferenceService"
+  )
   unregister(extensionID: string) {
     if (!this._stores[extensionID]) {
       return;
@@ -132,6 +152,12 @@ export class ExtensionPreferenceService {
    * @param key - key of the preference
    * @returns value of the preference or null
    */
+  @errorcatching(
+    "Failed to get preference.",
+    true,
+    "ExtPreferenceService",
+    null
+  )
   get(extensionID: string, key: any) {
     if (!this._stores[extensionID]) {
       throw new Error(`Preference store for ${extensionID} does not exist.`);
@@ -140,6 +166,17 @@ export class ExtensionPreferenceService {
     return this._stores[extensionID].get(key);
   }
 
+  /**
+   * Get the value of all preferences
+   * @param extensionID - extension ID
+   * @returns value of all preferences
+   */
+  @errorcatching(
+    "Failed to get all preferences.",
+    true,
+    "ExtPreferenceService",
+    {}
+  )
   getAll(extensionID: string) {
     if (!this._stores[extensionID]) {
       throw new Error(`Preference store for ${extensionID} does not exist.`);
@@ -160,6 +197,12 @@ export class ExtensionPreferenceService {
    * @param key - key of the preference
    * @returns metadata of the preference or null
    */
+  @errorcatching(
+    "Failed to get preference metadata.",
+    true,
+    "ExtPreferenceService",
+    null
+  )
   getMetadata(extensionID: string, key: any) {
     if (!this._stores[extensionID]) {
       throw new Error(`Preference store for ${extensionID} does not exist.`);
@@ -173,6 +216,12 @@ export class ExtensionPreferenceService {
    * @param extensionID - extension ID
    * @returns metadata of all preferences
    */
+  @errorcatching(
+    "Failed to get all preferences metadata.",
+    true,
+    "ExtPreferenceService",
+    {}
+  )
   getAllMetadata(extensionID: string) {
     if (!this._stores[extensionID]) {
       throw new Error(`Preference store for ${extensionID} does not exist.`);
@@ -187,6 +236,7 @@ export class ExtensionPreferenceService {
    * @param patch - patch object
    * @returns
    */
+  @errorcatching("Failed to set preference.", true, "ExtPreferenceService")
   set(extensionID: string, patch: any) {
     if (!this._stores[extensionID]) {
       throw new Error(`Preference store for ${extensionID} does not exist.`);
@@ -195,10 +245,24 @@ export class ExtensionPreferenceService {
     this._stores[extensionID].set(patch);
   }
 
+  /**
+   * Get the password
+   * @param extensionID - extension ID
+   * @param key - key of the password
+   * @returns - password
+   */
+  @errorcatching("Failed to get password.", true, "ExtPreferenceService", null)
   async getPassword(extensionID: string, key: string) {
     return await keytar.getPassword(extensionID, key);
   }
 
+  /**
+   * Set the password
+   * @param extensionID - extension ID
+   * @param key - key of the password
+   * @param pwd - password
+   */
+  @errorcatching("Failed to set password.", true, "ExtPreferenceService")
   async setPassword(extensionID: string, key: string, pwd: string) {
     await keytar.setPassword(extensionID, key, pwd);
   }

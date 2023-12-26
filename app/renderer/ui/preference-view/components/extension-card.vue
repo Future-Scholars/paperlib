@@ -18,12 +18,17 @@ defineProps<{
   installing: boolean;
 }>();
 
-defineEmits(["install", "uninstall", "reload", "setting"]);
+const emits = defineEmits([
+  "event:install",
+  "event:uninstall",
+  "event:reload",
+  "event:setting",
+]);
 </script>
 
 <template>
   <div
-    class="bg-neutral-200 flex flex-col py-2 px-3 rounded-md shadow-sm justify-between"
+    class="bg-neutral-200 dark:bg-neutral-700 flex flex-col py-2 px-3 rounded-md shadow-sm justify-between"
   >
     <div class="flex flex-col">
       <div class="flex space-x-2">
@@ -35,10 +40,14 @@ defineEmits(["install", "uninstall", "reload", "setting"]);
           {{ name }}
         </span>
       </div>
-      <span class="text-xxs text-neutral-500 truncate mb-1">
+      <span
+        class="text-xxs text-neutral-500 dark:text-neutral-400 truncate mb-1"
+      >
         {{ version }} by {{ author }}
       </span>
-      <span class="text-xs text-neutral-600 line-clamp-4 mb-1">
+      <span
+        class="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-4 mb-1"
+      >
         {{ description }}
       </span>
     </div>
@@ -50,25 +59,25 @@ defineEmits(["install", "uninstall", "reload", "setting"]);
         title="Install"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
         v-if="!installed && !installing"
-        @click="$emit('install')"
+        @click="emits('event:install')"
       />
       <BIconTrash3
         title="Uninstall"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
         v-if="installed"
-        @click="$emit('uninstall')"
+        @click="emits('event:uninstall')"
       />
       <BIconArrowClockwise
         title="Reload"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
         v-if="installed"
-        @click="$emit('reload')"
+        @click="emits('event:reload')"
       />
       <BIconGear
         title="Settings"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
         v-if="installed"
-        @click="$emit('setting')"
+        @click="emits('event:setting')"
       />
     </div>
   </div>

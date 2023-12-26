@@ -1,10 +1,4 @@
-export type Dto<T> = T extends { toJSON(): infer U }
-  ? U
-  : T extends string // VSBuffer is understood by rpc-logic
-  ? T
-  : T extends object // recurse
-  ? { [k in keyof T]: Dto<T[k]> }
-  : T;
+export type Dto<T> = T;
 
 // export type Proxied<T> = {
 //   [K in keyof T]: T[K] extends (...args: infer A) => infer R
@@ -16,6 +10,6 @@ export type Proxied<T> = {
   [K in keyof T]: K extends "on" | "once" | "already" | "onChanged" | "onClick"
     ? (...args: any[]) => () => void
     : T[K] extends (...args: infer A) => infer R
-    ? (...args: { [K in keyof A]: Dto<A[K]> }) => Promise<Dto<Awaited<R>>>
+    ? (...args: { [K in keyof A]: A[K] }) => Promise<Awaited<R>>
     : never;
 };

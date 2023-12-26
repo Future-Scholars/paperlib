@@ -48,8 +48,8 @@ export class PaperEntity {
     },
   };
 
-  _id: ObjectId | string = "";
-  id: ObjectId | string = "";
+  _id: OID = "";
+  id: OID = "";
   _partition: string = "";
   addTime: Date = new Date();
   title: string = "";

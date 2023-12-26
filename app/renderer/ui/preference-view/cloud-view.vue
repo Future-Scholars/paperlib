@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 
 import { IPreferenceStore } from "@/common/services/preference-service";
 
 import Options from "./components/options.vue";
+import Toggle from "./components/toggle.vue";
 
 const prefState = preferenceService.useState();
-const uiState = uiStateService.useState();
+const filebackendState = fileService.useState();
 
 const syncAPPID = ref(prefState.syncAPPID);
 const syncEmail = ref(prefState.syncEmail);
@@ -16,8 +17,6 @@ const syncFileStorage = ref(prefState.syncFileStorage);
 const webdavURL = ref(prefState.webdavURL);
 const webdavUsername = ref(prefState.webdavUsername);
 const webdavPassword = ref("");
-
-// TODO: here is an error in console.
 
 const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set({ [key]: value });
@@ -29,12 +28,13 @@ const onLoginClicked = async () => {
   await preferenceService.setPassword("realmSync", syncPassword.value);
   preferenceService.set({ useSync: true });
 
-  // TODO: reinit db here.
+  await databaseService.initialize();
 };
 
-const onLogoutClicked = () => {
+const onLogoutClicked = async () => {
   preferenceService.set({ useSync: false });
-  // TODO: reinit db here.
+
+  await databaseService.initialize();
 };
 
 const onClickGuide = () => {
@@ -42,31 +42,33 @@ const onClickGuide = () => {
 };
 
 const onMigrateClicked = () => {
-  databaseService.migrateLocaltoCloud();
+  paperService.migrateLocaltoCloud();
+  feedService.migrateLocaltoCloud();
+  smartFilterService.migrateLocaltoCloud();
 };
-
-preferenceService.getPassword("realmSync").then((password) => {
-  syncPassword.value = password ? (password as string) : "";
-});
 
 // =============================================================================
 // WebDAV
-
-// TODO: check if webdav is avaliable and set this state
-const syncFileStorageAvaliable = ref(false);
-
 const onWebdavConnectClicked = async () => {
   preferenceService.set({ webdavURL: webdavURL.value });
   preferenceService.set({ webdavUsername: webdavUsername.value });
   await preferenceService.setPassword("webdav", webdavPassword.value);
   preferenceService.set({ syncFileStorage: "webdav" });
 
-  // TODO: reinit filebackend here.
+  fileService.initialize();
 };
 
 const onWebdavDisconnectClicked = () => {
   preferenceService.set({ syncFileStorage: "local" });
 };
+
+onMounted(() => {
+  nextTick(async () => {
+    syncPassword.value = (await preferenceService.getPassword(
+      "realmSync"
+    )) as string;
+  });
+});
 </script>
 
 <template>
@@ -137,6 +139,18 @@ const onWebdavDisconnectClicked = () => {
       </div>
     </div>
 
+    <Toggle
+      class="mb-5"
+      :title="$t('preference.flexibleSyncTitle')"
+      :info="$t('preference.flexibleSyncIntro')"
+      :enable="prefState.isFlexibleSync"
+      @event:change="
+        (value) => {
+          onUpdate('isFlexibleSync', value);
+        }
+      "
+    />
+
     <div class="flex justify-between mb-5" v-if="prefState.useSync">
       <div class="flex flex-col">
         <div class="text-xs font-semibold">
@@ -147,7 +161,7 @@ const onWebdavDisconnectClicked = () => {
         </div>
       </div>
       <button
-        class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
+        class="flex h-8 w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
         @click="onMigrateClicked"
       >
         <span class="m-auto text-xs">{{ $t("preference.migrate") }}</span>
@@ -165,7 +179,7 @@ const onWebdavDisconnectClicked = () => {
       :info="$t('preference.filestoragebackendintro')"
       :selected="syncFileStorage"
       :options="{ local: $t('preference.local'), webdav: 'WebDAV' }"
-      @update="
+      @event:change="
         (value) => {
           syncFileStorage = value;
           onUpdate('syncFileStorage', value);
@@ -179,8 +193,14 @@ const onWebdavDisconnectClicked = () => {
         type="text"
         placeholder="WebDAV URL"
         v-model="webdavURL"
-        :disabled="syncFileStorageAvaliable"
-        :class="syncFileStorageAvaliable ? 'text-neutral-400' : ''"
+        :disabled="
+          filebackendState.backend === 'webdav' && filebackendState.available
+        "
+        :class="
+          filebackendState.backend === 'webdav' && filebackendState.available
+            ? 'text-neutral-400'
+            : ''
+        "
       />
 
       <div class="flex space-x-2">
@@ -189,28 +209,48 @@ const onWebdavDisconnectClicked = () => {
           type="text"
           placeholder="Username"
           v-model="webdavUsername"
-          :disabled="syncFileStorageAvaliable"
-          :class="syncFileStorageAvaliable ? 'text-neutral-400' : ''"
+          :disabled="
+            filebackendState.backend === 'webdav' && filebackendState.available
+          "
+          :class="
+            filebackendState.backend === 'webdav' && filebackendState.available
+              ? 'text-neutral-400'
+              : ''
+          "
         />
         <input
           class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
           type="password"
           placeholder="Password"
           v-model="webdavPassword"
-          :disabled="syncFileStorageAvaliable"
-          :class="syncFileStorageAvaliable ? 'text-neutral-400' : ''"
+          :disabled="
+            filebackendState.backend === 'webdav' && filebackendState.available
+          "
+          :class="
+            filebackendState.backend === 'webdav' && filebackendState.available
+              ? 'text-neutral-400'
+              : ''
+          "
         />
         <div class="flex text-xs flex-none">
           <div
             class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500"
-            v-if="!syncFileStorageAvaliable"
+            v-if="
+              !(
+                filebackendState.backend === 'webdav' &&
+                filebackendState.available
+              )
+            "
             @click="onWebdavConnectClicked"
           >
             <span class="m-auto">{{ $t("preference.connect") }}</span>
           </div>
           <div
             class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-500"
-            v-if="syncFileStorageAvaliable"
+            v-if="
+              filebackendState.backend === 'webdav' &&
+              filebackendState.available
+            "
             @click="onWebdavDisconnectClicked"
           >
             <span class="m-auto">{{ $t("preference.disconnect") }}</span>

@@ -1,10 +1,14 @@
-import { ObjectId } from "bson";
-import Realm, { PrimaryKey, Results } from "realm";
+import Realm, { List, Results } from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
+import { CategorizerType } from "@/models/categorizer";
+import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
+import {
+  CategorizerRepository,
+  ICategorizerRepository,
+} from "./categorizer-repository";
 
 export interface IPaperEntityRepositoryState {
   count: number;
@@ -14,12 +18,47 @@ export interface IPaperEntityRepositoryState {
 export const IPaperEntityRepository = createDecorator("paperEntityRepository");
 
 export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState> {
-  // TODO: repository should not access services such as log service. Just throw error.
-  constructor() {
+  constructor(
+    @ICategorizerRepository
+    private readonly _categorizerRepository: CategorizerRepository
+  ) {
     super("paperEntityRepository", {
       count: 0,
       updated: 0,
     });
+  }
+
+  /**
+   * Transform paper entity to realm object if exists in database. Otherwise, return undefined.
+   * @param realm - Realm instance
+   * @param paperEntity - Paper entity
+   * @returns Realm object
+   */
+  toRealmObject(realm: Realm, paperEntity: IPaperEntityObject) {
+    if (paperEntity instanceof Realm.Object) {
+      return paperEntity as IPaperEntityRealmObject;
+    } else {
+      const objects = realm
+        .objects<PaperEntity>("PaperEntity")
+        .filtered(`_id == oid(${paperEntity._id})`);
+
+      if (objects.length > 0) {
+        return objects[0] as IPaperEntityRealmObject;
+      } else {
+        const reduplicatedObjects = realm
+          .objects<PaperEntity>("PaperEntity")
+          .filtered(
+            "title == $0 and authors == $1",
+            paperEntity.title,
+            paperEntity.authors
+          );
+        if (reduplicatedObjects.length > 0) {
+          return reduplicatedObjects[0] as IPaperEntityRealmObject;
+        } else {
+          return undefined;
+        }
+      }
+    }
   }
 
   /**
@@ -70,14 +109,12 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param ids - Paper ids.
    * @returns - Results of paper entities.
    */
-  loadByIds(realm: Realm, ids: (ObjectId | string)[]) {
-    const idsQuery = ids
-      .map((id) => `_id == oid(${id as string})`)
-      .join(" OR ");
+  loadByIds(realm: Realm, ids: OID[]) {
+    const idsQuery = ids.map((id) => `oid(${id})`).join(", ");
 
     let objects = realm
       .objects<PaperEntity>("PaperEntity")
-      .filtered(`(${idsQuery})`);
+      .filtered(`_id IN { ${idsQuery} }`);
 
     return objects;
   }
@@ -92,66 +129,118 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param partition - Partition.
    * @returns - Updated boolean flag.
    */
-  update(
-    realm: Realm,
-    paperEntity: PaperEntity,
-    paperTag: PaperTag[],
-    paperFolder: PaperFolder[],
-    existingPaperEntity: PaperEntity | null,
-    partition: string
-  ) {
+  update(realm: Realm, paperEntity: PaperEntity, partition: string) {
     return realm.safeWrite(() => {
-      if (existingPaperEntity) {
-        // Update
-        const updateObj = existingPaperEntity;
-        updateObj.title = paperEntity.title;
-        updateObj.authors = paperEntity.authors;
-        updateObj.publication = paperEntity.publication;
-        updateObj.pubTime = paperEntity.pubTime;
-        updateObj.pubType = paperEntity.pubType;
-        updateObj.doi = paperEntity.doi;
-        updateObj.arxiv = paperEntity.arxiv;
-        updateObj.mainURL = paperEntity.mainURL;
-        updateObj.supURLs = paperEntity.supURLs;
-        updateObj.rating = paperEntity.rating;
-        updateObj.flag = paperEntity.flag;
-        updateObj.note = paperEntity.note;
-        updateObj.codes = paperEntity.codes;
-        updateObj.volume = paperEntity.volume;
-        updateObj.number = paperEntity.number;
-        updateObj.pages = paperEntity.pages;
-        updateObj.publisher = paperEntity.publisher;
-        updateObj.tags = paperTag;
-        updateObj.folders = paperFolder;
-      } else {
-        // Add
-        const reduplicatedEntities = realm
-          .objects<PaperEntity>("PaperEntity")
-          .filtered(
-            "title == $0 and authors == $1",
-            paperEntity.title,
-            paperEntity.authors
-          );
-        if (reduplicatedEntities.length === 0) {
-          paperEntity.tags = [];
-          paperEntity.folders = [];
-          if (partition) {
-            paperEntity._partition = partition;
-          }
-          realm.create("PaperEntity", paperEntity);
+      const object = this.toRealmObject(realm, paperEntity);
 
-          const addedObj = realm.objectForPrimaryKey<PaperEntity>(
-            "PaperEntity",
-            new Realm.BSON.ObjectId(paperEntity._id)
-          );
-          if (addedObj) {
-            addedObj.tags = paperTag;
-            addedObj.folders = paperFolder;
-          }
+      const tags = paperEntity.tags.map((tag) => {
+        const object = this._categorizerRepository.toRealmObject(
+          realm,
+          CategorizerType.PaperTag,
+          tag
+        );
+
+        if (object) {
+          return object;
         } else {
-          return false;
+          return this._categorizerRepository.update(
+            realm,
+            CategorizerType.PaperTag,
+            tag,
+            partition
+          );
         }
+      });
+
+      const folders = paperEntity.folders.map((folder) => {
+        const object = this._categorizerRepository.toRealmObject(
+          realm,
+          CategorizerType.PaperFolder,
+          folder
+        );
+
+        if (object) {
+          return object;
+        } else {
+          return this._categorizerRepository.update(
+            realm,
+            CategorizerType.PaperFolder,
+            folder,
+            partition
+          );
+        }
+      });
+
+      if (object) {
+        // Update
+        const shouldBeUpdatedTags = [...tags, ...object.tags];
+        const shouldBeUpdatedFolders = [...folders, ...object.folders];
+
+        object.title = paperEntity.title;
+        object.authors = paperEntity.authors;
+        object.publication = paperEntity.publication;
+        object.pubTime = paperEntity.pubTime;
+        object.pubType = paperEntity.pubType;
+        object.doi = paperEntity.doi;
+        object.arxiv = paperEntity.arxiv;
+        object.mainURL = paperEntity.mainURL;
+        object.supURLs = paperEntity.supURLs;
+        object.rating = paperEntity.rating;
+        object.flag = paperEntity.flag;
+        object.note = paperEntity.note;
+        object.codes = paperEntity.codes;
+        object.volume = paperEntity.volume;
+        object.number = paperEntity.number;
+        object.pages = paperEntity.pages;
+        object.publisher = paperEntity.publisher;
+        object.tags = tags;
+        object.folders = folders;
+
+        if (partition) {
+          object._partition = partition;
+        }
+
+        this._categorizerRepository.updateCount(
+          realm,
+          CategorizerType.PaperTag,
+          shouldBeUpdatedTags
+        );
+        this._categorizerRepository.updateCount(
+          realm,
+          CategorizerType.PaperFolder,
+          shouldBeUpdatedFolders
+        );
+      } else {
+        // Insert
+        const shouldBeUpdatedTags = [...tags];
+        const shouldBeUpdatedFolders = [...folders];
+
+        paperEntity.tags = [];
+        paperEntity.folders = [];
+        if (partition) {
+          paperEntity._partition = partition;
+        }
+        const object = realm.create<PaperEntity>("PaperEntity", paperEntity);
+        if (object) {
+          object.tags = tags;
+          object.folders = folders;
+        }
+        if (partition) {
+          object._partition = partition;
+        }
+
+        this._categorizerRepository.updateCount(
+          realm,
+          CategorizerType.PaperTag,
+          shouldBeUpdatedTags
+        );
+        this._categorizerRepository.updateCount(
+          realm,
+          CategorizerType.PaperFolder,
+          shouldBeUpdatedFolders
+        );
       }
+
       return true;
     });
   }
@@ -163,11 +252,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param paperEntity - Paper entity.
    * @returns - Deleted boolean flags.
    */
-  delete(
-    realm: Realm,
-    ids?: (ObjectId | string)[],
-    paperEntitys?: PaperEntity[]
-  ) {
+  delete(realm: Realm, ids?: OID[], paperEntitys?: PaperEntity[]) {
     return realm.safeWrite(() => {
       if (paperEntitys) {
         ids = paperEntitys.map((paperEntity) => paperEntity._id);
@@ -194,63 +279,36 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
       }
     });
   }
-
-  // ==============================
-  // Dev Functions
-  // ==============================
-
-  removeAll(realm: Realm) {
-    const objects = realm.objects<PaperEntity>("PaperEntity");
-    realm.safeWrite(() => {
-      realm.delete(objects);
-    });
-  }
-
-  addDummyData(
-    tag: PaperTag,
-    folder: PaperFolder,
-    realm: Realm,
-    partition: string
-  ) {
-    const ids: Array<string | ObjectId> = [];
-    realm.safeWrite(() => {
-      for (let i = 0; i < 10000; i++) {
-        const entity = new PaperEntity(true);
-        entity._partition = partition;
-
-        entity.dummyFill();
-
-        realm.create("PaperEntity", entity);
-
-        if (i % 500 === 0) {
-          ids.push(entity.id);
-        }
-      }
-
-      for (const id of ids) {
-        const createdEntity = realm.objectForPrimaryKey<PaperEntity>(
-          "PaperEntity",
-          id as PrimaryKey
-        );
-        const tagObj = realm.objectForPrimaryKey<PaperTag>(
-          CategorizerType.PaperTag,
-          tag._id as PrimaryKey
-        );
-        const folderObj = realm.objectForPrimaryKey<PaperFolder>(
-          CategorizerType.PaperFolder,
-          folder._id as PrimaryKey
-        );
-        if (createdEntity && tagObj && folderObj) {
-          tagObj.count += 1;
-          folderObj.count += 1;
-          createdEntity.tags.push(tagObj);
-          createdEntity.folders.push(folderObj);
-        }
-      }
-    });
-  }
 }
 
-export type IPaperEntityResults =
-  | Results<PaperEntity & Realm.Object>
-  | Array<PaperEntity>;
+export type IPaperEntityRealmObject = PaperEntity &
+  Realm.Object<
+    PaperEntity,
+    | "_id"
+    | "title"
+    | "authors"
+    | "publication"
+    | "pubTime"
+    | "pubType"
+    | "doi"
+    | "arxiv"
+    | "mainURL"
+    | "supURLs"
+    | "rating"
+    | "flag"
+    | "note"
+    | "codes"
+    | "volume"
+    | "number"
+    | "pages"
+    | "publisher"
+    | "tags"
+    | "folders"
+  >;
+
+export type IPaperEntityObject = PaperEntity | IPaperEntityRealmObject;
+
+export type IPaperEntityCollection =
+  | Results<IPaperEntityObject>
+  | List<IPaperEntityObject>
+  | Array<IPaperEntityObject>;

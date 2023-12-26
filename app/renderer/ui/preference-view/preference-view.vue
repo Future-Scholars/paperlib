@@ -11,8 +11,9 @@ import {
   BIconPuzzle,
   BIconViewList,
 } from "bootstrap-icons-vue";
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 
+import { disposable } from "@/base/dispose";
 import AboutView from "./about-view.vue";
 import CloudView from "./cloud-view.vue";
 import SectionItem from "./components/section-item.vue";
@@ -32,15 +33,19 @@ const uiState = uiStateService.useState();
 const preferenceTab = ref("general");
 
 const onCloseClicked = () => {
-  uiState.isPreferenceViewShown = false;
+  uiState.preferenceViewShown = false;
 };
 
-shortcutService.register("Escape", onCloseClicked);
-shortcutService.registerInInputField("Escape", onCloseClicked);
+disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 
 const darkMode = ref(false);
 onMounted(async () => {
+  PLMainAPI.menuService.disableAll();
   darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
+});
+
+onUnmounted(() => {
+  PLMainAPI.menuService.enableAll();
 });
 </script>
 
@@ -48,7 +53,7 @@ onMounted(async () => {
   <div
     class="fixed top-0 right-0 left-0 z-40 w-screen h-screen bg-neutral-100 dark:bg-neutral-800"
   >
-    <div class="flex h-full m-auto justify-center space-x-4 pt-20">
+    <div class="flex h-full m-auto justify-center space-x-4 py-20">
       <div class="flex flex-col justify-between flex-none overflow-scroll">
         <div
           class="flex flex-col space-y-1 h-full w-36 rounded-l-lg pr-4 border-r-[1px] dark:border-r-neutral-700"
@@ -124,7 +129,7 @@ onMounted(async () => {
             <BIconInfoCircle class="my-auto text-xs" />
           </SectionItem>
         </div>
-        <div class="flex justify-end space-x-2 pb-14 pr-4">
+        <div class="flex justify-end space-x-2 pr-4">
           <div
             class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm cursor-pointer"
             @click="onCloseClicked"

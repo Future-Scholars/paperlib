@@ -11,7 +11,7 @@ const props = defineProps({
   categorizerType: String,
 });
 
-const emits = defineEmits(["delete-categorizer"]);
+const emits = defineEmits(["event:delete"]);
 
 // ==============================
 // State
@@ -21,7 +21,7 @@ const uiState = uiStateService.useState();
 const onClick = (e: MouseEvent, categorizerName: string) => {
   e.preventDefault();
   e.stopPropagation();
-  uiState.commandBarMode = "advanced";
+  uiState.commandBarSearchMode = "advanced";
 
   const key =
     props.categorizerType === CategorizerType.PaperTag ? "tags" : "folders";
@@ -32,7 +32,7 @@ const onClick = (e: MouseEvent, categorizerName: string) => {
 const onDeleteClick = (e: MouseEvent, categorizer: Categorizer) => {
   e.preventDefault();
   e.stopPropagation();
-  emits("delete-categorizer", categorizer);
+  emits("event:delete", categorizer);
 };
 
 const colorClass = (color?: string) => {

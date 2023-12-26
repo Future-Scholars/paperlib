@@ -4,6 +4,7 @@ import { XMLParser } from "fast-xml-parser";
 import { existsSync, readFileSync, readdirSync } from "fs";
 import path from "path";
 
+import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
 import {
@@ -131,23 +132,49 @@ export class ReferenceService {
     });
   }
 
+  /**
+   * Abbreviate the publication name.
+   * @param source - The source paper entity.
+   * @returns - The paper entity with publication name abbreviated.
+   */
   replacePublication(source: PaperEntity) {
-    if (this._preferenceService.get("enableExportReplacement")) {
-      const pubReplacement = this._preferenceService.get(
-        "exportReplacement"
-      ) as [{ from: string; to: string }];
+    try {
+      if (this._preferenceService.get("enableExportReplacement")) {
+        const pubReplacement = this._preferenceService.get(
+          "exportReplacement"
+        ) as [{ from: string; to: string }];
 
-      const pubMap = new Map(
-        pubReplacement.map((item) => [item.from, item.to])
-      );
+        const pubMap = new Map(
+          pubReplacement.map((item) => [item.from, item.to])
+        );
 
-      if (pubMap.has(source.publication)) {
-        source.publication = pubMap.get(source.publication) as string;
+        if (pubMap.has(source.publication)) {
+          source.publication = pubMap.get(source.publication) as string;
+        }
       }
+      return source;
+    } catch (e) {
+      this._logService.error(
+        `Failed to abbreviate publication name.`,
+        e as Error,
+        true,
+        "ReferenceService"
+      );
+      return source;
     }
-    return source;
   }
 
+  /**
+   * Convert paper entity to cite object.
+   * @param source - The source paper entity.
+   * @returns - The cite object.
+   */
+  @errorcatching(
+    "Failed to convert paper entity to cite object.",
+    true,
+    "ReferenceService",
+    null
+  )
   toCite(source: PaperEntity | PaperEntity[] | string) {
     if (typeof source === "string") {
       return new Cite(source);
@@ -160,10 +187,32 @@ export class ReferenceService {
     }
   }
 
+  /**
+   * Export BibTex key.
+   * @param cite - The cite object.
+   * @returns - The BibTex key.
+   */
+  @errorcatching(
+    "Failed to convert cite object to BibTex Key.",
+    true,
+    "ReferenceService",
+    ""
+  )
   exportBibTexKey(cite: Cite): string {
     return cite.format("bibtex-key");
   }
 
+  /**
+   * Export BibTex body string.
+   * @param cite - The cite object.
+   * @returns - The BibTex body string.
+   */
+  @errorcatching(
+    "Failed to convert cite object to BibTex string.",
+    true,
+    "ReferenceService",
+    ""
+  )
   exportBibTexBody(cite: Cite): string {
     const mathEnvStrs: string[] = [];
     let idx = 0;
@@ -224,6 +273,12 @@ export class ReferenceService {
     }
   }
 
+  /**
+   * Export paper entities.
+   * @param paperEntities - The paper entities.
+   * @param format - The export format.
+   */
+  @errorcatching("Failed to export paper entities.", true, "ReferenceService")
   async export(paperEntities: PaperEntity[], format: string) {
     let paperEntityDrafts = paperEntities.map((paperEntity) => {
       return new PaperEntity(false).initialize(paperEntity);
@@ -241,6 +296,11 @@ export class ReferenceService {
     clipboard.writeText(copyStr);
   }
 
+  /**
+   * Load CSL styles.
+   * @returns - The CSL styles.
+   */
+  @errorcatching("Failed to load CSL styles.", true, "ReferenceService", [])
   async loadCSLStyles(): Promise<{ key: string; name: string }[]> {
     const CSLStyles = [
       {

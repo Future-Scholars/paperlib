@@ -1,4 +1,5 @@
 import { ObjectId } from "bson";
+import { OID } from "./id";
 
 export class PaperSmartFilter {
   static schema = {
@@ -13,23 +14,16 @@ export class PaperSmartFilter {
     },
   };
 
-  _id: string | ObjectId;
-  _partition: string;
-  name: string;
-  filter: string;
+  _id: OID = "";
+  _partition: string = "";
+  name: string = "";
+  filter: string = "";
   color?: string;
 
-  constructor(
-    name: string,
-    filter: string,
-    color?: string,
-    partition?: string
-  ) {
-    this._id = new ObjectId();
-    this._partition = partition || "";
-    this.name = name;
-    this.filter = filter;
-    this.color = color;
+  constructor(initObjectId = false) {
+    if (initObjectId) {
+      this._id = new ObjectId();
+    }
   }
 
   initialize(smartfilter: PaperSmartFilter) {

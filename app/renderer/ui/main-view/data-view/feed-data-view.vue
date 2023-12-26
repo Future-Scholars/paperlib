@@ -3,7 +3,7 @@ import { Ref, computed, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { disposable } from "@/base/dispose";
-import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
 
 import FeedTableView from "./components/table-view/feed-table-view.vue";
 
@@ -18,7 +18,7 @@ const i18n = useI18n();
 // ================================
 // Data
 // ================================
-const feedEntities = inject<Ref<IFeedEntityResults>>("feedEntities")!;
+const feedEntities = inject<Ref<IFeedEntityCollection>>("feedEntities")!;
 const fieldEnable = {
   pubTime: true,
   publication: true,

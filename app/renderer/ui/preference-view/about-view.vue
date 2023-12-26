@@ -63,7 +63,7 @@ onMounted(async () => {
       title="Turn on the Development Mode"
       info="This is for developers only."
       :enable="uiState.isDevMode"
-      @update="(value) => (uiState.isDevMode = value)"
+      @event:change="(value) => (uiState.isDevMode = value)"
     />
   </div>
 </template>

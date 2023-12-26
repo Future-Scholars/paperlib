@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { PropType, ref } from "vue";
+import { PropType } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 
 import TableView from "./table-view.vue";
 
 const props = defineProps({
   entities: {
-    type: Object as PropType<IPaperEntityResults>,
+    type: Object as PropType<IPaperEntityCollection>,
     required: true,
   },
   fieldEnable: {
@@ -55,7 +55,14 @@ const props = defineProps({
 
 // =================
 // Event handlers
-const emits = defineEmits(["event:click", "event:dblclick", "event:contextmenu", "event:drag", "event:header-click", "event:header-width-change"]);
+const emits = defineEmits([
+  "event:click",
+  "event:dblclick",
+  "event:contextmenu",
+  "event:drag",
+  "event:header-click",
+  "event:header-width-change",
+]);
 </script>
 
 <template>

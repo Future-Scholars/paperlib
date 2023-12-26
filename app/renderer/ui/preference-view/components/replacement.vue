@@ -12,7 +12,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["delete"]);
+const emits = defineEmits(["event:delete"]);
 </script>
 
 <template>
@@ -24,7 +24,7 @@ const emit = defineEmits(["delete"]);
     <div class="p-2 w-full rounded-md text-xs truncate">{{ to }}</div>
     <div
       class="flex h-full w-20 my-auto text-xs cursor-pointer"
-      @click="emit('delete')"
+      @click="emits('event:delete')"
     >
       <BIconTrash class="m-auto" />
     </div>

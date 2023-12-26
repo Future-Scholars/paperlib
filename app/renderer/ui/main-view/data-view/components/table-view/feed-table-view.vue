@@ -2,14 +2,14 @@
 import { PropType, ref } from "vue";
 
 import { FeedEntity } from "@/models/feed-entity";
-import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
+import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
 
 import FeedTableItem from "./components/feed-table-item.vue";
 import TableHeader from "./components/table-header.vue";
 
 const props = defineProps({
   entities: {
-    type: Object as PropType<IFeedEntityResults>,
+    type: Object as PropType<IFeedEntityCollection>,
     required: true,
   },
   fieldEnable: {
@@ -48,7 +48,14 @@ const lastSelectedSingleIndex = ref<number>(-1);
 
 // =================
 // Event handlers
-const emits = defineEmits(["event:click", "event:dblclick", "event:contextmenu", "event:drag", "event:header-click", "event:header-width-change"]);
+const emits = defineEmits([
+  "event:click",
+  "event:dblclick",
+  "event:contextmenu",
+  "event:drag",
+  "event:header-click",
+  "event:header-width-change",
+]);
 
 const calSelectedIndex = (event: MouseEvent, index: number) => {
   let selectedIndexBuffer = JSON.parse(JSON.stringify(props.selectedIndex));
@@ -74,7 +81,7 @@ const calSelectedIndex = (event: MouseEvent, index: number) => {
   }
 
   return selectedIndexBuffer;
-}
+};
 
 const onItemClicked = (event: MouseEvent, index: number) => {
   const selectedIndex = calSelectedIndex(event, index);

@@ -27,11 +27,11 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update"]);
+const emits = defineEmits(["event:change"]);
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col space-y-6">
     <div class="flex flex-col space-y-1" v-if="type === 'pathpicker'">
       <div class="flex flex-col">
         <div class="text-xs font-semibold">{{ title }}</div>
@@ -45,7 +45,7 @@ const emit = defineEmits(["update"]);
         :picked-path="value as string"
         @event:picked-path="
           (value) => {
-            emit('update', value);
+            emits('event:change', value);
           }
         "
       />
@@ -56,9 +56,9 @@ const emit = defineEmits(["update"]);
       :info="description"
       :enable="value as boolean"
       v-if="type === 'boolean'"
-      @update="
+      @event:change="
         (value) => {
-          emit('update', value);
+          emits('event:change', value);
         }
       "
     />
@@ -69,9 +69,9 @@ const emit = defineEmits(["update"]);
       placeholder=""
       type="text"
       v-if="type === 'string'"
-      @update="
+      @event:change="
         (value) => {
-          emit('update', value);
+          emits('event:change', value);
         }
       "
     />
@@ -81,9 +81,9 @@ const emit = defineEmits(["update"]);
       :selected="value as string"
       :options="options as Record<string, string>"
       v-if="type === 'options'"
-      @update="
+      @event:change="
         (value) => {
-          emit('update', value);
+          emits('event:change', value);
         }
       "
     />

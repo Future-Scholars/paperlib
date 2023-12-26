@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconCheck2, BIconPlus } from "bootstrap-icons-vue";
-import { onBeforeUpdate, ref, watch } from "vue";
+import { onBeforeUpdate, onUpdated, ref } from "vue";
 
 import { FeedEntity } from "@/models/feed-entity";
 import Spinner from "../../components/spinner.vue";
@@ -17,16 +17,16 @@ const props = defineProps({
 });
 
 const emits = defineEmits([
-  "add-clicked",
-  "read-timeout",
-  "read-timeout-in-unread",
+  "event:add-click",
+  "event:read-timeout",
+  "event:read-timeout-in-unread",
 ]);
 
 const uiState = uiStateService.useState();
 
 const onAddClicked = () => {
   if (uiState.feedEntityAddingStatus === 0) {
-    emits("add-clicked");
+    emits("event:add-click");
   }
 };
 
@@ -46,11 +46,11 @@ const debounce = (fn: Function, delay: number) => {
 const onReadTimeout = () => {
   if (uiState.selectedFeed !== "feed-unread") {
     debounce(() => {
-      emits("read-timeout");
+      emits("event:read-timeout");
     }, 2000)();
   } else {
     debounce(() => {
-      emits("read-timeout-in-unread");
+      emits("event:read-timeout-in-unread");
     }, 10000)();
   }
 };
@@ -78,7 +78,7 @@ onBeforeUpdate(() => {
   render();
 });
 
-watch(props, (props, prevProps) => {
+onUpdated(() => {
   onReadTimeout();
 });
 </script>

@@ -1,10 +1,13 @@
-import { ObjectId } from "bson";
-import Realm, { Results } from "realm";
+import Realm, { List, Results } from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
+import {
+  FeedRepository,
+  IFeedRealmObject,
+  IFeedRepository,
+} from "./feed-repository";
 
 export interface IFeedEntityRepositoryState {
   count: number;
@@ -14,11 +17,44 @@ export interface IFeedEntityRepositoryState {
 export const IFeedEntityRepository = createDecorator("feedEntityRepository");
 
 export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> {
-  constructor() {
+  constructor(
+    @IFeedRepository private readonly _feedRepository: FeedRepository
+  ) {
     super("feedEntityRepository", {
       count: 0,
       updated: 0,
     });
+  }
+
+  /**
+   * Transform feed entity to realm object if exists in database. Otherwise, return undefined.
+   * @param realm - Realm instance
+   * @param feedEntity - FeedEntity
+   * @returns Realm object
+   */
+  toRealmObject(realm: Realm, feedEntity: IFeedEntityObject) {
+    if (feedEntity instanceof Realm.Object) {
+      return feedEntity as IFeedEntityRealmObject;
+    } else {
+      const objects = this.loadByIds(realm, [feedEntity._id]);
+
+      if (objects.length > 0) {
+        return objects[0] as IFeedEntityRealmObject;
+      } else {
+        const reduplicatedObjects = realm
+          .objects<FeedEntity>("FeedEntity")
+          .filtered(
+            "title == $0 and authors == $1",
+            feedEntity.title,
+            feedEntity.authors
+          );
+        if (reduplicatedObjects.length > 0) {
+          return reduplicatedObjects[0] as IFeedEntityRealmObject;
+        } else {
+          return undefined;
+        }
+      }
+    }
   }
 
   /**
@@ -32,9 +68,10 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
   load(
     realm: Realm,
     filter: string,
+    filterPlaceholders: any[],
     sortBy: string,
     sortOrder: "asce" | "desc"
-  ) {
+  ): IFeedEntityCollection {
     let objects = realm.objects<FeedEntity>("FeedEntity");
 
     this.fire({ count: objects.length });
@@ -55,7 +92,9 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
 
     if (filter) {
       try {
-        return objects.filtered(filter).sorted(sortBy, sortOrder == "desc");
+        return objects
+          .filtered(filter, ...filterPlaceholders)
+          .sorted(sortBy, sortOrder == "desc");
       } catch (error) {
         throw new Error(`Invalid filter: ${filter}`);
       }
@@ -70,14 +109,12 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
    * @param ids - Paper ids.
    * @returns - Results of feed entities.
    */
-  loadByIds(realm: Realm, ids: (ObjectId | string)[]) {
-    const idsQuery = ids
-      .map((id) => `_id == oid(${id as string})`)
-      .join(" OR ");
+  loadByIds(realm: Realm, ids: OID[]): IFeedEntityCollection {
+    const idsQuery = ids.map((id) => `oid(${id})`).join(", ");
 
     let objects = realm
       .objects<FeedEntity>("FeedEntity")
-      .filtered(`(${idsQuery})`);
+      .filtered(`_id IN { ${idsQuery} }`);
 
     return objects;
   }
@@ -86,47 +123,67 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
    * Update feed entity.
    * @param realm - Realm instance.
    * @param feedEntity - Feed entity.
-   * @param feed - Feed.
-   * @param existingFeedEntity - Existing feed entity.
    * @param ignoreReadState - Ignore read state.
    * @param partition - Partition.
-   * @returns "updated" | "created"
+   * @returns FeedEntity
    */
   update(
     realm: Realm,
     feedEntity: FeedEntity,
-    feed: Feed,
-    existingFeedEntity: FeedEntity | null,
-    partition: string
+    partition: string,
+    ignoreReadState: boolean
   ) {
     return realm.safeWrite(() => {
-      if (existingFeedEntity) {
-        // Update
-        const updateObj = existingFeedEntity;
-        updateObj.feedTime = feedEntity.feedTime;
-        updateObj.title = feedEntity.title;
-        updateObj.authors = feedEntity.authors;
-        updateObj.abstract = feedEntity.abstract;
-        updateObj.publication = feedEntity.publication;
-        updateObj.pubTime = feedEntity.pubTime;
-        updateObj.pubType = feedEntity.pubType;
-        updateObj.doi = feedEntity.doi;
-        updateObj.arxiv = feedEntity.arxiv;
-        updateObj.mainURL = feedEntity.mainURL;
-        updateObj.pages = feedEntity.pages;
-        updateObj.volume = feedEntity.volume;
-        updateObj.number = feedEntity.number;
-        updateObj.publisher = feedEntity.publisher;
-        updateObj.feed = feed;
-
-        return updateObj;
+      let feed = this._feedRepository.toRealmObject(realm, feedEntity.feed);
+      if (!feed) {
+        feed = this._feedRepository.update(
+          realm,
+          feedEntity.feed,
+          partition
+        ) as IFeedRealmObject;
       } else {
-        // Add
-        feedEntity.feed = feed;
+        feed = feed!;
+      }
+
+      const object = this.toRealmObject(realm, feedEntity);
+
+      if (object) {
+        // Update
+        object.feedTime = feedEntity.feedTime;
+        object.title = feedEntity.title;
+        object.authors = feedEntity.authors;
+        object.abstract = feedEntity.abstract;
+        object.publication = feedEntity.publication;
+        object.pubTime = feedEntity.pubTime;
+        object.pubType = feedEntity.pubType;
+        object.doi = feedEntity.doi;
+        object.arxiv = feedEntity.arxiv;
+        object.mainURL = feedEntity.mainURL;
+        object.pages = feedEntity.pages;
+        object.volume = feedEntity.volume;
+        object.number = feedEntity.number;
+        object.publisher = feedEntity.publisher;
+        object.feed = feed;
+        if (!ignoreReadState) {
+          object.read = feedEntity.read;
+        }
+
+        if (partition) {
+          object._partition = partition;
+        }
+
+        this._feedRepository.updateCount(realm, [feed]);
+
+        return object;
+      } else {
+        // Insert
         if (partition) {
           feedEntity._partition = partition;
         }
-        return realm.create("FeedEntity", feedEntity);
+        feedEntity.feed = feed;
+        const newObject = realm.create<FeedEntity>("FeedEntity", feedEntity);
+
+        return newObject;
       }
     });
   }
@@ -181,44 +238,55 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
    * @param feedEntity - Feed entity.
    * @returns - True if success.
    */
-  delete(realm: Realm, ids?: (ObjectId | string)[], feedEntity?: FeedEntity) {
+  delete(realm: Realm, ids?: OID[], feedEntities?: IFeedEntityCollection) {
     return realm.safeWrite(() => {
-      if (feedEntity) {
-        realm.delete(feedEntity);
+      let objects: IFeedEntityCollection;
+
+      if (feedEntities) {
+        objects = feedEntities
+          .map((feedEntity: IFeedEntityObject) =>
+            this.toRealmObject(realm, feedEntity)
+          )
+          .filter((obj) => obj) as IFeedEntityCollection;
       } else if (ids) {
-        realm.delete(
-          realm.objects<FeedEntity>("FeedEntity").filtered("_id IN $0", ids)
-        );
-        return true;
+        objects = this.loadByIds(realm, ids);
       } else {
         throw new Error("Either ids or feedEntity must be specified.");
       }
-    });
-  }
 
-  // ==============================
-  // Dev Functions
-  // ==============================
-  removeAll(realm: Realm) {
-    const objects = realm.objects<FeedEntity>("FeedEntity");
-    realm.safeWrite(() => {
       realm.delete(objects);
-    });
-  }
 
-  addDummyData(feed: Feed, realm: Realm) {
-    const ids: Array<string | ObjectId> = [];
-    realm.safeWrite(() => {
-      for (let i = 0; i < 100; i++) {
-        const entity = new FeedEntity(true);
-        entity.dummyFill();
-        entity.feed = feed;
-        realm.create("FeedEntity", entity, Realm.UpdateMode.Modified);
-      }
+      return true;
     });
   }
 }
 
-export type IFeedEntityResults =
-  | Results<FeedEntity & Realm.Object>
-  | Array<FeedEntity>;
+export type IFeedEntityRealmObject = FeedEntity &
+  Realm.Object<
+    FeedEntity,
+    | "_id"
+    | "addTime"
+    | "feed"
+    | "feedTime"
+    | "title"
+    | "abstract"
+    | "authors"
+    | "publication"
+    | "pubTime"
+    | "pubType"
+    | "doi"
+    | "arxiv"
+    | "mainURL"
+    | "pages"
+    | "volume"
+    | "number"
+    | "publisher"
+    | "read"
+  >;
+
+export type IFeedEntityObject = FeedEntity | IFeedEntityRealmObject;
+
+export type IFeedEntityCollection =
+  | Results<IFeedEntityObject>
+  | List<IFeedEntityObject>
+  | Array<IFeedEntityObject>;

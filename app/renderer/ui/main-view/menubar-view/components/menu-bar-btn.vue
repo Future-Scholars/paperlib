@@ -25,7 +25,7 @@ defineProps({
   },
 });
 
-const emit = defineEmits(["click"]);
+const emits = defineEmits(["event:click"]);
 
 const btnIcons: Record<string, any> = {
   rescrape: BIconArrowCounterclockwise,
@@ -43,7 +43,7 @@ const btnIcons: Record<string, any> = {
   <button
     class="flex w-7 h-6 rounded-md hover:bg-neutral-200 hover:dark:bg-neutral-700 has-tooltip"
     :disabled="disabled"
-    @click="emit('click')"
+    @click="emits('event:click')"
   >
     <component
       :is="btnIcons[btnName as string]"

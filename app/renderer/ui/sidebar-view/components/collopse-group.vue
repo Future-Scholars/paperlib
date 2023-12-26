@@ -11,7 +11,7 @@ const props = defineProps({
   withAdd: Boolean,
 });
 
-const emits = defineEmits(["add"]);
+const emits = defineEmits(["event:add-click"]);
 
 const collopsed = ref(false);
 </script>
@@ -40,7 +40,7 @@ const collopsed = ref(false);
       @click="
         (e: MouseEvent) => {
           e.stopPropagation();
-          emits('add');
+          emits('event:add-click');
         }
       "
     />

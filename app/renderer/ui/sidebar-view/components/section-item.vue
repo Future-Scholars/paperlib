@@ -17,11 +17,11 @@ const props = defineProps({
 });
 
 const item = ref(null);
-const emit = defineEmits([
-  "droped",
-  "item-droped",
-  "name-changed",
-  "name-input-blured",
+const emits = defineEmits([
+  "event:drop",
+  "event:item-drop",
+  "event:name-change",
+  "event:name-input-blur",
 ]);
 
 const registerDropHandler = () => {
@@ -36,12 +36,12 @@ const registerDropHandler = () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
         filePaths.push(file.path);
       });
-      emit("droped", filePaths);
+      emits("event:drop", filePaths);
     },
     // @ts-ignore
     onDropText: async (text, pos) => {
       if (text === "paperlibEvent-drag-main-item") {
-        emit("item-droped");
+        emits("event:item-drop");
       }
     },
   });
@@ -49,11 +49,11 @@ const registerDropHandler = () => {
 
 // @ts-ignore
 const onNameChanged = (event) => {
-  emit("name-changed", event.target.value);
+  emits("event:name-change", event.target.value);
 };
 
 const onNameInputBlured = () => {
-  emit("name-input-blured");
+  emits("event:name-input-blur");
 };
 
 onMounted(() => {

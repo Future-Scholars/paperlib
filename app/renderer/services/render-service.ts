@@ -1,4 +1,3 @@
-import { ipcRenderer } from "electron";
 import { promises as fsPromise } from "fs";
 import katex from "katex";
 import MarkdownIt from "markdown-it";
@@ -11,6 +10,7 @@ import {
   RenderParameters,
 } from "pdfjs-dist/types/src/display/api";
 
+import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
 import {
   IPreferenceService,
@@ -54,6 +54,17 @@ export class RenderService {
     }
   }
 
+  /**
+   * Render PDF file to canvas
+   * @param fileURL - file url
+   * @param canvasId - canvas id
+   * @returns - {blob: ArrayBuffer | null, width: number, height: number}
+   */
+  @errorcatching("Failed to render PDF file.", true, "RendererService", {
+    blob: null,
+    width: 0,
+    height: 0,
+  })
   async renderPDF(fileURL: string, canvasId: string) {
     this._createPDFWorker();
     if (this._renderingPDF) {
@@ -104,6 +115,12 @@ export class RenderService {
     return { blob: blob, width: canvas.width, height: canvas.height };
   }
 
+  /**
+   * Render PDF cache to canvas
+   * @param cachedThumbnail - cached thumbnail
+   * @param canvasId - canvas id
+   */
+  @errorcatching("Failed to render PDF cache.", true, "RenderService")
   async renderPDFCache(cachedThumbnail: ThumbnailCache, canvasId: string) {
     const url = URL.createObjectURL(new Blob([cachedThumbnail.blob]));
     const img = new Image();
@@ -126,29 +143,44 @@ export class RenderService {
     };
   }
 
+  /**
+   * Render Markdown to HTML
+   * @param content - markdown content
+   * @param renderFull - render full content or not
+   * @returns - {renderedStr: string, overflow: boolean}
+   */
+  @errorcatching("Failed to render Markdown.", true, "RenderService", {
+    renderedStr: "",
+    overflow: false,
+  })
   async renderMarkdown(content: string, renderFull = false) {
-    try {
-      let renderContent: string;
-      let overflow: boolean;
-      if (!renderFull) {
-        const lines = content.split("\n");
-        const renderLines = lines.slice(0, 10);
-        overflow = lines.length > 10;
-        renderContent = renderLines.join("\n");
-      } else {
-        overflow = false;
-        renderContent = content;
-      }
-      return {
-        renderedStr: this._markdownIt.render(renderContent),
-        overflow: overflow,
-      };
-    } catch (e) {
-      console.error(e);
-      return { renderedStr: "", overflow: false };
+    let renderContent: string;
+    let overflow: boolean;
+    if (!renderFull) {
+      const lines = content.split("\n");
+      const renderLines = lines.slice(0, 10);
+      overflow = lines.length > 10;
+      renderContent = renderLines.join("\n");
+    } else {
+      overflow = false;
+      renderContent = content;
     }
+    return {
+      renderedStr: this._markdownIt.render(renderContent),
+      overflow: overflow,
+    };
   }
 
+  /**
+   * Render Markdown file to HTML
+   * @param url - file url
+   * @param renderFull - render full content or not
+   * @returns - {renderedStr: string, overflow: boolean}
+   */
+  @errorcatching("Failed to render Markdown file.", true, "RenderService", {
+    renderedStr: "",
+    overflow: false,
+  })
   async renderMarkdownFile(url: string, renderFull = false) {
     const content = await fsPromise.readFile(
       url.replace("file://", ""),
@@ -158,13 +190,14 @@ export class RenderService {
     return await this.renderMarkdown(content, renderFull);
   }
 
+  /**
+   * Render Math to HTML
+   * @param content - math content
+   * @returns - rendered HTML string
+   */
+  @errorcatching("Failed to render Math.", true, "RenderService", "")
   async renderMath(content: string) {
-    try {
-      return renderWithDelimitersToString(content);
-    } catch (e) {
-      console.error(e);
-      return content;
-    }
+    return renderWithDelimitersToString(content);
   }
 }
 

@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { BIconQuestionCircle } from "bootstrap-icons-vue";
-import { Ref, inject, onMounted, ref } from "vue";
+import { Ref, inject, onMounted, onUnmounted, ref } from "vue";
 
 import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
+import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
 
 import { disposable } from "@/base/dispose";
 import CodesInput from "./components/codes-input.vue";
 import InputBox from "./components/input-box.vue";
-import InputField from "./components/input-field.vue";
 import MultiselectBox from "./components/multiselect-box.vue";
 import SelectBox from "./components/select-box.vue";
+import InputField from "./components/text-field.vue";
 
 // ==============================
 // State
@@ -25,9 +25,12 @@ const editingPaperEntityDraft = ref(new PaperEntity(false));
 // Data
 // ==============================
 const pubTypes = ["Article", "Conference", "Others", "Book"];
-const tags = inject<Ref<ICategorizerResults>>("tags");
-const folders = inject<Ref<ICategorizerResults>>("folders");
+const tags = inject<Ref<ICategorizerCollection>>("tags");
+const folders = inject<Ref<ICategorizerCollection>>("folders");
 
+// ==============================
+// State
+// ==============================
 const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
   if (type === CategorizerType.PaperTag) {
     editingPaperEntityDraft.value.tags = names.map((name: string) => {
@@ -41,7 +44,7 @@ const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
 };
 
 const onCloseClicked = () => {
-  uiState.isEditViewShown = false;
+  uiState.editViewShown = false;
 };
 
 const onSaveClicked = async () => {
@@ -58,12 +61,15 @@ const onSaveAndScrapeClicked = async () => {
   paperService.scrape(savedPaperEntityDraft);
 };
 
-// TODO: check all register dispose callback, and success to dispose
-disposable(shortcutService.register("Escape", onCloseClicked));
 disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 
 onMounted(() => {
+  PLMainAPI.menuService.disableAll();
   editingPaperEntityDraft.value.initialize(uiState.selectedPaperEntities[0]);
+});
+
+onUnmounted(() => {
+  PLMainAPI.menuService.enableAll();
 });
 </script>
 
@@ -85,19 +91,19 @@ onMounted(() => {
             <InputBox
               :placeholder="$t('mainview.title')"
               :value="editingPaperEntityDraft.title"
-              @changed="(value: string) => (editingPaperEntityDraft.title = value)"
+              @event:change="(value: string) => (editingPaperEntityDraft.title = value)"
             />
             <InputBox
               id="paper-edit-view-author-input"
               :placeholder="$t('mainview.authors')"
               :value="editingPaperEntityDraft.authors"
-              @changed="(value: string) => (editingPaperEntityDraft.authors = value)"
+              @event:change="(value: string) => (editingPaperEntityDraft.authors = value)"
             />
             <InputBox
               id="paper-edit-view-publication-input"
               :placeholder="$t('mainview.publicationtitle')"
               :value="editingPaperEntityDraft.publication"
-              @changed="
+              @event:change="
                 (value: string) => (editingPaperEntityDraft.publication = value)
               "
             />
@@ -106,14 +112,14 @@ onMounted(() => {
                 :placeholder="$t('mainview.publicationyear')"
                 class="w-1/2"
                 :value="editingPaperEntityDraft.pubTime"
-                @changed="(value: string) => (editingPaperEntityDraft.pubTime = value)"
+                @event:change="(value: string) => (editingPaperEntityDraft.pubTime = value)"
               />
               <SelectBox
                 :placeholder="$t('mainview.publicationtype')"
                 class="w-1/2"
                 :options="pubTypes"
                 :value="pubTypes[editingPaperEntityDraft.pubType]"
-                @changed="
+                @event:change="
                   (value: string) => {
                     editingPaperEntityDraft.pubType = pubTypes.indexOf(value);
                   }
@@ -126,13 +132,13 @@ onMounted(() => {
                   class="basis-1/2 w-8"
                   placeholder="Volumn"
                   :value="editingPaperEntityDraft.volume"
-                  @changed="(value: string) => (editingPaperEntityDraft.volume = value)"
+                  @event:change="(value: string) => (editingPaperEntityDraft.volume = value)"
                 />
                 <InputBox
                   class="basis-1/2 w-8"
                   placeholder="Pages"
                   :value="editingPaperEntityDraft.pages"
-                  @changed="(value: string) => (editingPaperEntityDraft.pages = value)"
+                  @event:change="(value: string) => (editingPaperEntityDraft.pages = value)"
                 />
               </div>
               <div class="basis-1/2 flex space-x-2">
@@ -140,13 +146,13 @@ onMounted(() => {
                   class="basis-1/2 w-8"
                   placeholder="Number"
                   :value="editingPaperEntityDraft.number"
-                  @changed="(value: string) => (editingPaperEntityDraft.number = value)"
+                  @event:change="(value: string) => (editingPaperEntityDraft.number = value)"
                 />
                 <InputBox
                   class="basis-1/2 w-8"
                   placeholder="Publisher"
                   :value="editingPaperEntityDraft.publisher"
-                  @changed="
+                  @event:change="
                     (value: string) => (editingPaperEntityDraft.publisher = value)
                   "
                 />
@@ -157,13 +163,13 @@ onMounted(() => {
                 placeholder="arXiv ID"
                 class="w-1/2"
                 :value="editingPaperEntityDraft.arxiv"
-                @changed="(value: string) => (editingPaperEntityDraft.arxiv = value)"
+                @event:change="(value: string) => (editingPaperEntityDraft.arxiv = value)"
               />
               <InputBox
                 placeholder="DOI"
                 class="w-1/2"
                 :value="editingPaperEntityDraft.doi"
-                @changed="(value: string) => (editingPaperEntityDraft.doi = value)"
+                @event:change="(value: string) => (editingPaperEntityDraft.doi = value)"
               />
             </div>
             <MultiselectBox
@@ -171,7 +177,7 @@ onMounted(() => {
               :placeholder="$t('mainview.tags')"
               :options="(tags ? tags : []).map((tag) => tag.name)"
               :existValues="editingPaperEntityDraft.tags.map((tag) => tag.name)"
-              @changed="
+              @event:change="
                 (values: string[]) => {
                   onCategorizerUpdated(values, CategorizerType.PaperTag);
                 }
@@ -184,7 +190,7 @@ onMounted(() => {
               :existValues="
                 editingPaperEntityDraft.folders.map((folder) => folder.name)
               "
-              @changed="
+              @event:change="
                 (values: string[]) => {
                   onCategorizerUpdated(values, CategorizerType.PaperFolder);
                 }
@@ -196,9 +202,9 @@ onMounted(() => {
               :value="editingPaperEntityDraft.note"
               :is-expanded="wideMode"
               :can-expand="true"
-              @changed="(value: string) => (editingPaperEntityDraft.note = value)"
+              @event:change="(value: string) => (editingPaperEntityDraft.note = value)"
               v-if="!wideMode"
-              @expand="(expanded: boolean) => (wideMode = expanded)"
+              @event:expand="(expanded: boolean) => (wideMode = expanded)"
             />
           </div>
 
@@ -209,9 +215,9 @@ onMounted(() => {
               :value="editingPaperEntityDraft.note"
               :is-expanded="wideMode"
               :can-expand="true"
-              @changed="(value: string) => (editingPaperEntityDraft.note = value)"
+              @event:change="(value: string) => (editingPaperEntityDraft.note = value)"
               v-if="wideMode"
-              @expand="(expanded: boolean) => (wideMode = expanded)"
+              @event:expand="(expanded: boolean) => (wideMode = expanded)"
             />
           </div>
         </div>
@@ -220,7 +226,7 @@ onMounted(() => {
           <CodesInput
             class="max-h-40 w-full"
             :codes="editingPaperEntityDraft.codes"
-            @changed="(codes) => (editingPaperEntityDraft.codes = codes)"
+            @event:change="(codes) => (editingPaperEntityDraft.codes = codes)"
           />
         </div>
 

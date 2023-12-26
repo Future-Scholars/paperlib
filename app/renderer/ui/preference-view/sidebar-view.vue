@@ -24,14 +24,14 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
       :title="$t('preference.displaycountnumber')"
       :info="$t('preference.displaycountnumberintro')"
       :enable="prefState.showSidebarCount"
-      @update="(value) => updatePref('showSidebarCount', value)"
+      @event:change="(value) => updatePref('showSidebarCount', value)"
     />
     <Toggle
       class="mb-5"
       :title="$t('preference.compactsidebar')"
       :info="$t('preference.compactsidebarintro')"
       :enable="prefState.isSidebarCompact"
-      @update="(value) => updatePref('isSidebarCompact', value)"
+      @event:change="(value) => updatePref('isSidebarCompact', value)"
     />
     <Options
       class="mb-5"
@@ -43,7 +43,7 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
         count: $t('preference.count'),
         color: $t('preference.color'),
       }"
-      @update="
+      @event:change="
         (value) => {
           updatePref('sidebarSortBy', value);
         }
@@ -55,7 +55,7 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
       :info="$t('preference.sortorderintro')"
       :selected="prefState.sidebarSortOrder"
       :options="{ asce: $t('preference.asc'), desc: $t('preference.desc') }"
-      @update="
+      @event:change="
         (value) => {
           updatePref('sidebarSortOrder', value);
         }

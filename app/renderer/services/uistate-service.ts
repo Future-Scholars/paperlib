@@ -18,17 +18,17 @@ export interface IUIStateServiceState {
 
   // =========================================
   // Main Paper/Feed panel
-  //TODO: Choose a consistent name style for this.
   contentType: string;
   mainViewFocused: boolean;
-  inputFieldFocused: boolean;
-  isEditViewShown: boolean;
-  isFeedEditViewShown: boolean;
-  isPaperSmartFilterEditViewShown: boolean;
-  isPreferenceViewShown: boolean;
-  isDeleteConfirmShown: boolean;
+  editViewShown: boolean;
+  feedEditViewShown: boolean;
+  paperSmartFilterEditViewShown: boolean;
+  preferenceViewShown: boolean;
+  deleteConfirmShown: boolean;
   renderRequired: number;
   feedEntityAddingStatus: number;
+
+  entitiesReloaded: number;
 
   // selectedIndex: contains the index of the selected papers in the dataview.
   // It should be the only state that is used to control the selection.
@@ -46,20 +46,9 @@ export interface IUIStateServiceState {
   dragingIds: Array<string>;
 
   // =========================================
-  // Buffer
-  // TODO: rename to buffer
-  // TODO: check if all buffer need to be exposed globally
-  // TODO: check where use this?
-  editingFeedEntityDraft: FeedEntity;
-  editingCategorizerDraft: string;
-  entitiesCount: number;
-  feedEntitiesCount: number;
-
-  // =========================================
   // Command/Search Bar
   commandBarText: string;
-  // TODO: add a mode for command, others are for searching.
-  commandBarMode: string;
+  commandBarSearchMode: string;
 
   // =========================================
   // DEV
@@ -88,14 +77,15 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
 
       contentType: "library",
       mainViewFocused: true,
-      inputFieldFocused: false,
-      isEditViewShown: false,
-      isFeedEditViewShown: false,
-      isPaperSmartFilterEditViewShown: false,
-      isPreferenceViewShown: false,
-      isDeleteConfirmShown: false,
+      editViewShown: false,
+      feedEditViewShown: false,
+      paperSmartFilterEditViewShown: false,
+      preferenceViewShown: false,
+      deleteConfirmShown: false,
       renderRequired: -1,
       feedEntityAddingStatus: 0,
+
+      entitiesReloaded: 0,
 
       selectedIndex: [],
       selectedIds: [],
@@ -105,13 +95,8 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       selectedFeed: "feed-all",
       dragingIds: [],
 
-      editingFeedEntityDraft: new FeedEntity(false),
-      editingCategorizerDraft: "",
-      entitiesCount: 0,
-      feedEntitiesCount: 0,
-
       commandBarText: "",
-      commandBarMode: "general",
+      commandBarSearchMode: "general",
 
       isDevMode: false,
       os: process.platform,
@@ -209,11 +194,10 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
     const patch = {
       contentType: "library",
       mainViewFocused: true,
-      inputFieldFocused: false,
-      isEditViewShown: false,
-      isFeedEditViewShown: false,
-      isPaperSmartFilterEditViewShown: false,
-      isDeleteConfirmShown: false,
+      editViewShown: false,
+      feedEditViewShown: false,
+      paperSmartFilterEditViewShown: false,
+      deleteConfirmShown: false,
       renderRequired: -1,
       feedEntityAddingStatus: 0,
       selectedIndex: [],
@@ -224,12 +208,8 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       selectedFeed: "feed-all",
       dragingIds: [],
       pluginLinkedFolder: "",
-      editingFeedEntityDraft: new FeedEntity(false),
-      editingCategorizerDraft: "",
-      entitiesCount: 0,
-      feedEntitiesCount: 0,
       commandBarText: "",
-      commandBarMode: "general",
+      commandBarSearchMode: "general",
       os: process.platform,
     };
     this.fire(patch);
@@ -272,8 +252,6 @@ export function processing(key: ProcessingKey) {
 
     if (isAsync) {
       descriptor.value = async function (...args: any[]) {
-        // TODO: check handle error
-
         if (
           globalThis["uiStateService"] &&
           globalThis["uiStateService"].processingState

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconArrowsCollapse, BIconArrowsExpand } from "bootstrap-icons-vue";
-import { nextTick, onMounted, ref, watch } from "vue";
+import { onMounted, onUpdated, ref } from "vue";
 
 const props = defineProps({
   title: {
@@ -61,7 +61,7 @@ onMounted(() => {
   render();
 });
 
-watch(props, (props, prevProps) => {
+onUpdated(() => {
   render();
 });
 </script>

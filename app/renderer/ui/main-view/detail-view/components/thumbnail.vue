@@ -5,8 +5,7 @@ import {
   BIconPlus,
   BIconSearch,
 } from "bootstrap-icons-vue";
-import { ipcMain } from "electron";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, onUpdated, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { PaperEntity } from "@/models/paper-entity";
@@ -19,7 +18,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["modifyMainFile", "locateMainFile"]);
+const emits = defineEmits(["event:modify", "event:locate"]);
 
 const uiState = uiStateService.useState();
 
@@ -100,12 +99,12 @@ const showFilePicker = async () => {
   const pickedFile = (await PLMainAPI.fileSystemService.showFilePicker())
     .filePaths[0];
   if (pickedFile) {
-    emit("modifyMainFile", pickedFile);
+    emits("event:modify", pickedFile);
   }
 };
 
 const locatePDF = async () => {
-  emit("locateMainFile");
+  emits("event:locate");
 };
 
 const onWebdavDownloadClicked = async () => {
@@ -123,13 +122,17 @@ const onRightClicked = (event: MouseEvent) => {
   PLMainAPI.contextMenuService.showThumbnailMenu(props.entity.mainURL);
 };
 
-PLMainAPI.contextMenuService.on("thumbnailContextMenuReplaceClicked", () => {
-  showFilePicker();
-});
+disposable(
+  PLMainAPI.contextMenuService.on("thumbnailContextMenuReplaceClicked", () => {
+    showFilePicker();
+  })
+);
 
-PLMainAPI.contextMenuService.on("thumbnailContextMenuRefreshClicked", () => {
-  renderFromFile();
-});
+disposable(
+  PLMainAPI.contextMenuService.on("thumbnailContextMenuRefreshClicked", () => {
+    renderFromFile();
+  })
+);
 
 disposable(
   uiStateService.on("renderRequired", () => {
@@ -141,12 +144,9 @@ onMounted(() => {
   render();
 });
 
-watch(
-  () => props.entity.mainURL,
-  (props, prevProps) => {
-    render();
-  }
-);
+onUpdated(() => {
+  render();
+});
 </script>
 
 <template>

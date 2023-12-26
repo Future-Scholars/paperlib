@@ -30,7 +30,7 @@ const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
       :title="$t('preference.allowproxy')"
       :info="$t('preference.allowproxyintro')"
       :enable="prefState.allowproxy"
-      @update="(value) => onUpdate('allowproxy', value)"
+      @event:change="(value) => onUpdate('allowproxy', value)"
     />
 
     <input

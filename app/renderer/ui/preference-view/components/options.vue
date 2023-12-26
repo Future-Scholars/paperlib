@@ -18,7 +18,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update"]);
+const emits = defineEmits(["event:change"]);
 </script>
 
 <template>
@@ -43,7 +43,7 @@ const emit = defineEmits(["update"]);
             : 'hover:bg-neutral-300 hover:dark:bg-neutral-600'
         "
         v-for="[optionKey, optionLabel] of Object.entries(options)"
-        @click="emit('update', optionKey)"
+        @click="emits('event:change', optionKey)"
       >
         <span class="m-auto">{{ optionLabel }}</span>
       </div>

@@ -1,16 +1,9 @@
-import Realm, { Results } from "realm";
+import Realm, { List, Results } from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import {
-  Categorizer,
-  CategorizerType,
-  Colors,
-  PaperFolder,
-  PaperTag,
-} from "@/models/categorizer";
-
-// TODO: test all methods with throwing an error.
+import { Categorizer, CategorizerType, Colors } from "@/models/categorizer";
+import { OID } from "@/models/id";
 
 export interface ICategorizerRepositoryState {
   tagsUpdated: number;
@@ -28,6 +21,33 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
   }
 
   /**
+   * Transform categorizer to realm object if exists in database. Otherwise, return undefined.
+   * @param realm - Realm instance
+   * @param type - Categorizer type
+   * @param categorizer - Categorizer
+   * @returns Realm object or undefined
+   */
+  toRealmObject(
+    realm: Realm,
+    type: CategorizerType,
+    categorizer: ICategorizerObject
+  ) {
+    if (categorizer instanceof Realm.Object) {
+      return categorizer as ICategorizerRealmObject;
+    } else {
+      const objects = realm
+        .objects<Categorizer>(type)
+        .filtered(`name == "${categorizer.name}"`);
+
+      if (objects.length > 0) {
+        return objects[0] as ICategorizerRealmObject;
+      } else {
+        return undefined;
+      }
+    }
+  }
+
+  /**
    * Load all categorizers.
    * @param realm - Realm instance
    * @param type - Categorizer type
@@ -40,7 +60,7 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     type: CategorizerType,
     sortBy: string,
     sortOrder: string
-  ): Realm.Results<Categorizer & Realm.Object> {
+  ): ICategorizerCollection {
     const objects = realm
       .objects<Categorizer>(type)
       .sorted(sortBy, sortOrder == "desc");
@@ -78,32 +98,52 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
   }
 
   /**
+   * Load categorizer by ids.
+   * @param realm - Realm instance
+   * @param ids - Categorizers id
+   * @returns Categorizers
+   */
+  loadByIds(
+    realm: Realm,
+    type: CategorizerType,
+    ids: OID[]
+  ): ICategorizerCollection {
+    const idsQuery = ids.map((id) => `oid(${id})`).join(", ");
+
+    let objects = realm
+      .objects<Categorizer>(type)
+      .filtered(`_id IN { ${idsQuery} }`);
+
+    return objects;
+  }
+
+  /**
    * Delete categorizer.
    * @param realm - Realm instance.
    * @param deleteAll - Delete all categorizers.
    * @param type - Categorizer type.
+   * @param id - Id of categorizer to delete.
    * @param categorizer - Categorizer to delete.
-   * @param name - Name of categorizer to delete.
    */
   delete(
     realm: Realm,
     deleteAll = true,
     type: CategorizerType,
-    categorizer?: Categorizer,
-    name?: string
+    ids?: OID[],
+    categorizers?: ICategorizerCollection
   ) {
     return realm.safeWrite(() => {
-      let objects: ICategorizerResults;
-      if (categorizer) {
-        objects = realm
-          .objects<Categorizer>(type)
-          .filtered(`name == "${categorizer.name}"`);
-      } else if (name) {
-        objects = realm
-          .objects<Categorizer>(type)
-          .filtered(`name == "${name}"`);
+      let objects: ICategorizerCollection;
+      if (categorizers) {
+        objects = categorizers
+          .map((categorizer: ICategorizerObject) =>
+            this.toRealmObject(realm, type, categorizer)
+          )
+          .filter((object) => object) as ICategorizerCollection;
+      } else if (ids) {
+        objects = this.loadByIds(realm, type, ids);
       } else {
-        throw new Error(`Invalid arguments: ${categorizer}, ${name}, ${type}`);
+        throw new Error(`Invalid arguments: ${categorizers}, ${ids}, ${type}`);
       }
 
       if (deleteAll) {
@@ -133,21 +173,24 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     realm: Realm,
     color: Colors,
     type: CategorizerType,
-    categorizer?: Categorizer,
-    name?: string
+    id?: OID,
+    categorizer?: ICategorizerObject
   ) {
     realm.safeWrite(() => {
-      let objects: ICategorizerResults;
+      let objects: ICategorizerCollection;
       if (categorizer) {
+        const object = this.toRealmObject(realm, type, categorizer);
+        if (object) {
+          objects = [object];
+        } else {
+          objects = [];
+        }
+      } else if (id) {
         objects = realm
           .objects<Categorizer>(type)
-          .filtered(`name == "${categorizer.name}"`);
-      } else if (name) {
-        objects = realm
-          .objects<Categorizer>(type)
-          .filtered(`name == "${name}"`);
+          .filtered(`_id == oid(${id})`);
       } else {
-        throw new Error(`Invalid arguments: ${categorizer}, ${name}, ${type}`);
+        throw new Error(`Invalid arguments: ${categorizer}, ${id}, ${type}`);
       }
       for (const object of objects) {
         object.color = color;
@@ -181,73 +224,64 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
   }
 
   /**
-   * Update categorizer.
+   * Update/Insert categorizer.
    * @param realm - Realm instance
-   * @param existCategorizers - Exist categorizers
-   * @param updateCategorizers - Update categorizers
    * @param type - Categorizer type
+   * @param categorizer - Categorizer
    * @param partition - Partition
-   * @returns True if success
+   * @returns Categorizer
    */
   update(
     realm: Realm,
-    existCategorizers: Categorizer[],
-    updateCategorizers: Categorizer[],
     type: CategorizerType,
+    categorizer: ICategorizerObject,
     partition: string
   ) {
     return realm.safeWrite(() => {
-      let newCategorizers: Categorizer[] = [];
-      const existCategorizerNameList = existCategorizers.map((categorizer) => {
-        return categorizer.name;
-      });
-      const updatedCategorizerNameList = updateCategorizers.map(
-        (categorizer) => {
-          return categorizer.name;
-        }
-      );
+      const object = this.toRealmObject(realm, type, categorizer);
 
-      // Remove categorizer that is not in updated categorizers
-      for (const existCategorizer of existCategorizers) {
-        if (!updatedCategorizerNameList.includes(existCategorizer.name)) {
-          existCategorizer.count -= 1;
-          if (existCategorizer.count <= 0) {
-            realm.delete(existCategorizer);
-          }
+      if (object) {
+        object.name = categorizer.name;
+        object.color = categorizer.color;
+        object.count = categorizer.count;
+        if (partition) {
+          object._partition = partition;
         }
+        return object;
+      } else {
+        const newObject = realm.create<Categorizer>(type, categorizer);
+        if (partition) {
+          newObject._partition = partition;
+        }
+        return newObject;
       }
+    });
+  }
 
-      // Add or Link categorizer
-      for (const name of updatedCategorizerNameList) {
-        const dbExistCategorizers = realm
-          .objects<Categorizer>(type)
-          .filtered(`name == "${name}"`);
+  updateCount(
+    realm: Realm,
+    type: CategorizerType,
+    categorizers: ICategorizerCollection
+  ) {
+    return realm.safeWrite(() => {
+      const categorizerRealmObjects = categorizers.map(
+        (categorizer: ICategorizerObject) =>
+          this.toRealmObject(realm, type, categorizer)
+      ) as ICategorizerRealmObject[];
 
-        if (!existCategorizerNameList.includes(name)) {
-          if (dbExistCategorizers.length > 0) {
-            const categorizer = dbExistCategorizers[0];
-            categorizer.count += 1;
-            newCategorizers.push(categorizer);
-          } else {
-            const categorizer =
-              type === CategorizerType.PaperTag
-                ? new PaperTag(name, 0)
-                : new PaperFolder(name, 0);
-            if (partition) {
-              categorizer["_partition"] = partition;
-            }
-            realm.create(type, categorizer);
-            newCategorizers.push(categorizer);
-          }
-        } else {
-          newCategorizers.push(dbExistCategorizers[0]);
-        }
+      for (const categorizer of categorizerRealmObjects) {
+        categorizer.count = categorizer.linkingObjectsCount();
       }
-      return newCategorizers;
     });
   }
 }
 
-export type ICategorizerResults =
-  | Results<Categorizer & Realm.Object>
-  | Array<Categorizer>;
+export type ICategorizerRealmObject = Categorizer &
+  Realm.Object<Categorizer, "_id" | "name" | "count">;
+
+export type ICategorizerObject = Categorizer | ICategorizerRealmObject;
+
+export type ICategorizerCollection =
+  | Results<ICategorizerObject>
+  | List<ICategorizerObject>
+  | Array<ICategorizerObject>;

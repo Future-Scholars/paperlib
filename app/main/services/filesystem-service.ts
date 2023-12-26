@@ -1,3 +1,4 @@
+import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
 import { eraseProtocol } from "@/base/url";
 import {
@@ -45,6 +46,7 @@ export class FileSystemService {
    * @param {string} key The key to get the path of.
    * @returns {string} The path of the given key.
    */
+  @errorcatching("Failed to get system path.", true, "FileSystemService")
   getSystemPath(
     key:
       | "home"
@@ -72,6 +74,7 @@ export class FileSystemService {
    * Show a file picker.
    * @returns {Promise<OpenDialogReturnValue>} The result of the file picker.
    */
+  @errorcatching("Failed to show file picker.", true, "FileSystemService")
   showFilePicker(): Promise<OpenDialogReturnValue> {
     return dialog.showOpenDialog({
       properties: ["openFile"],
@@ -82,12 +85,18 @@ export class FileSystemService {
    * Show a folder picker.
    * @returns {Promise<OpenDialogReturnValue>} The result of the folder picker.
    */
+  @errorcatching("Failed to show folder picker.", true, "FileSystemService")
   showFolderPicker(): Promise<OpenDialogReturnValue> {
     return dialog.showOpenDialog({
       properties: ["openDirectory"],
     });
   }
 
+  /**
+   * Preview a file.
+   * @param {string} fileURL The URL of the file to preview.
+   */
+  @errorcatching("Failed to preview file.", true, "FileSystemService")
   preview(fileURL: string) {
     if (process.platform === "darwin") {
       BrowserWindow.getFocusedWindow()?.previewFile(eraseProtocol(fileURL));

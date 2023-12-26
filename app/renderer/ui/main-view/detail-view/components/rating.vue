@@ -10,7 +10,7 @@ const props = defineProps({
 });
 const rating = ref(props.rating || 0);
 const hoverRating = ref(0);
-const emit = defineEmits(["changed"]);
+const emits = defineEmits(["event:change"]);
 
 const onHover = (value: number) => {
   hoverRating.value = value;
@@ -30,12 +30,12 @@ watch(props, (props, prevProps) => {
   <div class="flex text-xs space-x-1 mt-1">
     <BIconStarFill
       :id="`rating-${n}-btn`"
-      @click="emit('changed', n)"
+      @click="emits('event:change', n)"
       v-for="n in rating"
     />
     <div
       :id="`rating-${n}-btn`"
-      @click="emit('changed', n + rating)"
+      @click="emits('event:change', n + rating)"
       v-for="n in 5 - rating"
     >
       <BIconStar

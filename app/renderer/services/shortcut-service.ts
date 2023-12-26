@@ -6,20 +6,32 @@ export const IShortcitService = createDecorator("shortcutService");
 
 export class ShortcutService {
   private readonly _registeredShortcuts: {
-    [code: string]: { [id: string]: (...args: any[]) => void };
+    [code: string]: {
+      [id: string]: {
+        handler: (...args: any[]) => void;
+        preventDefault: boolean;
+        stopPropagation: boolean;
+      };
+    };
   } = {};
 
   private readonly _registeredShortcutsInInputField: {
-    [code: string]: { [id: string]: (...args: any[]) => void };
+    [code: string]: {
+      [id: string]: {
+        handler: (...args: any[]) => void;
+        preventDefault: boolean;
+        stopPropagation: boolean;
+      };
+    };
   } = {};
-
-  // TODO: check if all short cuts use this service
 
   constructor() {
     window.addEventListener("keydown", (e) => {
       let shortcut = "";
 
-      if (e.ctrlKey) {
+      if (e.ctrlKey || e.metaKey) {
+        shortcut += "ctrlmeta+";
+      } else if (e.ctrlKey) {
         shortcut += "ctrl+";
       }
       if (e.altKey) {
@@ -35,38 +47,89 @@ export class ShortcutService {
         e.target instanceof HTMLTextAreaElement
       ) {
         if (this._registeredShortcutsInInputField[shortcut]) {
-          e.preventDefault();
           const handlerId = (
             Object.keys(this._registeredShortcutsInInputField[shortcut])
               .length - 1
           ).toString();
-          this._registeredShortcutsInInputField[shortcut][handlerId]?.(e);
 
-          // TODO: check this
-          e.stopPropagation();
+          if (
+            this._registeredShortcutsInInputField[shortcut][handlerId]
+              ?.preventDefault
+          ) {
+            e.preventDefault();
+          }
+
+          this._registeredShortcutsInInputField[shortcut][handlerId]?.handler(
+            e
+          );
+
+          if (
+            this._registeredShortcutsInInputField[shortcut][handlerId]
+              ?.stopPropagation
+          ) {
+            e.stopPropagation();
+          }
         }
       } else {
         if (this._registeredShortcuts[shortcut]) {
-          e.preventDefault();
           const handlerId = (
             Object.keys(this._registeredShortcuts[shortcut]).length - 1
           ).toString();
-          this._registeredShortcuts[shortcut][handlerId]?.(e);
 
-          // TODO: check this
-          e.stopPropagation();
+          if (this._registeredShortcuts[shortcut][handlerId]?.preventDefault) {
+            e.preventDefault();
+          }
+
+          this._registeredShortcuts[shortcut][handlerId]?.handler(e);
+
+          if (this._registeredShortcuts[shortcut][handlerId]?.stopPropagation) {
+            e.stopPropagation();
+          }
+        }
+        if (this._registeredShortcutsInInputField[shortcut]) {
+          const handlerId = (
+            Object.keys(this._registeredShortcutsInInputField[shortcut])
+              .length - 1
+          ).toString();
+
+          if (
+            this._registeredShortcutsInInputField[shortcut][handlerId]
+              ?.preventDefault
+          ) {
+            e.preventDefault();
+          }
+
+          this._registeredShortcutsInInputField[shortcut][handlerId]?.handler(
+            e
+          );
+
+          if (
+            this._registeredShortcutsInInputField[shortcut][handlerId]
+              ?.stopPropagation
+          ) {
+            e.stopPropagation();
+          }
         }
       }
     });
   }
 
-  register(code: string, handler: (...args: any[]) => void) {
+  register(
+    code: string,
+    handler: (...args: any[]) => void,
+    preventDefault: boolean = true,
+    stopPropagation: boolean = true
+  ) {
     if (!this._registeredShortcuts[code]) {
       this._registeredShortcuts[code] = {};
     }
 
     const id = Object.keys(this._registeredShortcuts[code]).length.toString();
-    this._registeredShortcuts[code][id] = handler;
+    this._registeredShortcuts[code][id] = {
+      handler,
+      preventDefault,
+      stopPropagation,
+    };
 
     // Auto dispose when vue component is destroyed
     if (getCurrentScope()) {
@@ -80,7 +143,12 @@ export class ShortcutService {
     };
   }
 
-  registerInInputField(code: string, handler: (...args: any[]) => void) {
+  registerInInputField(
+    code: string,
+    handler: (...args: any[]) => void,
+    preventDefault: boolean = true,
+    stopPropagation: boolean = true
+  ) {
     if (!this._registeredShortcutsInInputField[code]) {
       this._registeredShortcutsInInputField[code] = {};
     }
@@ -88,7 +156,11 @@ export class ShortcutService {
     const id = Object.keys(
       this._registeredShortcutsInInputField[code]
     ).length.toString();
-    this._registeredShortcutsInInputField[code][id] = handler;
+    this._registeredShortcutsInInputField[code][id] = {
+      handler,
+      preventDefault,
+      stopPropagation,
+    };
 
     // Auto dispose when vue component is destroyed
     if (getCurrentScope()) {

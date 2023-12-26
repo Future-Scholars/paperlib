@@ -2,7 +2,7 @@
 import { Feed } from "@/models/feed";
 
 import { disposable } from "@/base/dispose";
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import InputBox from "./components/input-box.vue";
 
 // ==============================
@@ -11,8 +11,11 @@ import InputBox from "./components/input-box.vue";
 const uiState = uiStateService.useState();
 const editingFeedDraft = ref<Feed>(new Feed(false));
 
+// ==============================
+// Event Handler
+// ==============================
 const onCloseClicked = () => {
-  uiState.isFeedEditViewShown = false;
+  uiState.feedEditViewShown = false;
 };
 
 const onSaveClicked = async () => {
@@ -20,11 +23,15 @@ const onSaveClicked = async () => {
   onCloseClicked();
 };
 
-disposable(shortcutService.register("Escape", onCloseClicked));
 disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 
 onMounted(() => {
+  PLMainAPI.menuService.disableAll();
   editingFeedDraft.value.initialize(new Feed(false));
+});
+
+onUnmounted(() => {
+  PLMainAPI.menuService.enableAll();
 });
 </script>
 
@@ -39,12 +46,12 @@ onMounted(() => {
         <InputBox
           placeholder="Feed Name"
           :value="editingFeedDraft.name"
-          @changed="(value) => (editingFeedDraft.name = value)"
+          @event:change="(value) => (editingFeedDraft.name = value)"
         />
         <InputBox
           placeholder="Feed URL"
           :value="editingFeedDraft.url"
-          @changed="(value) => (editingFeedDraft.url = value)"
+          @event:change="(value) => (editingFeedDraft.url = value)"
         />
         <div class="flex justify-end space-x-2 py-1">
           <div

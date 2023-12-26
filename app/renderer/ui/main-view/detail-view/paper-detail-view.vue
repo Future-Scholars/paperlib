@@ -1,11 +1,11 @@
 <script setup lang="ts">
 // @ts-ignore
-import dragDrop from "drag-drop";
-import { onMounted, ref, watch } from "vue";
+import { onUpdated, ref } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 
+import { disposable } from "@/base/dispose";
 import Authors from "./components/authors.vue";
 import Categorizers from "./components/categorizers.vue";
 import Code from "./components/code.vue";
@@ -37,10 +37,16 @@ const props = defineProps({
     default: {},
   },
 });
-// TODO: shall we support button slots? html slots?
+// #ENHANCE: should we support button slots? html slots?
 
+// ======================
+// State
+// ======================
 const uiState = uiStateService.useState();
 
+// ==============================
+// Event Handler
+// ==============================
 const onRatingChanged = (value: number) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.rating = value;
@@ -67,10 +73,7 @@ const onDeleteCategorizer = (
 const modifyMainFile = async (url: string) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.mainURL = url;
-  const updatedPaperEntity = await paperService.update(
-    [paperEntityDraft],
-    false
-  );
+  const updatedPaperEntity = await paperService.update([paperEntityDraft]);
   await cacheService.updateCache(updatedPaperEntity);
   setTimeout(() => {
     uiState.renderRequired = Date.now();
@@ -79,17 +82,17 @@ const modifyMainFile = async (url: string) => {
 
 const locateMainFile = async () => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
-  const updatedPaperEntity = await fileService.locateFileOnWeb([
+  const updatedPaperEntities = await fileService.locateFileOnWeb([
     paperEntityDraft,
   ]);
-  await paperService.update(updatedPaperEntity);
+  await paperService.update(updatedPaperEntities);
   uiState.renderRequired = Date.now();
 };
 
 const addSups = (urls: string[]) => {
   const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
   paperEntityDraft.supURLs = [...paperEntityDraft.supURLs, ...urls];
-  paperService.update([paperEntityDraft], false);
+  paperService.update([paperEntityDraft]);
 };
 
 const onDeleteSup = (url: string) => {
@@ -97,69 +100,21 @@ const onDeleteSup = (url: string) => {
   paperService.deleteSup(paperEntityDraft, url);
 };
 
-PLMainAPI.contextMenuService.on(
-  "supContextMenuDeleteClicked",
-  (newValue: { value: string }) => {
-    onDeleteSup(newValue.value);
-  }
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "supContextMenuDeleteClicked",
+    (newValue: { value: string }) => {
+      onDeleteSup(newValue.value);
+    }
+  )
 );
-
-const registerDropHandler = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  dragDrop("#main-file-drag-area", {
-    // @ts-ignore
-    onDrop: (files, pos, fileList, directories) => {
-      // @ts-ignore
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      files.forEach((file) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-        modifyMainFile(file.path);
-      });
-      dragAreaOpacity.value = 0;
-      dragCount.value = 0;
-      mainFileDragAreaHovered.value = false;
-      supFileDragAreaHovered.value = false;
-    },
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  dragDrop("#sup-file-drag-area", {
-    // @ts-ignore
-    onDrop: (files, pos, fileList, directories) => {
-      const filePaths: string[] = [];
-      // @ts-ignore
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      files.forEach((file) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-        filePaths.push(file.path);
-      });
-      addSups(filePaths);
-      dragAreaOpacity.value = 0;
-      dragCount.value = 0;
-      mainFileDragAreaHovered.value = false;
-      supFileDragAreaHovered.value = false;
-    },
-  });
-
-  // TODO: use native drag and drop
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  dragDrop("#detail-view", {
-    // @ts-ignore
-    onDrop: (files, pos, fileList, directories) => {
-      dragAreaOpacity.value = 0;
-      dragCount.value = 0;
-      mainFileDragAreaHovered.value = false;
-      supFileDragAreaHovered.value = false;
-    },
-  });
-};
 
 const dragAreaOpacity = ref(0);
 const dragCount = ref(0);
 const mainFileDragAreaHovered = ref(false);
 const supFileDragAreaHovered = ref(false);
 
-const onDragEnter = (_: MouseEvent, id?: string) => {
+const onDragEntered = (e: MouseEvent, id?: string) => {
   if (id === "main-file-drag-area") {
     mainFileDragAreaHovered.value = true;
   } else if (id === "sup-file-drag-area") {
@@ -168,8 +123,10 @@ const onDragEnter = (_: MouseEvent, id?: string) => {
 
   dragAreaOpacity.value = 100;
   dragCount.value += 1;
+
+  e.preventDefault();
 };
-const onDragLeave = (_: MouseEvent, id?: string) => {
+const onDragLeaved = (e: MouseEvent, id?: string) => {
   if (id === "main-file-drag-area") {
     mainFileDragAreaHovered.value = false;
   } else if (id === "sup-file-drag-area") {
@@ -180,6 +137,52 @@ const onDragLeave = (_: MouseEvent, id?: string) => {
   if (dragCount.value === 0) {
     dragAreaOpacity.value = 0;
   }
+
+  e.preventDefault();
+};
+const onDragCancelled = (e: MouseEvent) => {
+  dragAreaOpacity.value = 0;
+  dragCount.value = 0;
+  mainFileDragAreaHovered.value = false;
+  supFileDragAreaHovered.value = false;
+  e.preventDefault();
+  e.stopPropagation();
+};
+const onDroppedToMain = (e: DragEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const files = e.dataTransfer?.files;
+  if (!files) {
+    return;
+  }
+
+  for (let i = 0; i < files.length; i++) {
+    modifyMainFile(files[i].path);
+  }
+  dragAreaOpacity.value = 0;
+  dragCount.value = 0;
+  mainFileDragAreaHovered.value = false;
+  supFileDragAreaHovered.value = false;
+};
+const onDroppedToSup = (e: DragEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const files = e.dataTransfer?.files;
+  if (!files) {
+    return;
+  }
+
+  const filePaths: string[] = [];
+  for (let i = 0; i < files.length; i++) {
+    filePaths.push(files[i].path);
+  }
+  addSups(filePaths);
+  dragAreaOpacity.value = 0;
+  dragCount.value = 0;
+  mainFileDragAreaHovered.value = false;
+  supFileDragAreaHovered.value = false;
 };
 
 const reanderedTitle = ref("");
@@ -192,15 +195,8 @@ const renderTitle = async () => {
   }
 };
 
-watch(
-  () => props.entity._id,
-  () => {
-    renderTitle();
-  }
-);
-
-onMounted(() => {
-  registerDropHandler();
+onUpdated(() => {
+  renderTitle();
 });
 </script>
 
@@ -208,8 +204,10 @@ onMounted(() => {
   <div
     id="detail-view"
     class="flex-none flex flex-col h-[calc(100vh-3rem)] pl-4 pr-2 pb-4"
-    @dragenter="onDragEnter"
-    @dragleave="onDragLeave"
+    @dragenter="onDragEntered"
+    @dragleave="onDragLeaved"
+    @dragover="(e) => e.preventDefault()"
+    @drop.prevent="onDragCancelled"
   >
     <div class="flex flex-col grow overflow-auto">
       <div class="text-md font-bold" v-html="reanderedTitle"></div>
@@ -247,7 +245,7 @@ onMounted(() => {
         <Categorizers
           :categorizers="entity.tags"
           categorizerType="PaperTag"
-          @delete-categorizer="
+          @event:delete="
             (categorizer) =>
               onDeleteCategorizer(categorizer, CategorizerType.PaperTag)
           "
@@ -261,7 +259,7 @@ onMounted(() => {
         <Categorizers
           :categorizers="entity.folders"
           categorizerType="PaperFolder"
-          @delete-categorizer="
+          @event:delete="
             (categorizer) =>
               onDeleteCategorizer(categorizer, CategorizerType.PaperFolder)
           "
@@ -273,7 +271,7 @@ onMounted(() => {
         </div>
       </Section>
       <Section :title="$t('mainview.rating')">
-        <Rating :rating="entity.rating" @changed="onRatingChanged" />
+        <Rating :rating="entity.rating" @event:change="onRatingChanged" />
       </Section>
 
       <Section
@@ -289,8 +287,8 @@ onMounted(() => {
       <Section :title="$t('mainview.preview')">
         <Thumbnail
           :entity="entity"
-          @modify-main-file="(value) => modifyMainFile(value)"
-          @locate-main-file="locateMainFile"
+          @event:modify="modifyMainFile"
+          @event:locate="locateMainFile"
         />
       </Section>
       <Section
@@ -341,8 +339,9 @@ onMounted(() => {
             ? 'border-solid border-neutral-500 text-neutral-500 dark:border-neutral-400 dark:text-neutral-300'
             : 'border-dashed'
         "
-        @dragenter="onDragEnter($event, 'main-file-drag-area')"
-        @dragleave="onDragLeave($event, 'main-file-drag-area')"
+        @dragenter="onDragEntered($event, 'main-file-drag-area')"
+        @dragleave="onDragLeaved($event, 'main-file-drag-area')"
+        @drop="onDroppedToMain"
       >
         <span class="m-auto select-none pointer-events-none">{{
           $t("menu.replace")
@@ -356,8 +355,9 @@ onMounted(() => {
             ? 'border-solid border-neutral-500 text-neutral-500 dark:border-neutral-400 dark:text-neutral-300'
             : 'border-dashed'
         "
-        @dragenter="onDragEnter($event, 'sup-file-drag-area')"
-        @dragleave="onDragLeave($event, 'sup-file-drag-area')"
+        @dragenter="onDragEntered($event, 'sup-file-drag-area')"
+        @dragleave="onDragLeaved($event, 'sup-file-drag-area')"
+        @drop="onDroppedToSup"
       >
         <span class="m-auto select-none pointer-events-none">{{
           $t("menu.addsup")

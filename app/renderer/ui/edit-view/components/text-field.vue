@@ -24,16 +24,12 @@ const props = defineProps({
   },
 });
 
-const uiState = uiStateService.useState();
-
 const isExpanded = ref(props.isExpanded);
-const emit = defineEmits(["changed", "expand"]);
+const emits = defineEmits(["event:change", "event:expand"]);
 
 const onInput = (payload: Event) => {
-  emit("changed", (payload.target as HTMLTextAreaElement).value);
+  emits("event:change", (payload.target as HTMLTextAreaElement).value);
 };
-
-// TODO: merge input field and text area
 </script>
 
 <template>
@@ -53,7 +49,7 @@ const onInput = (payload: Event) => {
         @click="
           () => {
             isExpanded = false;
-            emit('expand', false);
+            emits('event:expand', false);
           }
         "
       />
@@ -63,7 +59,7 @@ const onInput = (payload: Event) => {
         @click="
           () => {
             isExpanded = true;
-            emit('expand', true);
+            emits('event:expand', true);
           }
         "
       />
@@ -75,8 +71,6 @@ const onInput = (payload: Event) => {
       :value="value"
       :name="placeholder"
       @input="onInput"
-      @focus="uiState.inputFieldFocused = true"
-      @blur="uiState.inputFieldFocused = false"
     />
   </div>
 </template>

@@ -1,16 +1,27 @@
 import { ObjectId } from "bson";
+import { OID } from "./id";
 
 export class Categorizer {
   static schema: Record<string, any>;
 
-  _id: string | ObjectId;
+  _id: OID;
   _partition: string;
   name: string;
   count: number;
   color?: string;
 
-  constructor(name: string, count: number, color?: string, partition?: string) {
-    this._id = new ObjectId();
+  constructor(
+    name: string,
+    count: number,
+    color?: string,
+    partition?: string,
+    initObjectId = false
+  ) {
+    if (initObjectId) {
+      this._id = new ObjectId();
+    } else {
+      this._id = "";
+    }
     this._partition = partition || "";
     this.name = name;
     this.count = count;
@@ -41,8 +52,14 @@ export class PaperTag extends Categorizer {
     },
   };
 
-  constructor(name: string, count: number, color?: string, partition?: string) {
-    super(name, count, color, partition);
+  constructor(
+    name: string,
+    count: number,
+    color?: string,
+    partition?: string,
+    initObjectId = false
+  ) {
+    super(name, count, color, partition, initObjectId);
   }
 }
 
@@ -59,8 +76,14 @@ export class PaperFolder extends Categorizer {
     },
   };
 
-  constructor(name: string, count: number, color?: string, partition?: string) {
-    super(name, count, color, partition);
+  constructor(
+    name: string,
+    count: number,
+    color?: string,
+    partition?: string,
+    initObjectId = false
+  ) {
+    super(name, count, color, partition, initObjectId);
   }
 }
 

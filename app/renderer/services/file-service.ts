@@ -4,6 +4,8 @@ import { existsSync } from "fs";
 import os from "os";
 import path from "path";
 
+import { errorcatching } from "@/base/error";
+import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import {
   eraseProtocol,
@@ -22,9 +24,15 @@ import { ILogService, LogService } from "@/renderer/services/log-service";
 import { IFileBackend } from "@/repositories/file-repository/backend";
 import { LocalFileBackend } from "@/repositories/file-repository/local-backend";
 import { WebDavFileBackend } from "@/repositories/file-repository/webdav-backend";
+
+export interface IFileServiceState {
+  backend: string;
+  available: boolean;
+}
+
 export const IFileService = createDecorator("fileService");
 
-export class FileService {
+export class FileService extends Eventable<IFileServiceState> {
   private _backend: IFileBackend;
 
   constructor(
@@ -32,13 +40,22 @@ export class FileService {
     @ILogService private readonly _logService: LogService,
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
-    this._backend = this.initBackend();
+    super("fileService", {
+      backend: "",
+      available: false,
+    });
 
-    // TODO: triger reinit directly in preference view
+    this._backend = this._initBackend();
   }
 
-  initBackend(): IFileBackend {
+  @errorcatching("Failed to initialize the file backend.", true, "FileService")
+  initialize() {
+    this._backend = this._initBackend();
+  }
+
+  private _initBackend(): IFileBackend {
     if (this._preferenceService.get("syncFileStorage") === "local") {
+      this.fire({ backend: "local", available: true });
       return new LocalFileBackend(
         this._preferenceService.get("appLibFolder") as string,
         this._preferenceService.get("sourceFileOperation") as string
@@ -52,6 +69,9 @@ export class FileService {
           this._preferenceService.get("webdavUsername") as string,
           this._preferenceService.get("webdavPassword") as string
         );
+
+        const available = webdavBackend.check();
+        this.fire({ backend: "webdav", available });
         return webdavBackend;
       } catch (e) {
         this._logService.error(
@@ -60,6 +80,8 @@ export class FileService {
           true,
           "FileService"
         );
+
+        this.fire({ backend: "local", available: true });
 
         return new LocalFileBackend(
           this._preferenceService.get("appLibFolder") as string,
@@ -71,44 +93,19 @@ export class FileService {
     }
   }
 
+  @errorcatching("Failed to watch file changes.", true, "FileService")
   async startWatch() {
-    try {
-      await this._backend.startWatch();
-    } catch (e) {
-      this._logService.error(
-        "Failed to watch file changes",
-        e as Error,
-        true,
-        "FileService"
-      );
-    }
+    await this._backend.startWatch();
   }
 
+  @errorcatching("Failed to stop watching file changes.", true, "FileService")
   async stopWatch() {
-    try {
-      await this._backend.stopWatch();
-    } catch (e) {
-      this._logService.error(
-        "Failed to stop watching file changes",
-        e as Error,
-        true,
-        "FileService"
-      );
-    }
+    await this._backend.stopWatch();
   }
 
+  @errorcatching("Failed to check the file backend.", true, "FileService")
   async check() {
-    try {
-      return await this._backend.check();
-    } catch (e) {
-      this._logService.error(
-        "File backend check failed",
-        e as Error,
-        true,
-        "FileService"
-      );
-      return false;
-    }
+    return await this._backend.check();
   }
 
   /**
@@ -123,89 +120,99 @@ export class FileService {
     fourceDelete = false,
     forceNotLink = false
   ): Promise<PaperEntity> {
-    if (!paperEntity.mainURL) {
-      console.log("No main url");
-      return paperEntity;
-    }
-
-    let title =
-      paperEntity.title.replace(/[^\p{L}|\s]/gu, "").replace(/\s/g, "_") ||
-      "untitled";
-    const firstCharTitle =
-      title
-        .split("_")
-        .map((word: string) => {
-          if (word) {
-            return word.slice(0, 1);
-          } else {
-            return "";
-          }
-        })
-        .filter((c: string) => c && c === c.toUpperCase())
-        .join("") || "untitled";
-    let author =
-      paperEntity.authors.split(",").map((author) => author.trim())[0] ||
-      "anonymous";
-    const firstName = author.split(" ")[0] || "anonymous";
-    const lastName =
-      author.split(" ")[author.split(" ").length - 1] || "anonymous";
-    const year = paperEntity.pubTime || "0000";
-    const publication = paperEntity.publication || "unknown";
-    let id = paperEntity._id.toString();
-
-    let formatedFilename = "";
-    if (this._preferenceService.get("renamingFormat") === "short") {
-      formatedFilename = `${firstCharTitle}_${id}`;
-    } else if (
-      this._preferenceService.get("renamingFormat") === "authortitle"
-    ) {
-      if (author !== paperEntity.authors && author !== "anonymous") {
-        author = `${author} et al`;
+    try {
+      if (!paperEntity.mainURL) {
+        console.log("No main url");
+        return paperEntity;
       }
-      id = id.slice(-5, -1);
-      formatedFilename = `${author} - ${title.slice(0, 20)}_${id}`;
-    } else if (this._preferenceService.get("renamingFormat") === "custom") {
-      formatedFilename = (
-        this._preferenceService.get("customRenamingFormat") as string
-      )
-        .replaceAll("{title}", title.slice(0, 150))
-        .replaceAll("{firstchartitle}", firstCharTitle)
-        .replaceAll("{author}", author)
-        .replaceAll("{year}", year)
-        .replaceAll("{lastname}", lastName)
-        .replaceAll("{firstname}", firstName)
-        .replaceAll("{publication}", publication.slice(0, 100))
-        .slice(0, 250);
-      if (formatedFilename) {
-        formatedFilename = `${formatedFilename}_${id}`;
+
+      let title =
+        paperEntity.title.replace(/[^\p{L}|\s]/gu, "").replace(/\s/g, "_") ||
+        "untitled";
+      const firstCharTitle =
+        title
+          .split("_")
+          .map((word: string) => {
+            if (word) {
+              return word.slice(0, 1);
+            } else {
+              return "";
+            }
+          })
+          .filter((c: string) => c && c === c.toUpperCase())
+          .join("") || "untitled";
+      let author =
+        paperEntity.authors.split(",").map((author) => author.trim())[0] ||
+        "anonymous";
+      const firstName = author.split(" ")[0] || "anonymous";
+      const lastName =
+        author.split(" ")[author.split(" ").length - 1] || "anonymous";
+      const year = paperEntity.pubTime || "0000";
+      const publication = paperEntity.publication || "unknown";
+      let id = paperEntity._id.toString();
+
+      let formatedFilename = "";
+      if (this._preferenceService.get("renamingFormat") === "short") {
+        formatedFilename = `${firstCharTitle}_${id}`;
+      } else if (
+        this._preferenceService.get("renamingFormat") === "authortitle"
+      ) {
+        if (author !== paperEntity.authors && author !== "anonymous") {
+          author = `${author} et al`;
+        }
+        id = id.slice(-5, -1);
+        formatedFilename = `${author} - ${title.slice(0, 20)}_${id}`;
+      } else if (this._preferenceService.get("renamingFormat") === "custom") {
+        formatedFilename = (
+          this._preferenceService.get("customRenamingFormat") as string
+        )
+          .replaceAll("{title}", title.slice(0, 150))
+          .replaceAll("{firstchartitle}", firstCharTitle)
+          .replaceAll("{author}", author)
+          .replaceAll("{year}", year)
+          .replaceAll("{lastname}", lastName)
+          .replaceAll("{firstname}", firstName)
+          .replaceAll("{publication}", publication.slice(0, 100))
+          .slice(0, 250);
+        if (formatedFilename) {
+          formatedFilename = `${formatedFilename}_${id}`;
+        } else {
+          formatedFilename = `${id}`;
+        }
       } else {
-        formatedFilename = `${id}`;
+        formatedFilename = `${title.slice(0, 200)}_${id}`;
       }
-    } else {
-      formatedFilename = `${title.slice(0, 200)}_${id}`;
-    }
 
-    const movedMainFilename = await this._backend.moveFile(
-      paperEntity.mainURL,
-      `${formatedFilename}_main${path.extname(paperEntity.mainURL)}`,
-      fourceDelete,
-      forceNotLink
-    );
-    paperEntity.mainURL = movedMainFilename;
-
-    const movedSupURLs: string[] = [];
-    for (let i = 0; i < paperEntity.supURLs.length; i++) {
-      const movedSupFileName = await this._backend.moveFile(
-        paperEntity.supURLs[i],
-        `${formatedFilename}_sup${i}${path.extname(paperEntity.supURLs[i])}`,
+      const movedMainFilename = await this._backend.moveFile(
+        paperEntity.mainURL,
+        `${formatedFilename}_main${path.extname(paperEntity.mainURL)}`,
         fourceDelete,
         forceNotLink
       );
-      movedSupURLs.push(movedSupFileName);
-    }
-    paperEntity.supURLs = movedSupURLs;
+      paperEntity.mainURL = movedMainFilename;
 
-    return paperEntity;
+      const movedSupURLs: string[] = [];
+      for (let i = 0; i < paperEntity.supURLs.length; i++) {
+        const movedSupFileName = await this._backend.moveFile(
+          paperEntity.supURLs[i],
+          `${formatedFilename}_sup${i}${path.extname(paperEntity.supURLs[i])}`,
+          fourceDelete,
+          forceNotLink
+        );
+        movedSupURLs.push(movedSupFileName);
+      }
+      paperEntity.supURLs = movedSupURLs;
+
+      return paperEntity;
+    } catch (e) {
+      this._logService.error(
+        "Failed to move files of a paper entity",
+        e as Error,
+        true,
+        "FileService"
+      );
+      return paperEntity;
+    }
   }
 
   /**
@@ -216,6 +223,7 @@ export class FileService {
    * @param forceNotLink - force not to link the source file
    * @returns
    */
+  @errorcatching("Failed to move a file.", true, "FileService", "")
   async moveFile(
     sourceURL: string,
     targetURL: string,
@@ -235,6 +243,11 @@ export class FileService {
    * @param paperEntity - paper entity to remove
    * @returns
    */
+  @errorcatching(
+    "Failed to remove files of a paper entity.",
+    true,
+    "FileService"
+  )
   async remove(paperEntity: PaperEntity): Promise<void> {
     const files = [paperEntity.mainURL, ...paperEntity.supURLs];
 
@@ -259,6 +272,7 @@ export class FileService {
    * @param url - url of the file to remove
    * @returns
    */
+  @errorcatching("Failed to remove a file.", true, "FileService")
   async removeFile(url: string): Promise<void> {
     return await this._backend.removeFile(url);
   }
@@ -268,6 +282,7 @@ export class FileService {
    * @param folderURL - url of the folder
    * @returns
    */
+  @errorcatching("Failed to list all files.", true, "FileService", [])
   async listAllFiles(folderURL: string): Promise<string[]> {
     return listAllFiles(folderURL);
   }
@@ -278,25 +293,35 @@ export class FileService {
    * @returns
    */
   async locateFileOnWeb(paperEntities: PaperEntity[]) {
-    this._logService.info(
-      `Locating files for ${paperEntities.length} paper(s)...`,
-      "",
-      true,
-      "FileService"
-    );
-
-    let updatedPaperEntityDrafts = paperEntities.map((paperEntity) => {
-      paperEntity.mainURL = "";
-      return paperEntity;
-    });
-    if (this._hookService.hasHook("scrapeMetadata")) {
-      [updatedPaperEntityDrafts] = await this._hookService.modifyHookPoint(
-        "locateFile",
-        updatedPaperEntityDrafts
+    try {
+      this._logService.info(
+        `Locating files for ${paperEntities.length} paper(s)...`,
+        "",
+        true,
+        "FileService"
       );
-    }
 
-    return updatedPaperEntityDrafts;
+      let updatedPaperEntityDrafts = paperEntities.map((paperEntity) => {
+        paperEntity.mainURL = "";
+        return paperEntity;
+      });
+      if (this._hookService.hasHook("scrapeMetadata")) {
+        [updatedPaperEntityDrafts] = await this._hookService.modifyHookPoint(
+          "locateFile",
+          updatedPaperEntityDrafts
+        );
+      }
+
+      return updatedPaperEntityDrafts;
+    } catch (e) {
+      this._logService.error(
+        "Failed to locate files",
+        e as Error,
+        true,
+        "FileService"
+      );
+      return paperEntities;
+    }
   }
 
   /**
@@ -309,6 +334,7 @@ export class FileService {
    * If the URL is a remote file and `download` is `true`, download the file and return the path of the downloaded file.
    * If the URL is a web URL, return the URL.
    */
+  @errorcatching("Failed to access the URL.", true, "FileService", "")
   async access(url: string, download: boolean): Promise<string> {
     return await this._backend.access(url, download);
   }
@@ -317,6 +343,7 @@ export class FileService {
    * Open the URL.
    * @param url
    */
+  @errorcatching("Failed to open the URL.", true, "FileService")
   async open(url: string) {
     if (!hasProtocol(url)) {
       this._logService.error(
@@ -366,6 +393,7 @@ export class FileService {
    * Show the URL in Finder.
    * @param url - URL to show
    */
+  @errorcatching("Failed to show the URL in Finder.", true, "FileService")
   async showInFinder(url: string) {
     const accessedURL = eraseProtocol(await this.access(url, true));
     shell.showItemInFolder(accessedURL);
@@ -375,6 +403,7 @@ export class FileService {
    * Preview the URL only for MacOS.
    * @param url - URL to preview
    */
+  @errorcatching("Failed to preview the URL.", true, "FileService")
   async preview(url: string) {
     const fileURL = await this.access(url, true);
     PLMainAPI.fileSystemService.preview(fileURL);

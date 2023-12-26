@@ -4,6 +4,7 @@ import keytar from "keytar";
 import os from "os";
 import { join } from "path";
 
+import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { isRendererProcess } from "@/base/process";
@@ -87,6 +88,7 @@ export interface IPreferenceStore {
 
   useSync: boolean;
   syncCloudBackend: string;
+  isFlexibleSync: boolean;
   syncAPPID: "";
   syncAPIKey: string;
   syncEmail: string;
@@ -193,6 +195,7 @@ const _defaultPreferences: IPreferenceStore = {
 
   useSync: false,
   syncCloudBackend: "official",
+  isFlexibleSync: false,
   syncAPPID: "",
   syncAPIKey: "",
   syncEmail: "",
@@ -595,6 +598,7 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
    * @param key - key of the preference
    * @returns value of the preference
    */
+  @errorcatching("Failed to get preference.", true, "PrefService", null)
   get(key: keyof IPreferenceStore) {
     if (this._store.has(key)) {
       return this._store.get(key);
@@ -611,15 +615,18 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
    * @param patch - patch object
    * @returns
    */
+  @errorcatching("Failed to set preference.", true, "PrefService")
   set(patch: Partial<IPreferenceStore>) {
     this._store.set(patch);
     this.fire(patch);
   }
 
+  @errorcatching("Failed to get password.", true, "PrefService", null)
   async getPassword(key: string) {
     return await keytar.getPassword("paperlib", key);
   }
 
+  @errorcatching("Failed to set password.", true, "PrefService")
   async setPassword(key: string, pwd: string) {
     await keytar.setPassword("paperlib", key, pwd);
   }

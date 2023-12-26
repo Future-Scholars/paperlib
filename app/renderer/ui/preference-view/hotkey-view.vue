@@ -72,37 +72,37 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
       <HotkeyOption
         title="Open PDF"
         :choosed-key="prefState.shortcutOpen"
-        @update="(key) => onUpdate('shortcutOpen', key)"
+        @event:change="(key) => onUpdate('shortcutOpen', key)"
       />
       <HotkeyOption
         title="Scrape Metadata"
         :choosed-key="prefState.shortcutScrape"
-        @update="(key) => onUpdate('shortcutScrape', key)"
+        @event:change="(key) => onUpdate('shortcutScrape', key)"
       />
       <HotkeyOption
         title="Edit Metadata"
         :choosed-key="prefState.shortcutEdit"
-        @update="(key) => onUpdate('shortcutEdit', key)"
+        @event:change="(key) => onUpdate('shortcutEdit', key)"
       />
       <HotkeyOption
         title="Flag"
         :choosed-key="prefState.shortcutFlag"
-        @update="(key) => onUpdate('shortcutFlag', key)"
+        @event:change="(key) => onUpdate('shortcutFlag', key)"
       />
       <HotkeyOption
         title="Open Quick Reference Plugin"
         :choosed-key="prefState.shortcutPlugin"
-        @update="(key) => onUpdate('shortcutPlugin', key)"
+        @event:change="(key) => onUpdate('shortcutPlugin', key)"
       />
       <HotkeyOption
         title="Copy Bibtex to Clipboard"
         :choosed-key="prefState.shortcutCopy"
-        @update="(key) => onUpdate('shortcutCopy', key)"
+        @event:change="(key) => onUpdate('shortcutCopy', key)"
       />
       <HotkeyOption
         title="Copy Bibtex Key to Clipboard"
         :choosed-key="prefState.shortcutCopyKey"
-        @update="(key) => onUpdate('shortcutCopyKey', key)"
+        @event:change="(key) => onUpdate('shortcutCopyKey', key)"
       />
     </div>
     <div class="text-xs text-red-600 dark:text-red-500 mb-5">

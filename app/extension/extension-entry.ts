@@ -4,10 +4,9 @@ import path from "path";
 import { InjectionContainer } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
+import { ExtensionPreferenceService } from "@/extension/services/extension-preference-service";
 import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
 import { IInjectable } from "@/extension/services/injectable";
-
-import { ExtensionPreferenceService } from "./services/extension-preference-service";
 
 async function initialize() {
   // ============================================================

@@ -10,7 +10,11 @@ const props = defineProps({
 });
 
 const codes = ref(props.codes.map((code) => JSON.parse(code)));
-const emit = defineEmits(["changed"]);
+const emits = defineEmits(["event:change"]);
+
+// ======================
+// Event Handler
+// ======================
 
 const onInput = (payload: Event, index: number, key: string) => {
   let value;
@@ -20,8 +24,8 @@ const onInput = (payload: Event, index: number, key: string) => {
     value = (payload.target as HTMLInputElement).checked;
   }
   codes.value[index][key] = value;
-  emit(
-    "changed",
+  emits(
+    "event:change",
     codes.value.map((code) => JSON.stringify(code))
   );
 };
@@ -35,8 +39,8 @@ const onAddClicked = () => {
 
 const onDeleteClicked = (index: number) => {
   codes.value.splice(index, 1);
-  emit(
-    "changed",
+  emits(
+    "event:change",
     codes.value.map((code) => JSON.stringify(code))
   );
 };

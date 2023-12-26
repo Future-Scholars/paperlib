@@ -22,7 +22,7 @@ const props = defineProps({
 
 const selected = ref(props.selected);
 
-const emit = defineEmits(["update"]);
+const emits = defineEmits(["event:change"]);
 </script>
 
 <template>
@@ -42,7 +42,7 @@ const emit = defineEmits(["update"]);
         @change="
           (e) => {
             // @ts-ignore
-            emit('update', e.target.value);
+            emits('update', e.target.value);
           }
         "
       >

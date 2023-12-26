@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { BIconPlus } from "bootstrap-icons-vue";
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 
 import { PaperSmartFilter } from "@/models/smart-filter";
 
+import { disposable } from "@/base/dispose";
 import InputBox from "./components/input-box.vue";
 import SelectBox from "./components/select-box.vue";
 import SmartFilterRuleBox from "./components/smart-filter-rule-box.vue";
@@ -13,10 +14,8 @@ import SmartFilterRuleBox from "./components/smart-filter-rule-box.vue";
 // ==============================
 const uiState = uiStateService.useState();
 const editingPaperSmartFilterDraft = ref<PaperSmartFilter>(
-  new PaperSmartFilter("", "")
+  new PaperSmartFilter()
 );
-
-// TODO: check all watch
 
 // ==============================
 // Data
@@ -25,8 +24,11 @@ const filterMatchType = ref<string>("AND");
 const filterRules = ref<string[]>([]);
 const infoText = ref<string>("");
 
+// ==============================
+// Event Handler
+// ==============================
 const onCloseClicked = () => {
-  uiState.isPaperSmartFilterEditViewShown = false;
+  uiState.paperSmartFilterEditViewShown = false;
 };
 
 const onSaveClicked = async () => {
@@ -40,7 +42,7 @@ const onSaveClicked = async () => {
   }
 
   smartFilterService.insert(
-    new PaperSmartFilter("", "").initialize(editingPaperSmartFilterDraft.value),
+    new PaperSmartFilter().initialize(editingPaperSmartFilterDraft.value),
     "PaperPaperSmartFilter"
   );
 
@@ -65,15 +67,20 @@ const constructFilter = () => {
   editingPaperSmartFilterDraft.value.filter = filter;
 };
 
-shortcutService.register("Escape", onCloseClicked);
-shortcutService.registerInInputField("Escape", onCloseClicked);
+disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 
 onMounted(() => {
-  editingPaperSmartFilterDraft.value = new PaperSmartFilter("", "");
+  PLMainAPI.menuService.disableAll();
+
+  editingPaperSmartFilterDraft.value = new PaperSmartFilter();
   filterRules.value = [];
 
   filterMatchType.value = "AND";
   infoText.value = "";
+});
+
+onUnmounted(() => {
+  PLMainAPI.menuService.enableAll();
 });
 </script>
 
@@ -88,12 +95,14 @@ onMounted(() => {
         <InputBox
           placeholder="Name"
           :value="editingPaperSmartFilterDraft.name"
-          @changed="(value) => (editingPaperSmartFilterDraft.name = value)"
+          @event:change="(value) => (editingPaperSmartFilterDraft.name = value)"
         />
         <InputBox
           placeholder="Filter"
           :value="editingPaperSmartFilterDraft.filter"
-          @changed="(value) => (editingPaperSmartFilterDraft.filter = value)"
+          @event:change="
+            (value) => (editingPaperSmartFilterDraft.filter = value)
+          "
         />
         <div class="dark:bg-neutral-700 w-full h-[1px]" />
 
@@ -101,11 +110,12 @@ onMounted(() => {
           placeholder="Match"
           :options="['AND', 'OR']"
           :value="filterMatchType"
+          @event:change="(value) => (filterMatchType = value)"
         />
 
         <SmartFilterRuleBox
           @delete-clicked="onDeleteRuleClicked(i)"
-          @changed="(filter) => onRuleUpdated(i, filter)"
+          @event:change="(filter) => onRuleUpdated(i, filter)"
           v-for="(filterRule, i) in filterRules"
         />
 

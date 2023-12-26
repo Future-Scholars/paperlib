@@ -1,7 +1,6 @@
 import {
   BrowserWindow,
   app,
-  globalShortcut,
   ipcMain,
   nativeTheme,
   screen,
@@ -11,6 +10,7 @@ import { join, posix } from "node:path";
 import os from "os";
 import path from "path";
 
+import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
@@ -65,6 +65,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * @param options - window options
    * @param eventCallbacks - callbacks for events
    */
+  @errorcatching("Failed to create window.", true, "WinProcessManagement")
   create(
     id: string,
     options: WindowOptions,
@@ -240,14 +241,6 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
         .get("quickpasteProcess")
         .setVisibleOnAllWorkspaces(true);
     }
-
-    globalShortcut.register(
-      (this._preferenceService.get("shortcutPlugin") as string) ||
-        "CommandOrControl+Shift+I",
-      async () => {
-        this.browserWindows.get("quickpasteProcess").show();
-      }
-    );
   }
 
   /**
@@ -354,6 +347,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * Change the theme of the app.
    * @param theme - The theme to be changed to
    */
+  @errorcatching("Failed to change theme.", true, "WinProcessManagement")
   changeTheme(theme: APPTheme) {
     nativeTheme.themeSource = theme;
   }
@@ -369,6 +363,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   /**
    * Resize the window with the given id.
    */
+  @errorcatching("Failed to resize window.", true, "WinProcessManagement")
   resize(windowId: string, width: number, height: number) {
     const win = this.browserWindows.get(windowId);
     if (win) {

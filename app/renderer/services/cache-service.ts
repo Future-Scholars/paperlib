@@ -11,18 +11,20 @@ import {
   CacheDatabaseCore,
   ICacheDatabaseCore,
 } from "@/base/database/cache-core";
+import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
 import { constructFileURL, eraseProtocol } from "@/base/url";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
+import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperEntityCache, ThumbnailCache } from "@/models/paper-entity-cache";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
-import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 
 export const ICacheService = createDecorator("cacheService");
 
@@ -50,12 +52,18 @@ export class CacheService {
    * @param paperEntities - The paper entities to filter.
    * @returns The filtered paper entities. */
   @processing(ProcessingKey.General)
-  async fullTextFilter(query: string, paperEntities: IPaperEntityResults) {
+  @errorcatching("Failed to filter fulltext cache.", true, "CacheService", [])
+  async fullTextFilter(query: string, paperEntities: IPaperEntityCollection) {
     // First check if all the paper entities are already cached.
     try {
       await this._createFullText(paperEntities);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      this._logService.error(
+        `Create fulltext cache failed`,
+        error as Error,
+        true,
+        "CacheService"
+      );
     }
 
     const realm = await this._cacheDatabaseCore.realm();
@@ -77,6 +85,7 @@ export class CacheService {
    * @param paperEntity - The paper entity to get the thumbnail of.
    * @returns The thumbnail of the paper entity. */
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to get thumbnail.", true, "CacheService", null)
   async loadThumbnail(
     paperEntity: PaperEntity
   ): Promise<ThumbnailCache | null> {
@@ -101,7 +110,7 @@ export class CacheService {
   // ========================
   // Create and Update
   // ========================
-  private async _createFullText(paperEntities: IPaperEntityResults) {
+  private async _createFullText(paperEntities: IPaperEntityCollection) {
     const realm = await this._cacheDatabaseCore.realm();
 
     // 1. Pick out the entities that are not in the cache
@@ -112,7 +121,7 @@ export class CacheService {
       .filtered("_id IN $0", ids);
     const existObjIds = existObjs.map((e) => e._id);
 
-    let noCachePaperEntities: IPaperEntityResults = [];
+    let noCachePaperEntities: IPaperEntityCollection = [];
 
     if (paperEntities instanceof Realm.Results) {
       noCachePaperEntities = paperEntities.filtered(
@@ -204,59 +213,49 @@ export class CacheService {
    * @param paperEntities - The paper entities to update the fulltext cache of.
    */
   @processing(ProcessingKey.General)
-  async updateFullTextCache(paperEntities: IPaperEntityResults) {
-    try {
-      const realm = await this._cacheDatabaseCore.realm();
-      if (pdfjs.GlobalWorkerOptions.workerPort === null) {
-        const pdfWorker = new pdfjsWorker();
-        pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
+  @errorcatching("Failed to update fulltext cache.", true, "CacheService")
+  async updateFullTextCache(paperEntities: IPaperEntityCollection) {
+    const realm = await this._cacheDatabaseCore.realm();
+    if (pdfjs.GlobalWorkerOptions.workerPort === null) {
+      const pdfWorker = new pdfjsWorker();
+      pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
+    }
+
+    const updatePromise = async (paperEntity: PaperEntity) => {
+      const filePath = eraseProtocol(
+        await this._fileService.access(paperEntity.mainURL, false)
+      );
+      let md5String = "";
+      if (filePath && (await promises.lstat(filePath)).isFile()) {
+        md5String = await md5(filePath);
       }
 
-      const updatePromise = async (paperEntity: PaperEntity) => {
-        const filePath = eraseProtocol(
-          await this._fileService.access(paperEntity.mainURL, false)
-        );
-        let md5String = "";
-        if (filePath && (await promises.lstat(filePath)).isFile()) {
-          md5String = await md5(filePath);
-        }
+      const object = realm.objectForPrimaryKey<PaperEntityCache>(
+        "PaperEntityCache",
+        new ObjectId(paperEntity.id) as unknown as PrimaryKey
+      );
 
-        const object = realm.objectForPrimaryKey<PaperEntityCache>(
+      if (object && object.md5 === md5String) {
+        return;
+      }
+
+      const fulltext = await this._getPDFText(paperEntity.mainURL);
+
+      realm.safeWrite(() => {
+        realm.create<PaperEntityCache>(
           "PaperEntityCache",
-          new ObjectId(paperEntity.id) as unknown as PrimaryKey
+          {
+            _id: new ObjectId(paperEntity._id),
+            _partition: "",
+            fulltext: fulltext,
+            md5: md5String,
+          },
+          Realm.UpdateMode.Modified
         );
+      });
+    };
 
-        if (object && object.md5 === md5String) {
-          return;
-        }
-
-        const fulltext = await this._getPDFText(paperEntity.mainURL);
-
-        realm.safeWrite(() => {
-          realm.create<PaperEntityCache>(
-            "PaperEntityCache",
-            {
-              _id: new ObjectId(paperEntity._id),
-              _partition: "",
-              fulltext: fulltext,
-              md5: md5String,
-            },
-            Realm.UpdateMode.Modified
-          );
-        });
-      };
-
-      await Promise.all(
-        paperEntities.map((p: PaperEntity) => updatePromise(p))
-      );
-    } catch (error) {
-      this._logService.error(
-        `Update fulltext cache failed`,
-        error as Error,
-        true,
-        "CacheService"
-      );
-    }
+    await Promise.all(paperEntities.map((p: PaperEntity) => updatePromise(p)));
   }
 
   /**
@@ -265,54 +264,46 @@ export class CacheService {
    * @param thumbnailCache - Cache of thumbnail
    */
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to update thumbnail cache.", true, "CacheService")
   async updateThumbnailCache(
     paperEntity: PaperEntity,
     thumbnailCache: ThumbnailCache
   ) {
-    try {
-      const realm = await this._cacheDatabaseCore.realm();
+    const realm = await this._cacheDatabaseCore.realm();
 
-      const filePath = eraseProtocol(
-        await this._fileService.access(paperEntity.mainURL, false)
-      );
+    const filePath = eraseProtocol(
+      await this._fileService.access(paperEntity.mainURL, false)
+    );
 
-      let md5String = "";
-      if (filePath && (await promises.lstat(filePath)).isFile()) {
-        md5String = await md5(filePath);
-      }
-      const object = realm.objectForPrimaryKey<PaperEntityCache>(
-        "PaperEntityCache",
-        new ObjectId(paperEntity.id) as unknown as PrimaryKey
-      );
+    let md5String = "";
+    if (filePath && (await promises.lstat(filePath)).isFile()) {
+      md5String = await md5(filePath);
+    }
+    const object = realm.objectForPrimaryKey<PaperEntityCache>(
+      "PaperEntityCache",
+      new ObjectId(paperEntity.id) as unknown as PrimaryKey
+    );
 
-      if (object) {
-        realm.safeWrite(() => {
-          object.thumbnail = thumbnailCache.blob;
-          object.md5 = md5String;
-          object.thumbnailWidth = thumbnailCache.width;
-          object.thumbnailHeight = thumbnailCache.height;
+    if (object) {
+      realm.safeWrite(() => {
+        object.thumbnail = thumbnailCache.blob;
+        object.md5 = md5String;
+        object.thumbnailWidth = thumbnailCache.width;
+        object.thumbnailHeight = thumbnailCache.height;
+      });
+    } else {
+      const fulltext = await this._getPDFText(paperEntity.mainURL);
+      realm.safeWrite(() => {
+        realm.create<PaperEntityCache>("PaperEntityCache", {
+          _id: new ObjectId(paperEntity.id),
+          _partition: "",
+          fulltext: fulltext,
+          thumbnail: thumbnailCache.blob,
+          thumbnailWidth: thumbnailCache.width,
+          thumbnailHeight: thumbnailCache.height,
+          md5: md5String,
         });
-      } else {
-        const fulltext = await this._getPDFText(paperEntity.mainURL);
-        realm.safeWrite(() => {
-          realm.create<PaperEntityCache>("PaperEntityCache", {
-            _id: new ObjectId(paperEntity.id),
-            _partition: "",
-            fulltext: fulltext,
-            thumbnail: thumbnailCache.blob,
-            thumbnailWidth: thumbnailCache.width,
-            thumbnailHeight: thumbnailCache.height,
-            md5: md5String,
-          });
-        });
-      }
-    } catch (error) {
-      this._logService.error(
-        `Update thumbnail cache failed`,
-        error as Error,
-        true,
-        "CacheService"
-      );
+      });
     }
   }
 
@@ -322,23 +313,15 @@ export class CacheService {
    * @returns
    */
   @processing(ProcessingKey.General)
-  async updateCache(paperEntities: PaperEntity[]) {
-    try {
-      await this.updateFullTextCache(paperEntities);
-      for (const paperEntity of paperEntities) {
-        await this.updateThumbnailCache(paperEntity, {
-          blob: new ArrayBuffer(0),
-          width: 0,
-          height: 0,
-        });
-      }
-    } catch (error) {
-      this._logService.error(
-        `Update cache failed`,
-        error as Error,
-        true,
-        "CacheService"
-      );
+  @errorcatching("Failed to update cache.", true, "CacheService")
+  async updateCache(paperEntities: IPaperEntityCollection) {
+    await this.updateFullTextCache(paperEntities);
+    for (const paperEntity of paperEntities) {
+      await this.updateThumbnailCache(paperEntity, {
+        blob: new ArrayBuffer(0),
+        width: 0,
+        height: 0,
+      });
     }
   }
 
@@ -346,7 +329,8 @@ export class CacheService {
   // Delete
   // ========================
   @processing(ProcessingKey.General)
-  async delete(ids: (string | ObjectId)[]) {
+  @errorcatching("Failed to delete cache.", true, "CacheService")
+  async delete(ids: OID[]) {
     const realm = await this._cacheDatabaseCore.realm();
 
     const entitiesCache = realm

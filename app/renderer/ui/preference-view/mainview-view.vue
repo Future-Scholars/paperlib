@@ -11,8 +11,7 @@ import {
   BIconTag,
 } from "bootstrap-icons-vue";
 import { ObjectId } from "bson";
-import { Ref, computed, onMounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { computed, onMounted, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { IPreferenceStore } from "@/common/services/preference-service";
@@ -24,7 +23,6 @@ import PaperTableItem from "@/renderer/ui/main-view/data-view/components/table-v
 import MainSection from "./components/main-section.vue";
 
 const prefState = preferenceService.useState();
-const i18n = useI18n();
 
 const item = ref(new PaperEntity(false));
 // @ts-ignore

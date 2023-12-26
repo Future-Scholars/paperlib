@@ -15,8 +15,8 @@ export class Feed {
     },
   };
 
-  _id: ObjectId | string = "";
-  id: ObjectId | string = "";
+  _id: OID = "";
+  id: OID = "";
   _partition: string = "";
   name: string = "";
   count: number = 0;

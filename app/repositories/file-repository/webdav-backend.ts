@@ -48,10 +48,7 @@ export class WebDavFileBackend implements IFileBackend {
     });
 
     await this._webdavClient.getDirectoryContents("/");
-    // TODO: should not use stateStore here.
-    // this.stateStore.viewState.syncFileStorageAvaliable = true;
     return true;
-    // this.stateStore.viewState.syncFileStorageAvaliable = false;
   }
 
   async access(url: string, download = true): Promise<string> {

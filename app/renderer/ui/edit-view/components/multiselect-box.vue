@@ -17,15 +17,15 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["changed"]);
+const emits = defineEmits(["event:change"]);
 
 const onSelected = (value: string) => {
-  emit("changed", value);
+  emits("event:change", value);
 };
 
 const onDeselected = (value: string) => {
-  emit(
-    "changed",
+  emits(
+    "event:change",
     props.existValues.filter((v) => v !== value)
   );
 };

@@ -12,6 +12,7 @@ interface ILogMessage {
 interface ILogGroup {
   id: string;
   lastlog: ILogMessage;
+  lastTime: number;
 }
 
 export interface ILogEventState {
@@ -124,11 +125,13 @@ export class LogService extends Eventable<ILogEventState> {
           level: "info",
           msg: "",
         },
+        lastTime: Date.now(),
       };
     }
 
     // Check duplicated log
     if (
+      Date.now() - this.logGroups[id].lastTime < 500 &&
       this.logGroups[id].lastlog.level === logMessage.level &&
       this.logGroups[id].lastlog.msg === logMessage.msg &&
       this.logGroups[id].lastlog.additional === logMessage.additional

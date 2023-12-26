@@ -8,8 +8,6 @@ const processingState = uiStateService.processingState.useState();
 
 const showingInfo = ref("");
 
-// TODO: show same info but different ID messages.
-
 const historyMsgs = ref([]) as Ref<
   Array<{
     id: string;

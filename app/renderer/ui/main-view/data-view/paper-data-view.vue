@@ -3,7 +3,7 @@ import { Ref, computed, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { disposable } from "@/base/dispose";
-import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 
 import ListView from "./components/list-view/list-view.vue";
 import TablePreviewView from "./components/table-view/table-preview-view.vue";
@@ -20,7 +20,7 @@ const i18n = useI18n();
 // ================================
 // Data
 // ================================
-const paperEntities = inject<Ref<IPaperEntityResults>>("paperEntities")!;
+const paperEntities = inject<Ref<IPaperEntityCollection>>("paperEntities")!;
 const displayingURL = ref("");
 const fieldEnable = computed(() => {
   return {
@@ -159,7 +159,7 @@ const onItemClicked = async (selectedIndex: number[]) => {
       true
     );
     if (
-      uiState.commandBarMode === "fulltext" &&
+      uiState.commandBarSearchMode === "fulltext" &&
       uiState.commandBarText !== ""
     ) {
       displayingURL.value = `../viewer/viewer.html?file=${fileURL}&search=${uiState.commandBarText}`;

@@ -8,14 +8,14 @@ import {
   BIconTag,
 } from "bootstrap-icons-vue";
 import { ObjectID } from "bson";
-import { Ref, inject } from "vue";
+import { Ref, inject, ref } from "vue";
 
-import { disposable } from "@/base/dispose";
 import { Categorizer, CategorizerType } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
-import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
-import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
+import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
 
+import { disposable } from "@/base/dispose";
+import { IPaperSmartFilterCollection } from "@/repositories/db-repository/smartfilter-repository";
 import CollopseGroup from "./components/collopse-group.vue";
 import SectionItem from "./components/section-item.vue";
 
@@ -48,20 +48,22 @@ const colorClass = (color?: string) => {
 const processingState = uiStateService.processingState.useState();
 const prefState = preferenceService.useState();
 const uiState = uiStateService.useState();
+const paperState = paperService.useState();
+const editingCategorizerDraft = ref("");
 
 // ================================
 // Data
 // ================================
-const tags = inject<Ref<ICategorizerResults>>("tags");
-const folders = inject<Ref<ICategorizerResults>>("folders");
-const smartfilters = inject<Ref<IPaperSmartFilterResults>>("smartfilters");
+const tags = inject<Ref<ICategorizerCollection>>("tags");
+const folders = inject<Ref<ICategorizerCollection>>("folders");
+const smartfilters = inject<Ref<IPaperSmartFilterCollection>>("smartfilters");
 
 // ================================
 // Event Functions
 // ================================
 const onSelectCategorizer = (categorizer: string) => {
   if (categorizer === "lib-all") {
-    uiState.commandBarMode = "general";
+    uiState.commandBarSearchMode = "general";
     uiState.commandBarText = "";
   }
   uiState.selectedCategorizer = categorizer;
@@ -69,7 +71,7 @@ const onSelectCategorizer = (categorizer: string) => {
 
 const onSelectSmartFilter = (smartfilter: PaperSmartFilter) => {
   uiState.selectedCategorizer = `smartfilter-${smartfilter.name}`;
-  uiState.commandBarMode = "advanced";
+  uiState.commandBarSearchMode = "advanced";
   uiState.commandBarText = smartfilter.filter;
 };
 
@@ -78,7 +80,7 @@ const onItemRightClicked = (
   categorizer: Categorizer | PaperSmartFilter,
   type: CategorizerType | PaperSmartFilterType
 ) => {
-  PLMainAPI.contextMenuService.showSidebarMenu(categorizer.name, type);
+  PLMainAPI.contextMenuService.showSidebarMenu(`${categorizer._id}`, type);
 };
 
 const onFileDroped = (
@@ -102,94 +104,87 @@ const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
 
 const onCategorizerNameChanged = (name: string) => {
   if (
-    uiState.editingCategorizerDraft &&
-    uiState.editingCategorizerDraft
-      .replace("folder-", "")
-      .replace("tag-", "") !== name &&
+    editingCategorizerDraft.value &&
+    editingCategorizerDraft.value.replace("folder-", "").replace("tag-", "") !==
+      name &&
     uiState.contentType === "library"
   ) {
     categorizerService.rename(
-      uiState.editingCategorizerDraft
-        .replace("folder-", "")
-        .replace("tag-", ""),
+      editingCategorizerDraft.value.replace("folder-", "").replace("tag-", ""),
       name,
-      uiState.editingCategorizerDraft.startsWith("tag-")
+      editingCategorizerDraft.value.startsWith("tag-")
         ? CategorizerType.PaperTag
         : CategorizerType.PaperFolder
     );
   }
-  uiState.editingCategorizerDraft = "";
+  editingCategorizerDraft.value = "";
 };
 
 const onCategorizerNameInputBlured = () => {
-  uiState.editingCategorizerDraft = "";
+  editingCategorizerDraft.value = "";
 };
 
 const onAddNewPaperSmartFilterClicked = () => {
-  uiState.isPaperSmartFilterEditViewShown = true;
+  uiState.paperSmartFilterEditViewShown = true;
 };
 
 // ================================
 // Register Context Menu Callbacks
 // ================================
-PLMainAPI.contextMenuService.on(
-  "sidebarContextMenuDeleteClicked",
-  (newValue: { value: { data: string; type: string } }) => {
-    if (uiState.contentType === "library") {
-      if (newValue.value.type === "PaperPaperSmartFilter") {
-        smartFilterService.delete(newValue.value.type, newValue.value.data);
-      } else {
-        categorizerService.delete(
-          newValue.value.type as any,
-          newValue.value.data
-        );
-      }
-      uiState.selectedCategorizer = "lib-all";
-    }
-  }
-);
-
-PLMainAPI.contextMenuService.on(
-  "sidebarContextMenuColorClicked",
-  (newValue: { value: { data: string; type: string; color: string } }) => {
-    if (uiState.contentType === "library") {
-      if (newValue.value.type === "PaperPaperSmartFilter") {
-        // TODO: check here
-        smartFilterService.colorize(
-          newValue.value.color as any,
-          newValue.value.type,
-          newValue.value.data
-        );
-      } else {
-        categorizerService.colorize(
-          newValue.value.color as any,
-          newValue.value.type as any,
-          newValue.value.data
-        );
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "sidebarContextMenuDeleteClicked",
+    (newValue: { value: { data: string; type: string } }) => {
+      if (uiState.contentType === "library") {
+        if (newValue.value.type === "PaperPaperSmartFilter") {
+          smartFilterService.delete(newValue.value.type, [newValue.value.data]);
+        } else {
+          categorizerService.delete(newValue.value.type as any, [
+            newValue.value.data,
+          ]);
+        }
+        uiState.selectedCategorizer = "lib-all";
       }
     }
-  }
-);
-
-PLMainAPI.contextMenuService.on(
-  "sidebarContextMenuEditClicked",
-  (newValue: { value: { data: string; type: string } }) => {
-    if (uiState.contentType === "library") {
-      uiState.editingCategorizerDraft = `${
-        { PaperTag: "tag", PaperFolder: "folder" }[
-          newValue.value.type as string
-        ]
-      }-${newValue.value.data}`;
-    }
-  }
+  )
 );
 
 disposable(
-  uiStateService.onChanged("editingCategorizerDraft", (value) => {
-    if (value) {
-      uiState.selectedCategorizer = value.value;
+  PLMainAPI.contextMenuService.on(
+    "sidebarContextMenuColorClicked",
+    (newValue: { value: { data: string; type: string; color: string } }) => {
+      if (uiState.contentType === "library") {
+        if (newValue.value.type === "PaperPaperSmartFilter") {
+          smartFilterService.colorize(
+            newValue.value.color as any,
+            newValue.value.type,
+            newValue.value.data
+          );
+        } else {
+          categorizerService.colorize(
+            newValue.value.color as any,
+            newValue.value.type as any,
+            newValue.value.data
+          );
+        }
+      }
     }
-  })
+  )
+);
+
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "sidebarContextMenuEditClicked",
+    (newValue: { value: { data: string; type: string } }) => {
+      if (uiState.contentType === "library") {
+        editingCategorizerDraft.value = `${
+          { PaperTag: "tag", PaperFolder: "folder" }[
+            newValue.value.type as string
+          ]
+        }-${newValue.value.data}`;
+      }
+    }
+  )
 );
 </script>
 
@@ -198,7 +193,7 @@ disposable(
     <SectionItem
       id="sidebar-library-section"
       :name="$t('mainview.allpapers')"
-      :count="uiState.entitiesCount"
+      :count="paperState.count"
       :with-counter="prefState.showSidebarCount"
       :with-spinner="processingState.general > 0"
       :compact="prefState.isSidebarCompact"
@@ -222,7 +217,7 @@ disposable(
     <CollopseGroup
       :title="$t('mainview.smartfilters')"
       :with-add="true"
-      @add="onAddNewPaperSmartFilterClicked"
+      @event:add-click="onAddNewPaperSmartFilterClicked"
     >
       <SectionItem
         class="sidebar-smartfilter-item"
@@ -253,27 +248,27 @@ disposable(
         :with-counter="prefState.showSidebarCount"
         :with-spinner="false"
         :compact="prefState.isSidebarCompact"
-        :editing="uiState.editingCategorizerDraft === `tag-${tag.name}`"
+        :editing="editingCategorizerDraft === `tag-${tag.name}`"
         v-for="tag in tags"
         :active="uiState.selectedCategorizer === `tag-${tag.name}`"
         @click="onSelectCategorizer(`tag-${tag.name}`)"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, tag, CategorizerType.PaperTag)}"
-        @droped="
+        @event:drop="
           (filePaths) => {
             onFileDroped(tag, CategorizerType.PaperTag, filePaths);
           }
         "
-        @item-droped="
+        @event:item-drop="
           () => {
             onItemDroped(tag, CategorizerType.PaperTag);
           }
         "
-        @name-changed="
+        @event:name-change="
           (name) => {
             onCategorizerNameChanged(name);
           }
         "
-        @name-input-blured="onCategorizerNameInputBlured"
+        @event:name-input-blur="onCategorizerNameInputBlured"
       >
         <BIconTag
           class="text-sm my-auto min-w-[1em]"
@@ -290,27 +285,27 @@ disposable(
         :with-counter="prefState.showSidebarCount"
         :with-spinner="false"
         :compact="prefState.isSidebarCompact"
-        :editing="uiState.editingCategorizerDraft === `folder-${folder.name}`"
+        :editing="editingCategorizerDraft === `folder-${folder.name}`"
         v-for="folder in folders"
         :active="uiState.selectedCategorizer === `folder-${folder.name}`"
         @click="onSelectCategorizer(`folder-${folder.name}`)"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, folder, CategorizerType.PaperFolder)}"
-        @droped="
+        @event:drop="
           (filePaths) => {
             onFileDroped(folder, CategorizerType.PaperFolder, filePaths);
           }
         "
-        @item-droped="
+        @event:item-drop="
           () => {
             onItemDroped(folder, CategorizerType.PaperFolder);
           }
         "
-        @name-changed="
+        @event:name-change="
           (name) => {
             onCategorizerNameChanged(name);
           }
         "
-        @name-input-blured="onCategorizerNameInputBlured"
+        @event:name-input-blur="onCategorizerNameInputBlured"
       >
         <BIconFolder
           class="text-sm my-auto min-w-[1em]"

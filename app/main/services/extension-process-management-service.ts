@@ -1,6 +1,7 @@
 import { utilityProcess } from "electron";
 import { join } from "node:path";
 
+import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
@@ -28,6 +29,11 @@ export class ExtensionProcessManagementService extends Eventable<IExtensionProce
     this.extensionProcesses = {};
   }
 
+  @errorcatching(
+    "Failed to create extension process.",
+    true,
+    "ExtProcessManagement"
+  )
   createExtensionProcess() {
     const extensionProcess = utilityProcess.fork(
       join(__dirname, "extension-entry.js")
@@ -43,6 +49,11 @@ export class ExtensionProcessManagementService extends Eventable<IExtensionProce
     this.extensionProcesses[Process.extension] = extensionProcess;
   }
 
+  @errorcatching(
+    "Failed to close extension process.",
+    true,
+    "ExtProcessManagement"
+  )
   close() {
     for (const processID in this.extensionProcesses) {
       this.extensionProcesses[processID].kill();

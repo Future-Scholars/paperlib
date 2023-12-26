@@ -8,7 +8,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["changed"]);
+const emits = defineEmits(["changed"]);
 
 const selected = ref(0);
 </script>
@@ -29,7 +29,7 @@ const selected = ref(0);
         @click="
           () => {
             selected = titles.indexOf(title);
-            emit('changed', selected);
+            emits('changed', selected);
           }
         "
       >

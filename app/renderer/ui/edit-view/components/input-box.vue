@@ -1,6 +1,4 @@
 <script setup lang="ts">
-const uiState = uiStateService.useState();
-
 const props = defineProps({
   placeholder: {
     type: String,
@@ -11,10 +9,10 @@ const props = defineProps({
     required: false,
   },
 });
-const emit = defineEmits(["changed"]);
+const emits = defineEmits(["event:change"]);
 
 const onInput = (payload: Event) => {
-  emit("changed", (payload.target as HTMLInputElement).value);
+  emits("event:change", (payload.target as HTMLInputElement).value);
 };
 </script>
 
@@ -35,8 +33,6 @@ const onInput = (payload: Event) => {
       :value="value"
       :name="placeholder"
       @input="onInput"
-      @focus="uiState.inputFieldFocused = true"
-      @blur="uiState.inputFieldFocused = false"
     />
   </div>
 </template>

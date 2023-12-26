@@ -1,11 +1,13 @@
 import { chunkRun } from "@/base/chunk";
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
+import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
 import { Colors } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
+import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { IPaperService, PaperService } from "@/renderer/services/paper-service";
@@ -20,11 +22,14 @@ import {
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   FeedEntityRepository,
+  IFeedEntityCollection,
+  IFeedEntityObject,
   IFeedEntityRepository,
-  IFeedEntityResults,
 } from "@/repositories/db-repository/feed-entity-repository";
 import {
   FeedRepository,
+  IFeedCollection,
+  IFeedObject,
   IFeedRepository,
 } from "@/repositories/db-repository/feed-repository";
 import {
@@ -35,16 +40,21 @@ import {
 export interface IFeedEntityFilterOptions {
   search?: string;
   searchMode?: "general" | "fulltext" | "advanced";
-  feedName?: string;
+  feedNames?: string[];
   unread?: boolean;
+  title?: string;
+  authors?: string;
 }
 
 export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
   public filters: string[] = [];
+  public placeholders: string[] = [];
   public search?: string;
   public searchMode?: "general" | "fulltext" | "advanced";
-  feedName?: string;
-  unread?: boolean;
+  public feedNames?: string[];
+  public unread?: boolean;
+  public title?: string;
+  public authors?: string;
 
   constructor(options?: Partial<IFeedEntityFilterOptions>) {
     if (options) {
@@ -56,6 +66,9 @@ export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
     for (const key in options) {
       this[key] = options[key];
     }
+
+    this.filters = [];
+    this.placeholders = [];
 
     if (this.search) {
       const formatedSearch = formatString({
@@ -72,11 +85,24 @@ export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
         this.filters.push(`(${formatedSearch})`);
       }
     }
-    if (this.feedName) {
-      this.filters.push(`(feed.name == \"${this.feedName}\")`);
+    if (this.feedNames && this.feedNames.length > 0) {
+      const feedNamesQuery = this.feedNames
+        .filter((feedName) => feedName)
+        .map((feedName) => `'${feedName}'`)
+        .join(", ");
+
+      this.filters.push(`(feed.name IN { ${feedNamesQuery} })`);
     }
     if (this.unread) {
       this.filters.push(`(read == false)`);
+    }
+    if (this.title) {
+      this.filters.push(`(title == $${this.placeholders.length})`);
+      this.placeholders.push(this.title);
+    }
+    if (this.authors) {
+      this.filters.push(`(authors == $${this.placeholders.length})`);
+      this.placeholders.push(this.authors);
     }
   }
 
@@ -145,25 +171,16 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @param sortOrder Sort order.
    */
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to load feeds.", true, "FeedService", [])
   async load(sortBy: string, sortOrder: string) {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
-    try {
-      return this._feedRepository.load(
-        await this._databaseCore.realm(),
-        sortBy,
-        sortOrder
-      );
-    } catch (error) {
-      this._logService.error(
-        "Failed to load feeds",
-        error as Error,
-        true,
-        "FeedService"
-      );
-      return [] as Feed[];
-    }
+    return this._feedRepository.load(
+      await this._databaseCore.realm(),
+      sortBy,
+      sortOrder
+    );
   }
 
   /**
@@ -176,6 +193,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @returns Feed entities.
    */
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to load feed entities.", true, "FeedService", [])
   async loadEntities(
     filter: FeedEntityFilterOptions,
     sortBy: string,
@@ -184,26 +202,17 @@ export class FeedService extends Eventable<IFeedServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
-    try {
-      if (!(filter instanceof FeedEntityFilterOptions)) {
-        filter = new FeedEntityFilterOptions(filter);
-      }
-
-      return this._feedEntityRepository.load(
-        await this._databaseCore.realm(),
-        filter.toString(),
-        sortBy,
-        sortOrder
-      );
-    } catch (e) {
-      this._logService.error(
-        "Failed to load feed entities",
-        e as Error,
-        true,
-        "FeedService"
-      );
-      return [] as IFeedEntityResults;
+    if (!(filter instanceof FeedEntityFilterOptions)) {
+      filter = new FeedEntityFilterOptions(filter);
     }
+
+    return this._feedEntityRepository.load(
+      await this._databaseCore.realm(),
+      filter.toString(),
+      filter.placeholders,
+      sortBy,
+      sortOrder
+    );
   }
 
   /**
@@ -212,7 +221,8 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * returns
    */
   @processing(ProcessingKey.General)
-  async update(feeds: Feed[]) {
+  @errorcatching("Failed to update feeds.", true, "FeedService", [])
+  async update(feeds: IFeedCollection) {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
@@ -223,42 +233,20 @@ export class FeedService extends Eventable<IFeedServiceState> {
       "FeedService"
     );
 
-    try {
-      const realm = await this._databaseCore.realm();
+    const realm = await this._databaseCore.realm();
 
-      return realm.safeWrite(() => {
-        const updatedFeeds: (Feed | null)[] = [];
+    const updatedFeeds: IFeedCollection = [];
 
-        for (const feed of feeds) {
-          let existingFeed: Feed | undefined;
-          if (feed._id) {
-            const existingObjs = this._feedRepository.loadByIds(realm, [
-              feed._id,
-            ]);
-            if (existingObjs.length > 0) {
-              existingFeed = existingObjs[0];
-            }
-          }
-          const updatedFeed = this._feedRepository.update(
-            realm,
-            existingFeed,
-            feed,
-            this._databaseCore.getPartition()
-          );
-          updatedFeeds.push(updatedFeed);
-        }
-
-        return updatedFeeds;
-      });
-    } catch (error) {
-      this._logService.error(
-        `Failed to update feeds`,
-        error as Error,
-        true,
-        "Feed"
+    for (const feed of feeds) {
+      const updatedFeed = this._feedRepository.update(
+        realm,
+        feed,
+        this._databaseCore.getPartition()
       );
-      return [] as Feed[];
+      updatedFeeds.push(updatedFeed);
     }
+
+    return updatedFeeds;
   }
 
   /**
@@ -267,7 +255,11 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
-  async updateEntities(feedEntities: FeedEntity[], ignoreReadState = false) {
+  @errorcatching("Failed to update feed entities.", true, "FeedService", [])
+  async updateEntities(
+    feedEntities: IFeedEntityCollection,
+    ignoreReadState = false
+  ) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
@@ -278,64 +270,20 @@ export class FeedService extends Eventable<IFeedServiceState> {
       "FeedEntityService"
     );
 
-    try {
-      // TODO: make the following logic clearer
-      const realm = await this._databaseCore.realm();
+    const realm = await this._databaseCore.realm();
+    const updatedFeedEntities: IFeedEntityCollection = [];
 
-      return realm.safeWrite(() => {
-        for (const feedEntity of feedEntities) {
-          let existingFeedEntity: FeedEntity | null = null;
-          try {
-            if (feedEntity._id) {
-              const existingObjs = this._feedEntityRepository.loadByIds(realm, [
-                feedEntity._id,
-              ]);
-              if (existingObjs.length > 0) {
-                existingFeedEntity = existingObjs[0];
-              } else {
-                const reduplicatedFeedEntities = realm
-                  .objects<FeedEntity>("FeedEntity")
-                  .filtered(
-                    "title == $0 and authors == $1",
-                    feedEntity.title,
-                    feedEntity.authors
-                  );
-                if (reduplicatedFeedEntities.length > 0) {
-                  existingFeedEntity = reduplicatedFeedEntities[0];
-                }
-              }
-            }
-          } catch (error) {}
-
-          const feed = this._feedRepository.update(
-            realm,
-            existingFeedEntity?.feed,
-            feedEntity.feed,
-            this._databaseCore.getPartition()
-          );
-          if (feed) {
-            if (ignoreReadState) {
-              feedEntity.read = existingFeedEntity?.read || false;
-            }
-
-            return this._feedEntityRepository.update(
-              realm,
-              feedEntity,
-              feed,
-              existingFeedEntity,
-              this._databaseCore.getPartition()
-            );
-          }
-        }
-      });
-    } catch (error) {
-      this._logService.error(
-        `Failed to update feed entities`,
-        error as Error,
-        true,
-        "FeedEntityService"
+    for (const feedEntity of feedEntities) {
+      const updatedFeedEntity = this._feedEntityRepository.update(
+        realm,
+        feedEntity,
+        this._databaseCore.getPartition(),
+        ignoreReadState
       );
+      updatedFeedEntities.push(updatedFeedEntity);
     }
+
+    return updatedFeedEntities;
   }
 
   /**
@@ -344,26 +292,14 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to create feeds.", true, "FeedService", [])
   async create(feeds: Feed[]) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
-    try {
-      const updatedFeeds = await this.update(feeds);
+    const updatedFeeds = await this.update(feeds);
 
-      this.refresh(
-        (updatedFeeds.filter((feed) => feed !== null) as Feed[]).map(
-          (feed: Feed) => feed.name
-        )
-      );
-    } catch (error) {
-      this._logService.error(
-        `Failed to create feeds`,
-        error as Error,
-        true,
-        "FeedService"
-      );
-    }
+    this.refresh(undefined, updatedFeeds);
   }
 
   /**
@@ -372,74 +308,66 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
-  async refresh(feedNames?: string[], feeds?: Feed[]) {
+  @errorcatching("Failed to refresh feeds.", true, "FeedService")
+  async refresh(ids?: OID[], feeds?: IFeedCollection) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
 
-    if (!feedNames && !feeds) {
-      this._logService.error(
-        "Failed to refresh feeds",
-        "No feed names or feeds provided.",
-        false,
-        "FeedService"
-      );
-      return;
+    if (!ids && !feeds) {
+      throw new Error("No feed ids or feeds provided.");
     }
 
-    // TODO: user id rather than name here.
     this._logService.info(
-      `Refreshing ${feedNames?.length || feeds?.length} feeds...`,
+      `Refreshing ${ids?.length || feeds?.length} feeds...`,
       "",
       false,
       "FeedService"
     );
 
-    try {
-      if (!feeds && feedNames) {
-        feeds = (
-          (await this.load("name", "asce")) as Realm.Results<Feed>
-        ).filtered(
-          feedNames.map((feedName) => `name = "${feedName}"`).join(" OR ")
-        ) as unknown as Feed[];
-      } else {
-        feeds = feeds!;
-      }
+    const realm = await this._databaseCore.realm();
 
-      const feedEntityDraftsAndErrors = await chunkRun<
-        FeedEntity[],
-        FeedEntity[]
-      >(
-        feeds,
-        async (feed: Feed) => {
-          const feedEntityDrafts = await this._rssRepository.fetch(feed);
-          return feedEntityDrafts;
-        },
-        async () => {
-          return [];
-        },
-        5
-      );
+    if (!feeds && ids) {
+      feeds = this._feedRepository.loadByIds(realm, ids);
+    } else {
+      feeds = feeds!;
+    }
 
-      for (const error of feedEntityDraftsAndErrors.errors) {
-        this._logService.error(
-          `Failed to refresh feeds`,
-          error as Error,
-          true,
-          "Feed"
-        );
-      }
-      const feedEntityDrafts = feedEntityDraftsAndErrors.results.flat();
+    const feedEntityDraftListAndErrors = await chunkRun<
+      IFeedObject,
+      IFeedEntityCollection,
+      IFeedEntityCollection
+    >(
+      feeds,
+      async (feed: IFeedObject) => {
+        const feedEntityDrafts = await this._rssRepository.fetch(feed);
+        return feedEntityDrafts;
+      },
+      async () => {
+        return [];
+      },
+      5
+    );
 
-      await this.updateEntities(feedEntityDrafts, true);
-    } catch (error) {
+    for (const i in feedEntityDraftListAndErrors.errors) {
+      const error = feedEntityDraftListAndErrors.errors[i];
       this._logService.error(
-        `Failed to refresh feeds`,
+        `Failed to refresh feeds: ${feeds[i].name}`,
         error as Error,
         true,
         "Feed"
       );
     }
+    const feedEntityDrafts = feedEntityDraftListAndErrors.results.flat();
+
+    this._logService.info(
+      `Fetched ${feedEntityDrafts.length} feed entities...`,
+      "",
+      false,
+      "FeedService"
+    );
+
+    await this.updateEntities(feedEntityDrafts, true);
   }
 
   /**
@@ -450,25 +378,17 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
-  async colorize(color: Colors, name?: string, feed?: Feed) {
+  @errorcatching("Failed to colorize feeds.", true, "FeedService", [])
+  async colorize(color: Colors, id?: OID, feed?: IFeedObject) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
-    try {
-      this._feedRepository.colorize(
-        await this._databaseCore.realm(),
-        color,
-        feed,
-        name
-      );
-    } catch (error) {
-      this._logService.error(
-        `Failed to colorize feed`,
-        error as Error,
-        true,
-        "FeedService"
-      );
-    }
+    this._feedRepository.colorize(
+      await this._databaseCore.realm(),
+      color,
+      id,
+      feed
+    );
   }
 
   /**
@@ -478,35 +398,50 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @returns
    */
   @processing(ProcessingKey.General)
-  async delete(name?: string, feed?: Feed) {
+  @errorcatching("Failed to delete feeds.", true, "FeedService", [])
+  async delete(ids?: OID[], feeds?: IFeedCollection) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
-    try {
-      const realm = await this._databaseCore.realm();
-      const toBeDeletedEntities = this._feedEntityRepository.load(
-        realm,
-        new FeedEntityFilterOptions({
-          feedName: name || feed?.name,
-        }).toString(),
-        "addTime",
-        "asce"
-      );
 
-      this._feedEntityRepository.delete(
-        realm,
-        toBeDeletedEntities.map((feed) => feed._id)
-      );
-
-      this._feedRepository.delete(realm, true, feed, name);
-    } catch (e) {
+    if (!ids && !feeds) {
       this._logService.error(
-        `Failed to remove feed`,
-        e as Error,
-        true,
+        "Failed to delete feeds",
+        "No feed ids or feeds provided.",
+        false,
         "FeedService"
       );
+      return;
     }
+
+    this._logService.info(
+      `Deleting ${ids?.length || feeds?.length} feeds...`,
+      "",
+      false,
+      "FeedService"
+    );
+
+    const realm = await this._databaseCore.realm();
+
+    if (!feeds && ids) {
+      feeds = this._feedRepository.loadByIds(realm, ids);
+    } else {
+      feeds = feeds!;
+    }
+
+    const filter = new FeedEntityFilterOptions({
+      feedNames: feeds.map((feed: IFeedObject) => feed.name),
+    });
+    const toBeDeletedEntities = this._feedEntityRepository.load(
+      realm,
+      filter.toString(),
+      filter.placeholders,
+      "addTime",
+      "asce"
+    );
+    this._feedEntityRepository.delete(realm, undefined, toBeDeletedEntities);
+
+    this._feedRepository.delete(realm, undefined, feeds);
   }
 
   /**
@@ -514,52 +449,74 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * @param feedEntities
    * @returns
    */
-  async addToLib(feedEntities: FeedEntity[]) {
+  @errorcatching("Failed to add feed entities to library.", true, "FeedService")
+  async addToLib(feedEntities: IFeedEntityCollection) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
 
-    try {
-      this._logService.info(
-        `Adding ${feedEntities.length} feed entities to library...`,
-        "",
-        true,
-        "Feed"
-      );
+    this._logService.info(
+      `Adding ${feedEntities.length} feed entities to library...`,
+      "",
+      true,
+      "Feed"
+    );
 
-      const paperEntityDrafts = await this._scrapeService.scrape(
-        feedEntities.map((feedEntityDraft: FeedEntity) => {
-          const paperEntityDraft = new PaperEntity(true);
-          paperEntityDraft.fromFeed(feedEntityDraft);
-          // NOTE: we don't want to download the PDFs when adding to library.
-          paperEntityDraft.mainURL = "";
-          return {
-            type: "paperEntity",
-            value: paperEntityDraft,
-          };
-        }),
-        ["semanticscholar"]
-      );
+    const paperEntityDrafts = await this._scrapeService.scrape(
+      feedEntities.map((feedEntityDraft: IFeedEntityObject) => {
+        const paperEntityDraft = new PaperEntity(true);
+        paperEntityDraft.fromFeed(feedEntityDraft);
+        // NOTE: we don't want to download the PDFs when adding to library.
+        paperEntityDraft.mainURL = "";
+        return {
+          type: "paperEntity",
+          value: paperEntityDraft,
+        };
+      }),
+      ["semanticscholar"]
+    );
 
-      // NOTE: here we decide to not download the PDFs when adding to library.
-      await this._paperService.update(paperEntityDrafts);
-    } catch (error) {
-      this._logService.error(
-        `Failed to add feed entities to library`,
-        error as Error,
-        true,
-        "Feed"
-      );
-    }
+    // NOTE: here we decide to not download the PDFs when adding to library.
+    await this._paperService.update(paperEntityDrafts);
   }
 
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to refresh feeds (routine).", true, "FeedService")
   private async _routineRefresh() {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
-    const feeds = await this.load("name", "desc");
-    await this.refresh(feeds.map((feed: Feed) => feed.name));
+    const feeds = (await this.load("name", "desc")) as Feed[];
+    await this.refresh(undefined, feeds);
     this._feedEntityRepository.deleteOutdate(await this._databaseCore.realm());
+  }
+
+  /**
+   * Migrate the local database to the cloud database. */
+  @errorcatching(
+    "Failed to migrate the local feeds to the cloud database.",
+    true,
+    "DatabaseService"
+  )
+  async migrateLocaltoCloud() {
+    const localConfig = await this._databaseCore.getLocalConfig(false);
+    const localRealm = new Realm(localConfig);
+
+    const feeds = localRealm.objects<Feed>("Feed");
+    await this.update(feeds.map((feed) => new Feed(false).initialize(feed)));
+
+    const feedEntities = localRealm.objects<FeedEntity>("FeedEntity");
+    await this.updateEntities(
+      feedEntities.map((feedEntity) =>
+        new FeedEntity(false).initialize(feedEntity)
+      )
+    );
+
+    this._logService.info(
+      `Migrated ${feeds.length} feed(s) to cloud database.`,
+      "",
+      true,
+      "FeedService"
+    );
   }
 }

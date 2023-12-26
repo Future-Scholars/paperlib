@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import { disposable } from "@/base/dispose";
+
+// ======================
+// State
+// ======================
 const uiState = uiStateService.useState();
 
+// ======================
+// Event Handler
+// ======================
 const onClick = () => {
-  uiState.isDeleteConfirmShown = false;
+  uiState.deleteConfirmShown = false;
 };
 
 const onCancel = () => {
@@ -16,8 +24,8 @@ const onConfirm = () => {
   paperService.delete(deleteIds);
 };
 
-shortcutService.register("Escape", onCancel);
-shortcutService.register("Enter", onConfirm);
+disposable(shortcutService.register("Escape", onCancel));
+disposable(shortcutService.register("Enter", onConfirm));
 </script>
 
 <template>
@@ -32,7 +40,7 @@ shortcutService.register("Enter", onConfirm);
     <div
       id="modal-view"
       class="absolute w-full h-full top-0 left-0"
-      v-if="uiState.isDeleteConfirmShown"
+      v-if="uiState.deleteConfirmShown"
       @click="onClick"
     >
       <div

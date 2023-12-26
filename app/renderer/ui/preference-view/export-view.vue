@@ -116,7 +116,7 @@ onMounted(() => {
       :title="$t('preference.exportreplacement')"
       :info="$t('preference.exportreplacementintro')"
       :enable="prefState.enableExportReplacement"
-      @update="(value) => updatePref('enableExportReplacement', value)"
+      @event:change="(value) => updatePref('enableExportReplacement', value)"
     />
 
     <div class="flex space-x-1 mb-2">
@@ -148,7 +148,7 @@ onMounted(() => {
         :from="replacement.from"
         :to="replacement.to"
         v-for="replacement of prefState.exportReplacement"
-        @delete="onReplacementDelete(replacement)"
+        @event:delete="onReplacementDelete(replacement)"
       />
     </div>
   </div>

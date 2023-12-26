@@ -5,10 +5,10 @@ import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/preload/loading";
 import { FeedEntityFilterOptions } from "@/renderer/services/feed-service";
 import { PaperFilterOptions } from "@/renderer/services/paper-service";
-import { ICategorizerResults } from "@/repositories/db-repository/categorizer-repository";
-import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
-import { IFeedResults } from "@/repositories/db-repository/feed-repository";
-import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
+import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
+import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
 
 import { Process } from "@/base/process-id";
@@ -33,20 +33,21 @@ const prefState = preferenceService.useState();
 // ================================
 // Data
 // ================================
-const paperEntities: Ref<IPaperEntityResults> = ref([]);
+// TODO: Test performance of numerous data
+const paperEntities: Ref<IPaperEntityCollection> = ref([]);
 provide(
   "paperEntities",
-  computed(() => paperEntities.value) as Ref<IPaperEntityResults> // TODO: ?
+  computed(() => paperEntities.value) as Ref<IPaperEntityCollection>
 );
-const tags: Ref<ICategorizerResults> = ref([]);
+const tags: Ref<ICategorizerCollection> = ref([]);
 provide("tags", tags);
-const folders: Ref<ICategorizerResults> = ref([]);
+const folders: Ref<ICategorizerCollection> = ref([]);
 provide("folders", folders);
 const smartfilters: Ref<IPaperSmartFilterResults> = ref([]);
 provide("smartfilters", smartfilters);
-const feeds: Ref<IFeedResults> = ref([]);
+const feeds: Ref<IFeedCollection> = ref([]);
 provide("feeds", feeds);
-const feedEntities: Ref<IFeedEntityResults> = ref([]);
+const feedEntities: Ref<IFeedEntityCollection> = ref([]);
 provide(
   "feedEntities",
   computed(() => feedEntities.value)
@@ -61,24 +62,17 @@ const reloadPaperEntities = async () => {
   let tag = "";
   let folder = "";
 
-  // TODO: should we clear the search text when switching categorizer?
   if (uiState.selectedCategorizer.startsWith("tag-")) {
     tag = uiState.selectedCategorizer.replace("tag-", "");
-    // viewState.searchText = "";
-    // viewState.searchMode = "general";
   } else if (uiState.selectedCategorizer.startsWith("folder-")) {
     folder = uiState.selectedCategorizer.replace("folder-", "");
-    // viewState.searchText = "";
-    // viewState.searchMode = "general";
   } else if (uiState.selectedCategorizer === "lib-flaged") {
     flaged = true;
-    // viewState.searchText = "";
-    // viewState.searchMode = "general";
   }
   paperEntities.value = await paperService.load(
     new PaperFilterOptions({
       search: uiState.commandBarText,
-      searchMode: uiState.commandBarMode,
+      searchMode: uiState.commandBarSearchMode,
       flaged,
       tag: tag,
       folder: folder,
@@ -86,15 +80,11 @@ const reloadPaperEntities = async () => {
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
+  uiStateService.fire({ entitiesReloaded: Date.now() });
 };
 disposable(
   paperService.on("updated", () => {
     reloadPaperEntities();
-  })
-);
-disposable(
-  paperService.on("count", (value) => {
-    uiState.entitiesCount = value.value;
   })
 );
 
@@ -135,36 +125,31 @@ const reloadFeeds = async () => {
 disposable(feedService.on("updated", () => reloadFeeds()));
 
 const reloadFeedEntities = async () => {
-  let feed = "";
+  let feedName = "";
   let unread = false;
 
   if (uiState.selectedFeed === "feed-all") {
-    feed = "";
+    feedName = "";
   } else if (uiState.selectedFeed === "feed-unread") {
     unread = true;
-    feed = "";
+    feedName = "";
   } else {
-    feed = uiState.selectedFeed.replace("feed-", "");
+    feedName = uiState.selectedFeed.replace("feed-", "");
   }
 
-  // TODO: fix any here
   feedEntities.value = await feedService.loadEntities(
     new FeedEntityFilterOptions({
       search: uiState.commandBarText,
-      searchMode: uiState.commandBarMode as any,
-      feedName: feed,
+      searchMode: uiState.commandBarSearchMode as any,
+      feedNames: feedName ? [feedName] : [],
       unread,
     }),
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
+  uiStateService.fire({ entitiesReloaded: Date.now() });
 };
 disposable(feedService.on("entitiesUpdated", () => reloadFeedEntities()));
-disposable(
-  feedService.on("entitiesCount", (value) => {
-    uiState.feedEntitiesCount = value.value;
-  })
-);
 
 // ================================
 // Register State
@@ -181,6 +166,7 @@ disposable(
     }
   )
 );
+
 disposable(
   preferenceService.onChanged(
     ["sidebarSortBy", "sidebarSortOrder"],
@@ -193,23 +179,16 @@ disposable(
 );
 
 disposable(
-  uiStateService.onChanged(["selectedCategorizer", "selectedFeed"], (value) => {
-    if (uiState.contentType === "library") {
-      reloadPaperEntities();
-    } else if (uiState.contentType === "feed") {
-      reloadFeedEntities();
+  uiStateService.onChanged(
+    ["selectedCategorizer", "selectedFeed", "contentType", "commandBarText"],
+    (value) => {
+      if (uiState.contentType === "library") {
+        reloadPaperEntities();
+      } else if (uiState.contentType === "feed") {
+        reloadFeedEntities();
+      }
     }
-  })
-);
-
-disposable(
-  uiStateService.onChanged(["contentType", "commandBarText"], (value) => {
-    if (uiState.contentType === "library") {
-      reloadPaperEntities();
-    } else if (uiState.contentType === "feed") {
-      reloadFeedEntities();
-    }
-  })
+  )
 );
 
 disposable(
@@ -232,6 +211,7 @@ disposable(
     feedEntities.value = [];
   })
 );
+
 disposable(
   databaseService.on("dbInitialized", async () => {
     await reloadPaperEntities();
@@ -251,12 +231,10 @@ disposable(
 
     // Notify the main process that the app is ready,
     //   so that the main process can initialize the extension process
-    // TODO: check if there is a way to do this without providing the processID manually.
     PLMainAPI.windowProcessManagementService.fireServiceReady(Process.renderer);
   })
 );
 
-// TODO: Check all event disposable
 disposable(
   PLMainAPI.windowProcessManagementService.on(
     Process.renderer,
@@ -362,8 +340,6 @@ onMounted(async () => {
     await databaseService.initialize(true);
   });
 });
-
-// TODO: check all vue files' ending
 </script>
 
 <template>
@@ -392,7 +368,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <EditView v-if="uiState.isEditViewShown" />
+      <EditView v-if="uiState.editViewShown" />
     </Transition>
 
     <Transition
@@ -403,7 +379,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <FeedEditView v-if="uiState.isFeedEditViewShown" />
+      <FeedEditView v-if="uiState.feedEditViewShown" />
     </Transition>
 
     <Transition
@@ -414,9 +390,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <PaperSmartFilterEditView
-        v-if="uiState.isPaperSmartFilterEditViewShown"
-      />
+      <PaperSmartFilterEditView v-if="uiState.paperSmartFilterEditViewShown" />
     </Transition>
 
     <Transition
@@ -427,7 +401,7 @@ onMounted(async () => {
       leave-from-class="transform opacity-100"
       leave-to-class="transform opacity-0"
     >
-      <PreferenceView v-if="uiState.isPreferenceViewShown" />
+      <PreferenceView v-if="uiState.preferenceViewShown" />
     </Transition>
 
     <DeleteConfirmView />

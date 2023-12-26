@@ -1,5 +1,6 @@
 import { Menu, nativeImage } from "electron";
 
+import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import {
@@ -117,10 +118,16 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     this._registedScraperExtensions = {};
   }
 
+  @errorcatching("Failed to register scraper extension.", false, "ContextMenu")
   registerScraperExtension(extID: string, scrapers: { [id: string]: string }) {
     this._registedScraperExtensions[extID] = scrapers;
   }
 
+  @errorcatching(
+    "Failed to unregister scraper extension.",
+    false,
+    "ContextMenu"
+  )
   unregisterScraperExtension(extID: string) {
     delete this._registedScraperExtensions[extID];
   }
@@ -129,6 +136,11 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
    * Shows the context menu for paper data.
    * @param {boolean} allowEdit - Whether editing is allowed.
    */
+  @errorcatching(
+    "Failed to show the contextmenu for papers.",
+    false,
+    "ContextMenu"
+  )
   showPaperDataMenu(allowEdit: boolean) {
     let scraperMenuTemplate: Record<string, any> = [];
 
@@ -233,6 +245,11 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
   /**
    * Shows the context menu for feed data.
    */
+  @errorcatching(
+    "Failed to show the contextmenu for feeds.",
+    false,
+    "ContextMenu"
+  )
   showFeedDataMenu() {
     const template = [
       {
@@ -266,6 +283,11 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
    * @param {string} data - The data of the clicked item.
    * @param {string} type - The type of the clicked item.
    */
+  @errorcatching(
+    "Failed to show the contextmenu for sidebar.",
+    false,
+    "ContextMenu"
+  )
   showSidebarMenu(data: string, type: string) {
     const template = [
       {
@@ -405,6 +427,11 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
    * Shows the context menu for the supplementary files.
    * @param {string} fileURL - The URL of the file.
    */
+  @errorcatching(
+    "Failed to show the contextmenu for supplementary files.",
+    false,
+    "ContextMenu"
+  )
   showSupMenu(fileURL: string) {
     const template = [
       {
@@ -423,6 +450,11 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
    * Shows the context menu for the thumbnail.
    * @param {string} fileURL - The URL of the file.
    */
+  @errorcatching(
+    "Failed to show the contextmenu for thumbnails.",
+    false,
+    "ContextMenu"
+  )
   showThumbnailMenu(fileURL: string) {
     const template = [
       {
@@ -443,6 +475,15 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     menu.popup();
   }
 
+  /**
+   * Shows the context menu for the quickpaste folder linking.
+   * @param {string[]} folderNames - The names of the folders.
+   */
+  @errorcatching(
+    "Failed to show the contextmenu for quickpaste linking.",
+    false,
+    "ContextMenu"
+  )
   showQuickpasteLinkMenu(folderNames: { id: string; name: string }[]) {
     const template = [
       {

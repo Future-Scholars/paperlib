@@ -17,7 +17,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update"]);
+const emits = defineEmits(["event:change"]);
 
 const enabled = ref(props.enable);
 </script>
@@ -41,7 +41,7 @@ const enabled = ref(props.enable);
           : 'bg-neutral-300 dark:bg-neutral-700'
       "
       class="my-auto relative inline-flex h-5 w-10 items-center rounded-full"
-      @update:model-value="emit('update', enabled)"
+      @update:model-value="emits('event:change', enabled)"
     >
       <span
         :class="enabled ? 'translate-x-5.5' : 'translate-x-0.5'"

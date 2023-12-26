@@ -3,7 +3,7 @@ import { ObjectId } from "bson";
 import { PaperEntity } from "./paper-entity";
 
 export class APICache {
-  _id: ObjectId | string = "";
+  _id: OID = "";
   _partition: string = "";
   addTime: Date = new Date();
 
@@ -42,15 +42,15 @@ export class APICache {
     this._id = new ObjectId(entity._id);
     this.addTime = new Date();
     this.title = entity.title;
-    this.minifiedtitle = this.title
-      .toLowerCase()
-      .replaceAll(/[^\p{L}]/gu, "");
+    this.minifiedtitle = this.title.toLowerCase().replaceAll(/[^\p{L}]/gu, "");
     this.authors = entity.authors;
     this.publication = entity.publication;
     this.pubTime = entity.pubTime;
     this.pubType = entity.pubType;
     this.doi = entity.doi;
-    this.arxiv = entity.arxiv ? "arxiv:" + entity.arxiv.toLowerCase().replaceAll("arxiv:", "") : "";
+    this.arxiv = entity.arxiv
+      ? "arxiv:" + entity.arxiv.toLowerCase().replaceAll("arxiv:", "")
+      : "";
     this.pages = entity.pages;
     this.volume = entity.volume;
     this.number = entity.number;

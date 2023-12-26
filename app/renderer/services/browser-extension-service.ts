@@ -33,7 +33,7 @@ export class BrowserExtensionService {
     };
 
     const scrapedPaperEntities = await this._scrapeService.scrape(
-      [JSON.parse(webContent)],
+      [payload],
       []
     );
     if (scrapedPaperEntities.length === 0) {

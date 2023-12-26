@@ -3,11 +3,6 @@ import { BIconDash } from "bootstrap-icons-vue";
 import { ref } from "vue";
 
 // ================================
-// State
-// ================================
-const uiState = uiStateService.useState();
-
-// ================================
 // Data
 // ================================
 
@@ -67,7 +62,7 @@ const onInput = (payload: Event) => {
   constructFilter();
 };
 
-const emit = defineEmits(["changed", "deleteClicked"]);
+const emits = defineEmits(["event:change", "event:delete-click"]);
 const constructFilter = () => {
   if (
     selectedField.value !== "" &&
@@ -84,7 +79,7 @@ const constructFilter = () => {
         ? value.value
         : `"${value.value}"`
     })`;
-    emit("changed", filter);
+    emits("event:change", filter);
   }
 };
 </script>
@@ -140,13 +135,11 @@ const constructFilter = () => {
         v-model="value"
         :name="value"
         @input="onInput"
-        @focus="uiState.inputFieldFocused = true"
-        @blur="uiState.inputFieldFocused = false"
       />
     </div>
     <div
       class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/8 px-2 flex hover:bg-neutral-300 dark:hover:bg-neutral-600 cursor-pointer"
-      @click="emit('deleteClicked')"
+      @click="emits('event:delete-click')"
     >
       <BIconDash class="my-auto" />
     </div>

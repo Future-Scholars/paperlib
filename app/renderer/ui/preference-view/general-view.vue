@@ -118,7 +118,7 @@ const onChangeLanguage = (language: string) => {
         copy: 'Copy',
         link: 'Symlink',
       }"
-      @update="
+      @event:change="
         (value) => {
           updatePrefs('sourceFileOperation', value);
         }
@@ -136,7 +136,7 @@ const onChangeLanguage = (language: string) => {
         authortitle: 'A-T',
         custom: 'Custom',
       }"
-      @update="
+      @event:change="
         (value) => {
           updatePrefs('renamingFormat', value);
         }
@@ -220,7 +220,7 @@ const onChangeLanguage = (language: string) => {
         dark: $t('preference.dark'),
         system: $t('preference.system'),
       }"
-      @update="
+      @event:change="
         (value) => {
           onThemeUpdated(value);
         }
@@ -232,7 +232,7 @@ const onChangeLanguage = (language: string) => {
       :title="$t('preference.invertpreviewcolor')"
       :info="$t('preference.invertpreviewcolorintro')"
       :enable="prefState.invertColor"
-      @update="(value) => updatePrefs('invertColor', value)"
+      @event:change="(value) => updatePrefs('invertColor', value)"
     />
 
     <div class="flex justify-between mb-5">

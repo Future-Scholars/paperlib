@@ -1,9 +1,6 @@
+import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import {
-  IPreferenceService,
-  PreferenceService,
-} from "@/common/services/preference-service";
 import { PaperEntity } from "@/models/paper-entity";
 import { HookService, IHookService } from "@/renderer/services/hook-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
@@ -31,17 +28,23 @@ export const IScrapeService = createDecorator("scrapeService");
  * | ----------------
  */
 export class ScrapeService extends Eventable<{}> {
-  // TODO: deperacated custom scraper
+  // TODO: deperacated custom scraper, we alert this in 2.2.9 version
 
   constructor(
     @IHookService private readonly _hookService: HookService,
-    @IPreferenceService private readonly _preferenceService: PreferenceService,
     @ILogService private readonly _logService: LogService
   ) {
     super("scrapeService", {});
   }
 
+  /**
+   * Scrape a data source's metadata.
+   * @param payloads - data source payloads.
+   * @param specificScrapers - list of metadata scrapers.
+   * @param force - force scraping metadata.
+   * @returns - list of paper entities. */
   @processing(ProcessingKey.General)
+  @errorcatching("Failed to scrape data source.", true, "ScrapeService", [])
   async scrape(
     payloads: any[],
     specificScrapers: string[],
@@ -60,7 +63,7 @@ export class ScrapeService extends Eventable<{}> {
       return [];
     }
 
-    // TODO merge duplicated paperEntityDrafts
+    // ENHANCE: merge duplicated paperEntityDrafts?
 
     // 2. Metadata scraper fullfills the metadata of PaperEntitys.
     const scrapedPaperEntityDrafts = await this.scrapeMetadata(
@@ -76,6 +79,8 @@ export class ScrapeService extends Eventable<{}> {
    * Scrape all entry scrapers to transform data source payloads into a PaperEntity list.
    * @param payloads - data source payloads.
    * @returns - list of paper entities. */
+  @processing(ProcessingKey.General)
+  @errorcatching("Failed to scrape entry.", true, "ScrapeService", [])
   async scrapeEntry(payloads: any[]) {
     // TODO: test performance of this._hookService.hookPoint
     if (this._hookService.hasHook("beforeScrapeEntry")) {
@@ -116,6 +121,8 @@ export class ScrapeService extends Eventable<{}> {
    * @param scrapers - list of metadata scrapers.
    * @param force - force scraping metadata.
    * @returns - list of paper entities. */
+  @processing(ProcessingKey.General)
+  @errorcatching("Failed to scrape metadata.", true, "ScrapeService", [])
   async scrapeMetadata(
     paperEntityDrafts: PaperEntity[],
     scrapers: string[],

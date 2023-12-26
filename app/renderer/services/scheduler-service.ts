@@ -1,5 +1,6 @@
 import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
 
+import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 
@@ -20,6 +21,7 @@ export class SchedulerService {
    * @param errorImpl The implementation of the error handler.
    * @param runImmediately Whether to run the task immediately.
    * @param runOnce Whether to run the task only once. */
+  @errorcatching("Failed to create task.", true, "SchedulerService")
   createTask(
     taskId: string,
     taskImpl: () => void,
@@ -74,6 +76,7 @@ export class SchedulerService {
   /**
    * Remove a task.
    * @param taskId The id of the task. */
+  @errorcatching("Failed to remove task.", true, "SchedulerService")
   removeTask(taskId: string) {
     this._scheduler.removeById(taskId);
   }
@@ -81,6 +84,7 @@ export class SchedulerService {
   /**
    * Start a task.
    * @param taskId The id of the task. */
+  @errorcatching("Failed to start task.", true, "SchedulerService")
   startTask(taskId: string) {
     this._scheduler.startById(taskId);
   }
@@ -88,6 +92,7 @@ export class SchedulerService {
   /**
    * Stop a task.
    * @param taskId The id of the task. */
+  @errorcatching("Failed to stop task.", true, "SchedulerService")
   stopTask(taskId: string) {
     this._scheduler.stopById(taskId);
   }

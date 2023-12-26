@@ -2,6 +2,7 @@
 import {
   BIconEmojiTear,
   BIconFire,
+  BIconGlobe,
   BIconPatchCheckFill,
   BIconSearch,
 } from "bootstrap-icons-vue";
@@ -38,6 +39,7 @@ const marketExtensions = ref<{
 const viewMode = ref<"installed" | "marketplace">("installed");
 const isSettingShown = ref(false);
 const isMarketLoading = ref(false);
+const isMarketHotShown = ref(true);
 const marketSearchText = ref("");
 const installingExtID = ref("");
 
@@ -144,7 +146,15 @@ const onMarketClicked = async () => {
 const reloadMarket = async () => {
   isMarketLoading.value = true;
   marketExtensions.value =
-    await PLExtAPI.extensionManagementService.listExtensionMarketplace();
+    await PLExtAPI.extensionManagementService.listExtensionMarketplace(
+      marketSearchText.value
+    );
+
+  if (marketSearchText.value.length === 0) {
+    isMarketHotShown.value = true;
+  } else {
+    isMarketHotShown.value = false;
+  }
   isMarketLoading.value = false;
 };
 
@@ -173,13 +183,11 @@ onMounted(async () => {
   installedExtensions.value =
     await PLExtAPI.extensionManagementService.installedExtensions();
 });
-
-//TODO: check all window color in dark mode
 </script>
 
 <template>
   <div
-    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px] h-full pb-20"
+    class="flex flex-col text-neutral-800 dark:text-neutral-300 w-[400px] md:w-[500px] lg:w-[700px] h-full"
   >
     <div class="flex justify-between items-end mb-2 flex-none">
       <div class="flex space-x-2">
@@ -262,9 +270,9 @@ onMounted(async () => {
           :description="extension.description"
           installed
           :installing="false"
-          @reload="reloadExtension(extension.id)"
-          @uninstall="uninstallExtension(extension.id)"
-          @setting="showSettingView(extension.id)"
+          @event:reload="reloadExtension(extension.id)"
+          @event:uninstall="uninstallExtension(extension.id)"
+          @event:setting="showSettingView(extension.id)"
         />
       </div>
       <div class="flex flex-col flex-none" v-else>
@@ -278,11 +286,17 @@ onMounted(async () => {
           type="text"
           placeholder="Search in Marketplace"
           v-model="marketSearchText"
+          @change="reloadMarket"
+          @input="if (marketSearchText.length === 0) reloadMarket();"
         />
 
-        <div class="ml-2 flex space-x-2">
+        <div class="ml-2 flex space-x-2" v-if="isMarketHotShown">
           <BIconFire />
           <span class="text-sm font-semibold">Hotest</span>
+        </div>
+        <div class="ml-2 flex space-x-2" v-else>
+          <BIconGlobe />
+          <span class="text-sm font-semibold">Results</span>
         </div>
         <div class="grid grid-cols-2 p-2 gap-2">
           <ExtensionCard
@@ -294,7 +308,7 @@ onMounted(async () => {
             :description="extension.description"
             :installed="false"
             :installing="installingExtID === extension.id"
-            @install="installExtension(extension.id)"
+            @event:install="installExtension(extension.id)"
           />
         </div>
       </div>
@@ -309,15 +323,19 @@ onMounted(async () => {
             v-if="editingExtension?.verified"
           />
         </div>
-        <div class="text-xxs text-neutral-500 truncate mb-1 px-2">
+        <div
+          class="text-xxs text-neutral-500 dark:text-neutral-400 truncate mb-1 px-2"
+        >
           {{ editingExtension?.version }} by {{ editingExtension?.author }}
         </div>
-        <div class="text-xs text-neutral-600 line-clamp-4 mb-1 px-2">
+        <div
+          class="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-4 mb-1 px-2"
+        >
           {{ editingExtension?.description }}
         </div>
-        <div class="my-2 h-[0.5px] mx-2 bg-neutral-300" />
+        <div class="my-2 h-[0.5px] mx-2 bg-neutral-300 dark:bg-neutral-600" />
 
-        <div class="px-2 overflow-scroll h-full flex flex-col space-y-6 py-4">
+        <div class="px-2 overflow-scroll h-full flex flex-col py-4">
           <ExtensionSetting
             v-for="[key, value] of Object.entries(
               editingExtension?.preference || {}
@@ -329,7 +347,7 @@ onMounted(async () => {
             :type="value.type"
             :value="value.value"
             :options="value.options ? value.options : {}"
-            @update="
+            @event:change="
               (value) => {
                 updateExtensionPreference(key, value);
               }
@@ -339,13 +357,13 @@ onMounted(async () => {
 
         <div class="flex justify-end space-x-2 px-2">
           <button
-            class="flex h-8 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-600"
+            class="flex h-6 w-[5.5rem] text-center rounded-md bg-accentlight dark:bg-accentdark"
             @click="saveExtensionPreference"
           >
             <span class="m-auto text-xs">Save</span>
           </button>
           <button
-            class="flex h-8 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-600"
+            class="flex h-6 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
             @click="isSettingShown = false"
           >
             <span class="m-auto text-xs">Cancel</span>

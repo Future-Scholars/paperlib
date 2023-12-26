@@ -34,7 +34,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["click"]);
+const emits = defineEmits(["event:click"]);
 
 // ================================
 // State
@@ -61,11 +61,7 @@ const onMaximizeClicked = () => {
     :class="uiState.os !== 'win32' ? 'h-12' : 'h-10 mb-1'"
   >
     <div class="grow my-auto px-2 nodraggable-item">
-      <CommandBar
-        id="command-bar"
-        @focusin="uiState.inputFieldFocused = true"
-        @focusout="uiState.inputFieldFocused = false"
-      />
+      <CommandBar id="command-bar" />
     </div>
 
     <div
@@ -75,25 +71,25 @@ const onMaximizeClicked = () => {
       <MenuBarBtn
         id="scrape-selected-btn"
         btnName="rescrape"
-        @click="emit('click', 'rescrape')"
+        @event:click="emits('event:click', 'rescrape')"
         :disabled="disableMultiBtn"
       />
       <MenuBarBtn
         id="delete-selected-btn"
         btnName="delete"
-        @click="emit('click', 'delete')"
+        @event:click="emits('event:click', 'delete')"
         :disabled="disableMultiBtn"
       />
       <MenuBarBtn
         id="edit-selected-btn"
         btnName="edit"
-        @click="emit('click', 'edit')"
+        @event:click="emits('event:click', 'edit')"
         :disabled="disableSingleBtn"
       />
       <MenuBarBtn
         id="flag-selected-btn"
         btnName="flag"
-        @click="emit('click', 'flag')"
+        @event:click="emits('event:click', 'flag')"
         :disabled="disableMultiBtn"
       />
       <div
@@ -105,19 +101,19 @@ const onMaximizeClicked = () => {
           id="list-view-btn"
           class="my-auto"
           btnName="listview"
-          @click="emit('click', 'list-view')"
+          @event:click="emits('event:click', 'list-view')"
         />
         <MenuBarBtn
           id="table-view-btn"
           class="my-auto"
           btnName="tableview"
-          @click="emit('click', 'table-view')"
+          @event:click="emits('event:click', 'table-view')"
         />
         <MenuBarBtn
           id="table-reader-view-btn"
           class="my-auto"
           btnName="aspectratio"
-          @click="emit('click', 'tableandpreview-view')"
+          @event:click="emits('event:click', 'tableandpreview-view')"
         />
       </div>
 
@@ -149,7 +145,7 @@ const onMaximizeClicked = () => {
                 id="sort-by-title-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'sort-by-title')"
+                @event:click="emits('event:click', 'sort-by-title')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -165,7 +161,7 @@ const onMaximizeClicked = () => {
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'sort-by-authors')"
+                @event:click="emits('event:click', 'sort-by-authors')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -181,7 +177,7 @@ const onMaximizeClicked = () => {
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'sort-by-pubTime')"
+                @event:click="emits('event:click', 'sort-by-pubTime')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -197,7 +193,7 @@ const onMaximizeClicked = () => {
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'sort-by-publication')"
+                @event:click="emits('event:click', 'sort-by-publication')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -213,7 +209,7 @@ const onMaximizeClicked = () => {
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'sort-by-addTime')"
+                @event:click="emits('event:click', 'sort-by-addTime')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -232,7 +228,7 @@ const onMaximizeClicked = () => {
                 id="sort-desc-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'sort-order-desc')"
+                @event:click="emits('event:click', 'sort-order-desc')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -249,7 +245,7 @@ const onMaximizeClicked = () => {
                 id="sort-asce-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'sort-order-asce')"
+                @event:click="emits('event:click', 'sort-order-asce')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -299,7 +295,7 @@ const onMaximizeClicked = () => {
                 id="list-view-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'list-view')"
+                @event:click="emits('event:click', 'list-view')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -316,7 +312,7 @@ const onMaximizeClicked = () => {
                 id="table-view-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'table-view')"
+                @event:click="emits('event:click', 'table-view')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -333,7 +329,7 @@ const onMaximizeClicked = () => {
                 id="table-reader-view-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'tableandpreview-view')"
+                @event:click="emits('event:click', 'tableandpreview-view')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -350,7 +346,7 @@ const onMaximizeClicked = () => {
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @click="emit('click', 'preference')"
+                @event:click="emits('event:click', 'preference')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -366,7 +362,7 @@ const onMaximizeClicked = () => {
 
       <MenuBarBtn
         btnName="preference"
-        @click="emit('click', 'preference')"
+        @event:click="emits('event:click', 'preference')"
         :with-tooltip="false"
         v-if="uiState.os !== 'win32'"
       />
@@ -375,13 +371,13 @@ const onMaximizeClicked = () => {
     <div class="flex nodraggable-item mx-1" v-if="uiState.os === 'win32'">
       <div
         class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out"
-        @click="onMinimizeClicked"
+        @event:click="onMinimizeClicked"
       >
         <BIconDash class="m-auto mt-2.5 text-lg text-neutral-500" />
       </div>
       <div
         class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out"
-        @click="onMaximizeClicked"
+        @event:click="onMaximizeClicked"
       >
         <div
           class="m-auto mt-[14px] w-[10px] h-[10px] border-[1.5px] border-neutral-500"
@@ -389,7 +385,7 @@ const onMaximizeClicked = () => {
       </div>
       <div
         class="flex w-10 h-8 text-neutral-500 hover:bg-red-600 transition ease-in-out hover:text-neutral-200"
-        @click="onCloseClicked"
+        @event:click="onCloseClicked"
       >
         <BIconX class="m-auto mt-2.5 text-lg" />
       </div>

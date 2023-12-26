@@ -3,12 +3,15 @@ import { createPinia } from "pinia";
 import { createApp } from "vue";
 import { createI18n } from "vue-i18n";
 
+import { InjectionContainer } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
 import { loadLocales } from "@/locales/load";
+import { IInjectable } from "@/renderer/services/injectable";
+import { QuickpasteRPCService } from "@/renderer/services/quickpaste-rpc-service";
+import { ShortcutService } from "@/renderer/services/shortcut-service";
 import QuickpasteView from "@/renderer/ui/quickpaste-view/quickpaste-view.vue";
 
 import "./css/index.css";
-import { QuickpasteRPCService } from "./services/quickpaste-rpc-service";
 
 async function initialize() {
   const pinia = createPinia();
@@ -37,6 +40,17 @@ async function initialize() {
     "PLAPI",
     5000
   );
+
+  // ============================================================
+  // 4. Create the instances for all services, tools, etc. of the current process.
+  const injectionContainer = new InjectionContainer();
+  const instances = injectionContainer.createInstance<IInjectable>({
+    shortcutService: ShortcutService,
+  });
+  // 4.1 Expose the instances to the global scope for convenience.
+  for (const [key, instance] of Object.entries(instances)) {
+    globalThis[key] = instance;
+  }
 
   // ============================================================
   // 6. Setup other things for the renderer process.

@@ -1,3 +1,4 @@
+import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { ILogService, LogService } from "@/renderer/services/log-service";
@@ -33,6 +34,12 @@ export class CommandService extends Eventable<{}> {
     this._registerInnerCommands();
   }
 
+  @errorcatching(
+    "Failed to get registered commands.",
+    true,
+    "CommandService",
+    []
+  )
   getRegisteredCommands(filter: string = "") {
     if (filter) {
       return Array.from(
@@ -54,7 +61,7 @@ export class CommandService extends Eventable<{}> {
       priority: 99999,
       handler: (keyword: string) => {
         this._uiStateService.setState({
-          commandBarMode: "general",
+          commandBarSearchMode: "general",
         });
       },
     });
@@ -65,7 +72,7 @@ export class CommandService extends Eventable<{}> {
       priority: 99998,
       handler: (keyword: string) => {
         this._uiStateService.setState({
-          commandBarMode: "fulltext",
+          commandBarSearchMode: "fulltext",
         });
       },
     });
@@ -76,16 +83,18 @@ export class CommandService extends Eventable<{}> {
       priority: 99997,
       handler: (keyword: string) => {
         this._uiStateService.setState({
-          commandBarMode: "advanced",
+          commandBarSearchMode: "advanced",
         });
       },
     });
   }
 
+  @errorcatching("Failed to register command.", true, "CommandService")
   register(command: ICommand) {
     this._registeredCommands[command.id] = command;
   }
 
+  @errorcatching("Failed to run command.", true, "CommandService")
   run(id: string, ...args: any[]): void {
     const command = this._registeredCommands[id];
     if (command) {
@@ -108,6 +117,7 @@ export class CommandService extends Eventable<{}> {
     }
   }
 
+  @errorcatching("Failed to register externel command.", true, "CommandService")
   registerExternel(command: IExternelCommand) {
     this._logService.info(
       `Register externel command.`,

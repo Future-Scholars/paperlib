@@ -137,6 +137,8 @@
     "filestoragebackend": "文件存储方式",
     "filestoragebackendintro": "选择 PDF 文件存储方式。",
     "local": "本地",
+    "flexibleSyncTitle": "Flexible MongoDB Atlas",
+    "flexibleSyncIntro": "目前，MongoDB Atlas 摒弃了 Paperlib 之前使用的 partition based sync。新用户如使用云同步请打开此开关。",
     "migrate": "合并",
     "migratetitle": "合并本地云端数据库",
     "migrateintro": "上传本地数据库数据与云端数据合并。",

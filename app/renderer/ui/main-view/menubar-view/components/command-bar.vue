@@ -1,17 +1,11 @@
 <script setup lang="ts">
-import {
-  BIconChevronRight,
-  BIconQuestionCircle,
-  BIconSearch,
-  BIconX,
-} from "bootstrap-icons-vue";
-import { computed, ref, watch } from "vue";
+import { BIconChevronRight, BIconSearch, BIconX } from "bootstrap-icons-vue";
+import { computed, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
 import { ICommand } from "@/renderer/services/command-service";
 
-// TODO: Click command to run
 // ================================
 // State
 // ================================
@@ -20,8 +14,8 @@ const uiState = uiStateService.useState();
 // ================================
 // Data
 // ================================
-// TODO: move this to buffer state
 const commandText = ref("");
+const commandInput = ref<HTMLInputElement | null>(null);
 
 const onSearchTextChanged = debounce(() => {
   uiState.commandBarText = `${commandText.value}`;
@@ -68,9 +62,49 @@ const onClearClicked = (payload: Event) => {
 let arrowDownDisposeHandler: () => void;
 let arrowUpDisposeHandler: () => void;
 let enterDisposeHandler: () => void;
+let escapeDisposeHandler: () => void;
+let backDisposeHandler: () => void;
 
 const isFocused = ref(false);
+const isMouseOver = ref(false);
 const isSelectingCommand = ref(false);
+
+const onRunCommand = (e: Event) => {
+  if (isCommandPanelShown.value && selectedCommandIndex.value >= 0) {
+    const commandComponents = commandText.value.split(" ").filter((x) => x);
+    const commandStr = commandComponents[0].trim();
+    const commandID = commandStr.substring(1).trim();
+    const commandArgs = commandText.value
+      .replace(commandComponents[0], "")
+      .trimStart();
+
+    if (commandStr === "\\") {
+      commandText.value = "";
+      return;
+    }
+
+    commandService.run(commandID, commandArgs);
+
+    if (["search", "search_fulltext", "search_advanced"].includes(commandID)) {
+      commandText.value = commandArgs;
+      onSearchTextChanged();
+    } else {
+      commandInput.value?.blur();
+      commandText.value = "";
+    }
+    selectedCommandIndex.value = -1;
+  }
+};
+
+const onSelectCommand = (index: number) => {
+  isSelectingCommand.value = true;
+  if (isCommandPanelShown.value) {
+    selectedCommandIndex.value = index;
+
+    commandText.value = `\\${commands.value[selectedCommandIndex.value].id} `;
+  }
+  commandInput.value?.focus();
+};
 
 const onKeydown = (payload: KeyboardEvent) => {
   if (
@@ -121,43 +155,41 @@ const onFocus = (payload: Event) => {
   enterDisposeHandler = shortcutService.registerInInputField(
     "Enter",
     (e: Event) => {
-      if (isCommandPanelShown.value && selectedCommandIndex.value >= 0) {
-        const commandComponents = commandText.value.split(" ").filter((x) => x);
-        const commandStr = commandComponents[0].trim();
-        const commandID = commandStr.substring(1).trim();
-        const commandArgs = commandText.value
-          .replace(commandComponents[0], "")
-          .trimStart();
-
-        if (commandStr === "\\") {
-          commandText.value = "";
-          return;
-        }
-
-        commandService.run(commandID, commandArgs);
-
-        if (
-          ["search", "search_fulltext", "search_advanced"].includes(commandID)
-        ) {
-          commandText.value = commandArgs;
-          onSearchTextChanged();
-        } else {
-          //@ts-ignore
-          e.target?.blur();
-          commandText.value = "";
-        }
-        selectedCommandIndex.value = -1;
-      }
+      onRunCommand(e);
     }
+  );
+
+  escapeDisposeHandler = shortcutService.registerInInputField(
+    "Escape",
+    (e: Event) => {
+      //@ts-ignore
+      e.target?.blur();
+    }
+  );
+
+  backDisposeHandler = shortcutService.registerInInputField(
+    "Backspace",
+    (e: Event) => {
+      if (commandText.value === "") {
+        uiState.commandBarText = "";
+        uiState.commandBarSearchMode = "general";
+      }
+    },
+    false,
+    true
   );
 
   isFocused.value = true;
 };
 
 const onBlur = (payload: Event) => {
+  if (isMouseOver.value) {
+    return;
+  }
   arrowDownDisposeHandler?.();
   arrowUpDisposeHandler?.();
   enterDisposeHandler?.();
+  escapeDisposeHandler?.();
   isFocused.value = false;
   isSelectingCommand.value = false;
 };
@@ -165,6 +197,13 @@ const onBlur = (payload: Event) => {
 const isCommandPanelShown = computed(() => {
   return isFocused.value && isCommand.value && commands.value.length > 0;
 });
+
+disposable(
+  shortcutService.register("Backslash", () => {
+    commandText.value = `\\`;
+    commandInput.value?.focus();
+  })
+);
 </script>
 
 <template>
@@ -175,6 +214,8 @@ const isCommandPanelShown = computed(() => {
         ? 'shadow-[0_0_0_1px_rgba(0,0,0,0.1)_inset]'
         : 'rounded-bl-md rounded-br-md'
     "
+    @mouseenter="isMouseOver = true"
+    @mouseleave="isMouseOver = false"
   >
     <BIconSearch
       class="flex-none my-auto inline-block text-xs mx-2"
@@ -183,19 +224,20 @@ const isCommandPanelShown = computed(() => {
     <BIconChevronRight class="my-auto ml-1 mr-1 text-xs" v-else />
     <div
       class="text-xxs my-auto mr-2 px-1 border-[1px] border-neutral-300 rounded"
-      v-if="!isCommand && uiState.commandBarMode === 'fulltext'"
+      v-if="!isCommand && uiState.commandBarSearchMode === 'fulltext'"
     >
       FullText
     </div>
     <div
       class="text-xxs my-auto mr-2 px-1 border-[1px] border-neutral-300 rounded"
-      v-if="!isCommand && uiState.commandBarMode === 'advanced'"
+      v-if="!isCommand && uiState.commandBarSearchMode === 'advanced'"
     >
       Advanced
     </div>
 
     <input
       class="grow py-2 my-auto nodraggable-item text-xs bg-transparent focus:outline-none peer"
+      ref="commandInput"
       type="text"
       :placeholder="`${$t('mainview.commandBarPlaceholder')}...`"
       v-model="commandText"
@@ -218,7 +260,7 @@ const isCommandPanelShown = computed(() => {
       leave-to-class="transform opacity-0"
     >
       <div
-        class="w-full max-h-64 bg-neutral-100 absolute left-0 top-8 z-50 rounded-bl-md rounded-br-md p-1 border-b-[1px] border-l-[1px] border-r-[1px] shadow-md"
+        class="w-full max-h-64 bg-neutral-100 dark:bg-neutral-700 absolute left-0 top-8 z-50 rounded-bl-md rounded-br-md p-1 border-b-[1px] border-l-[1px] border-r-[1px] shadow-md dark:border-neutral-700"
         v-show="isCommandPanelShown"
       >
         <RecycleScroller
@@ -237,6 +279,7 @@ const isCommandPanelShown = computed(() => {
                 ? 'bg-neutral-200 dark:bg-neutral-700'
                 : ''
             "
+            @click="() => onSelectCommand(index)"
           >
             <div class="text-xs font-semibold my-auto truncate">
               \{{ item.id }}
@@ -250,4 +293,3 @@ const isCommandPanelShown = computed(() => {
     </Transition>
   </div>
 </template>
-@/base/misc

@@ -1,8 +1,9 @@
-import Realm, { Results } from "realm";
+import Realm, { List, Results } from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
+import { OID } from "@/models/id";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { ISmartFilterServiceState } from "@/renderer/services/smartfilter-service";
 
@@ -15,6 +16,28 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
     super("paperSmartFilterRepository", {
       updated: 0,
     });
+  }
+
+  /**
+   * Transform smartfilter to realm object if exists in database. Otherwise, return undefined.
+   * @param realm - Realm instance
+   * @param paperSmartFilter - PaperSmartFilter
+   * @returns Realm object or undefined
+   */
+  toRealmObject(realm: Realm, paperSmartFilter: IPaperSmartFilterObject) {
+    if (paperSmartFilter instanceof Realm.Object) {
+      return paperSmartFilter as IPaperSmartFilterObject;
+    } else {
+      const objects = realm
+        .objects<PaperSmartFilter>("PaperPaperSmartFilter")
+        .filtered(`name == "${paperSmartFilter.name}"`);
+
+      if (objects.length > 0) {
+        return objects[0] as IPaperSmartFilterObject;
+      } else {
+        return undefined;
+      }
+    }
   }
 
   /**
@@ -52,31 +75,52 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
   }
 
   /**
+   * Load smartfilter by ids
+   * @param realm - Realm instance
+   * @param type - SmartFilter type
+   * @param ids - SmartFilter ids
+   * @returns Results of smartfilter
+   */
+  loadByIds(
+    realm: Realm,
+    type: PaperSmartFilterType,
+    ids: OID[]
+  ): IPaperSmartFilterCollection {
+    const idsQuery = ids.map((id) => `oid(${id})`).join(", ");
+
+    let objects = realm
+      .objects<PaperSmartFilter>(type)
+      .filtered(`_id IN {${idsQuery}}`);
+
+    return objects;
+  }
+
+  /**
    * Delete smartfilter
    * @param realm - Realm instance
    * @param type - SmartFilter type
-   * @param smartfilter - SmartFilter
-   * @param name - SmartFilter name
+   * @param ids - SmartFilter ids
+   * @param smartfilters - SmartFilters
    * @returns True if success
    */
   delete(
     realm: Realm,
     type: PaperSmartFilterType,
-    smartfilter?: PaperSmartFilter,
-    name?: string
+    ids?: OID[],
+    smartfilters?: IPaperSmartFilterCollection
   ) {
     return realm.safeWrite(() => {
-      let objects: IPaperSmartFilterResults;
-      if (smartfilter) {
-        objects = realm
-          .objects<PaperSmartFilter>(type)
-          .filtered(`name == "${smartfilter.name}"`);
-      } else if (name) {
-        objects = realm
-          .objects<PaperSmartFilter>(type)
-          .filtered(`name == "${name}"`);
+      let objects: IPaperSmartFilterCollection;
+      if (smartfilters) {
+        objects = smartfilters
+          .map((smartfilter: IPaperSmartFilterObject) =>
+            this.toRealmObject(realm, smartfilter)
+          )
+          .filter((smartfilter) => smartfilter) as IPaperSmartFilterCollection;
+      } else if (ids) {
+        objects = this.loadByIds(realm, type, ids);
       } else {
-        throw new Error(`Invalid arguments: ${smartfilter}, ${name}, ${type}`);
+        throw new Error(`Invalid arguments: ${smartfilters}, ${ids}, ${type}`);
       }
 
       realm.delete(objects);
@@ -97,19 +141,16 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
     realm: Realm,
     color: Colors,
     type: PaperSmartFilterType,
-    smartfilter?: PaperSmartFilter,
-    name?: string
+    id?: OID,
+    smartfilter?: PaperSmartFilter
   ) {
     realm.safeWrite(() => {
-      let objects;
+      let objects: IPaperSmartFilterCollection;
       if (smartfilter) {
-        objects = realm
-          .objects<PaperSmartFilter>(type)
-          .filtered(`name == "${smartfilter.name}"`);
-      } else if (name) {
-        objects = realm
-          .objects<PaperSmartFilter>(type)
-          .filtered(`name == "${name}"`);
+        const object = this.toRealmObject(realm, smartfilter);
+        objects = object ? [object] : [];
+      } else if (id) {
+        objects = this.loadByIds(realm, type, [id]);
       } else {
         throw new Error(`Invalid arguments: ${smartfilter}, ${name}, ${type}`);
       }
@@ -129,34 +170,37 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
    */
   insert(
     realm: Realm,
-    smartfilter: PaperSmartFilter,
+    smartfilter: IPaperSmartFilterObject,
     type: PaperSmartFilterType,
     partition: string
   ) {
     return realm.safeWrite(() => {
       // Add or Link categorizer
-      const dbExistPaperSmartFilter = realm
-        .objects<PaperSmartFilter>(type)
-        .filtered(`name == "${smartfilter.name}"`);
+      const dbExistPaperSmartFilter = this.toRealmObject(realm, smartfilter);
 
-      if (dbExistPaperSmartFilter.length > 0) {
+      if (dbExistPaperSmartFilter) {
         throw new Error(
           `SmartFilter already exists: ${smartfilter.name}, ${type}`
         );
       } else {
-        const smarfilter = new PaperSmartFilter(
-          smartfilter.name,
-          smartfilter.filter,
-          smartfilter.color,
-          partition
-        );
-        realm.create(type, smarfilter);
-        return smarfilter;
+        if (partition) {
+          smartfilter._partition = partition;
+        }
+
+        return realm.create(type, smartfilter);
       }
     });
   }
 }
 
-export type IPaperSmartFilterResults =
-  | Results<PaperSmartFilter & Realm.Object>
-  | Array<PaperSmartFilter>;
+export type IPaperSmartFilterRealmObject = PaperSmartFilter &
+  Realm.Object<PaperSmartFilter, "_id" | "name" | "filter">;
+
+export type IPaperSmartFilterObject =
+  | PaperSmartFilter
+  | IPaperSmartFilterRealmObject;
+
+export type IPaperSmartFilterCollection =
+  | Results<IPaperSmartFilterObject>
+  | List<IPaperSmartFilterObject>
+  | Array<IPaperSmartFilterObject>;

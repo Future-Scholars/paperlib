@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import "splitpanes/dist/splitpanes.css";
-import { Ref, inject, ref, watch } from "vue";
+import { Ref, inject, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
-import { IFeedEntityResults } from "@/repositories/db-repository/feed-entity-repository";
-import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 
 import SidebarView from "../sidebar-view/sidebar-view.vue";
 import FeedDataView from "./data-view/feed-data-view.vue";
@@ -19,10 +19,10 @@ import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 // ================================
 // State
 // ================================
-// TODO: move all state to UI service
-
 const uiState = uiStateService.useState();
 const prefState = preferenceService.useState();
+const paperState = paperService.useState();
+const feedState = feedService.useState();
 
 // ================================
 // Data
@@ -30,9 +30,8 @@ const prefState = preferenceService.useState();
 const selectedEntityPlaceHolder = ref(new PaperEntity(false));
 const selectedFeedEntityPlaceHolder = ref(new FeedEntity(false));
 
-// TODO: use inject or serviceState?
-const paperEntities = inject<Ref<IPaperEntityResults>>("paperEntities");
-const feedEntities = inject<Ref<IFeedEntityResults>>("feedEntities");
+const paperEntities = inject<Ref<IPaperEntityCollection>>("paperEntities");
+const feedEntities = inject<Ref<IFeedEntityCollection>>("feedEntities");
 
 // ================================
 // Event Handlers
@@ -65,10 +64,9 @@ const showInFinderSelectedEntities = () => {
 };
 
 const previewSelectedEntities = () => {
-  // TODO: Disable preview for now
-  // if (uiState.contentType === "library" && uiState.os === "darwin") {
-  //   fileService.preview(uiState.selectedPaperEntities[0].mainURL);
-  // }
+  if (uiState.contentType === "library") {
+    fileService.preview(uiState.selectedPaperEntities[0].mainURL);
+  }
 };
 
 const reloadSelectedEntities = () => {
@@ -145,13 +143,13 @@ const scrapeSelectedEntitiesFrom = (scraperName: string) => {
 
 const deleteSelectedEntities = () => {
   if (uiState.contentType === "library") {
-    uiState.isDeleteConfirmShown = true;
+    uiState.deleteConfirmShown = true;
   }
 };
 
 const editSelectedEntities = () => {
   if (uiState.contentType === "library") {
-    uiState.isEditViewShown = true;
+    uiState.editViewShown = true;
   }
 };
 
@@ -255,7 +253,7 @@ const onMenuButtonClicked = (command: string) => {
       switchSortOrder(command.replaceAll("sort-order-", "") as "asce" | "desc");
       break;
     case "preference":
-      uiState.isPreferenceViewShown = true;
+      uiState.preferenceViewShown = true;
       break;
   }
 };
@@ -263,7 +261,7 @@ const onMenuButtonClicked = (command: string) => {
 const onArrowUpPressed = () => {
   const currentIndex = uiState.selectedIndex[0] || 0;
   const newIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1;
-  if (!uiState.isEditViewShown && !uiState.isPreferenceViewShown) {
+  if (!uiState.editViewShown && !uiState.preferenceViewShown) {
     uiState.selectedIndex = [newIndex];
   }
 };
@@ -273,12 +271,12 @@ const onArrowDownPressed = () => {
   const newIndex =
     currentIndex + 1 >
     (uiState.contentType === "library"
-      ? uiState.entitiesCount
-      : uiState.feedEntitiesCount) -
+      ? paperState.count
+      : feedState.entitiesCount) -
       1
       ? currentIndex
       : currentIndex + 1;
-  if (!uiState.isEditViewShown && !uiState.isPreferenceViewShown) {
+  if (!uiState.editViewShown && !uiState.preferenceViewShown) {
     uiState.selectedIndex = [newIndex];
   }
 };
@@ -291,7 +289,6 @@ const onDetailPanelResized = (event: any) => {
 // ========================================================
 // Register Context Menu
 
-// TODO use on or onClick? consitent with other menu handlers
 disposable(
   PLMainAPI.contextMenuService.on("dataContextMenuEditClicked", () => {
     editSelectedEntities();
@@ -377,41 +374,21 @@ disposable(
 
 // ========================================================
 // Register Shortcut
-
 disposable(
   PLMainAPI.menuService.onClick("preference", () => {
-    uiState.isPreferenceViewShown = true;
+    uiState.preferenceViewShown = true;
   })
 );
 
 disposable(
   PLMainAPI.menuService.onClick("File-enter", () => {
-    if (
-      uiState.mainViewFocused &&
-      !uiState.inputFieldFocused &&
-      (uiState.selectedPaperEntities.length >= 1 ||
-        uiState.selectedFeedEntities.length >= 1) &&
-      !uiState.isDeleteConfirmShown &&
-      !uiState.isEditViewShown &&
-      !uiState.isPreferenceViewShown
-    ) {
-      openSelectedEntities();
-    }
+    openSelectedEntities();
   })
 );
 
 disposable(
   PLMainAPI.menuService.onClick("View-preview", () => {
-    if (
-      uiState.mainViewFocused &&
-      !uiState.inputFieldFocused &&
-      uiState.selectedPaperEntities.length >= 1 &&
-      !uiState.isDeleteConfirmShown &&
-      !uiState.isEditViewShown &&
-      !uiState.isPreferenceViewShown
-    ) {
-      previewSelectedEntities();
-    }
+    previewSelectedEntities();
   })
 );
 
@@ -462,13 +439,11 @@ disposable(PLMainAPI.menuService.onClick("View-next", onArrowDownPressed));
 // =======================================
 // Register State Changes
 // =======================================
-disposable(uiStateService.onChanged("selectedIndex", reloadSelectedEntities));
-
-watch(
-  () => paperEntities?.value,
-  (value) => {
-    reloadSelectedEntities();
-  }
+disposable(
+  uiStateService.onChanged(
+    ["selectedIndex", "entitiesReloaded"],
+    reloadSelectedEntities
+  )
 );
 
 disposable(
@@ -495,9 +470,9 @@ disposable(
       <div class="grow flex flex-col h-screen bg-white dark:bg-neutral-800">
         <WindowMenuBar
           class="flex-none"
-          @click="onMenuButtonClicked"
           :disableSingleBtn="uiState.selectedIndex.length !== 1"
           :disableMultiBtn="uiState.selectedIndex.length === 0"
+          @event:click="onMenuButtonClicked"
         />
         <div id="main-view" class="h-full w-full">
           <splitpanes @resized="onDetailPanelResized($event)">
@@ -548,9 +523,11 @@ disposable(
                 "
                 v-show="uiState.selectedFeedEntities.length === 1"
                 v-if="uiState.contentType === 'feed'"
-                @add-clicked="addSelectedFeedEntities"
-                @read-timeout="readSelectedFeedEntities(true)"
-                @read-timeout-in-unread="readSelectedFeedEntities(true, true)"
+                @event:add-click="addSelectedFeedEntities"
+                @event:read-timeout="readSelectedFeedEntities(true)"
+                @event:read-timeout-in-unread="
+                  readSelectedFeedEntities(true, true)
+                "
               />
             </pane>
           </splitpanes>

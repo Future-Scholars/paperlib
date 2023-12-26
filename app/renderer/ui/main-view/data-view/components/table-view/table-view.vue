@@ -2,14 +2,14 @@
 import { PropType, ref } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { IPaperEntityResults } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 
 import PaperTableItem from "./components/paper-table-item.vue";
 import TableHeader from "./components/table-header.vue";
 
 const props = defineProps({
   entities: {
-    type: Object as PropType<IPaperEntityResults>,
+    type: Object as PropType<IPaperEntityCollection>,
     required: true,
   },
   fieldEnable: {
@@ -56,7 +56,14 @@ const lastSelectedSingleIndex = ref<number>(-1);
 
 // =================
 // Event handlers
-const emits = defineEmits(["event:click", "event:dblclick", "event:contextmenu", "event:drag", "event:header-click", "event:header-width-change"]);
+const emits = defineEmits([
+  "event:click",
+  "event:dblclick",
+  "event:contextmenu",
+  "event:drag",
+  "event:header-click",
+  "event:header-width-change",
+]);
 
 const calSelectedIndex = (event: MouseEvent, index: number) => {
   let selectedIndexBuffer = JSON.parse(JSON.stringify(props.selectedIndex));
@@ -82,7 +89,7 @@ const calSelectedIndex = (event: MouseEvent, index: number) => {
   }
 
   return selectedIndexBuffer;
-}
+};
 
 const onItemClicked = (event: MouseEvent, index: number) => {
   const selectedIndex = calSelectedIndex(event, index);

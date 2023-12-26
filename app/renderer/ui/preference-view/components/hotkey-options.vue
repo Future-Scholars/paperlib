@@ -66,7 +66,7 @@ if (keyPart.length > 0) {
   modifier1.value = keyPart.pop() || "none";
 }
 
-const emit = defineEmits(["update"]);
+const emits = defineEmits(["event:change"]);
 </script>
 
 <template>
@@ -86,7 +86,7 @@ const emit = defineEmits(["update"]);
             (e) => {
               // @ts-ignore
               modifier1 = e.target.value;
-              emit('update', `${modifier1}+${modifier2}+${key}`);
+              emits('event:change', `${modifier1}+${modifier2}+${key}`);
             }
           "
         >
@@ -110,7 +110,7 @@ const emit = defineEmits(["update"]);
             (e) => {
               // @ts-ignore
               modifier2 = e.target.value;
-              emit('update', `${modifier1}+${modifier2}+${key}`);
+              emits('event:change', `${modifier1}+${modifier2}+${key}`);
             }
           "
         >
@@ -129,7 +129,7 @@ const emit = defineEmits(["update"]);
             (e) => {
               // @ts-ignore
               key = e.target.value;
-              emit('update', `${modifier1}+${modifier2}+${key}`);
+              emits('event:change', `${modifier1}+${modifier2}+${key}`);
             }
           "
         >

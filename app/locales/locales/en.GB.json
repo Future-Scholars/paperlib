@@ -137,6 +137,8 @@
     "filestoragebackend": "Storage Backend",
     "filestoragebackendintro": "Choose a backend to store the paper files such as PDF files.",
     "local": "Local",
+    "flexibleSyncTitle": "Flexible MongoDB Atlas",
+    "flexibleSyncIntro": "Currentlly, MongoDB Atlas doesn't support the partition based sync Paperlib used before anymore. For new users who want to use the cloud sync, please turn on this.",
     "migrate": "Migrate",
     "migratetitle": "Migrate local database to cloud",
     "migrateintro": "Migrate local database to cloud. This will merge the existing local database with the one on the cloud.",

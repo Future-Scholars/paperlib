@@ -18,8 +18,6 @@ export class LocalFileBackend implements IFileBackend {
   }
 
   async check() {
-    // TODO: Should not modify stateStore directly here
-    // this.stateStore.viewState.syncFileStorageAvaliable = false;
     return Promise.resolve(true);
   }
 
@@ -65,7 +63,6 @@ export class LocalFileBackend implements IFileBackend {
     } else {
       throw new Error("Cannot find the source file");
     }
-    // TODO: check should lowercase?
     if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
       if (this._fileMoveOperation === "link" && !forceNotLink) {
         try {
@@ -129,10 +126,11 @@ export class LocalFileBackend implements IFileBackend {
       if (stat.isDirectory()) {
         throw new Error("Cannot remove a directory");
       }
-      // TODO: https://github.com/electron/electron/issues/35786
+      // ENHANCE: https://github.com/electron/electron/issues/35786
       try {
         await shell.trashItem(_sourceURL);
       } catch (error) {
+        console.error(error);
         try {
           await fsPromise.unlink(_sourceURL);
         } catch (error) {

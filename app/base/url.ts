@@ -93,6 +93,9 @@ export function listAllFiles(
   folderURL: string,
   arrayOfFiles: string[] | null = null
 ): string[] {
+  if (!fs.existsSync(folderURL)) {
+    return [];
+  }
   let files = fs.readdirSync(folderURL);
 
   arrayOfFiles = (arrayOfFiles || []) as string[];

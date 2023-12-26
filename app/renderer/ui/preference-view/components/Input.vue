@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Switch } from "@headlessui/vue";
 import { ref } from "vue";
 
 const props = defineProps({
@@ -26,7 +25,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update"]);
+const emits = defineEmits(["event:change"]);
 
 const value = ref(props.value);
 </script>
@@ -44,7 +43,7 @@ const value = ref(props.value);
       :type="type"
       :placeholder="placeholder"
       v-model="value"
-      @input="emit('update', value)"
+      @input="emits('event:change', value)"
     />
   </div>
 </template>

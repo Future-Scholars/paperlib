@@ -100,7 +100,6 @@ export class HookService {
       this._hookPoints[hookName] = {};
     }
 
-    // TODO: if hook error, the processing spin should be stopped
     const runHook = async (args: any[]) => {
       try {
         return await PLExtAPI.extensionManagementService.callExtensionMethod(
@@ -121,7 +120,6 @@ export class HookService {
 
     this._hookPoints[hookName][`${extensionID}-${callbackName}`] = runHook;
 
-    //TODO: Dispose callback
     return () => {
       this._logService.info(
         `Disposing hook ${hookName} of extension ${extensionID}-${callbackName}`,
