@@ -28,3 +28,5 @@ release
 mongodb-realm
 
 crypto
+
+!paperlib-api/dist
