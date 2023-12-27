@@ -147,11 +147,7 @@ export class HookService {
     };
   }
 
-  async hookTransform(
-    hookName: string,
-    extensionID: string,
-    callbackName: string
-  ) {
+  hookTransform(hookName: string, extensionID: string, callbackName: string) {
     this._logService.info(
       `Hooking ${hookName} of extension ${extensionID}-${callbackName}`,
       "Transform Hook",

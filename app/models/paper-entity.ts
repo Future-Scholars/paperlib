@@ -100,8 +100,11 @@ export class PaperEntity {
   publisher: string;
 
   constructor(object?: IPaperEntityDraft, initObjectId = false) {
-    this._id = object?._id || "";
-    this.id = object?._id || "";
+    this._id = object?._id ? new ObjectId(object._id) : "";
+    this.id = object?._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
+
     this._partition = object?._partition || "";
     this.addTime = object?.addTime || new Date();
     this.title = object?.title || "";
@@ -136,6 +139,9 @@ export class PaperEntity {
       set: (target, prop, value) => {
         if (prop === "title") {
           target.setValue("title", value, true);
+        } else if ((prop === "_id" || prop === "id") && value) {
+          this._id = new ObjectId(value);
+          this.id = this._id;
         } else {
           target[prop] = value;
         }
@@ -169,8 +175,11 @@ export class PaperEntity {
   }
 
   initialize(object: IPaperEntityDraft) {
-    this._id = object._id || "";
-    this.id = object._id || "";
+    this._id = object._id ? new ObjectId(object._id) : "";
+    this.id = object._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
+
     this._partition = object._partition || "";
     this.addTime = object.addTime || new Date();
     this.title = object.title || "";

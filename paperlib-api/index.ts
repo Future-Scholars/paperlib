@@ -32,7 +32,12 @@ import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 
 import { chunkRun } from "@/base/chunk";
-import { isMetadataCompleted, isPreprint } from "@/base/metadata";
+import {
+  isMetadataCompleted,
+  isPreprint,
+  mergeMetadata,
+} from "@/base/metadata";
+import { NetworkTool } from "@/base/network";
 import { formatString } from "@/base/string";
 import {
   constructFileURL,
@@ -64,6 +69,7 @@ declare namespace PLAPI {
   const uiStateService: UIStateService;
   const preferenceService: PreferenceService;
   const uiSlotService: UISlotService;
+  const networkTool: NetworkTool;
 }
 
 declare namespace PLMainAPI {
@@ -103,6 +109,7 @@ const urlUtils = {
 const metadataUtils = {
   isMetadataCompleted,
   isPreprint,
+  mergeMetadata,
 };
 
 export {

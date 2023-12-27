@@ -5499,7 +5499,7 @@ class Categorizer {
   count;
   color;
   constructor(object, initObjectId = false) {
-    this._id = object._id || "";
+    this._id = object._id ? new ObjectId(object._id) : "";
     this._partition = object._partition || "";
     this.name = object.name || "";
     this.count = object.count || 0;
@@ -5507,9 +5507,19 @@ class Categorizer {
     if (initObjectId) {
       this._id = new ObjectId();
     }
+    return new Proxy(this, {
+      set: (target, prop, value) => {
+        if (prop === "_id" && value) {
+          this._id = new ObjectId(value);
+        } else {
+          target[prop] = value;
+        }
+        return true;
+      }
+    });
   }
   initialize(object) {
-    this._id = object._id || "";
+    this._id = object._id ? new ObjectId(object._id) : "";
     this._partition = object._partition || "";
     this.name = object.name || "";
     this.count = object.count || 0;
@@ -5572,8 +5582,10 @@ class Feed {
   color;
   url;
   constructor(object, initObjectId = false) {
-    this._id = object?._id || "";
-    this.id = object?.id || "";
+    this._id = object?._id ? new ObjectId(object._id) : "";
+    this.id = object?._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
     this._partition = object?._partition || "";
     this.name = object?.name || "";
     this.count = object?.count || 0;
@@ -5585,8 +5597,10 @@ class Feed {
     }
   }
   initialize(object) {
-    this._id = object._id || "";
-    this.id = object.id || "";
+    this._id = object._id ? new ObjectId(object._id) : "";
+    this.id = object._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
     this._partition = object._partition || "";
     this.name = object.name || "";
     this.count = object.count || 0;
@@ -5644,8 +5658,10 @@ class FeedEntity {
   publisher;
   read;
   constructor(object, initObjectId = false) {
-    this._id = object?._id || "";
-    this.id = object?.id || "";
+    this._id = object?._id ? new ObjectId(object?._id) : "";
+    this.id = object?.id ? new ObjectId(object?.id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
     this._partition = object?._partition || "";
     this.addTime = object?.addTime || /* @__PURE__ */ new Date();
     this.feed = object?.feed || new Feed({}, initObjectId);
@@ -5668,10 +5684,23 @@ class FeedEntity {
       this._id = new ObjectId();
       this.id = this._id;
     }
+    return new Proxy(this, {
+      set: (target, prop, value) => {
+        if ((prop === "_id" || prop === "id") && value) {
+          this._id = new ObjectId(value);
+          this.id = this._id;
+        } else {
+          target[prop] = value;
+        }
+        return true;
+      }
+    });
   }
   initialize(object) {
-    this._id = object._id || "";
-    this.id = object.id || "";
+    this._id = object._id ? new ObjectId(object._id) : "";
+    this.id = object._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
     this._partition = object._partition || "";
     this.addTime = object.addTime || /* @__PURE__ */ new Date();
     this.feed = object.feed || new Feed({}, true);
@@ -12040,8 +12069,10 @@ class PaperEntity {
   number;
   publisher;
   constructor(object, initObjectId = false) {
-    this._id = object?._id || "";
-    this.id = object?._id || "";
+    this._id = object?._id ? new ObjectId(object._id) : "";
+    this.id = object?._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
     this._partition = object?._partition || "";
     this.addTime = object?.addTime || /* @__PURE__ */ new Date();
     this.title = object?.title || "";
@@ -12071,6 +12102,9 @@ class PaperEntity {
       set: (target, prop, value) => {
         if (prop === "title") {
           target.setValue("title", value, true);
+        } else if ((prop === "_id" || prop === "id") && value) {
+          this._id = new ObjectId(value);
+          this.id = this._id;
         } else {
           target[prop] = value;
         }
@@ -12098,8 +12132,10 @@ class PaperEntity {
     this[key] = value;
   }
   initialize(object) {
-    this._id = object._id || "";
-    this.id = object._id || "";
+    this._id = object._id ? new ObjectId(object._id) : "";
+    this.id = object._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
     this._partition = object._partition || "";
     this.addTime = object.addTime || /* @__PURE__ */ new Date();
     this.title = object.title || "";
@@ -12158,7 +12194,7 @@ class PaperSmartFilter {
   filter = "";
   color;
   constructor(object, initObjectId = false) {
-    this._id = object?._id || "";
+    this._id = object?._id ? new ObjectId(object._id) : "";
     this._partition = object?._partition || "";
     this.name = object?.name || "";
     this.filter = object?.filter || "";
@@ -12166,9 +12202,19 @@ class PaperSmartFilter {
     if (initObjectId) {
       this._id = new ObjectId();
     }
+    return new Proxy(this, {
+      set: (target, prop, value) => {
+        if (prop === "_id" && value) {
+          this._id = new ObjectId(value);
+        } else {
+          target[prop] = value;
+        }
+        return true;
+      }
+    });
   }
   initialize(object) {
-    this._id = object._id || "";
+    this._id = object._id ? new ObjectId(object._id) : "";
     this._partition = object._partition || "";
     this.name = object.name || "";
     this.filter = object.filter || "";
@@ -12229,6 +12275,17 @@ function isMetadataCompleted(paperEntityDraft) {
 function isPreprint(paperEntityDraft) {
   const lowercasedPublication = paperEntityDraft.publication.toLowerCase();
   return lowercasedPublication.includes("arxiv") || lowercasedPublication.includes("biorxiv") || lowercasedPublication.includes("medrxiv") || lowercasedPublication.includes("chemrxiv") || lowercasedPublication.includes("openreview") || lowercasedPublication.includes("corr") || lowercasedPublication === "" || lowercasedPublication === "undefined";
+}
+function mergeMetadata(originPaperEntityDraft, paperEntityDraft, scrapedpaperEntity, mergePriorityLevel, scraperIndex) {
+  if (isPreprint(paperEntityDraft) || !isPreprint(scrapedpaperEntity) && !isPreprint(paperEntityDraft)) {
+    for (const key of Object.keys(scrapedpaperEntity)) {
+      if (scrapedpaperEntity[key] && scrapedpaperEntity[key] !== "" && mergePriorityLevel[key] > scraperIndex && originPaperEntityDraft[key] !== scrapedpaperEntity[key]) {
+        paperEntityDraft[key] = scrapedpaperEntity[key];
+        mergePriorityLevel[key] = scraperIndex;
+      }
+    }
+  }
+  return { paperEntityDraft, mergePriorityLevel };
 }
 
 const formatString = ({
@@ -12404,7 +12461,8 @@ const urlUtils = {
 };
 const metadataUtils = {
   isMetadataCompleted,
-  isPreprint
+  isPreprint,
+  mergeMetadata
 };
 
 export { Feed, FeedEntity, PLExtension, PaperEntity, PaperFolder, PaperSmartFilter, PaperTag, chunkRun, metadataUtils, stringUtils, urlUtils };

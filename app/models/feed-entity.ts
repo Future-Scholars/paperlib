@@ -79,8 +79,11 @@ export class FeedEntity {
   read: boolean;
 
   constructor(object?: IFeedEntityDraft, initObjectId = false) {
-    this._id = object?._id || "";
-    this.id = object?.id || "";
+    this._id = object?._id ? new ObjectId(object?._id) : "";
+    this.id = object?.id ? new ObjectId(object?.id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
+
     this._partition = object?._partition || "";
     this.addTime = object?.addTime || new Date();
     this.feed = object?.feed || new Feed({}, initObjectId);
@@ -104,11 +107,27 @@ export class FeedEntity {
       this._id = new ObjectId();
       this.id = this._id;
     }
+
+    return new Proxy(this, {
+      set: (target, prop, value) => {
+        if ((prop === "_id" || prop === "id") && value) {
+          this._id = new ObjectId(value);
+          this.id = this._id;
+        } else {
+          target[prop] = value;
+        }
+
+        return true;
+      },
+    });
   }
 
   initialize(object: IFeedEntityDraft) {
-    this._id = object._id || "";
-    this.id = object.id || "";
+    this._id = object._id ? new ObjectId(object._id) : "";
+    this.id = object._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
+
     this._partition = object._partition || "";
     this.addTime = object.addTime || new Date();
     this.feed = object.feed || new Feed({}, true);

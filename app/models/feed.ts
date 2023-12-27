@@ -35,8 +35,11 @@ export class Feed {
   url: string;
 
   constructor(object?: IFeedDraft, initObjectId = false) {
-    this._id = object?._id || "";
-    this.id = object?.id || "";
+    this._id = object?._id ? new ObjectId(object._id) : "";
+    this.id = object?._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
+
     this._partition = object?._partition || "";
     this.name = object?.name || "";
     this.count = object?.count || 0;
@@ -50,8 +53,11 @@ export class Feed {
   }
 
   initialize(object: IFeedDraft) {
-    this._id = object._id || "";
-    this.id = object.id || "";
+    this._id = object._id ? new ObjectId(object._id) : "";
+    this.id = object._id ? new ObjectId(object._id) : "";
+    this.id = this.id ? this.id : this._id;
+    this._id = this._id ? this._id : this.id;
+
     this._partition = object._partition || "";
     this.name = object.name || "";
     this.count = object.count || 0;

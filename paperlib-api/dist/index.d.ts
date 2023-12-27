@@ -995,7 +995,7 @@ declare class HookService {
     modifyHookPoint<T extends any[]>(hookName: string, ...args: T): Promise<T>;
     transformhookPoint<T extends any[], O extends any[]>(hookName: string, ...args: T): Promise<T | (O extends readonly (infer InnerArr)[] ? InnerArr extends readonly (infer InnerArr)[] ? InnerArr : InnerArr : O)[]>;
     hookModify(hookName: string, extensionID: string, callbackName: string): () => void;
-    hookTransform(hookName: string, extensionID: string, callbackName: string): Promise<() => void>;
+    hookTransform(hookName: string, extensionID: string, callbackName: string): () => void;
     recoverClass<T>(originalObj: T, obj: any): T;
 }
 
@@ -1549,9 +1549,19 @@ declare class MenuService extends Eventable<IMenuServiceState> {
     disableAll(): void;
 }
 
+declare function mergeMetadata(originPaperEntityDraft: PaperEntity, paperEntityDraft: PaperEntity, scrapedpaperEntity: PaperEntity, mergePriorityLevel: {
+    [key: string]: number;
+}, scraperIndex: number): {
+    paperEntityDraft: PaperEntity;
+    mergePriorityLevel: {
+        [key: string]: number;
+    };
+};
+
 export declare const metadataUtils: {
     isMetadataCompleted: typeof isMetadataCompleted;
     isPreprint: typeof isPreprint;
+    mergeMetadata: typeof mergeMetadata;
 };
 
 declare class NetworkTool {
@@ -1923,6 +1933,7 @@ declare namespace PLAPI_2 {
     const uiStateService: UIStateService;
     const preferenceService: PreferenceService;
     const uiSlotService: UISlotService;
+    const networkTool: NetworkTool;
 }
 export { PLAPI_2 as PLAPI }
 
