@@ -27,7 +27,6 @@ export default defineConfig({
         "realm",
         "pdfjs-dist/build/pdf.mjs",
         "pdfjs-dist/types/src/display/api",
-        "citation-js",
         "fast-xml-parser",
         "katex",
         "markdown-it",

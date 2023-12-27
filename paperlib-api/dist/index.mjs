@@ -1,4 +1,3 @@
-import Cite from 'citation-js';
 import fs from 'fs';
 import path from 'path';
 
@@ -12178,73 +12177,6 @@ class PaperSmartFilter {
   }
 }
 
-function bibtex2json(bibtex) {
-  try {
-    return Cite(bibtex).data;
-  } catch (e) {
-    console.error(e);
-    return [];
-  }
-}
-function bibtex2paperEntityDraft(bibtex, paperEntityDraft) {
-  if (bibtex.title) {
-    paperEntityDraft.title = bibtex.title;
-  }
-  if (bibtex.author) {
-    const authors = bibtex.author.map((author) => {
-      return [author.given, author.family].join(" ");
-    }).join(", ");
-    paperEntityDraft.authors = authors;
-  }
-  if (bibtex.issued) {
-    if (bibtex.issued["date-parts"][0][0]) {
-      paperEntityDraft.pubTime = `${bibtex.issued["date-parts"][0][0]}`;
-    }
-  }
-  if (bibtex["container-title"]) {
-    const publication = bibtex["container-title"];
-    if (paperEntityDraft.publication === "" || !publication.toLowerCase().includes("arxiv") && paperEntityDraft.publication.toLowerCase().includes("arxiv")) {
-      paperEntityDraft.publication = publication;
-    }
-  }
-  if (bibtex.type === "article-journal") {
-    paperEntityDraft.pubType = 0;
-  } else if (bibtex.type === "paper-conference" || bibtex.type === "chapter") {
-    paperEntityDraft.pubType = 1;
-  } else if (bibtex.type === "book") {
-    paperEntityDraft.pubType = 3;
-  } else {
-    paperEntityDraft.pubType = 2;
-  }
-  if (bibtex.page) {
-    paperEntityDraft.pages = `${bibtex.page}`;
-  }
-  if (bibtex.volume) {
-    paperEntityDraft.volume = `${bibtex.volume}`;
-  }
-  if (bibtex.issue) {
-    paperEntityDraft.number = `${bibtex.issue}`;
-  }
-  if (bibtex.publisher) {
-    paperEntityDraft.publisher = `${bibtex.publisher}`;
-  }
-  return paperEntityDraft;
-}
-function bibtexes2paperEntityDrafts(bibtexes, paperEntityDrafts) {
-  try {
-    if (Array.isArray(bibtexes) && Array.isArray(paperEntityDrafts)) {
-      console.error("Bibtex and EntityDraft must be both arrays or not");
-      return paperEntityDrafts;
-    }
-    return bibtexes.map((bib, index) => {
-      return bibtex2paperEntityDraft(bib, paperEntityDrafts[index]);
-    });
-  } catch (e) {
-    console.error(e);
-    return paperEntityDrafts;
-  }
-}
-
 const chunkRun = async (argsList, process, errorProcess, chunkSize = 10) => {
   let results = [];
   const errors = [];
@@ -12470,14 +12402,9 @@ const urlUtils = {
   listAllFiles,
   isLocalPath
 };
-const bibtexUtils = {
-  bibtex2json,
-  bibtex2paperEntityDraft,
-  bibtexes2paperEntityDrafts
-};
 const metadataUtils = {
   isMetadataCompleted,
   isPreprint
 };
 
-export { Feed, FeedEntity, PLExtension, PaperEntity, PaperFolder, PaperSmartFilter, PaperTag, bibtexUtils, chunkRun, metadataUtils, stringUtils, urlUtils };
+export { Feed, FeedEntity, PLExtension, PaperEntity, PaperFolder, PaperSmartFilter, PaperTag, chunkRun, metadataUtils, stringUtils, urlUtils };

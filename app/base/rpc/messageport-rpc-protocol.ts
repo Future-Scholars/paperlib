@@ -15,6 +15,8 @@ export enum MessageType {
   exposeAPI = 6,
   registerHook = 7,
   disposeHook = 8,
+  registerCommand = 9,
+  disposeCommand = 10,
 }
 
 /**
@@ -38,6 +40,8 @@ export class MessagePortRPCProtocol {
 
   private readonly _hookDisposeCallbacks: Record<string, () => void>;
 
+  private readonly _commandDisposeCallbacks: Record<string, () => void>;
+
   public exposedAPIs: { [namespace: string]: string[] };
 
   constructor(
@@ -53,6 +57,7 @@ export class MessagePortRPCProtocol {
     this._eventDisposeCallbacks = {};
     this.exposedAPIs = {};
     this._hookDisposeCallbacks = {};
+    this._commandDisposeCallbacks = {};
 
     this._lastCallId = 0;
 
@@ -94,11 +99,19 @@ export class MessagePortRPCProtocol {
           };
         } else if (
           typeof name === "string" &&
-          name === "hook" &&
+          (name === "hookModify" || name === "hookTransform") &&
           rpcId === "hookService"
         ) {
           target[name] = (...myArgs: any[]) => {
             return this._remoteHookRegister(rpcId, name, myArgs);
+          };
+        } else if (
+          typeof name === "string" &&
+          name === "registerExternel" &&
+          rpcId === "commandService"
+        ) {
+          target[name] = (...myArgs: any[]) => {
+            return this._remoteCommandRegister(rpcId, name, myArgs);
           };
         } else if (typeof name === "string" && !target[name]) {
           target[name] = (...myArgs: any[]) => {
@@ -211,6 +224,7 @@ export class MessagePortRPCProtocol {
     };
   }
 
+  // TODO: merge the following 2 functions
   private _remoteHookRegister(rpcId: string, methodName: string, args: any[]) {
     const callId = String(++this._lastCallId);
 
@@ -237,6 +251,44 @@ export class MessagePortRPCProtocol {
           callerId: this._callerId,
           rpcId,
           type: MessageType.disposeHook,
+          value: {
+            callbackId,
+          },
+        })
+      );
+    };
+  }
+
+  private _remoteCommandRegister(
+    rpcId: string,
+    methodName: string,
+    args: any[]
+  ) {
+    const callId = String(++this._lastCallId);
+
+    const callbackId = uid();
+
+    const msg = JSON.stringify({
+      callId,
+      callerId: this._callerId,
+      rpcId,
+      type: MessageType.registerCommand,
+      value: {
+        methodName,
+        args,
+        callbackId,
+      },
+    });
+
+    this._port.postMessage(msg);
+
+    return () => {
+      this._port.postMessage(
+        JSON.stringify({
+          callId,
+          callerId: this._callerId,
+          rpcId,
+          type: MessageType.disposeCommand,
           value: {
             callbackId,
           },
@@ -289,6 +341,14 @@ export class MessagePortRPCProtocol {
       }
       case MessageType.disposeHook: {
         this._receiveHookDispose(callId, rpcId, value);
+        break;
+      }
+      case MessageType.registerCommand: {
+        this._receiveCommandRegister(callId, rpcId, value);
+        break;
+      }
+      case MessageType.disposeCommand: {
+        this._receiveCommandDispose(callId, rpcId, value);
         break;
       }
       default:
@@ -430,7 +490,16 @@ export class MessagePortRPCProtocol {
       return;
     }
 
-    disposeCallback();
+    try {
+      disposeCallback();
+    } catch (e) {
+      PLAPI.logService.error(
+        `Failed to dispose event ${callId}`,
+        e as Error,
+        false,
+        "RPC"
+      );
+    }
     delete this._eventDisposeCallbacks[callId];
   }
 
@@ -445,7 +514,26 @@ export class MessagePortRPCProtocol {
     }
 
     for (const callbackId in callbackList) {
-      callbackList[callbackId](args);
+      try {
+        callbackList[callbackId](args);
+      } catch (e) {
+        let error: Error;
+
+        if (e instanceof Error) {
+          error = e;
+        } else {
+          error = new Error((e as any).message || "Unknown error");
+          error.name = (e as any).name || "UnknownError";
+          error.stack = (e as any).stack || "";
+        }
+
+        PLAPI.logService.error(
+          `Failed to fire event ${eventName} on ${rpcId}`,
+          error,
+          false,
+          "RPC"
+        );
+      }
     }
   }
 
@@ -487,6 +575,7 @@ export class MessagePortRPCProtocol {
     }
   }
 
+  // TODO: merge the following 4 functions
   private async _receiveHookRegister(
     callId: string,
     rpcId: string,
@@ -506,6 +595,35 @@ export class MessagePortRPCProtocol {
     const { callbackId } = value;
 
     const disposeCallback = this._hookDisposeCallbacks[callbackId];
+    if (!disposeCallback) {
+      return;
+    }
+
+    disposeCallback();
+    delete this._hookDisposeCallbacks[callbackId];
+  }
+
+  private async _receiveCommandRegister(
+    callId: string,
+    rpcId: string,
+    value: any
+  ) {
+    const { methodName, args, callbackId } = value;
+
+    const actor = this._locals[rpcId];
+    if (!actor) {
+      throw new Error("Unknown actor " + rpcId);
+    }
+
+    this._commandDisposeCallbacks[callbackId] = await actor[methodName](
+      ...args
+    );
+  }
+
+  private _receiveCommandDispose(callId: string, rpcId: string, value: any) {
+    const { callbackId } = value;
+
+    const disposeCallback = this._commandDisposeCallbacks[callbackId];
     if (!disposeCallback) {
       return;
     }

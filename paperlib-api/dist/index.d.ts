@@ -38,35 +38,6 @@ declare interface AtomItem {
     updated: string;
 }
 
-declare function bibtex2json(bibtex: string): BibtexEntity[];
-
-declare function bibtex2paperEntityDraft(bibtex: BibtexEntity, paperEntityDraft: PaperEntity): PaperEntity;
-
-declare interface BibtexEntity {
-    title: string;
-    author: [{
-        given: string;
-        family: string;
-    }];
-    issued: {
-        "date-parts": [[number]];
-    };
-    type: string;
-    "container-title": string;
-    publisher: string;
-    page: string;
-    volume: string;
-    issue: string;
-}
-
-declare function bibtexes2paperEntityDrafts(bibtexes: BibtexEntity[], paperEntityDrafts: PaperEntity[]): PaperEntity | PaperEntity[];
-
-export declare const bibtexUtils: {
-    bibtex2json: typeof bibtex2json;
-    bibtex2paperEntityDraft: typeof bibtex2paperEntityDraft;
-    bibtexes2paperEntityDrafts: typeof bibtexes2paperEntityDrafts;
-};
-
 declare class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
     private readonly _preferenceService;
     private readonly _logService;
@@ -294,7 +265,7 @@ declare class CommandService extends Eventable<{}> {
     private _registerInnerCommands;
     register(command: ICommand): void;
     run(id: string, ...args: any[]): void;
-    registerExternel(command: IExternelCommand): void;
+    registerExternel(command: IExternelCommand): () => void;
 }
 
 declare enum ConfigType {
@@ -1017,14 +988,14 @@ declare function hasProtocol(url: string): boolean;
  */
 declare class HookService {
     private readonly _logService;
-    private readonly _hookPoints;
+    private readonly _modifyHookPoints;
+    private readonly _transformHookPoints;
     constructor(_logService: LogService);
-    hasHook(hookName: string): {
-        [key: string]: (...args: any[]) => Promise<any>;
-    };
+    hasHook(hookName: string): false | "modify" | "transform";
     modifyHookPoint<T extends any[]>(hookName: string, ...args: T): Promise<T>;
     transformhookPoint<T extends any[], O extends any[]>(hookName: string, ...args: T): Promise<T | (O extends readonly (infer InnerArr)[] ? InnerArr extends readonly (infer InnerArr)[] ? InnerArr : InnerArr : O)[]>;
-    hook(hookName: string, extensionID: string, callbackName: string): Promise<(() => void) | undefined>;
+    hookModify(hookName: string, extensionID: string, callbackName: string): () => void;
+    hookTransform(hookName: string, extensionID: string, callbackName: string): Promise<() => void>;
     recoverClass<T>(originalObj: T, obj: any): T;
 }
 
@@ -1443,7 +1414,15 @@ declare interface IScraperPreference {
 
 declare function isLocalPath(string: string): boolean;
 
-declare interface ISlotsState {
+declare interface ISmartFilterServiceState {
+    updated: number;
+}
+
+declare function isMetadataCompleted(paperEntityDraft: PaperEntity): boolean;
+
+declare function isPreprint(paperEntityDraft: PaperEntity): boolean;
+
+declare interface IUISlotState {
     paperDetailsPanelSlot1: {
         [id: string]: {
             title: string;
@@ -1464,33 +1443,7 @@ declare interface ISlotsState {
     };
 }
 
-declare interface ISmartFilterServiceState {
-    updated: number;
-}
-
-declare function isMetadataCompleted(paperEntityDraft: PaperEntity): boolean;
-
-declare function isPreprint(paperEntityDraft: PaperEntity): boolean;
-
 declare interface IUIStateServiceState {
-    "slotsState.paperDetailsPanelSlot1": {
-        [id: string]: {
-            title: string;
-            content: string;
-        };
-    };
-    "slotsState.paperDetailsPanelSlot2": {
-        [id: string]: {
-            title: string;
-            content: string;
-        };
-    };
-    "slotsState.paperDetailsPanelSlot3": {
-        [id: string]: {
-            title: string;
-            content: string;
-        };
-    };
     contentType: string;
     mainViewFocused: boolean;
     editViewShown: boolean;
@@ -1969,6 +1922,7 @@ declare namespace PLAPI_2 {
     const smartFilterService: SmartFilterService;
     const uiStateService: UIStateService;
     const preferenceService: PreferenceService;
+    const uiSlotService: UISlotService;
 }
 export { PLAPI_2 as PLAPI }
 
@@ -2306,29 +2260,21 @@ declare interface ThumbnailCache {
     height: number;
 }
 
+declare class UISlotService extends Eventable<IUISlotState> {
+    private readonly _logService;
+    constructor(_logService: LogService);
+    updateSlot(slotID: keyof IUISlotState, patch: {
+        [id: string]: any;
+    }): void;
+}
+
 /**
  * UI service is responsible for managing the UI state.*/
 declare class UIStateService extends Eventable<IUIStateServiceState> {
     readonly processingState: SubStateGroup<IProcessingState>;
-    readonly slotsState: SubStateGroup<ISlotsState>;
     constructor();
     setState(patch: Partial<IUIStateServiceState>): void;
-    getState(stateKey: keyof IUIStateServiceState): string | number | boolean | string[] | {
-        [id: string]: {
-            title: string;
-            content: string;
-        };
-    } | {
-        [id: string]: {
-            title: string;
-            content: string;
-        };
-    } | {
-        [id: string]: {
-            title: string;
-            content: string;
-        };
-    } | number[] | {
+    getState(stateKey: keyof IUIStateServiceState): string | number | boolean | string[] | number[] | {
         _id: string | {
             _bsontype: "ObjectID";
             id: {

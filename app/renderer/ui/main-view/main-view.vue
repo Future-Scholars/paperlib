@@ -20,6 +20,7 @@ import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 // State
 // ================================
 const uiState = uiStateService.useState();
+const uiSlotState = uiSlotService.useState();
 const prefState = preferenceService.useState();
 const paperState = paperService.useState();
 const feedState = feedService.useState();
@@ -507,7 +508,9 @@ disposable(
                     ? uiState.selectedPaperEntities[0]
                     : selectedEntityPlaceHolder
                 "
-                :slot1="uiState['slotsState.paperDetailsPanelSlot1']"
+                :slot1="uiSlotState.paperDetailsPanelSlot1"
+                :slot2="uiSlotState.paperDetailsPanelSlot2"
+                :slot3="uiSlotState.paperDetailsPanelSlot3"
                 v-show="uiState.selectedPaperEntities.length === 1"
                 v-if="uiState.contentType === 'library'"
               />

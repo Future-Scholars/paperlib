@@ -133,6 +133,14 @@ export class ExtensionManagementService {
         "ExtManagementService"
       );
     } catch (e) {
+      console.log(e);
+      PLAPI.logService.error(
+        `Failed to install extension ${extensionID}`,
+        e as Error,
+        true,
+        "ExtManagementService"
+      );
+
       const tryToDeletePath = path.join(
         globalThis["extensionWorkingDir"],
         extensionID
@@ -145,14 +153,6 @@ export class ExtensionManagementService {
 
         this._extStore.delete(extensionID);
       } catch (e) {}
-
-      console.log(e);
-      PLAPI.logService.error(
-        `Failed to install extension ${extensionID}`,
-        e as Error,
-        true,
-        "ExtManagementService"
-      );
     }
   }
 

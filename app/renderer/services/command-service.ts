@@ -144,5 +144,9 @@ export class CommandService extends Eventable<{}> {
         event: command.event,
       };
     }
+
+    return () => {
+      delete this._registeredCommands[command.id];
+    };
   }
 }

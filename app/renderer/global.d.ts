@@ -14,6 +14,7 @@ import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
 import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
+import { UISlotService } from "@/renderer/services/uislot-service";
 import { UIStateService } from "@/renderer/services/uistate-service";
 
 declare global {
@@ -35,4 +36,5 @@ declare global {
   var shortcutService: ShortcutService;
   var rendererRPCService: RendererRPCService;
   var uiStateService: UIStateService;
+  var uiSlotService: UISlotService;
 }

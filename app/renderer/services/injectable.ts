@@ -19,6 +19,7 @@ import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
 import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
+import { UISlotService } from "@/renderer/services/uislot-service";
 import { UIStateService } from "@/renderer/services/uistate-service";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
 import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
@@ -55,4 +56,5 @@ export type IInjectable =
   | ShortcutService
   | RendererRPCService
   | HookService
-  | UIStateService;
+  | UIStateService
+  | UISlotService;

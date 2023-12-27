@@ -33,6 +33,7 @@ import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
 import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
+import { UISlotService } from "@/renderer/services/uislot-service";
 import { UIStateService } from "@/renderer/services/uistate-service";
 import AppView from "@/renderer/ui/app-view.vue";
 import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
@@ -114,6 +115,7 @@ async function initialize() {
     shortcutService: ShortcutService,
     hookService: HookService,
     uiStateService: UIStateService,
+    uiSlotService: UISlotService,
     networkTool: NetworkTool,
   });
   // 4.1 Expose the instances to the global scope for convenience.

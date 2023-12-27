@@ -22,6 +22,7 @@ import { SchedulerService } from "@/renderer/services/scheduler-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
 import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
+import { UISlotService } from "@/renderer/services/uislot-service";
 import { UIStateService } from "@/renderer/services/uistate-service";
 
 import { PaperFolder, PaperTag } from "@/models/categorizer";
@@ -30,11 +31,6 @@ import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 
-import {
-  bibtex2json,
-  bibtex2paperEntityDraft,
-  bibtexes2paperEntityDrafts,
-} from "@/base/bibtex";
 import { chunkRun } from "@/base/chunk";
 import { isMetadataCompleted, isPreprint } from "@/base/metadata";
 import { formatString } from "@/base/string";
@@ -67,6 +63,7 @@ declare namespace PLAPI {
   const smartFilterService: SmartFilterService;
   const uiStateService: UIStateService;
   const preferenceService: PreferenceService;
+  const uiSlotService: UISlotService;
 }
 
 declare namespace PLMainAPI {
@@ -97,11 +94,11 @@ const urlUtils = {
   isLocalPath,
 };
 
-const bibtexUtils = {
-  bibtex2json,
-  bibtex2paperEntityDraft,
-  bibtexes2paperEntityDrafts,
-};
+// const bibtexUtils = {
+//   bibtex2json,
+//   bibtex2paperEntityDraft,
+//   bibtexes2paperEntityDrafts,
+// };
 
 const metadataUtils = {
   isMetadataCompleted,
@@ -119,7 +116,6 @@ export {
   PaperFolder,
   PaperSmartFilter,
   PaperTag,
-  bibtexUtils,
   chunkRun,
   metadataUtils,
   stringUtils,

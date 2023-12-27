@@ -5,18 +5,6 @@ import { PaperEntity } from "@/models/paper-entity";
 
 export interface IUIStateServiceState {
   // =========================================
-  // Details panel
-  "slotsState.paperDetailsPanelSlot1": {
-    [id: string]: { title: string; content: string };
-  };
-  "slotsState.paperDetailsPanelSlot2": {
-    [id: string]: { title: string; content: string };
-  };
-  "slotsState.paperDetailsPanelSlot3": {
-    [id: string]: { title: string; content: string };
-  };
-
-  // =========================================
   // Main Paper/Feed panel
   contentType: string;
   mainViewFocused: boolean;
@@ -67,14 +55,9 @@ export const IUIStateService = createDecorator("uiStateService");
  * UI service is responsible for managing the UI state.*/
 export class UIStateService extends Eventable<IUIStateServiceState> {
   public readonly processingState: SubStateGroup<IProcessingState>;
-  public readonly slotsState: SubStateGroup<ISlotsState>;
 
   constructor() {
     super("uiStateService", {
-      "slotsState.paperDetailsPanelSlot1": {},
-      "slotsState.paperDetailsPanelSlot2": {},
-      "slotsState.paperDetailsPanelSlot3": {},
-
       contentType: "library",
       mainViewFocused: true,
       editViewShown: false,
@@ -124,25 +107,6 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
     }
 
     // =========================================
-    // Slots States Group
-    this.slotsState = new SubStateGroup("slotsState", {
-      paperDetailsPanelSlot1: {},
-      paperDetailsPanelSlot2: {},
-      paperDetailsPanelSlot3: {},
-    });
-    for (const [key, value] of Object.entries(this.slotsState.useState())) {
-      if (key.startsWith("$")) {
-        continue;
-      }
-      this.fire({ [`slotsState.${key}`]: value });
-      this.slotsState.on(key as any, (value) => {
-        this.fire({
-          [`slotsState.${key}`]: value.value,
-        });
-      });
-    }
-
-    // =========================================
     // Theme Listener
     window
       .matchMedia("(prefers-color-scheme: dark)")
@@ -165,14 +129,6 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
         const [stateGroup, stateKey] = keyParts;
         if (stateGroup === "processingState") {
           this.processingState.setState({ [stateKey]: value });
-        } else if (stateGroup === "slotsState") {
-          const slotID = value["id"];
-          const slotState = JSON.parse(
-            JSON.stringify(this.slotsState.getState(stateKey as any))
-          );
-          slotState[slotID] = value;
-
-          this.slotsState.setState({ [stateKey]: slotState });
         } else {
           throw new Error(`State group '${stateGroup}' is not supported!`);
         }
@@ -307,19 +263,4 @@ export function processing(key: ProcessingKey) {
 
 export interface IProcessingState {
   general: number;
-}
-
-// =========================================
-// Slots State Sub State
-
-export interface ISlotsState {
-  paperDetailsPanelSlot1: {
-    [id: string]: { title: string; content: string };
-  };
-  paperDetailsPanelSlot2: {
-    [id: string]: { title: string; content: string };
-  };
-  paperDetailsPanelSlot3: {
-    [id: string]: { title: string; content: string };
-  };
 }

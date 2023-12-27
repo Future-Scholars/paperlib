@@ -10,21 +10,35 @@ export const IHookService = createDecorator("hookService");
  *
  */
 export class HookService {
-  private readonly _hookPoints: {
+  private readonly _modifyHookPoints: {
     [key: string]: {
       [key: string]: (...args: any[]) => Promise<any>;
     };
   };
+
+  private readonly _transformHookPoints: {
+    [key: string]: {
+      [key: string]: (...args: any[]) => Promise<any>;
+    };
+  };
+
   constructor(@ILogService private readonly _logService: LogService) {
-    this._hookPoints = {};
+    this._modifyHookPoints = {};
+    this._transformHookPoints = {};
   }
 
   hasHook(hookName: string) {
-    return this._hookPoints[hookName];
+    if (this._modifyHookPoints[hookName]) {
+      return "modify";
+    } else if (this._transformHookPoints[hookName]) {
+      return "transform";
+    } else {
+      return false;
+    }
   }
 
   async modifyHookPoint<T extends any[]>(hookName: string, ...args: T) {
-    if (this._hookPoints[hookName]) {
+    if (this._modifyHookPoints[hookName]) {
       const extensionAPIExposed = await rendererRPCService.waitForAPI(
         Process.extension,
         "PLExtAPI",
@@ -37,7 +51,7 @@ export class HookService {
 
       let processedArgs = args;
       for (const [hookID, runHook] of Object.entries(
-        this._hookPoints[hookName]
+        this._modifyHookPoints[hookName]
       )) {
         processedArgs = await runHook(processedArgs);
         processedArgs = this.recoverClass(args, processedArgs);
@@ -53,7 +67,7 @@ export class HookService {
     hookName: string,
     ...args: T
   ) {
-    if (this._hookPoints[hookName]) {
+    if (this._transformHookPoints[hookName]) {
       const extensionAPIExposed = await rendererRPCService.waitForAPI(
         Process.extension,
         "PLExtAPI",
@@ -67,7 +81,7 @@ export class HookService {
       const results: O = [] as any;
 
       for (const [hookID, runHook] of Object.entries(
-        this._hookPoints[hookName]
+        this._transformHookPoints[hookName]
       )) {
         const result = await runHook(args);
         results.push(result);
@@ -79,29 +93,30 @@ export class HookService {
     }
   }
 
-  async hook(hookName: string, extensionID: string, callbackName: string) {
+  hookModify(hookName: string, extensionID: string, callbackName: string) {
     this._logService.info(
       `Hooking ${hookName} of extension ${extensionID}-${callbackName}`,
-      "",
+      "Modify Hook",
       false,
       "HookService"
     );
-    const extensionAPIExposed = await rendererRPCService.waitForAPI(
-      Process.extension,
-      "PLExtAPI",
-      5000
-    );
 
-    if (!extensionAPIExposed) {
-      return;
-    }
-
-    if (!this._hookPoints[hookName]) {
-      this._hookPoints[hookName] = {};
+    if (!this._modifyHookPoints[hookName]) {
+      this._modifyHookPoints[hookName] = {};
     }
 
     const runHook = async (args: any[]) => {
       try {
+        const extensionAPIExposed = await rendererRPCService.waitForAPI(
+          Process.extension,
+          "PLExtAPI",
+          5000
+        );
+
+        if (!extensionAPIExposed) {
+          return args;
+        }
+
         return await PLExtAPI.extensionManagementService.callExtensionMethod(
           extensionID,
           callbackName,
@@ -118,16 +133,77 @@ export class HookService {
       }
     };
 
-    this._hookPoints[hookName][`${extensionID}-${callbackName}`] = runHook;
+    this._modifyHookPoints[hookName][`${extensionID}-${callbackName}`] =
+      runHook;
 
     return () => {
       this._logService.info(
-        `Disposing hook ${hookName} of extension ${extensionID}-${callbackName}`,
-        "",
+        `Disposing modify hook ${hookName}.`,
+        `Extension ${extensionID}-${callbackName}`,
         false,
         "HookService"
       );
-      delete this._hookPoints[hookName][`${extensionID}-${callbackName}`];
+      delete this._modifyHookPoints[hookName][`${extensionID}-${callbackName}`];
+    };
+  }
+
+  async hookTransform(
+    hookName: string,
+    extensionID: string,
+    callbackName: string
+  ) {
+    this._logService.info(
+      `Hooking ${hookName} of extension ${extensionID}-${callbackName}`,
+      "Transform Hook",
+      false,
+      "HookService"
+    );
+
+    if (!this._transformHookPoints[hookName]) {
+      this._transformHookPoints[hookName] = {};
+    }
+
+    const runHook = async (args: any[]) => {
+      try {
+        const extensionAPIExposed = await rendererRPCService.waitForAPI(
+          Process.extension,
+          "PLExtAPI",
+          5000
+        );
+
+        if (!extensionAPIExposed) {
+          return;
+        }
+
+        return await PLExtAPI.extensionManagementService.callExtensionMethod(
+          extensionID,
+          callbackName,
+          ...args
+        );
+      } catch (e) {
+        this._logService.error(
+          `Failed to call extension method ${callbackName} of extension ${extensionID},
+        e as Error,
+        true,
+        "HookService"`
+        );
+        return;
+      }
+    };
+
+    this._transformHookPoints[hookName][`${extensionID}-${callbackName}`] =
+      runHook;
+
+    return () => {
+      this._logService.info(
+        `Disposing transform hook ${hookName}.`,
+        `Extension ${extensionID}-${callbackName}`,
+        false,
+        "HookService"
+      );
+      delete this._transformHookPoints[hookName][
+        `${extensionID}-${callbackName}`
+      ];
     };
   }
 
