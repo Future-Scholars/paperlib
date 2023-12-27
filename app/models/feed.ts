@@ -1,4 +1,5 @@
 import { ObjectId } from "bson";
+import { OID } from "./id";
 
 export class Feed {
   static schema = {
