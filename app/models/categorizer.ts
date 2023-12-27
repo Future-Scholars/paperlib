@@ -1,6 +1,14 @@
 import { ObjectId } from "bson";
 import { OID } from "./id";
 
+export interface ICategorizerDraft {
+  _id?: OID;
+  _partition?: string;
+  name?: string;
+  count?: number;
+  color?: string;
+}
+
 export class Categorizer {
   static schema: Record<string, any>;
 
@@ -10,30 +18,24 @@ export class Categorizer {
   count: number;
   color?: string;
 
-  constructor(
-    name: string,
-    count: number,
-    color?: string,
-    partition?: string,
-    initObjectId = false
-  ) {
+  constructor(object: ICategorizerDraft, initObjectId = false) {
+    this._id = object._id || "";
+    this._partition = object._partition || "";
+    this.name = object.name || "";
+    this.count = object.count || 0;
+    this.color = object.color;
+
     if (initObjectId) {
       this._id = new ObjectId();
-    } else {
-      this._id = "";
     }
-    this._partition = partition || "";
-    this.name = name;
-    this.count = count;
-    this.color = color;
   }
 
-  initialize(categorizer: Categorizer) {
-    this._id = categorizer._id;
-    this._partition = categorizer._partition;
-    this.name = categorizer.name;
-    this.count = categorizer.count;
-    this.color = categorizer.color;
+  initialize(object: ICategorizerDraft) {
+    this._id = object._id || "";
+    this._partition = object._partition || "";
+    this.name = object.name || "";
+    this.count = object.count || 0;
+    this.color = object.color;
 
     return this;
   }
@@ -52,14 +54,8 @@ export class PaperTag extends Categorizer {
     },
   };
 
-  constructor(
-    name: string,
-    count: number,
-    color?: string,
-    partition?: string,
-    initObjectId = false
-  ) {
-    super(name, count, color, partition, initObjectId);
+  constructor(object: ICategorizerDraft, initObjectId = false) {
+    super(object, initObjectId);
   }
 }
 
@@ -76,14 +72,8 @@ export class PaperFolder extends Categorizer {
     },
   };
 
-  constructor(
-    name: string,
-    count: number,
-    color?: string,
-    partition?: string,
-    initObjectId = false
-  ) {
-    super(name, count, color, partition, initObjectId);
+  constructor(object: ICategorizerDraft, initObjectId = false) {
+    super(object, initObjectId);
   }
 }
 

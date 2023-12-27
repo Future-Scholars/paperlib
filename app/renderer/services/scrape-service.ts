@@ -98,7 +98,7 @@ export class ScrapeService extends Eventable<{}> {
           payloads
         )
       ).map((p) => {
-        return new PaperEntity(false).initialize(p);
+        return new PaperEntity(p);
       });
     }
 
@@ -108,7 +108,7 @@ export class ScrapeService extends Eventable<{}> {
         paperEntityDrafts
       );
       paperEntityDrafts = paperEntityDrafts.map((p) => {
-        return new PaperEntity().initialize(p);
+        return new PaperEntity(p);
       });
     }
 

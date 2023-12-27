@@ -1,8 +1,35 @@
 import { ObjectId } from "bson";
 import Mathml2latex from "mathml-to-latex";
 
-import { CategorizerType, PaperFolder, PaperTag } from "./categorizer";
+import { ICategorizerDraft, PaperFolder, PaperTag } from "./categorizer";
 import { FeedEntity } from "./feed-entity";
+import { OID } from "./id";
+
+export interface IPaperEntityDraft {
+  _id?: OID;
+  id?: OID;
+  _partition?: string;
+  addTime?: Date;
+  title?: string;
+  authors?: string;
+  publication?: string;
+  pubTime?: string;
+  pubType?: number;
+  doi?: string;
+  arxiv?: string;
+  mainURL?: string;
+  supURLs?: string[];
+  rating?: number;
+  tags?: ICategorizerDraft[];
+  folders?: ICategorizerDraft[];
+  flag?: boolean;
+  note?: string;
+  codes?: string[];
+  pages?: string;
+  volume?: string;
+  number?: string;
+  publisher?: string;
+}
 
 export class PaperEntity {
   static schema = {
@@ -29,11 +56,11 @@ export class PaperEntity {
       rating: "int",
       tags: {
         type: "list",
-        objectType: CategorizerType.PaperTag,
+        objectType: "PaperTag",
       },
       folders: {
         type: "list",
-        objectType: CategorizerType.PaperFolder,
+        objectType: "PaperFolder",
       },
       flag: "bool",
       note: "string",
@@ -48,43 +75,80 @@ export class PaperEntity {
     },
   };
 
-  _id: OID = "";
-  id: OID = "";
-  _partition: string = "";
-  addTime: Date = new Date();
-  title: string = "";
-  authors: string = "";
-  publication: string = "";
-  pubTime: string = "";
-  pubType: number = 0;
-  doi: string = "";
-  arxiv: string = "";
-  mainURL: string = "";
-  supURLs: string[] = [];
-  rating: number = 0;
-  tags: PaperTag[] = [];
-  folders: PaperFolder[] = [];
-  flag: boolean = false;
-  note: string = "";
-  codes: string[] = [];
-  pages: string = "";
-  volume: string = "";
-  number: string = "";
-  publisher: string = "";
+  _id: OID;
+  id: OID;
+  _partition: string;
+  addTime: Date;
+  title: string;
+  authors: string;
+  publication: string;
+  pubTime: string;
+  pubType: number;
+  doi: string;
+  arxiv: string;
+  mainURL: string;
+  supURLs: string[];
+  rating: number;
+  tags: PaperTag[];
+  folders: PaperFolder[];
+  flag: boolean;
+  note: string;
+  codes: string[];
+  pages: string;
+  volume: string;
+  number: string;
+  publisher: string;
 
-  [Key: string]: unknown;
+  constructor(object?: IPaperEntityDraft, initObjectId = false) {
+    this._id = object?._id || "";
+    this.id = object?._id || "";
+    this._partition = object?._partition || "";
+    this.addTime = object?.addTime || new Date();
+    this.title = object?.title || "";
+    this.authors = object?.authors || "";
+    this.publication = object?.publication || "";
+    this.pubTime = object?.pubTime || "";
+    this.pubType = object?.pubType || 0;
+    this.doi = object?.doi || "";
+    this.arxiv = object?.arxiv || "";
+    this.mainURL = object?.mainURL || "";
+    this.supURLs = object?.supURLs || [];
+    this.rating = object?.rating || 0;
+    this.tags =
+      object?.tags?.map((tag) => new PaperTag(tag, initObjectId)) || [];
+    this.folders =
+      object?.folders?.map((folder) => new PaperFolder(folder, initObjectId)) ||
+      [];
+    this.flag = object?.flag || false;
+    this.note = object?.note || "";
+    this.codes = object?.codes || [];
+    this.pages = object?.pages || "";
+    this.volume = object?.volume || "";
+    this.number = object?.number || "";
+    this.publisher = object?.publisher || "";
 
-  constructor(initObjectId = false) {
     if (initObjectId) {
       this._id = new ObjectId();
       this.id = this._id;
     }
+
+    return new Proxy(this, {
+      set: (target, prop, value) => {
+        if (prop === "title") {
+          target.setValue("title", value, true);
+        } else {
+          target[prop] = value;
+        }
+
+        return true;
+      },
+    });
   }
 
-  setValue(key: string, value: unknown, allowEmpty = false, format = false) {
+  setValue(key: keyof PaperEntity, value: unknown, format = false) {
     // Format the value
     if (format && value) {
-      // 1. Check if contains Mathml
+      // Check if contains Mathml
       const mathmlRegex1 = /<math\b[^>]*>([\s\S]*?)<\/math>/gm;
       const mathmlRegex2 = /<mml:math\b[^>]*>([\s\S]*?)<\/mml:math>/gm;
       const mathmlRegex3 = /<mrow\b[^>]*>([\s\S]*?)<\/mrow>/gm;
@@ -101,38 +165,34 @@ export class PaperEntity {
         }
       }
     }
-
-    if ((value || allowEmpty) && value !== "undefined") {
-      this[key] = value;
-    }
+    this[key as any] = value;
   }
 
-  initialize(entity: PaperEntity) {
-    this._id = new ObjectId(entity._id);
-    this.id = new ObjectId(entity.id);
-    this._partition = entity._partition;
-    this.addTime = entity.addTime;
-    this.title = entity.title;
-    this.authors = entity.authors;
-    this.publication = entity.publication;
-    this.pubTime = entity.pubTime;
-    this.pubType = entity.pubType;
-    this.doi = entity.doi;
-    this.arxiv = entity.arxiv;
-    this.mainURL = entity.mainURL;
-    this.supURLs = JSON.parse(JSON.stringify(entity.supURLs));
-    this.rating = entity.rating;
-    this.tags = entity.tags.map((tag) => new PaperTag("", 0).initialize(tag));
-    this.folders = entity.folders.map((folder) =>
-      new PaperFolder("", 0).initialize(folder)
-    );
-    this.flag = entity.flag;
-    this.note = entity.note;
-    this.codes = JSON.parse(JSON.stringify(entity.codes));
-    this.pages = entity.pages;
-    this.volume = entity.volume;
-    this.number = entity.number;
-    this.publisher = entity.publisher;
+  initialize(object: IPaperEntityDraft) {
+    this._id = object._id || "";
+    this.id = object._id || "";
+    this._partition = object._partition || "";
+    this.addTime = object.addTime || new Date();
+    this.title = object.title || "";
+    this.authors = object.authors || "";
+    this.publication = object.publication || "";
+    this.pubTime = object.pubTime || "";
+    this.pubType = object.pubType || 0;
+    this.doi = object.doi || "";
+    this.arxiv = object.arxiv || "";
+    this.mainURL = object.mainURL || "";
+    this.supURLs = object.supURLs || [];
+    this.rating = object.rating || 0;
+    this.tags = object.tags?.map((tag) => new PaperTag(tag, false)) || [];
+    this.folders =
+      object.folders?.map((folder) => new PaperFolder(folder, false)) || [];
+    this.flag = object.flag || false;
+    this.note = object.note || "";
+    this.codes = object.codes || [];
+    this.pages = object.pages || "";
+    this.volume = object.volume || "";
+    this.number = object.number || "";
+    this.publisher = object.publisher || "";
 
     return this;
   }
@@ -150,39 +210,6 @@ export class PaperEntity {
     this.volume = feedEntity.volume;
     this.number = feedEntity.number;
     this.publisher = feedEntity.publisher;
-  }
-
-  // =====================
-  // Dev Functions
-  // =====================
-
-  dummyFill() {
-    this.title = `Paper ${this._id}`;
-    this.authors = "author1, author2, author3";
-    this.publication =
-      Math.random() > 0.5
-        ? "Dummy Publication Journal Conference Proceedings Long Text Test Good Nice"
-        : "Dummy Publication Journal Short";
-    this.pubTime = `${2020 + Math.floor(Math.random() * 10)}`;
-    this.pubType = Math.floor(Math.random() * 3);
-    this.doi = "";
-    this.arxiv = "";
-    this.mainURL = "";
-    this.supURLs = ["https://www.google.com"];
-    this.rating = Math.floor(Math.random() * 5);
-    this.tags = [];
-    this.folders = [];
-    this.flag = Math.random() > 0.5;
-    this.note =
-      "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec";
-    this.codes = [
-      JSON.stringify({ url: "www.google.com", isOfficial: true }),
-      JSON.stringify({ url: "www.apple.com", isOfficial: false }),
-    ];
-    this.pages = "1-1";
-    this.volume = "1";
-    this.number = "1";
-    this.publisher = "Dummy Publisher";
     return this;
   }
 }

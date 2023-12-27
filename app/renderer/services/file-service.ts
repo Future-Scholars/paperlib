@@ -305,7 +305,7 @@ export class FileService extends Eventable<IFileServiceState> {
         paperEntity.mainURL = "";
         return paperEntity;
       });
-      if (this._hookService.hasHook("scrapeMetadata")) {
+      if (this._hookService.hasHook("locateFile")) {
         [updatedPaperEntityDrafts] = await this._hookService.modifyHookPoint(
           "locateFile",
           updatedPaperEntityDrafts

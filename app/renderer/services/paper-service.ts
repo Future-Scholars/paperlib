@@ -411,7 +411,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     const paperEntities = await this.loadByIds(ids);
 
     let paperEntityDrafts = paperEntities.map((paperEntity: PaperEntity) => {
-      return new PaperEntity(false).initialize(paperEntity);
+      return new PaperEntity(paperEntity);
     });
 
     paperEntityDrafts = paperEntityDrafts.map((paperEntityDraft) => {
@@ -536,13 +536,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
     const toBeUpdatedPaperEntityDrafts = paperEntityDrafts.map(
       (paperEntityDraft) => {
         if ((type = CategorizerType.PaperTag)) {
-          paperEntityDraft.setValue("tags", [
-            new PaperTag("", 0, "").initialize(categorizer),
-          ]);
+          paperEntityDraft.setValue("tags", [new PaperTag(categorizer)]);
         } else if (type === CategorizerType.PaperFolder) {
-          paperEntityDraft.setValue("folders", [
-            new PaperFolder("", 0, "").initialize(categorizer),
-          ]);
+          paperEntityDraft.setValue("folders", [new PaperFolder(categorizer)]);
         }
         return paperEntityDraft;
       }
@@ -622,7 +618,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       );
       await this.scrape(
         preprintPaperEntities.map((paperEntity) => {
-          return new PaperEntity(false).initialize(paperEntity);
+          return new PaperEntity(paperEntity);
         })
       );
       this._preferenceService.set({
@@ -648,7 +644,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       "desc"
     );
     const paperEntityDrafts = paperEntities.map((paperEntity: PaperEntity) => {
-      return new PaperEntity(false).initialize(paperEntity);
+      return new PaperEntity(paperEntity);
     });
 
     const movedEntityDrafts = await Promise.all(
@@ -679,9 +675,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     const entities = localRealm.objects<PaperEntity>("PaperEntity");
 
-    await this.update(
-      entities.map((entity) => new PaperEntity(false).initialize(entity))
-    );
+    await this.update(entities.map((entity) => new PaperEntity(entity)));
 
     this._logService.info(
       `Migrated ${entities.length} paper(s) to cloud database.`,

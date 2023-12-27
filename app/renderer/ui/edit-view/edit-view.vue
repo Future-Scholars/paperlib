@@ -19,7 +19,7 @@ import InputField from "./components/text-field.vue";
 const uiState = uiStateService.useState();
 const wideMode = ref(false);
 const advancedMode = ref(false);
-const editingPaperEntityDraft = ref(new PaperEntity(false));
+const editingPaperEntityDraft = ref(new PaperEntity({}));
 
 // ==============================
 // Data
@@ -34,11 +34,11 @@ const folders = inject<Ref<ICategorizerCollection>>("folders");
 const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
   if (type === CategorizerType.PaperTag) {
     editingPaperEntityDraft.value.tags = names.map((name: string) => {
-      return new PaperTag(name, 1, "blue");
+      return new PaperTag({ name });
     });
   } else if (type === CategorizerType.PaperFolder) {
     editingPaperEntityDraft.value.folders = names.map((name: string) => {
-      return new PaperFolder(name, 1, "blue");
+      return new PaperFolder({ name });
     });
   }
 };
@@ -48,15 +48,13 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
-  paperService.update([
-    new PaperEntity(false).initialize(editingPaperEntityDraft.value),
-  ]);
+  paperService.update([new PaperEntity(editingPaperEntityDraft.value)]);
   onCloseClicked();
 };
 
 const onSaveAndScrapeClicked = async () => {
   const savedPaperEntityDraft = await paperService.update([
-    new PaperEntity(false).initialize(editingPaperEntityDraft.value),
+    new PaperEntity(editingPaperEntityDraft.value),
   ]);
   paperService.scrape(savedPaperEntityDraft);
 };

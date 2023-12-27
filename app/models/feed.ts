@@ -1,6 +1,16 @@
 import { ObjectId } from "bson";
 import { OID } from "./id";
 
+export interface IFeedDraft {
+  _id?: OID;
+  id?: OID;
+  _partition?: string;
+  name?: string;
+  count?: number;
+  color?: string;
+  url?: string;
+}
+
 export class Feed {
   static schema = {
     name: "Feed",
@@ -16,29 +26,37 @@ export class Feed {
     },
   };
 
-  _id: OID = "";
-  id: OID = "";
-  _partition: string = "";
-  name: string = "";
-  count: number = 0;
+  _id: OID;
+  id: OID;
+  _partition: string;
+  name: string;
+  count: number;
   color?: string;
-  url: string = "";
+  url: string;
 
-  constructor(initObjectId = false) {
+  constructor(object?: IFeedDraft, initObjectId = false) {
+    this._id = object?._id || "";
+    this.id = object?.id || "";
+    this._partition = object?._partition || "";
+    this.name = object?.name || "";
+    this.count = object?.count || 0;
+    this.color = object?.color;
+    this.url = object?.url || "";
+
     if (initObjectId) {
       this._id = new ObjectId();
       this.id = this._id;
     }
   }
 
-  initialize(feed: Feed) {
-    this._id = feed._id ? feed._id : this._id || new ObjectId();
-    this.id = feed.id ? feed.id : this.id || this._id;
-    this._partition = feed._partition || this._partition;
-    this.name = feed.name || this.name;
-    this.count = feed.count || this.count;
-    this.color = feed.color || this.color;
-    this.url = feed.url || this.url;
+  initialize(object: IFeedDraft) {
+    this._id = object._id || "";
+    this.id = object.id || "";
+    this._partition = object._partition || "";
+    this.name = object.name || "";
+    this.count = object.count || 0;
+    this.color = object.color;
+    this.url = object.url || "";
 
     return this;
   }

@@ -134,10 +134,7 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
       "PaperPaperSmartFilter"
     );
     for (const entity of entities) {
-      await this.insert(
-        new PaperSmartFilter().initialize(entity),
-        "PaperPaperSmartFilter"
-      );
+      await this.insert(new PaperSmartFilter(entity), "PaperPaperSmartFilter");
     }
 
     this._logService.info(

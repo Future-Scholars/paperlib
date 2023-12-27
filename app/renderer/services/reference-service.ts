@@ -281,7 +281,7 @@ export class ReferenceService {
   @errorcatching("Failed to export paper entities.", true, "ReferenceService")
   async export(paperEntities: PaperEntity[], format: string) {
     let paperEntityDrafts = paperEntities.map((paperEntity) => {
-      return new PaperEntity(false).initialize(paperEntity);
+      return new PaperEntity(paperEntity);
     });
 
     let copyStr = "";

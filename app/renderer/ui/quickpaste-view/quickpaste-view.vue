@@ -86,7 +86,7 @@ const exportSelectedCiteKeys = async () => {
     if (linkedFolder.value) {
       await PLAPI.paperService.updateWithCategorizer(
         [`${selectedEntity.id}`],
-        new PaperFolder(linkedFolder.value, 1, undefined, undefined, false),
+        new PaperFolder({ name: linkedFolder.value }),
         CategorizerType.PaperFolder
       );
     }
@@ -113,7 +113,7 @@ const exportSelectedCiteBodies = async () => {
     if (linkedFolder.value) {
       await PLAPI.paperService.updateWithCategorizer(
         [`${selectedEntity.id}`],
-        new PaperFolder(linkedFolder.value, 1, undefined, undefined, false),
+        new PaperFolder({ name: linkedFolder.value }),
         CategorizerType.PaperFolder
       );
     }
@@ -147,7 +147,7 @@ const exportSelectedCiteBodiesInFolder = async () => {
     if (linkedFolder.value) {
       await PLAPI.paperService.updateWithCategorizer(
         [`${selectedEntity.id}`],
-        new PaperFolder(linkedFolder.value, 1, undefined, undefined, false),
+        new PaperFolder({ name: linkedFolder.value }),
         CategorizerType.PaperFolder
       );
     }
@@ -262,7 +262,7 @@ disposable(
       ) {
         await PLAPI.categorizerService.create(
           CategorizerType.PaperFolder,
-          new PaperFolder(folderName, 0)
+          new PaperFolder({ name: folderName })
         );
       }
 

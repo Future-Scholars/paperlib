@@ -1,0 +1,20 @@
+{
+  "name": "paperlib-api",
+  "version": "0.0.1",
+  "author": "Paperlib",
+  "description": "The API for paperlib extension development.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "engines": {
+    "node": ">=16.17.1"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "paperlib"
+  ],
+  "files": [
+    "dist"
+  ],
+  "dependencies": {}
+}

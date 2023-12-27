@@ -27,8 +27,8 @@ const feedState = feedService.useState();
 // ================================
 // Data
 // ================================
-const selectedEntityPlaceHolder = ref(new PaperEntity(false));
-const selectedFeedEntityPlaceHolder = ref(new FeedEntity(false));
+const selectedEntityPlaceHolder = ref(new PaperEntity());
+const selectedFeedEntityPlaceHolder = ref(new FeedEntity());
 
 const paperEntities = inject<Ref<IPaperEntityCollection>>("paperEntities");
 const feedEntities = inject<Ref<IFeedEntityCollection>>("feedEntities");
@@ -77,7 +77,7 @@ const reloadSelectedEntities = () => {
       for (const index of uiState.selectedIndex) {
         if (paperEntities.value.length > index) {
           selectedPaperEntities.push(
-            new PaperEntity(false).initialize(paperEntities.value[index])
+            new PaperEntity(paperEntities.value[index])
           );
           selectedIds.push(`${paperEntities.value[index].id}`);
         } else if (uiState.selectedIndex.length === 1) {
@@ -96,9 +96,7 @@ const reloadSelectedEntities = () => {
     if (feedEntities) {
       for (const index of uiState.selectedIndex) {
         if (feedEntities.value.length > index) {
-          selectedFeedEntities.push(
-            new FeedEntity(false).initialize(feedEntities.value[index])
-          );
+          selectedFeedEntities.push(new FeedEntity(feedEntities.value[index]));
           selectedIds.push(`${feedEntities.value[index].id}`);
         } else if (uiState.selectedIndex.length === 1) {
           uiState.selectedIndex = [];
@@ -121,8 +119,7 @@ const scrapeSelectedEntities = () => {
   if (uiState.contentType === "library") {
     const paperEntityDrafts = uiState.selectedPaperEntities.map(
       (paperEntity) => {
-        const paperEntityDraft = new PaperEntity(false).initialize(paperEntity);
-        return paperEntityDraft;
+        return new PaperEntity(paperEntity);
       }
     );
     void paperService.scrape(paperEntityDrafts);
@@ -133,7 +130,7 @@ const scrapeSelectedEntitiesFrom = (scraperName: string) => {
   if (uiState.contentType === "library") {
     const paperEntityDrafts = uiState.selectedPaperEntities.map(
       (paperEntity) => {
-        const paperEntityDraft = new PaperEntity(false).initialize(paperEntity);
+        const paperEntityDraft = new PaperEntity(paperEntity);
         return paperEntityDraft;
       }
     );
@@ -157,7 +154,7 @@ const flagSelectedEntities = () => {
   if (uiState.contentType === "library") {
     const paperEntityDrafts = uiState.selectedPaperEntities.map(
       (paperEntity) => {
-        const paperEntityDraft = new PaperEntity(false).initialize(paperEntity);
+        const paperEntityDraft = new PaperEntity(paperEntity);
         paperEntityDraft.flag = !paperEntityDraft.flag;
         return paperEntityDraft;
       }
@@ -176,7 +173,7 @@ const addSelectedFeedEntities = async () => {
   if (uiState.contentType === "feed") {
     uiState.feedEntityAddingStatus = 1;
     const feedEntityDrafts = uiState.selectedFeedEntities.map((entity) => {
-      return new FeedEntity(false).initialize(entity);
+      return new FeedEntity(entity);
     });
     await feedService.addToLib(feedEntityDrafts);
     uiState.feedEntityAddingStatus = 2;
@@ -190,7 +187,7 @@ const readSelectedFeedEntities = (read: boolean | null, clear = false) => {
   if (uiState.contentType === "feed") {
     const feedEntityDrafts = uiState.selectedFeedEntities
       .map((feedEntity) => {
-        const feedEntityDraft = new FeedEntity(false).initialize(feedEntity);
+        const feedEntityDraft = new FeedEntity(feedEntity);
         if (feedEntityDraft.read !== read) {
           feedEntityDraft.read = !feedEntityDraft.read;
           return feedEntityDraft;

@@ -6,9 +6,8 @@ import {
   screen,
   shell,
 } from "electron";
-import { join, posix } from "node:path";
 import os from "os";
-import path from "path";
+import path, { join, posix } from "path";
 
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";

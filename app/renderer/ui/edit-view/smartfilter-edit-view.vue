@@ -42,7 +42,7 @@ const onSaveClicked = async () => {
   }
 
   smartFilterService.insert(
-    new PaperSmartFilter().initialize(editingPaperSmartFilterDraft.value),
+    new PaperSmartFilter(editingPaperSmartFilterDraft.value),
     "PaperPaperSmartFilter"
   );
 

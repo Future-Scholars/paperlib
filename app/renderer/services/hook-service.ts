@@ -132,10 +132,8 @@ export class HookService {
   }
 
   recoverClass<T>(originalObj: T, obj: any): T {
-    // console.log("recoverClass", originalObj, obj);
-
     if (originalObj instanceof PaperEntity) {
-      return new PaperEntity().initialize(obj) as T;
+      return new PaperEntity(obj, false) as T;
     } else if (originalObj instanceof Array) {
       if (obj instanceof Array) {
         return obj.map((o, i) => this.recoverClass(originalObj[i], o)) as any;

@@ -24,7 +24,7 @@ import MainSection from "./components/main-section.vue";
 
 const prefState = preferenceService.useState();
 
-const item = ref(new PaperEntity(false));
+const item = ref(new PaperEntity({}));
 // @ts-ignore
 item.value.initialize({
   id: `${new ObjectId()}`,
@@ -39,8 +39,8 @@ item.value.initialize({
   pubType: 1,
   flag: true,
   rating: 5,
-  tags: [new PaperTag("architecture", 1)],
-  folders: [new PaperFolder("Computer-Vision", 1)],
+  tags: [new PaperTag({ name: "architecture" })],
+  folders: [new PaperFolder({ name: "Computer-Vision" })],
   note: "ResNet, proposed a residual architecture to train very deep models.",
   mainURL: "",
   supURLs: [],

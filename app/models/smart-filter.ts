@@ -1,6 +1,14 @@
 import { ObjectId } from "bson";
 import { OID } from "./id";
 
+export interface IPaperSmartFilterDraft {
+  _id?: OID;
+  _partition?: string;
+  name?: string;
+  filter?: string;
+  color?: string;
+}
+
 export class PaperSmartFilter {
   static schema = {
     name: "PaperPaperSmartFilter",
@@ -20,18 +28,24 @@ export class PaperSmartFilter {
   filter: string = "";
   color?: string;
 
-  constructor(initObjectId = false) {
+  constructor(object?: IPaperSmartFilterDraft, initObjectId = false) {
+    this._id = object?._id || "";
+    this._partition = object?._partition || "";
+    this.name = object?.name || "";
+    this.filter = object?.filter || "";
+    this.color = object?.color;
+
     if (initObjectId) {
       this._id = new ObjectId();
     }
   }
 
-  initialize(smartfilter: PaperSmartFilter) {
-    this._id = smartfilter._id;
-    this._partition = smartfilter._partition;
-    this.name = smartfilter.name;
-    this.filter = smartfilter.filter;
-    this.color = smartfilter.color;
+  initialize(object: IPaperSmartFilterDraft) {
+    this._id = object._id || "";
+    this._partition = object._partition || "";
+    this.name = object.name || "";
+    this.filter = object.filter || "";
+    this.color = object.color;
 
     return this;
   }

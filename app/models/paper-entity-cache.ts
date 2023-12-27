@@ -1,3 +1,5 @@
+import { OID } from "./id";
+
 export interface ThumbnailCache {
   blob: ArrayBuffer;
   width: number;

@@ -47,7 +47,7 @@ const uiState = uiStateService.useState();
 // Event Handler
 // ==============================
 const onRatingChanged = (value: number) => {
-  const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
+  const paperEntityDraft = new PaperEntity(props.entity);
   paperEntityDraft.rating = value;
   paperService.update([paperEntityDraft]);
 };
@@ -56,7 +56,7 @@ const onDeleteCategorizer = (
   categorizer: Categorizer,
   type: CategorizerType
 ) => {
-  const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
+  const paperEntityDraft = new PaperEntity(props.entity);
   if (type === CategorizerType.PaperTag) {
     paperEntityDraft.tags = paperEntityDraft.tags.filter((tag) => {
       return tag.name !== categorizer.name;
@@ -70,7 +70,7 @@ const onDeleteCategorizer = (
 };
 
 const modifyMainFile = async (url: string) => {
-  const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
+  const paperEntityDraft = new PaperEntity(props.entity);
   paperEntityDraft.mainURL = url;
   const updatedPaperEntity = await paperService.update([paperEntityDraft]);
   await cacheService.updateCache(updatedPaperEntity);
@@ -80,7 +80,7 @@ const modifyMainFile = async (url: string) => {
 };
 
 const locateMainFile = async () => {
-  const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
+  const paperEntityDraft = new PaperEntity(props.entity);
   const updatedPaperEntities = await fileService.locateFileOnWeb([
     paperEntityDraft,
   ]);
@@ -89,13 +89,13 @@ const locateMainFile = async () => {
 };
 
 const addSups = (urls: string[]) => {
-  const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
+  const paperEntityDraft = new PaperEntity(props.entity);
   paperEntityDraft.supURLs = [...paperEntityDraft.supURLs, ...urls];
   paperService.update([paperEntityDraft]);
 };
 
 const onDeleteSup = (url: string) => {
-  const paperEntityDraft = new PaperEntity(false).initialize(props.entity);
+  const paperEntityDraft = new PaperEntity(props.entity);
   paperService.deleteSup(paperEntityDraft, url);
 };
 

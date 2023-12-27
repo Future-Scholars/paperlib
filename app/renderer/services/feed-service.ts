@@ -464,8 +464,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
     const paperEntityDrafts = await this._scrapeService.scrape(
       feedEntities.map((feedEntityDraft: IFeedEntityObject) => {
-        const paperEntityDraft = new PaperEntity(true);
-        paperEntityDraft.fromFeed(feedEntityDraft);
+        const paperEntityDraft = new PaperEntity({}, true).fromFeed(
+          feedEntityDraft
+        );
         // NOTE: we don't want to download the PDFs when adding to library.
         paperEntityDraft.mainURL = "";
         return {
@@ -503,13 +504,11 @@ export class FeedService extends Eventable<IFeedServiceState> {
     const localRealm = new Realm(localConfig);
 
     const feeds = localRealm.objects<Feed>("Feed");
-    await this.update(feeds.map((feed) => new Feed(false).initialize(feed)));
+    await this.update(feeds.map((feed) => new Feed(feed)));
 
     const feedEntities = localRealm.objects<FeedEntity>("FeedEntity");
     await this.updateEntities(
-      feedEntities.map((feedEntity) =>
-        new FeedEntity(false).initialize(feedEntity)
-      )
+      feedEntities.map((feedEntity) => new FeedEntity(feedEntity))
     );
 
     this._logService.info(

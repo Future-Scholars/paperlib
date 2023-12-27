@@ -3,6 +3,7 @@ import Realm, { List, Results } from "realm";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { FeedEntity } from "@/models/feed-entity";
+import { OID } from "@/models/id";
 import {
   FeedRepository,
   IFeedRealmObject,

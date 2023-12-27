@@ -9,7 +9,7 @@ import InputBox from "./components/input-box.vue";
 // State
 // ==============================
 const uiState = uiStateService.useState();
-const editingFeedDraft = ref<Feed>(new Feed(false));
+const editingFeedDraft = ref<Feed>(new Feed());
 
 // ==============================
 // Event Handler
@@ -19,7 +19,7 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
-  feedService.create([new Feed(true).initialize(editingFeedDraft.value)]);
+  feedService.create([new Feed(editingFeedDraft.value)]);
   onCloseClicked();
 };
 
@@ -27,7 +27,7 @@ disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 
 onMounted(() => {
   PLMainAPI.menuService.disableAll();
-  editingFeedDraft.value.initialize(new Feed(false));
+  editingFeedDraft.value.initialize(new Feed());
 });
 
 onUnmounted(() => {

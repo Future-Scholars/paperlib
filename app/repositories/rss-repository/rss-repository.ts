@@ -46,12 +46,12 @@ export class RSSRepository {
   parseRSSItems(items: RSSItem[]) {
     let feedEntityDrafts: FeedEntity[] = [];
     for (const item of items) {
-      const feedEntityDraft = new FeedEntity(true);
-      feedEntityDraft.setValue("title", item.title, false);
-      feedEntityDraft.setValue("mainURL", item.link, false);
+      const feedEntityDraft = new FeedEntity({}, true);
+      feedEntityDraft.title = item.title || "";
+      feedEntityDraft.mainURL = item.link || "";
 
       if (item.authors) {
-        feedEntityDraft.setValue("authors", `${item.authors}`, false);
+        feedEntityDraft.authors = `${item.authors}` || "";
       } else {
         let rawAuthor = item["dc:creator"];
         let author;
@@ -63,7 +63,7 @@ export class RSSRepository {
           author =
             (item["dc:creator"] as string)?.replaceAll(/<[^>]*>/g, "") || "";
         }
-        feedEntityDraft.setValue("authors", author, false);
+        feedEntityDraft.authors = author || "";
       }
       const dcDescription = item["dc:description"] || "";
       const descriptionProps = item.description || {};
@@ -71,27 +71,19 @@ export class RSSRepository {
       const description = descriptionProps["#text"]
         ? descriptionProps["#text"]
         : `${item.description}`;
-      feedEntityDraft.setValue(
-        "abstract",
-        dcDescription.length > description.length ? dcDescription : description,
-        false
-      );
+      feedEntityDraft.abstract =
+        (dcDescription.length > description.length
+          ? dcDescription
+          : description) || "";
 
-      feedEntityDraft.setValue(
-        "feedTime",
-        new Date(item["dc:date"] || new Date())
-      );
+      feedEntityDraft.feedTime = new Date(item["dc:date"] || new Date());
 
       if (item["pubDate"]) {
-        feedEntityDraft.setValue(
-          "pubTime",
-          `${new Date(item["pubDate"]).getFullYear()}`
-        );
+        feedEntityDraft.pubTime = `${new Date(item["pubDate"]).getFullYear()}`;
       } else if (item["prism:coverDate"]) {
-        feedEntityDraft.setValue(
-          "pubTime",
-          `${new Date(item["prism:coverDate"]).getFullYear()}`
-        );
+        feedEntityDraft.pubTime = `${new Date(
+          item["prism:coverDate"]
+        ).getFullYear()}`;
       }
 
       if (item.link && item.link.includes("arxiv")) {
@@ -102,25 +94,18 @@ export class RSSRepository {
           )
         );
         if (arxivIds) {
-          feedEntityDraft.setValue("arxiv", arxivIds[0]);
+          feedEntityDraft.arxiv = arxivIds[0] || "";
         }
-        feedEntityDraft.setValue("publication", "arXiv", false);
+        feedEntityDraft.publication = "arXiv";
         if (feedEntityDraft.pubTime === "") {
-          feedEntityDraft.setValue(
-            "pubTime",
-            `20${feedEntityDraft.arxiv.slice(0, 2)}`
-          );
+          feedEntityDraft.pubTime = `20${feedEntityDraft.arxiv.slice(0, 2)}`;
         }
       }
 
-      feedEntityDraft.setValue("doi", item["prism:doi"], false);
-      feedEntityDraft.setValue(
-        "publication",
-        item["prism:publicationName"],
-        false
-      );
-      feedEntityDraft.setValue("volume", `${item["prism:volume"]}`, false);
-      feedEntityDraft.setValue("number", `${item["prism:number"]}`, false);
+      feedEntityDraft.doi = item["prism:doi"] || "";
+      feedEntityDraft.publication = item["prism:publicationName"] || "";
+      feedEntityDraft.volume = `${item["prism:volume"]}`;
+      feedEntityDraft.number = `${item["prism:number"]}`;
 
       feedEntityDrafts.push(feedEntityDraft);
     }
@@ -131,8 +116,8 @@ export class RSSRepository {
   parseAtomItems(items: AtomItem[]) {
     let feedEntityDrafts: FeedEntity[] = [];
     for (const item of items) {
-      const feedEntityDraft = new FeedEntity(true);
-      feedEntityDraft.setValue("title", item.title, false);
+      const feedEntityDraft = new FeedEntity();
+      feedEntityDraft.title = item.title;
 
       if (Array.isArray(item.link)) {
         for (const [i, link] of item.link.entries()) {
@@ -140,11 +125,11 @@ export class RSSRepository {
             link["@_type"] === "application/pdf" ||
             i === item.link.length - 1
           ) {
-            feedEntityDraft.setValue("mainURL", link["@_href"], false);
+            feedEntityDraft.mainURL = link["@_href"] || "";
           }
         }
       } else {
-        feedEntityDraft.setValue("mainURL", item.link["@_href"], false);
+        feedEntityDraft.mainURL = item.link["@_href"] || "";
       }
 
       let rawAuthor = item.author;
@@ -157,14 +142,11 @@ export class RSSRepository {
       } else {
         author = rawAuthor?.name?.replaceAll(/<[^>]*>/g, "") || "";
       }
-      feedEntityDraft.setValue("authors", author, false);
+      feedEntityDraft.authors = author || "";
 
-      feedEntityDraft.setValue("abstract", item.summary, false);
+      feedEntityDraft.abstract = item.summary || "";
 
-      feedEntityDraft.setValue(
-        "feedTime",
-        new Date(item["updated"] || new Date())
-      );
+      feedEntityDraft.feedTime = new Date(item["updated"] || new Date());
 
       if (
         feedEntityDraft.mainURL &&
@@ -177,16 +159,15 @@ export class RSSRepository {
           )
         );
         if (arxivIds) {
-          feedEntityDraft.setValue("arxiv", arxivIds[0]);
+          feedEntityDraft.arxiv = arxivIds[0];
         }
-        feedEntityDraft.setValue("publication", "arXiv", false);
+        feedEntityDraft.publication = "arXiv";
       }
 
       if (item["published"]) {
-        feedEntityDraft.setValue(
-          "pubTime",
-          `${new Date(item["published"]).getFullYear()}`
-        );
+        feedEntityDraft.pubTime = `${new Date(
+          item["published"]
+        ).getFullYear()}`;
       }
       feedEntityDrafts.push(feedEntityDraft);
     }

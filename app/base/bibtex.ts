@@ -76,10 +76,10 @@ export function bibtex2paperEntityDraft(
     paperEntityDraft.volume = `${bibtex.volume}`;
   }
   if (bibtex.issue) {
-    paperEntityDraft.setValue("number", `${bibtex.issue}`);
+    paperEntityDraft.number = `${bibtex.issue}`;
   }
   if (bibtex.publisher) {
-    paperEntityDraft.setValue("publisher", `${bibtex.publisher}`);
+    paperEntityDraft.publisher = `${bibtex.publisher}`;
   }
 
   return paperEntityDraft;

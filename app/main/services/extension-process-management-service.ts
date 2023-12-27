@@ -1,5 +1,5 @@
 import { utilityProcess } from "electron";
-import { join } from "node:path";
+import { join } from "path";
 
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
