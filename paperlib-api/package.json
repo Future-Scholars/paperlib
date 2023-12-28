@@ -1,6 +1,6 @@
 {
   "name": "paperlib-api",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "author": "Paperlib",
   "description": "The API for paperlib extension development.",
   "type": "module",
@@ -11,10 +11,21 @@
   },
   "devDependencies": {},
   "keywords": [
-    "paperlib"
+    "paperlib-api"
   ],
   "files": [
     "dist"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "electron-store": "8.0.1",
+    "electron-updater": "5.0.1",
+    "electron": "22.3.27",
+    "electron-log": "4.4.8",
+    "citation-js": "0.6.4",
+    "pinia": "2.1.7",
+    "fast-xml-parser": "4.0.6",
+    "got": "11.8.3",
+    "realm": "11.10.2",
+    "tough-cookie": "4.0.0"
+  }
 }

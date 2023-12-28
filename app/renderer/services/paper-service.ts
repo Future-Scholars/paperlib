@@ -184,7 +184,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
         },
         7 * 86400,
         undefined,
-        true
+        true,
+        false,
+        60000
       );
     });
   }

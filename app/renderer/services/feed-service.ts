@@ -160,7 +160,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
         },
         86400,
         undefined,
-        true
+        true,
+        false,
+        60000
       );
     });
   }

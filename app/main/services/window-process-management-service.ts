@@ -1,5 +1,6 @@
 import {
   BrowserWindow,
+  BrowserWindowConstructorOptions,
   app,
   ipcMain,
   nativeTheme,
@@ -19,7 +20,7 @@ import {
 } from "@/common/services/preference-service";
 import { WindowStorage } from "@/main/window-storage";
 
-interface WindowOptions extends Electron.BrowserWindowConstructorOptions {
+interface WindowOptions extends BrowserWindowConstructorOptions {
   entry: string;
 }
 
@@ -33,6 +34,7 @@ export interface IWindowProcessManagementServiceState {
   serviceReady: string;
   requestPort: string;
   rendererProcess: string;
+  [key: string]: string;
 }
 
 export const IWindowProcessManagementService = createDecorator(

@@ -28,7 +28,8 @@ export class SchedulerService {
     interval: number,
     errorImpl?: (error: Error) => void,
     runImmediately: boolean = false,
-    runOnce: boolean = false
+    runOnce: boolean = false,
+    delay: number = 0
   ) {
     try {
       const task = this._scheduler.getById(taskId);
@@ -63,14 +64,25 @@ export class SchedulerService {
       taskId
     );
 
-    this._scheduler.addSimpleIntervalJob(job);
-
-    this._logService.info(
-      `Task ${taskId} created.`,
-      `Interval ${interval} runImmediately ${runImmediately} runOnce ${runOnce}`,
-      false,
-      "SchedulerService"
-    );
+    if (delay > 0) {
+      setTimeout(() => {
+        this._scheduler.addSimpleIntervalJob(job);
+      }, delay);
+      this._logService.info(
+        `Task ${taskId} created (Delay: ${delay}ms).`,
+        `Interval ${interval} runImmediately ${runImmediately} runOnce ${runOnce}`,
+        false,
+        "SchedulerService"
+      );
+    } else {
+      this._scheduler.addSimpleIntervalJob(job);
+      this._logService.info(
+        `Task ${taskId} created.`,
+        `Interval ${interval} runImmediately ${runImmediately} runOnce ${runOnce}`,
+        false,
+        "SchedulerService"
+      );
+    }
   }
 
   /**

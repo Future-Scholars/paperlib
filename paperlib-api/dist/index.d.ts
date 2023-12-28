@@ -1,4 +1,5 @@
 import { BrowserWindow } from 'electron';
+import { BrowserWindowConstructorOptions } from 'electron';
 import Cite from 'citation-js';
 import { CookieJar } from 'tough-cookie';
 import { List } from 'realm';
@@ -1481,6 +1482,7 @@ declare interface IWindowProcessManagementServiceState {
     serviceReady: string;
     requestPort: string;
     rendererProcess: string;
+    [key: string]: string;
 }
 
 declare function listAllFiles(folderURL: string, arrayOfFiles?: string[] | null): string[];
@@ -3734,7 +3736,7 @@ export declare const urlUtils: {
     isLocalPath: typeof isLocalPath;
 };
 
-declare interface WindowOptions extends Electron.BrowserWindowConstructorOptions {
+declare interface WindowOptions extends BrowserWindowConstructorOptions {
     entry: string;
 }
 
