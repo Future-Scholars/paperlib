@@ -25,7 +25,7 @@ export function errorcatching(
           return await originalMethod.apply(this, args);
         } catch (error) {
           if (globalThis["PLAPI"]) {
-            PLAPI.logService.error(msg, error as Error, notify, id);
+            await PLAPI.logService.error(msg, error as Error, notify, id);
           } else {
             console.error(msg, error);
           }
