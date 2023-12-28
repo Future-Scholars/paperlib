@@ -7,9 +7,9 @@ export type Dto<T> = T;
 // };
 
 export type Proxied<T> = {
-  [K in keyof T]: K extends "on" | "once" | "already" | "onChanged" | "onClick"
-    ? (...args: any[]) => () => void
-    : T[K] extends (...args: infer A) => infer R
-    ? (...args: { [K in keyof A]: A[K] }) => Promise<Awaited<R>>
+  [K in keyof T]: T[K] extends (...args: infer A) => infer R
+    ? K extends "on" | "once" | "already" | "onChanged" | "onClick"
+      ? (...args: A) => () => void
+      : (...args: { [K in keyof A]: A[K] }) => Promise<Awaited<R>>
     : never;
 };

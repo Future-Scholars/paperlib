@@ -78,6 +78,7 @@
   },
   "dependencies": {
     "@future-scholars/live-plugin-manager": "0.18.1",
+    "@future-scholars/rollup-plugin-promisifymethods": "file:../paperlib_extensions/rollup-plugin-promisifymethods",
     "@future-scholars/vue-virtual-scroller": "1.0.0",
     "@tailwindcss/line-clamp": "0.4.4",
     "chokidar": "3.5.3",

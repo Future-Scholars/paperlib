@@ -38,6 +38,7 @@ import {
   mergeMetadata,
 } from "@/base/metadata";
 import { NetworkTool } from "@/base/network";
+import { Proxied } from "@/base/rpc/proxied";
 import { formatString } from "@/base/string";
 import {
   constructFileURL,
@@ -51,39 +52,39 @@ import {
 import { PLExtension } from "@/extension/base/pl-extension";
 
 declare namespace PLAPI {
-  const logService: LogService;
-  const cacheService: CacheService;
-  const categorizerService: CategorizerService;
-  const commandService: CommandService;
-  const databaseService: DatabaseService;
-  const feedService: FeedService;
-  const fileService: FileService;
-  const hookService: HookService;
-  const paperService: PaperService;
-  const referenceService: ReferenceService;
-  const renderService: RenderService;
-  const schedulerService: SchedulerService;
-  const scrapeService: ScrapeService;
-  const shortcutService: ShortcutService;
-  const smartFilterService: SmartFilterService;
-  const uiStateService: UIStateService;
-  const preferenceService: PreferenceService;
-  const uiSlotService: UISlotService;
-  const networkTool: NetworkTool;
+  const logService: Proxied<LogService>;
+  const cacheService: Proxied<CacheService>;
+  const categorizerService: Proxied<CategorizerService>;
+  const commandService: Proxied<CommandService>;
+  const databaseService: Proxied<DatabaseService>;
+  const feedService: Proxied<FeedService>;
+  const fileService: Proxied<FileService>;
+  const hookService: Proxied<HookService>;
+  const paperService: Proxied<PaperService>;
+  const referenceService: Proxied<ReferenceService>;
+  const renderService: Proxied<RenderService>;
+  const schedulerService: Proxied<SchedulerService>;
+  const scrapeService: Proxied<ScrapeService>;
+  const shortcutService: Proxied<ShortcutService>;
+  const smartFilterService: Proxied<SmartFilterService>;
+  const uiStateService: Proxied<UIStateService>;
+  const preferenceService: Proxied<PreferenceService>;
+  const uiSlotService: Proxied<UISlotService>;
+  const networkTool: Proxied<NetworkTool>;
 }
 
 declare namespace PLMainAPI {
-  const contextMenuService: ContextMenuService;
-  const fileSystemService: FileSystemService;
-  const menuService: MenuService;
-  const proxyService: ProxyService;
-  const upgradeService: UpgradeService;
-  const windowProcessManagementService: WindowProcessManagementService;
+  const contextMenuService: Proxied<ContextMenuService>;
+  const fileSystemService: Proxied<FileSystemService>;
+  const menuService: Proxied<MenuService>;
+  const proxyService: Proxied<ProxyService>;
+  const upgradeService: Proxied<UpgradeService>;
+  const windowProcessManagementService: Proxied<WindowProcessManagementService>;
 }
 
 declare namespace PLExtAPI {
-  const extensionManagementService: ExtensionManagementService;
-  const extensionPreferenceService: ExtensionPreferenceService;
+  const extensionManagementService: Proxied<ExtensionManagementService>;
+  const extensionPreferenceService: Proxied<ExtensionPreferenceService>;
 }
 
 const stringUtils = {

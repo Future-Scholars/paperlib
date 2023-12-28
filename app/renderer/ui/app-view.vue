@@ -9,7 +9,7 @@ import { ICategorizerCollection } from "@/repositories/db-repository/categorizer
 import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
 import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
-import { IPaperSmartFilterResults } from "@/repositories/db-repository/smartfilter-repository";
+import { IPaperSmartFilterCollection } from "@/repositories/db-repository/smartfilter-repository";
 
 import { Process } from "@/base/process-id";
 import { CategorizerType } from "@/models/categorizer";
@@ -43,7 +43,7 @@ const tags: Ref<ICategorizerCollection> = ref([]);
 provide("tags", tags);
 const folders: Ref<ICategorizerCollection> = ref([]);
 provide("folders", folders);
-const smartfilters: Ref<IPaperSmartFilterResults> = ref([]);
+const smartfilters: Ref<IPaperSmartFilterCollection> = ref([]);
 provide("smartfilters", smartfilters);
 const feeds: Ref<IFeedCollection> = ref([]);
 provide("feeds", feeds);

@@ -1915,31 +1915,31 @@ export declare class PaperTag extends Categorizer {
 }
 
 declare namespace PLAPI_2 {
-    const logService: LogService;
-    const cacheService: CacheService;
-    const categorizerService: CategorizerService;
-    const commandService: CommandService;
-    const databaseService: DatabaseService;
-    const feedService: FeedService;
-    const fileService: FileService;
-    const hookService: HookService;
-    const paperService: PaperService;
-    const referenceService: ReferenceService;
-    const renderService: RenderService;
-    const schedulerService: SchedulerService;
-    const scrapeService: ScrapeService;
-    const shortcutService: ShortcutService;
-    const smartFilterService: SmartFilterService;
-    const uiStateService: UIStateService;
-    const preferenceService: PreferenceService;
-    const uiSlotService: UISlotService;
-    const networkTool: NetworkTool;
+    const logService: Proxied<LogService>;
+    const cacheService: Proxied<CacheService>;
+    const categorizerService: Proxied<CategorizerService>;
+    const commandService: Proxied<CommandService>;
+    const databaseService: Proxied<DatabaseService>;
+    const feedService: Proxied<FeedService>;
+    const fileService: Proxied<FileService>;
+    const hookService: Proxied<HookService>;
+    const paperService: Proxied<PaperService>;
+    const referenceService: Proxied<ReferenceService>;
+    const renderService: Proxied<RenderService>;
+    const schedulerService: Proxied<SchedulerService>;
+    const scrapeService: Proxied<ScrapeService>;
+    const shortcutService: Proxied<ShortcutService>;
+    const smartFilterService: Proxied<SmartFilterService>;
+    const uiStateService: Proxied<UIStateService>;
+    const preferenceService: Proxied<PreferenceService>;
+    const uiSlotService: Proxied<UISlotService>;
+    const networkTool: Proxied<NetworkTool>;
 }
 export { PLAPI_2 as PLAPI }
 
 declare namespace PLExtAPI_2 {
-    const extensionManagementService: ExtensionManagementService;
-    const extensionPreferenceService: ExtensionPreferenceService;
+    const extensionManagementService: Proxied<ExtensionManagementService>;
+    const extensionPreferenceService: Proxied<ExtensionPreferenceService>;
 }
 export { PLExtAPI_2 as PLExtAPI }
 
@@ -1961,12 +1961,12 @@ export declare abstract class PLExtension {
 }
 
 declare namespace PLMainAPI_2 {
-    const contextMenuService: ContextMenuService;
-    const fileSystemService: FileSystemService;
-    const menuService: MenuService;
-    const proxyService: ProxyService;
-    const upgradeService: UpgradeService;
-    const windowProcessManagementService: WindowProcessManagementService;
+    const contextMenuService: Proxied<ContextMenuService>;
+    const fileSystemService: Proxied<FileSystemService>;
+    const menuService: Proxied<MenuService>;
+    const proxyService: Proxied<ProxyService>;
+    const upgradeService: Proxied<UpgradeService>;
+    const windowProcessManagementService: Proxied<WindowProcessManagementService>;
 }
 export { PLMainAPI_2 as PLMainAPI }
 
@@ -1998,6 +1998,12 @@ declare class PreferenceService extends Eventable<IPreferenceStore> {
     getPassword(key: string): Promise<string | null>;
     setPassword(key: string, pwd: string): Promise<void>;
 }
+
+declare type Proxied<T> = {
+    [K in keyof T]: T[K] extends (...args: infer A) => infer R ? K extends "on" | "once" | "already" | "onChanged" | "onClick" ? (...args: A) => () => void : (...args: {
+        [K in keyof A]: A[K];
+    }) => Promise<Awaited<R>> : never;
+};
 
 declare class ProxyService {
     constructor();
@@ -3718,7 +3724,7 @@ declare class UpgradeService extends Eventable<IUpgradeServiceState> {
     currentVersion(): string;
 }
 
-declare const urlUtils_2: {
+export declare const urlUtils: {
     getProtocol: typeof getProtocol;
     hasProtocol: typeof hasProtocol;
     eraseProtocol: typeof eraseProtocol;
@@ -3727,7 +3733,6 @@ declare const urlUtils_2: {
     listAllFiles: typeof listAllFiles;
     isLocalPath: typeof isLocalPath;
 };
-export { urlUtils_2 as urlUtils }
 
 declare interface WindowOptions extends Electron.BrowserWindowConstructorOptions {
     entry: string;
