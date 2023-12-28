@@ -312,6 +312,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     });
 
     // filter paper entities with files that are not moved (still absolute path)
+    // TODO: some files are manually deleted, but is relative path. When update we have an error now.
     fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.map(
       (paperEntityDraft) => {
         if (

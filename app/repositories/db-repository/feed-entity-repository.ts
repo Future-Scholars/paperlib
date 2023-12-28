@@ -4,6 +4,7 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { FeedEntity } from "@/models/feed-entity";
 import { OID } from "@/models/id";
+import { ObjectId } from "bson";
 import {
   FeedRepository,
   IFeedRealmObject,
@@ -121,6 +122,42 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
   }
 
   /**
+   * Make sure all properties of feed entity.
+   * @param feedEntity - Feed entity.
+   * @returns - Paper entity.
+   */
+  makeSureProperties(feedEntity: IFeedEntityObject) {
+    if (!feedEntity._id && !feedEntity.id) {
+      feedEntity._id = new ObjectId();
+      feedEntity.id = feedEntity._id;
+    } else {
+      feedEntity._id = new ObjectId(feedEntity._id || feedEntity.id);
+      feedEntity.id = new ObjectId(feedEntity.id || feedEntity._id);
+    }
+
+    feedEntity.feedTime = feedEntity.feedTime || new Date();
+
+    feedEntity._partition = feedEntity._partition || "";
+    feedEntity.addTime = feedEntity.addTime || new Date();
+    feedEntity.title = feedEntity.title || "";
+    feedEntity.authors = feedEntity.authors || "";
+    feedEntity.abstract = feedEntity.abstract || "";
+    feedEntity.publication = feedEntity.publication || "";
+    feedEntity.pubTime = feedEntity.pubTime || "";
+    feedEntity.pubType = feedEntity.pubType || 0;
+    feedEntity.doi = feedEntity.doi || "";
+    feedEntity.arxiv = feedEntity.arxiv || "";
+    feedEntity.mainURL = feedEntity.mainURL || "";
+    feedEntity.pages = feedEntity.pages || "";
+    feedEntity.volume = feedEntity.volume || "";
+    feedEntity.number = feedEntity.number || "";
+    feedEntity.publisher = feedEntity.publisher || "";
+    feedEntity.read = feedEntity.read || false;
+
+    return feedEntity;
+  }
+
+  /**
    * Update feed entity.
    * @param realm - Realm instance.
    * @param feedEntity - Feed entity.
@@ -134,6 +171,8 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
     partition: string,
     ignoreReadState: boolean
   ) {
+    feedEntity = this.makeSureProperties(feedEntity);
+
     return realm.safeWrite(() => {
       let feed = this._feedRepository.toRealmObject(realm, feedEntity.feed);
       if (!feed) {

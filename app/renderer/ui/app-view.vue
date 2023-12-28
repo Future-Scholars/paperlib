@@ -417,7 +417,6 @@ onMounted(async () => {
       <PresettingView
         v-if="
           prefState.showPresettingLang ||
-          prefState.showPresettingScraper ||
           prefState.showPresettingDB
         "
       />

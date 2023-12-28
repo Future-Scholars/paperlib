@@ -5,6 +5,7 @@ import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { OID } from "@/models/id";
+import { ObjectId } from "bson";
 
 export interface IFeedRepositoryState {
   updated: number;
@@ -151,13 +152,38 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
   }
 
   /**
+   * Make sure all properties of feed.
+   * @param feed - Feed
+   * @returns Feed
+   */
+  makeSureProperties(feed: IFeedObject) {
+    if (!feed._id && !feed.id) {
+      feed._id = new ObjectId();
+      feed.id = feed._id;
+    } else {
+      feed._id = new ObjectId(feed._id || feed.id);
+      feed.id = new ObjectId(feed.id || feed._id);
+    }
+
+    feed._partition = feed._partition || "";
+    feed.name = feed.name || "";
+    feed.color = feed.color || Colors.blue;
+    feed.count = feed.count || 0;
+    feed.url = feed.url || "";
+
+    return feed;
+  }
+
+  /**
    * Update feed.
    * @param realm - Realm instance
    * @param feed - Feed
    * @param partition - Partition
    * @returns Feed
    */
-  update(realm: Realm, feed: Feed, partition: string) {
+  update(realm: Realm, feed: IFeedObject, partition: string) {
+    feed = this.makeSureProperties(feed);
+
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, feed);
 

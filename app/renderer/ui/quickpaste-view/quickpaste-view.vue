@@ -95,7 +95,10 @@ const exportSelectedCiteKeys = async () => {
   searchText.value = "";
   paperEntities.value = [];
 
-  await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
+  await PLMainAPI.windowProcessManagementService.hide(
+    "quickpasteProcess",
+    true
+  );
 };
 
 const exportSelectedCiteBodies = async () => {
@@ -122,7 +125,10 @@ const exportSelectedCiteBodies = async () => {
   searchText.value = "";
   paperEntities.value = [];
 
-  await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
+  await PLMainAPI.windowProcessManagementService.hide(
+    "quickpasteProcess",
+    true
+  );
 };
 
 const exportSelectedCiteBodiesInFolder = async () => {
@@ -156,7 +162,10 @@ const exportSelectedCiteBodiesInFolder = async () => {
   searchText.value = "";
   paperEntities.value = [];
 
-  await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
+  await PLMainAPI.windowProcessManagementService.hide(
+    "quickpasteProcess",
+    true
+  );
 };
 
 const onLinkClicked = async () => {
@@ -246,7 +255,10 @@ disposable(
   shortcutService.registerInInputField("Eascape", async () => {
     searchText.value = "";
     paperEntities.value = [];
-    await PLMainAPI.windowProcessManagementService.hide("quickpasteProcess");
+    await PLMainAPI.windowProcessManagementService.hide(
+      "quickpasteProcess",
+      true
+    );
   })
 );
 

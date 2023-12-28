@@ -5,6 +5,7 @@ import { createDecorator } from "@/base/injection/injection";
 import { CategorizerType } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
+import { ObjectId } from "bson";
 import {
   CategorizerRepository,
   ICategorizerRepository,
@@ -120,6 +121,43 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
   }
 
   /**
+   * Make sure all properties of paper entity.
+   * @param paperEntity - Paper entity.
+   * @returns - Paper entity.
+   */
+  makeSureProperties(paperEntity: IPaperEntityObject) {
+    if (!paperEntity._id && !paperEntity.id) {
+      paperEntity._id = new ObjectId();
+      paperEntity.id = paperEntity._id;
+    } else {
+      paperEntity._id = new ObjectId(paperEntity._id || paperEntity.id);
+      paperEntity.id = new ObjectId(paperEntity.id || paperEntity._id);
+    }
+
+    paperEntity._partition = paperEntity._partition || "";
+    paperEntity.addTime = paperEntity.addTime || new Date();
+    paperEntity.title = paperEntity.title || "";
+    paperEntity.authors = paperEntity.authors || "";
+    paperEntity.publication = paperEntity.publication || "";
+    paperEntity.pubTime = paperEntity.pubTime || "";
+    paperEntity.pubType = paperEntity.pubType || 0;
+    paperEntity.doi = paperEntity.doi || "";
+    paperEntity.arxiv = paperEntity.arxiv || "";
+    paperEntity.mainURL = paperEntity.mainURL || "";
+    paperEntity.supURLs = paperEntity.supURLs?.map((url) => `${url}`) || [];
+    paperEntity.rating = paperEntity.rating || 0;
+    paperEntity.flag = paperEntity.flag || false;
+    paperEntity.note = paperEntity.note || "";
+    paperEntity.codes = paperEntity.codes?.map((code) => `${code}`) || [];
+    paperEntity.pages = paperEntity.pages || "";
+    paperEntity.volume = paperEntity.volume || "";
+    paperEntity.number = paperEntity.number || "";
+    paperEntity.publisher = paperEntity.publisher || "";
+
+    return paperEntity;
+  }
+
+  /**
    * Update paper entity.
    * @param realm - Realm instance.
    * @param paperEntity - Paper entity.
@@ -129,7 +167,9 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param partition - Partition.
    * @returns - Updated boolean flag.
    */
-  update(realm: Realm, paperEntity: PaperEntity, partition: string) {
+  update(realm: Realm, paperEntity: IPaperEntityObject, partition: string) {
+    paperEntity = this.makeSureProperties(paperEntity);
+
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, paperEntity);
 

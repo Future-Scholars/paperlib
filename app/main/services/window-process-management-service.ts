@@ -221,13 +221,16 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       },
       {
         blur: (win: BrowserWindow) => {
-          win.hide();
           win.setSize(600, 76);
-          // TODO: check focus logic on all platforms
           if (os.platform() === "darwin") {
+            win.hide();
             app.hide();
+          } else {
+            win.minimize();
+            win.hide();
           }
         },
+
         focus: (win: BrowserWindow) => {
           win.setSize(600, 76);
         },
@@ -267,10 +270,20 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * Hide the window with the given id.
    * @param windowId - The id of the window to be hidden
    */
-  hide(windowId: string) {
+  hide(windowId: string, restoreFocus = false) {
     const win = this.browserWindows.get(windowId);
     if (win) {
-      win.hide();
+      if (restoreFocus) {
+        if (os.platform() === "darwin") {
+          win.hide();
+          app.hide();
+        } else {
+          win.minimize();
+          win.hide();
+        }
+      } else {
+        win.hide();
+      }
     }
   }
 

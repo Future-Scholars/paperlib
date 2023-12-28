@@ -6,6 +6,7 @@ import { Colors } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { ISmartFilterServiceState } from "@/renderer/services/smartfilter-service";
+import { ObjectId } from "bson";
 
 export const IPaperSmartFilterRepository = createDecorator(
   "paperSmartFilterRepository"
@@ -160,6 +161,17 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
     });
   }
 
+  makeSureProperties(smartfilter: IPaperSmartFilterObject) {
+    smartfilter._id = smartfilter._id
+      ? new ObjectId(smartfilter._id)
+      : new ObjectId();
+    smartfilter._partition = smartfilter._partition || "";
+    smartfilter.name = smartfilter.name || "";
+    smartfilter.color = smartfilter.color || Colors.blue;
+    smartfilter.filter = smartfilter.filter || "";
+    return smartfilter;
+  }
+
   /**
    * Update smartfilter
    * @param realm - Realm instance
@@ -174,6 +186,8 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
     type: PaperSmartFilterType,
     partition: string
   ) {
+    smartfilter = this.makeSureProperties(smartfilter);
+
     return realm.safeWrite(() => {
       // Add or Link categorizer
       const dbExistPaperSmartFilter = this.toRealmObject(realm, smartfilter);

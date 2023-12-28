@@ -4,6 +4,7 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Categorizer, CategorizerType, Colors } from "@/models/categorizer";
 import { OID } from "@/models/id";
+import { ObjectId } from "bson";
 
 export interface ICategorizerRepositoryState {
   tagsUpdated: number;
@@ -223,6 +224,18 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     });
   }
 
+  makeSureProperties(categorizer: ICategorizerObject) {
+    categorizer._id = categorizer._id
+      ? new ObjectId(categorizer._id)
+      : new ObjectId();
+    categorizer._partition = categorizer._partition || "";
+    categorizer.name = categorizer.name || "";
+    categorizer.color = categorizer.color || Colors.blue;
+    categorizer.count = categorizer.count || 0;
+
+    return categorizer;
+  }
+
   /**
    * Update/Insert categorizer.
    * @param realm - Realm instance
@@ -237,6 +250,8 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     categorizer: ICategorizerObject,
     partition: string
   ) {
+    categorizer = this.makeSureProperties(categorizer);
+
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, type, categorizer);
 
