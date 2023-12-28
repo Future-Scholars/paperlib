@@ -48,6 +48,12 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
       }
     });
 
+    ipcRenderer.on("destroy-port", (event, senderID) => {
+      if (this._protocols[senderID]) {
+        delete this._protocols[senderID];
+      }
+    });
+
     ipcRenderer.postMessage("request-port", Process.renderer);
   }
 

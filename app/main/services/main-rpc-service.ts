@@ -22,6 +22,7 @@ interface IGraph {
   hasCycle(): boolean;
   nodes(): string[];
   hasEdge(id1: string, id2: string): boolean;
+  removeNode(id: string): IGraph;
 }
 
 export class MainRPCService extends RPCService<IMainRPCServiceState> {
@@ -58,8 +59,33 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
     // 4. After the protocol is created, we will send a message through the protocol to broadcast the exposed APIs of the current process.
 
     windowProcessManagementService.on(
+      "destroyed",
+      (payload: { value: string }) => {
+        const destroyedProcessID = payload.value;
+
+        for (const otherProcessID of this._processGraph.nodes()) {
+          if (otherProcessID === destroyedProcessID) {
+            continue;
+          }
+
+          if (this._processGraph.hasEdge(otherProcessID, destroyedProcessID)) {
+            if (
+              windowProcessManagementService.browserWindows.has(otherProcessID)
+            ) {
+              windowProcessManagementService.browserWindows
+                .get(otherProcessID)
+                .webContents.postMessage("destroy-port", destroyedProcessID);
+            }
+          }
+        }
+
+        this._processGraph.removeNode(destroyedProcessID);
+      }
+    );
+
+    windowProcessManagementService.on(
       "requestPort",
-      (payload: { key: string; value: string }) => {
+      (payload: { value: string }) => {
         const senderID = payload.value;
         const processIDs = this._processGraph.nodes();
 
@@ -124,6 +150,36 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
             }
           }
         }
+      }
+    );
+
+    extensionProcessManagementService.on(
+      "destroyed",
+      (payload: { value: string }) => {
+        const destroyedProcessID = payload.value;
+
+        for (const otherProcessID of this._processGraph.nodes()) {
+          if (otherProcessID === destroyedProcessID) {
+            continue;
+          }
+
+          if (this._processGraph.hasEdge(otherProcessID, destroyedProcessID)) {
+            if (
+              extensionProcessManagementService.extensionProcesses[
+                otherProcessID
+              ]
+            ) {
+              extensionProcessManagementService.extensionProcesses[
+                otherProcessID
+              ].postMessage({
+                type: "destroy-port",
+                value: destroyedProcessID,
+              });
+            }
+          }
+        }
+
+        this._processGraph.removeNode(destroyedProcessID);
       }
     );
 

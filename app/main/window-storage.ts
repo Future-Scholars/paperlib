@@ -65,17 +65,22 @@ export class WindowStorage {
   }
 
   destroy(id: string | number): void {
-    let window: BrowserWindow;
-    if (typeof id === "string") {
-      window = this._windows[id as string];
-    } else {
-      window = this._windows[this._wId2Id[id]];
+    try {
+      let window: BrowserWindow;
+      if (typeof id === "string") {
+        window = this._windows[id as string];
+      } else {
+        window = this._windows[this._wId2Id[id]];
+      }
+      const windowId = window.id;
+      if (window && !window.isDestroyed()) {
+        window.destroy();
+      }
+      delete this._wId2Id[windowId];
+      delete this._windows[id as string];
+    } catch (e) {
+      console.error(e);
     }
-    if (window && !window.isDestroyed()) {
-      window.destroy();
-    }
-    delete this._wId2Id[window.id];
-    delete this._windows[id as string];
   }
 
   has(id: string | number): boolean {

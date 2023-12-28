@@ -8,6 +8,7 @@ import { Process } from "@/base/process-id";
 
 export interface IExtensionProcessManagementServiceState {
   requestPort: string;
+  destroyed: string;
 }
 
 export const IExtensionProcessManagementService = createDecorator(
@@ -24,6 +25,7 @@ export class ExtensionProcessManagementService extends Eventable<IExtensionProce
   constructor() {
     super("extensionProcessManagementService", {
       requestPort: "",
+      destroyed: "",
     });
 
     this.extensionProcesses = {};
@@ -57,6 +59,7 @@ export class ExtensionProcessManagementService extends Eventable<IExtensionProce
   close() {
     for (const processID in this.extensionProcesses) {
       this.extensionProcesses[processID].kill();
+      this.fire({ destroyed: processID });
     }
   }
 }

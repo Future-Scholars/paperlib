@@ -30,25 +30,29 @@ export class ExtensionRPCService extends RPCService<IExtensionRPCServiceState> {
     //    All this code should be in the protocol class.
 
     process.parentPort.on("message", (event) => {
-      if (event.data.type !== "response-port") {
-        return;
-      }
+      if (event.data.type === "response-port") {
+        const senderID = event.data.value;
 
-      const senderID = event.data.value;
+        const port = event.ports[0];
 
-      const port = event.ports[0];
+        if (!this._protocols[senderID]) {
+          const protocol = new MessagePortRPCProtocol(
+            port,
+            Process.extension,
+            false
+          );
 
-      if (!this._protocols[senderID]) {
-        const protocol = new MessagePortRPCProtocol(
-          port,
-          Process.extension,
-          false
-        );
+          this._protocols[senderID] = protocol;
+          this.initActionor(protocol);
 
-        this._protocols[senderID] = protocol;
-        this.initActionor(protocol);
+          protocol.sendExposedAPI("PLExtAPI");
+        }
+      } else if (event.data.type === "destroy-port") {
+        const senderID = event.data.value;
 
-        protocol.sendExposedAPI("PLExtAPI");
+        if (this._protocols[senderID]) {
+          delete this._protocols[senderID];
+        }
       }
     });
 

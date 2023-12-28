@@ -60,6 +60,7 @@ const onWebdavConnectClicked = async () => {
 
 const onWebdavDisconnectClicked = () => {
   preferenceService.set({ syncFileStorage: "local" });
+  syncFileStorage.value = "local";
 };
 
 onMounted(() => {

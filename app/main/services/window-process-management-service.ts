@@ -33,6 +33,7 @@ export enum APPTheme {
 export interface IWindowProcessManagementServiceState {
   serviceReady: string;
   requestPort: string;
+  destroyed: string;
   rendererProcess: string;
   [key: string]: string;
 }
@@ -50,6 +51,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     super("windowProcessManagementService", {
       serviceReady: "",
       requestPort: "",
+      destroyed: "",
       rendererProcess: "",
     });
 
@@ -244,6 +246,13 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       this.browserWindows
         .get("quickpasteProcess")
         .setVisibleOnAllWorkspaces(true);
+    }
+  }
+
+  destroy(windowId: string) {
+    if (this.browserWindows.has(windowId)) {
+      this.browserWindows.destroy(windowId);
+      this.fire({ destroyed: windowId });
     }
   }
 

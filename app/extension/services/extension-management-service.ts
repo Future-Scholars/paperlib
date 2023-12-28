@@ -168,7 +168,17 @@ export class ExtensionManagementService {
           false,
           "ExtManagementService"
         );
-        await this._installedExtensions[extensionID].dispose();
+        try {
+          await this._installedExtensions[extensionID].dispose();
+        } catch (e) {
+          console.error(e);
+          PLAPI.logService.error(
+            `Failed to dispose extension ${extensionID}`,
+            e as Error,
+            true,
+            "ExtManagementService"
+          );
+        }
       }
       PLAPI.logService.info(
         `Uninstalling extension ${extensionID}`,

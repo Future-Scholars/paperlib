@@ -387,7 +387,7 @@ disposable(
 
 disposable(
   PLMainAPI.menuService.onClick("View-preview", () => {
-    previewSelectedEntities();
+    // previewSelectedEntities();
   })
 );
 

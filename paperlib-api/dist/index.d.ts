@@ -176,6 +176,7 @@ declare class CategorizerRepository extends Eventable<ICategorizerRepositoryStat
      * @returns True if success
      */
     rename(realm: Realm_2, oldName: string, newName: string, type: CategorizerType): boolean;
+    makeSureProperties(categorizer: ICategorizerObject): ICategorizerObject;
     /**
      * Update/Insert categorizer.
      * @param realm - Realm instance
@@ -687,6 +688,12 @@ declare class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState>
      */
     loadByIds(realm: Realm_2, ids: OID[]): IFeedEntityCollection;
     /**
+     * Make sure all properties of feed entity.
+     * @param feedEntity - Feed entity.
+     * @returns - Paper entity.
+     */
+    makeSureProperties(feedEntity: IFeedEntityObject): IFeedEntityObject;
+    /**
      * Update feed entity.
      * @param realm - Realm instance.
      * @param feedEntity - Feed entity.
@@ -758,13 +765,19 @@ declare class FeedRepository extends Eventable<IFeedRepositoryState> {
      */
     rename(realm: Realm_2, oldName: string, newName: string): void;
     /**
+     * Make sure all properties of feed.
+     * @param feed - Feed
+     * @returns Feed
+     */
+    makeSureProperties(feed: IFeedObject): IFeedObject;
+    /**
      * Update feed.
      * @param realm - Realm instance
      * @param feed - Feed
      * @param partition - Partition
      * @returns Feed
      */
-    update(realm: Realm_2, feed: Feed, partition: string): (Feed & Realm_2.Object<unknown, never>) | IFeedRealmObject;
+    update(realm: Realm_2, feed: IFeedObject, partition: string): (Feed & Realm_2.Object<unknown, never>) | IFeedRealmObject;
     updateCount(realm: Realm_2, feeds: IFeedCollection): void;
 }
 
@@ -849,13 +862,13 @@ declare class FileService extends Eventable<IFileServiceState> {
     private readonly _hookService;
     private readonly _logService;
     private readonly _preferenceService;
-    private _backend;
+    private _backend?;
     constructor(_hookService: HookService, _logService: LogService, _preferenceService: PreferenceService);
-    initialize(): void;
+    initialize(): Promise<void>;
     private _initBackend;
     startWatch(): Promise<void>;
     stopWatch(): Promise<void>;
-    check(): Promise<boolean>;
+    check(): Promise<boolean | undefined>;
     /**
      * Move files of a paper entity to the library folder
      * @param paperEntity - paper entity to move
@@ -1681,6 +1694,12 @@ declare class PaperEntityRepository extends Eventable<IPaperEntityRepositoryStat
      */
     loadByIds(realm: Realm_2, ids: OID[]): Realm_2.Results<PaperEntity & Realm_2.Object<unknown, never>>;
     /**
+     * Make sure all properties of paper entity.
+     * @param paperEntity - Paper entity.
+     * @returns - Paper entity.
+     */
+    makeSureProperties(paperEntity: IPaperEntityObject): IPaperEntityObject;
+    /**
      * Update paper entity.
      * @param realm - Realm instance.
      * @param paperEntity - Paper entity.
@@ -1690,7 +1709,7 @@ declare class PaperEntityRepository extends Eventable<IPaperEntityRepositoryStat
      * @param partition - Partition.
      * @returns - Updated boolean flag.
      */
-    update(realm: Realm_2, paperEntity: PaperEntity, partition: string): boolean;
+    update(realm: Realm_2, paperEntity: IPaperEntityObject, partition: string): boolean;
     /**
      * Delete paper entity.
      * @param realm - Realm instance.
@@ -1698,7 +1717,7 @@ declare class PaperEntityRepository extends Eventable<IPaperEntityRepositoryStat
      * @param paperEntity - Paper entity.
      * @returns - Deleted boolean flags.
      */
-    delete(realm: Realm_2, ids?: OID[], paperEntitys?: PaperEntity[]): string[];
+    delete(realm: Realm_2, ids?: OID[], paperEntitys?: IPaperEntityCollection): string[];
 }
 
 declare class PaperFilterOptions implements IPaperFilterOptions {
@@ -1888,6 +1907,7 @@ declare class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSt
      * @returns True if success
      */
     colorize(realm: Realm_2, color: Colors, type: PaperSmartFilterType, id?: OID, smartfilter?: PaperSmartFilter): Promise<void>;
+    makeSureProperties(smartfilter: IPaperSmartFilterObject): IPaperSmartFilterObject;
     /**
      * Update smartfilter
      * @param realm - Realm instance
@@ -2154,7 +2174,7 @@ declare class SchedulerService {
      * @param errorImpl The implementation of the error handler.
      * @param runImmediately Whether to run the task immediately.
      * @param runOnce Whether to run the task only once. */
-    createTask(taskId: string, taskImpl: () => void, interval: number, errorImpl?: (error: Error) => void, runImmediately?: boolean, runOnce?: boolean): void;
+    createTask(taskId: string, taskImpl: () => void, interval: number, errorImpl?: (error: Error) => void, runImmediately?: boolean, runOnce?: boolean, delay?: number): void;
     /**
      * Remove a task.
      * @param taskId The id of the task. */
@@ -3753,6 +3773,7 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
     create(id: string, options: WindowOptions, eventCallbacks?: Record<string, (win: BrowserWindow) => void>): void;
     createMainRenderer(): void;
     createQuickpasteRenderer(): void;
+    destroy(windowId: string): void;
     /**
      * Fire the serviceReady event. This event is fired when the service of the window is ready to be used by other processes.
      * @param windowId - The id of the window that fires the event
@@ -3767,7 +3788,7 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
      * Hide the window with the given id.
      * @param windowId - The id of the window to be hidden
      */
-    hide(windowId: string): void;
+    hide(windowId: string, restoreFocus?: boolean): void;
     /**
      * Minimize the window with the given id.
      */

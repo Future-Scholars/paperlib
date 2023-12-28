@@ -12083,13 +12083,13 @@ class PaperEntity {
     this.doi = object?.doi || "";
     this.arxiv = object?.arxiv || "";
     this.mainURL = object?.mainURL || "";
-    this.supURLs = object?.supURLs || [];
+    this.supURLs = object?.supURLs?.map((url) => url) || [];
     this.rating = object?.rating || 0;
-    this.tags = object?.tags?.map((tag) => new PaperTag(tag, initObjectId)) || [];
-    this.folders = object?.folders?.map((folder) => new PaperFolder(folder, initObjectId)) || [];
+    this.tags = object?.tags?.map((tag) => new PaperTag(tag, false)) || [];
+    this.folders = object?.folders?.map((folder) => new PaperFolder(folder, false)) || [];
     this.flag = object?.flag || false;
     this.note = object?.note || "";
-    this.codes = object?.codes || [];
+    this.codes = object?.codes?.map((code) => code) || [];
     this.pages = object?.pages || "";
     this.volume = object?.volume || "";
     this.number = object?.number || "";
