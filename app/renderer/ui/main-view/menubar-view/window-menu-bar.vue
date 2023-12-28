@@ -145,7 +145,7 @@ const onMaximizeClicked = () => {
                 id="sort-by-title-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @event:click="emits('event:click', 'sort-by-title')"
+                @click="emits('event:click', 'sort-by-title')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -161,7 +161,7 @@ const onMaximizeClicked = () => {
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @event:click="emits('event:click', 'sort-by-authors')"
+                @click="emits('event:click', 'sort-by-authors')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -177,7 +177,7 @@ const onMaximizeClicked = () => {
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @event:click="emits('event:click', 'sort-by-pubTime')"
+                @click="emits('event:click', 'sort-by-pubTime')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -193,7 +193,7 @@ const onMaximizeClicked = () => {
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @event:click="emits('event:click', 'sort-by-publication')"
+                @click="emits('event:click', 'sort-by-publication')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -209,7 +209,7 @@ const onMaximizeClicked = () => {
               <MenuItem
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @event:click="emits('event:click', 'sort-by-addTime')"
+                @click="emits('event:click', 'sort-by-addTime')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -228,7 +228,7 @@ const onMaximizeClicked = () => {
                 id="sort-desc-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @event:click="emits('event:click', 'sort-order-desc')"
+                @click="emits('event:click', 'sort-order-desc')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
@@ -245,7 +245,7 @@ const onMaximizeClicked = () => {
                 id="sort-asce-btn"
                 v-slot="{ active }"
                 class="w-full rounded-md p-1 hover:bg-neutral-200 hover:dark:bg-neutral-700"
-                @event:click="emits('event:click', 'sort-order-asce')"
+                @click="emits('event:click', 'sort-order-asce')"
               >
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">

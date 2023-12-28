@@ -155,7 +155,7 @@ const onChangeLanguage = (language: string) => {
         @input="onCustomRenamingFormatUpdate"
       />
       <button
-        class="flex h-full text-xs px-2 my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
+        class="flex h-8 text-xs px-2 my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
         @click="onRenameAllClicked"
       >
         <span class="m-auto">Rename All files</span>

@@ -28,6 +28,7 @@ export class WebDavFileBackend implements IFileBackend {
     this._webdavClient = null;
 
     this._appLibFolder = appLibFolder;
+    // TODO: should we use this?
     this._fileMoveOperation = fileMoveOperation;
 
     this._webdavURL = webdavURL;
@@ -42,16 +43,28 @@ export class WebDavFileBackend implements IFileBackend {
     if (this._webdavClient) {
       return true;
     }
+
+    console.log(this._webdavURL, this._webdavUsername, this._webdavPassword);
+
     this._webdavClient = createClient(this._webdavURL, {
       username: this._webdavUsername,
       password: this._webdavPassword,
     });
 
     await this._webdavClient.getDirectoryContents("/");
+
+    if (!(await this._webdavClient.exists("/paperlib"))) {
+      await this._webdavClient.createDirectory("/paperlib");
+    }
+
     return true;
   }
 
   async access(url: string, download = true): Promise<string> {
+    if (path.isAbsolute(eraseProtocol(url))) {
+      return Promise.resolve(existsSync(eraseProtocol(url)) ? url : "");
+    }
+
     await this.check();
     const basename = path.basename(url);
     const localURL = constructFileURL(
@@ -186,10 +199,22 @@ export class WebDavFileBackend implements IFileBackend {
   ): Promise<void> {
     if (sourceURL.startsWith("file://")) {
       await this._local2localMove(sourceURL, targetCacheURL);
-      await this._local2serverMove(sourceURL, targetURL);
-      if (this._fileMoveOperation === "cut") {
-        await fsPromise.unlink(sourceURL.replace("file://", ""));
-      }
+
+      const moveLocalToServer = async () => {
+        logService?.info(
+          "Uploading file to WebDAV...",
+          sourceURL,
+          true,
+          "WebDAV"
+        );
+
+        await this._local2serverMove(sourceURL, targetURL);
+        if (this._fileMoveOperation === "cut" || forceDelete) {
+          await fsPromise.unlink(sourceURL.replace("file://", ""));
+        }
+      };
+
+      moveLocalToServer();
     } else if (sourceURL.startsWith("webdav://")) {
       await this._server2serverMove(sourceURL, targetURL);
       if (
@@ -220,6 +245,8 @@ export class WebDavFileBackend implements IFileBackend {
     forceNotLink: boolean = false
   ): Promise<string> {
     await this.check();
+
+    console.log(sourceURL, targetURL);
 
     // Webdav target url must be a file name.
     targetURL = path.basename(targetURL);

@@ -209,6 +209,7 @@ const switchViewType = (viewType: string) => {
 };
 
 const switchSortBy = (key: string) => {
+  console.log(key);
   preferenceService.set({ mainviewSortBy: key });
 };
 

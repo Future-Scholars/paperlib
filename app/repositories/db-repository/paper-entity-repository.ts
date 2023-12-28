@@ -1,3 +1,4 @@
+import { ObjectId } from "bson";
 import Realm, { List, Results } from "realm";
 
 import { Eventable } from "@/base/event";
@@ -5,11 +6,11 @@ import { createDecorator } from "@/base/injection/injection";
 import { CategorizerType } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
-import { ObjectId } from "bson";
 import {
   CategorizerRepository,
+  ICategorizerCollection,
   ICategorizerRepository,
-} from "./categorizer-repository";
+} from "@/repositories/db-repository/categorizer-repository";
 
 export interface IPaperEntityRepositoryState {
   count: number;
@@ -292,10 +293,12 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param paperEntity - Paper entity.
    * @returns - Deleted boolean flags.
    */
-  delete(realm: Realm, ids?: OID[], paperEntitys?: PaperEntity[]) {
+  delete(realm: Realm, ids?: OID[], paperEntitys?: IPaperEntityCollection) {
     return realm.safeWrite(() => {
       if (paperEntitys) {
-        ids = paperEntitys.map((paperEntity) => paperEntity._id);
+        ids = paperEntitys.map(
+          (paperEntity: IPaperEntityObject) => paperEntity._id
+        );
       }
       if (ids) {
         const idsQuery = ids
@@ -312,7 +315,45 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           })
           .flat();
 
+        const toBeUpdatedTags: ICategorizerCollection = [];
+        const toBeUpdatedFolders: ICategorizerCollection = [];
+
+        for (const paperEntity of toBeDeleted) {
+          for (const tag of paperEntity.tags) {
+            const tagObject = this._categorizerRepository.toRealmObject(
+              realm,
+              CategorizerType.PaperTag,
+              tag
+            );
+            if (tagObject) {
+              toBeUpdatedTags.push(tagObject);
+            }
+          }
+          for (const folder of paperEntity.folders) {
+            const folderObject = this._categorizerRepository.toRealmObject(
+              realm,
+              CategorizerType.PaperFolder,
+              folder
+            );
+            if (folderObject) {
+              toBeUpdatedFolders.push(folderObject);
+            }
+          }
+        }
+
         realm.delete(toBeDeleted);
+
+        this._categorizerRepository.updateCount(
+          realm,
+          CategorizerType.PaperTag,
+          toBeUpdatedTags
+        );
+        this._categorizerRepository.updateCount(
+          realm,
+          CategorizerType.PaperFolder,
+          toBeUpdatedFolders
+        );
+
         return toBeDeletedFiles;
       } else {
         throw new Error("Either ids or paperEntity should be provided.");

@@ -10,7 +10,12 @@ import {
 import { ObjectID } from "bson";
 import { Ref, inject, ref } from "vue";
 
-import { Categorizer, CategorizerType } from "@/models/categorizer";
+import {
+  Categorizer,
+  CategorizerType,
+  PaperFolder,
+  PaperTag,
+} from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
 
@@ -102,16 +107,11 @@ const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
   paperService.updateWithCategorizer(dragingIds, categorizer, type);
 };
 
-const onCategorizerNameChanged = (name: string) => {
-  if (
-    editingCategorizerDraft.value &&
-    editingCategorizerDraft.value.replace("folder-", "").replace("tag-", "") !==
-      name &&
-    uiState.contentType === "library"
-  ) {
+const onCategorizerNameChanged = (preName: string, newName: string) => {
+  if (preName && preName !== newName && uiState.contentType === "library") {
     categorizerService.rename(
-      editingCategorizerDraft.value.replace("folder-", "").replace("tag-", ""),
-      name,
+      preName,
+      newName,
       editingCategorizerDraft.value.startsWith("tag-")
         ? CategorizerType.PaperTag
         : CategorizerType.PaperFolder
@@ -120,12 +120,37 @@ const onCategorizerNameChanged = (name: string) => {
   editingCategorizerDraft.value = "";
 };
 
-const onCategorizerNameInputBlured = () => {
+const onCategorizerNameInputBlured = async () => {
   editingCategorizerDraft.value = "";
+  await PLMainAPI.menuService.enableAll();
 };
 
 const onAddNewPaperSmartFilterClicked = () => {
   uiState.paperSmartFilterEditViewShown = true;
+};
+
+const onAddNewPaperTagClicked = async () => {
+  const paperTag = new PaperTag(
+    {
+      name: `Tag-${Date.now()}`,
+    },
+    true
+  );
+
+  await categorizerService.create(CategorizerType.PaperTag, paperTag);
+  editingCategorizerDraft.value = `tag-${paperTag._id}`;
+};
+
+const onAddNewPaperFolderClicked = async () => {
+  const paperFolder = new PaperFolder(
+    {
+      name: `Folder-${Date.now()}`,
+    },
+    true
+  );
+
+  await categorizerService.create(CategorizerType.PaperFolder, paperFolder);
+  editingCategorizerDraft.value = `folder-${paperFolder._id}`;
 };
 
 // ================================
@@ -175,7 +200,9 @@ disposable(
 disposable(
   PLMainAPI.contextMenuService.on(
     "sidebarContextMenuEditClicked",
-    (newValue: { value: { data: string; type: string } }) => {
+    async (newValue: { value: { data: string; type: string } }) => {
+      await PLMainAPI.menuService.disableAll();
+
       if (uiState.contentType === "library") {
         editingCategorizerDraft.value = `${
           { PaperTag: "tag", PaperFolder: "folder" }[
@@ -240,7 +267,11 @@ disposable(
       </SectionItem>
     </CollopseGroup>
 
-    <CollopseGroup :title="$t('mainview.tags')">
+    <CollopseGroup
+      :title="$t('mainview.tags')"
+      :with-add="true"
+      @event:add-click="onAddNewPaperTagClicked"
+    >
       <SectionItem
         class="sidebar-tag-item"
         :name="tag.name"
@@ -248,7 +279,7 @@ disposable(
         :with-counter="prefState.showSidebarCount"
         :with-spinner="false"
         :compact="prefState.isSidebarCompact"
-        :editing="editingCategorizerDraft === `tag-${tag.name}`"
+        :editing="editingCategorizerDraft === `tag-${tag._id}`"
         v-for="tag in tags"
         :active="uiState.selectedCategorizer === `tag-${tag.name}`"
         @click="onSelectCategorizer(`tag-${tag.name}`)"
@@ -265,7 +296,7 @@ disposable(
         "
         @event:name-change="
           (name) => {
-            onCategorizerNameChanged(name);
+            onCategorizerNameChanged(tag.name, name);
           }
         "
         @event:name-input-blur="onCategorizerNameInputBlured"
@@ -277,7 +308,11 @@ disposable(
       </SectionItem>
     </CollopseGroup>
 
-    <CollopseGroup :title="$t('mainview.folders')">
+    <CollopseGroup
+      :title="$t('mainview.folders')"
+      :with-add="true"
+      @event:add-click="onAddNewPaperFolderClicked"
+    >
       <SectionItem
         class="sidebar-folder-item"
         :name="folder.name"
@@ -285,7 +320,7 @@ disposable(
         :with-counter="prefState.showSidebarCount"
         :with-spinner="false"
         :compact="prefState.isSidebarCompact"
-        :editing="editingCategorizerDraft === `folder-${folder.name}`"
+        :editing="editingCategorizerDraft === `folder-${folder._id}`"
         v-for="folder in folders"
         :active="uiState.selectedCategorizer === `folder-${folder.name}`"
         @click="onSelectCategorizer(`folder-${folder.name}`)"
@@ -302,7 +337,7 @@ disposable(
         "
         @event:name-change="
           (name) => {
-            onCategorizerNameChanged(name);
+            onCategorizerNameChanged(folder.name, name);
           }
         "
         @event:name-input-blur="onCategorizerNameInputBlured"

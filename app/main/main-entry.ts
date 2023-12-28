@@ -169,28 +169,42 @@ async function initialize() {
   // 7. Once the main renderer process is ready, create the extension process and the quickpaste renderer process.
   windowProcessManagementService.on(
     "serviceReady",
-    (payload: { key: string; value: string }) => {
-      if (payload.value === Process.renderer) {
+    (newValue: { value: string }) => {
+      if (newValue.value === Process.renderer) {
         // windowProcessManagementService.createQuickpasteRenderer();
-        extensionProcessManagementService.createExtensionProcess();
 
-        globalShortcut.register(
-          (preferenceService.get("shortcutPlugin") as string) ||
-            "CommandOrControl+Shift+I",
-          async () => {
-            if (
-              !windowProcessManagementService.browserWindows.has(
-                "quickpasteProcess"
-              )
-            ) {
-              windowProcessManagementService.createQuickpasteRenderer();
+        if (
+          !extensionProcessManagementService.extensionProcesses[
+            Process.extension
+          ]
+        ) {
+          extensionProcessManagementService.createExtensionProcess();
+        }
+
+        if (
+          !globalShortcut.isRegistered(
+            (preferenceService.get("shortcutPlugin") as string) ||
+              "CommandOrControl+Shift+I"
+          )
+        ) {
+          globalShortcut.register(
+            (preferenceService.get("shortcutPlugin") as string) ||
+              "CommandOrControl+Shift+I",
+            async () => {
+              if (
+                !windowProcessManagementService.browserWindows.has(
+                  "quickpasteProcess"
+                )
+              ) {
+                windowProcessManagementService.createQuickpasteRenderer();
+              }
+
+              windowProcessManagementService.browserWindows
+                .get("quickpasteProcess")
+                .show();
             }
-
-            windowProcessManagementService.browserWindows
-              .get("quickpasteProcess")
-              .show();
-          }
-        );
+          );
+        }
       }
     }
   );

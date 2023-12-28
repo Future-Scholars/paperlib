@@ -1,15 +1,16 @@
+import { ObjectId } from "bson";
 import Realm, { List, Results } from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { FeedEntity } from "@/models/feed-entity";
 import { OID } from "@/models/id";
-import { ObjectId } from "bson";
 import {
   FeedRepository,
+  IFeedCollection,
   IFeedRealmObject,
   IFeedRepository,
-} from "./feed-repository";
+} from "@/repositories/db-repository/feed-repository";
 
 export interface IFeedEntityRepositoryState {
   count: number;
@@ -234,39 +235,52 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
    * @returns - Feed count.
    */
   deleteOutdate(realm: Realm) {
-    const readObjects = realm
-      .objects<FeedEntity>("FeedEntity")
-      .filtered(
-        "(addTime < $0) AND (read == true)",
-        new Date(Date.now() - 86400000 * 3)
-      );
-    const unreadObjects = realm
-      .objects<FeedEntity>("FeedEntity")
-      .filtered(
-        "(addTime < $0) AND (read == false)",
-        new Date(Date.now() - 86400000 * 30)
-      );
-
-    const feedCount: Record<string, number> = {};
-
-    readObjects.forEach((obj) => {
-      if (feedCount[obj.feed.name]) {
-        feedCount[obj.feed.name] += 1;
-      } else {
-        feedCount[obj.feed.name] = 1;
-      }
-    });
-    unreadObjects.forEach((obj) => {
-      if (feedCount[obj.feed.name]) {
-        feedCount[obj.feed.name] += 1;
-      } else {
-        feedCount[obj.feed.name] = 1;
-      }
-    });
-
     return realm.safeWrite(() => {
+      const readObjects = realm
+        .objects<FeedEntity>("FeedEntity")
+        .filtered(
+          "(addTime < $0) AND (read == true)",
+          new Date(Date.now() - 86400000 * 3)
+        );
+      const unreadObjects = realm
+        .objects<FeedEntity>("FeedEntity")
+        .filtered(
+          "(addTime < $0) AND (read == false)",
+          new Date(Date.now() - 86400000 * 30)
+        );
+
+      const feedCount: Record<string, number> = {};
+
+      readObjects.forEach((obj) => {
+        if (feedCount[obj.feed.name]) {
+          feedCount[obj.feed.name] += 1;
+        } else {
+          feedCount[obj.feed.name] = 1;
+        }
+      });
+      unreadObjects.forEach((obj) => {
+        if (feedCount[obj.feed.name]) {
+          feedCount[obj.feed.name] += 1;
+        } else {
+          feedCount[obj.feed.name] = 1;
+        }
+      });
+
+      const toBeUpdatedFeed: IFeedCollection = [];
+
+      readObjects.forEach((obj) => {
+        toBeUpdatedFeed.push(obj.feed);
+      });
+
+      unreadObjects.forEach((obj) => {
+        toBeUpdatedFeed.push(obj.feed);
+      });
+
       realm.delete(readObjects);
       realm.delete(unreadObjects);
+
+      this._feedRepository.updateCount(realm, toBeUpdatedFeed);
+
       return feedCount;
     });
   }
@@ -294,7 +308,15 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
         throw new Error("Either ids or feedEntity must be specified.");
       }
 
+      const toBeUpdatedFeed: IFeedCollection = [];
+
+      objects.forEach((obj) => {
+        toBeUpdatedFeed.push(obj.feed);
+      });
+
       realm.delete(objects);
+
+      this._feedRepository.updateCount(realm, toBeUpdatedFeed);
 
       return true;
     });

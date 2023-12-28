@@ -22,6 +22,10 @@ export class LocalFileBackend implements IFileBackend {
   }
 
   async access(url: string, download = false): Promise<string> {
+    if (path.isAbsolute(eraseProtocol(url))) {
+      return Promise.resolve(existsSync(eraseProtocol(url)) ? url : "");
+    }
+
     url = constructFileURL(url, true, true, this._appLibFolder, "file://");
 
     if (existsSync(eraseProtocol(url))) {

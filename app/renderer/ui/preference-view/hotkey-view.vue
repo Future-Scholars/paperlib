@@ -37,6 +37,7 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     keyName !== "Space"
   ) {
     info.value = "Cannot use single key.";
+    PLAPI.logService.warn("Cannot use a single key.", "", true, "ShortcutUI");
     return;
   } else {
     const newShortcut = [modifier1, modifier2, keyName]
@@ -50,6 +51,12 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
       newShortcut !== existingShortcuts[key]
     ) {
       info.value = "This shortcut is already used by another shortcut.";
+      PLAPI.logService.warn(
+        "This shortcut is already used by another shortcut.",
+        "",
+        true,
+        "ShortcutUI"
+      );
       return;
     }
     info.value = "";

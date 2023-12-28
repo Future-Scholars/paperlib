@@ -214,6 +214,7 @@ disposable(
 
 disposable(
   databaseService.on("dbInitialized", async () => {
+    fileService.initialize();
     await reloadPaperEntities();
     await reloadTags();
     await reloadFolders();
@@ -404,7 +405,16 @@ onMounted(async () => {
       <PreferenceView v-if="uiState.preferenceViewShown" />
     </Transition>
 
-    <DeleteConfirmView />
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <DeleteConfirmView v-if="uiState.deleteConfirmShown" />
+    </Transition>
 
     <Transition
       enter-active-class="transition ease-out duration-75"
@@ -415,10 +425,7 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <PresettingView
-        v-if="
-          prefState.showPresettingLang ||
-          prefState.showPresettingDB
-        "
+        v-if="prefState.showPresettingLang || prefState.showPresettingDB"
       />
     </Transition>
 

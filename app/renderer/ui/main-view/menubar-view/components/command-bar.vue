@@ -28,6 +28,16 @@ disposable(
 );
 
 const onInput = (payload: Event) => {
+  if (
+    !isCommand.value &&
+    uiState.commandBarSearchMode !== "fulltext" &&
+    uiState.commandBarSearchMode !== "advanced"
+  ) {
+    onSearchTextChanged();
+  }
+};
+
+const onInputPressEnter = (payload: Event) => {
   if (!isCommand.value) {
     onSearchTextChanged();
   }
@@ -56,6 +66,7 @@ const selectedCommandIndex = ref(-1);
 
 const onClearClicked = (payload: Event) => {
   commandText.value = "";
+  uiState.commandBarSearchMode = "general";
   onSearchTextChanged();
 };
 
@@ -114,9 +125,14 @@ const onKeydown = (payload: KeyboardEvent) => {
   ) {
     isSelectingCommand.value = false;
   }
+  if (payload.key === "Enter") {
+    onInputPressEnter(payload);
+  }
 };
 
-const onFocus = (payload: Event) => {
+const onFocus = async (payload: Event) => {
+  await PLMainAPI.menuService.disableAll();
+
   arrowDownDisposeHandler = shortcutService.registerInInputField(
     "ArrowDown",
     () => {
@@ -182,16 +198,20 @@ const onFocus = (payload: Event) => {
   isFocused.value = true;
 };
 
-const onBlur = (payload: Event) => {
+const onBlur = async (payload: Event) => {
   if (isMouseOver.value) {
     return;
   }
+
   arrowDownDisposeHandler?.();
   arrowUpDisposeHandler?.();
   enterDisposeHandler?.();
   escapeDisposeHandler?.();
+  backDisposeHandler?.();
   isFocused.value = false;
   isSelectingCommand.value = false;
+
+  await PLMainAPI.menuService.enableAll();
 };
 
 const isCommandPanelShown = computed(() => {
@@ -242,6 +262,7 @@ disposable(
       :placeholder="`${$t('mainview.commandBarPlaceholder')}...`"
       v-model="commandText"
       @input="onInput"
+      @change="onInputPressEnter"
       @blur="onBlur"
       @focus="onFocus"
       @keydown="onKeydown"

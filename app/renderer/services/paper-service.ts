@@ -296,7 +296,24 @@ export class PaperService extends Eventable<IPaperServiceState> {
     >(
       paperEntityDrafts,
       async (paperEntityDraft) => {
-        return await this._fileService.move(paperEntityDraft);
+        if (
+          !(await this._fileService.access(paperEntityDraft.mainURL, false))
+        ) {
+          PLAPI.logService.warn(
+            `File doesn't exist anymore.`,
+            `${paperEntityDraft.mainURL}`,
+            true,
+            "PaperService"
+          );
+          paperEntityDraft.mainURL = "";
+        }
+
+        console.log(paperEntityDraft);
+
+        return await this._fileService.move(
+          paperEntityDraft,
+          this._preferenceService.get("deleteSourceFile") as boolean
+        );
       },
       async (paperEntityDraft) => {
         return paperEntityDraft;
@@ -312,7 +329,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
     });
 
     // filter paper entities with files that are not moved (still absolute path)
-    // TODO: some files are manually deleted, but is relative path. When update we have an error now.
     fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.map(
       (paperEntityDraft) => {
         if (
@@ -320,6 +336,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
           path.isAbsolute(paperEntityDraft.mainURL)
         ) {
           paperEntityDraft.mainURL = "";
+        } else {
+          paperEntityDraft.mainURL = path.basename(paperEntityDraft.mainURL);
         }
 
         paperEntityDraft.supURLs = paperEntityDraft.supURLs.filter((url) => {
