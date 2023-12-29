@@ -54,11 +54,16 @@ export class NetworkTool {
     https?: HttpsProxyAgent;
   };
 
+  private _donwloadProgress: {
+    [key: string]: number;
+  };
+
   constructor(
     @IPreferenceService private readonly _preferenceService: PreferenceService,
     @ILogService private readonly _logService: LogService
   ) {
     this._agent = {};
+    this._donwloadProgress = {};
 
     if (this._preferenceService.get("allowproxy")) {
       try {
@@ -238,7 +243,6 @@ export class NetworkTool {
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
       };
 
-      let percent = 0;
       await pipeline(
         got
           .stream(url, {
@@ -248,14 +252,26 @@ export class NetworkTool {
             cookieJar: cookies,
           })
           .on("downloadProgress", (progress) => {
-            if (progress.percent - percent > 0.05) {
+            if (
+              this._donwloadProgress[url] &&
+              (progress.percent - this._donwloadProgress[url] > 0.05 ||
+                progress.percent === 1)
+            ) {
               this._logService.progress(
                 "Downloading...",
-                percent * 100,
+                progress.percent * 100,
                 true,
-                "Network"
+                "Network",
+                url
               );
-              percent = progress.percent;
+
+              this._donwloadProgress[url] = progress.percent;
+            } else if (!this._donwloadProgress[url]) {
+              this._donwloadProgress[url] = progress.percent;
+            }
+
+            if (progress.percent === 1) {
+              delete this._donwloadProgress[url];
             }
           }),
         createWriteStream(constructFileURL(targetPath, false, false))

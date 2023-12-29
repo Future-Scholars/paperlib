@@ -297,7 +297,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
       paperEntityDrafts,
       async (paperEntityDraft) => {
         if (
-          !(await this._fileService.access(paperEntityDraft.mainURL, false))
+          !(await this._fileService.access(paperEntityDraft.mainURL, false)) &&
+          paperEntityDraft.mainURL
         ) {
           PLAPI.logService.warn(
             `File doesn't exist anymore.`,
@@ -307,8 +308,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
           );
           paperEntityDraft.mainURL = "";
         }
-
-        console.log(paperEntityDraft);
 
         return await this._fileService.move(
           paperEntityDraft,
@@ -481,7 +480,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     await Promise.all(
       toBeDeletedFiles.map((url) => {
-        return this._fileService.removeFile(url);
+        if (url) {
+          return this._fileService.removeFile(url);
+        }
       })
     );
   }
@@ -591,7 +592,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     const scrapedPaperEntityDrafts = await this._scrapeService.scrape(
       paperEntities.map((paperEntity) => {
         return {
-          type: "paperEntity",
+          type: "PaperEntity",
           value: paperEntity,
         };
       }),

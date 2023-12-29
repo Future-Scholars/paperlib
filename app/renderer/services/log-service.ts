@@ -33,6 +33,7 @@ export interface ILogEventState {
   };
   progressLogMessage: {
     id: string;
+    progressId: string;
     msg: string;
     value: number;
   };
@@ -62,6 +63,7 @@ export class LogService extends Eventable<ILogEventState> {
       },
       progressLogMessage: {
         id: "",
+        progressId: "",
         msg: "",
         value: 0,
       },
@@ -253,11 +255,19 @@ export class LogService extends Eventable<ILogEventState> {
       loglib.error((additional as Error).stack);
     }
     if (notify) {
+      let additionalInfo = typeof additional === "string" ? additional : "";
+      if (additional.hasOwnProperty("name")) {
+        additionalInfo += `${(additional as Error).name}\n`;
+      }
+      if (additional.hasOwnProperty("stack")) {
+        additionalInfo += `${(additional as Error).stack}`;
+      }
+
       this._notifiy(
         {
           level: "error",
           msg: msg,
-          additional: `${additional}`,
+          additional: additionalInfo.slice(0, 100) + "...",
         },
         id || "default"
       );
@@ -270,12 +280,19 @@ export class LogService extends Eventable<ILogEventState> {
    * @param {number} value - Progress value
    * @param {boolean} notify - Show notification
    * @param {string?} id - ID of the log */
-  progress(msg: string, value: number, notify: boolean = false, id?: string) {
+  progress(
+    msg: string,
+    value: number,
+    notify: boolean = false,
+    id?: string,
+    progressId?: string
+  ) {
     loglib.info(`${id ? `[${id}]` : ""} ${msg} - ${value}%`);
     if (notify) {
       this.fire({
         progressLogMessage: {
           id: id || "default",
+          progressId: progressId || "",
           msg: msg,
           value: value,
         },

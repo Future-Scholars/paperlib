@@ -281,7 +281,8 @@ const onArrowDownPressed = () => {
 };
 
 const onDetailPanelResized = (event: any) => {
-  const width = event[0].size ? event[0].size : 80;
+  const width = Math.min(event[0].size ? event[0].size : 80, 95);
+
   preferenceService.set({ detailPanelWidth: width });
 };
 

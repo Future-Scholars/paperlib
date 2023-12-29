@@ -8,7 +8,14 @@ export type Dto<T> = T;
 
 export type Proxied<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer R
-    ? K extends "on" | "once" | "already" | "onChanged" | "onClick"
+    ? K extends
+        | "on"
+        | "once"
+        | "already"
+        | "onChanged"
+        | "onClick"
+        | "hookTransform"
+        | "hookModify"
       ? (...args: A) => () => void
       : (...args: { [K in keyof A]: A[K] }) => Promise<Awaited<R>>
     : never;

@@ -142,6 +142,16 @@ export class MessagePortRPCProtocol {
           message: arg.message,
           stack: arg.stack,
         };
+      } else if (arg.constructor.name.includes("Error")) {
+        try {
+          return {
+            name: arg.name ? arg.name || arg.constructor.name : "",
+            message: arg.message ? arg.message : "",
+            stack: arg.stack ? arg.stack : "",
+          };
+        } catch {
+          return `${arg}`;
+        }
       } else {
         return arg;
       }

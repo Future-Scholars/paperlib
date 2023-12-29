@@ -4,9 +4,9 @@ import { Ref, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 
-const processingState = uiStateService.processingState.useState();
+// const processingState = uiStateService.processingState.useState();
 
-const showingInfo = ref("");
+// const showingInfo = ref("");
 
 const historyMsgs = ref([]) as Ref<
   Array<{
@@ -16,6 +16,7 @@ const historyMsgs = ref([]) as Ref<
     msg: string;
     additional: string;
     value?: number;
+    progressId?: string;
     show: boolean;
   }>
 >;
@@ -28,6 +29,7 @@ const pushMsgToHistory = (
     msg: string;
     additional?: string;
     value?: number;
+    progressId?: string;
   }
 ) => {
   const newMsg = {
@@ -37,24 +39,29 @@ const pushMsgToHistory = (
     msg: logMessage.msg,
     additional: logMessage.additional || "",
     value: logMessage.value || 0,
+    progressId: logMessage.progressId || "",
     show: true,
   };
 
-  if (level === "info") {
-    showingInfo.value =
-      (logMessage.id === "default" ? "" : `[${logMessage.id}] `) +
-      `${logMessage.msg}`;
-  }
+  // if (level === "info") {
+  //   showingInfo.value =
+  //     (logMessage.id === "default" ? "" : `[${logMessage.id}] `) +
+  //     `${logMessage.msg}`;
+  // }
 
   if (level === "progress") {
     if (newMsg.value > 99) {
       historyMsgs.value = historyMsgs.value.filter(
-        (msg) => msg.id !== newMsg.id
+        (msg) => msg.id !== newMsg.id && msg.progressId !== newMsg.progressId
       );
     } else {
       let updated = false;
       for (const msg of historyMsgs.value) {
-        if (msg.level === "progress" && msg.id === newMsg.id) {
+        if (
+          msg.level === "progress" &&
+          msg.id === newMsg.id &&
+          msg.progressId === newMsg.progressId
+        ) {
           msg.value = newMsg.value;
           msg.show = true;
           updated = true;
@@ -132,6 +139,7 @@ const onClicked = () => {
     msg.show = true;
     return msg;
   });
+
   debounce(() => {
     historyMsgs.value = historyMsgs.value.map((msg) => {
       msg.show = false;
@@ -252,9 +260,9 @@ const onLeave = () => {
       class="flex justify-center my-auto w-5/6 h-8 truncate text-center text-xxs text-neutral-500 peer"
       @click="onClicked"
     >
-      <span class="my-auto" v-show="processingState.general > 0">
+      <!-- <span class="my-auto" v-show="processingState.general > 0">
         {{ showingInfo }}
-      </span>
+      </span> -->
     </div>
     <BIconArrowBarUp
       class="text-neutral-500 w-1/12 my-auto text-xs invisible peer-hover:visible"

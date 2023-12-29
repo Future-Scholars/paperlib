@@ -15,7 +15,7 @@ export default {
       input: {
         // multiple entry
         index: path.join(__dirname, "app/index.html"),
-        index_plugin: path.join(__dirname, "app/index_plugin.html"),
+        index_plugin: path.join(__dirname, "app/index_quickpaste.html"),
       },
     },
     minify: false,

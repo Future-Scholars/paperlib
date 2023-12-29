@@ -1,6 +1,6 @@
 {
   "name": "paperlib-api",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "author": "Paperlib",
   "description": "The API for paperlib extension development.",
   "type": "module",

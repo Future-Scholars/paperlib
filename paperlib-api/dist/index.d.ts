@@ -1228,6 +1228,7 @@ declare interface ILogEventState {
     };
     progressLogMessage: {
         id: string;
+        progressId: string;
         msg: string;
         value: number;
     };
@@ -1494,6 +1495,7 @@ declare interface IUpgradeServiceState {
 declare interface IWindowProcessManagementServiceState {
     serviceReady: string;
     requestPort: string;
+    destroyed: string;
     rendererProcess: string;
     [key: string]: string;
 }
@@ -1543,7 +1545,7 @@ declare class LogService extends Eventable<ILogEventState> {
      * @param {number} value - Progress value
      * @param {boolean} notify - Show notification
      * @param {string?} id - ID of the log */
-    progress(msg: string, value: number, notify?: boolean, id?: string): void;
+    progress(msg: string, value: number, notify?: boolean, id?: string, progressId?: string): void;
     /**
      * Get log file path.
      * @returns {string} Log file path */
@@ -1583,6 +1585,7 @@ declare class NetworkTool {
     private readonly _preferenceService;
     private readonly _logService;
     private _agent;
+    private _donwloadProgress;
     constructor(_preferenceService: PreferenceService, _logService: LogService);
     setProxyAgent(proxy?: string): void;
     checkSystemProxy(): void;
@@ -2022,7 +2025,7 @@ declare class PreferenceService extends Eventable<IPreferenceStore> {
 }
 
 declare type Proxied<T> = {
-    [K in keyof T]: T[K] extends (...args: infer A) => infer R ? K extends "on" | "once" | "already" | "onChanged" | "onClick" ? (...args: A) => () => void : (...args: {
+    [K in keyof T]: T[K] extends (...args: infer A) => infer R ? K extends "on" | "once" | "already" | "onChanged" | "onClick" | "hookTransform" | "hookModify" ? (...args: A) => () => void : (...args: {
         [K in keyof A]: A[K];
     }) => Promise<Awaited<R>> : never;
 };
