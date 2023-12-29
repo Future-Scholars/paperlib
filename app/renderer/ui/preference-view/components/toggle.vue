@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Switch } from "@headlessui/vue";
-import { ref } from "vue";
+import { toRef, watch } from "vue";
 
 const props = defineProps({
   title: {
@@ -19,7 +19,11 @@ const props = defineProps({
 
 const emits = defineEmits(["event:change"]);
 
-const enabled = ref(props.enable);
+const enabled = toRef(props.enable);
+
+watch(props, (value) => {
+  enabled.value = value.enable;
+});
 </script>
 
 <template>

@@ -525,7 +525,7 @@ declare class ExtensionPreferenceService {
      * @param extensionID - extension ID
      * @returns value of all preferences
      */
-    getAll(extensionID: string): {};
+    getAll(extensionID: string): Map<string, any>;
     /**
      * Get the metadata of the preference
      * @param extensionID - extension ID
@@ -538,7 +538,7 @@ declare class ExtensionPreferenceService {
      * @param extensionID - extension ID
      * @returns metadata of all preferences
      */
-    getAllMetadata(extensionID: string): any;
+    getAllMetadata(extensionID: string): Map<string, any>;
     /**
      * Set the value of the preference
      * @param extensionID - extension ID
@@ -560,11 +560,11 @@ declare class ExtensionPreferenceService {
      * @param pwd - password
      */
     setPassword(extensionID: string, key: string, pwd: string): Promise<void>;
-    onChanged<T>(extensionID: string, key: keyof T | (keyof T)[], callback: (newValues: {
+    onChanged(target: any | any[], callback: (newValues: {
         key: any;
         value: any;
     }) => void): () => void;
-    on: <T>(extensionID: string, key: keyof T | (keyof T)[], callback: (newValues: {
+    on: (target: any | any[], callback: (newValues: {
         key: any;
         value: any;
     }) => void) => () => void;
@@ -1086,6 +1086,11 @@ declare interface IContextMenuServiceState {
     linkToFolderClicked: string;
 }
 
+declare interface ICookieObject {
+    cookieStr: string;
+    currentUrl: string;
+}
+
 declare interface IDatabaseCoreState {
     dbInitializing: boolean;
     dbInitialized: boolean;
@@ -1592,8 +1597,8 @@ declare class NetworkTool {
     get(url: string, headers?: Record<string, string>, retry?: number, timeout?: number, cache?: boolean): Promise<Response_2<string>>;
     post(url: string, data: Record<string, any> | string, headers?: Record<string, string>, retry?: number, timeout?: number, compress?: boolean): Promise<Response_2<string>>;
     postForm(url: string, data: FormData, headers?: Record<string, string>, retry?: number, timeout?: number): Promise<Response_2<string>>;
-    download(url: string, targetPath: string, cookies?: CookieJar): Promise<string>;
-    downloadPDFs(urlList: string[], cookies?: CookieJar): Promise<string[]>;
+    download(url: string, targetPath: string, cookies?: CookieJar | ICookieObject[]): Promise<string>;
+    downloadPDFs(urlList: string[], cookies?: CookieJar | ICookieObject[]): Promise<string[]>;
     connected(): Promise<boolean>;
 }
 
@@ -1963,8 +1968,8 @@ declare namespace PLAPI_2 {
 export { PLAPI_2 as PLAPI }
 
 declare namespace PLExtAPI_2 {
-    const extensionManagementService: Proxied<ExtensionManagementService>;
-    const extensionPreferenceService: Proxied<ExtensionPreferenceService>;
+    const extensionManagementService: ExtensionManagementService;
+    const extensionPreferenceService: ExtensionPreferenceService;
 }
 export { PLExtAPI_2 as PLExtAPI }
 

@@ -23,11 +23,18 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  showSavingStatus: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
 
-const emits = defineEmits(["event:change"]);
+const emits = defineEmits(["event:change", "event:submit"]);
 
 const value = ref(props.value);
+
+const savingStatus = ref(0);
 </script>
 
 <template>
@@ -43,7 +50,22 @@ const value = ref(props.value);
       :type="type"
       :placeholder="placeholder"
       v-model="value"
-      @input="emits('event:change', value)"
+      @input="
+        () => {
+          savingStatus = 1;
+          emits('event:change', value);
+        }
+      "
+      @change="
+        () => {
+          savingStatus = 2;
+          emits('event:submit', value);
+        }
+      "
     />
+    <div class="text-xs justify-end flex text-red-500" v-if="showSavingStatus">
+      <span v-if="savingStatus === 1">press Enter to save</span>
+      <span v-if="savingStatus === 2">saved</span>
+    </div>
   </div>
 </template>

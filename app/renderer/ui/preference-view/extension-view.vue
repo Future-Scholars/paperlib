@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Process } from "@/base/process-id";
 import {
   BIconEmojiTear,
   BIconFire,
@@ -6,7 +7,7 @@ import {
   BIconPatchCheckFill,
   BIconSearch,
 } from "bootstrap-icons-vue";
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import Spinner from "../components/spinner.vue";
 import ExtensionCard from "./components/extension-card.vue";
 import ExtensionSetting from "./components/extension-setting.vue";
@@ -19,9 +20,16 @@ const installedExtensions = ref<{
     author: string;
     verified: boolean;
     description: string;
-    preference: {
-      [key: string]: any;
-    };
+    preference: Map<
+      string,
+      {
+        name: string;
+        description: string;
+        type: string;
+        value: any;
+        options?: Record<string, string>;
+      }
+    >;
   };
 }>({});
 
@@ -74,57 +82,60 @@ const editingExtension = ref<{
   author: string;
   verified: boolean;
   description: string;
-  preference: {
-    [key: string]: any;
-  };
+  preference: Map<
+    string,
+    {
+      name: string;
+      description: string;
+      type: string;
+      value: any;
+      options?: Record<string, string>;
+    }
+  >;
 }>();
 
-const editingExtensionBuffer = ref<{
-  id: string;
-  name: string;
-  version: string;
-  author: string;
-  verified: boolean;
-  description: string;
-  preference: {
-    [key: string]: any;
-  };
-}>();
-
-const showSettingView = (id: string) => {
-  isSettingShown.value = true;
-  editingExtension.value = installedExtensions.value[id];
-  editingExtensionBuffer.value = JSON.parse(
-    JSON.stringify(installedExtensions.value[id])
+const listenCallbacks: (() => void)[] = [];
+const showSettingView = async (id: string) => {
+  const PLExtAPIExposed = await rendererRPCService.waitForAPI(
+    Process.extension,
+    "PLExtAPI",
+    5000
   );
+
+  if (!PLExtAPIExposed) {
+    logService.warn("Extension process is not ready.", "", true, "UIPref");
+    return;
+  }
+
+  editingExtension.value = installedExtensions.value[id];
+
+  editingExtension.value.preference =
+    await PLExtAPI.extensionPreferenceService.getAllMetadata(id);
+
+  for (const [key, value] of editingExtension.value.preference.entries()) {
+    listenCallbacks.push(
+      PLExtAPI.extensionPreferenceService.onChanged(
+        `${id}:${key}`,
+        (newValue) => {
+          editingExtension.value?.preference.set(key, newValue.value);
+        }
+      )
+    );
+  }
+
+  isSettingShown.value = true;
 };
 
 const updateExtensionPreference = async (key: string, value: any) => {
-  if (editingExtensionBuffer.value) {
-    editingExtensionBuffer.value.preference[key].value = value;
-  }
-};
-
-const saveExtensionPreference = async () => {
-  if (editingExtension.value && editingExtensionBuffer.value) {
+  if (editingExtension.value) {
     try {
-      const patch = {};
-
-      for (const [key, value] of Object.entries(
-        editingExtensionBuffer.value.preference
-      )) {
-        if (value.value !== editingExtension.value.preference[key].value) {
-          patch[key] = value.value;
-        }
-      }
-
+      const patch = {
+        [key]: value,
+      };
       await PLExtAPI.extensionPreferenceService.set(
         editingExtension.value.id,
         patch
       );
-
-      installedExtensions.value =
-        await PLExtAPI.extensionManagementService.installedExtensions();
     } catch (e) {
       logService.error(
         "Failed to save extension preference",
@@ -134,8 +145,15 @@ const saveExtensionPreference = async () => {
       );
     }
   }
+};
 
+const onCloseExtensionPreferenceClicked = async () => {
   isSettingShown.value = false;
+  editingExtension.value = undefined;
+  for (const callback of listenCallbacks) {
+    callback();
+  }
+  listenCallbacks.length = 0;
 };
 
 const onMarketClicked = async () => {
@@ -174,14 +192,16 @@ const installExtension = async (id: string) => {
   installedExtensions.value =
     await PLExtAPI.extensionManagementService.installedExtensions();
 
-  editingExtension.value = installedExtensions.value[id];
-
   installingExtID.value = "";
 };
 
 onMounted(async () => {
   installedExtensions.value =
     await PLExtAPI.extensionManagementService.installedExtensions();
+});
+
+onUnmounted(() => {
+  onCloseExtensionPreferenceClicked();
 });
 </script>
 
@@ -335,38 +355,28 @@ onMounted(async () => {
         </div>
         <div class="my-2 h-[0.5px] mx-2 bg-neutral-300 dark:bg-neutral-600" />
 
-        <div class="px-2 overflow-scroll h-full flex flex-col py-4">
-          <ExtensionSetting
-            v-for="[key, value] of Object.entries(
-              editingExtension?.preference || {}
-            ).sort((a, b) => {
-              return a[1].order > b[1].order ? 1 : -1;
-            })"
-            :title="value.name"
-            :description="value.description"
-            :type="value.type"
-            :value="value.value"
-            :options="value.options ? value.options : {}"
-            @event:change="
-              (value) => {
-                updateExtensionPreference(key, value);
-              }
-            "
-          />
+        <div class="px-2 overflow-scroll h-full flex flex-col py-4 space-y-3">
+          <div
+            v-for="(keypref, index) in editingExtension?.preference.entries() ||
+            []"
+          >
+            <ExtensionSetting
+              :pref="keypref[1]"
+              @event:change="
+                (value) => {
+                  updateExtensionPreference(keypref[0], value);
+                }
+              "
+            />
+          </div>
         </div>
 
         <div class="flex justify-end space-x-2 px-2">
           <button
-            class="flex h-6 w-[5.5rem] text-center rounded-md bg-accentlight dark:bg-accentdark"
-            @click="saveExtensionPreference"
-          >
-            <span class="m-auto text-xs">Save</span>
-          </button>
-          <button
             class="flex h-6 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
-            @click="isSettingShown = false"
+            @click="onCloseExtensionPreferenceClicked"
           >
-            <span class="m-auto text-xs">Cancel</span>
+            <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
           </button>
         </div>
       </div>

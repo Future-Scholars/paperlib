@@ -186,7 +186,6 @@ export class NetworkTool {
         },
         agent: this._agent,
       };
-      console.log(options);
     } else if (typeof data === "string") {
       options = {
         stringifyJson: data,

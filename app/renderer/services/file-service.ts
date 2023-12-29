@@ -124,7 +124,6 @@ export class FileService extends Eventable<IFileServiceState> {
 
     try {
       if (!paperEntity.mainURL) {
-        console.log("No main url");
         return paperEntity;
       }
 

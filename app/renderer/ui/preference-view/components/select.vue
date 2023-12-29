@@ -42,7 +42,7 @@ const emits = defineEmits(["event:change"]);
         @change="
           (e) => {
             // @ts-ignore
-            emits('update', e.target.value);
+            emits('event:change', e.target.value as string);
           }
         "
       >

@@ -5,25 +5,15 @@ import Select from "./select.vue";
 import Toggle from "./toggle.vue";
 
 const props = defineProps({
-  title: {
-    type: String,
+  pref: {
+    type: Object as () => {
+      name: string;
+      description: string;
+      type: string;
+      value: any;
+      options?: Record<string, string>;
+    },
     required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-  },
-  value: {
-    type: [String, Boolean, Number, Object, Array],
-    required: true,
-  },
-  options: {
-    type: Object as () => Record<string, string>,
-    required: false,
   },
 });
 
@@ -32,17 +22,17 @@ const emits = defineEmits(["event:change"]);
 
 <template>
   <div class="flex flex-col space-y-6">
-    <div class="flex flex-col space-y-1" v-if="type === 'pathpicker'">
+    <div class="flex flex-col space-y-1" v-if="pref.type === 'pathpicker'">
       <div class="flex flex-col">
-        <div class="text-xs font-semibold">{{ title }}</div>
+        <div class="text-xs font-semibold">{{ pref.name }}</div>
         <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-          {{ description }}
+          {{ pref.description }}
         </div>
       </div>
       <PathPicker
         class="h-8"
         type="folder"
-        :picked-path="value as string"
+        :picked-path="pref.value as string"
         @event:picked-path="
           (value) => {
             emits('event:change', value);
@@ -52,10 +42,10 @@ const emits = defineEmits(["event:change"]);
     </div>
 
     <Toggle
-      :title="title"
-      :info="description"
-      :enable="value as boolean"
-      v-if="type === 'boolean'"
+      :title="pref.name"
+      :info="pref.description"
+      :enable="pref.value as boolean"
+      v-if="pref.type === 'boolean'"
       @event:change="
         (value) => {
           emits('event:change', value);
@@ -63,24 +53,25 @@ const emits = defineEmits(["event:change"]);
       "
     />
     <Input
-      :title="title"
-      :info="description"
-      :value="(value as string)"
+      :title="pref.name"
+      :info="pref.description"
+      :value="(pref.value as string)"
       placeholder=""
       type="text"
-      v-if="type === 'string'"
-      @event:change="
+      :show-saving-status="true"
+      v-if="pref.type === 'string'"
+      @event:submit="
         (value) => {
           emits('event:change', value);
         }
       "
     />
     <Select
-      :title="title"
-      :info="description"
-      :selected="value as string"
-      :options="options as Record<string, string>"
-      v-if="type === 'options'"
+      :title="pref.name"
+      :info="pref.description"
+      :selected="pref.value as string"
+      :options="pref.options as Record<string, string>"
+      v-if="pref.type === 'options'"
       @event:change="
         (value) => {
           emits('event:change', value);

@@ -25,7 +25,7 @@ interface IExtensionInfo {
   author: string;
   verified: boolean;
   description: string;
-  preference: { [key: string]: any };
+  preference: Map<string, any>;
   location: string;
   originLocation?: string;
 }
@@ -145,7 +145,6 @@ export class ExtensionManagementService {
         globalThis["extensionWorkingDir"],
         extensionID
       );
-      console.log(tryToDeletePath);
       try {
         if (fs.existsSync(tryToDeletePath)) {
           fs.rmSync(tryToDeletePath, { recursive: true, force: true });
@@ -253,6 +252,10 @@ export class ExtensionManagementService {
   }
 
   installedExtensions() {
+    for (const [id, ext] of Object.entries(this._installedExtensionInfos)) {
+      ext.preference = this._extensionPreferenceService.getAllMetadata(id);
+    }
+
     return this._installedExtensionInfos;
   }
 

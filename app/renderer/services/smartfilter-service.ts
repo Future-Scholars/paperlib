@@ -69,7 +69,6 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
     ids?: OID[],
     smartfilters?: IPaperSmartFilterCollection
   ) {
-    console.log("delete", type, ids, smartfilters);
     this._paperSmartFilterRepository.delete(
       await this._databaseCore.realm(),
       type,

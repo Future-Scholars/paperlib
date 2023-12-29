@@ -1,6 +1,7 @@
 // Thanks to https://github.dev/microsoft/vscode/
 import { MessagePortMain } from "electron";
 
+import { JSONparse, JSONstringify } from "@/base/json";
 import { uid } from "@/base/misc";
 import { LazyPromise } from "@/base/rpc/lazy-promise";
 import { Proxied } from "@/base/rpc/proxied";
@@ -157,7 +158,7 @@ export class MessagePortRPCProtocol {
       }
     });
 
-    const msg = JSON.stringify({
+    const msg = JSONstringify({
       callId,
       callerId: this._callerId,
       rpcId,
@@ -196,7 +197,7 @@ export class MessagePortRPCProtocol {
 
       if (firstTimeRegister) {
         this._port.postMessage(
-          JSON.stringify({
+          JSONstringify({
             callId,
             callerId: this._callerId,
             rpcId,
@@ -223,7 +224,7 @@ export class MessagePortRPCProtocol {
         }
 
         this._port.postMessage(
-          JSON.stringify({
+          JSONstringify({
             callId,
             callerId: this._callerId,
             rpcId,
@@ -240,7 +241,7 @@ export class MessagePortRPCProtocol {
 
     const callbackId = uid();
 
-    const msg = JSON.stringify({
+    const msg = JSONstringify({
       callId,
       callerId: this._callerId,
       rpcId,
@@ -256,7 +257,7 @@ export class MessagePortRPCProtocol {
 
     return () => {
       this._port.postMessage(
-        JSON.stringify({
+        JSONstringify({
           callId,
           callerId: this._callerId,
           rpcId,
@@ -278,7 +279,7 @@ export class MessagePortRPCProtocol {
 
     const callbackId = uid();
 
-    const msg = JSON.stringify({
+    const msg = JSONstringify({
       callId,
       callerId: this._callerId,
       rpcId,
@@ -294,7 +295,7 @@ export class MessagePortRPCProtocol {
 
     return () => {
       this._port.postMessage(
-        JSON.stringify({
+        JSONstringify({
           callId,
           callerId: this._callerId,
           rpcId,
@@ -308,7 +309,7 @@ export class MessagePortRPCProtocol {
   }
 
   private _receiveOneMessage(rawmsg: string): void {
-    const { callId, callerId, rpcId, type, value } = JSON.parse(rawmsg);
+    const { callId, callerId, rpcId, type, value } = JSONparse(rawmsg);
 
     switch (type) {
       case MessageType.request: {
@@ -383,7 +384,7 @@ export class MessagePortRPCProtocol {
           rpcId === "networkTool" &&
           (method === "get" || method === "post" || method === "postForm")
         ) {
-          msg = JSON.stringify({
+          msg = JSONstringify({
             callId,
             type: MessageType.replySuccess,
             value: {
@@ -393,7 +394,7 @@ export class MessagePortRPCProtocol {
             },
           });
         } else {
-          msg = JSON.stringify({
+          msg = JSONstringify({
             callId,
             type: MessageType.replySuccess,
             value: r,
@@ -402,7 +403,7 @@ export class MessagePortRPCProtocol {
         this._port.postMessage(msg);
       },
       (err) => {
-        const msg = JSON.stringify({
+        const msg = JSONstringify({
           callId,
           type: MessageType.replyError,
           value: err,
@@ -479,7 +480,7 @@ export class MessagePortRPCProtocol {
     }
 
     this._eventDisposeCallbacks[callId] = actor.on(eventName, (args: any[]) => {
-      const msg = JSON.stringify({
+      const msg = JSONstringify({
         callId,
         callerId: this._callerId,
         rpcId,
@@ -550,7 +551,7 @@ export class MessagePortRPCProtocol {
   public sendExposedAPI(namespace: string): void {
     const callId = String(++this._lastCallId);
 
-    const msg = JSON.stringify({
+    const msg = JSONstringify({
       callId,
       type: MessageType.exposeAPI,
       value: {

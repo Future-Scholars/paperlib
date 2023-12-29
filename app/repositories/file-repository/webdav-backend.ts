@@ -44,8 +44,6 @@ export class WebDavFileBackend implements IFileBackend {
       return true;
     }
 
-    console.log(this._webdavURL, this._webdavUsername, this._webdavPassword);
-
     this._webdavClient = createClient(this._webdavURL, {
       username: this._webdavUsername,
       password: this._webdavPassword,
@@ -245,8 +243,6 @@ export class WebDavFileBackend implements IFileBackend {
     forceNotLink: boolean = false
   ): Promise<string> {
     await this.check();
-
-    console.log(sourceURL, targetURL);
 
     // Webdav target url must be a file name.
     targetURL = path.basename(targetURL);

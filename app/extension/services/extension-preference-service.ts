@@ -182,10 +182,25 @@ export class ExtensionPreferenceService {
       throw new Error(`Preference store for ${extensionID} does not exist.`);
     }
 
-    const preference = {};
+    const preference = new Map<string, any>();
 
-    for (const key in this._stores[extensionID]._store.store) {
-      preference[key] = this._stores[extensionID].get(key);
+    for (const [key, pref] of Object.entries(
+      this._stores[extensionID]._store.store
+    ).sort((a, b) => {
+      if (
+        (a as any)[1].hasOwnProperty("order") &&
+        (b as any)[1].hasOwnProperty("order")
+      ) {
+        if ((a as any)[1].order === (b as any)[1].order) {
+          return (a as any)[1].name > (b as any)[1].name ? 1 : -1;
+        } else {
+          return (a as any)[1].order > (b as any)[1].order ? 1 : -1;
+        }
+      } else {
+        return (a as any)[1].name > (b as any)[1].name ? 1 : -1;
+      }
+    })) {
+      preference.set(key, (pref as any).value);
     }
 
     return preference;
@@ -227,7 +242,28 @@ export class ExtensionPreferenceService {
       throw new Error(`Preference store for ${extensionID} does not exist.`);
     }
 
-    return this._stores[extensionID]._store.store;
+    const metadata = new Map<string, any>();
+
+    for (const [key, pref] of Object.entries(
+      this._stores[extensionID]._store.store
+    ).sort((a, b) => {
+      if (
+        (a as any)[1].hasOwnProperty("order") &&
+        (b as any)[1].hasOwnProperty("order")
+      ) {
+        if ((a as any)[1].order === (b as any)[1].order) {
+          return (a as any)[1].name > (b as any)[1].name ? 1 : -1;
+        } else {
+          return (a as any)[1].order > (b as any)[1].order ? 1 : -1;
+        }
+      } else {
+        return (a as any)[1].name > (b as any)[1].name ? 1 : -1;
+      }
+    })) {
+      metadata.set(key, pref);
+    }
+
+    return metadata;
   }
 
   /**
@@ -267,15 +303,39 @@ export class ExtensionPreferenceService {
     await keytar.setPassword(extensionID, key, pwd);
   }
 
-  onChanged<T>(
-    extensionID: string,
-    key: keyof T | (keyof T)[],
+  onChanged(
+    target: any | any[],
     callback: (newValues: { key: any; value: any }) => void
   ) {
-    if (!this._stores[extensionID]) {
-      throw new Error(`Preference store for ${extensionID} does not exist.`);
+    const disposeCallbacks: (() => void)[] = [];
+
+    if (typeof target === "string") {
+      target = [target];
     }
-    return this._stores[extensionID].onChanged(key, callback);
+
+    for (const extensionIDKey of target as string[]) {
+      const components = extensionIDKey.split(":");
+
+      if (components.length !== 2) {
+        throw new Error(`Invalid key ${extensionIDKey}.`);
+      }
+
+      const [extensionID, keys] = extensionIDKey.split(":");
+
+      if (!this._stores[extensionID]) {
+        throw new Error(`Preference store for ${extensionID} does not exist.`);
+      }
+
+      disposeCallbacks.push(
+        this._stores[extensionID].onChanged(keys, callback)
+      );
+    }
+
+    return () => {
+      for (const disposeCallback of disposeCallbacks) {
+        disposeCallback();
+      }
+    };
   }
 
   on = this.onChanged;

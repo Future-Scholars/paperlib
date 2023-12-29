@@ -83,8 +83,8 @@ declare namespace PLMainAPI {
 }
 
 declare namespace PLExtAPI {
-  const extensionManagementService: Proxied<ExtensionManagementService>;
-  const extensionPreferenceService: Proxied<ExtensionPreferenceService>;
+  const extensionManagementService: ExtensionManagementService;
+  const extensionPreferenceService: ExtensionPreferenceService;
 }
 
 const stringUtils = {
