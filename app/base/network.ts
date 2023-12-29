@@ -46,6 +46,11 @@ const gotWithCache = got.extend({
   ],
 });
 
+export interface ICookieObject {
+  cookieStr: string;
+  currentUrl: string;
+}
+
 export const INetworkTool = createDecorator("networkTool");
 
 export class NetworkTool {
@@ -235,7 +240,11 @@ export class NetworkTool {
     return await got.post(url, options);
   }
 
-  async download(url: string, targetPath: string, cookies?: CookieJar) {
+  async download(
+    url: string,
+    targetPath: string,
+    cookies?: CookieJar | ICookieObject[]
+  ) {
     try {
       const pipeline = promisify(stream.pipeline);
       const headers = {
@@ -243,13 +252,23 @@ export class NetworkTool {
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
       };
 
+      let cookieJarObj: CookieJar | undefined;
+      if (Array.isArray(cookies)) {
+        cookieJarObj = new CookieJar();
+        cookies.forEach((cookie) => {
+          cookieJarObj!.setCookieSync(cookie.cookieStr, cookie.currentUrl);
+        });
+      } else {
+        cookieJarObj = cookies;
+      }
+
       await pipeline(
         got
           .stream(url, {
             headers: headers,
             rejectUnauthorized: false,
             agent: this._agent,
-            cookieJar: cookies,
+            cookieJar: cookieJarObj,
           })
           .on("downloadProgress", (progress) => {
             if (
@@ -285,7 +304,7 @@ export class NetworkTool {
 
   async downloadPDFs(
     urlList: string[],
-    cookies?: CookieJar
+    cookies?: CookieJar | ICookieObject[]
   ): Promise<string[]> {
     const downloadedUrls = (
       await Promise.all(
