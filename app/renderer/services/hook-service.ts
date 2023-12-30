@@ -53,7 +53,17 @@ export class HookService {
       for (const [hookID, runHook] of Object.entries(
         this._modifyHookPoints[hookName]
       )) {
-        processedArgs = await runHook(processedArgs);
+        // processedArgs = await runHook(processedArgs);
+        // Set maximum wait time for each hooker.
+        processedArgs = await Promise.race([
+          runHook(processedArgs),
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(processedArgs);
+            }, 5000);
+          }),
+        ]);
+
         processedArgs = this.recoverClass(args, processedArgs);
       }
 
@@ -83,7 +93,17 @@ export class HookService {
       for (const [hookID, runHook] of Object.entries(
         this._transformHookPoints[hookName]
       )) {
-        const result = await runHook(args);
+        // const result = await runHook(args);
+        // Set maximum wait time for each hooker.
+        const result = await Promise.race([
+          runHook(args),
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve([]);
+            }, 16000);
+          }),
+        ]);
+
         results.push(result);
       }
 

@@ -1128,9 +1128,7 @@ declare interface IExtensionInfo {
     author: string;
     verified: boolean;
     description: string;
-    preference: {
-        [key: string]: any;
-    };
+    preference: Map<string, any>;
     location: string;
     originLocation?: string;
 }
