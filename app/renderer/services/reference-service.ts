@@ -273,6 +273,45 @@ export class ReferenceService {
     }
   }
 
+  async exportCSV(papers: PaperEntity[]): Promise<string> {
+
+    let csv: string = "";
+
+    // Headers
+    const isExportProperty = (key: string): boolean => {
+      if (key.startsWith("_")) {
+        return false;
+      }
+
+      if (typeof PaperEntity.schema.properties[key] === "object") {
+        // Skip complex object type as they are unstructured.
+        return false;
+      }
+
+      return true;
+    }
+    const headers: string[] = [];
+    for (const key in PaperEntity.schema.properties) {
+      if (isExportProperty(key)) {
+        csv += (key + ",");
+        headers.push(key);
+      }
+    }
+    csv += "\n";
+
+    // Data
+    for (const paper of papers) {
+      for (const key of headers) {
+        let content = paper[key];
+        csv += ('\"' + paper[key] + "\",");
+      }
+      csv += ("\n");
+    }
+
+    return csv;
+
+  }
+
   /**
    * Export paper entities.
    * @param paperEntities - The paper entities.
@@ -285,12 +324,22 @@ export class ReferenceService {
     });
 
     let copyStr = "";
-    if (format === "BibTex") {
-      copyStr = this.exportBibTexBody(this.toCite(paperEntityDrafts));
-    } else if (format === "BibTex-Key") {
-      copyStr = this.exportBibTexKey(this.toCite(paperEntityDrafts));
-    } else if (format === "PlainText") {
-      copyStr = await this.exportPlainText(this.toCite(paperEntityDrafts));
+    switch (format) {
+      case "BibTex":
+        copyStr = this.exportBibTexBody(this.toCite(paperEntityDrafts));
+        break;
+      case "BibTexKey":
+        copyStr = this.exportBibTexKey(this.toCite(paperEntityDrafts));
+        break;
+      case "PlainText":
+        copyStr = await this.exportPlainText(this.toCite(paperEntityDrafts));
+        break;
+      case "CSV":
+        copyStr = await this.exportCSV(paperEntityDrafts);
+        break;
+      default:
+        throw new Error(`Unsupported export format: ${format}`);
+        break;
     }
 
     clipboard.writeText(copyStr);
