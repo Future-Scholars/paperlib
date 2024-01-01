@@ -16,6 +16,7 @@ export type Proxied<T> = {
         | "onClick"
         | "hookTransform"
         | "hookModify"
+        | "registerExternel"
       ? (...args: A) => () => void
       : (...args: { [K in keyof A]: A[K] }) => Promise<Awaited<R>>
     : never;

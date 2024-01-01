@@ -59,6 +59,12 @@ export class HookService {
           runHook(processedArgs),
           new Promise((resolve) => {
             setTimeout(() => {
+              PLAPI.logService.warn(
+                `Modify hook ${hookName} of extension ${hookID} timed out.`,
+                "",
+                true,
+                "HookService"
+              );
               resolve(processedArgs);
             }, 5000);
           }),
@@ -99,6 +105,13 @@ export class HookService {
           runHook(args),
           new Promise((resolve) => {
             setTimeout(() => {
+              PLAPI.logService.warn(
+                `Transform hook ${hookName} of extension ${hookID} timed out.`,
+                "",
+                true,
+                "HookService"
+              );
+
               resolve([]);
             }, 16000);
           }),
