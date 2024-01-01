@@ -85,6 +85,13 @@ export class ExtensionManagementService {
   async install(extensionIDorPath: string, notify = true) {
     let extensionID;
     try {
+      PLAPI.logService.info(
+        "Trying to install extensions.",
+        extensionIDorPath,
+        false,
+        "ExtManagementService"
+      );
+
       let info: IPluginInfo;
       let installFromFile = false;
       if (isLocalPath(extensionIDorPath)) {
@@ -141,17 +148,7 @@ export class ExtensionManagementService {
         "ExtManagementService"
       );
 
-      const tryToDeletePath = path.join(
-        globalThis["extensionWorkingDir"],
-        extensionID
-      );
-      try {
-        if (fs.existsSync(tryToDeletePath)) {
-          fs.rmSync(tryToDeletePath, { recursive: true, force: true });
-        }
-
-        this._extStore.delete(extensionID);
-      } catch (e) {}
+      this.clean(extensionIDorPath);
     }
   }
 
@@ -186,19 +183,7 @@ export class ExtensionManagementService {
         "ExtManagementService"
       );
 
-      fs.rmSync(this._installedExtensionInfos[extensionID].location, {
-        recursive: true,
-        force: true,
-      });
-      fs.rmSync(this._installedExtensionInfos[extensionID].location + ".json", {
-        force: true,
-      });
       await this._extManager.uninstall(extensionID);
-
-      this._extStore.delete(extensionID);
-
-      delete this._installedExtensions[extensionID];
-      delete this._installedExtensionInfos[extensionID];
 
       PLAPI.logService.info(
         `Uninstalled extension ${extensionID}`,
@@ -214,6 +199,47 @@ export class ExtensionManagementService {
         true,
         "ExtManagementService"
       );
+    } finally {
+      this.clean(extensionID);
+    }
+  }
+
+  /**
+   * Clean the extension related files, preference, etc.
+   * @param extensionIDorPath - extensionID or path to the extension
+   */
+  async clean(extensionIDorPath: string) {
+    let extensionPath: string;
+    let extensionID: string;
+
+    if (isLocalPath(extensionIDorPath) && fs.existsSync(extensionIDorPath)) {
+      // Try to find the extensionID from the package.json
+      const packageJSON = JSON.parse(
+        fs.readFileSync(path.join(extensionIDorPath, "package.json"), "utf-8")
+      );
+
+      extensionID = packageJSON.name || "";
+    } else {
+      extensionID = extensionIDorPath;
+    }
+
+    extensionPath = path.join(globalThis["extensionWorkingDir"], extensionID);
+
+    // Clean the extension related files.
+    if (fs.existsSync(extensionPath)) {
+      fs.rmSync(extensionPath, { recursive: true, force: true });
+    }
+    // Clean the extension preference if exists.
+    this._extensionPreferenceService.unregister(extensionID);
+    if (fs.existsSync(extensionPath + ".json")) {
+      fs.rmSync(extensionPath + ".json", { force: true });
+    }
+    // Clean the extension info.
+    delete this._installedExtensions[extensionID];
+    delete this._installedExtensionInfos[extensionID];
+    // Clean the extension record in the store.
+    if (this._extStore.has(extensionID)) {
+      this._extStore.delete(extensionID);
     }
   }
 

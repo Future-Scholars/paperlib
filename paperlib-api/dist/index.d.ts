@@ -1128,9 +1128,7 @@ declare interface IExtensionInfo {
     author: string;
     verified: boolean;
     description: string;
-    preference: {
-        [key: string]: any;
-    };
+    preference: Map<string, any>;
     location: string;
     originLocation?: string;
 }
@@ -2030,7 +2028,7 @@ declare class PreferenceService extends Eventable<IPreferenceStore> {
 }
 
 declare type Proxied<T> = {
-    [K in keyof T]: T[K] extends (...args: infer A) => infer R ? K extends "on" | "once" | "already" | "onChanged" | "onClick" | "hookTransform" | "hookModify" ? (...args: A) => () => void : (...args: {
+    [K in keyof T]: T[K] extends (...args: infer A) => infer R ? K extends "on" | "once" | "already" | "onChanged" | "onClick" | "hookTransform" | "hookModify" | "registerExternel" ? (...args: A) => () => void : (...args: {
         [K in keyof A]: A[K];
     }) => Promise<Awaited<R>> : never;
 };
