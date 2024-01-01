@@ -1059,6 +1059,7 @@ declare interface IContextMenuServiceState {
     dataContextMenuDeleteClicked: number;
     dataContextMenuFlagClicked: number;
     dataContextMenuExportBibTexClicked: number;
+    dataContextMenuExportCSVClicked: number;
     dataContextMenuExportBibTexKeyClicked: number;
     dataContextMenuExportPlainTextClicked: number;
     feedContextMenuAddToLibraryClicked: number;
