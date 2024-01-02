@@ -1,3 +1,5 @@
+import pTimeout, { ClearablePromise } from "p-timeout";
+
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
 import { PaperEntity } from "@/models/paper-entity";
@@ -53,22 +55,19 @@ export class HookService {
       for (const [hookID, runHook] of Object.entries(
         this._modifyHookPoints[hookName]
       )) {
-        // processedArgs = await runHook(processedArgs);
         // Set maximum wait time for each hooker.
-        processedArgs = await Promise.race([
-          runHook(processedArgs),
-          new Promise((resolve) => {
-            setTimeout(() => {
-              PLAPI.logService.warn(
-                `Modify hook ${hookName} of extension ${hookID} timed out.`,
-                "",
-                true,
-                "HookService"
-              );
-              resolve(processedArgs);
-            }, 5000);
-          }),
-        ]);
+        processedArgs = await pTimeout(runHook(processedArgs), {
+          milliseconds: 5000,
+          fallback: () => {
+            PLAPI.logService.warn(
+              `Modify hook ${hookName} of extension ${hookID} timed out.`,
+              "",
+              true,
+              "HookService"
+            );
+            return processedArgs;
+          },
+        });
 
         processedArgs = this.recoverClass(args, processedArgs);
       }
@@ -94,31 +93,28 @@ export class HookService {
         return args;
       }
 
-      const results: O = [] as any;
+      const promises: ClearablePromise<any>[] = [];
 
       for (const [hookID, runHook] of Object.entries(
         this._transformHookPoints[hookName]
       )) {
-        // const result = await runHook(args);
         // Set maximum wait time for each hooker.
-        const result = await Promise.race([
-          runHook(args),
-          new Promise((resolve) => {
-            setTimeout(() => {
-              PLAPI.logService.warn(
-                `Transform hook ${hookName} of extension ${hookID} timed out.`,
-                "",
-                true,
-                "HookService"
-              );
+        const promise = pTimeout(runHook(args), {
+          milliseconds: 16000,
+          fallback: () => {
+            PLAPI.logService.warn(
+              `Transform hook ${hookName} of extension ${hookID} timed out.`,
+              "",
+              true,
+              "HookService"
+            );
+            return [];
+          },
+        });
 
-              resolve([]);
-            }, 16000);
-          }),
-        ]);
-
-        results.push(result);
+        promises.push(promise);
       }
+      const results = await Promise.all(promises);
 
       return results.flat();
     } else {
@@ -201,7 +197,7 @@ export class HookService {
         );
 
         if (!extensionAPIExposed) {
-          return;
+          return [];
         }
 
         return await PLExtAPI.extensionManagementService.callExtensionMethod(
@@ -216,7 +212,7 @@ export class HookService {
         true,
         "HookService"`
         );
-        return;
+        return [];
       }
     };
 
