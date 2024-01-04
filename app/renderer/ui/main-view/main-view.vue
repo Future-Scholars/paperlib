@@ -268,9 +268,9 @@ const onArrowDownPressed = () => {
   const currentIndex = uiState.selectedIndex[0] || 0;
   const newIndex =
     currentIndex + 1 >
-      (uiState.contentType === "library"
-        ? paperState.count
-        : feedState.entitiesCount) -
+    (uiState.contentType === "library"
+      ? paperState.count
+      : feedState.entitiesCount) -
       1
       ? currentIndex
       : currentIndex + 1;
@@ -340,13 +340,6 @@ disposable(
     exportSelectedEntities("BibTex");
   })
 );
-
-disposable(
-  PLMainAPI.contextMenuService.on("dataContextMenuExportCSVClicked", () => {
-    exportSelectedEntities("CSV");
-  })
-);
-
 
 disposable(
   PLMainAPI.contextMenuService.on(
@@ -474,39 +467,69 @@ disposable(
     </pane>
     <pane :key="2">
       <div class="grow flex flex-col h-screen bg-white dark:bg-neutral-800">
-        <WindowMenuBar class="flex-none" :disableSingleBtn="uiState.selectedIndex.length !== 1"
-          :disableMultiBtn="uiState.selectedIndex.length === 0" @event:click="onMenuButtonClicked" />
+        <WindowMenuBar
+          class="flex-none"
+          :disableSingleBtn="uiState.selectedIndex.length !== 1"
+          :disableMultiBtn="uiState.selectedIndex.length === 0"
+          @event:click="onMenuButtonClicked"
+        />
         <div id="main-view" class="h-full w-full">
           <splitpanes @resized="onDetailPanelResized($event)">
-            <pane :key="1" :size="uiState.selectedPaperEntities.length === 1 ||
+            <pane
+              :key="1"
+              :size="
+                uiState.selectedPaperEntities.length === 1 ||
                 uiState.selectedFeedEntities.length === 1
-                ? prefState.detailPanelWidth
-                : 100
-              ">
-              <PaperDataView v-if="uiState.contentType === 'library'" class="h-full w-full" />
+                  ? prefState.detailPanelWidth
+                  : 100
+              "
+            >
+              <PaperDataView
+                v-if="uiState.contentType === 'library'"
+                class="h-full w-full"
+              />
 
-              <FeedDataView v-if="uiState.contentType === 'feed'" class="h-full w-full" />
+              <FeedDataView
+                v-if="uiState.contentType === 'feed'"
+                class="h-full w-full"
+              />
             </pane>
-            <pane :key="2" :size="uiState.selectedPaperEntities.length === 1 ||
+            <pane
+              :key="2"
+              :size="
+                uiState.selectedPaperEntities.length === 1 ||
                 uiState.selectedFeedEntities.length === 1
-                ? 100 - prefState.detailPanelWidth
-                : 0
-              ">
-              <PaperDetailView :entity="uiState.selectedPaperEntities.length === 1
-                  ? uiState.selectedPaperEntities[0]
-                  : selectedEntityPlaceHolder
-                " :slot1="uiSlotState.paperDetailsPanelSlot1" :slot2="uiSlotState.paperDetailsPanelSlot2"
-                :slot3="uiSlotState.paperDetailsPanelSlot3" v-show="uiState.selectedPaperEntities.length === 1"
-                v-if="uiState.contentType === 'library'" />
+                  ? 100 - prefState.detailPanelWidth
+                  : 0
+              "
+            >
+              <PaperDetailView
+                :entity="
+                  uiState.selectedPaperEntities.length === 1
+                    ? uiState.selectedPaperEntities[0]
+                    : selectedEntityPlaceHolder
+                "
+                :slot1="uiSlotState.paperDetailsPanelSlot1"
+                :slot2="uiSlotState.paperDetailsPanelSlot2"
+                :slot3="uiSlotState.paperDetailsPanelSlot3"
+                v-show="uiState.selectedPaperEntities.length === 1"
+                v-if="uiState.contentType === 'library'"
+              />
 
-              <FeedDetailView :entity="uiState.selectedFeedEntities.length === 1
-                  ? uiState.selectedFeedEntities[0]
-                  : selectedFeedEntityPlaceHolder
-                " v-show="uiState.selectedFeedEntities.length === 1" v-if="uiState.contentType === 'feed'"
-                @event:add-click="addSelectedFeedEntities" @event:read-timeout="readSelectedFeedEntities(true)"
+              <FeedDetailView
+                :entity="
+                  uiState.selectedFeedEntities.length === 1
+                    ? uiState.selectedFeedEntities[0]
+                    : selectedFeedEntityPlaceHolder
+                "
+                v-show="uiState.selectedFeedEntities.length === 1"
+                v-if="uiState.contentType === 'feed'"
+                @event:add-click="addSelectedFeedEntities"
+                @event:read-timeout="readSelectedFeedEntities(true)"
                 @event:read-timeout-in-unread="
                   readSelectedFeedEntities(true, true)
-                  " />
+                "
+              />
             </pane>
           </splitpanes>
         </div>
