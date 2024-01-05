@@ -3,9 +3,28 @@
   "version": "0.0.13",
   "author": "Paperlib",
   "description": "The API for paperlib extension development.",
-  "type": "module",
-  "types": "./dist/index.d.ts",
-  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "default": "./dist/api.mjs",
+      "types": "./dist/api.d.ts"
+    },
+    "./api": {
+      "default": "./dist/api.mjs",
+      "types": "./dist/api.d.ts"
+    },
+    "./rpc": {
+      "default": "./dist/rpc.mjs",
+      "types": "./dist/rpc.d.ts"
+    },
+    "./model": {
+      "default": "./dist/model.mjs",
+      "types": "./dist/model.d.ts"
+    },
+    "./utils": {
+      "default": "./dist/utils.mjs",
+      "types": "./dist/utils.d.ts"
+    }
+  },
   "engines": {
     "node": ">=16.17.1"
   },

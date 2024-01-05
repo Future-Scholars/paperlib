@@ -1,7 +1,6 @@
 import { ipcRenderer } from "electron";
 
 import { createDecorator } from "@/base/injection/injection";
-import { Process } from "@/base/process-id";
 import { MessagePortRPCProtocol } from "@/base/rpc/messageport-rpc-protocol";
 import { RPCService } from "@/base/rpc/rpc-service";
 
@@ -12,7 +11,10 @@ interface IRendererRPCServiceState {
 export const IRendererRPCService = createDecorator("rendererRPCService");
 
 export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
-  constructor() {
+  constructor(
+    private readonly _processID: string,
+    private readonly _exposeAPIGroup?: string
+  ) {
     super("rendererRPCService", { initialized: "" });
 
     if (process.type !== "renderer") {
@@ -37,14 +39,16 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
       if (!this._protocols[senderID]) {
         const protocol = new MessagePortRPCProtocol(
           port,
-          Process.renderer,
+          this._processID,
           false
         );
 
         this._protocols[senderID] = protocol;
         this.initActionor(protocol);
 
-        protocol.sendExposedAPI("PLAPI");
+        if (this._exposeAPIGroup) {
+          protocol.sendExposedAPI(this._exposeAPIGroup);
+        }
       }
     });
 
@@ -54,7 +58,7 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
       }
     });
 
-    ipcRenderer.postMessage("request-port", Process.renderer);
+    ipcRenderer.postMessage("request-port", this._processID);
   }
 
   async waitForAPI(
@@ -90,7 +94,9 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
 
     for (const [processID, protocol] of Object.entries(this._protocols)) {
       this.initActionor(protocol);
-      protocol.sendExposedAPI("PLAPI");
+      if (this._exposeAPIGroup) {
+        protocol.sendExposedAPI(this._exposeAPIGroup);
+      }
     }
   }
 }

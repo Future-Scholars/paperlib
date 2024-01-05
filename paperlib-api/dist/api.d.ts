@@ -1,3 +1,5 @@
+/// <reference types="realm" />
+
 import { BrowserWindow } from 'electron';
 import { BrowserWindowConstructorOptions } from 'electron';
 import Cite from 'citation-js';
@@ -246,11 +248,6 @@ declare enum CategorizerType {
     PaperFolder = "PaperFolder"
 }
 
-export declare const chunkRun: <S, T, Q>(argsList: Iterable<S>, process: (arg: S) => Promise<T>, errorProcess?: ((arg: S) => Promise<Q>) | undefined, chunkSize?: number) => Promise<{
-    results: Q extends null ? (T | null)[] : (T | Q)[];
-    errors: Error[];
-}>;
-
 declare enum Colors {
     red = "red",
     green = "green",
@@ -296,8 +293,6 @@ declare enum ConfigType_2 {
     Cloud = 0,
     Local = 1
 }
-
-declare function constructFileURL(url: string, joined: boolean, withProtocol?: boolean, root?: string, protocol?: string): string;
 
 declare class ContextMenuService extends Eventable<IContextMenuServiceState> {
     private readonly _preferenceService;
@@ -429,13 +424,6 @@ declare class DatabaseService extends Eventable<IDatabaseServiceState> {
      * Resume the synchronization of the database. */
     resumeSync(): void;
 }
-
-/**
- * Erase the protocol of the URL.
- * @param url
- * @returns
- */
-declare function eraseProtocol(url: string): string;
 
 /**
  * A eventable base class.
@@ -634,7 +622,7 @@ declare class ExtensionPreferenceService {
     }) => void) => () => void;
 }
 
-export declare class Feed {
+declare class Feed {
     static schema: {
         name: string;
         primaryKey: string;
@@ -659,7 +647,7 @@ export declare class Feed {
     initialize(object: IFeedDraft): this;
 }
 
-export declare class FeedEntity {
+declare class FeedEntity {
     static schema: {
         name: string;
         primaryKey: string;
@@ -1033,39 +1021,6 @@ declare class FileSystemService {
      */
     preview(fileURL: string): void;
 }
-
-declare interface formatStringParams {
-    str: string | null;
-    removeNewline?: boolean;
-    removeWhite?: boolean;
-    removeSymbol?: boolean;
-    removeStr?: string | null;
-    lowercased?: boolean;
-    trimWhite?: boolean;
-    whiteSymbol?: boolean;
-}
-
-/**
- * Get the file type of the URL.
- * @param url
- * @returns
- * @description
- */
-declare function getFileType(url: string): string;
-
-/**
- * Get the protocol of the URL.
- * @param url
- * @returns
- */
-declare function getProtocol(url: string): string;
-
-/**
- * Check if the URL has a protocol.
- * @param url
- * @returns
- */
-declare function hasProtocol(url: string): boolean;
 
 /**
  * HookService is a service inject some hook points in the Paperlib app. Extensions can use these hook points to extend the functionality of Paperlib.
@@ -1538,15 +1493,9 @@ declare interface IScraperPreference {
     scrapeImplCode: string;
 }
 
-declare function isLocalPath(string: string): boolean;
-
 declare interface ISmartFilterServiceState {
     updated: number;
 }
-
-declare function isMetadataCompleted(paperEntityDraft: PaperEntity): boolean;
-
-declare function isPreprint(paperEntityDraft: PaperEntity): boolean;
 
 declare interface IUISlotState {
     paperDetailsPanelSlot1: {
@@ -1610,8 +1559,6 @@ declare interface IWindowProcessManagementServiceState {
     rendererProcess: string;
     [key: string]: string;
 }
-
-declare function listAllFiles(folderURL: string, arrayOfFiles?: string[] | null): string[];
 
 declare class LogService extends Eventable<ILogEventState> {
     private logGroups;
@@ -1683,21 +1630,6 @@ declare class MenuService extends Eventable<IMenuServiceState> {
     disableAll(): void;
 }
 
-declare function mergeMetadata(originPaperEntityDraft: PaperEntity, paperEntityDraft: PaperEntity, scrapedpaperEntity: PaperEntity, mergePriorityLevel: {
-    [key: string]: number;
-}, scraperIndex: number): {
-    paperEntityDraft: PaperEntity;
-    mergePriorityLevel: {
-        [key: string]: number;
-    };
-};
-
-export declare const metadataUtils: {
-    isMetadataCompleted: typeof isMetadataCompleted;
-    isPreprint: typeof isPreprint;
-    mergeMetadata: typeof mergeMetadata;
-};
-
 declare class NetworkTool {
     private readonly _preferenceService;
     private readonly _logService;
@@ -1768,7 +1700,7 @@ declare class NetworkTool {
 
 declare type OID = ObjectId | string;
 
-export declare class PaperEntity {
+declare class PaperEntity {
     static schema: {
         name: string;
         primaryKey: string;
@@ -1905,7 +1837,7 @@ declare class PaperFilterOptions implements IPaperFilterOptions {
     toString(): string;
 }
 
-export declare class PaperFolder extends Categorizer {
+declare class PaperFolder extends Categorizer {
     static schema: {
         name: string;
         primaryKey: string;
@@ -2005,7 +1937,7 @@ declare class PaperService extends Eventable<IPaperServiceState> {
     migrateLocaltoCloud(): Promise<void>;
 }
 
-export declare class PaperSmartFilter {
+declare class PaperSmartFilter {
     static schema: {
         name: string;
         primaryKey: string;
@@ -2085,7 +2017,7 @@ declare class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSt
 
 declare type PaperSmartFilterType = "PaperPaperSmartFilter";
 
-export declare class PaperTag extends Categorizer {
+declare class PaperTag extends Categorizer {
     static schema: {
         name: string;
         primaryKey: string;
@@ -2440,10 +2372,6 @@ declare class SmartFilterService extends Eventable<ISmartFilterServiceState> {
      * Migrate the local database to the cloud database. */
     migrateLocaltoCloud(): Promise<void>;
 }
-
-export declare const stringUtils: {
-    formatString: ({ str, removeNewline, removeWhite, removeSymbol, removeStr, lowercased, trimWhite, whiteSymbol, }: formatStringParams) => string;
-};
 
 declare class SubStateGroup<T extends IEventState> extends Eventable<T> {
     constructor(stateID: string, defaultState: T);
@@ -3925,16 +3853,6 @@ declare class UpgradeService extends Eventable<IUpgradeServiceState> {
     checkForUpdates(): void;
     currentVersion(): string;
 }
-
-export declare const urlUtils: {
-    getProtocol: typeof getProtocol;
-    hasProtocol: typeof hasProtocol;
-    eraseProtocol: typeof eraseProtocol;
-    getFileType: typeof getFileType;
-    constructFileURL: typeof constructFileURL;
-    listAllFiles: typeof listAllFiles;
-    isLocalPath: typeof isLocalPath;
-};
 
 declare interface WindowOptions extends BrowserWindowConstructorOptions {
     entry: string;

@@ -31,7 +31,6 @@
     "tests/**/*.ts",
     "paperlib-api/**/*.d.ts",
     "paperlib-api/**/*.ts",
-    "package.json",
-    "electron"
+    "package.json"
   ]
 }
