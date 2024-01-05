@@ -67,7 +67,7 @@ async function initialize() {
 
   // ============================================================
   // 1. Initilize the RPC service for current process
-  const rendererRPCService = new RendererRPCService();
+  const rendererRPCService = new RendererRPCService(Process.renderer, "PLAPI");
   // ============================================================
   // 2. Start the port exchange process.
   await rendererRPCService.initCommunication();

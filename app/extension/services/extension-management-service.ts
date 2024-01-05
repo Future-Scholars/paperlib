@@ -120,8 +120,16 @@ export class ExtensionManagementService {
         }
       } else {
         extensionID = extensionIDorPath;
-        info = await this._extManager.install(extensionID);
+        info = await this._extManager.installFromNpm(extensionID);
       }
+
+      PLAPI.logService.info(
+        `Installed extension ${extensionID}`,
+        JSON.stringify(info),
+        false,
+        "ExtManagementService"
+      );
+
       const extension = this._extManager.require(info.name);
 
       this._installedExtensions[info.name] = await extension.initialize();
@@ -156,6 +164,9 @@ export class ExtensionManagementService {
         "ExtManagementService"
       );
 
+      try {
+        await this._extManager.uninstall(extensionID);
+      } catch (e) {}
       this.clean(extensionIDorPath);
     }
   }

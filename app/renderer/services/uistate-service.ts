@@ -36,7 +36,7 @@ export interface IUIStateServiceState {
   // =========================================
   // Command/Search Bar
   commandBarText: string;
-  commandBarSearchMode: string;
+  commandBarSearchMode: "general" | "fulltext" | "advanced";
 
   // =========================================
   // DEV

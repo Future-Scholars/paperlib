@@ -21,30 +21,8 @@ import { SmartFilterService } from "@/renderer/services/smartfilter-service";
 import { UISlotService } from "@/renderer/services/uislot-service";
 import { UIStateService } from "@/renderer/services/uistate-service";
 
-import { PaperFolder, PaperTag } from "@/models/categorizer";
-import { Feed } from "@/models/feed";
-import { FeedEntity } from "@/models/feed-entity";
-import { PaperEntity } from "@/models/paper-entity";
-import { PaperSmartFilter } from "@/models/smart-filter";
-
-import { chunkRun } from "@/base/chunk";
-import {
-  isMetadataCompleted,
-  isPreprint,
-  mergeMetadata,
-} from "@/base/metadata";
 import { NetworkTool } from "@/base/network";
 import { Proxied } from "@/base/rpc/proxied";
-import { formatString } from "@/base/string";
-import {
-  constructFileURL,
-  eraseProtocol,
-  getFileType,
-  getProtocol,
-  hasProtocol,
-  isLocalPath,
-  listAllFiles,
-} from "@/base/url";
 import { PLExtension } from "@/extension/base/pl-extension";
 
 declare namespace PLAPI {
@@ -79,45 +57,4 @@ declare namespace PLExtAPI {
   const extensionPreferenceService: ExtensionPreferenceService;
 }
 
-const stringUtils = {
-  formatString,
-};
-
-const urlUtils = {
-  getProtocol,
-  hasProtocol,
-  eraseProtocol,
-  getFileType,
-  constructFileURL,
-  listAllFiles,
-  isLocalPath,
-};
-
-// const bibtexUtils = {
-//   bibtex2json,
-//   bibtex2paperEntityDraft,
-//   bibtexes2paperEntityDrafts,
-// };
-
-const metadataUtils = {
-  isMetadataCompleted,
-  isPreprint,
-  mergeMetadata,
-};
-
-export {
-  Feed,
-  FeedEntity,
-  PLAPI,
-  PLExtAPI,
-  PLExtension,
-  PLMainAPI,
-  PaperEntity,
-  PaperFolder,
-  PaperSmartFilter,
-  PaperTag,
-  chunkRun,
-  metadataUtils,
-  stringUtils,
-  urlUtils,
-};
+export { PLAPI, PLExtAPI, PLExtension, PLMainAPI };

@@ -9,12 +9,16 @@ export default defineConfig({
     minify: false,
     reportCompressedSize: true,
     lib: {
-      entry: path.resolve(__dirname, "index.ts"),
+      entry: [
+        path.resolve(__dirname, "api.ts"),
+        path.resolve(__dirname, "rpc.ts"),
+        path.resolve(__dirname, "model.ts"),
+        path.resolve(__dirname, "utils.ts"),
+      ],
       formats: ["es"],
-      fileName: "index",
     },
     rollupOptions: {
-      external: [...builtinModules],
+      external: [...builtinModules, "electron"],
     },
     outDir: path.resolve(__dirname, "dist"),
     emptyOutDir: true,
