@@ -256,10 +256,16 @@ export class MenuService extends Eventable<IMenuServiceState> {
 
   onClick = this.onChanged;
 
+  /**
+   * Enable all menu items.
+   */
   enableAll() {
     this._isDisabled = false;
   }
 
+  /**
+   * Disable all menu items.
+   */
   disableAll() {
     this._isDisabled = true;
   }

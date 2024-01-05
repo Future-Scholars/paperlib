@@ -50,11 +50,10 @@ export class RenderService {
 
   /**
    * Render PDF file to canvas
-   * @param fileURL - file url
-   * @param canvasId - canvas id
-   * @returns - {blob: ArrayBuffer | null, width: number, height: number}
+   * @param fileURL - File url
+   * @param canvasId - Canvas id
+   * @returns Renderer blob: {blob: ArrayBuffer | null, width: number, height: number}
    */
-
   async renderPDF(fileURL: string, canvasId: string) {
     if (this._renderingPDF) {
       this._renderingPDF.destroy();
@@ -112,8 +111,8 @@ export class RenderService {
 
   /**
    * Render PDF cache to canvas
-   * @param cachedThumbnail - cached thumbnail
-   * @param canvasId - canvas id
+   * @param cachedThumbnail - Cached thumbnail
+   * @param canvasId - Canvas id
    */
   @errorcatching("Failed to render PDF cache.", true, "RenderService")
   async renderPDFCache(cachedThumbnail: ThumbnailCache, canvasId: string) {
@@ -140,9 +139,9 @@ export class RenderService {
 
   /**
    * Render Markdown to HTML
-   * @param content - markdown content
-   * @param renderFull - render full content or not
-   * @returns - {renderedStr: string, overflow: boolean}
+   * @param content - Markdown content
+   * @param renderFull - Render full content or not, default is false. If false, only render first 10 lines.
+   * @returns Rendered string: {renderedStr: string, overflow: boolean}
    */
   @errorcatching("Failed to render Markdown.", true, "RenderService", {
     renderedStr: "",
@@ -168,9 +167,9 @@ export class RenderService {
 
   /**
    * Render Markdown file to HTML
-   * @param url - file url
-   * @param renderFull - render full content or not
-   * @returns - {renderedStr: string, overflow: boolean}
+   * @param url - File url
+   * @param renderFull - Render full content or not, default is false. If false, only render first 10 lines.
+   * @returns Rendered string: {renderedStr: string, overflow: boolean}
    */
   @errorcatching("Failed to render Markdown file.", true, "RenderService", {
     renderedStr: "",
@@ -187,8 +186,8 @@ export class RenderService {
 
   /**
    * Render Math to HTML
-   * @param content - math content
-   * @returns - rendered HTML string
+   * @param content - Math content
+   * @returns Rendered HTML string
    */
   @errorcatching("Failed to render Math.", true, "RenderService", "")
   async renderMath(content: string) {

@@ -341,6 +341,10 @@ export class CacheService {
   // ========================
   // Delete
   // ========================
+  /**
+   * Delete the cache of the provided paper entity ids.
+   * @param ids - The ids of the paper entities to delete the cache of.
+   */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete cache.", true, "CacheService")
   async delete(ids: OID[]) {

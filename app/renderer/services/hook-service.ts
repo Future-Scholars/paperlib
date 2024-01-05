@@ -29,6 +29,11 @@ export class HookService {
     this._transformHookPoints = {};
   }
 
+  /**
+   * Check if a hook point exists.
+   * @param hookName - Name of the hook point
+   * @returns Whether the hook point exists
+   */
   hasHook(hookName: string) {
     if (this._modifyHookPoints[hookName]) {
       return "modify";
@@ -39,6 +44,12 @@ export class HookService {
     }
   }
 
+  /**
+   * Modify hook point. We can await this function to wait for all hookers to finish.
+   * @param hookName - Name of the hook point
+   * @param args - Arguments
+   * @returns Modified arguments
+   */
   async modifyHookPoint<T extends any[]>(hookName: string, ...args: T) {
     if (this._modifyHookPoints[hookName]) {
       const extensionAPIExposed = await rendererRPCService.waitForAPI(
@@ -78,6 +89,12 @@ export class HookService {
     }
   }
 
+  /**
+   * Transform hook point. We can await this function to wait for all hookers to finish.
+   * @param hookName - Name of the hook point
+   * @param args - Arguments
+   * @returns Transformed arguments
+   */
   async transformhookPoint<T extends any[], O extends any[]>(
     hookName: string,
     ...args: T
@@ -122,6 +139,13 @@ export class HookService {
     }
   }
 
+  /**
+   * Hook a modify hook point.
+   * @param hookName - Name of the hook point
+   * @param extensionID - ID of the extension
+   * @param callbackName - Name of the callback function
+   * @returns A function to dispose the hook
+   */
   hookModify(hookName: string, extensionID: string, callbackName: string) {
     this._logService.info(
       `Hooking ${hookName} of extension ${extensionID}-${callbackName}`,
@@ -176,6 +200,13 @@ export class HookService {
     };
   }
 
+  /**
+   * Hook a transform hook point.
+   * @param hookName - Name of the hook point
+   * @param extensionID - ID of the extension
+   * @param callbackName - Name of the callback function
+   * @returns A function to dispose the hook
+   */
   hookTransform(hookName: string, extensionID: string, callbackName: string) {
     this._logService.info(
       `Hooking ${hookName} of extension ${extensionID}-${callbackName}`,
@@ -232,6 +263,12 @@ export class HookService {
     };
   }
 
+  /**
+   * Recover class of an object.
+   * @param originalObj - Original object
+   * @param obj - Object to recover
+   * @returns Recovered object
+   */
   recoverClass<T>(originalObj: T, obj: any): T {
     if (originalObj instanceof PaperEntity) {
       return new PaperEntity(obj, false) as T;

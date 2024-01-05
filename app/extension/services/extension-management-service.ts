@@ -59,6 +59,9 @@ export class ExtensionManagementService {
     this._installedExtensionInfos = {};
   }
 
+  /**
+   * Load all installed extensions.
+   */
   async loadInstalledExtensions() {
     PLAPI.logService.info(
       `Loading installed extensions`,
@@ -82,6 +85,11 @@ export class ExtensionManagementService {
     }
   }
 
+  /**
+   * Install an extension from the given path or extensionID.
+   * @param extensionIDorPath - extensionID or path to the extension
+   * @param notify - whether to show notification, default to true
+   */
   async install(extensionIDorPath: string, notify = true) {
     let extensionID;
     try {
@@ -152,6 +160,10 @@ export class ExtensionManagementService {
     }
   }
 
+  /**
+   * Uninstall an extension.
+   * @param extensionID - extensionID to uninstall
+   */
   async uninstall(extensionID: string) {
     try {
       if (
@@ -243,6 +255,10 @@ export class ExtensionManagementService {
     }
   }
 
+  /**
+   * Reload an extension.
+   * @param extensionID - extensionID to reload
+   */
   async reload(extensionID: string) {
     try {
       const location =
@@ -271,12 +287,18 @@ export class ExtensionManagementService {
     }
   }
 
+  /**
+   * Reload all installed extensions.
+   */
   async reloadAll() {
     for (const extensionID in this._installedExtensionInfos) {
       await this.reload(extensionID);
     }
   }
 
+  /**
+   * Get all installed extensions.
+   */
   installedExtensions() {
     for (const [id, ext] of Object.entries(this._installedExtensionInfos)) {
       ext.preference = this._extensionPreferenceService.getAllMetadata(id);
@@ -285,6 +307,11 @@ export class ExtensionManagementService {
     return this._installedExtensionInfos;
   }
 
+  /**
+   * Get extensions from marketplace.
+   * @param query - Query string
+   * @returns A map of extensionID to extension info.
+   */
   async listExtensionMarketplace(query: string) {
     try {
       const packages = JSON.parse(
@@ -344,6 +371,13 @@ export class ExtensionManagementService {
     }
   }
 
+  /**
+   * Call a method of an extension class.
+   * @param extensionID - extensionID to call method
+   * @param methodName - method name to call
+   * @param args - arguments to pass to the method
+   * @returns
+   */
   async callExtensionMethod(
     extensionID: string,
     methodName: string,

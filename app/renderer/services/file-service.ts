@@ -46,6 +46,9 @@ export class FileService extends Eventable<IFileServiceState> {
     });
   }
 
+  /**
+   * Initialize the file backend.
+   */
   @errorcatching("Failed to initialize the file backend.", true, "FileService")
   async initialize() {
     this._backend = await this._initBackend();
@@ -91,16 +94,25 @@ export class FileService extends Eventable<IFileServiceState> {
     }
   }
 
+  /**
+   * Start watching file changes. (Only for WebDAV file backend)
+   */
   @errorcatching("Failed to watch file changes.", true, "FileService")
   async startWatch() {
     await this._backend?.startWatch();
   }
 
+  /**
+   * Stop watching file changes. (Only for WebDAV file backend)
+   */
   @errorcatching("Failed to stop watching file changes.", true, "FileService")
   async stopWatch() {
     await this._backend?.stopWatch();
   }
 
+  /**
+   * Check if the file backend is available.
+   */
   @errorcatching("Failed to check the file backend.", true, "FileService")
   async check() {
     return await this._backend?.check();
@@ -108,9 +120,9 @@ export class FileService extends Eventable<IFileServiceState> {
 
   /**
    * Move files of a paper entity to the library folder
-   * @param paperEntity - paper entity to move
-   * @param fourceDelete - force delete the source file
-   * @param forceNotLink - force not to link the source file
+   * @param paperEntity - Paper entity to move
+   * @param fourceDelete - Force to delete the source file
+   * @param forceNotLink - Force to do not use link
    * @returns
    */
   async move(
@@ -218,10 +230,10 @@ export class FileService extends Eventable<IFileServiceState> {
 
   /**
    * Move a file
-   * @param sourceURL - source file URL
-   * @param targetURL - target file URL
-   * @param fourceDelete - force delete the source file
-   * @param forceNotLink - force not to link the source file
+   * @param sourceURL - Source file URL
+   * @param targetURL - Target file URL
+   * @param fourceDelete - Force to delete the source file
+   * @param forceNotLink - Force to do not use link
    * @returns
    */
   @errorcatching("Failed to move a file.", true, "FileService", "")
@@ -245,8 +257,7 @@ export class FileService extends Eventable<IFileServiceState> {
 
   /**
    * Remove files of a paper entity
-   * @param paperEntity - paper entity to remove
-   * @returns
+   * @param paperEntity - Paper entity to remove
    */
   @errorcatching(
     "Failed to remove files of a paper entity.",
@@ -277,9 +288,8 @@ export class FileService extends Eventable<IFileServiceState> {
   }
 
   /**
-   * Remove files
-   * @param url - url of the file to remove
-   * @returns
+   * Remove a file
+   * @param url - Url of the file to remove
    */
   @errorcatching("Failed to remove a file.", true, "FileService")
   async removeFile(url: string): Promise<void> {
@@ -292,8 +302,8 @@ export class FileService extends Eventable<IFileServiceState> {
 
   /**
    * List all files in a folder
-   * @param folderURL - url of the folder
-   * @returns
+   * @param folderURL - Url of the folder
+   * @returns List of file names
    */
   @errorcatching("Failed to list all files.", true, "FileService", [])
   async listAllFiles(folderURL: string): Promise<string[]> {
@@ -305,9 +315,9 @@ export class FileService extends Eventable<IFileServiceState> {
   }
 
   /**
-   * Locate the main file of a paper entity.
+   * Locate the paper files, such as the PDF, of paper entities.
    * @param paperEntities - The paper entities.
-   * @returns
+   * @returns The paper entities with the located file URLs.
    */
   async locateFileOnWeb(paperEntities: PaperEntity[]) {
     if (!this._backend) {
@@ -347,13 +357,12 @@ export class FileService extends Eventable<IFileServiceState> {
 
   /**
    * Return the real and accessable path of the URL.
-   * @param url
-   * @param download
-   * @returns
-   * @description
    * If the URL is a local file, return the path of the file.
    * If the URL is a remote file and `download` is `true`, download the file and return the path of the downloaded file.
    * If the URL is a web URL, return the URL.
+   * @param url
+   * @param download
+   * @returns The real and accessable path of the URL.
    */
   @errorcatching("Failed to access the URL.", true, "FileService", "")
   async access(url: string, download: boolean): Promise<string> {
@@ -366,7 +375,7 @@ export class FileService extends Eventable<IFileServiceState> {
 
   /**
    * Open the URL.
-   * @param url
+   * @param url - URL to open
    */
   @errorcatching("Failed to open the URL.", true, "FileService")
   async open(url: string) {
@@ -419,7 +428,7 @@ export class FileService extends Eventable<IFileServiceState> {
   }
 
   /**
-   * Show the URL in Finder.
+   * Show the URL in Finder / Explorer.
    * @param url - URL to show
    */
   @errorcatching("Failed to show the URL in Finder.", true, "FileService")
@@ -430,6 +439,7 @@ export class FileService extends Eventable<IFileServiceState> {
 
   /**
    * Preview the URL only for MacOS.
+   * Other platforms should install an extension.
    * @param url - URL to preview
    */
   @errorcatching("Failed to preview the URL.", true, "FileService")

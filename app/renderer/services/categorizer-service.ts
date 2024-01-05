@@ -49,9 +49,9 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
 
   /**
    * Load categorizers.
-   * @param type The type of the categorizer.
-   * @param sortBy Sort: by
-   * @param sortOrder Sort: order
+   * @param type - The type of the categorizer.
+   * @param sortBy - Sort by
+   * @param sortOrder - Sort order
    * @returns
    */
   @processing(ProcessingKey.General)

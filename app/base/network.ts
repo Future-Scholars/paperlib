@@ -79,6 +79,10 @@ export class NetworkTool {
     }
   }
 
+  /**
+   * Set proxy agent
+   * @param proxy - Proxy url
+   */
   setProxyAgent(proxy: string = "") {
     const httpproxyUrl =
       (this._preferenceService.get("httpproxy") as string) || proxy;
@@ -122,6 +126,9 @@ export class NetworkTool {
     this._agent = agnets;
   }
 
+  /**
+   * Check system proxy, if exists, set it as proxy agent
+   */
   checkSystemProxy() {
     const proxy = ipcRenderer.sendSync("checkSystemProxy");
 
@@ -141,6 +148,15 @@ export class NetworkTool {
     }
   }
 
+  /**
+   * HTTP GET
+   * @param url - URL
+   * @param headers - Headers
+   * @param retry - Retry times
+   * @param timeout - Timeout
+   * @param cache - Use cache
+   * @returns Response
+   */
   async get(
     url: string,
     headers?: Record<string, string>,
@@ -164,6 +180,16 @@ export class NetworkTool {
     }
   }
 
+  /**
+   * HTTP POST
+   * @param url - URL
+   * @param data - Data
+   * @param headers - Headers
+   * @param retry - Retry times
+   * @param timeout - Timeout
+   * @param compress - Compress data
+   * @returns Response
+   */
   async post(
     url: string,
     data: Record<string, any> | string,
@@ -210,6 +236,15 @@ export class NetworkTool {
     return await got.post(url, options);
   }
 
+  /**
+   * HTTP POST with form data
+   * @param url - URL
+   * @param data - Data
+   * @param headers - Headers
+   * @param retry - Retry times
+   * @param timeout - Timeout
+   * @returns Response
+   */
   async postForm(
     url: string,
     data: FormData,
@@ -239,6 +274,13 @@ export class NetworkTool {
     return await got.post(url, options);
   }
 
+  /**
+   * Download
+   * @param url - URL
+   * @param targetPath - Target path
+   * @param cookies - Cookies
+   * @returns Target path
+   */
   async download(
     url: string,
     targetPath: string,
@@ -301,6 +343,12 @@ export class NetworkTool {
     }
   }
 
+  /**
+   * Download PDFs
+   * @param urlList - URL list
+   * @param cookies - Cookies
+   * @returns Target paths
+   */
   async downloadPDFs(
     urlList: string[],
     cookies?: CookieJar | ICookieObject[]
@@ -328,6 +376,10 @@ export class NetworkTool {
     return downloadedUrls;
   }
 
+  /**
+   * Check if the network is connected
+   * @returns Whether the network is connected
+   */
   async connected() {
     const response = await got("https://httpbin.org/ip", { timeout: 5000 });
     return response.statusCode === 200;

@@ -249,6 +249,10 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     }
   }
 
+  /**
+   * Destroy the window with the given id.
+   * @param windowId - The id of the window to be destroyed
+   */
   destroy(windowId: string) {
     if (this.browserWindows.has(windowId)) {
       this.browserWindows.destroy(windowId);
@@ -298,6 +302,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   /**
    * Minimize the window with the given id.
+   * @param windowId - The id of the window to be minimized
    */
   minimize(windowId: string) {
     if (windowId === Process.renderer) {
@@ -314,6 +319,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   /**
    * Maximize the window with the given id.
+   * @param windowId - The id of the window to be maximized
    */
   maximize(windowId: string) {
     if (windowId === Process.renderer) {
@@ -324,6 +330,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   /**
    * Close the window with the given id.
+   * @param windowId - The id of the window to be closed
    */
   close(windowId: string) {
     if (os.platform() === "darwin") {
@@ -354,6 +361,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   /**
    * Force close the window with the given id.
+   * @param windowId - The id of the window to be force closed
    */
   forceClose(windowId: string) {
     if (windowId === Process.renderer) {
@@ -377,7 +385,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   /**
    * Check if the app is in dark mode.
-   * @returns - Whether the app is in dark mode
+   * @returns Whether the app is in dark mode
    */
   isDarkMode(): boolean {
     return nativeTheme.shouldUseDarkColors;
@@ -385,6 +393,9 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   /**
    * Resize the window with the given id.
+   * @param windowId - The id of the window to be resized
+   * @param width - The width of the window
+   * @param height - The height of the window
    */
   @errorcatching("Failed to resize window.", true, "WinProcessManagement")
   resize(windowId: string, width: number, height: number) {
@@ -396,7 +407,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   /**
    * Get the size of the screen.
-   * @returns - The size of the screen
+   * @returns The size of the screen
    */
   getScreenSize() {
     const { x, y } = screen.getCursorScreenPoint();

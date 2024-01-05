@@ -42,7 +42,7 @@ export class ScrapeService extends Eventable<{}> {
    * @param payloads - data source payloads.
    * @param specificScrapers - list of metadata scrapers.
    * @param force - force scraping metadata.
-   * @returns - list of paper entities. */
+   * @returns List of paper entities. */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape data source.", true, "ScrapeService", [])
   async scrape(
@@ -78,7 +78,7 @@ export class ScrapeService extends Eventable<{}> {
   /**
    * Scrape all entry scrapers to transform data source payloads into a PaperEntity list.
    * @param payloads - data source payloads.
-   * @returns - list of paper entities. */
+   * @returns List of paper entities. */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape entry.", true, "ScrapeService", [])
   async scrapeEntry(payloads: any[]) {
@@ -116,11 +116,11 @@ export class ScrapeService extends Eventable<{}> {
   }
 
   /**
-   * Scrape all metadata scrapers to fullfill the metadata of PaperEntitys.
+   * Scrape all metadata scrapers to complete the metadata of PaperEntitys.
    * @param paperEntityDrafts - list of paper entities.
    * @param scrapers - list of metadata scrapers.
    * @param force - force scraping metadata.
-   * @returns - list of paper entities. */
+   * @returns List of paper entities. */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape metadata.", true, "ScrapeService", [])
   async scrapeMetadata(

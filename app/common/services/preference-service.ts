@@ -595,8 +595,8 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
 
   /**
    * Get the value of the preference
-   * @param key - key of the preference
-   * @returns value of the preference
+   * @param key - Key of the preference
+   * @returns Value of the preference
    */
   @errorcatching("Failed to get preference.", true, "PrefService", null)
   get(key: keyof IPreferenceStore) {
@@ -612,8 +612,7 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
 
   /**
    * Set the value of the preference
-   * @param patch - patch object
-   * @returns
+   * @param patch - Patch object
    */
   @errorcatching("Failed to set preference.", true, "PrefService")
   set(patch: Partial<IPreferenceStore>) {
@@ -621,11 +620,21 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
     this.fire(patch);
   }
 
+  /**
+   * Get the password
+   * @param key - Key of the password
+   * @returns Password
+   */
   @errorcatching("Failed to get password.", true, "PrefService", null)
   async getPassword(key: string) {
     return await keytar.getPassword("paperlib", key);
   }
 
+  /**
+   * Set the password
+   * @param key - Key of the password
+   * @param pwd - Password
+   */
   @errorcatching("Failed to set password.", true, "PrefService")
   async setPassword(key: string, pwd: string) {
     await keytar.setPassword("paperlib", key, pwd);

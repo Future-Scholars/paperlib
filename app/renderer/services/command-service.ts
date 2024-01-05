@@ -34,6 +34,11 @@ export class CommandService extends Eventable<{}> {
     this._registerInnerCommands();
   }
 
+  /**
+   * Get registered commands.
+   * @param filter - Filter string
+   * @returns - Sorted array of filtered commands
+   */
   @errorcatching(
     "Failed to get registered commands.",
     true,
@@ -94,6 +99,11 @@ export class CommandService extends Eventable<{}> {
     this._registeredCommands[command.id] = command;
   }
 
+  /**
+   * Run command.
+   * @param id - Command ID
+   * @param args - Command arguments
+   */
   @errorcatching("Failed to run command.", true, "CommandService")
   run(id: string, ...args: any[]): void {
     const command = this._registeredCommands[id];
@@ -117,6 +127,10 @@ export class CommandService extends Eventable<{}> {
     }
   }
 
+  /**
+   * Register externel command.
+   * @param command - Externel command
+   */
   @errorcatching("Failed to register externel command.", true, "CommandService")
   registerExternel(command: IExternelCommand) {
     this._logService.info(

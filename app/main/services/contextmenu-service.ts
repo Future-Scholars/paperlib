@@ -118,11 +118,18 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     this._registedScraperExtensions = {};
   }
 
+  /**
+   * Registers a scraper extension. It will be shown in the context menu.
+   */
   @errorcatching("Failed to register scraper extension.", false, "ContextMenu")
   registerScraperExtension(extID: string, scrapers: { [id: string]: string }) {
     this._registedScraperExtensions[extID] = scrapers;
   }
 
+  /**
+   * Unregisters a scraper extension.
+   * @param {string} extID - The ID of the extension.
+   */
   @errorcatching(
     "Failed to unregister scraper extension.",
     false,
