@@ -2,7 +2,12 @@ import { promises as fsPromise } from "fs";
 import katex from "katex";
 import MarkdownIt from "markdown-it";
 import tm from "markdown-it-texmath";
-import * as pdfjs from "pdfjs-dist/build/pdf.mjs";
+import {
+  GlobalWorkerOptions,
+  PDFDocumentProxy,
+  PDFPageProxy,
+  getDocument,
+} from "pdfjs-dist";
 
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
@@ -16,8 +21,8 @@ export const IRenderService = createDecorator("renderService");
 
 export class RenderService {
   private _pdfWorker?: Worker;
-  private _renderingPage?: pdfjs.PDFPageProxy;
-  private _renderingPDF?: pdfjs.PDFDocumentProxy;
+  private _renderingPage?: PDFPageProxy;
+  private _renderingPDF?: PDFDocumentProxy;
 
   private _markdownIt: MarkdownIt;
 
@@ -45,7 +50,7 @@ export class RenderService {
       ),
       { type: "module" }
     );
-    pdfjs.GlobalWorkerOptions.workerPort = this._pdfWorker;
+    GlobalWorkerOptions.workerPort = this._pdfWorker;
   }
 
   /**
@@ -58,7 +63,7 @@ export class RenderService {
     if (this._renderingPDF) {
       this._renderingPDF.destroy();
     }
-    const pdf = await pdfjs.getDocument({
+    const pdf = await getDocument({
       url: fileURL,
       useWorkerFetch: true,
       cMapUrl: "../viewer/cmaps/",

@@ -1537,7 +1537,7 @@ declare interface IUIStateServiceState {
     selectedFeed: string;
     dragingIds: Array<string>;
     commandBarText: string;
-    commandBarSearchMode: string;
+    commandBarSearchMode: "general" | "fulltext" | "advanced";
     isDevMode: boolean;
     os: string;
     "processingState.general": number;

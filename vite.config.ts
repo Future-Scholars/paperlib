@@ -18,7 +18,8 @@ export default {
         index_plugin: path.join(__dirname, "app/index_quickpaste.html"),
       },
     },
-    minify: false,
+    minify: process.env.NODE_ENV !== "development",
+    target: "es2022",
   },
 
   optimizeDeps: {
@@ -127,9 +128,6 @@ export default {
           type: "esm",
         },
         "electron-log": {
-          type: "esm",
-        },
-        "pdfjs-dist": {
           type: "esm",
         },
       },
