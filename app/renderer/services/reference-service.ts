@@ -286,8 +286,8 @@ export class ReferenceService {
 
   /**
    * Export papers as csv string.
-   * @param cite - The cite object.
-   * @returns - The BibTex body string.
+   * @param papers - The PaperEntity array.
+   * @returns The CSV string.
    */
   @errorcatching(
     "Failed to convert papers to CSV string.",
