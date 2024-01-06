@@ -6,6 +6,7 @@ import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entit
 
 import PaperTableItem from "./components/paper-table-item.vue";
 import TableHeader from "./components/table-header.vue";
+import { OID } from "@/models/id";
 
 const props = defineProps({
   entities: {
@@ -109,10 +110,10 @@ const onItemDoubleClicked = (event: MouseEvent, index: number) => {
   emits("event:dblclick", selectedIndex);
 };
 
-const onItemDraged = (event: DragEvent, index: number) => {
+const onItemDraged = (event: DragEvent, index: number, id: OID) => {
   const el = event.target as HTMLElement;
   event.dataTransfer?.setDragImage(el, 0, 0);
-  event.dataTransfer?.setData("text/plain", "paperlibEvent-drag-main-item");
+  event.dataTransfer?.setData("text/plain", `${id}`);
 
   let selectedIndex = props.selectedIndex;
   if (props.selectedIndex.indexOf(index) === -1) {
@@ -154,7 +155,7 @@ const onItemDraged = (event: DragEvent, index: number) => {
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
         draggable="true"
-        @dragstart="onItemDraged"
+        @dragstart="(event) => onItemDraged(event, index, item.id)"
       />
     </RecycleScroller>
   </div>

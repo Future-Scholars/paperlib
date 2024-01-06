@@ -100,18 +100,6 @@ const onItemDoubleClicked = (event: MouseEvent, index: number) => {
   const selectedIndex = calSelectedIndex(event, index);
   emits("event:dblclick", selectedIndex);
 };
-
-const onItemDraged = (event: DragEvent, index: number) => {
-  const el = event.target as HTMLElement;
-  event.dataTransfer?.setDragImage(el, 0, 0);
-  event.dataTransfer?.setData("text/plain", "paperlibEvent-drag-main-item");
-
-  let selectedIndex = props.selectedIndex;
-  if (props.selectedIndex.indexOf(index) === -1) {
-    selectedIndex = calSelectedIndex(event, index);
-  }
-  emits("event:drag", selectedIndex);
-};
 </script>
 
 <template>
@@ -143,8 +131,6 @@ const onItemDraged = (event: DragEvent, index: number) => {
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
-        draggable="true"
-        @dragstart="onItemDraged"
       />
     </RecycleScroller>
   </div>

@@ -295,7 +295,7 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  async exportCSV(papers: PaperEntity[]): Promise<string> {
+  exportCSV(paperEntities: PaperEntity[]): string {
     let csv: string = "";
 
     // Headers
@@ -315,7 +315,7 @@ export class ReferenceService {
     csv += "\n";
 
     // Data
-    for (const paper of papers) {
+    for (const paper of paperEntities) {
       for (const key of headers) {
         let content = "";
         if (key === "tags" || key === "folders") {

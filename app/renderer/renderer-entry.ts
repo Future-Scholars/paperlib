@@ -1,11 +1,9 @@
 import { RecycleScroller } from "@future-scholars/vue-virtual-scroller";
 import "@future-scholars/vue-virtual-scroller/dist/vue-virtual-scroller.css";
-import { BIconChevronUp, BIconX } from "bootstrap-icons-vue";
 import { createPinia } from "pinia";
 import { Pane, Splitpanes } from "splitpanes";
 import { createApp } from "vue";
 import { createI18n } from "vue-i18n";
-import vSelect from "vue-select";
 import draggable from "vuedraggable";
 
 import { CacheDatabaseCore } from "@/base/database/cache-core";
@@ -47,12 +45,6 @@ import "./css/index.css";
 import "./css/katex.min.css";
 
 async function initialize() {
-  // @ts-ignore
-  vSelect.props.components.default = () => ({
-    Deselect: BIconX,
-    OpenIndicator: BIconChevronUp,
-  });
-
   const pinia = createPinia();
 
   const app = createApp(AppView);
@@ -61,7 +53,6 @@ async function initialize() {
 
   app.component("Splitpanes", Splitpanes);
   app.component("Pane", Pane);
-  app.component("v-select", vSelect);
   app.component("draggable", draggable);
   app.component("RecycleScroller", RecycleScroller);
 
