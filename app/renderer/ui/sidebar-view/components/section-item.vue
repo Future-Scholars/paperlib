@@ -1,7 +1,5 @@
 <script setup lang="ts">
-// @ts-ignore
-import dragDrop from "drag-drop";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 
 import Spinner from "../../components/spinner.vue";
 import Counter from "./counter.vue";
@@ -24,30 +22,26 @@ const emits = defineEmits([
   "event:name-input-blur",
 ]);
 
-const registerDropHandler = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  dragDrop(item.value, {
-    // @ts-ignore
-    onDrop: async (files, pos, fileList, directories) => {
-      const filePaths: string[] = [];
-      // @ts-ignore
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      files.forEach((file) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-        filePaths.push(file.path);
-      });
-      emits("event:drop", filePaths);
-    },
-    // @ts-ignore
-    onDropText: async (text, pos) => {
-      if (text === "paperlibEvent-drag-main-item") {
-        emits("event:item-drop");
-      }
-    },
+const onDropped = (event: DragEvent) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const files = event.dataTransfer?.files || [];
+  const text = event.dataTransfer?.getData("text") || "";
+
+  const filePaths: string[] = [];
+  (files as unknown as Array<{ path: string }>).forEach((file) => {
+    filePaths.push(file.path);
   });
+  if (filePaths.length > 0) {
+    emits("event:drop", filePaths);
+  }
+
+  if (text) {
+    emits("event:item-drop");
+  }
 };
 
-// @ts-ignore
 const onNameChanged = (event) => {
   emits("event:name-change", event.target.value);
 };
@@ -55,26 +49,25 @@ const onNameChanged = (event) => {
 const onNameInputBlured = () => {
   emits("event:name-input-blur");
 };
-
-onMounted(() => {
-  registerDropHandler();
-});
 </script>
 
 <template>
   <div
-    ref="item"
     class="w-full flex justify-between rounded-md pl-2 pr-1 cursor-pointer space-x-2"
     :class="{
       'bg-neutral-400 bg-opacity-30': active,
       'h-6': compact,
       'h-7': !compact,
     }"
+    @dragenter.prevent
+    @dragover.prevent
+    @drop="onDropped"
   >
     <slot></slot>
     <div
       class="my-auto text-xs select-none text-ellipsis overflow-hidden whitespace-nowrap grow"
       v-if="!editing"
+      @drop="onDropped"
     >
       {{ name }}
     </div>

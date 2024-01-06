@@ -28,9 +28,6 @@ const pubTypes = ["Article", "Conference", "Others", "Book"];
 const tags = inject<Ref<ICategorizerCollection>>("tags");
 const folders = inject<Ref<ICategorizerCollection>>("folders");
 
-// ==============================
-// State
-// ==============================
 const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
   if (type === CategorizerType.PaperTag) {
     editingPaperEntityDraft.value.tags = names.map((name: string) => {
@@ -114,7 +111,7 @@ onUnmounted(() => {
               />
               <SelectBox
                 :placeholder="$t('mainview.publicationtype')"
-                class="w-1/2"
+                class="w-1/2 h-10"
                 :options="pubTypes"
                 :value="pubTypes[editingPaperEntityDraft.pubType]"
                 @event:change="
@@ -173,21 +170,17 @@ onUnmounted(() => {
             <MultiselectBox
               id="paper-edit-view-tags-input"
               :placeholder="$t('mainview.tags')"
+              :model-value="editingPaperEntityDraft.tags.map((tag) => tag.name)"
               :options="(tags ? tags : []).map((tag) => tag.name)"
-              :existValues="editingPaperEntityDraft.tags.map((tag) => tag.name)"
-              @event:change="
-                (values: string[]) => {
-                  onCategorizerUpdated(values, CategorizerType.PaperTag);
-                }
-              "
+              @event:change="(values: string[]) => onCategorizerUpdated(values, CategorizerType.PaperTag)"
             />
             <MultiselectBox
               id="paper-edit-view-folders-input"
               :placeholder="$t('mainview.folders')"
-              :options="(folders ? folders : []).map((folder) => folder.name)"
-              :existValues="
+              :model-value="
                 editingPaperEntityDraft.folders.map((folder) => folder.name)
               "
+              :options="(folders ? folders : []).map((folder) => folder.name)"
               @event:change="
                 (values: string[]) => {
                   onCategorizerUpdated(values, CategorizerType.PaperFolder);

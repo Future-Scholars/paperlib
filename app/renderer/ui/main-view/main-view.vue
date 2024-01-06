@@ -360,6 +360,12 @@ disposable(
 );
 
 disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuExportCSVClicked", () => {
+    exportSelectedEntities("CSV");
+  })
+);
+
+disposable(
   PLMainAPI.contextMenuService.on("feedContextMenuAddToLibraryClicked", () => {
     addSelectedFeedEntities();
   })

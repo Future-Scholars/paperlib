@@ -124,9 +124,6 @@ export default {
         realm: {
           type: "cjs",
         },
-        "node-html-parser": {
-          type: "esm",
-        },
         "electron-log": {
           type: "esm",
         },
