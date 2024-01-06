@@ -285,6 +285,57 @@ export class ReferenceService {
   }
 
   /**
+   * Export papers as csv string.
+   * @param papers - The PaperEntity array.
+   * @returns The CSV string.
+   */
+  @errorcatching(
+    "Failed to convert papers to CSV string.",
+    true,
+    "ReferenceService",
+    ""
+  )
+  async exportCSV(papers: PaperEntity[]): Promise<string> {
+    let csv: string = "";
+
+    // Headers
+    const isExportProperty = (key: string): boolean => {
+      if (key.startsWith("_")) {
+        return false;
+      }
+      return true;
+    };
+    const headers: string[] = [];
+    for (const key in PaperEntity.schema.properties) {
+      if (isExportProperty(key)) {
+        csv += key + ",";
+        headers.push(key);
+      }
+    }
+    csv += "\n";
+
+    // Data
+    for (const paper of papers) {
+      for (const key of headers) {
+        let content = "";
+        if (key === "tags" || key === "folders") {
+          content = paper[key].map((item) => item.name).join(";");
+        } else if (key === "sups") {
+          content = paper[key].join(";");
+        } else if (key === "codes") {
+          content = paper[key].join(";");
+        } else {
+          content = paper[key];
+        }
+        csv += '"' + content + '",';
+      }
+      csv += "\n";
+    }
+
+    return csv;
+  }
+
+  /**
    * Export paper entities.
    * @param paperEntities - The paper entities.
    * @param format - The export format: "BibTex" | "BibTex-Key" | "PlainText"
@@ -296,12 +347,22 @@ export class ReferenceService {
     });
 
     let copyStr = "";
-    if (format === "BibTex") {
-      copyStr = this.exportBibTexBody(this.toCite(paperEntityDrafts));
-    } else if (format === "BibTex-Key") {
-      copyStr = this.exportBibTexKey(this.toCite(paperEntityDrafts));
-    } else if (format === "PlainText") {
-      copyStr = await this.exportPlainText(this.toCite(paperEntityDrafts));
+    switch (format) {
+      case "BibTex":
+        copyStr = this.exportBibTexBody(this.toCite(paperEntityDrafts));
+        break;
+      case "BibTexKey":
+        copyStr = this.exportBibTexKey(this.toCite(paperEntityDrafts));
+        break;
+      case "PlainText":
+        copyStr = await this.exportPlainText(this.toCite(paperEntityDrafts));
+        break;
+      case "CSV":
+        copyStr = await this.exportCSV(paperEntityDrafts);
+        break;
+      default:
+        throw new Error(`Unsupported export format: ${format}`);
+        break;
     }
 
     clipboard.writeText(copyStr);

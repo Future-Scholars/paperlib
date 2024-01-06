@@ -158,7 +158,9 @@
     "mswordaddintitle": "Microsoft Word 插件",
     "mswordaddinintro": "安装 Microsoft Word 插件。",
     "install": "安装",
-    "installdone": "完成"
+    "installdone": "完成",
+    "exportcsv": "导出 CSV",
+    "exportcsvintro": "将整个文献库导出到一个CSV文件"
   },
   "confirmation": {
     "title": "确认",

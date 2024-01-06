@@ -1020,6 +1020,13 @@ declare class FileSystemService {
      * @param {string} fileURL - The URL of the file to preview.
      */
     preview(fileURL: string): void;
+    /**
+     * Write some text to a file.
+     * @param {string} filePath The path of the file to write to.
+     * @param {string} text The text to write to the file.
+     * @returns {void} Nothing.
+     */
+    writeToFile(filePath: string, text: string): void;
 }
 
 /**
@@ -1040,17 +1047,19 @@ declare class HookService {
     /**
      * Modify hook point. We can await this function to wait for all hookers to finish.
      * @param hookName - Name of the hook point
+     * @param timeout - Timeout for each hooker
      * @param args - Arguments
      * @returns Modified arguments
      */
-    modifyHookPoint<T extends any[]>(hookName: string, ...args: T): Promise<T>;
+    modifyHookPoint<T extends any[]>(hookName: string, timeout: number, ...args: T): Promise<T>;
     /**
      * Transform hook point. We can await this function to wait for all hookers to finish.
      * @param hookName - Name of the hook point
+     * @param timeout - Timeout for each hooker
      * @param args - Arguments
      * @returns Transformed arguments
      */
-    transformhookPoint<T extends any[], O extends any[]>(hookName: string, ...args: T): Promise<any[]>;
+    transformhookPoint<T extends any[], O extends any[]>(hookName: string, timeout: number, ...args: T): Promise<any[]>;
     /**
      * Hook a modify hook point.
      * @param hookName - Name of the hook point
@@ -1122,6 +1131,7 @@ declare interface IContextMenuServiceState {
     dataContextMenuDeleteClicked: number;
     dataContextMenuFlagClicked: number;
     dataContextMenuExportBibTexClicked: number;
+    dataContextMenuExportCSVClicked: number;
     dataContextMenuExportBibTexKeyClicked: number;
     dataContextMenuExportPlainTextClicked: number;
     feedContextMenuAddToLibraryClicked: number;
@@ -2163,6 +2173,12 @@ declare class ReferenceService {
      * @returns The plain text.
      */
     exportPlainText(cite: Cite): Promise<string>;
+    /**
+     * Export papers as csv string.
+     * @param papers - The PaperEntity array.
+     * @returns The CSV string.
+     */
+    exportCSV(papers: PaperEntity[]): Promise<string>;
     /**
      * Export paper entities.
      * @param paperEntities - The paper entities.

@@ -62,6 +62,7 @@ export interface IContextMenuServiceState {
   dataContextMenuDeleteClicked: number;
   dataContextMenuFlagClicked: number;
   dataContextMenuExportBibTexClicked: number;
+  dataContextMenuExportCSVClicked: number;
   dataContextMenuExportBibTexKeyClicked: number;
   dataContextMenuExportPlainTextClicked: number;
   feedContextMenuAddToLibraryClicked: number;
@@ -97,6 +98,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       dataContextMenuDeleteClicked: 0,
       dataContextMenuFlagClicked: 0,
       dataContextMenuExportBibTexClicked: 0,
+      dataContextMenuExportCSVClicked: 0,
       dataContextMenuExportBibTexKeyClicked: 0,
       dataContextMenuExportPlainTextClicked: 0,
       feedContextMenuAddToLibraryClicked: 0,
@@ -226,6 +228,13 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             accelerator: isMac ? "cmd+shift+c" : "ctrl+shift+c",
             click: () => {
               this.fire("dataContextMenuExportBibTexClicked");
+            },
+          },
+          {
+            label: "CSV",
+            accelerator: isMac ? "cmd+shift+v" : "ctrl+shift+v",
+            click: () => {
+              this.fire("dataContextMenuExportCSVClicked");
             },
           },
           {

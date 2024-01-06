@@ -158,7 +158,9 @@
     "mswordaddintitle": "Microsoft Word Add-in",
     "mswordaddinintro": "Install the Microsoft Word Add-in to insert citations and bibliographies in Word.",
     "install": "Install",
-    "installdone": "Done"
+    "installdone": "Done",
+    "exportcsv": "Export CSV",
+    "exportcsvintro": "Export the entire library to a CSV file."
   },
   "confirmation": {
     "title": "Confirmation",
