@@ -86,6 +86,7 @@ export class ScrapeService extends Eventable<{}> {
     if (this._hookService.hasHook("beforeScrapeEntry")) {
       [payloads] = await this._hookService.modifyHookPoint(
         "beforeScrapeEntry",
+        5000,
         payloads
       );
     }
@@ -95,6 +96,7 @@ export class ScrapeService extends Eventable<{}> {
       paperEntityDrafts = (
         await this._hookService.transformhookPoint<any[], Object[]>(
           "scrapeEntry",
+          16000,
           payloads
         )
       ).map((p) => {
@@ -105,6 +107,7 @@ export class ScrapeService extends Eventable<{}> {
     if (this._hookService.hasHook("afterScrapeEntry")) {
       [paperEntityDrafts] = await this._hookService.modifyHookPoint(
         "afterScrapeEntry",
+        5000,
         paperEntityDrafts
       );
       paperEntityDrafts = paperEntityDrafts.map((p) => {
@@ -132,6 +135,7 @@ export class ScrapeService extends Eventable<{}> {
       [paperEntityDrafts, scrapers, force] =
         await this._hookService.modifyHookPoint(
           "beforeScrapeMetadata",
+          5000,
           paperEntityDrafts,
           scrapers,
           force
@@ -143,6 +147,7 @@ export class ScrapeService extends Eventable<{}> {
       [scrapedPaperEntityDrafts, scrapers, force] =
         await this._hookService.modifyHookPoint(
           "scrapeMetadata",
+          5000,
           paperEntityDrafts,
           scrapers,
           force
@@ -153,6 +158,7 @@ export class ScrapeService extends Eventable<{}> {
       [scrapedPaperEntityDrafts, scrapers, force] =
         await this._hookService.modifyHookPoint(
           "afterScrapeMetadata",
+          5000,
           scrapedPaperEntityDrafts,
           scrapers,
           force

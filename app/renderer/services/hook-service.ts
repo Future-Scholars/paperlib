@@ -47,10 +47,15 @@ export class HookService {
   /**
    * Modify hook point. We can await this function to wait for all hookers to finish.
    * @param hookName - Name of the hook point
+   * @param timeout - Timeout for each hooker
    * @param args - Arguments
    * @returns Modified arguments
    */
-  async modifyHookPoint<T extends any[]>(hookName: string, ...args: T) {
+  async modifyHookPoint<T extends any[]>(
+    hookName: string,
+    timeout: number,
+    ...args: T
+  ) {
     if (this._modifyHookPoints[hookName]) {
       const extensionAPIExposed = await rendererRPCService.waitForAPI(
         Process.extension,
@@ -68,7 +73,7 @@ export class HookService {
       )) {
         // Set maximum wait time for each hooker.
         processedArgs = await pTimeout(runHook(processedArgs), {
-          milliseconds: 5000,
+          milliseconds: timeout,
           fallback: () => {
             PLAPI.logService.warn(
               `Modify hook ${hookName} of extension ${hookID} timed out.`,
@@ -92,11 +97,13 @@ export class HookService {
   /**
    * Transform hook point. We can await this function to wait for all hookers to finish.
    * @param hookName - Name of the hook point
+   * @param timeout - Timeout for each hooker
    * @param args - Arguments
    * @returns Transformed arguments
    */
   async transformhookPoint<T extends any[], O extends any[]>(
     hookName: string,
+    timeout: number,
     ...args: T
   ) {
     if (this._transformHookPoints[hookName]) {
@@ -117,7 +124,7 @@ export class HookService {
       )) {
         // Set maximum wait time for each hooker.
         const promise = pTimeout(runHook(args), {
-          milliseconds: 16000,
+          milliseconds: timeout,
           fallback: () => {
             PLAPI.logService.warn(
               `Transform hook ${hookName} of extension ${hookID} timed out.`,

@@ -339,6 +339,7 @@ export class FileService extends Eventable<IFileServiceState> {
       if (this._hookService.hasHook("locateFile")) {
         [updatedPaperEntityDrafts] = await this._hookService.modifyHookPoint(
           "locateFile",
+          60000,
           updatedPaperEntityDrafts
         );
       }
