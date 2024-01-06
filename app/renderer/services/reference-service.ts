@@ -273,8 +273,18 @@ export class ReferenceService {
     }
   }
 
+  /**
+   * Export papers as csv string.
+   * @param cite - The cite object.
+   * @returns - The BibTex body string.
+   */
+  @errorcatching(
+    "Failed to convert papers to CSV string.",
+    true,
+    "ReferenceService",
+    ""
+  )
   async exportCSV(papers: PaperEntity[]): Promise<string> {
-
     let csv: string = "";
 
     // Headers
@@ -282,18 +292,12 @@ export class ReferenceService {
       if (key.startsWith("_")) {
         return false;
       }
-
-      if (typeof PaperEntity.schema.properties[key] === "object") {
-        // Skip complex object type as they are unstructured.
-        return false;
-      }
-
       return true;
-    }
+    };
     const headers: string[] = [];
     for (const key in PaperEntity.schema.properties) {
       if (isExportProperty(key)) {
-        csv += (key + ",");
+        csv += key + ",";
         headers.push(key);
       }
     }
@@ -302,14 +306,22 @@ export class ReferenceService {
     // Data
     for (const paper of papers) {
       for (const key of headers) {
-        let content = paper[key];
-        csv += ('\"' + paper[key] + "\",");
+        let content = "";
+        if (key === "tags" || key === "folders") {
+          content = paper[key].map((item) => item.name).join(";");
+        } else if (key === "sups") {
+          content = paper[key].join(";");
+        } else if (key === "codes") {
+          content = paper[key].join(";");
+        } else {
+          content = paper[key];
+        }
+        csv += '"' + content + '",';
       }
-      csv += ("\n");
+      csv += "\n";
     }
 
     return csv;
-
   }
 
   /**

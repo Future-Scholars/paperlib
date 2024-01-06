@@ -9,6 +9,7 @@ import {
   dialog,
   ipcMain,
 } from "electron";
+import { writeFileSync } from "fs";
 
 export const IFileSystemService = createDecorator("fileSystemService");
 
@@ -111,7 +112,6 @@ export class FileSystemService {
    */
   @errorcatching("Failed to write to file.", true, "FileSystemService")
   writeToFile(filePath: string, text: string): void {
-    require("fs").writeFileSync(filePath, text);
+    writeFileSync(filePath, text);
   }
-
 }
