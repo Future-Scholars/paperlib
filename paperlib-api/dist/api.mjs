@@ -1,35 +1,22 @@
-export abstract class PLExtension {
-  id: string;
-  defaultPreference: { [key: string]: any };
-
+class PLExtension {
+  id;
+  defaultPreference;
   constructor({
     id,
-    defaultPreference,
-  }: {
-    id: string;
-    defaultPreference: { [key: string]: any };
+    defaultPreference
   }) {
     this.id = id;
-
     this.checkPreference(defaultPreference);
     this.defaultPreference = defaultPreference;
   }
-
-  abstract initialize(): Promise<void>;
-
-  checkPreference(preference: { [key: string]: any }) {
-    // 1. Check is a dict
+  checkPreference(preference) {
     if (typeof preference !== "object") {
       throw new Error("Preference must be a dict");
     }
-    // 2. Check all key has a type, a name, a description, and a default value.
     for (const key in preference) {
-      if (
-        !preference[key].type ||
-        !["string", "boolean", "options", "pathpicker"].includes(
-          preference[key].type
-        )
-      ) {
+      if (!preference[key].type || !["string", "boolean", "options", "pathpicker"].includes(
+        preference[key].type
+      )) {
         throw new Error(
           `Preference ${key} has wrong type ${preference[key].type}`
         );
@@ -40,14 +27,9 @@ export abstract class PLExtension {
       if (!preference[key].description) {
         throw new Error(`Preference ${key} has no description`);
       }
-      if (
-        preference[key].value === undefined ||
-        preference[key].value === null
-      ) {
+      if (preference[key].value === void 0 || preference[key].value === null) {
         throw new Error(`Preference ${key} has no default value`);
       }
-
-      // If type is options, check options
       if (preference[key].type === "options") {
         if (!preference[key].options) {
           throw new Error(`Preference ${key} has no options`);
@@ -56,3 +38,5 @@ export abstract class PLExtension {
     }
   }
 }
+
+export { PLExtension };

@@ -44,8 +44,8 @@ export class FileSystemService {
 
   /**
    * Get the path of the given key.
-   * @param {string} key The key to get the path of.
-   * @returns {string} The path of the given key.
+   * @param {string} key - The key to get the path of.
+   * @returns {string} - The path of the given key.
    */
   @errorcatching("Failed to get system path.", true, "FileSystemService")
   getSystemPath(
@@ -95,7 +95,7 @@ export class FileSystemService {
 
   /**
    * Preview a file.
-   * @param {string} fileURL The URL of the file to preview.
+   * @param {string} fileURL - The URL of the file to preview.
    */
   @errorcatching("Failed to preview file.", true, "FileSystemService")
   preview(fileURL: string) {

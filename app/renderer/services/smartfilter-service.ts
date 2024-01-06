@@ -39,14 +39,18 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
 
   /**
    * Load smartfilters.
-   * @param type The type of the smartfilter.
-   * @param sortBy Sort: by
-   * @param sortOrder Sort: order
+   * @param type - The type of the smartfilter
+   * @param sortBy - Sort by
+   * @param sortOrder - Sort order
    * @returns
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to load smartfilter.", true, "SmartFilterService", [])
-  async load(type: PaperSmartFilterType, sortBy: string, sortOrder: string) {
+  async load(
+    type: PaperSmartFilterType,
+    sortBy: string,
+    sortOrder: string
+  ): Promise<IPaperSmartFilterCollection> {
     return this._paperSmartFilterRepository.load(
       await this._databaseCore.realm(),
       type,
@@ -57,10 +61,9 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
 
   /**
    * Delete a smartfilter.
-   * @param type - The type of the smartfilter.
-   * @param ids - The ids of the smartfilters.
-   * @param smartfilters - The smartfilters.
-   * @returns
+   * @param type - The type of the smartfilter
+   * @param ids - The ids of the smartfilters
+   * @param smartfilters - The smartfilters
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete smartfilter.", true, "SmartFilterService")
@@ -79,11 +82,10 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
 
   /**
    * Colorize a smartfilter.
-   * @param color - The color.
-   * @param type - The type of the smartfilter.
-   * @param name - The name of the smartfilter.
-   * @param smartfilter - The smartfilter.
-   * @returns
+   * @param color - The color
+   * @param type - The type of the smartfilter
+   * @param id - The id of the smartfilter
+   * @param smartfilter - The smartfilter
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to colorize smartfilter.", true, "SmartFilterService")
@@ -104,9 +106,8 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
 
   /**
    * Insert a smartfilter.
-   * @param smartfilter - The smartfilter.
-   * @param type - The type of the smartfilter.
-   * @returns
+   * @param smartfilter - The smartfilter
+   * @param type - The type of the smartfilter
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to insert smartfilter.", true, "SmartFilterService")

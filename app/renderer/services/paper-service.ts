@@ -39,7 +39,7 @@ import {
 
 export interface IPaperFilterOptions {
   search?: string;
-  searchMode?: string;
+  searchMode?: "general" | "fulltext" | "advanced";
   flaged?: boolean;
   tag?: string;
   folder?: string;
@@ -49,7 +49,7 @@ export interface IPaperFilterOptions {
 export class PaperFilterOptions implements IPaperFilterOptions {
   public filters: string[] = [];
   public search?: string;
-  public searchMode?: string;
+  public searchMode?: "general" | "fulltext" | "advanced";
   public flaged?: boolean;
   public tag?: string;
   public folder?: string;
@@ -193,18 +193,18 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
   /**
    * Load paper entities with filter and sort.
-   * @param filter - filter object
-   * @param sortBy - Sort: by
-   * @param sortOrder - Sort: order
-   * @returns - paper entities
+   * @param filterOptions - filter object
+   * @param sortBy - Sort by
+   * @param sortOrder - Sort order
+   * @returns Paper entities
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to load paper entities.", true, "PaperService", [])
   async load(
     filterOptions: PaperFilterOptions,
-    sortBy: string,
+    sortBy: string = "addTime",
     sortOrder: "asce" | "desc"
-  ) {
+  ): Promise<IPaperEntityCollection> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
@@ -246,9 +246,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
   }
 
   /**
-   * Load paper entities by ids.
-   * @param ids - paper entity ids
-   * @returns - paper entities
+   * Load paper entities by IDs.
+   * @param ids - Paper entity ids
+   * @returns Paper entities
    */
   @processing(ProcessingKey.General)
   @errorcatching(
@@ -270,7 +270,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
   /**
    * Update paper entities.
    * @param paperEntityDrafts - paper entity drafts
-   * @returns
+   * @returns Updated paper entities
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update paper entities.", true, "PaperService", [])
@@ -410,7 +410,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * @param ids - The list of paper IDs.
    * @param categorizer - The categorizer.
    * @param type - The type of the categorizer.
-   * @returns
    */
   @processing(ProcessingKey.General)
   @errorcatching(
@@ -455,10 +454,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
   }
 
   /**
-   * Delete paper entity.
-   * @param ids - paper entity ids
-   * @param paperEntity - paper entity
-   * @returns - flag
+   * Delete paper entities.
+   * @param ids - Paper entity ids
+   * @param paperEntity - Paper entities
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete paper entities.", true, "PaperService")
@@ -491,7 +489,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * Delete a suplementary file.
    * @param paperEntity - The paper entity.
    * @param url - The URL of the supplementary file.
-   * @returns
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete supplementary file.", true, "PaperService")
@@ -510,9 +507,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
   }
 
   /**
-   * Create paper entity from URLs.
+   * Create paper entity from file URLs.
    * @param urlList - The list of URLs.
-   * @returns
+   * @returns The list of paper entity drafts.
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to create paper entities.", true, "PaperService", [])
@@ -536,7 +533,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * @param urlList - The list of URLs.
    * @param categorizer - The categorizer.
    * @param type - The type of categorizer.
-   * @returns
+   * @returns The list of paper entity drafts.
    */
   @processing(ProcessingKey.General)
   @errorcatching(
@@ -551,7 +548,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     type: CategorizerType
   ) {
     if (this._databaseCore.getState("dbInitializing")) {
-      return;
+      return [];
     }
     const paperEntityDrafts = await this.create(urlList);
 
@@ -571,7 +568,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
   /**
    * Scrape paper entities.
    * @param paperEntities - The list of paper entities.
-   * @returns
+   * @param specificScrapers - The list of specific scrapers.
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape metadata.", true, "PaperService")
@@ -605,8 +602,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
   /**
    * Scrape preprint paper entities.
-   * @param paperEntities - The list of paper entities.
-   * @returns
    */
   @processing(ProcessingKey.General)
   @errorcatching(
@@ -651,7 +646,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
   /**
    * Rename all paper entities.
-   * @returns
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to rename all paper entities.", true, "PaperService")
@@ -706,12 +700,4 @@ export class PaperService extends Eventable<IPaperServiceState> {
       "PaperService"
     );
   }
-
-  // ======================= //
-  // DEV functions
-  // ======================= //
-
-  addDummyData() {}
-
-  removeAll() {}
 }

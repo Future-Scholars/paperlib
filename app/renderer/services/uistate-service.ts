@@ -36,14 +36,13 @@ export interface IUIStateServiceState {
   // =========================================
   // Command/Search Bar
   commandBarText: string;
-  commandBarSearchMode: string;
+  commandBarSearchMode: "general" | "fulltext" | "advanced";
 
   // =========================================
   // DEV
   isDevMode: boolean;
   os: string;
 
-  // =========================================
   // =========================================
   // Processing States
   "processingState.general": number;
@@ -115,6 +114,10 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       });
   }
 
+  /**
+   * Set the state of the UI service. Many UI components are controlled by the UI states.
+   * @param patch - patch to the state. It can be a single state, a partial state or a full state.
+   */
   setState(patch: Partial<IUIStateServiceState>) {
     for (const [key, value] of Object.entries(patch)) {
       const keyParts = key.split(".");
@@ -138,14 +141,26 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
     }
   }
 
+  /**
+   * Get the UI state.
+   * @param stateKey - key of the state
+   * @returns The state
+   */
   getState(stateKey: keyof IUIStateServiceState) {
     return this._state[stateKey];
   }
 
+  /**
+   * Get all UI states.
+   * @returns The state
+   */
   getStates() {
     return this._state;
   }
 
+  /**
+   * Reset all UI states to default.
+   */
   resetStates() {
     const patch = {
       contentType: "library",

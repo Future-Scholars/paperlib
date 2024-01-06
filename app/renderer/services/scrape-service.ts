@@ -42,7 +42,7 @@ export class ScrapeService extends Eventable<{}> {
    * @param payloads - data source payloads.
    * @param specificScrapers - list of metadata scrapers.
    * @param force - force scraping metadata.
-   * @returns - list of paper entities. */
+   * @returns List of paper entities. */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape data source.", true, "ScrapeService", [])
   async scrape(
@@ -78,7 +78,7 @@ export class ScrapeService extends Eventable<{}> {
   /**
    * Scrape all entry scrapers to transform data source payloads into a PaperEntity list.
    * @param payloads - data source payloads.
-   * @returns - list of paper entities. */
+   * @returns List of paper entities. */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape entry.", true, "ScrapeService", [])
   async scrapeEntry(payloads: any[]) {
@@ -86,6 +86,7 @@ export class ScrapeService extends Eventable<{}> {
     if (this._hookService.hasHook("beforeScrapeEntry")) {
       [payloads] = await this._hookService.modifyHookPoint(
         "beforeScrapeEntry",
+        5000,
         payloads
       );
     }
@@ -95,6 +96,7 @@ export class ScrapeService extends Eventable<{}> {
       paperEntityDrafts = (
         await this._hookService.transformhookPoint<any[], Object[]>(
           "scrapeEntry",
+          16000,
           payloads
         )
       ).map((p) => {
@@ -105,6 +107,7 @@ export class ScrapeService extends Eventable<{}> {
     if (this._hookService.hasHook("afterScrapeEntry")) {
       [paperEntityDrafts] = await this._hookService.modifyHookPoint(
         "afterScrapeEntry",
+        5000,
         paperEntityDrafts
       );
       paperEntityDrafts = paperEntityDrafts.map((p) => {
@@ -116,11 +119,11 @@ export class ScrapeService extends Eventable<{}> {
   }
 
   /**
-   * Scrape all metadata scrapers to fullfill the metadata of PaperEntitys.
+   * Scrape all metadata scrapers to complete the metadata of PaperEntitys.
    * @param paperEntityDrafts - list of paper entities.
    * @param scrapers - list of metadata scrapers.
    * @param force - force scraping metadata.
-   * @returns - list of paper entities. */
+   * @returns List of paper entities. */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape metadata.", true, "ScrapeService", [])
   async scrapeMetadata(
@@ -132,6 +135,7 @@ export class ScrapeService extends Eventable<{}> {
       [paperEntityDrafts, scrapers, force] =
         await this._hookService.modifyHookPoint(
           "beforeScrapeMetadata",
+          5000,
           paperEntityDrafts,
           scrapers,
           force
@@ -143,6 +147,7 @@ export class ScrapeService extends Eventable<{}> {
       [scrapedPaperEntityDrafts, scrapers, force] =
         await this._hookService.modifyHookPoint(
           "scrapeMetadata",
+          5000,
           paperEntityDrafts,
           scrapers,
           force
@@ -153,6 +158,7 @@ export class ScrapeService extends Eventable<{}> {
       [scrapedPaperEntityDrafts, scrapers, force] =
         await this._hookService.modifyHookPoint(
           "afterScrapeMetadata",
+          5000,
           scrapedPaperEntityDrafts,
           scrapers,
           force

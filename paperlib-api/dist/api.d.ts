@@ -1,3 +1,5 @@
+/// <reference types="realm" />
+
 import { BrowserWindow } from 'electron';
 import { BrowserWindowConstructorOptions } from 'electron';
 import Cite from 'citation-js';
@@ -108,6 +110,10 @@ declare class CacheService {
      * @returns
      */
     updateCache(paperEntities: IPaperEntityCollection): Promise<void>;
+    /**
+     * Delete the cache of the provided paper entity ids.
+     * @param ids - The ids of the paper entities to delete the cache of.
+     */
     delete(ids: OID[]): Promise<void>;
 }
 
@@ -197,9 +203,9 @@ declare class CategorizerService extends Eventable<ICategorizerServiceState> {
     constructor(_databaseCore: DatabaseCore, _categorizerRepository: CategorizerRepository, _logService: LogService, _preferenceService: PreferenceService);
     /**
      * Load categorizers.
-     * @param type The type of the categorizer.
-     * @param sortBy Sort: by
-     * @param sortOrder Sort: order
+     * @param type - The type of the categorizer.
+     * @param sortBy - Sort by
+     * @param sortOrder - Sort order
      * @returns
      */
     load(type: CategorizerType, sortBy: string, sortOrder: string): Promise<ICategorizerCollection>;
@@ -242,11 +248,6 @@ declare enum CategorizerType {
     PaperFolder = "PaperFolder"
 }
 
-export declare const chunkRun: <S, T, Q>(argsList: Iterable<S>, process: (arg: S) => Promise<T>, errorProcess?: ((arg: S) => Promise<Q>) | undefined, chunkSize?: number) => Promise<{
-    results: Q extends null ? (T | null)[] : (T | Q)[];
-    errors: Error[];
-}>;
-
 declare enum Colors {
     red = "red",
     green = "green",
@@ -263,10 +264,24 @@ declare class CommandService extends Eventable<{}> {
     private readonly _logService;
     private readonly _registeredCommands;
     constructor(_uiStateService: UIStateService, _logService: LogService);
+    /**
+     * Get registered commands.
+     * @param filter - Filter string
+     * @returns - Sorted array of filtered commands
+     */
     getRegisteredCommands(filter?: string): ICommand[];
     private _registerInnerCommands;
     register(command: ICommand): void;
+    /**
+     * Run command.
+     * @param id - Command ID
+     * @param args - Command arguments
+     */
     run(id: string, ...args: any[]): void;
+    /**
+     * Register externel command.
+     * @param command - Externel command
+     */
     registerExternel(command: IExternelCommand): () => void;
 }
 
@@ -279,16 +294,21 @@ declare enum ConfigType_2 {
     Local = 1
 }
 
-declare function constructFileURL(url: string, joined: boolean, withProtocol?: boolean, root?: string, protocol?: string): string;
-
 declare class ContextMenuService extends Eventable<IContextMenuServiceState> {
     private readonly _preferenceService;
     private readonly _locales;
     private readonly _registedScraperExtensions;
     constructor(_preferenceService: PreferenceService);
+    /**
+     * Registers a scraper extension. It will be shown in the context menu.
+     */
     registerScraperExtension(extID: string, scrapers: {
         [id: string]: string;
     }): void;
+    /**
+     * Unregisters a scraper extension.
+     * @param {string} extID - The ID of the extension.
+     */
     unregisterScraperExtension(extID: string): void;
     /**
      * Shows the context menu for paper data.
@@ -406,13 +426,6 @@ declare class DatabaseService extends Eventable<IDatabaseServiceState> {
 }
 
 /**
- * Erase the protocol of the URL.
- * @param url
- * @returns
- */
-declare function eraseProtocol(url: string): string;
-
-/**
  * A eventable base class.
  * There is two ways to fire a event:
  *   1. Fire a single event by calling `fire(event: string)` / Fire multiple events by calling `fire(events: { [key in keyof T]?: any })`
@@ -472,14 +485,46 @@ declare class ExtensionManagementService {
     private readonly _installedExtensions;
     private readonly _installedExtensionInfos;
     constructor(extensionPreferenceService: ExtensionPreferenceService);
+    /**
+     * Load all installed extensions.
+     */
     loadInstalledExtensions(): Promise<void>;
+    /**
+     * Install an extension from the given path or extensionID.
+     * @param extensionIDorPath - extensionID or path to the extension
+     * @param notify - whether to show notification, default to true
+     */
     install(extensionIDorPath: string, notify?: boolean): Promise<void>;
+    /**
+     * Uninstall an extension.
+     * @param extensionID - extensionID to uninstall
+     */
     uninstall(extensionID: string): Promise<void>;
+    /**
+     * Clean the extension related files, preference, etc.
+     * @param extensionIDorPath - extensionID or path to the extension
+     */
+    clean(extensionIDorPath: string): Promise<void>;
+    /**
+     * Reload an extension.
+     * @param extensionID - extensionID to reload
+     */
     reload(extensionID: string): Promise<void>;
+    /**
+     * Reload all installed extensions.
+     */
     reloadAll(): Promise<void>;
+    /**
+     * Get all installed extensions.
+     */
     installedExtensions(): {
         [key: string]: IExtensionInfo;
     };
+    /**
+     * Get extensions from marketplace.
+     * @param query - Query string
+     * @returns A map of extensionID to extension info.
+     */
     listExtensionMarketplace(query: string): Promise<{
         [id: string]: {
             id: string;
@@ -490,6 +535,13 @@ declare class ExtensionManagementService {
             description: string;
         };
     }>;
+    /**
+     * Call a method of an extension class.
+     * @param extensionID - extensionID to call method
+     * @param methodName - method name to call
+     * @param args - arguments to pass to the method
+     * @returns
+     */
     callExtensionMethod(extensionID: string, methodName: string, ...args: any): Promise<any>;
 }
 
@@ -570,7 +622,7 @@ declare class ExtensionPreferenceService {
     }) => void) => () => void;
 }
 
-export declare class Feed {
+declare class Feed {
     static schema: {
         name: string;
         primaryKey: string;
@@ -595,7 +647,7 @@ export declare class Feed {
     initialize(object: IFeedDraft): this;
 }
 
-export declare class FeedEntity {
+declare class FeedEntity {
     static schema: {
         name: string;
         primaryKey: string;
@@ -793,63 +845,60 @@ declare class FeedService extends Eventable<IFeedServiceState> {
     constructor(_databaseCore: DatabaseCore, _feedEntityRepository: FeedEntityRepository, _feedRepository: FeedRepository, _rssRepository: RSSRepository, _scrapeService: ScrapeService, _paperService: PaperService, _schedulerService: SchedulerService, _logService: LogService);
     /**
      * Load feeds.
-     * @param sortBy Sort by.
-     * @param sortOrder Sort order.
+     * @param sortBy - Sort by.
+     * @param sortOrder - Sort order.
+     * @returns Feeds.
      */
     load(sortBy: string, sortOrder: string): Promise<IFeedCollection>;
     /**
      * Load feed entities from the database.
-     * @param search Search string.
-     * @param feed Feed name.
-     * @param unread Whether to load only unread entities.
-     * @param sortBy Sort by.
-     * @param sortOrder Sort order.
+     * @param filter - Filter.
+     * @param sortBy - Sort by.
+     * @param sortOrder - Sort order.
      * @returns Feed entities.
      */
     loadEntities(filter: FeedEntityFilterOptions, sortBy: string, sortOrder: "asce" | "desc"): Promise<IFeedEntityCollection>;
     /**
-     * Update a feed.
-     * @param feed Feed.
-     * returns
+     * Update feeds.
+     * @param feeds - Feeds.
+     * @returns Updated feeds.
      */
     update(feeds: IFeedCollection): Promise<IFeedObject[]>;
     /**
      * Update feed entities.
      * @param feedEntities - Feed entities
-     * @returns
+     * @param ignoreReadState - Ignore read state. Default: false.
+     * @returns Updated feed entities.
      */
     updateEntities(feedEntities: IFeedEntityCollection, ignoreReadState?: boolean): Promise<IFeedEntityObject[] | undefined>;
     /**
-     * Create a feed.
-     * @param feed Feed.
-     * @returns
+     * Create feeds.
+     * @param feeds - Feeds
      */
     create(feeds: Feed[]): Promise<void>;
     /**
      * Refresh feeds.
-     * @param feed Feed.
+     * @param ids - Feed ids
+     * @param feeds - Feeds
      * @returns
      */
     refresh(ids?: OID[], feeds?: IFeedCollection): Promise<void>;
     /**
      * Colorize a feed.
-     * @param color Color.
-     * @param name Feed name.
-     * @param feed Feed.
-     * @returns
+     * @param color - Color
+     * @param id - Feed ID
+     * @param feed - Feed
      */
     colorize(color: Colors, id?: OID, feed?: IFeedObject): Promise<void>;
     /**
      * Delete a feed.
-     * @param name Feed name.
-     * @param feed Feed.
-     * @returns
+     * @param ids - Feed IDs
+     * @param feeds - Feeds
      */
     delete(ids?: OID[], feeds?: IFeedCollection): Promise<void>;
     /**
      * Add feed entities to library.
-     * @param feedEntities
-     * @returns
+     * @param feedEntities - Feed entities
      */
     addToLib(feedEntities: IFeedEntityCollection): Promise<void>;
     private _routineRefresh;
@@ -864,75 +913,85 @@ declare class FileService extends Eventable<IFileServiceState> {
     private readonly _preferenceService;
     private _backend?;
     constructor(_hookService: HookService, _logService: LogService, _preferenceService: PreferenceService);
+    /**
+     * Initialize the file backend.
+     */
     initialize(): Promise<void>;
     private _initBackend;
+    /**
+     * Start watching file changes. (Only for WebDAV file backend)
+     */
     startWatch(): Promise<void>;
+    /**
+     * Stop watching file changes. (Only for WebDAV file backend)
+     */
     stopWatch(): Promise<void>;
+    /**
+     * Check if the file backend is available.
+     */
     check(): Promise<boolean | undefined>;
     /**
      * Move files of a paper entity to the library folder
-     * @param paperEntity - paper entity to move
-     * @param fourceDelete - force delete the source file
-     * @param forceNotLink - force not to link the source file
+     * @param paperEntity - Paper entity to move
+     * @param fourceDelete - Force to delete the source file
+     * @param forceNotLink - Force to do not use link
      * @returns
      */
     move(paperEntity: PaperEntity, fourceDelete?: boolean, forceNotLink?: boolean): Promise<PaperEntity>;
     /**
      * Move a file
-     * @param sourceURL - source file URL
-     * @param targetURL - target file URL
-     * @param fourceDelete - force delete the source file
-     * @param forceNotLink - force not to link the source file
+     * @param sourceURL - Source file URL
+     * @param targetURL - Target file URL
+     * @param fourceDelete - Force to delete the source file
+     * @param forceNotLink - Force to do not use link
      * @returns
      */
     moveFile(sourceURL: string, targetURL: string, fourceDelete?: boolean, forceNotLink?: boolean): Promise<string>;
     /**
      * Remove files of a paper entity
-     * @param paperEntity - paper entity to remove
-     * @returns
+     * @param paperEntity - Paper entity to remove
      */
     remove(paperEntity: PaperEntity): Promise<void>;
     /**
-     * Remove files
-     * @param url - url of the file to remove
-     * @returns
+     * Remove a file
+     * @param url - Url of the file to remove
      */
     removeFile(url: string): Promise<void>;
     /**
      * List all files in a folder
-     * @param folderURL - url of the folder
-     * @returns
+     * @param folderURL - Url of the folder
+     * @returns List of file names
      */
     listAllFiles(folderURL: string): Promise<string[]>;
     /**
-     * Locate the main file of a paper entity.
+     * Locate the paper files, such as the PDF, of paper entities.
      * @param paperEntities - The paper entities.
-     * @returns
+     * @returns The paper entities with the located file URLs.
      */
     locateFileOnWeb(paperEntities: PaperEntity[]): Promise<PaperEntity[]>;
     /**
      * Return the real and accessable path of the URL.
-     * @param url
-     * @param download
-     * @returns
-     * @description
      * If the URL is a local file, return the path of the file.
      * If the URL is a remote file and `download` is `true`, download the file and return the path of the downloaded file.
      * If the URL is a web URL, return the URL.
+     * @param url
+     * @param download
+     * @returns The real and accessable path of the URL.
      */
     access(url: string, download: boolean): Promise<string>;
     /**
      * Open the URL.
-     * @param url
+     * @param url - URL to open
      */
     open(url: string): Promise<void>;
     /**
-     * Show the URL in Finder.
+     * Show the URL in Finder / Explorer.
      * @param url - URL to show
      */
     showInFinder(url: string): Promise<void>;
     /**
      * Preview the URL only for MacOS.
+     * Other platforms should install an extension.
      * @param url - URL to preview
      */
     preview(url: string): Promise<void>;
@@ -942,8 +1001,8 @@ declare class FileSystemService {
     constructor();
     /**
      * Get the path of the given key.
-     * @param {string} key The key to get the path of.
-     * @returns {string} The path of the given key.
+     * @param {string} key - The key to get the path of.
+     * @returns {string} - The path of the given key.
      */
     getSystemPath(key: "home" | "appData" | "userData" | "sessionData" | "temp" | "exe" | "module" | "desktop" | "documents" | "downloads" | "music" | "pictures" | "videos" | "recent" | "logs" | "crashDumps", windowId: string): string;
     /**
@@ -958,43 +1017,10 @@ declare class FileSystemService {
     showFolderPicker(): Promise<OpenDialogReturnValue>;
     /**
      * Preview a file.
-     * @param {string} fileURL The URL of the file to preview.
+     * @param {string} fileURL - The URL of the file to preview.
      */
     preview(fileURL: string): void;
 }
-
-declare interface formatStringParams {
-    str: string | null;
-    removeNewline?: boolean;
-    removeWhite?: boolean;
-    removeSymbol?: boolean;
-    removeStr?: string | null;
-    lowercased?: boolean;
-    trimWhite?: boolean;
-    whiteSymbol?: boolean;
-}
-
-/**
- * Get the file type of the URL.
- * @param url
- * @returns
- * @description
- */
-declare function getFileType(url: string): string;
-
-/**
- * Get the protocol of the URL.
- * @param url
- * @returns
- */
-declare function getProtocol(url: string): string;
-
-/**
- * Check if the URL has a protocol.
- * @param url
- * @returns
- */
-declare function hasProtocol(url: string): boolean;
 
 /**
  * HookService is a service inject some hook points in the Paperlib app. Extensions can use these hook points to extend the functionality of Paperlib.
@@ -1005,11 +1031,48 @@ declare class HookService {
     private readonly _modifyHookPoints;
     private readonly _transformHookPoints;
     constructor(_logService: LogService);
+    /**
+     * Check if a hook point exists.
+     * @param hookName - Name of the hook point
+     * @returns Whether the hook point exists
+     */
     hasHook(hookName: string): false | "modify" | "transform";
+    /**
+     * Modify hook point. We can await this function to wait for all hookers to finish.
+     * @param hookName - Name of the hook point
+     * @param args - Arguments
+     * @returns Modified arguments
+     */
     modifyHookPoint<T extends any[]>(hookName: string, ...args: T): Promise<T>;
-    transformhookPoint<T extends any[], O extends any[]>(hookName: string, ...args: T): Promise<T | (O extends readonly (infer InnerArr)[] ? InnerArr extends readonly (infer InnerArr)[] ? InnerArr : InnerArr : O)[]>;
+    /**
+     * Transform hook point. We can await this function to wait for all hookers to finish.
+     * @param hookName - Name of the hook point
+     * @param args - Arguments
+     * @returns Transformed arguments
+     */
+    transformhookPoint<T extends any[], O extends any[]>(hookName: string, ...args: T): Promise<any[]>;
+    /**
+     * Hook a modify hook point.
+     * @param hookName - Name of the hook point
+     * @param extensionID - ID of the extension
+     * @param callbackName - Name of the callback function
+     * @returns A function to dispose the hook
+     */
     hookModify(hookName: string, extensionID: string, callbackName: string): () => void;
+    /**
+     * Hook a transform hook point.
+     * @param hookName - Name of the hook point
+     * @param extensionID - ID of the extension
+     * @param callbackName - Name of the callback function
+     * @returns A function to dispose the hook
+     */
     hookTransform(hookName: string, extensionID: string, callbackName: string): () => void;
+    /**
+     * Recover class of an object.
+     * @param originalObj - Original object
+     * @param obj - Object to recover
+     * @returns Recovered object
+     */
     recoverClass<T>(originalObj: T, obj: any): T;
 }
 
@@ -1296,7 +1359,7 @@ declare interface IPaperEntityRepositoryState {
 
 declare interface IPaperFilterOptions {
     search?: string;
-    searchMode?: string;
+    searchMode?: "general" | "fulltext" | "advanced";
     flaged?: boolean;
     tag?: string;
     folder?: string;
@@ -1431,15 +1494,9 @@ declare interface IScraperPreference {
     scrapeImplCode: string;
 }
 
-declare function isLocalPath(string: string): boolean;
-
 declare interface ISmartFilterServiceState {
     updated: number;
 }
-
-declare function isMetadataCompleted(paperEntityDraft: PaperEntity): boolean;
-
-declare function isPreprint(paperEntityDraft: PaperEntity): boolean;
 
 declare interface IUISlotState {
     paperDetailsPanelSlot1: {
@@ -1481,7 +1538,7 @@ declare interface IUIStateServiceState {
     selectedFeed: string;
     dragingIds: Array<string>;
     commandBarText: string;
-    commandBarSearchMode: string;
+    commandBarSearchMode: "general" | "fulltext" | "advanced";
     isDevMode: boolean;
     os: string;
     "processingState.general": number;
@@ -1504,8 +1561,6 @@ declare interface IWindowProcessManagementServiceState {
     [key: string]: string;
 }
 
-declare function listAllFiles(folderURL: string, arrayOfFiles?: string[] | null): string[];
-
 declare class LogService extends Eventable<ILogEventState> {
     private logGroups;
     constructor(name?: string);
@@ -1513,8 +1568,8 @@ declare class LogService extends Eventable<ILogEventState> {
      * Log info to the console and the log file.
      * @param {string} level - Log level
      * @param {string} msg - Message to log
-     * @param {string} additional - Additional message to log
-     * @param {boolean} notify - Show notification
+     * @param {string?} additional - Additional message to log
+     * @param {boolean?} notify - Show notification, default: false
      * @param {string?} id - ID of the log */
     log(level: "info" | "warn" | "error", msg: string, additional?: string, notify?: boolean, id?: string): void;
     /**
@@ -1525,29 +1580,29 @@ declare class LogService extends Eventable<ILogEventState> {
     /**
      * Log info to the console and the log file.
      * @param {string} msg - Message to log
-     * @param {string} additional - Additional message to log
-     * @param {boolean} notify - Show notification
+     * @param {string?} additional - Additional message to log
+     * @param {boolean?} notify - Show notification, default: false
      * @param {string?} id - ID of the log */
     info(msg: string, additional?: string, notify?: boolean, id?: string): void;
     /**
      * Log warning to the console and the log file.
      * @param {string} msg - Message to log
-     * @param {string} additional - Additional message to log
-     * @param {boolean} notify - Show notification
+     * @param {string?} additional - Additional message to log
+     * @param {boolean?} notify - Show notification, default: false
      * @param {string?} id - ID of the log */
     warn(msg: string, additional?: string, notify?: boolean, id?: string): void;
     /**
      * Log error to the console and the log file.
      * @param {string} msg - Message to log
-     * @param {string} additional - Additional message to log
-     * @param {boolean} notify - Show notification
+     * @param {(string | Error)?} additional - Additional message to log, can be an Error object
+     * @param {boolean?} notify - Show notification, default: false
      * @param {string?} id - ID of the log */
     error(msg: string, additional?: string | Error, notify?: boolean, id?: string): void;
     /**
      * Log progress to the console and the log file.
      * @param {string} msg - Message to log
      * @param {number} value - Progress value
-     * @param {boolean} notify - Show notification
+     * @param {boolean?} notify - Show notification, default: false
      * @param {string?} id - ID of the log */
     progress(msg: string, value: number, notify?: boolean, id?: string, progressId?: string): void;
     /**
@@ -1566,24 +1621,15 @@ declare class MenuService extends Eventable<IMenuServiceState> {
         key: keyof IMenuServiceState;
         value: any;
     }) => void) => () => void;
+    /**
+     * Enable all menu items.
+     */
     enableAll(): void;
+    /**
+     * Disable all menu items.
+     */
     disableAll(): void;
 }
-
-declare function mergeMetadata(originPaperEntityDraft: PaperEntity, paperEntityDraft: PaperEntity, scrapedpaperEntity: PaperEntity, mergePriorityLevel: {
-    [key: string]: number;
-}, scraperIndex: number): {
-    paperEntityDraft: PaperEntity;
-    mergePriorityLevel: {
-        [key: string]: number;
-    };
-};
-
-export declare const metadataUtils: {
-    isMetadataCompleted: typeof isMetadataCompleted;
-    isPreprint: typeof isPreprint;
-    mergeMetadata: typeof mergeMetadata;
-};
 
 declare class NetworkTool {
     private readonly _preferenceService;
@@ -1591,19 +1637,71 @@ declare class NetworkTool {
     private _agent;
     private _donwloadProgress;
     constructor(_preferenceService: PreferenceService, _logService: LogService);
+    /**
+     * Set proxy agent
+     * @param proxy - Proxy url
+     */
     setProxyAgent(proxy?: string): void;
+    /**
+     * Check system proxy, if exists, set it as proxy agent
+     */
     checkSystemProxy(): void;
+    /**
+     * HTTP GET
+     * @param url - URL
+     * @param headers - Headers
+     * @param retry - Retry times
+     * @param timeout - Timeout
+     * @param cache - Use cache
+     * @returns Response
+     */
     get(url: string, headers?: Record<string, string>, retry?: number, timeout?: number, cache?: boolean): Promise<Response_2<string>>;
+    /**
+     * HTTP POST
+     * @param url - URL
+     * @param data - Data
+     * @param headers - Headers
+     * @param retry - Retry times
+     * @param timeout - Timeout
+     * @param compress - Compress data
+     * @returns Response
+     */
     post(url: string, data: Record<string, any> | string, headers?: Record<string, string>, retry?: number, timeout?: number, compress?: boolean): Promise<Response_2<string>>;
+    /**
+     * HTTP POST with form data
+     * @param url - URL
+     * @param data - Data
+     * @param headers - Headers
+     * @param retry - Retry times
+     * @param timeout - Timeout
+     * @returns Response
+     */
     postForm(url: string, data: FormData, headers?: Record<string, string>, retry?: number, timeout?: number): Promise<Response_2<string>>;
+    /**
+     * Download
+     * @param url - URL
+     * @param targetPath - Target path
+     * @param cookies - Cookies
+     * @returns Target path
+     */
     download(url: string, targetPath: string, cookies?: CookieJar | ICookieObject[]): Promise<string>;
+    /**
+     * Download PDFs
+     * @param urlList - URL list
+     * @param cookies - Cookies
+     * @returns Target paths
+     */
     downloadPDFs(urlList: string[], cookies?: CookieJar | ICookieObject[]): Promise<string[]>;
+    /**
+     * Check if the network is connected
+     * @returns Whether the network is connected
+     */
     connected(): Promise<boolean>;
 }
 
 declare type OID = ObjectId | string;
 
-export declare class PaperEntity {
+declare class PaperEntity {
     static schema: {
         name: string;
         primaryKey: string;
@@ -1730,7 +1828,7 @@ declare class PaperEntityRepository extends Eventable<IPaperEntityRepositoryStat
 declare class PaperFilterOptions implements IPaperFilterOptions {
     filters: string[];
     search?: string;
-    searchMode?: string;
+    searchMode?: "general" | "fulltext" | "advanced";
     flaged?: boolean;
     tag?: string;
     folder?: string;
@@ -1740,7 +1838,7 @@ declare class PaperFilterOptions implements IPaperFilterOptions {
     toString(): string;
 }
 
-export declare class PaperFolder extends Categorizer {
+declare class PaperFolder extends Categorizer {
     static schema: {
         name: string;
         primaryKey: string;
@@ -1770,22 +1868,22 @@ declare class PaperService extends Eventable<IPaperServiceState> {
     constructor(_databaseCore: DatabaseCore, _paperEntityRepository: PaperEntityRepository, _scrapeService: ScrapeService, _cacheService: CacheService, _schedulerService: SchedulerService, _fileService: FileService, _preferenceService: PreferenceService, _logService: LogService);
     /**
      * Load paper entities with filter and sort.
-     * @param filter - filter object
-     * @param sortBy - Sort: by
-     * @param sortOrder - Sort: order
-     * @returns - paper entities
+     * @param filterOptions - filter object
+     * @param sortBy - Sort by
+     * @param sortOrder - Sort order
+     * @returns Paper entities
      */
-    load(filterOptions: PaperFilterOptions, sortBy: string, sortOrder: "asce" | "desc"): Promise<never[] | Realm.Results<IPaperEntityObject>>;
+    load(filterOptions: PaperFilterOptions, sortBy: string | undefined, sortOrder: "asce" | "desc"): Promise<IPaperEntityCollection>;
     /**
-     * Load paper entities by ids.
-     * @param ids - paper entity ids
-     * @returns - paper entities
+     * Load paper entities by IDs.
+     * @param ids - Paper entity ids
+     * @returns Paper entities
      */
     loadByIds(ids: OID[]): Promise<never[] | Realm.Results<PaperEntity & Realm.Object<unknown, never>>>;
     /**
      * Update paper entities.
      * @param paperEntityDrafts - paper entity drafts
-     * @returns
+     * @returns Updated paper entities
      */
     update(paperEntityDrafts: IPaperEntityCollection): Promise<IPaperEntityCollection>;
     /**
@@ -1793,27 +1891,24 @@ declare class PaperService extends Eventable<IPaperServiceState> {
      * @param ids - The list of paper IDs.
      * @param categorizer - The categorizer.
      * @param type - The type of the categorizer.
-     * @returns
      */
     updateWithCategorizer(ids: OID[], categorizer: Categorizer, type: CategorizerType): Promise<void>;
     /**
-     * Delete paper entity.
-     * @param ids - paper entity ids
-     * @param paperEntity - paper entity
-     * @returns - flag
+     * Delete paper entities.
+     * @param ids - Paper entity ids
+     * @param paperEntity - Paper entities
      */
     delete(ids?: OID[], paperEntities?: PaperEntity[]): Promise<void>;
     /**
      * Delete a suplementary file.
      * @param paperEntity - The paper entity.
      * @param url - The URL of the supplementary file.
-     * @returns
      */
     deleteSup(paperEntity: PaperEntity, url: string): Promise<void>;
     /**
-     * Create paper entity from URLs.
+     * Create paper entity from file URLs.
      * @param urlList - The list of URLs.
-     * @returns
+     * @returns The list of paper entity drafts.
      */
     create(urlList: string[]): Promise<IPaperEntityCollection>;
     /**
@@ -1821,34 +1916,29 @@ declare class PaperService extends Eventable<IPaperServiceState> {
      * @param urlList - The list of URLs.
      * @param categorizer - The categorizer.
      * @param type - The type of categorizer.
-     * @returns
+     * @returns The list of paper entity drafts.
      */
-    createIntoCategorizer(urlList: string[], categorizer: Categorizer, type: CategorizerType): Promise<IPaperEntityCollection | undefined>;
+    createIntoCategorizer(urlList: string[], categorizer: Categorizer, type: CategorizerType): Promise<IPaperEntityCollection>;
     /**
      * Scrape paper entities.
      * @param paperEntities - The list of paper entities.
-     * @returns
+     * @param specificScrapers - The list of specific scrapers.
      */
     scrape(paperEntities: IPaperEntityCollection, specificScrapers?: string[]): Promise<void>;
     /**
      * Scrape preprint paper entities.
-     * @param paperEntities - The list of paper entities.
-     * @returns
      */
     scrapePreprint(): Promise<void>;
     /**
      * Rename all paper entities.
-     * @returns
      */
     renameAll(): Promise<void>;
     /**
      * Migrate the local database to the cloud database. */
     migrateLocaltoCloud(): Promise<void>;
-    addDummyData(): void;
-    removeAll(): void;
 }
 
-export declare class PaperSmartFilter {
+declare class PaperSmartFilter {
     static schema: {
         name: string;
         primaryKey: string;
@@ -1928,7 +2018,7 @@ declare class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSt
 
 declare type PaperSmartFilterType = "PaperPaperSmartFilter";
 
-export declare class PaperTag extends Categorizer {
+declare class PaperTag extends Categorizer {
     static schema: {
         name: string;
         primaryKey: string;
@@ -1955,9 +2045,7 @@ declare namespace PLAPI_2 {
     const paperService: Proxied<PaperService>;
     const referenceService: Proxied<ReferenceService>;
     const renderService: Proxied<RenderService>;
-    const schedulerService: Proxied<SchedulerService>;
     const scrapeService: Proxied<ScrapeService>;
-    const shortcutService: Proxied<ShortcutService>;
     const smartFilterService: Proxied<SmartFilterService>;
     const uiStateService: Proxied<UIStateService>;
     const preferenceService: Proxied<PreferenceService>;
@@ -1993,8 +2081,6 @@ declare namespace PLMainAPI_2 {
     const contextMenuService: Proxied<ContextMenuService>;
     const fileSystemService: Proxied<FileSystemService>;
     const menuService: Proxied<MenuService>;
-    const proxyService: Proxied<ProxyService>;
-    const upgradeService: Proxied<UpgradeService>;
     const windowProcessManagementService: Proxied<WindowProcessManagementService>;
 }
 export { PLMainAPI_2 as PLMainAPI }
@@ -2008,8 +2094,8 @@ declare class PreferenceService extends Eventable<IPreferenceStore> {
     constructor();
     /**
      * Get the value of the preference
-     * @param key - key of the preference
-     * @returns value of the preference
+     * @param key - Key of the preference
+     * @returns Value of the preference
      */
     get(key: keyof IPreferenceStore): string | number | boolean | {
         height: number;
@@ -2020,11 +2106,20 @@ declare class PreferenceService extends Eventable<IPreferenceStore> {
     }[] | Record<string, IScraperPreference> | IDownloaderPreference[];
     /**
      * Set the value of the preference
-     * @param patch - patch object
-     * @returns
+     * @param patch - Patch object
      */
     set(patch: Partial<IPreferenceStore>): void;
+    /**
+     * Get the password
+     * @param key - Key of the password
+     * @returns Password
+     */
     getPassword(key: string): Promise<string | null>;
+    /**
+     * Set the password
+     * @param key - Key of the password
+     * @param pwd - Password
+     */
     setPassword(key: string, pwd: string): Promise<void>;
 }
 
@@ -2034,50 +2129,50 @@ declare type Proxied<T> = {
     }) => Promise<Awaited<R>> : never;
 };
 
-declare class ProxyService {
-    constructor();
-    getSystemProxy(): Promise<string>;
-}
-
 declare class ReferenceService {
     private readonly _preferenceService;
     private readonly _logService;
     constructor(_preferenceService: PreferenceService, _logService: LogService);
     private _setupCitePlugin;
     /**
-     * Abbreviate the publication name.
+     * Abbreviate the publication name according to the abbreviation list set in the preference interface.
      * @param source - The source paper entity.
-     * @returns - The paper entity with publication name abbreviated.
+     * @returns The paper entity with publication name abbreviated.
      */
     replacePublication(source: PaperEntity): PaperEntity;
     /**
-     * Convert paper entity to cite object.
+     * Convert paper entity to citationjs object.
      * @param source - The source paper entity.
-     * @returns - The cite object.
+     * @returns The cite object.
      */
     toCite(source: PaperEntity | PaperEntity[] | string): any;
     /**
      * Export BibTex key.
      * @param cite - The cite object.
-     * @returns - The BibTex key.
+     * @returns The BibTex key.
      */
     exportBibTexKey(cite: Cite): string;
     /**
      * Export BibTex body string.
      * @param cite - The cite object.
-     * @returns - The BibTex body string.
+     * @returns The BibTex body string.
      */
     exportBibTexBody(cite: Cite): string;
+    /**
+     * Export plain text.
+     * @param cite - The cite object.
+     * @returns The plain text.
+     */
     exportPlainText(cite: Cite): Promise<string>;
     /**
      * Export paper entities.
      * @param paperEntities - The paper entities.
-     * @param format - The export format.
+     * @param format - The export format: "BibTex" | "BibTex-Key" | "PlainText"
      */
     export(paperEntities: PaperEntity[], format: string): Promise<void>;
     /**
      * Load CSL styles.
-     * @returns - The CSL styles.
+     * @returns The CSL styles.
      */
     loadCSLStyles(): Promise<{
         key: string;
@@ -2095,9 +2190,9 @@ declare class RenderService {
     private _createPDFWorker;
     /**
      * Render PDF file to canvas
-     * @param fileURL - file url
-     * @param canvasId - canvas id
-     * @returns - {blob: ArrayBuffer | null, width: number, height: number}
+     * @param fileURL - File url
+     * @param canvasId - Canvas id
+     * @returns Renderer blob: {blob: ArrayBuffer | null, width: number, height: number}
      */
     renderPDF(fileURL: string, canvasId: string): Promise<{
         blob: ArrayBuffer | null;
@@ -2106,15 +2201,15 @@ declare class RenderService {
     }>;
     /**
      * Render PDF cache to canvas
-     * @param cachedThumbnail - cached thumbnail
-     * @param canvasId - canvas id
+     * @param cachedThumbnail - Cached thumbnail
+     * @param canvasId - Canvas id
      */
     renderPDFCache(cachedThumbnail: ThumbnailCache, canvasId: string): Promise<void>;
     /**
      * Render Markdown to HTML
-     * @param content - markdown content
-     * @param renderFull - render full content or not
-     * @returns - {renderedStr: string, overflow: boolean}
+     * @param content - Markdown content
+     * @param renderFull - Render full content or not, default is false. If false, only render first 10 lines.
+     * @returns Rendered string: {renderedStr: string, overflow: boolean}
      */
     renderMarkdown(content: string, renderFull?: boolean): Promise<{
         renderedStr: string;
@@ -2122,9 +2217,9 @@ declare class RenderService {
     }>;
     /**
      * Render Markdown file to HTML
-     * @param url - file url
-     * @param renderFull - render full content or not
-     * @returns - {renderedStr: string, overflow: boolean}
+     * @param url - File url
+     * @param renderFull - Render full content or not, default is false. If false, only render first 10 lines.
+     * @returns Rendered string: {renderedStr: string, overflow: boolean}
      */
     renderMarkdownFile(url: string, renderFull?: boolean): Promise<{
         renderedStr: string;
@@ -2132,8 +2227,8 @@ declare class RenderService {
     }>;
     /**
      * Render Math to HTML
-     * @param content - math content
-     * @returns - rendered HTML string
+     * @param content - Math content
+     * @returns Rendered HTML string
      */
     renderMath(content: string): Promise<string>;
 }
@@ -2224,28 +2319,20 @@ declare class ScrapeService extends Eventable<{}> {
      * @param payloads - data source payloads.
      * @param specificScrapers - list of metadata scrapers.
      * @param force - force scraping metadata.
-     * @returns - list of paper entities. */
+     * @returns List of paper entities. */
     scrape(payloads: any[], specificScrapers: string[], force?: boolean): Promise<PaperEntity[]>;
     /**
      * Scrape all entry scrapers to transform data source payloads into a PaperEntity list.
      * @param payloads - data source payloads.
-     * @returns - list of paper entities. */
+     * @returns List of paper entities. */
     scrapeEntry(payloads: any[]): Promise<PaperEntity[]>;
     /**
-     * Scrape all metadata scrapers to fullfill the metadata of PaperEntitys.
+     * Scrape all metadata scrapers to complete the metadata of PaperEntitys.
      * @param paperEntityDrafts - list of paper entities.
      * @param scrapers - list of metadata scrapers.
      * @param force - force scraping metadata.
-     * @returns - list of paper entities. */
+     * @returns List of paper entities. */
     scrapeMetadata(paperEntityDrafts: PaperEntity[], scrapers: string[], force?: boolean): Promise<PaperEntity[]>;
-}
-
-declare class ShortcutService {
-    private readonly _registeredShortcuts;
-    private readonly _registeredShortcutsInInputField;
-    constructor();
-    register(code: string, handler: (...args: any[]) => void, preventDefault?: boolean, stopPropagation?: boolean): () => void;
-    registerInInputField(code: string, handler: (...args: any[]) => void, preventDefault?: boolean, stopPropagation?: boolean): () => void;
 }
 
 declare class SmartFilterService extends Eventable<ISmartFilterServiceState> {
@@ -2255,44 +2342,37 @@ declare class SmartFilterService extends Eventable<ISmartFilterServiceState> {
     constructor(_databaseCore: DatabaseCore, _paperSmartFilterRepository: PaperSmartFilterRepository, _logService: LogService);
     /**
      * Load smartfilters.
-     * @param type The type of the smartfilter.
-     * @param sortBy Sort: by
-     * @param sortOrder Sort: order
+     * @param type - The type of the smartfilter
+     * @param sortBy - Sort by
+     * @param sortOrder - Sort order
      * @returns
      */
-    load(type: PaperSmartFilterType, sortBy: string, sortOrder: string): Promise<Realm.Results<PaperSmartFilter & Realm.Object<unknown, never>>>;
+    load(type: PaperSmartFilterType, sortBy: string, sortOrder: string): Promise<IPaperSmartFilterCollection>;
     /**
      * Delete a smartfilter.
-     * @param type - The type of the smartfilter.
-     * @param ids - The ids of the smartfilters.
-     * @param smartfilters - The smartfilters.
-     * @returns
+     * @param type - The type of the smartfilter
+     * @param ids - The ids of the smartfilters
+     * @param smartfilters - The smartfilters
      */
     delete(type: PaperSmartFilterType, ids?: OID[], smartfilters?: IPaperSmartFilterCollection): Promise<void>;
     /**
      * Colorize a smartfilter.
-     * @param color - The color.
-     * @param type - The type of the smartfilter.
-     * @param name - The name of the smartfilter.
-     * @param smartfilter - The smartfilter.
-     * @returns
+     * @param color - The color
+     * @param type - The type of the smartfilter
+     * @param id - The id of the smartfilter
+     * @param smartfilter - The smartfilter
      */
     colorize(color: Colors, type: PaperSmartFilterType, id?: OID, smartfilter?: PaperSmartFilter): Promise<void>;
     /**
      * Insert a smartfilter.
-     * @param smartfilter - The smartfilter.
-     * @param type - The type of the smartfilter.
-     * @returns
+     * @param smartfilter - The smartfilter
+     * @param type - The type of the smartfilter
      */
     insert(smartfilter: PaperSmartFilter, type: PaperSmartFilterType): Promise<void>;
     /**
      * Migrate the local database to the cloud database. */
     migrateLocaltoCloud(): Promise<void>;
 }
-
-export declare const stringUtils: {
-    formatString: ({ str, removeNewline, removeWhite, removeSymbol, removeStr, lowercased, trimWhite, whiteSymbol, }: formatStringParams) => string;
-};
 
 declare class SubStateGroup<T extends IEventState> extends Eventable<T> {
     constructor(stateID: string, defaultState: T);
@@ -2309,6 +2389,12 @@ declare interface ThumbnailCache {
 declare class UISlotService extends Eventable<IUISlotState> {
     private readonly _logService;
     constructor(_logService: LogService);
+    /**
+     * Update a slot with the given patch
+     * @param slotID - The slot to update
+     * @param patch - The patch to apply to the slot
+     * @returns
+     */
     updateSlot(slotID: keyof IUISlotState, patch: {
         [id: string]: any;
     }): void;
@@ -2319,7 +2405,16 @@ declare class UISlotService extends Eventable<IUISlotState> {
 declare class UIStateService extends Eventable<IUIStateServiceState> {
     readonly processingState: SubStateGroup<IProcessingState>;
     constructor();
+    /**
+     * Set the state of the UI service. Many UI components are controlled by the UI states.
+     * @param patch - patch to the state. It can be a single state, a partial state or a full state.
+     */
     setState(patch: Partial<IUIStateServiceState>): void;
+    /**
+     * Get the UI state.
+     * @param stateKey - key of the state
+     * @returns The state
+     */
     getState(stateKey: keyof IUIStateServiceState): string | number | boolean | string[] | number[] | {
         _id: string | {
             _bsontype: "ObjectID";
@@ -3743,7 +3838,14 @@ declare class UIStateService extends Eventable<IUIStateServiceState> {
         initialize: (object: IFeedEntityDraft) => FeedEntity;
         fromPaper: (paperEntity: PaperEntity) => void;
     }[];
+    /**
+     * Get all UI states.
+     * @returns The state
+     */
     getStates(): Store<string, IUIStateServiceState>;
+    /**
+     * Reset all UI states to default.
+     */
     resetStates(): void;
 }
 
@@ -3752,16 +3854,6 @@ declare class UpgradeService extends Eventable<IUpgradeServiceState> {
     checkForUpdates(): void;
     currentVersion(): string;
 }
-
-export declare const urlUtils: {
-    getProtocol: typeof getProtocol;
-    hasProtocol: typeof hasProtocol;
-    eraseProtocol: typeof eraseProtocol;
-    getFileType: typeof getFileType;
-    constructFileURL: typeof constructFileURL;
-    listAllFiles: typeof listAllFiles;
-    isLocalPath: typeof isLocalPath;
-};
 
 declare interface WindowOptions extends BrowserWindowConstructorOptions {
     entry: string;
@@ -3780,6 +3872,10 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
     create(id: string, options: WindowOptions, eventCallbacks?: Record<string, (win: BrowserWindow) => void>): void;
     createMainRenderer(): void;
     createQuickpasteRenderer(): void;
+    /**
+     * Destroy the window with the given id.
+     * @param windowId - The id of the window to be destroyed
+     */
     destroy(windowId: string): void;
     /**
      * Fire the serviceReady event. This event is fired when the service of the window is ready to be used by other processes.
@@ -3798,18 +3894,22 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
     hide(windowId: string, restoreFocus?: boolean): void;
     /**
      * Minimize the window with the given id.
+     * @param windowId - The id of the window to be minimized
      */
     minimize(windowId: string): void;
     /**
      * Maximize the window with the given id.
+     * @param windowId - The id of the window to be maximized
      */
     maximize(windowId: string): void;
     /**
      * Close the window with the given id.
+     * @param windowId - The id of the window to be closed
      */
     close(windowId: string): void;
     /**
      * Force close the window with the given id.
+     * @param windowId - The id of the window to be force closed
      */
     forceClose(windowId: string): void;
     /**
@@ -3819,16 +3919,19 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
     changeTheme(theme: APPTheme): void;
     /**
      * Check if the app is in dark mode.
-     * @returns - Whether the app is in dark mode
+     * @returns Whether the app is in dark mode
      */
     isDarkMode(): boolean;
     /**
      * Resize the window with the given id.
+     * @param windowId - The id of the window to be resized
+     * @param width - The width of the window
+     * @param height - The height of the window
      */
     resize(windowId: string, width: number, height: number): void;
     /**
      * Get the size of the screen.
-     * @returns - The size of the screen
+     * @returns The size of the screen
      */
     getScreenSize(): {
         width: number;

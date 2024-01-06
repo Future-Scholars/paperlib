@@ -403,10 +403,16 @@ export class MessagePortRPCProtocol {
         this._port.postMessage(msg);
       },
       (err) => {
+        const errObject = {
+          name: err.name || "UnknownError",
+          message: err.message || "",
+          stack: err.stack || "",
+        };
+
         const msg = JSONstringify({
           callId,
           type: MessageType.replyError,
-          value: err,
+          value: errObject,
         });
         this._port.postMessage(msg);
       }
@@ -468,7 +474,11 @@ export class MessagePortRPCProtocol {
     const pendingReply = this._pendingRPCReplies[callId];
     delete this._pendingRPCReplies[callId];
 
-    pendingReply.reject(value);
+    const error = new Error(value.message);
+    error.name = value.name;
+    error.stack = value.stack;
+
+    pendingReply.reject(error);
   }
 
   private _receiveEventListen(callId: string, rpcId: string, value: any): void {

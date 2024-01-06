@@ -2,7 +2,12 @@ import { promises as fsPromise } from "fs";
 import katex from "katex";
 import MarkdownIt from "markdown-it";
 import tm from "markdown-it-texmath";
-import * as pdfjs from "pdfjs-dist/build/pdf.mjs";
+import {
+  GlobalWorkerOptions,
+  PDFDocumentProxy,
+  PDFPageProxy,
+  getDocument,
+} from "pdfjs-dist";
 
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
@@ -16,8 +21,8 @@ export const IRenderService = createDecorator("renderService");
 
 export class RenderService {
   private _pdfWorker?: Worker;
-  private _renderingPage?: pdfjs.PDFPageProxy;
-  private _renderingPDF?: pdfjs.PDFDocumentProxy;
+  private _renderingPage?: PDFPageProxy;
+  private _renderingPDF?: PDFDocumentProxy;
 
   private _markdownIt: MarkdownIt;
 
@@ -45,21 +50,20 @@ export class RenderService {
       ),
       { type: "module" }
     );
-    pdfjs.GlobalWorkerOptions.workerPort = this._pdfWorker;
+    GlobalWorkerOptions.workerPort = this._pdfWorker;
   }
 
   /**
    * Render PDF file to canvas
-   * @param fileURL - file url
-   * @param canvasId - canvas id
-   * @returns - {blob: ArrayBuffer | null, width: number, height: number}
+   * @param fileURL - File url
+   * @param canvasId - Canvas id
+   * @returns Renderer blob: {blob: ArrayBuffer | null, width: number, height: number}
    */
-
   async renderPDF(fileURL: string, canvasId: string) {
     if (this._renderingPDF) {
       this._renderingPDF.destroy();
     }
-    const pdf = await pdfjs.getDocument({
+    const pdf = await getDocument({
       url: fileURL,
       useWorkerFetch: true,
       cMapUrl: "../viewer/cmaps/",
@@ -112,8 +116,8 @@ export class RenderService {
 
   /**
    * Render PDF cache to canvas
-   * @param cachedThumbnail - cached thumbnail
-   * @param canvasId - canvas id
+   * @param cachedThumbnail - Cached thumbnail
+   * @param canvasId - Canvas id
    */
   @errorcatching("Failed to render PDF cache.", true, "RenderService")
   async renderPDFCache(cachedThumbnail: ThumbnailCache, canvasId: string) {
@@ -140,9 +144,9 @@ export class RenderService {
 
   /**
    * Render Markdown to HTML
-   * @param content - markdown content
-   * @param renderFull - render full content or not
-   * @returns - {renderedStr: string, overflow: boolean}
+   * @param content - Markdown content
+   * @param renderFull - Render full content or not, default is false. If false, only render first 10 lines.
+   * @returns Rendered string: {renderedStr: string, overflow: boolean}
    */
   @errorcatching("Failed to render Markdown.", true, "RenderService", {
     renderedStr: "",
@@ -168,9 +172,9 @@ export class RenderService {
 
   /**
    * Render Markdown file to HTML
-   * @param url - file url
-   * @param renderFull - render full content or not
-   * @returns - {renderedStr: string, overflow: boolean}
+   * @param url - File url
+   * @param renderFull - Render full content or not, default is false. If false, only render first 10 lines.
+   * @returns Rendered string: {renderedStr: string, overflow: boolean}
    */
   @errorcatching("Failed to render Markdown file.", true, "RenderService", {
     renderedStr: "",
@@ -187,8 +191,8 @@ export class RenderService {
 
   /**
    * Render Math to HTML
-   * @param content - math content
-   * @returns - rendered HTML string
+   * @param content - Math content
+   * @returns Rendered HTML string
    */
   @errorcatching("Failed to render Math.", true, "RenderService", "")
   async renderMath(content: string) {

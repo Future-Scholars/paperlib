@@ -133,9 +133,9 @@ export class ReferenceService {
   }
 
   /**
-   * Abbreviate the publication name.
+   * Abbreviate the publication name according to the abbreviation list set in the preference interface.
    * @param source - The source paper entity.
-   * @returns - The paper entity with publication name abbreviated.
+   * @returns The paper entity with publication name abbreviated.
    */
   replacePublication(source: PaperEntity) {
     try {
@@ -165,9 +165,9 @@ export class ReferenceService {
   }
 
   /**
-   * Convert paper entity to cite object.
+   * Convert paper entity to citationjs object.
    * @param source - The source paper entity.
-   * @returns - The cite object.
+   * @returns The cite object.
    */
   @errorcatching(
     "Failed to convert paper entity to cite object.",
@@ -190,7 +190,7 @@ export class ReferenceService {
   /**
    * Export BibTex key.
    * @param cite - The cite object.
-   * @returns - The BibTex key.
+   * @returns The BibTex key.
    */
   @errorcatching(
     "Failed to convert cite object to BibTex Key.",
@@ -205,7 +205,7 @@ export class ReferenceService {
   /**
    * Export BibTex body string.
    * @param cite - The cite object.
-   * @returns - The BibTex body string.
+   * @returns The BibTex body string.
    */
   @errorcatching(
     "Failed to convert cite object to BibTex string.",
@@ -241,6 +241,17 @@ export class ReferenceService {
     return bibtexBody;
   }
 
+  /**
+   * Export plain text.
+   * @param cite - The cite object.
+   * @returns The plain text.
+   */
+  @errorcatching(
+    "Failed to convert cite object to plain text.",
+    true,
+    "ReferenceService",
+    ""
+  )
   async exportPlainText(cite: Cite): Promise<string> {
     const csl = this._preferenceService.get("selectedCSLStyle") as string;
 
@@ -327,7 +338,7 @@ export class ReferenceService {
   /**
    * Export paper entities.
    * @param paperEntities - The paper entities.
-   * @param format - The export format.
+   * @param format - The export format: "BibTex" | "BibTex-Key" | "PlainText"
    */
   @errorcatching("Failed to export paper entities.", true, "ReferenceService")
   async export(paperEntities: PaperEntity[], format: string) {
@@ -359,7 +370,7 @@ export class ReferenceService {
 
   /**
    * Load CSL styles.
-   * @returns - The CSL styles.
+   * @returns The CSL styles.
    */
   @errorcatching("Failed to load CSL styles.", true, "ReferenceService", [])
   async loadCSLStyles(): Promise<{ key: string; name: string }[]> {

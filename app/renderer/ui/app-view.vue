@@ -266,7 +266,7 @@ disposable(
 // Dev Functions
 // ================================
 const onAddDummyClicked = async () => {
-  paperService.addDummyData();
+  // paperService.addDummyData();
 };
 const onAddFromFileClicked = async () => {
   await paperService.create([`${process.cwd()}/tests/pdfs/cs/1.pdf`]);
@@ -278,7 +278,7 @@ const onAddFromFilesClicked = async () => {
   ]);
 };
 const onRemoveAllClicked = async () => {
-  paperService.removeAll();
+  // paperService.removeAll();
 };
 const onReloadAllClicked = async () => {
   await reloadPaperEntities();

@@ -25,6 +25,12 @@ export class UISlotService extends Eventable<IUISlotState> {
     });
   }
 
+  /**
+   * Update a slot with the given patch
+   * @param slotID - The slot to update
+   * @param patch - The patch to apply to the slot
+   * @returns
+   */
   updateSlot(slotID: keyof IUISlotState, patch: { [id: string]: any }) {
     const currentSlot = this.getState(slotID);
 

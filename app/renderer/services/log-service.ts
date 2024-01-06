@@ -90,8 +90,8 @@ export class LogService extends Eventable<ILogEventState> {
    * Log info to the console and the log file.
    * @param {string} level - Log level
    * @param {string} msg - Message to log
-   * @param {string} additional - Additional message to log
-   * @param {boolean} notify - Show notification
+   * @param {string?} additional - Additional message to log
+   * @param {boolean?} notify - Show notification, default: false
    * @param {string?} id - ID of the log */
   log(
     level: "info" | "warn" | "error",
@@ -179,8 +179,8 @@ export class LogService extends Eventable<ILogEventState> {
   /**
    * Log info to the console and the log file.
    * @param {string} msg - Message to log
-   * @param {string} additional - Additional message to log
-   * @param {boolean} notify - Show notification
+   * @param {string?} additional - Additional message to log
+   * @param {boolean?} notify - Show notification, default: false
    * @param {string?} id - ID of the log */
   info(
     msg: string,
@@ -207,8 +207,8 @@ export class LogService extends Eventable<ILogEventState> {
   /**
    * Log warning to the console and the log file.
    * @param {string} msg - Message to log
-   * @param {string} additional - Additional message to log
-   * @param {boolean} notify - Show notification
+   * @param {string?} additional - Additional message to log
+   * @param {boolean?} notify - Show notification, default: false
    * @param {string?} id - ID of the log */
   warn(
     msg: string,
@@ -234,8 +234,8 @@ export class LogService extends Eventable<ILogEventState> {
   /**
    * Log error to the console and the log file.
    * @param {string} msg - Message to log
-   * @param {string} additional - Additional message to log
-   * @param {boolean} notify - Show notification
+   * @param {(string | Error)?} additional - Additional message to log, can be an Error object
+   * @param {boolean?} notify - Show notification, default: false
    * @param {string?} id - ID of the log */
   error(
     msg: string,
@@ -278,7 +278,7 @@ export class LogService extends Eventable<ILogEventState> {
    * Log progress to the console and the log file.
    * @param {string} msg - Message to log
    * @param {number} value - Progress value
-   * @param {boolean} notify - Show notification
+   * @param {boolean?} notify - Show notification, default: false
    * @param {string?} id - ID of the log */
   progress(
     msg: string,

@@ -1,8 +1,8 @@
 import { ObjectId } from "bson";
 import { promises } from "fs";
 import md5 from "md5-file";
-import * as pdfjs from "pdfjs-dist/build/pdf.mjs";
-import { TextItem } from "pdfjs-dist/types/src/display/api";
+import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
+import type { TextItem } from "pdfjs-dist/types/src/display/api";
 import { PrimaryKey, Results } from "realm";
 
 import {
@@ -136,7 +136,7 @@ export class CacheService {
       );
     }
     // 2. Update the cache
-    if (pdfjs.GlobalWorkerOptions.workerPort === null) {
+    if (GlobalWorkerOptions.workerPort === null) {
       const pdfWorker = new Worker(
         new URL(
           "../../../node_modules/pdfjs-dist/build/pdf.worker.mjs",
@@ -144,7 +144,7 @@ export class CacheService {
         ),
         { type: "module" }
       );
-      pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
+      GlobalWorkerOptions.workerPort = pdfWorker;
     }
 
     const createPromise = async (paperEntity: PaperEntity) => {
@@ -177,7 +177,7 @@ export class CacheService {
       if (!url) {
         return "";
       }
-      const pdf = await pdfjs.getDocument(
+      const pdf = await getDocument(
         constructFileURL(
           url,
           true,
@@ -223,7 +223,7 @@ export class CacheService {
   @errorcatching("Failed to update fulltext cache.", true, "CacheService")
   async updateFullTextCache(paperEntities: IPaperEntityCollection) {
     const realm = await this._cacheDatabaseCore.realm();
-    if (pdfjs.GlobalWorkerOptions.workerPort === null) {
+    if (GlobalWorkerOptions.workerPort === null) {
       const pdfWorker = new Worker(
         new URL(
           "../../../node_modules/pdfjs-dist/build/pdf.worker.mjs",
@@ -231,7 +231,7 @@ export class CacheService {
         ),
         { type: "module" }
       );
-      pdfjs.GlobalWorkerOptions.workerPort = pdfWorker;
+      GlobalWorkerOptions.workerPort = pdfWorker;
     }
 
     const updatePromise = async (paperEntity: PaperEntity) => {
@@ -341,6 +341,10 @@ export class CacheService {
   // ========================
   // Delete
   // ========================
+  /**
+   * Delete the cache of the provided paper entity ids.
+   * @param ids - The ids of the paper entities to delete the cache of.
+   */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete cache.", true, "CacheService")
   async delete(ids: OID[]) {

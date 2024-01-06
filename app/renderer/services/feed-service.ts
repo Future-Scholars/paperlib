@@ -169,8 +169,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
   /**
    * Load feeds.
-   * @param sortBy Sort by.
-   * @param sortOrder Sort order.
+   * @param sortBy - Sort by.
+   * @param sortOrder - Sort order.
+   * @returns Feeds.
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to load feeds.", true, "FeedService", [])
@@ -187,11 +188,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
   /**
    * Load feed entities from the database.
-   * @param search Search string.
-   * @param feed Feed name.
-   * @param unread Whether to load only unread entities.
-   * @param sortBy Sort by.
-   * @param sortOrder Sort order.
+   * @param filter - Filter.
+   * @param sortBy - Sort by.
+   * @param sortOrder - Sort order.
    * @returns Feed entities.
    */
   @processing(ProcessingKey.General)
@@ -218,9 +217,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
   }
 
   /**
-   * Update a feed.
-   * @param feed Feed.
-   * returns
+   * Update feeds.
+   * @param feeds - Feeds.
+   * @returns Updated feeds.
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update feeds.", true, "FeedService", [])
@@ -254,7 +253,8 @@ export class FeedService extends Eventable<IFeedServiceState> {
   /**
    * Update feed entities.
    * @param feedEntities - Feed entities
-   * @returns
+   * @param ignoreReadState - Ignore read state. Default: false.
+   * @returns Updated feed entities.
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update feed entities.", true, "FeedService", [])
@@ -289,9 +289,8 @@ export class FeedService extends Eventable<IFeedServiceState> {
   }
 
   /**
-   * Create a feed.
-   * @param feed Feed.
-   * @returns
+   * Create feeds.
+   * @param feeds - Feeds
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to create feeds.", true, "FeedService", [])
@@ -306,7 +305,8 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
   /**
    * Refresh feeds.
-   * @param feed Feed.
+   * @param ids - Feed ids
+   * @param feeds - Feeds
    * @returns
    */
   @processing(ProcessingKey.General)
@@ -374,10 +374,9 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
   /**
    * Colorize a feed.
-   * @param color Color.
-   * @param name Feed name.
-   * @param feed Feed.
-   * @returns
+   * @param color - Color
+   * @param id - Feed ID
+   * @param feed - Feed
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to colorize feeds.", true, "FeedService", [])
@@ -395,9 +394,8 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
   /**
    * Delete a feed.
-   * @param name Feed name.
-   * @param feed Feed.
-   * @returns
+   * @param ids - Feed IDs
+   * @param feeds - Feeds
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete feeds.", true, "FeedService", [])
@@ -448,8 +446,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
   /**
    * Add feed entities to library.
-   * @param feedEntities
-   * @returns
+   * @param feedEntities - Feed entities
    */
   @errorcatching("Failed to add feed entities to library.", true, "FeedService")
   async addToLib(feedEntities: IFeedEntityCollection) {

@@ -114,6 +114,13 @@ export class ShortcutService {
     });
   }
 
+  /**
+   * Register a shortcut.
+   * @param code - Shortcut code.
+   * @param handler - Shortcut handler.
+   * @param preventDefault - Whether to prevent default behavior.
+   * @param stopPropagation - Whether to stop propagation.
+   * @returns Unregister function. */
   register(
     code: string,
     handler: (...args: any[]) => void,
@@ -143,6 +150,13 @@ export class ShortcutService {
     };
   }
 
+  /**
+   * Register a shortcut that is still working in input field.
+   * @param code - Shortcut code.
+   * @param handler - Shortcut handler.
+   * @param preventDefault - Whether to prevent default behavior.
+   * @param stopPropagation - Whether to stop propagation.
+   * @returns Unregister function. */
   registerInInputField(
     code: string,
     handler: (...args: any[]) => void,
