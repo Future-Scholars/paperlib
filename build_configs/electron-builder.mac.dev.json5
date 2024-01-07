@@ -2,7 +2,7 @@
  * @see https://www.electron.build/configuration/configuration
  */
 {
-  appId: "dev.paperlibdev.app",
+  appId: "dev.beta.paperlib.app",
   productName: "PaperlibDev",
   asar: true,
   publish: [
@@ -15,7 +15,7 @@
     output: "release/${version}",
   },
   mac: {
-    icon: "./icons/icon.icns",
+    icon: "./icon_beta.icns",
     artifactName: "${productName}_${version}.${ext}",
     target: ["dmg", "zip"],
   },

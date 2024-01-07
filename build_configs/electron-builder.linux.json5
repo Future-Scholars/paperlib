@@ -15,7 +15,7 @@
     output: "release/${version}",
   },
   linux: {
-    icon: "./icons/icon.icns",
+    icon: "./icon.icns",
     artifactName: "${productName}_${version}.${ext}",
     target: ["AppImage"],
   },

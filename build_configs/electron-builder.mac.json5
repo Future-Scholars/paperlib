@@ -15,7 +15,7 @@
     output: "release/${version}",
   },
   mac: {
-    icon: "./icons/icon.icns",
+    icon: "./icon.icns",
     artifactName: "${productName}_${version}.${ext}",
     target: ["dmg", "zip"],
     releaseInfo: {
