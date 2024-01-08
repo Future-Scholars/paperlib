@@ -11,7 +11,6 @@ import { Ref, onMounted, onUnmounted, ref } from "vue";
 import Spinner from "../components/spinner.vue";
 import ExtensionCard from "./components/extension-card.vue";
 import ExtensionSetting from "./components/extension-setting.vue";
-import { disposable } from "@/base/dispose";
 import { nextTick } from "vue";
 
 const installedExtensions = ref<{
@@ -54,6 +53,7 @@ const isMarketLoading = ref(false);
 const isMarketHotShown = ref(true);
 const marketSearchText = ref("");
 const installingExtIDs: Ref<string[]> = ref([]);
+const memUsage = ref(0);
 
 let extManagementListenCallback: (() => void) | null = null;
 const listenExtensionManagementStateChange = async () => {
@@ -222,10 +222,12 @@ onMounted(() => {
     installedExtensions.value =
       await PLExtAPI.extensionManagementService.installedExtensions();
     await listenExtensionManagementStateChange();
+
+    memUsage.value = await PLExtAPI.extensionManagementService.memoryUsage();
   });
 });
 
-onUnmounted(() => {
+onUnmounted(async () => {
   onCloseExtensionPreferenceClicked();
   extManagementListenCallback?.();
 });
@@ -416,5 +418,11 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- <div class="flex justify-end">
+      <div class="text-xs text-neutral-400 dark:text-neutral-500">
+        Memory Usage {{ memUsage.toFixed(2) }} MB
+      </div>
+    </div> -->
   </div>
 </template>

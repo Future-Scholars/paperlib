@@ -448,6 +448,10 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     }
   }
 
+  /**
+   * Get the status of the official scrape extension.
+   * @returns "uninstalled" | "unloaded" | "loaded"
+   */
   isOfficialScrapeExtensionInstalled() {
     if (
       this._extStore.has("@future-scholars/paperlib-entry-scrape-extension") &&
@@ -468,5 +472,11 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     } else {
       return "uninstalled";
     }
+  }
+
+  memoryUsage() {
+    const mem = process.memoryUsage();
+
+    return mem.rss / 1024 / 1024;
   }
 }
