@@ -42,11 +42,11 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-        run: |
-          npm install -g pnpm
 
       - name: "Install Node Module"
-        run: pnpm install
+        run: |
+          npm install -g pnpm
+          pnpm install
 
       - name: "Build and Package"
         run: pnpm run build-mac-x86-dev
@@ -100,11 +100,11 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-        run: |
-          npm install -g pnpm
 
       - name: "Install Node Module"
-        run: pnpm install
+        run: |
+          npm install -g pnpm
+          pnpm install
 
       - name: "Build and Package"
         run: pnpm run build-mac-arm-dev
@@ -166,11 +166,11 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-        run: |
-          npm install -g pnpm
 
       - name: "Install Node Module"
-        run: pnpm install
+        run: |
+          npm install -g pnpm
+          pnpm install
 
       - name: "Build and Package"
         run: pnpm run build-win-dev
@@ -219,11 +219,11 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-        run: |
-          npm install -g pnpm
 
       - name: "Install Node Module"
-        run: pnpm install
+        run: |
+          npm install -g pnpm
+          pnpm install
 
       - name: "Build and Package"
         run: pnpm run build-linux-dev
