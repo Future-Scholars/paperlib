@@ -1,6 +1,7 @@
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
 import { PaperEntity } from "@/models/paper-entity";
 import { HookService, IHookService } from "@/renderer/services/hook-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
@@ -37,6 +38,49 @@ export class ScrapeService extends Eventable<{}> {
     super("scrapeService", {});
   }
 
+  private async _scrapeExtensionReady() {
+    const extensionAPIExposed = await rendererRPCService.waitForAPI(
+      Process.extension,
+      "PLExtAPI",
+      5000
+    );
+
+    if (!extensionAPIExposed) {
+      this._logService.warn(
+        "Official scrape extension is not installed yet.",
+        "",
+        true,
+        "ScrapeService"
+      );
+    } else {
+      let status =
+        await PLExtAPI.extensionManagementService.isOfficialScrapeExtensionInstalled();
+
+      if (status === "loaded") {
+        return true;
+      } else if (status === "unloaded") {
+        for (let i = 0; i < 15; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          status =
+            await PLExtAPI.extensionManagementService.isOfficialScrapeExtensionInstalled();
+
+          if (status === "loaded") {
+            break;
+          }
+        }
+      }
+
+      if (status !== "loaded") {
+        this._logService.warn(
+          "Official scrape extension is not installed yet.",
+          "",
+          true,
+          "ScrapeService"
+        );
+      }
+    }
+  }
+
   /**
    * Scrape a data source's metadata.
    * @param payloads - data source payloads.
@@ -50,6 +94,9 @@ export class ScrapeService extends Eventable<{}> {
     specificScrapers: string[],
     force: boolean = false
   ): Promise<PaperEntity[]> {
+    // 0. Wait for scraper extension to be ready.
+    await this._scrapeExtensionReady();
+
     // 1. Entry scraper transforms data source payloads into a PaperEntity list.
     const paperEntityDrafts = await this.scrapeEntry(payloads);
 
@@ -147,7 +194,7 @@ export class ScrapeService extends Eventable<{}> {
       [scrapedPaperEntityDrafts, scrapers, force] =
         await this._hookService.modifyHookPoint(
           "scrapeMetadata",
-          5000,
+          16000,
           paperEntityDrafts,
           scrapers,
           force

@@ -39,6 +39,7 @@ interface IExtensionManagementServiceState {
   uninstalled: string;
   reloading: string;
   reloaded: string;
+  installedLoaded: boolean;
 }
 
 export class ExtensionManagementService extends Eventable<IExtensionManagementServiceState> {
@@ -62,6 +63,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
       uninstalled: "",
       reloading: "",
       reloaded: "",
+      installedLoaded: false,
     });
     this._extStore = new ElectronStore({
       name: "extensions",
@@ -89,19 +91,29 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
       "ExtManagementService"
     );
 
+    const promises: Promise<any>[] = [];
+
     for (const [ie, extInfo] of Object.entries(this._extStore.store)) {
-      try {
-        this.install(extInfo.originLocation || extInfo.id, false);
-      } catch (e) {
-        console.error(e);
-        PLAPI.logService.error(
-          `Failed to load installed extension ${extInfo.id}`,
-          e as Error,
-          true,
-          "ExtManagementService"
-        );
-      }
+      promises.push(
+        new Promise(async (resolve, reject) => {
+          try {
+            await this.install(extInfo.originLocation || extInfo.id, false);
+          } catch (e) {
+            console.error(e);
+            PLAPI.logService.error(
+              `Failed to load extension ${extInfo.id}`,
+              e as Error,
+              true,
+              "ExtManagementService"
+            );
+          }
+          resolve(true);
+        })
+      );
     }
+
+    await Promise.all(promises);
+    this.fire({ installedLoaded: true });
   }
 
   /**
@@ -365,6 +377,9 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
           };
           author?: { name: string };
           description?: string;
+          links: {
+            homepage?: string;
+          };
         };
       }[];
 
@@ -376,6 +391,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
           author: string;
           verified: boolean;
           description: string;
+          homepage?: string;
         };
       } = {};
 
@@ -389,6 +405,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
             : pkg.package.publisher.username,
           verified: pkg.package.name.startsWith("@future-scholars/"),
           description: pkg.package.description || "",
+          homepage: pkg.package.links.homepage,
         };
       }
 
@@ -428,6 +445,28 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
         "ExtManagementService"
       );
       throw e;
+    }
+  }
+
+  isOfficialScrapeExtensionInstalled() {
+    if (
+      this._extStore.has("@future-scholars/paperlib-entry-scrape-extension") &&
+      this._extStore.has("@future-scholars/paperlib-metadata-scrape-extension")
+    ) {
+      if (
+        this._installedExtensions[
+          "@future-scholars/paperlib-entry-scrape-extension"
+        ] !== undefined &&
+        this._installedExtensions[
+          "@future-scholars/paperlib-metadata-scrape-extension"
+        ] !== undefined
+      ) {
+        return "loaded";
+      } else {
+        return "unloaded";
+      }
+    } else {
+      return "uninstalled";
     }
   }
 }

@@ -44,6 +44,7 @@ const marketExtensions = ref<{
     author: string;
     verified: boolean;
     description: string;
+    homepage?: string;
   };
 }>({});
 
@@ -359,6 +360,7 @@ onUnmounted(() => {
             :version="extension.version"
             :author="extension.author"
             :description="extension.description"
+            :homepage="extension.homepage"
             :installed="false"
             :installing="installingExtIDs.includes(extension.id)"
             @event:install="installExtension(extension.id)"
