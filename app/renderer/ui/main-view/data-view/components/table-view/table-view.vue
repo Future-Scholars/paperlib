@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PropType, ref } from "vue";
+import { PropType, onMounted, ref } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
@@ -7,6 +7,7 @@ import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entit
 import PaperTableItem from "./components/paper-table-item.vue";
 import TableHeader from "./components/table-header.vue";
 import { OID } from "@/models/id";
+import { disposable } from "@/base/dispose";
 
 const props = defineProps({
   entities: {
@@ -53,7 +54,9 @@ const props = defineProps({
 
 // ================
 // State
+const prefState = preferenceService.useState();
 const lastSelectedSingleIndex = ref<number>(-1);
+const itemSize = ref(28);
 
 // =================
 // Event handlers
@@ -121,6 +124,16 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
   }
   emits("event:drag", selectedIndex);
 };
+
+disposable(
+  preferenceService.onChanged("fontsize", (newValue) => {
+    itemSize.value = { normal: 28, large: 32, larger: 34 }[newValue.value];
+  })
+);
+
+onMounted(() => {
+  itemSize.value = { normal: 28, large: 32, larger: 34 }[prefState.fontsize];
+});
 </script>
 
 <template>
@@ -137,7 +150,7 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
     <RecycleScroller
       class="scroller h-full table-body"
       :items="entities"
-      :item-size="28"
+      :item-size="itemSize"
       key-field="id"
       v-slot="{ item, index }"
       :buffer="300"

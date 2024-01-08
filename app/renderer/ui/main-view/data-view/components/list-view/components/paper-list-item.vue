@@ -41,13 +41,21 @@ const props = defineProps({
     type: String,
     default: "asce",
   },
+  height: {
+    type: Number,
+    default: 64,
+  },
 });
 </script>
 
 <template>
   <div
-    class="flex flex-col h-[4rem] w-full p-2 rounded-md select-none cursor-pointer"
-    :class="active ? 'bg-accentlight dark:bg-accentdark' : ''"
+    class="flex flex-col w-full p-2 rounded-md select-none cursor-pointer"
+    :class="
+      active
+        ? `bg-accentlight dark:bg-accentdark h-[${height}px]`
+        : `h-[${height}px]`
+    "
   >
     <div class="flex space-x-2">
       <!-- <div

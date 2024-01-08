@@ -151,6 +151,14 @@ const reloadFeedEntities = async () => {
 };
 disposable(feedService.on("entitiesUpdated", () => reloadFeedEntities()));
 
+const changeFontsize = (fontsize: string) => {
+  const html = document.querySelector("html");
+  if (html) {
+    html.style.fontSize =
+      { normal: 100, large: 115, larger: 120 }[fontsize] + "%";
+  }
+};
+
 // ================================
 // Register State
 // ================================
@@ -262,6 +270,12 @@ disposable(
   })
 );
 
+disposable(
+  preferenceService.onChanged("fontsize", (newValue) => {
+    changeFontsize(newValue.value);
+  })
+);
+
 // ================================
 // Dev Functions
 // ================================
@@ -334,6 +348,8 @@ disposable(
 // ================================
 onMounted(async () => {
   nextTick(async () => {
+    changeFontsize(prefState.fontsize);
+
     isWhatsNewShown.value =
       prefState.lastVersion !==
       (await PLMainAPI.upgradeService.currentVersion());

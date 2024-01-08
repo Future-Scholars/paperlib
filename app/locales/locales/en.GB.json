@@ -167,7 +167,12 @@
     "install": "Install",
     "installdone": "Done",
     "exportcsv": "Export CSV",
-    "exportcsvintro": "Export the entire library to a CSV file."
+    "exportcsvintro": "Export the entire library to a CSV file.",
+    "fontsize": "Font Size",
+    "fontsizeintro": "The font size of the UI.",
+    "fontnormal": "Normal",
+    "fontlarge": "Large",
+    "fontlarger": "Larger"
   },
   "confirmation": {
     "title": "Confirmation",

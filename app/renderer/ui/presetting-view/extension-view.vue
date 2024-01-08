@@ -143,13 +143,13 @@ onUnmounted(() => {
         v-for="[extID, installed] of Object.entries(defaultExtensions)"
       >
         <div
-          class="text-xxs my-auto bg-neutral-200 dark:bg-neutral-700 w-14 text-center rounded-sm cursor-none"
+          class="text-xxs my-auto bg-neutral-200 dark:bg-neutral-700 w-14 text-center rounded cursor-none"
           v-if="installed === 't'"
         >
           {{ $t("preference.extensioninstalled") }}
         </div>
         <div
-          class="text-xxs my-auto cursor-pointer bg-neutral-500 hover:bg-neutral-600 text-neutral-100 w-14 text-center rounded-sm"
+          class="text-xxs my-auto cursor-pointer bg-neutral-500 hover:bg-neutral-600 text-neutral-100 w-14 text-center rounded"
           v-else-if="installed === 'f'"
           @click="installExtension(extID)"
         >
@@ -163,7 +163,7 @@ onUnmounted(() => {
     </div>
 
     <div class="text-sm font-bold text-neutral-600 dark:text-neutral-300 mb-4">
-      {{ $t("presetting.extensionother") }}
+      {{ $t("presetting.extensionrecommend") }}
     </div>
     <div class="flex text-xs flex-col space-y-2">
       <div
@@ -171,13 +171,13 @@ onUnmounted(() => {
         v-for="[extID, installed] of Object.entries(recommandedExtensions)"
       >
         <div
-          class="text-xxs my-auto bg-neutral-200 dark:bg-neutral-700 w-14 text-center rounded-sm cursor-none"
+          class="text-xxs my-auto bg-neutral-200 dark:bg-neutral-700 w-14 text-center rounded cursor-none"
           v-if="installed === 't'"
         >
           {{ $t("preference.extensioninstalled") }}
         </div>
         <div
-          class="text-xxs my-auto cursor-pointer bg-neutral-500 hover:bg-neutral-600 text-neutral-100 w-14 text-center rounded-sm"
+          class="text-xxs my-auto cursor-pointer bg-neutral-500 hover:bg-neutral-600 text-neutral-100 w-14 text-center rounded"
           v-else-if="installed === 'f'"
           @click="installExtension(extID)"
         >

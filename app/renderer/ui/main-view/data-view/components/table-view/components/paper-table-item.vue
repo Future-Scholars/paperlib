@@ -50,14 +50,14 @@ const props = defineProps({
 
 <template>
   <div
-    class="flex w-full h-7 py-1 text-xs rounded-md select-none cursor-pointer"
+    class="flex w-full py-1 text-xs rounded-md select-none cursor-pointer h-7"
     :class="
       (striped && !active
-        ? 'bg-neutral-100 dark:bg-neutral-700 dark:bg-opacity-40'
-        : '') +
+        ? `bg-neutral-100 dark:bg-neutral-700 dark:bg-opacity-40`
+        : ``) +
       (active
-        ? 'bg-accentlight dark:bg-accentdark dark:bg-opacity-100 text-white'
-        : '')
+        ? `bg-accentlight dark:bg-accentdark dark:bg-opacity-100 text-white`
+        : ``)
     "
   >
     <div class="my-auto pl-2 pr-1 flex" :style="`width: ${fieldWidth.title}%`">

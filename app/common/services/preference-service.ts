@@ -109,6 +109,7 @@ export interface IPreferenceStore {
   importedCSLStylesPath: string;
 
   showPresetting: boolean;
+  fontsize: "normal" | "large" | "larger";
 }
 
 const _defaultPreferences: IPreferenceStore = {
@@ -211,6 +212,7 @@ const _defaultPreferences: IPreferenceStore = {
   importedCSLStylesPath: "",
 
   showPresetting: true,
+  fontsize: "normal",
 };
 
 function _migrate(

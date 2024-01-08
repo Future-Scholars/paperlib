@@ -227,6 +227,23 @@ const onChangeLanguage = (language: string) => {
       "
     />
 
+    <Options
+      class="mb-5"
+      :title="$t('preference.fontsize')"
+      :info="$t('preference.fontsizeintro')"
+      :selected="prefState.fontsize"
+      :options="{
+        normal: $t('preference.fontnormal'),
+        large: $t('preference.fontlarge'),
+        larger: $t('preference.fontlarger'),
+      }"
+      @event:change="
+        (value) => {
+          updatePrefs('fontsize', value);
+        }
+      "
+    />
+
     <Toggle
       class="mb-5"
       :title="$t('preference.invertpreviewcolor')"

@@ -6,6 +6,8 @@ import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entit
 
 import PaperListItem from "./components/paper-list-item.vue";
 import { OID } from "@/models/id";
+import { disposable } from "@/base/dispose";
+import { onMounted } from "vue";
 
 const props = defineProps({
   entities: {
@@ -37,7 +39,9 @@ const props = defineProps({
 // ================
 // State
 // ================
+const prefState = preferenceService.useState();
 const lastSelectedSingleIndex = ref<number>(-1);
+const itemSize = ref(64);
 
 // =================
 // Event handlers
@@ -103,6 +107,16 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
 
   emits("event:drag", selectedIndex);
 };
+
+disposable(
+  preferenceService.onChanged("fontsize", (newValue) => {
+    itemSize.value = { normal: 64, large: 72, larger: 78 }[newValue.value];
+  })
+);
+
+onMounted(() => {
+  itemSize.value = { normal: 64, large: 72, larger: 78 }[prefState.fontsize];
+});
 </script>
 
 <template>
@@ -110,13 +124,14 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
     <RecycleScroller
       class="scroller max-h-[calc(100vh-3rem)]"
       :items="entities"
-      :item-size="64"
+      :item-size="itemSize"
       key-field="id"
       v-slot="{ item, index }"
       :buffer="500"
     >
       <PaperListItem
         :id="item.id"
+        :height="itemSize"
         :item="item"
         :field-enable="fieldEnable"
         :active="selectedIndex.indexOf(index) >= 0"
