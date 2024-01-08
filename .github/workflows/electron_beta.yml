@@ -8,6 +8,10 @@ jobs:
   mac_x86_develop:
     runs-on: macos-latest
 
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       matrix:
         node-versions: ["16.17.1"]
@@ -74,14 +78,18 @@ jobs:
       - name: Upload to Oracle Storage
         run: |
           oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/dev_channel/
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/dev_channel/Paperlib\ Beta_${{ env.VERSION }}.zip
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.zip.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/dev_channel/Paperlib\ Beta_${{ env.VERSION }}.zip.blockmap
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/dev_channel/Paperlib\ Beta_${{ env.VERSION }}.dmg
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.dmg.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/dev_channel/Paperlib\ Beta_${{ env.VERSION }}.dmg.blockmap
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/beta-mac.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/dev_channel/beta-mac.yml
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib Beta_${{ env.VERSION }}.zip'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.zip.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib Beta_${{ env.VERSION }}.zip.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib Beta_${{ env.VERSION }}.dmg'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib Beta_${{ env.VERSION }}.dmg.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/beta-mac.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/beta-mac.yml'
 
   mac_arm_develop:
     runs-on: self-hosted
+
+    defaults:
+      run:
+        shell: bash
 
     strategy:
       matrix:
@@ -138,11 +146,11 @@ jobs:
       - name: Upload to Oracle Storage
         run: |
           oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/arm_dev_channel/
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/arm_dev_channel/Paperlib\ Beta_${{ env.VERSION }}.zip
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.zip.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/arm_dev_channel/Paperlib\ Beta_${{ env.VERSION }}.zip.blockmap
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/arm_dev_channel/Paperlib\ Beta_${{ env.VERSION }}.dmg
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.dmg.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/arm_dev_channel/Paperlib\ Beta_${{ env.VERSION }}.dmg.blockmap
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/beta-mac.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/arm_dev_channel/beta-mac.yml
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib Beta_${{ env.VERSION }}.zip'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.zip.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib Beta_${{ env.VERSION }}.zip.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib Beta_${{ env.VERSION }}.dmg'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib Beta_${{ env.VERSION }}.dmg.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/beta-mac.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/beta-mac.yml'
 
       - name: Clean Up
         run: |
@@ -205,12 +213,16 @@ jobs:
       - name: Upload to Oracle Storage
         run: |
           oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/win_dev_channel/
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/Paperlib\ Beta_${{ env.VERSION }}.exe'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.exe.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/Paperlib\ Beta_${{ env.VERSION }}.exe.blockmap'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/beta.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/win_dev_channel/beta.yml
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/Paperlib Beta_${{ env.VERSION }}.exe'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.exe.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/Paperlib Beta_${{ env.VERSION }}.exe.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/beta.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/beta.yml'
 
   linux_develop:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
 
     strategy:
       matrix:
@@ -259,5 +271,5 @@ jobs:
       - name: Upload to Oracle Storage
         run: |
           ~/bin/oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/linux_dev_channel/
-          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.AppImage --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/linux_dev_channel/Paperlib\ Beta_${{ env.VERSION }}.AppImage
-          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/beta-linux.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/linux_dev_channel/beta-linux.yml
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.AppImage' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/linux_dev_channel/Paperlib Beta_${{ env.VERSION }}.AppImage'
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/beta-linux.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/linux_dev_channel/beta-linux.yml'
