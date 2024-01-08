@@ -43,9 +43,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: "Install Node Module"
         run: |
-          npm install -g pnpm
           pnpm install
 
       - name: "Build and Package"
@@ -101,9 +105,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: "Install Node Module"
         run: |
-          npm install -g pnpm
           pnpm install
 
       - name: "Build and Package"
@@ -167,9 +175,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: "Install Node Module"
         run: |
-          npm install -g pnpm
           pnpm install
 
       - name: "Build and Package"
@@ -220,9 +232,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: "Install Node Module"
         run: |
-          npm install -g pnpm
           pnpm install
 
       - name: "Build and Package"
