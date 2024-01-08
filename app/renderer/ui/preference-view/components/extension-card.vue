@@ -3,6 +3,8 @@ import {
   BIconArrowClockwise,
   BIconDownload,
   BIconGear,
+  BIconGlobe,
+  BIconInfoCircle,
   BIconPatchCheckFill,
   BIconTrash3,
 } from "bootstrap-icons-vue";
@@ -14,11 +16,13 @@ defineProps<{
   version: string;
   author: string;
   description: string;
+  homepage?: string;
   installed: boolean;
   installing: boolean;
 }>();
 
 const emits = defineEmits([
+  "event:homepageclicked",
   "event:install",
   "event:uninstall",
   "event:reload",
@@ -28,7 +32,7 @@ const emits = defineEmits([
 
 <template>
   <div
-    class="bg-neutral-200 dark:bg-neutral-700 flex flex-col py-2 px-3 rounded-md shadow-sm justify-between"
+    class="bg-neutral-200 dark:bg-neutral-700 flex flex-col py-2 px-3 rounded-md shadow-sm justify-between hover:bg-neutral-300 hover:dark:bg-neutral-700 transition-colors ease-in-out cursor-pointer duration-75"
   >
     <div class="flex flex-col">
       <div class="flex space-x-2">
@@ -55,6 +59,14 @@ const emits = defineEmits([
       class="flex justify-end space-x-2 text-neutral-400 dark:text-neutral-500"
     >
       <Spinner class="my-auto" v-if="installing" />
+
+      <BIconInfoCircle
+        title="Homepage"
+        class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
+        v-if="homepage"
+        @click="emits('event:homepageclicked')"
+      />
+
       <BIconDownload
         title="Install"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"

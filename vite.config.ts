@@ -1,5 +1,5 @@
 import vue from "@vitejs/plugin-vue";
-import { rmSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import path from "node:path";
 import electron from "vite-plugin-electron";
 import renderer from "vite-plugin-electron-renderer";
@@ -47,6 +47,32 @@ export default {
     : undefined,
 
   plugins: [
+    {
+      name: "rebuild-script",
+      buildStart(options) {
+        console.log("Rebuilding dependencies...");
+        // Electron rebuild for pnpm
+        if (
+          !existsSync(
+            "node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Framework.framework/Electron Framework"
+          )
+        ) {
+          rmSync("node_modules/electron/dist", {
+            recursive: true,
+            force: true,
+          });
+
+          require("child_process").spawnSync(
+            "node",
+            ["node_modules/electron/install.js"],
+            {
+              stdio: "inherit",
+            }
+          );
+        }
+      },
+    },
+
     electron([
       {
         entry: "app/main/main-entry.ts",

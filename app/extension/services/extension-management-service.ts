@@ -25,6 +25,7 @@ interface IExtensionInfo {
   author: string;
   verified: boolean;
   description: string;
+  homepage?: string;
   preference: Map<string, any>;
   location: string;
   originLocation?: string;
@@ -141,6 +142,7 @@ export class ExtensionManagementService {
         author: info.author ? info.author.name : "community",
         verified: info.name.startsWith("@future-scholars/"),
         description: info.description || "",
+        homepage: info.homepage,
         preference:
           this._extensionPreferenceService.getAllMetadata(info.name) || {},
         location: info.location,

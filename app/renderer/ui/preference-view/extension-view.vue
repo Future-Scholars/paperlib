@@ -20,6 +20,7 @@ const installedExtensions = ref<{
     author: string;
     verified: boolean;
     description: string;
+    homepage?: string;
     preference: Map<
       string,
       {
@@ -82,6 +83,7 @@ const editingExtension = ref<{
   author: string;
   verified: boolean;
   description: string;
+  homepage?: string;
   preference: Map<
     string,
     {
@@ -195,6 +197,12 @@ const installExtension = async (id: string) => {
   installingExtID.value = "";
 };
 
+const onOpenHomepageClicked = async (homepage?: string) => {
+  if (homepage && homepage.match(/^(https?|ftp):\/\//)) {
+    await PLAPI.fileService.open(homepage);
+  }
+};
+
 onMounted(async () => {
   installedExtensions.value =
     await PLExtAPI.extensionManagementService.installedExtensions();
@@ -288,8 +296,10 @@ onUnmounted(() => {
           :version="extension.version"
           :author="extension.author"
           :description="extension.description"
+          :homepage="extension.homepage"
           installed
           :installing="false"
+          @event:homepageclicked="onOpenHomepageClicked(extension.homepage)"
           @event:reload="reloadExtension(extension.id)"
           @event:uninstall="uninstallExtension(extension.id)"
           @event:setting="showSettingView(extension.id)"
