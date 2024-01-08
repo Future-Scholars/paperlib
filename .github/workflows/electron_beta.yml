@@ -117,7 +117,7 @@ jobs:
       - name: "Build and Package"
         run: |
           pnpm run build-mac-arm-dev
-          cp ./release/${{ env.VERSION }}/Paperlib \Beta_${{ env.VERSION }}.dmg ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}_arm.dmg
+          cp ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.dmg ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}_arm.dmg
 
       - name: Release
         uses: softprops/action-gh-release@v1
