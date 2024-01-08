@@ -3,7 +3,7 @@
  */
 {
   appId: "dev.beta.paperlib.app",
-  productName: "Paperlib",
+  productName: "Paperlib Beta",
   asar: true,
   publish: [
     {
