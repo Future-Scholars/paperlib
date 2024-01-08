@@ -31,7 +31,9 @@
     "codecommunity": "社区",
     "supplementaries": "附件",
     "citationcount": "被引次数",
-    "smartfilters": "Smart 过滤器"
+    "smartfilters": "Smart 过滤器",
+    "whatsnew": "更新内容",
+    "historyreleasenote": "历史版本"
   },
   "menu": {
     "rescrape": "搜寻元数据",
@@ -89,6 +91,11 @@
     "about": "关于",
     "extension": "插件",
     "extensionmarketplace": "插件市场",
+    "extensioninstall": "安装",
+    "extensioninstalled": "已安装",
+    "extensioninstallfromlocal": "安装自本地",
+    "extensionhotest": "热门",
+    "extensionsearchresult": "搜索结果",
     "library": "文献库",
     "storagefolder": "存储文件夹",
     "storagefolderintro": "选择存储文件夹来存储 PDF 文件以及本地数据库（如果不使用云同步）。",
@@ -177,12 +184,15 @@
     "citekey": "引用键"
   },
   "presetting": {
+    "presetting": "开始设置",
     "restart": "重启 Paperlib",
     "continue": "继续",
     "langintro": "选择你使用的语言",
     "dbintro": "设置数据库",
     "cloudintro": "云同步相关设置请之后在设置面板进行设置。",
-    "scraperintro": "设置元数据搜寻器",
-    "scraperintrosub": "元数据搜寻器是 Paperlib 很重要的组成部分，Paperlib 会在这些数据库里为你的论文匹配元数据。不同学科有不同的组合，我们也在不断为不同学科增加相应的搜寻器，选择适当的搜寻器可以提高匹配的准确性并节省搜索时间。"
+    "scraperintrosub": "Paperlib 会在各个数据库里为你的论文匹配元数据。不同学科有不同的组合，请前往插件设置选择适当的搜寻器可以提高匹配的准确性。",
+    "extensionintro": "我们推荐安装以下插件，来保证 Paperlib 的正常运行。2.0 版本中的所有元数据搜刮器，现已全部以插件形式存在。",
+    "extensionscraper": "元数据搜刮器插件",
+    "extensionrecommened": "推荐插件"
   }
 }

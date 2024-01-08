@@ -31,7 +31,9 @@
     "codecommunity": "Community",
     "supplementaries": "Supplementaries",
     "citationcount": "Citation Count",
-    "smartfilters": "Smart Filters"
+    "smartfilters": "Smart Filters",
+    "whatsnew": "What's New in",
+    "historyreleasenote": "History Release Note"
   },
   "menu": {
     "rescrape": "Scrape",
@@ -88,7 +90,12 @@
     "hotkeys": "Hotkeys",
     "about": "About",
     "extension": "Extensions",
-    "extensionmarketplace": "Extension Marketplace",
+    "extensionmarketplace": "Marketplace",
+    "extensioninstall": "Install",
+    "extensioninstalled": "Installed",
+    "extensioninstallfromlocal": "Install from Local",
+    "extensionhotest": "Hotest",
+    "extensionsearchresult": "Search Results",
     "library": "Library",
     "storagefolder": "Storage Folder",
     "storagefolderintro": " Choose a folder to store paper files (e.g., PDF etc.) and the database files.",
@@ -177,12 +184,15 @@
     "citekey": "Cite Key"
   },
   "presetting": {
+    "presetting": "Presetting",
     "restart": "Close Paperlib",
     "continue": "Continue",
     "langintro": "Choose Your Prefered Language",
     "dbintro": "Setup Your Library",
     "cloudintro": "If you wish to use the cloud sync, please setup it later in the preference panel.",
-    "scraperintro": "Choose Your Prefered Metadata Scrapers",
-    "scraperintrosub": "The metadata scraper is one of the most important part of Paperlib，Paperlib query your paper's metadata from these database. We are continually adding more scrapers for different subjects. Different combinations fit different research topics. Choosing a suitable scraper combination can improve matching accuracy and reduce query time."
+    "scraperintrosub": "Paperlib retrive your paper's metadata from online databases. Please go to the extension preference view to setup them. Choosing a suitable scraper combination can improve matching accuracy and reduce query time.",
+    "extensionintro": "We recommand you to install the following extensions to improve your experience. All metadata scrapers are provided by the extensions in 3.0 version.",
+    "extensionscraper": "Scraper Extensions",
+    "extensionrecommend": "Recommened Extensions"
   }
 }

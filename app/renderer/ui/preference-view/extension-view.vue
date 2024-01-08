@@ -7,10 +7,12 @@ import {
   BIconPatchCheckFill,
   BIconSearch,
 } from "bootstrap-icons-vue";
-import { onMounted, onUnmounted, ref } from "vue";
+import { Ref, onMounted, onUnmounted, ref } from "vue";
 import Spinner from "../components/spinner.vue";
 import ExtensionCard from "./components/extension-card.vue";
 import ExtensionSetting from "./components/extension-setting.vue";
+import { disposable } from "@/base/dispose";
+import { nextTick } from "vue";
 
 const installedExtensions = ref<{
   [id: string]: {
@@ -50,19 +52,25 @@ const isSettingShown = ref(false);
 const isMarketLoading = ref(false);
 const isMarketHotShown = ref(true);
 const marketSearchText = ref("");
-const installingExtID = ref("");
+const installingExtIDs: Ref<string[]> = ref([]);
+
+let extManagementListenCallback: (() => void) | null = null;
+const listenExtensionManagementStateChange = async () => {
+  extManagementListenCallback = PLExtAPI.extensionManagementService.on(
+    ["installed", "reloaded", "uninstalled"],
+    async () => {
+      installedExtensions.value =
+        await PLExtAPI.extensionManagementService.installedExtensions();
+    }
+  );
+};
 
 const reloadExtension = async (id: string) => {
   await PLExtAPI.extensionManagementService.reload(id);
-  installedExtensions.value =
-    await PLExtAPI.extensionManagementService.installedExtensions();
 };
 
 const uninstallExtension = async (id: string) => {
   await PLExtAPI.extensionManagementService.uninstall(id);
-  installedExtensions.value =
-    await PLExtAPI.extensionManagementService.installedExtensions();
-
   editingExtension.value = installedExtensions.value[id];
 };
 
@@ -71,8 +79,6 @@ const onLocalInstallClicked = async () => {
     .filePaths[0];
   if (pickedFolder) {
     await PLExtAPI.extensionManagementService.install(pickedFolder);
-    installedExtensions.value =
-      await PLExtAPI.extensionManagementService.installedExtensions();
   }
 };
 
@@ -179,7 +185,7 @@ const reloadMarket = async () => {
 };
 
 const installExtension = async (id: string) => {
-  installingExtID.value = id;
+  installingExtIDs.value.push(id);
   try {
     await PLExtAPI.extensionManagementService.install(id);
   } catch (e) {
@@ -190,11 +196,7 @@ const installExtension = async (id: string) => {
       "Extension"
     );
   }
-
-  installedExtensions.value =
-    await PLExtAPI.extensionManagementService.installedExtensions();
-
-  installingExtID.value = "";
+  installingExtIDs.value = installingExtIDs.value.filter((i) => i !== id);
 };
 
 const onOpenHomepageClicked = async (homepage?: string) => {
@@ -203,13 +205,28 @@ const onOpenHomepageClicked = async (homepage?: string) => {
   }
 };
 
-onMounted(async () => {
-  installedExtensions.value =
-    await PLExtAPI.extensionManagementService.installedExtensions();
+onMounted(() => {
+  nextTick(async () => {
+    const PLExtAPIExposed = await rendererRPCService.waitForAPI(
+      Process.extension,
+      "PLExtAPI",
+      5000
+    );
+
+    if (!PLExtAPIExposed) {
+      logService.warn("Extension process is not ready.", "", true, "UIPref");
+      return;
+    }
+
+    installedExtensions.value =
+      await PLExtAPI.extensionManagementService.installedExtensions();
+    await listenExtensionManagementStateChange();
+  });
 });
 
 onUnmounted(() => {
   onCloseExtensionPreferenceClicked();
+  extManagementListenCallback?.();
 });
 </script>
 
@@ -243,14 +260,14 @@ onUnmounted(() => {
           "
           @click="viewMode = 'installed'"
         >
-          Installed
+          {{ $t("preference.extensioninstalled") }}
         </div>
 
         <div
           class="transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300"
           @click="onLocalInstallClicked"
         >
-          Install from Local
+          {{ $t("preference.extensioninstallfromlocal") }}
         </div>
 
         <div
@@ -262,7 +279,7 @@ onUnmounted(() => {
           "
           @click="onMarketClicked"
         >
-          Marketplace
+          {{ $t("preference.extensionmarketplace") }}
         </div>
       </div>
     </div>
@@ -308,7 +325,9 @@ onUnmounted(() => {
       <div class="flex flex-col flex-none" v-else>
         <div class="ml-2 flex space-x-2 mt-4">
           <BIconSearch />
-          <span class="text-sm font-semibold">Search</span>
+          <span class="text-sm font-semibold">
+            {{ $t("mainview.search") }}
+          </span>
         </div>
 
         <input
@@ -322,11 +341,15 @@ onUnmounted(() => {
 
         <div class="ml-2 flex space-x-2" v-if="isMarketHotShown">
           <BIconFire />
-          <span class="text-sm font-semibold">Hotest</span>
+          <span class="text-sm font-semibold">
+            {{ $t("preference.extensionhotest") }}
+          </span>
         </div>
         <div class="ml-2 flex space-x-2" v-else>
           <BIconGlobe />
-          <span class="text-sm font-semibold">Results</span>
+          <span class="text-sm font-semibold">
+            {{ $t("preference.extensionsearchresult") }}
+          </span>
         </div>
         <div class="grid grid-cols-2 p-2 gap-2">
           <ExtensionCard
@@ -337,7 +360,7 @@ onUnmounted(() => {
             :author="extension.author"
             :description="extension.description"
             :installed="false"
-            :installing="installingExtID === extension.id"
+            :installing="installingExtIDs.includes(extension.id)"
             @event:install="installExtension(extension.id)"
           />
         </div>

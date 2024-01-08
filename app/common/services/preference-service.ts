@@ -9,31 +9,6 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { isRendererProcess } from "@/base/process";
 
-export interface IScraperPreference {
-  name: string;
-  category: string;
-  description: string;
-  enable: boolean;
-  custom: boolean;
-  args: string;
-  priority: number;
-  preProcessCode: string;
-  parsingProcessCode: string;
-  scrapeImplCode: string;
-}
-
-export interface IDownloaderPreference {
-  name: string;
-  description: string;
-  enable: boolean;
-  custom: boolean;
-  args: string;
-  priority: number;
-  preProcessCode: string;
-  queryProcessCode: string;
-  downloadImplCode: string;
-}
-
 export interface IPreferenceStore {
   preferenceVersion: number;
   windowSize: { height: number; width: number };
@@ -103,9 +78,6 @@ export interface IPreferenceStore {
 
   lastFeedRefreshTime: number;
 
-  scrapers: Record<string, IScraperPreference>;
-  downloaders: Array<IDownloaderPreference>;
-
   allowproxy: boolean;
   httpproxy: string;
   httpsproxy: string;
@@ -136,9 +108,7 @@ export interface IPreferenceStore {
   selectedCSLStyle: string;
   importedCSLStylesPath: string;
 
-  showPresettingLang: boolean;
-  showPresettingDB: boolean;
-  showPresettingScraper: boolean;
+  showPresetting: boolean;
 }
 
 const _defaultPreferences: IPreferenceStore = {
@@ -232,250 +202,6 @@ const _defaultPreferences: IPreferenceStore = {
   mainviewSortOrder: "desc",
   mainviewType: "list",
 
-  scrapers: {
-    arxiv: {
-      name: "arxiv",
-      category: "general",
-      description: "arXiv.org",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 9,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-
-    doi: {
-      name: "doi",
-      category: "general",
-      description: "DOI.org",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 8,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    dblp: {
-      name: "dblp",
-      category: "cs",
-      description: "DBLP.org",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 7,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    openreview: {
-      name: "openreview",
-      category: "general",
-      description: "OpenReview.net",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 6,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    ieee: {
-      name: "ieee",
-      category: "ee",
-      description: "args: IEEE API Key. https://developer.ieee.org/",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 4,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    semanticscholar: {
-      name: "semanticscholar",
-      category: "general",
-      description: "semanticscholar.org",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 3.5,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    crossref: {
-      name: "crossref",
-      category: "general",
-      description: "crossref.org",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 3,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    googlescholar: {
-      name: "googlescholar",
-      category: "general",
-      description: "Google Scholar",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 2,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    pwc: {
-      name: "pwc",
-      category: "cs",
-      description: "paperwithcode.com",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 1,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    scopus: {
-      name: "scopus",
-      category: "general",
-      description: "Elsevier Scopus",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 1,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    adsabs: {
-      name: "adsabs",
-      category: "phys",
-      description: "NASA Astrophysics Data System",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 1,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    springer: {
-      name: "springer",
-      category: "general",
-      description: "Springer Nature",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 1,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    spie: {
-      name: "spie",
-      category: "phys",
-      description: "Inte. Society for Optics and Photonics",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 1,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    chemrxivprecise: {
-      name: "chemrxivprecise",
-      category: "chem",
-      description: "ChemRxiv.org by DOI",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 1,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    chemrxivfuzzy: {
-      name: "chemrxivfuzzy",
-      category: "chem",
-      description: "ChemRxiv.org by title",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 1,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-    pubmed: {
-      name: "pubmed",
-      category: "bio / med",
-      description: "PubMed",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 1,
-      preProcessCode: "",
-      parsingProcessCode: "",
-      scrapeImplCode: "",
-    },
-  },
-
-  downloaders: [
-    {
-      name: "arxiv",
-      description: "ArXiv.org",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 10,
-      preProcessCode: "",
-      queryProcessCode: "",
-      downloadImplCode: "",
-    },
-    {
-      name: "semanticscholar",
-      description: "semanticscholar.org",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 9,
-      preProcessCode: "",
-      queryProcessCode: "",
-      downloadImplCode: "",
-    },
-    {
-      name: "x-hub",
-      description: "XXX-hub, fill the url in args.",
-      enable: false,
-      custom: false,
-      args: "",
-      priority: 9,
-      preProcessCode: "",
-      queryProcessCode: "",
-      downloadImplCode: "",
-    },
-    {
-      name: "unpaywall",
-      description:
-        "Unpaywall, fill your email in args to remove the rate limits.",
-      enable: true,
-      custom: false,
-      args: "",
-      priority: 8,
-      preProcessCode: "",
-      queryProcessCode: "",
-      downloadImplCode: "",
-    },
-  ],
-
   pluginLinkedFolder: "",
 
   selectedPDFViewer: "default",
@@ -484,15 +210,16 @@ const _defaultPreferences: IPreferenceStore = {
   selectedCSLStyle: "apa",
   importedCSLStylesPath: "",
 
-  showPresettingLang: true,
-  showPresettingDB: true,
-  showPresettingScraper: true,
+  showPresetting: true,
 };
 
 function _migrate(
   store: ElectronStore<IPreferenceStore>,
   preferenceVersion: number
 ) {
+  // Versions:
+  // 0: Paperlib < 3.0.0
+  // 1: Paperlib >= 3.0.0
   const prevVersion = store.has("preferenceVersion")
     ? store.get("preferenceVersion")
     : 0;
@@ -505,57 +232,13 @@ function _migrate(
       }
     }
 
-    // depracated scrapers
-    const existingScraperArray = store.get(
-      "scrapers"
-    ) as unknown as IScraperPreference[];
-
-    if (existingScraperArray && !!existingScraperArray[Symbol.iterator]) {
-      store.set("scrapers", _defaultPreferences.scrapers);
-      const newScraperRecord = store.get("scrapers");
-
-      for (const existingScraper of existingScraperArray) {
-        if (existingScraper.name === "cvf") {
-          continue;
-        }
-        newScraperRecord[existingScraper.name] = existingScraper;
-        newScraperRecord[existingScraper.name].category =
-          _defaultPreferences.scrapers[existingScraper.name]?.category ||
-          "custom";
+    // depracated scrapers, downloaders etc.
+    for (const key of Object.keys(store.store)) {
+      if (!_defaultPreferences.hasOwnProperty(key)) {
+        try {
+          store.delete(key as keyof IPreferenceStore);
+        } catch (e) {}
       }
-      store.set("scrapers", newScraperRecord);
-    }
-
-    if (store.get("scrapers")) {
-      const newScraperRecord = store.get("scrapers");
-      try {
-        for (const key of ["pdf", "paperlib", "chemrxiv", "biomedrxiv"]) {
-          if (newScraperRecord[key]) {
-            // @ts-ignore
-            newScraperRecord[key] = undefined;
-          }
-        }
-        store.set("scrapers", newScraperRecord);
-      } catch (e) {
-        console.log(e);
-      }
-    }
-
-    const existingDownloaderArray = store.get(
-      "downloaders"
-    ) as unknown as IDownloaderPreference[];
-
-    if (existingDownloaderArray) {
-      for (const defaultDownloader of _defaultPreferences.downloaders) {
-        if (
-          !existingDownloaderArray.find(
-            (downloader) => downloader.name === defaultDownloader.name
-          )
-        ) {
-          existingDownloaderArray.push(defaultDownloader);
-        }
-      }
-      store.set("downloaders", existingDownloaderArray);
     }
   }
 

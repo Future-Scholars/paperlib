@@ -61,34 +61,6 @@ export class RendererRPCService extends RPCService<IRendererRPCServiceState> {
     ipcRenderer.postMessage("request-port", this._processID);
   }
 
-  async waitForAPI(
-    processID: string,
-    namespace: string,
-    timeout: number
-  ): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      for (let i = 0; i < timeout / 100; i++) {
-        if (
-          this._protocols[processID] &&
-          this._protocols[processID].exposedAPIs[namespace]
-        ) {
-          resolve(true);
-        } else {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      }
-
-      if (
-        this._protocols[processID] &&
-        this._protocols[processID].exposedAPIs[namespace]
-      ) {
-        resolve(true);
-      } else {
-        resolve(false);
-      }
-    });
-  }
-
   setActionor(actionors: { [key: string]: any }): void {
     this._actionors = actionors;
 

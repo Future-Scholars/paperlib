@@ -135,6 +135,10 @@ async function initialize() {
     messages: locales,
   });
 
+  preferenceService.onChanged("language", (newValue) => {
+    i18n.global.locale = newValue.value;
+  });
+
   app.use(i18n);
   app.mount("#app");
 }

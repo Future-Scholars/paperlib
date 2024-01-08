@@ -9,6 +9,7 @@ import path from "path";
 import { createDecorator } from "@/base/injection/injection";
 import { isLocalPath } from "@/base/url";
 
+import { Eventable } from "@/base/event";
 import {
   ExtensionPreferenceService,
   IExtensionPreferenceService,
@@ -31,7 +32,16 @@ interface IExtensionInfo {
   originLocation?: string;
 }
 
-export class ExtensionManagementService {
+interface IExtensionManagementServiceState {
+  installed: string;
+  installing: string;
+  uninstalling: string;
+  uninstalled: string;
+  reloading: string;
+  reloaded: string;
+}
+
+export class ExtensionManagementService extends Eventable<IExtensionManagementServiceState> {
   private readonly _extStore: ElectronStore<Record<string, IExtensionInfo>>;
   private readonly _extManager: PluginManager;
   private readonly _extensionPreferenceService: ExtensionPreferenceService;
@@ -45,6 +55,14 @@ export class ExtensionManagementService {
     @IExtensionPreferenceService
     extensionPreferenceService: ExtensionPreferenceService
   ) {
+    super("extensionManagementService", {
+      installed: "",
+      installing: "",
+      uninstalling: "",
+      uninstalled: "",
+      reloading: "",
+      reloaded: "",
+    });
     this._extStore = new ElectronStore({
       name: "extensions",
       cwd: globalThis["extensionWorkingDir"],
@@ -100,6 +118,7 @@ export class ExtensionManagementService {
         false,
         "ExtManagementService"
       );
+      this.fire({ installing: extensionIDorPath });
 
       let info: IPluginInfo;
       let installFromFile = false;
@@ -123,13 +142,6 @@ export class ExtensionManagementService {
         extensionID = extensionIDorPath;
         info = await this._extManager.installFromNpm(extensionID);
       }
-
-      PLAPI.logService.info(
-        `Installed extension ${extensionID}`,
-        JSON.stringify(info),
-        false,
-        "ExtManagementService"
-      );
 
       const extension = this._extManager.require(info.name);
 
@@ -157,6 +169,8 @@ export class ExtensionManagementService {
         notify,
         "ExtManagementService"
       );
+
+      this.fire({ installed: extensionIDorPath });
     } catch (e) {
       console.log(e);
       PLAPI.logService.error(
@@ -179,6 +193,7 @@ export class ExtensionManagementService {
    */
   async uninstall(extensionID: string) {
     try {
+      this.fire({ uninstalling: extensionID });
       if (
         this._installedExtensions[extensionID] &&
         this._installedExtensions[extensionID].dispose
@@ -216,6 +231,8 @@ export class ExtensionManagementService {
         true,
         "ExtManagementService"
       );
+
+      this.fire({ uninstalled: extensionID });
     } catch (e) {
       console.error(e);
       PLAPI.logService.error(
@@ -274,6 +291,8 @@ export class ExtensionManagementService {
    */
   async reload(extensionID: string) {
     try {
+      this.fire({ reloading: extensionID });
+
       const location =
         this._installedExtensionInfos[extensionID].originLocation ||
         this._installedExtensionInfos[extensionID].location;
@@ -289,6 +308,8 @@ export class ExtensionManagementService {
         fs.linkSync(location + ".bak", location);
         await this.install(location);
       }
+
+      this.fire({ reloaded: extensionID });
     } catch (e) {
       console.error(e);
       PLAPI.logService.error(

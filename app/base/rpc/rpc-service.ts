@@ -18,6 +18,37 @@ export abstract class RPCService<
     super(eventId, initialState);
   }
 
+  async waitForAPI(
+    processID: string,
+    namespace: string,
+    timeout: number
+  ): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      for (let i = 0; i < timeout / 100; i++) {
+        if (
+          this._protocols[processID] &&
+          this._protocols[processID].exposedAPIs[namespace] &&
+          this._protocols[processID].exposedAPIs[namespace].length > 0
+        ) {
+          resolve(true);
+          break;
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
+
+      if (
+        this._protocols[processID] &&
+        this._protocols[processID].exposedAPIs[namespace] &&
+        this._protocols[processID].exposedAPIs[namespace].length > 0
+      ) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  }
+
   setActionor(actionors: { [key: string]: any }): void {
     this._actionors = actionors;
   }

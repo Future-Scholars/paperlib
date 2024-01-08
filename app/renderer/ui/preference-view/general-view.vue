@@ -189,7 +189,7 @@ const onChangeLanguage = (language: string) => {
           {{ $t("preference.language") }}
         </div>
         <div class="text-xxs text-neutral-600 dark:text-neutral-500">
-          {{ $t("preference.pleaserestart") }}
+          {{ $t("preference.language") }}
         </div>
       </div>
       <div>
