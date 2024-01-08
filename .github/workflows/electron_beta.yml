@@ -2,7 +2,7 @@ name: Beta Testing and Build
 
 on:
   push:
-    tags: [electron*-beta.*]
+    tags: [beta-electron*]
 
 jobs:
   mac_x86_develop:
