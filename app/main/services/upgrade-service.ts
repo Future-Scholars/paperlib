@@ -16,6 +16,8 @@ export interface IUpgradeServiceState {
 export const IUpgradeService = createDecorator("upgradeService");
 
 export class UpgradeService extends Eventable<IUpgradeServiceState> {
+  private _downloadingProgress: number = 0;
+
   constructor() {
     super("upgradeService", {
       checking: 0,
@@ -51,6 +53,7 @@ export class UpgradeService extends Eventable<IUpgradeServiceState> {
     });
 
     autoUpdater.on("update-downloaded", async (info) => {
+      this.fire({ downloading: 100 });
       this.fire("downloaded");
       if (!info.releaseNotes) {
         info.releaseNotes = "";
@@ -75,9 +78,10 @@ export class UpgradeService extends Eventable<IUpgradeServiceState> {
     });
 
     autoUpdater.on("download-progress", (progressObj) => {
-      if (progressObj.percent % 10 === 0) {
+      if (progressObj.percent - this._downloadingProgress > 5) {
         this.fire({ downloading: progressObj.percent });
       }
+      this._downloadingProgress = progressObj.percent;
     });
 
     autoUpdater.checkForUpdates();

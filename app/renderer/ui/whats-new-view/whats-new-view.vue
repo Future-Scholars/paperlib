@@ -37,7 +37,7 @@ const loadHistory = async () => {
   const response = await networkTool.get(
     `https://api.paperlib.app/release-notes/html?lang=${
       preState.language === "zh-CN" ? "CN" : "EN"
-    }&latest=5&branch=dev3.0.0`
+    }&latest=5&branch=dev-3.0.0`
   );
 
   historyReleaseNoteHTML.value = response.body;
