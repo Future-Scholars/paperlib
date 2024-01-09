@@ -71,6 +71,7 @@ jobs:
         run: |
           git clone https://github.com/oracle/oci-cli.git
           cd oci-cli && python3 setup.py install --user
+          mkdir ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode -o config
           mv config ~/.oci
           echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode -o oraclekey.cer
@@ -141,6 +142,7 @@ jobs:
         run: |
           git clone https://github.com/oracle/oci-cli.git
           cd oci-cli && python3 setup.py install --user
+          mkdir ~/.oci
           echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode -o config
           mv config ~/.oci
           echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode -o oraclekey.cer
