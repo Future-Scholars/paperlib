@@ -1,3 +1,7 @@
+## v2.2.9 Jan 09 2024
+
+1. Prepare for version 3.0.
+
 ## v2.2.8 Dec 21 2023
 
 1. Update the certificate for MS Word add-in.

@@ -495,7 +495,7 @@ export class Preference {
 
     // depracated scrapers
     const existingScraperArray = this.store.get(
-      "scrapers",
+      "scrapers"
     ) as unknown as ScraperPreference[];
 
     if (existingScraperArray && !!existingScraperArray[Symbol.iterator]) {
@@ -530,14 +530,14 @@ export class Preference {
     }
 
     const existingDownloaderArray = this.store.get(
-      "downloaders",
+      "downloaders"
     ) as unknown as DownloaderPreference[];
 
     if (existingDownloaderArray) {
       for (const defaultDownloader of defaultPreferences.downloaders) {
         if (
           !existingDownloaderArray.find(
-            (downloader) => downloader.name === defaultDownloader.name,
+            (downloader) => downloader.name === defaultDownloader.name
           )
         ) {
           existingDownloaderArray.push(defaultDownloader);
@@ -572,5 +572,9 @@ export class Preference {
 
   set(key: string, value: unknown) {
     this.store.set(key, value);
+  }
+
+  has(key: string) {
+    return this.store.has(key);
   }
 }

@@ -19,7 +19,7 @@ const loadHistoryReleaseNote = () => {
   xhr.open(
     "GET",
     "https://objectstorage.uk-london-1.oraclecloud.com/n/lrarf8ozesjn/b/bucket-20220130-2329/o/distribution%2Felectron-mac%2Fchangelog_cn.html",
-    true,
+    true
   );
   xhr.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
@@ -76,16 +76,14 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">版本 2.2.8 更新内容</p>
+        <p class="text-center text-2xl font-bold mb-8">版本 2.2.9 更新内容</p>
 
         <ul class="list-disc mb-5">
-          <li>
-            更新 MS Word 插件证书。
-          </li>
+          <li>为 3.0 版本发布做准备。</li>
         </ul>
 
         <p class="text-center text-2xl font-bold mb-8">
-          Paperlib 3.0.0 开发进度
+          Paperlib 3.0.0-beta.1 发布 🎉
         </p>
 
         <p class="mb-2">
@@ -94,21 +92,33 @@ onMounted(() => {
         </p>
 
         <p class="mb-2">
-          在这个大版本更新中，我们将会发布一个
-          <b>类 vscode 的插件系统</b>
-          。我们相信插件系统可以赋予 Paperlib
-          更多可能性。同时保持软件主体干净简洁。
+          新年快乐。 我激动的宣布，Paperlib 3.0 的第一个 beta 版本刚刚发布了。
         </p>
         <p class="mb-2">
-          插件系统的基本架构已经设计完成并且开发完毕。现在，我正在进行一些 Demo
-          插件的开发来验证并完善插件系统。同时在编写插件系统 API
-          文档。这可能还需要一定时间。
+          在过去的大半年里，Paperlib
+          的所有底层代码都被重构了，以支持可扩展的插件结构。
+          目前，整个开发工作已经结束，大部分的 Bug
+          也已经被修复。因此我想是时候邀请大家参与测试。当然，包括令人激动的插件开发。
         </p>
-        <p class="mb-2">
-          如果你有任何关于使用插件系统完成功能的想法，请在 Discord
-          频道中告诉我们，或者在 Github 仓库中提出
-          issue。更多的插件使用场景将会帮助我们设计出更好的插件系统架构。感激不尽。
-        </p>
+        <p class="mb-2">Beta 版下载地址和插件开发文档，请前往官网查看。</p>
+
+        <p class="mb-2">相比于 Paperlib 2.x，在 3.0.0-beta.1 中：</p>
+
+        <ul class="list-disc mb-5">
+          <li>引入了插件系统。</li>
+          <li>所有的元数据搜刮器，论文下载器都被移动到了对应插件中。</li>
+          <li>
+            一个新的命令面板替换原来的搜索框，配合插件，完成更多高级功能。
+          </li>
+          <li>支持在侧边栏新建空标签和空组。</li>
+          <li>调整字体大小。</li>
+          <li>
+            修复了一些 Bug。 欢迎任何尝鲜用户提出你发现的
+            Bug，以及任何插件开发者发布您的插件。
+          </li>
+        </ul>
+
+        <p class="mb-2">下载地址和插件开发文档，请前往官网查看。</p>
 
         <div
           id="whats-new-close-btn"

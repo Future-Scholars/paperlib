@@ -1,1 +1,1 @@
-1. Update MS Word cert.
+1. Prepare for version 3.0.

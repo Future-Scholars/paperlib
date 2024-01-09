@@ -19,7 +19,7 @@ const loadHistoryReleaseNote = () => {
   xhr.open(
     "GET",
     "https://objectstorage.uk-london-1.oraclecloud.com/n/lrarf8ozesjn/b/bucket-20220130-2329/o/distribution%2Felectron-mac%2Fchangelog_en.html",
-    true,
+    true
   );
   xhr.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
@@ -76,34 +76,63 @@ onMounted(() => {
         <WhatsNewHeader :darkMode="darkMode" />
         <div class="h-[1px] bg-neutral-200 dark:bg-neutral-600 my-8"></div>
 
-        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.8</p>
+        <p class="text-center text-2xl font-bold mb-8">What's New in 2.2.9</p>
 
         <ul class="list-disc mb-5">
-          <li>Update the certificate for MS Word add-in.</li>
+          <li>Prepare for version 3.0.0 releasing.</li>
         </ul>
 
         <p class="text-center text-2xl font-bold mb-8">
-          Development Update of Paperlib 3.0.0
+          Paperlib 3.0.0-beta.1 Released 🎉
         </p>
         <p class="mb-2">
           If you wish to join me in the development of Paperlib, please contact
           me.
         </p>
         <p class="mb-2">
-          In this major update, a
-          <b>vscode-like extension system</b> will be introduced to Paperlib.
+          Happy New Year. I’m excited to announce that the first beta version of
+          Paperlib 3.0 has just been released.
         </p>
         <p class="mb-2">
-          I have completed the basic framework of the extension system.
-          Currently, I'm verifying it by developing some demo extensions and
-          writing the extension API documents. It may take a while to finish.
+          Over the past few months, all the source code of Paperlib has been
+          refactored to support an extensible structure. Currently, the entire
+          development work has been completed, and most of the bugs have been
+          fixed. Therefore, I would like to invite you to participate in
+          testing, including the exciting development of extensions.
         </p>
 
         <p class="mb-2">
-          If you have any ideas about some useful extension use cases, please
-          feel free to tell me in the Discord channel or raise an issue in the
-          Github repo. More extension use cases will help me to design a better
-          extension architecture.
+          Download links of the Beta version and the documentation of extension
+          development, please visit the official website.
+        </p>
+
+        <p class="mb-2">
+          <b>Compared to Paperlib 2.x, in 3.0.0-beta.1, we have:</b>
+        </p>
+
+        <ul class="list-disc mb-5">
+          <li>Introduced the extension system.</li>
+          <li>
+            Moved all metadata scrapers and paper downloaders to corresponding
+            extensions.
+          </li>
+          <li>
+            Replaced the original search box with a new command panel, working
+            with extensions to achieve more advanced functionality.
+          </li>
+          <li>
+            Support for creating new empty tags and folders in the sidebar.
+          </li>
+          <li>Configuable UI font size.</li>
+          <li>
+            Fixed some bugs. Welcome any users to report bugs you find, and any
+            extension developers to publish your extensions.
+          </li>
+        </ul>
+
+        <p class="mb-2">
+          Download links of the Beta version and the documentation of extension
+          development, please visit the official website.
         </p>
 
         <div
