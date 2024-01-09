@@ -23,13 +23,13 @@ const checkShouldShow = () => {
   }
 
   const scrapers = window.preference.get("scrapers");
-  const isCustomScraperExist = Object.values(scrapers).some(
-    (scraper) => scraper.custom
+  const isCustomScraperExist = Object.values(scrapers as any).some(
+    (scraper) => (scraper as any).custom
   );
 
   const downloaders = window.preference.get("downloaders");
-  const isCustomDownloaderExist = Object.values(downloaders).some(
-    (downloader) => downloader.custom
+  const isCustomDownloaderExist = Object.values(downloaders as any).some(
+    (downloader) => (downloader as any).custom
   );
 
   if (isCustomScraperExist || isCustomDownloaderExist) {
