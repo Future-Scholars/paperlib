@@ -18,6 +18,7 @@ import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import PresettingView from "./presetting-view/presetting-view.vue";
 import SidebarView from "./sidebar-view/sidebar-view.vue";
+import VersionCheckingView from "./version-checking-view/version-checking-view.vue";
 import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 
 // ================================
@@ -36,7 +37,7 @@ const logState = MainRendererStateStore.useLogState();
 const paperEntities: Ref<PaperEntityResults> = ref([]);
 provide(
   "paperEntities",
-  computed(() => paperEntities.value),
+  computed(() => paperEntities.value)
 );
 const tags: Ref<CategorizerResults> = ref([]);
 provide("tags", tags);
@@ -49,7 +50,7 @@ provide("feeds", feeds);
 const feedEntities: Ref<FeedEntityResults> = ref([]);
 provide(
   "feedEntities",
-  computed(() => feedEntities.value),
+  computed(() => feedEntities.value)
 );
 
 // ================================
@@ -82,60 +83,60 @@ const reloadPaperEntities = async () => {
     tag,
     folder,
     prefState.mainviewSortBy,
-    prefState.mainviewSortOrder,
+    prefState.mainviewSortOrder
   );
 };
 watch(
   () => dbState.entitiesUpdated,
-  (value) => reloadPaperEntities(),
+  (value) => reloadPaperEntities()
 );
 
 const reloadTags = async () => {
   tags.value = await window.entityInteractor.loadCategorizers(
     "PaperTag",
     prefState.sidebarSortBy,
-    prefState.sidebarSortOrder,
+    prefState.sidebarSortOrder
   );
 };
 watch(
   () => dbState.tagsUpdated,
-  (value) => reloadTags(),
+  (value) => reloadTags()
 );
 
 const reloadFolders = async () => {
   folders.value = await window.entityInteractor.loadCategorizers(
     "PaperFolder",
     prefState.sidebarSortBy,
-    prefState.sidebarSortOrder,
+    prefState.sidebarSortOrder
   );
 };
 watch(
   () => dbState.foldersUpdated,
-  (value) => reloadFolders(),
+  (value) => reloadFolders()
 );
 
 const reloadPaperSmartFilters = async () => {
   smartfilters.value = await window.entityInteractor.loadPaperSmartFilters(
     "PaperPaperSmartFilter",
     prefState.sidebarSortBy === "count" ? "name" : prefState.sidebarSortBy,
-    prefState.sidebarSortOrder,
+    prefState.sidebarSortOrder
   );
 };
 watch(
   () => dbState.smartfiltersUpdated,
-  (value) => reloadPaperSmartFilters(),
+  (value) => reloadPaperSmartFilters()
 );
 
 const reloadFeeds = async () => {
   const results = await window.feedInteractor.loadFeeds(
     prefState.sidebarSortBy,
-    prefState.sidebarSortOrder,
+    prefState.sidebarSortOrder
   );
   feeds.value = results;
 };
 watch(
   () => dbState.feedsUpdated,
-  (value) => reloadFeeds(),
+  (value) => reloadFeeds()
 );
 
 const reloadFeedEntities = async () => {
@@ -155,12 +156,12 @@ const reloadFeedEntities = async () => {
     feed,
     unread,
     prefState.mainviewSortBy,
-    prefState.mainviewSortOrder,
+    prefState.mainviewSortOrder
   );
 };
 watch(
   () => dbState.feedEntitiesUpdated,
-  (value) => reloadFeedEntities(),
+  (value) => reloadFeedEntities()
 );
 
 // ================================
@@ -180,7 +181,7 @@ watch(
     } else if (viewState.contentType === "feed") {
       reloadFeedEntities();
     }
-  },
+  }
 );
 
 watch(
@@ -189,7 +190,7 @@ watch(
     reloadTags();
     reloadFolders();
     reloadPaperSmartFilters();
-  },
+  }
 );
 
 watch(
@@ -210,7 +211,7 @@ watch(
     feedEntities.value = [];
 
     window.appInteractor.initDB();
-  },
+  }
 );
 
 watch(
@@ -225,7 +226,7 @@ watch(
     reloadFeedEntities();
     reloadFeeds();
     console.timeEnd("Reload Data");
-  },
+  }
 );
 
 window.appInteractor.registerMainSignal("window-lost-focus", (_: any) => {
@@ -350,6 +351,7 @@ onMounted(async () => {
         <MainView />
       </pane>
     </splitpanes>
+    <VersionCheckingView />
     <EditView />
     <FeedEditView />
     <PaperSmartFilterEditView />
