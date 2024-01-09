@@ -201,6 +201,14 @@ jobs:
       - name: "Build and Package"
         run: pnpm run build-win-dev
 
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install Oracle Cloud CLI
         run: |
           git clone https://github.com/oracle/oci-cli.git
