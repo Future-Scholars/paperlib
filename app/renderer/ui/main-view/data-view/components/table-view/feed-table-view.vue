@@ -122,7 +122,7 @@ const onItemDoubleClicked = (event: MouseEvent, index: number) => {
       :buffer="300"
     >
       <FeedTableItem
-        :id="item.id"
+        :id="`item-${index}`"
         :item="item"
         :field-enable="fieldEnable"
         :field-width="fieldWidth"
