@@ -156,7 +156,7 @@ onMounted(() => {
       :buffer="300"
     >
       <PaperTableItem
-        :id="item.id"
+        :id="`item-${index}`"
         :item="item"
         :field-enable="fieldEnable"
         :field-width="fieldWidth"

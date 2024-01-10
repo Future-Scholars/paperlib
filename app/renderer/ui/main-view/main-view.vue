@@ -15,6 +15,7 @@ import PaperDataView from "./data-view/paper-data-view.vue";
 import FeedDetailView from "./detail-view/feed-detail-view.vue";
 import PaperDetailView from "./detail-view/paper-detail-view.vue";
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
+import { OID } from "@/models/id";
 
 // ================================
 // State
@@ -33,6 +34,8 @@ const selectedFeedEntityPlaceHolder = ref(new FeedEntity());
 
 const paperEntities = inject<Ref<IPaperEntityCollection>>("paperEntities");
 const feedEntities = inject<Ref<IFeedEntityCollection>>("feedEntities");
+
+const dataView: Ref<HTMLElement | null> = ref(null);
 
 // ================================
 // Event Handlers
@@ -261,6 +264,7 @@ const onArrowUpPressed = () => {
   const newIndex = currentIndex - 1 < 0 ? 0 : currentIndex - 1;
   if (!uiState.editViewShown && !uiState.preferenceViewShown) {
     uiState.selectedIndex = [newIndex];
+    fixScrolling(newIndex);
   }
 };
 
@@ -276,7 +280,18 @@ const onArrowDownPressed = () => {
       : currentIndex + 1;
   if (!uiState.editViewShown && !uiState.preferenceViewShown) {
     uiState.selectedIndex = [newIndex];
+    fixScrolling(newIndex);
   }
+};
+
+const fixScrolling = (index: number) => {
+  const currentElement = dataView.value?.querySelector(
+    `#item-${index}`
+  ) as HTMLElement;
+  currentElement.scrollIntoView({
+    behavior: "smooth",
+    block: "end",
+  });
 };
 
 const onDetailPanelResized = (event: any) => {
@@ -479,7 +494,7 @@ disposable(
           :disableMultiBtn="uiState.selectedIndex.length === 0"
           @event:click="onMenuButtonClicked"
         />
-        <div id="main-view" class="h-full w-full">
+        <div id="main-view" class="h-full w-full" ref="dataView">
           <splitpanes @resized="onDetailPanelResized($event)">
             <pane
               :key="1"

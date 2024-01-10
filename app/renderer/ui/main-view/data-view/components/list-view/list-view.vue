@@ -130,7 +130,7 @@ onMounted(() => {
       :buffer="500"
     >
       <PaperListItem
-        :id="item.id"
+        :id="`item-${index}`"
         :height="itemSize"
         :item="item"
         :field-enable="fieldEnable"
