@@ -84,16 +84,18 @@ onMounted(async () => {
       </button>
       <button
         id="dev-delete-all-btn"
-        class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+        class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md flex flex-col"
         @click="emits('event:remove-all')"
       >
-        Remove all
+        <span class="mx-auto"> Remove all </span>
+        <span class="mx-auto"> (click 5 times) </span>
       </button>
       <button
-        class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md"
+        class="bg-neutral-100 dark:bg-neutral-700 p-1 rounded-md flex flex-col"
         @click="emits('event:add-dummy')"
       >
-        Add dummy
+        <span class="mx-auto"> Add dummy </span>
+        <span class="mx-auto"> (100 papers) </span>
       </button>
       <button
         id="dev-add-test-data-btn"

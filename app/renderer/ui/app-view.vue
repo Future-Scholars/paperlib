@@ -10,6 +10,7 @@ import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-
 import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 import { IPaperSmartFilterCollection } from "@/repositories/db-repository/smartfilter-repository";
+import { PaperEntity } from "@/models/paper-entity";
 
 import { Process } from "@/base/process-id";
 import { CategorizerType } from "@/models/categorizer";
@@ -280,7 +281,26 @@ disposable(
 // Dev Functions
 // ================================
 const onAddDummyClicked = async () => {
-  // paperService.addDummyData();
+  const dummpyPaperEntities: PaperEntity[] = [];
+
+  for (
+    let i = paperEntities.value.length;
+    i < 100 + paperEntities.value.length;
+    i++
+  ) {
+    const dummyPaperEntity = new PaperEntity(
+      {
+        title: `Dummy Paper ${i}`,
+        authors: "Dummy Author",
+        pubTime: `${Math.round(2021 + Math.random() * 10)}`,
+        publication: `Publication ${Math.round(Math.random() * 10)}`,
+      },
+      true
+    );
+    dummpyPaperEntities.push(dummyPaperEntity);
+  }
+
+  await paperService.update(dummpyPaperEntities);
 };
 const onAddFromFileClicked = async () => {
   await paperService.create([`${process.cwd()}/tests/pdfs/cs/1.pdf`]);
@@ -291,8 +311,25 @@ const onAddFromFilesClicked = async () => {
     `${process.cwd()}/tests/pdfs/cs/2.pdf`,
   ]);
 };
+
+let clickTimes = 0;
+let clickTimer: NodeJS.Timeout | null = null;
 const onRemoveAllClicked = async () => {
-  // paperService.removeAll();
+  if (clickTimes < 5) {
+    clickTimes++;
+
+    if (!clickTimer) {
+      clickTimer = setTimeout(() => {
+        clickTimes = 0;
+        clickTimer = null;
+      }, 2000);
+    }
+
+    return;
+  } else {
+    paperService.delete(paperEntities.value.map((x) => x.id));
+    clickTimes = 0;
+  }
 };
 const onReloadAllClicked = async () => {
   await reloadPaperEntities();
