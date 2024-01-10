@@ -65,9 +65,8 @@ const onWebdavDisconnectClicked = () => {
 
 onMounted(() => {
   nextTick(async () => {
-    syncPassword.value = (await preferenceService.getPassword(
-      "realmSync"
-    )) as string;
+    syncPassword.value =
+      (await preferenceService.getPassword("realmSync")) || "";
   });
 });
 </script>
