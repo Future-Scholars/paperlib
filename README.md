@@ -28,6 +28,23 @@ If you are interested in contributing, please contact @GeoffreyChen777
 
 ![](./assets/ui.png)
 
+## Try 3.0 Beta?
+
+Over the past few months, all the source code of Paperlib has been refactored to support an extensible structure.
+
+Currently, the entire development work has been completed, and most of the bugs have been fixed. Therefore, I would like to invite you to participate in testing, including the exciting development of extensions.
+
+Compared to Paperlib 2.x, in 3.0.0-beta.1, we have:
+
+- Introduced an extension system.
+- Moved all metadata scrapers and paper downloaders to corresponding extensions.
+- Replaced the original search box with a new command panel, working with extensions to achieve more advanced functionality.
+- In response to user feedback, added support for creating new empty tags and folders in the sidebar.
+- Fixed some bugs.
+- Welcome any users to report bugs you may encounter on Github or at here and encourage extension developers to publish your extension.
+
+The download link and the extension development documents can be found on our [website](https://paperlib.app/en/).
+
 ## Introduction
 
 Paperlib is an open source reference manager designed to improve your citing experience by addressing some of the common painpoints found in other software, in particular Zotero and Mendely.
