@@ -516,7 +516,7 @@ export class MessagePortRPCProtocol {
     } catch (e) {
       PLAPI.logService.error(
         `Failed to dispose event ${callId}`,
-        e as Error,
+        createError(e),
         false,
         "RPC"
       );
@@ -535,25 +535,28 @@ export class MessagePortRPCProtocol {
     }
 
     for (const callbackId in callbackList) {
-      try {
-        callbackList[callbackId](args);
-      } catch (e) {
-        let error: Error;
-
-        if (e instanceof Error) {
-          error = e;
-        } else {
-          error = new Error((e as any).message || "Unknown error");
-          error.name = (e as any).name || "UnknownError";
-          error.stack = (e as any).stack || "";
+      const callback = callbackList[callbackId];
+      // if is sync function
+      if (callback.constructor.name === "Function") {
+        try {
+          callback(args);
+        } catch (e) {
+          PLAPI.logService.error(
+            `Failed to fire event ${eventName} on ${rpcId}`,
+            createError(e),
+            false,
+            "RPC"
+          );
         }
-
-        PLAPI.logService.error(
-          `Failed to fire event ${eventName} on ${rpcId}`,
-          error,
-          false,
-          "RPC"
-        );
+      } else if (callback.constructor.name === "AsyncFunction") {
+        (callback as (args: any) => Promise<any>)(args).catch((e) => {
+          PLAPI.logService.error(
+            `Failed to fire event ${eventName} on ${rpcId}`,
+            createError(e),
+            false,
+            "RPC"
+          );
+        });
       }
     }
   }
@@ -620,7 +623,17 @@ export class MessagePortRPCProtocol {
       return;
     }
 
-    disposeCallback();
+    try {
+      disposeCallback();
+    } catch (e) {
+      PLAPI.logService.error(
+        `Failed to dispose hook ${callId}`,
+        createError(e),
+        false,
+        "RPC"
+      );
+    }
+
     delete this._hookDisposeCallbacks[callbackId];
   }
 
@@ -649,7 +662,30 @@ export class MessagePortRPCProtocol {
       return;
     }
 
-    disposeCallback();
+    try {
+      disposeCallback();
+    } catch (e) {
+      PLAPI.logService.error(
+        `Failed to dispose command ${callId}`,
+        createError(e),
+        false,
+        "RPC"
+      );
+    }
     delete this._hookDisposeCallbacks[callbackId];
   }
+}
+
+function createError(e: any) {
+  let error: Error;
+
+  if (e instanceof Error) {
+    error = e;
+  } else {
+    error = new Error((e as any).message || "Unknown error");
+    error.name = (e as any).name || "UnknownError";
+    error.stack = (e as any).stack || "";
+  }
+
+  return error;
 }
