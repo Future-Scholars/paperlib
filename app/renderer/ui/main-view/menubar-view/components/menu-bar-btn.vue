@@ -35,7 +35,7 @@ const btnIcons: Record<string, any> = {
   listview: BIconListUl,
   tableview: BIconGrid3x2,
   preference: BIconGear,
-  aspectratio: BIconAspectRatio,
+  tablereaderview: BIconAspectRatio,
 };
 </script>
 

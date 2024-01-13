@@ -80,10 +80,14 @@ export class NetworkTool {
     }
   }
 
-  private async _parseResponse(response: Response) {
+  private async _parseResponse(response: Response, parse = true) {
     const contentType = response.headers["content-type"];
     let body: any;
-    if (contentType?.includes("application/json")) {
+    if (
+      contentType?.includes("application/json") &&
+      parse &&
+      (response.body instanceof String || typeof response.body === "string")
+    ) {
       body = JSON.parse(response.body as string);
     } else {
       body = response.body;
@@ -173,6 +177,7 @@ export class NetworkTool {
    * @param retry - Retry times
    * @param timeout - Timeout
    * @param cache - Use cache
+   * @param parse - Try to parse response body
    * @returns Response
    */
   async get(
@@ -180,7 +185,8 @@ export class NetworkTool {
     headers?: Record<string, string>,
     retry = 1,
     timeout = 5000,
-    cache = false
+    cache = false,
+    parse = false
   ) {
     const options = {
       headers: headers,
@@ -194,9 +200,9 @@ export class NetworkTool {
     };
 
     if (cache) {
-      return this._parseResponse(await cachedGot.get(url, options));
+      return this._parseResponse(await cachedGot.get(url, options), parse);
     } else {
-      return this._parseResponse(await got.get(url, options));
+      return this._parseResponse(await got.get(url, options), parse);
     }
   }
 
@@ -216,7 +222,8 @@ export class NetworkTool {
     headers?: Record<string, string>,
     retry = 1,
     timeout = 5000,
-    compress = false
+    compress = false,
+    parse = false
   ) {
     let options: OptionsOfTextResponseBody = {
       headers: headers,
@@ -237,7 +244,7 @@ export class NetworkTool {
     } else {
       options.body = data;
     }
-    return this._parseResponse(await got.post(url, options));
+    return this._parseResponse(await got.post(url, options), parse);
   }
 
   /**
@@ -254,7 +261,8 @@ export class NetworkTool {
     data: FormData,
     headers?: Record<string, string>,
     retry = 1,
-    timeout = 5000
+    timeout = 5000,
+    parse = false
   ) {
     if (!(data instanceof FormData)) {
       if (typeof data === "object") {
@@ -277,7 +285,7 @@ export class NetworkTool {
       },
       agent: this._agent,
     };
-    return this._parseResponse(await got.post(url, options));
+    return this._parseResponse(await got.post(url, options), parse);
   }
 
   /**

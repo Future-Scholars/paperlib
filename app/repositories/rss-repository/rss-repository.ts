@@ -15,7 +15,14 @@ export class RSSRepository {
   }
 
   async fetch(feed: Feed): Promise<FeedEntity[]> {
-    const response = await this._networkTool.get(feed.url);
+    const response = await this._networkTool.get(
+      feed.url,
+      {},
+      1,
+      10000,
+      false,
+      true
+    );
 
     let feedEntityDrafts = this.parse(response.body);
 

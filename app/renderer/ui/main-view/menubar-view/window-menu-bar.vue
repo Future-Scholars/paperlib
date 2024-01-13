@@ -112,7 +112,7 @@ const onMaximizeClicked = () => {
         <MenuBarBtn
           id="table-reader-view-btn"
           class="my-auto"
-          btnName="aspectratio"
+          btnName="tablereaderview"
           @event:click="emits('event:click', 'tableandpreview-view')"
         />
       </div>
