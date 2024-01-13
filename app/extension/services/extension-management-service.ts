@@ -360,15 +360,13 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
    */
   async listExtensionMarketplace(query: string) {
     try {
-      const packages = JSON.parse(
-        (
-          await PLAPI.networkTool.get(
-            query
-              ? `https://registry.npmjs.org/-/v1/search?text=${query} keywords:paperlib&size=20`
-              : "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20"
-          )
-        ).body
-      ).objects as {
+      const packages = (
+        await PLAPI.networkTool.get(
+          query
+            ? `https://registry.npmjs.org/-/v1/search?text=${query} keywords:paperlib&size=20`
+            : "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20"
+        )
+      ).body.objects as {
         package: {
           name: string;
           version: string;

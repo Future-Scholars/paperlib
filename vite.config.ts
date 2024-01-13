@@ -141,6 +141,9 @@ export default {
         keytar: {
           type: "cjs",
         },
+        got: {
+          type: "esm",
+        },
         chokidar: {
           type: "cjs",
         },
