@@ -181,9 +181,9 @@ onUnmounted(() => {
       />
     </div>
     <div
-      class="bg-neutral-300 fixed max-h-24 rounded-md shadow-md flex flex-col p-1 overflow-scroll"
+      class="bg-neutral-300 fixed max-h-24 rounded-md shadow-md flex flex-col p-1 overflow-y-scroll"
       :style="`width: ${boxWidth}px; margin-top: ${boxHeight + 2}px`"
-      v-if="isFocused || isMouseOver"
+      v-if="filteredOptions.length > 0 && (isFocused || isMouseOver)"
       ref="dropdown"
     >
       <div
