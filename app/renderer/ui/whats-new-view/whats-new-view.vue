@@ -17,7 +17,12 @@ const loadCurrent = async () => {
   const response = await networkTool.get(
     `https://api.paperlib.app/release-notes/json?lang=${
       preState.language === "zh-CN" ? "CN" : "EN"
-    }&latest=1&branch=dev-3.0.0`
+    }&latest=1&branch=dev-3.0.0`,
+    {},
+    1,
+    10000,
+    true,
+    true
   );
 
   const json = response.body;
@@ -37,7 +42,12 @@ const loadHistory = async () => {
   const response = await networkTool.get(
     `https://api.paperlib.app/release-notes/html?lang=${
       preState.language === "zh-CN" ? "CN" : "EN"
-    }&latest=5&branch=dev-3.0.0`
+    }&latest=5&branch=dev-3.0.0`,
+    {},
+    1,
+    10000,
+    true,
+    true
   );
 
   historyReleaseNoteHTML.value = response.body;

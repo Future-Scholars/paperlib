@@ -74,8 +74,8 @@ devDependencies:
     specifier: 5.1.7
     version: 5.1.7(postcss@8.4.33)
   electron:
-    specifier: 22.3.27
-    version: 22.3.27
+    specifier: 26.6.5
+    version: 26.6.5
   electron-builder:
     specifier: 23.6.0
     version: 23.6.0
@@ -1290,8 +1290,10 @@ packages:
       form-data: 4.0.0
     dev: false
 
-  /@types/node@16.18.69:
-    resolution: {integrity: sha512-AfDKv5fWd9XStaEuqFa6PYcM8FgTqxVMsP4BPk60emeB9YX+pp2P0zZ8nU1BQg8hyPGFrMt7MGMRMis8IrcPyg==}
+  /@types/node@18.19.6:
+    resolution: {integrity: sha512-X36s5CXMrrJOs2lQCdDF68apW4Rfx9ixYMawlepwmE4Anezv/AV2LSpKD1Ub8DAc+urp5bk0BGZ6NtmBitfnsg==}
+    dependencies:
+      undici-types: 5.26.5
     dev: true
 
   /@types/node@20.10.6:
@@ -1369,7 +1371,7 @@ packages:
     resolution: {integrity: sha512-oJoftv0LSuaDZE3Le4DbKX+KS9G36NzOeSap90UIK0yMA/NhKJhqlSGtNDORNRaIbQfzjXDrQa0ytJ6mNRGz/Q==}
     requiresBuild: true
     dependencies:
-      '@types/node': 16.18.69
+      '@types/node': 20.10.6
     dev: true
     optional: true
 
@@ -2803,14 +2805,14 @@ packages:
       - supports-color
     dev: false
 
-  /electron@22.3.27:
-    resolution: {integrity: sha512-7Rht21vHqj4ZFRnKuZdFqZFsvMBCmDqmjetiMqPtF+TmTBiGne1mnstVXOA/SRGhN2Qy5gY5bznJKpiqogjM8A==}
+  /electron@26.6.5:
+    resolution: {integrity: sha512-1zgit3HfMJmTgYQraZs72QJJuHlYOIvI7vk4bcIrVvU5vnA0lK3rQypEBpRB+DbfUz/0jYkvWiLPSdehBjKBFg==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
     requiresBuild: true
     dependencies:
       '@electron/get': 2.0.3
-      '@types/node': 16.18.69
+      '@types/node': 18.19.6
       extract-zip: 2.0.1
     transitivePeerDependencies:
       - supports-color
@@ -5228,6 +5230,7 @@ packages:
   /semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
     hasBin: true
+    requiresBuild: true
     dev: true
 
   /semver@7.0.0:
