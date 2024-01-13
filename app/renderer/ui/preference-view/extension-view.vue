@@ -363,9 +363,12 @@ onUnmounted(async () => {
             :author="extension.author"
             :description="extension.description"
             :homepage="extension.homepage"
-            :installed="false"
+            :installed="installedExtensions.hasOwnProperty(extension.id)"
             :installing="installingExtIDs.includes(extension.id)"
             @event:install="installExtension(extension.id)"
+            @event:reload="reloadExtension(extension.id)"
+            @event:uninstall="uninstallExtension(extension.id)"
+            @event:setting="showSettingView(extension.id)"
           />
         </div>
       </div>
