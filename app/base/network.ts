@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import { createWriteStream, existsSync, mkdirSync } from "fs";
-import got from "got";
+import got, { OptionsOfTextResponseBody, Response } from "got";
 import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import os from "os";
 import path from "path";
@@ -15,29 +15,30 @@ import {
   PreferenceService,
 } from "@/common/services/preference-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
-
 import { compressString } from "./string";
 
 const cache = new Map();
 
-const gotWithCache = got.extend({
+const cachedGot = got.extend({
   handlers: [
     (options, next) => {
       if (options.isStream) {
         return next(options);
       }
 
-      const pending = cache.get(options.url.href);
+      const cacheKey = `${options.method}-${options.url}-${options.headers}`;
+
+      const pending = cache.get(cacheKey);
       if (pending) {
         if (pending.ttl < Date.now()) {
-          cache.delete(options.url.href);
+          cache.delete(cacheKey);
         } else {
           return pending.response;
         }
       }
 
       const promise = next(options);
-      cache.set(options.url.href, {
+      cache.set(cacheKey, {
         response: promise,
         ttl: Date.now() + 1000 * 60 * 60 * 24,
       });
@@ -77,6 +78,23 @@ export class NetworkTool {
         console.error(e);
       }
     }
+  }
+
+  private async _parseResponse(response: Response) {
+    const contentType = response.headers["content-type"];
+    let body: any;
+    if (contentType?.includes("application/json")) {
+      body = JSON.parse(response.body as string);
+    } else {
+      body = response.body;
+    }
+
+    return {
+      body: body,
+      statusCode: response.statusCode,
+      statusMessage: response.statusMessage,
+      headers: response.headers,
+    };
   }
 
   /**
@@ -166,7 +184,9 @@ export class NetworkTool {
   ) {
     const options = {
       headers: headers,
-      retry: retry,
+      retry: {
+        limit: retry,
+      },
       timeout: {
         request: timeout,
       },
@@ -174,9 +194,9 @@ export class NetworkTool {
     };
 
     if (cache) {
-      return gotWithCache(url, options);
+      return this._parseResponse(await cachedGot.get(url, options));
     } else {
-      return await got(url, options);
+      return this._parseResponse(await got.get(url, options));
     }
   }
 
@@ -198,42 +218,26 @@ export class NetworkTool {
     timeout = 5000,
     compress = false
   ) {
-    let options;
+    let options: OptionsOfTextResponseBody = {
+      headers: headers,
+      retry: {
+        limit: retry,
+      },
+      timeout: {
+        request: timeout,
+      },
+      agent: this._agent,
+    };
     if (compress) {
       const dataString = typeof data === "string" ? data : JSON.stringify(data);
       const buffer = compressString(dataString);
-
-      options = {
-        body: buffer,
-        headers: headers,
-        retry: retry,
-        timeout: {
-          request: timeout,
-        },
-        agent: this._agent,
-      };
-    } else if (typeof data === "string") {
-      options = {
-        stringifyJson: data,
-        headers: headers,
-        retry: retry,
-        timeout: {
-          request: timeout,
-        },
-        agent: this._agent,
-      };
+      options.body = Buffer.from(await buffer);
+    } else if (typeof data === "object") {
+      options.json = data;
     } else {
-      options = {
-        json: data,
-        headers: headers,
-        retry: retry,
-        timeout: {
-          request: timeout,
-        },
-        agent: this._agent,
-      };
+      options.body = data;
     }
-    return await got.post(url, options);
+    return this._parseResponse(await got.post(url, options));
   }
 
   /**
@@ -265,13 +269,15 @@ export class NetworkTool {
     const options = {
       form: data,
       headers: headers,
-      retry: retry,
+      retry: {
+        limit: retry,
+      },
       timeout: {
         request: timeout,
       },
       agent: this._agent,
     };
-    return await got.post(url, options);
+    return this._parseResponse(await got.post(url, options));
   }
 
   /**
@@ -307,7 +313,6 @@ export class NetworkTool {
         got
           .stream(url, {
             headers: headers,
-            rejectUnauthorized: false,
             agent: this._agent,
             cookieJar: cookieJarObj,
           })
@@ -338,7 +343,12 @@ export class NetworkTool {
       );
       return targetPath;
     } catch (e) {
-      console.log(e);
+      this._logService.error(
+        "Failed to download file.",
+        e as Error,
+        true,
+        "Network"
+      );
       return "";
     }
   }
@@ -381,7 +391,10 @@ export class NetworkTool {
    * @returns Whether the network is connected
    */
   async connected() {
-    const response = await got("https://httpbin.org/ip", { timeout: 5000 });
+    const response = await got.get("https://httpbin.org/ip", {
+      timeout: { request: 5000 },
+    });
+
     return response.statusCode === 200;
   }
 }

@@ -20,7 +20,7 @@ const loadCurrent = async () => {
     }&latest=1&branch=dev-3.0.0`
   );
 
-  const json = JSON.parse(response.body);
+  const json = response.body;
   currentVersion.value = json[0].version;
 
   const html = (
