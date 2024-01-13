@@ -138,9 +138,6 @@ export default {
         ws: {
           type: "cjs",
         },
-        got: {
-          type: "esm",
-        },
         keytar: {
           type: "cjs",
         },

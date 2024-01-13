@@ -1,50 +1,16 @@
-import { ipcRenderer } from "electron";
 import { createWriteStream, existsSync, mkdirSync } from "fs";
-import got from "got";
-import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
+import ky, { Options as KyOptions, KyResponse } from "ky";
 import os from "os";
 import path from "path";
-import stream from "stream";
 import { CookieJar } from "tough-cookie";
-import { promisify } from "util";
 
 import { createDecorator } from "@/base/injection/injection";
-import { constructFileURL } from "@/base/url";
-import {
-  IPreferenceService,
-  PreferenceService,
-} from "@/common/services/preference-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 
 import { compressString } from "./string";
+import { constructFileURL } from "./url";
 
 const cache = new Map();
-
-const gotWithCache = got.extend({
-  handlers: [
-    (options, next) => {
-      if (options.isStream) {
-        return next(options);
-      }
-
-      const pending = cache.get(options.url.href);
-      if (pending) {
-        if (pending.ttl < Date.now()) {
-          cache.delete(options.url.href);
-        } else {
-          return pending.response;
-        }
-      }
-
-      const promise = next(options);
-      cache.set(options.url.href, {
-        response: promise,
-        ttl: Date.now() + 1000 * 60 * 60 * 24,
-      });
-      return promise;
-    },
-  ],
-});
 
 export interface ICookieObject {
   cookieStr: string;
@@ -54,98 +20,60 @@ export interface ICookieObject {
 export const INetworkTool = createDecorator("networkTool");
 
 export class NetworkTool {
-  private _agent: {
-    http?: HttpProxyAgent;
-    https?: HttpsProxyAgent;
-  };
-
   private _donwloadProgress: {
     [key: string]: number;
   };
 
-  constructor(
-    @IPreferenceService private readonly _preferenceService: PreferenceService,
-    @ILogService private readonly _logService: LogService
-  ) {
-    this._agent = {};
+  constructor(@ILogService private readonly _logService: LogService) {
     this._donwloadProgress = {};
+  }
 
-    if (this._preferenceService.get("allowproxy")) {
-      try {
-        this.checkSystemProxy();
-      } catch (e) {
-        console.error(e);
+  private async _cachePreHook(_request: Request) {
+    const cacheKey = `${_request.method}-${_request.url}-${_request.headers}`;
+    if (cache.has(cacheKey)) {
+      const storedCache = cache.get(cacheKey);
+
+      if (storedCache.ttl < Date.now()) {
+        cache.delete(cacheKey);
+        return undefined;
+      } else {
+        return storedCache.response;
       }
     }
   }
 
-  /**
-   * Set proxy agent
-   * @param proxy - Proxy url
-   */
-  setProxyAgent(proxy: string = "") {
-    const httpproxyUrl =
-      (this._preferenceService.get("httpproxy") as string) || proxy;
-    const httpsproxyUrl =
-      (this._preferenceService.get("httpsproxy") as string) || proxy;
-
-    let agnets = {};
-    if (httpproxyUrl || httpsproxyUrl) {
-      let validHttpproxyUrl, validHttpsproxyUrl;
-      if (httpproxyUrl) {
-        validHttpproxyUrl = httpproxyUrl;
-      } else {
-        validHttpproxyUrl = httpsproxyUrl;
-      }
-      if (httpsproxyUrl) {
-        validHttpsproxyUrl = httpsproxyUrl;
-      } else {
-        validHttpsproxyUrl = httpproxyUrl;
-      }
-      // @ts-ignore
-      agnets["http"] = new HttpProxyAgent({
-        keepAlive: true,
-        keepAliveMsecs: 1000,
-        maxSockets: 256,
-        maxFreeSockets: 256,
-        scheduling: "lifo",
-        proxy: validHttpproxyUrl,
-      });
-
-      // @ts-ignore
-      agnets["https"] = new HttpsProxyAgent({
-        keepAlive: true,
-        keepAliveMsecs: 1000,
-        maxSockets: 256,
-        maxFreeSockets: 256,
-        scheduling: "lifo",
-        proxy: validHttpsproxyUrl,
-      });
-    }
-
-    this._agent = agnets;
+  private async _cacheAfterHook(
+    _request: Request,
+    _options: KyOptions,
+    response: KyResponse
+  ) {
+    const cacheKey = `${_request.method}-${_request.url}-${_request.headers}`;
+    const ttl = Date.now() + 1000 * 60 * 60 * 24;
+    const storedCache = {
+      ttl: ttl,
+      response: response.clone(),
+    };
+    cache.set(cacheKey, storedCache);
+    return response;
   }
 
-  /**
-   * Check system proxy, if exists, set it as proxy agent
-   */
-  checkSystemProxy() {
-    const proxy = ipcRenderer.sendSync("checkSystemProxy");
-
-    if (proxy !== "DIRECT") {
-      const proxyUrlComponents = proxy.split(":");
-
-      let proxyHost = proxyUrlComponents[0].split(" ")[1].trim();
-      const proxyPort = parseInt(proxyUrlComponents[1].trim(), 10);
-      if (
-        !proxyHost.startsWith("http://") &&
-        !proxyHost.startsWith("https://")
-      ) {
-        proxyHost = "http://" + proxyHost;
-      }
-
-      this.setProxyAgent(proxyHost + ":" + proxyPort);
+  private async _parseResponse(response: KyResponse) {
+    const contentType = response.headers.get("content-type");
+    let body: any;
+    if (contentType?.includes("application/json")) {
+      body = await response.json();
+    } else if (contentType?.includes("text/html")) {
+      body = await response.text();
+    } else {
+      body = await response.blob();
     }
+
+    return {
+      body: body,
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    };
   }
 
   /**
@@ -164,20 +92,18 @@ export class NetworkTool {
     timeout = 5000,
     cache = false
   ) {
-    const options = {
+    const options: KyOptions = {
       headers: headers,
       retry: retry,
-      timeout: {
-        request: timeout,
+      timeout: timeout,
+      hooks: {
+        beforeRequest: cache ? [this._cachePreHook] : [],
+        afterResponse: cache ? [this._cacheAfterHook] : [],
       },
-      agent: this._agent,
     };
 
-    if (cache) {
-      return gotWithCache(url, options);
-    } else {
-      return await got(url, options);
-    }
+    const response = await ky.get(url, options);
+    return await this._parseResponse(response);
   }
 
   /**
@@ -198,42 +124,42 @@ export class NetworkTool {
     timeout = 5000,
     compress = false
   ) {
-    let options;
+    let options: KyOptions;
     if (compress) {
       const dataString = typeof data === "string" ? data : JSON.stringify(data);
-      const buffer = compressString(dataString);
+      const buffer = await compressString(dataString);
 
       options = {
         body: buffer,
         headers: headers,
         retry: retry,
-        timeout: {
-          request: timeout,
-        },
-        agent: this._agent,
+        timeout: timeout,
       };
     } else if (typeof data === "string") {
       options = {
-        stringifyJson: data,
+        body: data,
         headers: headers,
         retry: retry,
-        timeout: {
-          request: timeout,
-        },
-        agent: this._agent,
+        timeout: timeout,
       };
-    } else {
+    } else if (data instanceof Object) {
       options = {
         json: data,
         headers: headers,
         retry: retry,
-        timeout: {
-          request: timeout,
-        },
-        agent: this._agent,
+        timeout: timeout,
+      };
+    } else {
+      options = {
+        body: data,
+        headers: headers,
+        retry: retry,
+        timeout: timeout,
       };
     }
-    return await got.post(url, options);
+
+    const response = await ky.post(url, options);
+    return await this._parseResponse(response);
   }
 
   /**
@@ -261,17 +187,15 @@ export class NetworkTool {
         data = formData;
       }
     }
-
     const options = {
-      form: data,
+      body: data,
       headers: headers,
       retry: retry,
-      timeout: {
-        request: timeout,
-      },
-      agent: this._agent,
+      timeout: timeout,
     };
-    return await got.post(url, options);
+
+    const response = await ky.post(url, options);
+    return await this._parseResponse(response);
   }
 
   /**
@@ -287,7 +211,6 @@ export class NetworkTool {
     cookies?: CookieJar | ICookieObject[]
   ) {
     try {
-      const pipeline = promisify(stream.pipeline);
       const headers = {
         "user-agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
@@ -303,42 +226,94 @@ export class NetworkTool {
         cookieJarObj = cookies;
       }
 
-      await pipeline(
-        got
-          .stream(url, {
+      const downloadedPath = await new Promise<string>(
+        async (resolve, reject) => {
+          const response = await ky.get(url, {
             headers: headers,
-            rejectUnauthorized: false,
-            agent: this._agent,
-            cookieJar: cookieJarObj,
-          })
-          .on("downloadProgress", (progress) => {
-            if (
-              this._donwloadProgress[url] &&
-              (progress.percent - this._donwloadProgress[url] > 0.05 ||
-                progress.percent === 1)
-            ) {
-              this._logService.progress(
-                "Downloading...",
-                progress.percent * 100,
-                true,
-                "Network",
-                url
-              );
+            hooks: {
+              afterResponse: [
+                async (
+                  request: any,
+                  options: KyOptions,
+                  response: KyResponse
+                ) => {
+                  if (
+                    response.status === 200 &&
+                    response.body instanceof ReadableStream
+                  ) {
+                    const newResponse = response.clone();
+                    const fileStream = createWriteStream(
+                      constructFileURL(targetPath, false, false)
+                    );
+                    const stream = response.body;
+                    const reader = stream.getReader();
+                    while (true) {
+                      try {
+                        const { done, value } = await reader.read();
+                        if (done) {
+                          fileStream.close();
+                          resolve(targetPath);
+                          break;
+                        }
+                        fileStream.write(value);
+                      } catch (e) {
+                        reject(e);
+                        break;
+                      }
+                    }
 
-              this._donwloadProgress[url] = progress.percent;
-            } else if (!this._donwloadProgress[url]) {
-              this._donwloadProgress[url] = progress.percent;
-            }
+                    // @ts-ignore
+                    newResponse.body = constructFileURL(
+                      targetPath,
+                      false,
+                      false
+                    );
 
-            if (progress.percent === 1) {
-              delete this._donwloadProgress[url];
-            }
-          }),
-        createWriteStream(constructFileURL(targetPath, false, false))
+                    return newResponse;
+                  } else {
+                    return response;
+                  }
+                },
+              ],
+            },
+            onDownloadProgress: (progress) => {
+              if (
+                this._donwloadProgress[url] &&
+                (progress.percent - this._donwloadProgress[url] > 0.05 ||
+                  progress.percent === 1)
+              ) {
+                this._logService.progress(
+                  "Downloading...",
+                  progress.percent * 100,
+                  true,
+                  "Network",
+                  url
+                );
+
+                this._donwloadProgress[url] = progress.percent;
+              } else if (!this._donwloadProgress[url]) {
+                this._donwloadProgress[url] = progress.percent;
+              }
+
+              if (progress.percent === 1) {
+                delete this._donwloadProgress[url];
+              }
+            },
+          });
+          if (response.status !== 200) {
+            reject(`${response.status} - ${response.statusText}`);
+          }
+        }
       );
-      return targetPath;
+
+      return downloadedPath;
     } catch (e) {
-      console.log(e);
+      this._logService.error(
+        "Failed to download file",
+        e as Error,
+        true,
+        "NetworkTool"
+      );
       return "";
     }
   }
@@ -381,7 +356,7 @@ export class NetworkTool {
    * @returns Whether the network is connected
    */
   async connected() {
-    const response = await got("https://httpbin.org/ip", { timeout: 5000 });
-    return response.statusCode === 200;
+    const response = await ky.get("https://httpbin.org/ip", { timeout: 5000 });
+    return response.ok;
   }
 }

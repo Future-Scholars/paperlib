@@ -380,26 +380,11 @@ export class MessagePortRPCProtocol {
     promise.then(
       (r) => {
         let msg: any;
-        if (
-          rpcId === "networkTool" &&
-          (method === "get" || method === "post" || method === "postForm")
-        ) {
-          msg = JSONstringify({
-            callId,
-            type: MessageType.replySuccess,
-            value: {
-              body: r.body,
-              headers: r.headers,
-              statusCode: r.statusCode,
-            },
-          });
-        } else {
-          msg = JSONstringify({
-            callId,
-            type: MessageType.replySuccess,
-            value: r,
-          });
-        }
+        msg = JSONstringify({
+          callId,
+          type: MessageType.replySuccess,
+          value: r,
+        });
         this._port.postMessage(msg);
       },
       (err) => {

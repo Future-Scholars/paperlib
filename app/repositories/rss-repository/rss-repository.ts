@@ -1,5 +1,4 @@
 import { XMLParser } from "fast-xml-parser";
-import { Response } from "got";
 
 import { createDecorator } from "@/base/injection/injection";
 import { INetworkTool, NetworkTool } from "@/base/network";
@@ -16,11 +15,9 @@ export class RSSRepository {
   }
 
   async fetch(feed: Feed): Promise<FeedEntity[]> {
-    const response = (await this._networkTool.get(
-      feed.url
-    )) as Response<string>;
+    const response = await this._networkTool.get(feed.url);
 
-    let feedEntityDrafts = this.parse(response);
+    let feedEntityDrafts = this.parse(response.body);
 
     feedEntityDrafts = feedEntityDrafts.map((feedEntityDraft) => {
       feedEntityDraft.feed = feed;
@@ -30,8 +27,8 @@ export class RSSRepository {
     return feedEntityDrafts;
   }
 
-  parse(rawResponse: Response<string>) {
-    const parsedXML = this.xmlParser.parse(rawResponse.body);
+  parse(rawResponse: string) {
+    const parsedXML = this.xmlParser.parse(rawResponse);
     if (parsedXML["rdf:RDF"]) {
       return this.parseRSSItems((parsedXML as RSS1)["rdf:RDF"].item);
     } else if (parsedXML.rss) {
