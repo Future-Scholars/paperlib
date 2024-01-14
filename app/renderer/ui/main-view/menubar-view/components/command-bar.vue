@@ -297,7 +297,7 @@ disposable(
             class="flex space-x-4 h-7 rounded-md px-2 justify-between"
             :class="
               selectedCommandIndex === index
-                ? 'bg-neutral-200 dark:bg-neutral-700'
+                ? 'bg-neutral-200 dark:bg-neutral-800'
                 : ''
             "
             @click="() => onSelectCommand(index)"
