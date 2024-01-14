@@ -168,14 +168,14 @@ onMounted(() => {
       </div>
     </div>
 
-    <div 
-    class="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md h-[240px] max-h-[240px] overflow-scroll mb-5"
+    <div
+    class="flex flex-col bg-neutral-200 dark:bg-neutral-700 rounded-md h-[240px] max-h-[240px] overflow-y-auto mb-5"
     >
-      <Replacement 
-      :from="replacement.from" 
-      :to="replacement.to" 
+      <Replacement
+      :from="replacement.from"
+      :to="replacement.to"
       v-for="replacement of prefState.exportReplacement"
-        @event:delete="onReplacementDelete(replacement)" 
+        @event:delete="onReplacementDelete(replacement)"
         />
     </div>
 

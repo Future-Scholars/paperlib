@@ -10,6 +10,8 @@ import {
   BIconLayoutSidebar,
   BIconPuzzle,
   BIconViewList,
+  BIconXCircle,
+  BIconXCircleFill,
 } from "bootstrap-icons-vue";
 import { onMounted, onUnmounted, ref } from "vue";
 
@@ -54,7 +56,7 @@ onUnmounted(() => {
     class="fixed top-0 right-0 left-0 z-40 w-screen h-screen bg-neutral-100 dark:bg-neutral-800"
   >
     <div class="flex h-full m-auto justify-center space-x-4 py-20">
-      <div class="flex flex-col justify-between flex-none overflow-scroll">
+      <div class="flex flex-col justify-between flex-none overflow-y-auto">
         <div
           class="flex flex-col space-y-1 h-full w-36 rounded-l-lg pr-4 border-r-[1px] dark:border-r-neutral-700"
         >
@@ -129,17 +131,9 @@ onUnmounted(() => {
             <BIconInfoCircle class="my-auto text-xs" />
           </SectionItem>
         </div>
-        <div class="flex justify-end space-x-2 pr-4">
-          <div
-            class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm cursor-pointer"
-            @click="onCloseClicked"
-          >
-            <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
-          </div>
-        </div>
       </div>
 
-      <div class="overflow-scroll px-6">
+      <div class="overflow-y-auto px-6">
         <GeneralView v-if="preferenceTab === 'general'" />
         <SidebarView v-if="preferenceTab === 'sidebar'" />
         <MainviewView v-if="preferenceTab === 'mainview'" />
@@ -150,6 +144,11 @@ onUnmounted(() => {
         <HotkeyView v-if="preferenceTab === 'hotkey'" />
         <AboutView v-if="preferenceTab === 'about'" />
         <ExtensionView v-if="preferenceTab === 'extension'" />
+      </div>
+      <div @click="onCloseClicked">
+        <BIconXCircleFill
+          class="text-md text-neutral-300 dark:text-neutral-600 hover:text-neutral-500"
+        />
       </div>
     </div>
   </div>
