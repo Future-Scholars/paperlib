@@ -48,6 +48,13 @@ const props = defineProps({
 });
 </script>
 
+<style>
+scp {
+  font-variant: small-caps;
+  font-size: 0.6rem;
+}
+</style>
+
 <template>
   <div
     class="flex flex-col w-full p-2 rounded-md select-none cursor-pointer"
@@ -67,7 +74,8 @@ const props = defineProps({
         class="text-[0.84rem] leading-[1.1rem] font-semibold truncate overflow-hidden"
         :class="active ? 'text-white' : ''"
       >
-        {{ item.title }}
+        <span v-html="item.title"></span>
+        <!-- {{ item.title }} -->
       </div>
     </div>
     <div
