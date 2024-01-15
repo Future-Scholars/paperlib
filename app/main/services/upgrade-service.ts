@@ -1,4 +1,4 @@
-import { dialog } from "electron";
+import { MessageBoxOptions, dialog } from "electron";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -40,7 +40,7 @@ export class UpgradeService extends Eventable<IUpgradeServiceState> {
         title: "A new version of Paperlib is available",
         message: "A new version of Paperlib is available",
         detail: "It is downloading and will notify you when it is ready.",
-      };
+      } as MessageBoxOptions;
       await dialog.showMessageBox(dialogOpts);
     });
 
@@ -69,7 +69,7 @@ export class UpgradeService extends Eventable<IUpgradeServiceState> {
         title: `A new version ${info.version} of Paperlib is automatically downloaded.`,
         message: `A new version ${info.version} of Paperlib is automatically downloaded.`,
         detail: `${info.releaseNotes}`,
-      };
+      } as MessageBoxOptions;
 
       const response = await dialog.showMessageBox(dialogOpts);
       if (response.response === 0) {
