@@ -8,6 +8,7 @@ import PaperListItem from "./components/paper-list-item.vue";
 import { OID } from "@/models/id";
 import { disposable } from "@/base/dispose";
 import { onMounted } from "vue";
+import { e } from "vitest/dist/reporters-qc5Smpt5.js";
 
 const props = defineProps({
   entities: {
@@ -51,6 +52,7 @@ const emits = defineEmits([
   "event:dblclick",
   "event:contextmenu",
   "event:drag",
+  "event:drag-file",
 ]);
 
 const calSelectedIndex = (event: MouseEvent, index: number) => {
@@ -96,14 +98,22 @@ const onItemDoubleClicked = (event: MouseEvent, index: number) => {
 };
 
 const onItemDraged = (event: DragEvent, index: number, id: OID) => {
-  const el = event.target as HTMLElement;
-  event.dataTransfer?.setDragImage(el, 0, 0);
-  event.dataTransfer?.setData("text/plain", `${id}`);
-
   let selectedIndex = props.selectedIndex;
   if (props.selectedIndex.indexOf(index) === -1) {
     selectedIndex = calSelectedIndex(event, index);
   }
+
+  if (event.altKey || event.metaKey) {
+    event.preventDefault();
+    event.stopPropagation();
+    emits("event:drag-file", selectedIndex);
+
+    return;
+  }
+
+  const el = event.target as HTMLElement;
+  event.dataTransfer?.setDragImage(el, 0, 0);
+  event.dataTransfer?.setData("text/plain", `${id}`);
 
   emits("event:drag", selectedIndex);
 };

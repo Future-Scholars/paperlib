@@ -10,6 +10,7 @@ import {
   ipcMain,
 } from "electron";
 import { writeFileSync } from "fs";
+import path from "path";
 
 export const IFileSystemService = createDecorator("fileSystemService");
 
@@ -113,5 +114,16 @@ export class FileSystemService {
   @errorcatching("Failed to write to file.", true, "FileSystemService")
   writeToFile(filePath: string, text: string): void {
     writeFileSync(filePath, text);
+  }
+
+  startDrag(filePaths: string[]) {
+    BrowserWindow.getFocusedWindow()?.webContents.startDrag({
+      file: "",
+      files: filePaths,
+      icon:
+        process.env.NODE_ENV === "development"
+          ? path.resolve(__dirname, "../public/pdf.png")
+          : path.resolve(__dirname, "pdf.png"),
+    });
   }
 }
