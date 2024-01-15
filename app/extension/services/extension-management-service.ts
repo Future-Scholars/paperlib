@@ -10,6 +10,7 @@ import { createDecorator } from "@/base/injection/injection";
 import { isLocalPath } from "@/base/url";
 
 import { Eventable } from "@/base/event";
+import { INetworkTool, NetworkTool } from "@/base/network";
 import {
   ExtensionPreferenceService,
   IExtensionPreferenceService,
@@ -45,7 +46,6 @@ interface IExtensionManagementServiceState {
 export class ExtensionManagementService extends Eventable<IExtensionManagementServiceState> {
   private readonly _extStore: ElectronStore<Record<string, IExtensionInfo>>;
   private readonly _extManager: PluginManager;
-  private readonly _extensionPreferenceService: ExtensionPreferenceService;
 
   private readonly _installedExtensions: { [key: string]: any };
   private readonly _installedExtensionInfos: {
@@ -54,7 +54,8 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
 
   constructor(
     @IExtensionPreferenceService
-    extensionPreferenceService: ExtensionPreferenceService
+    private readonly _extensionPreferenceService: ExtensionPreferenceService,
+    @INetworkTool private readonly _networkTool: NetworkTool
   ) {
     super("extensionManagementService", {
       installed: "",
@@ -74,7 +75,6 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     this._extManager = new PluginManager({
       pluginsPath: globalThis["extensionWorkingDir"],
     });
-    this._extensionPreferenceService = extensionPreferenceService;
 
     this._installedExtensions = {};
     this._installedExtensionInfos = {};
@@ -361,7 +361,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
   async listExtensionMarketplace(query: string) {
     try {
       const packages = (
-        await PLAPI.networkTool.get(
+        await this._networkTool.get(
           query
             ? `https://registry.npmjs.org/-/v1/search?text=${query} keywords:paperlib&size=20`
             : "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20",

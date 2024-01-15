@@ -1,7 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 
 import { createDecorator } from "@/base/injection/injection";
-import { INetworkTool, NetworkTool } from "@/base/network";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 
@@ -10,12 +9,12 @@ export const IRSSRepository = createDecorator("rssRepository");
 export class RSSRepository {
   xmlParser: XMLParser;
 
-  constructor(@INetworkTool private _networkTool: NetworkTool) {
+  constructor() {
     this.xmlParser = new XMLParser({ ignoreAttributes: false });
   }
 
   async fetch(feed: Feed): Promise<FeedEntity[]> {
-    const response = await this._networkTool.get(
+    const response = await PLExtAPI.networkTool.get(
       feed.url,
       {},
       1,

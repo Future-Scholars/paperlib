@@ -14,18 +14,13 @@ const hide = async () => {
 const currentVersion = ref("");
 const currentReleaseNoteHTML = ref("");
 const loadCurrent = async () => {
-  const response = await networkTool.get(
+  const response = await fetch(
     `https://api.paperlib.app/release-notes/json?lang=${
       preState.language === "zh-CN" ? "CN" : "EN"
-    }&latest=1&branch=dev-3.0.0`,
-    {},
-    1,
-    10000,
-    true,
-    true
+    }&latest=1&branch=dev-3.0.0`
   );
 
-  const json = response.body;
+  const json = await response.json();
   currentVersion.value = json[0].version;
 
   const html = (
@@ -39,18 +34,13 @@ const loadCurrent = async () => {
 
 const historyReleaseNoteHTML = ref("");
 const loadHistory = async () => {
-  const response = await networkTool.get(
+  const response = await fetch(
     `https://api.paperlib.app/release-notes/html?lang=${
       preState.language === "zh-CN" ? "CN" : "EN"
-    }&latest=5&branch=dev-3.0.0`,
-    {},
-    1,
-    10000,
-    true,
-    true
+    }&latest=5&branch=dev-3.0.0`
   );
 
-  historyReleaseNoteHTML.value = response.body;
+  historyReleaseNoteHTML.value = await response.text();
 };
 
 const darkMode = ref(false);

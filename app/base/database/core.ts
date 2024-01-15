@@ -371,7 +371,15 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       });
     }
 
-    if (!networkTool.connected()) {
+    let connected = false;
+    try {
+      const response = await fetch("https://httpbin.org/ip");
+      connected = response.ok;
+    } catch (e) {
+      connected = false;
+    }
+
+    if (!connected) {
       this._logService.warn("No network connection...", "", true, "Database");
       return this._app?.currentUser ?? null;
     }

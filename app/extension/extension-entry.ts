@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import { InjectionContainer } from "@/base/injection/injection";
+import { NetworkTool } from "@/base/network";
 import { Process } from "@/base/process-id";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
 import { ExtensionPreferenceService } from "@/extension/services/extension-preference-service";
@@ -55,6 +56,7 @@ async function initialize() {
   const instances = injectionContainer.createInstance<IInjectable>({
     extensionManagementService: ExtensionManagementService,
     extensionPreferenceService: ExtensionPreferenceService,
+    networkTool: NetworkTool,
   });
   // 4.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
