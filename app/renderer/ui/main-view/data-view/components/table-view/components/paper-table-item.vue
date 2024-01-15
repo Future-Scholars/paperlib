@@ -61,7 +61,7 @@ const props = defineProps({
     "
   >
     <div class="my-auto pl-2 pr-1 flex" :style="`width: ${fieldWidth.title}%`">
-      <div class="truncate">{{ item.title }}</div>
+      <div class="truncate"><span v-html="item.title"></span></div>
     </div>
 
     <div

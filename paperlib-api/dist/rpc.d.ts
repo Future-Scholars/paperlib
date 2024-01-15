@@ -123,7 +123,6 @@ export declare class RendererRPCService extends RPCService<IRendererRPCServiceSt
     private readonly _exposeAPIGroup?;
     constructor(_processID: string, _exposeAPIGroup?: string | undefined);
     initCommunication(): Promise<void>;
-    waitForAPI(processID: string, namespace: string, timeout: number): Promise<boolean>;
     setActionor(actionors: {
         [key: string]: any;
     }): void;
@@ -146,6 +145,7 @@ declare abstract class RPCService<T extends IRPCServiceState> extends Eventable<
         };
     };
     constructor(eventId: string, initialState: T);
+    waitForAPI(processID: string, namespace: string, timeout: number): Promise<boolean>;
     setActionor(actionors: {
         [key: string]: any;
     }): void;

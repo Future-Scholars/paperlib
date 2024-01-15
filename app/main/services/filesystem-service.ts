@@ -8,6 +8,7 @@ import {
   app,
   dialog,
   ipcMain,
+  shell,
 } from "electron";
 import { writeFileSync } from "fs";
 import path from "path";
@@ -125,5 +126,14 @@ export class FileSystemService {
           ? path.resolve(__dirname, "../public/pdf.png")
           : path.resolve(__dirname, "pdf.png"),
     });
+  }
+
+  /**
+   * Show the URL in Finder / Explorer.
+   * @param url - URL to show
+   */
+  @errorcatching("Failed to show the URL in Finder.", true, "FileService")
+  async showInFinder(url: string) {
+    shell.showItemInFolder(url);
   }
 }

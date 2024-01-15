@@ -10,7 +10,6 @@ import { ObjectId } from 'bson';
 import { ObjectIdLike } from 'bson';
 import { OpenDialogReturnValue } from 'electron';
 import { default as Realm_2 } from 'realm';
-import { Response as Response_2 } from 'got';
 import { Results } from 'realm';
 import { Store } from 'pinia';
 import { XMLParser } from 'fast-xml-parser';
@@ -478,13 +477,14 @@ declare class Eventable<T extends IEventState> implements IDisposable {
     dispose(): void;
 }
 
-declare class ExtensionManagementService {
+declare class ExtensionManagementService extends Eventable<IExtensionManagementServiceState> {
+    private readonly _extensionPreferenceService;
+    private readonly _networkTool;
     private readonly _extStore;
     private readonly _extManager;
-    private readonly _extensionPreferenceService;
     private readonly _installedExtensions;
     private readonly _installedExtensionInfos;
-    constructor(extensionPreferenceService: ExtensionPreferenceService);
+    constructor(_extensionPreferenceService: ExtensionPreferenceService, _networkTool: NetworkTool_2);
     /**
      * Load all installed extensions.
      */
@@ -533,6 +533,7 @@ declare class ExtensionManagementService {
             author: string;
             verified: boolean;
             description: string;
+            homepage?: string | undefined;
         };
     }>;
     /**
@@ -543,6 +544,12 @@ declare class ExtensionManagementService {
      * @returns
      */
     callExtensionMethod(extensionID: string, methodName: string, ...args: any): Promise<any>;
+    /**
+     * Get the status of the official scrape extension.
+     * @returns "uninstalled" | "unloaded" | "loaded"
+     */
+    isOfficialScrapeExtensionInstalled(): "loaded" | "unloaded" | "uninstalled";
+    memoryUsage(): number;
 }
 
 /**
@@ -1027,6 +1034,12 @@ declare class FileSystemService {
      * @returns {void} Nothing.
      */
     writeToFile(filePath: string, text: string): void;
+    startDrag(filePaths: string[]): void;
+    /**
+     * Show the URL in Finder / Explorer.
+     * @param url - URL to show
+     */
+    showInFinder(url: string): Promise<void>;
 }
 
 /**
@@ -1164,6 +1177,11 @@ declare interface ICookieObject {
     currentUrl: string;
 }
 
+declare interface ICookieObject_2 {
+    cookieStr: string;
+    currentUrl: string;
+}
+
 declare interface IDatabaseCoreState {
     dbInitializing: boolean;
     dbInitialized: boolean;
@@ -1178,18 +1196,6 @@ declare interface IDisposable {
     dispose: () => void;
 }
 
-declare interface IDownloaderPreference {
-    name: string;
-    description: string;
-    enable: boolean;
-    custom: boolean;
-    args: string;
-    priority: number;
-    preProcessCode: string;
-    queryProcessCode: string;
-    downloadImplCode: string;
-}
-
 declare interface IEventState {
     [key: string]: any;
 }
@@ -1201,9 +1207,20 @@ declare interface IExtensionInfo {
     author: string;
     verified: boolean;
     description: string;
+    homepage?: string;
     preference: Map<string, any>;
     location: string;
     originLocation?: string;
+}
+
+declare interface IExtensionManagementServiceState {
+    installed: string;
+    installing: string;
+    uninstalling: string;
+    uninstalled: string;
+    reloading: string;
+    reloaded: string;
+    installedLoaded: boolean;
 }
 
 declare interface IExternelCommand {
@@ -1456,8 +1473,6 @@ declare interface IPreferenceStore {
     allowRoutineMatch: boolean;
     lastRematchTime: number;
     lastFeedRefreshTime: number;
-    scrapers: Record<string, IScraperPreference>;
-    downloaders: Array<IDownloaderPreference>;
     allowproxy: boolean;
     httpproxy: string;
     httpsproxy: string;
@@ -1481,26 +1496,12 @@ declare interface IPreferenceStore {
     selectedPDFViewerPath: string;
     selectedCSLStyle: string;
     importedCSLStylesPath: string;
-    showPresettingLang: boolean;
-    showPresettingDB: boolean;
-    showPresettingScraper: boolean;
+    showPresetting: boolean;
+    fontsize: "normal" | "large" | "larger";
 }
 
 declare interface IProcessingState {
     general: number;
-}
-
-declare interface IScraperPreference {
-    name: string;
-    category: string;
-    description: string;
-    enable: boolean;
-    custom: boolean;
-    args: string;
-    priority: number;
-    preProcessCode: string;
-    parsingProcessCode: string;
-    scrapeImplCode: string;
 }
 
 declare interface ISmartFilterServiceState {
@@ -1640,21 +1641,107 @@ declare class MenuService extends Eventable<IMenuServiceState> {
     disableAll(): void;
 }
 
+/**
+ * Network tool
+ * @deprecated Use `PLExtAPI.networkTool` instead.
+ */
 declare class NetworkTool {
-    private readonly _preferenceService;
-    private readonly _logService;
+    constructor();
+    private _checkExtAPIExposed;
+    /**
+     * HTTP GET
+     * @deprecated Use `PLExtAPI.networkTool.get()` instead.
+     * @param url - URL
+     * @param headers - Headers
+     * @param retry - Retry times
+     * @param timeout - Timeout
+     * @param cache - Use cache
+     * @param parse - Try to parse response body
+     * @returns Response
+     */
+    get(url: string, headers?: Record<string, string>, retry?: number, timeout?: number, cache?: boolean, parse?: boolean): Promise<{
+        body: any;
+        status: number;
+        statusText: string;
+        headers: Record<string, string>;
+    }>;
+    /**
+     * HTTP POST
+     * @deprecated Use `PLExtAPI.networkTool.post()` instead.
+     * @param url - URL
+     * @param data - Data
+     * @param headers - Headers
+     * @param retry - Retry times
+     * @param timeout - Timeout
+     * @param compress - Compress data
+     * @param parse - Try to parse response body
+     * @returns Response
+     */
+    post(url: string, data: Record<string, any> | string, headers?: Record<string, string>, retry?: number, timeout?: number, compress?: boolean, parse?: boolean): Promise<{
+        body: any;
+        status: number;
+        statusText: string;
+        headers: Record<string, string>;
+    }>;
+    /**
+     * HTTP POST with form data
+     * @deprecated Use `PLExtAPI.networkTool.postForm()` instead.
+     * @param url - URL
+     * @param data - Data
+     * @param headers - Headers
+     * @param retry - Retry times
+     * @param timeout - Timeout
+     * @param parse - Try to parse response body
+     * @returns Response
+     */
+    postForm(url: string, data: FormData, headers?: Record<string, string>, retry?: number, timeout?: number, parse?: boolean): Promise<{
+        body: any;
+        status: number;
+        statusText: string;
+        headers: Record<string, string>;
+    }>;
+    /**
+     * Download
+     * @deprecated Use `PLExtAPI.networkTool.download()` instead.
+     * @param url - URL
+     * @param targetPath - Target path
+     * @param cookies - Cookies
+     * @returns Target path
+     */
+    download(url: string, targetPath: string, cookies?: CookieJar | ICookieObject[]): Promise<string>;
+    /**
+     * Download PDFs
+     * @deprecated Use `PLExtAPI.networkTool.downloadPDFs()` instead.
+     * @param urlList - URL list
+     * @param cookies - Cookies
+     * @returns Target paths
+     */
+    downloadPDFs(urlList: string[], cookies?: CookieJar | ICookieObject[]): Promise<string[]>;
+    /**
+     * Check if the network is connected
+     * @deprecated Use `PLExtAPI.networkTool.connected()` instead.
+     * @returns Whether the network is connected
+     */
+    connected(): Promise<boolean>;
+}
+
+declare class NetworkTool_2 {
+    private readonly _axios;
+    private readonly _axiosCache;
     private _agent;
     private _donwloadProgress;
-    constructor(_preferenceService: PreferenceService, _logService: LogService);
+    constructor();
     /**
      * Set proxy agent
-     * @param proxy - Proxy url
+     * @param httpproxy - HTTP proxy
+     * @param httpsproxy - HTTPS proxy
      */
-    setProxyAgent(proxy?: string): void;
+    setProxyAgent(httpproxy?: string, httpsproxy?: string): void;
     /**
-     * Check system proxy, if exists, set it as proxy agent
+     * Check proxy settings, if exists, set it as proxy agent, otherwise, check system proxy settings.
      */
-    checkSystemProxy(): void;
+    checkProxy(): Promise<void>;
+    private _parseResponse;
     /**
      * HTTP GET
      * @param url - URL
@@ -1662,9 +1749,15 @@ declare class NetworkTool {
      * @param retry - Retry times
      * @param timeout - Timeout
      * @param cache - Use cache
+     * @param parse - Try to parse response body
      * @returns Response
      */
-    get(url: string, headers?: Record<string, string>, retry?: number, timeout?: number, cache?: boolean): Promise<Response_2<string>>;
+    get(url: string, headers?: Record<string, string>, retry?: number, timeout?: number, cache?: boolean, parse?: boolean): Promise<{
+        body: any;
+        status: number;
+        statusText: string;
+        headers: Record<string, string>;
+    }>;
     /**
      * HTTP POST
      * @param url - URL
@@ -1673,9 +1766,15 @@ declare class NetworkTool {
      * @param retry - Retry times
      * @param timeout - Timeout
      * @param compress - Compress data
+     * @param parse - Try to parse response body
      * @returns Response
      */
-    post(url: string, data: Record<string, any> | string, headers?: Record<string, string>, retry?: number, timeout?: number, compress?: boolean): Promise<Response_2<string>>;
+    post(url: string, data: Record<string, any> | string, headers?: Record<string, string>, retry?: number, timeout?: number, compress?: boolean, parse?: boolean): Promise<{
+        body: any;
+        status: number;
+        statusText: string;
+        headers: Record<string, string>;
+    }>;
     /**
      * HTTP POST with form data
      * @param url - URL
@@ -1685,7 +1784,12 @@ declare class NetworkTool {
      * @param timeout - Timeout
      * @returns Response
      */
-    postForm(url: string, data: FormData, headers?: Record<string, string>, retry?: number, timeout?: number): Promise<Response_2<string>>;
+    postForm(url: string, data: FormData, headers?: Record<string, string>, retry?: number, timeout?: number, parse?: boolean): Promise<{
+        body: any;
+        status: number;
+        statusText: string;
+        headers: Record<string, string>;
+    }>;
     /**
      * Download
      * @param url - URL
@@ -1693,14 +1797,14 @@ declare class NetworkTool {
      * @param cookies - Cookies
      * @returns Target path
      */
-    download(url: string, targetPath: string, cookies?: CookieJar | ICookieObject[]): Promise<string>;
+    download(url: string, targetPath: string, cookies?: CookieJar | ICookieObject_2[]): Promise<string>;
     /**
      * Download PDFs
      * @param urlList - URL list
      * @param cookies - Cookies
      * @returns Target paths
      */
-    downloadPDFs(urlList: string[], cookies?: CookieJar | ICookieObject[]): Promise<string[]>;
+    downloadPDFs(urlList: string[], cookies?: CookieJar | ICookieObject_2[]): Promise<string[]>;
     /**
      * Check if the network is connected
      * @returns Whether the network is connected
@@ -2066,6 +2170,7 @@ export { PLAPI_2 as PLAPI }
 declare namespace PLExtAPI_2 {
     const extensionManagementService: ExtensionManagementService;
     const extensionPreferenceService: ExtensionPreferenceService;
+    const networkTool: Proxied<NetworkTool_2>;
 }
 export { PLExtAPI_2 as PLExtAPI }
 
@@ -2112,7 +2217,7 @@ declare class PreferenceService extends Eventable<IPreferenceStore> {
     } | {
         from: string;
         to: string;
-    }[] | Record<string, IScraperPreference> | IDownloaderPreference[];
+    }[];
     /**
      * Set the value of the preference
      * @param patch - Patch object
@@ -2178,7 +2283,7 @@ declare class ReferenceService {
      * @param papers - The PaperEntity array.
      * @returns The CSV string.
      */
-    exportCSV(papers: PaperEntity[]): Promise<string>;
+    exportCSV(paperEntities: PaperEntity[]): string;
     /**
      * Export paper entities.
      * @param paperEntities - The paper entities.
@@ -2270,11 +2375,10 @@ declare interface RSSItem {
 }
 
 declare class RSSRepository {
-    private _networkTool;
     xmlParser: XMLParser;
-    constructor(_networkTool: NetworkTool);
+    constructor();
     fetch(feed: Feed): Promise<FeedEntity[]>;
-    parse(rawResponse: Response_2<string>): FeedEntity[];
+    parse(rawResponse: string): FeedEntity[];
     parseRSSItems(items: RSSItem[]): FeedEntity[];
     parseAtomItems(items: AtomItem[]): FeedEntity[];
 }
@@ -2329,6 +2433,7 @@ declare class ScrapeService extends Eventable<{}> {
     private readonly _hookService;
     private readonly _logService;
     constructor(_hookService: HookService, _logService: LogService);
+    private _scrapeExtensionReady;
     /**
      * Scrape a data source's metadata.
      * @param payloads - data source payloads.
@@ -3865,6 +3970,7 @@ declare class UIStateService extends Eventable<IUIStateServiceState> {
 }
 
 declare class UpgradeService extends Eventable<IUpgradeServiceState> {
+    private _downloadingProgress;
     constructor();
     checkForUpdates(): void;
     currentVersion(): string;
