@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ["16.17.1"]
+        node-versions: ["18.16.1"]
 
     steps:
       - name: "Checkout Project"
@@ -96,7 +96,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ["16.17.1"]
+        node-versions: ["18.16.1"]
 
     steps:
       - name: "Checkout Project"
@@ -171,7 +171,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ["16.17.1"]
+        node-versions: ["18.16.1"]
 
     steps:
       - name: "Checkout Project"
@@ -242,7 +242,7 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ["16.17.1"]
+        node-versions: ["18.16.1"]
 
     steps:
       - name: "Checkout Project"
@@ -273,6 +273,14 @@ jobs:
 
       - name: "Build and Package"
         run: pnpm run build-linux-dev
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Oracle Cloud CLI
         run: |
