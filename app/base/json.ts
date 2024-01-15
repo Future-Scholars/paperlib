@@ -10,7 +10,7 @@ function replacer(key: any, value: any) {
     };
   } else if (
     value instanceof Error ||
-    value.constructor.name.includes("Error")
+    value.constructor?.name.includes("Error")
   ) {
     return {
       _dataType: "Error",

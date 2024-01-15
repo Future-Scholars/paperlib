@@ -1,8 +1,9 @@
+import Axios, { AxiosInstance, AxiosResponse } from "axios";
+import { setupCache } from "axios-cache-interceptor";
 import { createWriteStream, existsSync, mkdirSync } from "fs";
-import ky, { Options as KyOptions, KyResponse } from "ky";
+import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import os from "os";
 import path from "path";
-import { Readable } from "stream";
 import { finished } from "stream/promises";
 import { CookieJar } from "tough-cookie";
 
@@ -21,57 +22,109 @@ export interface ICookieObject {
 export const INetworkTool = createDecorator("networkTool");
 
 export class NetworkTool {
+  private readonly _axios: AxiosInstance;
+  private readonly _axiosCache: AxiosInstance;
+  private _agent: {
+    http?: HttpProxyAgent;
+    https?: HttpsProxyAgent;
+  };
+
   private _donwloadProgress: {
     [key: string]: number;
   };
 
   constructor() {
     this._donwloadProgress = {};
+
+    this._axios = Axios.create();
+    this._axiosCache = setupCache(Axios.create(), {
+      ttl: 60 * 60 * 1000 * 24,
+    });
+
+    this._agent = {};
+    this.checkProxy();
   }
 
-  private async _cachePreHook(_request: Request) {
-    const cacheKey = `${_request.method}-${_request.url}-${_request.headers}`;
-    if (cache.has(cacheKey)) {
-      const storedCache = cache.get(cacheKey);
+  /**
+   * Set proxy agent
+   * @param httpproxy - HTTP proxy
+   * @param httpsproxy - HTTPS proxy
+   */
+  setProxyAgent(httpproxy: string = "", httpsproxy: string = "") {
+    if (httpproxy) {
+      this._agent["http"] = new HttpProxyAgent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 256,
+        maxFreeSockets: 256,
+        scheduling: "lifo",
+        proxy: httpproxy,
+      });
+    }
 
-      if (storedCache.ttl < Date.now()) {
-        cache.delete(cacheKey);
-        return undefined;
-      } else {
-        return storedCache.response;
+    if (httpsproxy) {
+      this._agent["https"] = new HttpsProxyAgent({
+        keepAlive: true,
+        keepAliveMsecs: 1000,
+        maxSockets: 256,
+        maxFreeSockets: 256,
+        scheduling: "lifo",
+        proxy: httpsproxy,
+      });
+    }
+  }
+
+  /**
+   * Check proxy settings, if exists, set it as proxy agent, otherwise, check system proxy settings.
+   */
+  async checkProxy() {
+    if (!(await PLAPI.preferenceService.get("allowproxy"))) {
+      return;
+    }
+
+    let httpProxy = "";
+    let httpsProxy = "";
+
+    httpProxy = (await PLAPI.preferenceService.get("httpproxy")) as string;
+    httpsProxy = (await PLAPI.preferenceService.get("httpsproxy")) as string;
+
+    const proxy = await PLMainAPI.proxyService.getSystemProxy();
+
+    if (proxy !== "DIRECT") {
+      const proxyUrlComponents = proxy.split(":");
+      let proxyHost = proxyUrlComponents[0].split(" ")[1].trim();
+      const proxyPort = parseInt(proxyUrlComponents[1].trim(), 10);
+      if (
+        !proxyHost.startsWith("http://") &&
+        !proxyHost.startsWith("https://")
+      ) {
+        proxyHost = "http://" + proxyHost;
       }
+      httpProxy = httpProxy || proxyHost + ":" + proxyPort;
+      httpsProxy = httpsProxy || proxyHost + ":" + proxyPort;
     }
+
+    this.setProxyAgent(httpProxy, httpsProxy);
   }
 
-  private async _cacheAfterHook(
-    _request: Request,
-    _options: KyOptions,
-    response: KyResponse
-  ) {
-    const cacheKey = `${_request.method}-${_request.url}-${_request.headers}`;
-    const ttl = Date.now() + 1000 * 60 * 60 * 24;
-    const storedCache = {
-      ttl: ttl,
-      response: response.clone(),
-    };
-    cache.set(cacheKey, storedCache);
-    return response;
-  }
-
-  private async _parseResponse(response: KyResponse, parse = false) {
-    const contentType = response.headers.get("content-type");
+  private async _parseResponse(response: AxiosResponse, parse = false) {
+    const contentType = `${response.headers["Content-Type"]}`;
     let body: any;
-    if (contentType?.includes("application/json") && parse) {
-      body = await response.json();
+    if (
+      contentType?.includes("application/json") &&
+      parse &&
+      response.data &&
+      typeof response.data === "string"
+    ) {
+      body = JSON.parse(response.data);
     } else {
-      body = await response.text();
+      body = response.data;
     }
-
     return {
       body: body,
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers,
+      headers: response.headers as Record<string, string>,
     };
   }
 
@@ -93,17 +146,19 @@ export class NetworkTool {
     cache = false,
     parse = false
   ) {
-    const options: KyOptions = {
+    const options = {
       headers: headers,
-      retry: retry,
-      timeout: timeout,
-      hooks: {
-        beforeRequest: cache ? [this._cachePreHook] : [],
-        afterResponse: cache ? [this._cacheAfterHook] : [],
+      "axios-retry": {
+        retries: retry,
       },
+      signal: AbortSignal.timeout(timeout),
+      httpAgent: this._agent["http"],
+      httpsAgent: this._agent["https"],
     };
 
-    const response = await ky.get(url, options);
+    const response = cache
+      ? await this._axiosCache.get(url, options)
+      : await this._axios.get(url, options);
     return await this._parseResponse(response, parse);
   }
 
@@ -127,41 +182,34 @@ export class NetworkTool {
     compress = false,
     parse = false
   ) {
-    let options: KyOptions;
+    let options;
+    let postData = data;
     if (compress) {
       const dataString = typeof data === "string" ? data : JSON.stringify(data);
-      const buffer = await compressString(dataString);
+      postData = await compressString(dataString);
 
       options = {
-        body: buffer,
         headers: headers,
         retry: retry,
-        timeout: timeout,
-      };
-    } else if (typeof data === "string") {
-      options = {
-        body: data,
-        headers: headers,
-        retry: retry,
-        timeout: timeout,
-      };
-    } else if (data instanceof Object) {
-      options = {
-        json: data,
-        headers: headers,
-        retry: retry,
-        timeout: timeout,
+        "axios-retry": {
+          retries: retry,
+        },
+        signal: AbortSignal.timeout(timeout),
+        httpAgent: this._agent["http"],
+        httpsAgent: this._agent["https"],
       };
     } else {
       options = {
-        body: data,
         headers: headers,
         retry: retry,
-        timeout: timeout,
+        "axios-retry": {
+          retries: retry,
+        },
+        signal: AbortSignal.timeout(timeout),
       };
     }
 
-    const response = await ky.post(url, options);
+    const response = await this._axios.post(url, postData, options);
     return await this._parseResponse(response, parse);
   }
 
@@ -191,15 +239,8 @@ export class NetworkTool {
         data = formData;
       }
     }
-    const options = {
-      body: data,
-      headers: headers,
-      retry: retry,
-      timeout: timeout,
-    };
 
-    const response = await ky.post(url, options);
-    return await this._parseResponse(response, parse);
+    return await this.post(url, data, headers, retry, timeout, false, parse);
   }
 
   /**
@@ -233,42 +274,45 @@ export class NetworkTool {
       headers["cookie"] = await cookieJarObj.getCookieString(url);
     }
 
-    const response = await ky.get(url, {
+    const response = await this._axios.get(url, {
       headers: headers,
       onDownloadProgress: (progress) => {
-        console.log(progress);
         if (
           this._donwloadProgress[url] &&
-          (progress.percent - this._donwloadProgress[url] > 0.05 ||
-            progress.percent === 1)
+          progress.progress &&
+          (progress.progress - this._donwloadProgress[url] > 0.05 ||
+            progress.progress === 1)
         ) {
           PLAPI.logService.progress(
             "Downloading...",
-            progress.percent * 100,
+            progress.progress * 100,
             true,
             "Network",
             url
           );
 
-          this._donwloadProgress[url] = progress.percent;
-        } else if (!this._donwloadProgress[url]) {
-          this._donwloadProgress[url] = progress.percent;
+          this._donwloadProgress[url] = progress.progress;
+        } else if (!this._donwloadProgress[url] && progress.progress) {
+          this._donwloadProgress[url] = progress.progress;
         }
 
-        if (progress.percent === 1) {
+        if (progress.progress === 1) {
           delete this._donwloadProgress[url];
         }
       },
+      responseType: "stream",
+      httpAgent: this._agent["http"],
+      httpsAgent: this._agent["https"],
     });
 
     const fileStream = createWriteStream(
       constructFileURL(targetPath, false, false)
     );
 
-    if (response.status !== 200 || !response.body) {
+    if (response.status !== 200 || !response.data) {
       PLAPI.logService.error(
         "Failed to download file.",
-        `Status: ${response.status} | URL: ${url} | Target path: ${targetPath} | Body: ${response.body}`,
+        `Status: ${response.status} | URL: ${url} | Target path: ${targetPath} | Body: ${response.data}`,
         true,
         "Network"
       );
@@ -276,7 +320,7 @@ export class NetworkTool {
       return "";
     }
 
-    await finished(Readable.fromWeb(response.body as any).pipe(fileStream));
+    await finished(response.data.pipe(fileStream));
 
     return targetPath;
   }
@@ -320,10 +364,10 @@ export class NetworkTool {
    */
   async connected() {
     try {
-      const response = await ky.get("https://httpbin.org/ip", {
+      const response = await this._axios.get("https://httpbin.org/ip", {
         timeout: 5000,
       });
-      return response.ok;
+      return response.status === 200;
     } catch (e) {
       return false;
     }
