@@ -38,7 +38,7 @@ const onLogoutClicked = async () => {
 };
 
 const onClickGuide = () => {
-  fileService.open("https://paperlib.app/en/blog/sync/");
+  fileService.open("https://paperlib.app/en/doc/cloud-sync/setup.html");
 };
 
 const onMigrateClicked = () => {

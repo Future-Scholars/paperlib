@@ -389,13 +389,13 @@ onUnmounted(async () => {
           {{ editingExtension?.version }} by {{ editingExtension?.author }}
         </div>
         <div
-          class="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-4 mb-1 px-2"
+          class="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-4 mb-1 p-2"
         >
           {{ editingExtension?.description }}
         </div>
         <div class="my-2 h-[0.5px] mx-2 bg-neutral-300 dark:bg-neutral-600" />
 
-        <div class="px-2 overflow-scroll h-full flex flex-col py-4 space-y-3">
+        <div class="px-2 overflow-y-auto h-full flex flex-col py-4 space-y-3">
           <div
             v-for="(keypref, index) in editingExtension?.preference.entries() ||
             []"
