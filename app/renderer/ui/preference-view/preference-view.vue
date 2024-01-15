@@ -10,8 +10,6 @@ import {
   BIconLayoutSidebar,
   BIconPuzzle,
   BIconViewList,
-  BIconXCircle,
-  BIconXCircleFill,
 } from "bootstrap-icons-vue";
 import { onMounted, onUnmounted, ref } from "vue";
 
@@ -131,9 +129,17 @@ onUnmounted(() => {
             <BIconInfoCircle class="my-auto text-xs" />
           </SectionItem>
         </div>
+        <div class="flex justify-end space-x-2 pr-4">
+          <div
+            class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm cursor-pointer"
+            @click="onCloseClicked"
+          >
+            <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
+          </div>
+        </div>
       </div>
 
-      <div class="overflow-y-auto px-6">
+      <div class="overflow-scroll px-6">
         <GeneralView v-if="preferenceTab === 'general'" />
         <SidebarView v-if="preferenceTab === 'sidebar'" />
         <MainviewView v-if="preferenceTab === 'mainview'" />
@@ -144,11 +150,6 @@ onUnmounted(() => {
         <HotkeyView v-if="preferenceTab === 'hotkey'" />
         <AboutView v-if="preferenceTab === 'about'" />
         <ExtensionView v-if="preferenceTab === 'extension'" />
-      </div>
-      <div @click="onCloseClicked">
-        <BIconXCircleFill
-          class="text-md text-neutral-300 dark:text-neutral-600 hover:text-neutral-500"
-        />
       </div>
     </div>
   </div>
