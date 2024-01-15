@@ -1,10 +1,22 @@
 import { ipcRenderer } from 'electron';
 
 function replacer(key, value) {
+  if (value === void 0 || value === null) {
+    return value;
+  }
   if (value instanceof Map) {
     return {
       _dataType: "Map",
       value: Array.from(value.entries())
+    };
+  } else if (value instanceof Error || value.constructor?.name.includes("Error")) {
+    return {
+      _dataType: "Error",
+      value: {
+        name: value.name ? value.name || value.constructor.name : "",
+        message: value.message ? value.message : "",
+        stack: value.stack ? value.stack : ""
+      }
     };
   } else {
     return value;
@@ -14,6 +26,12 @@ function reviver(key, value) {
   if (typeof value === "object" && value !== null) {
     if (value._dataType === "Map") {
       return new Map(value.value);
+    } else if (value._dataType === "Error") {
+      const error = new Error();
+      error.name = value.value.name;
+      error.message = value.value.message;
+      error.stack = value.value.stack;
+      return error;
     }
   }
   return value;
@@ -172,27 +190,6 @@ class MessagePortRPCProtocol {
     const callId = String(++this._lastCallId);
     const result = new LazyPromise();
     this._pendingRPCReplies[callId] = result;
-    args = args.map((arg) => {
-      if (arg instanceof Error) {
-        return {
-          name: arg.name,
-          message: arg.message,
-          stack: arg.stack
-        };
-      } else if (arg.constructor.name.includes("Error")) {
-        try {
-          return {
-            name: arg.name ? arg.name || arg.constructor.name : "",
-            message: arg.message ? arg.message : "",
-            stack: arg.stack ? arg.stack : ""
-          };
-        } catch {
-          return `${arg}`;
-        }
-      } else {
-        return arg;
-      }
-    });
     const msg = JSONstringify({
       callId,
       callerId: this._callerId,
@@ -378,23 +375,11 @@ class MessagePortRPCProtocol {
     promise.then(
       (r) => {
         let msg;
-        if (rpcId === "networkTool" && (method === "get" || method === "post" || method === "postForm")) {
-          msg = JSONstringify({
-            callId,
-            type: 1 /* replySuccess */,
-            value: {
-              body: r.body,
-              headers: r.headers,
-              statusCode: r.statusCode
-            }
-          });
-        } else {
-          msg = JSONstringify({
-            callId,
-            type: 1 /* replySuccess */,
-            value: r
-          });
-        }
+        msg = JSONstringify({
+          callId,
+          type: 1 /* replySuccess */,
+          value: r
+        });
         this._port.postMessage(msg);
       },
       (err) => {
@@ -485,7 +470,7 @@ class MessagePortRPCProtocol {
     } catch (e) {
       PLAPI.logService.error(
         `Failed to dispose event ${callId}`,
-        e,
+        createError(e),
         false,
         "RPC"
       );
@@ -500,23 +485,27 @@ class MessagePortRPCProtocol {
       return;
     }
     for (const callbackId in callbackList) {
-      try {
-        callbackList[callbackId](args);
-      } catch (e) {
-        let error;
-        if (e instanceof Error) {
-          error = e;
-        } else {
-          error = new Error(e.message || "Unknown error");
-          error.name = e.name || "UnknownError";
-          error.stack = e.stack || "";
+      const callback = callbackList[callbackId];
+      if (callback.constructor.name === "Function") {
+        try {
+          callback(args);
+        } catch (e) {
+          PLAPI.logService.error(
+            `Failed to fire event ${eventName} on ${rpcId}`,
+            createError(e),
+            false,
+            "RPC"
+          );
         }
-        PLAPI.logService.error(
-          `Failed to fire event ${eventName} on ${rpcId}`,
-          error,
-          false,
-          "RPC"
-        );
+      } else if (callback.constructor.name === "AsyncFunction") {
+        callback(args).catch((e) => {
+          PLAPI.logService.error(
+            `Failed to fire event ${eventName} on ${rpcId}`,
+            createError(e),
+            false,
+            "RPC"
+          );
+        });
       }
     }
   }
@@ -564,7 +553,16 @@ class MessagePortRPCProtocol {
     if (!disposeCallback) {
       return;
     }
-    disposeCallback();
+    try {
+      disposeCallback();
+    } catch (e) {
+      PLAPI.logService.error(
+        `Failed to dispose hook ${callId}`,
+        createError(e),
+        false,
+        "RPC"
+      );
+    }
     delete this._hookDisposeCallbacks[callbackId];
   }
   async _receiveCommandRegister(callId, rpcId, value) {
@@ -583,9 +581,29 @@ class MessagePortRPCProtocol {
     if (!disposeCallback) {
       return;
     }
-    disposeCallback();
+    try {
+      disposeCallback();
+    } catch (e) {
+      PLAPI.logService.error(
+        `Failed to dispose command ${callId}`,
+        createError(e),
+        false,
+        "RPC"
+      );
+    }
     delete this._hookDisposeCallbacks[callbackId];
   }
+}
+function createError(e) {
+  let error;
+  if (e instanceof Error) {
+    error = e;
+  } else {
+    error = new Error(e.message || "Unknown error");
+    error.name = e.name || "UnknownError";
+    error.stack = e.stack || "";
+  }
+  return error;
 }
 
 /** Detect free variable `global` from Node.js. */
@@ -2642,20 +2660,16 @@ function isEqual(value, other) {
 }
 
 function makeMap(str, expectsLowerCase) {
-  const map = /* @__PURE__ */ Object.create(null);
-  const list = str.split(",");
-  for (let i = 0; i < list.length; i++) {
-    map[list[i]] = true;
-  }
-  return expectsLowerCase ? (val) => !!map[val.toLowerCase()] : (val) => !!map[val];
+  const set = new Set(str.split(","));
+  return expectsLowerCase ? (val) => set.has(val.toLowerCase()) : (val) => set.has(val);
 }
 
 const EMPTY_OBJ = !!(process.env.NODE_ENV !== "production") ? Object.freeze({}) : {};
 !!(process.env.NODE_ENV !== "production") ? Object.freeze([]) : [];
 const NOOP = () => {
 };
-const onRE = /^on[^a-z]/;
-const isOn = (key) => onRE.test(key);
+const isOn = (key) => key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110 && // uppercase letter
+(key.charCodeAt(2) > 122 || key.charCodeAt(2) < 97);
 const extend = Object.assign;
 const remove = (arr, el) => {
   const i = arr.indexOf(el);
@@ -2673,7 +2687,7 @@ const isString = (val) => typeof val === "string";
 const isSymbol = (val) => typeof val === "symbol";
 const isObject = (val) => val !== null && typeof val === "object";
 const isPromise = (val) => {
-  return isObject(val) && isFunction(val.then) && isFunction(val.catch);
+  return (isObject(val) || isFunction(val)) && isFunction(val.then) && isFunction(val.catch);
 };
 const objectToString = Object.prototype.toString;
 const toTypeString = (value) => objectToString.call(value);
@@ -2689,9 +2703,9 @@ const cacheStringFunction = (fn) => {
     return hit || (cache[str] = fn(str));
   };
 };
-const capitalize = cacheStringFunction(
-  (str) => str.charAt(0).toUpperCase() + str.slice(1)
-);
+const capitalize = cacheStringFunction((str) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+});
 const hasChanged = (value, oldValue) => !Object.is(value, oldValue);
 const def = (obj, key, value) => {
   Object.defineProperty(obj, key, {
@@ -2718,9 +2732,7 @@ function normalizeStyle(value) {
       }
     }
     return res;
-  } else if (isString(value)) {
-    return value;
-  } else if (isObject(value)) {
+  } else if (isString(value) || isObject(value)) {
     return value;
   }
 }
@@ -2758,7 +2770,7 @@ function normalizeClass(value) {
   return res.trim();
 }
 
-function warn$1(msg, ...args) {
+function warn(msg, ...args) {
   console.warn(`[Vue warn] ${msg}`, ...args);
 }
 
@@ -2798,7 +2810,7 @@ class EffectScope {
         activeEffectScope = currentEffectScope;
       }
     } else if (!!(process.env.NODE_ENV !== "production")) {
-      warn$1(`cannot run an inactive effect scope.`);
+      warn(`cannot run an inactive effect scope.`);
     }
   }
   /**
@@ -2856,119 +2868,119 @@ function onScopeDispose(fn) {
   if (activeEffectScope) {
     activeEffectScope.cleanups.push(fn);
   } else if (!!(process.env.NODE_ENV !== "production")) {
-    warn$1(
+    warn(
       `onScopeDispose() is called when there is no active effect scope to be associated with.`
     );
   }
 }
 
-const createDep = (effects) => {
-  const dep = new Set(effects);
-  dep.w = 0;
-  dep.n = 0;
-  return dep;
-};
-const wasTracked = (dep) => (dep.w & trackOpBit) > 0;
-const newTracked = (dep) => (dep.n & trackOpBit) > 0;
-const initDepMarkers = ({ deps }) => {
-  if (deps.length) {
-    for (let i = 0; i < deps.length; i++) {
-      deps[i].w |= trackOpBit;
-    }
-  }
-};
-const finalizeDepMarkers = (effect) => {
-  const { deps } = effect;
-  if (deps.length) {
-    let ptr = 0;
-    for (let i = 0; i < deps.length; i++) {
-      const dep = deps[i];
-      if (wasTracked(dep) && !newTracked(dep)) {
-        dep.delete(effect);
-      } else {
-        deps[ptr++] = dep;
-      }
-      dep.w &= ~trackOpBit;
-      dep.n &= ~trackOpBit;
-    }
-    deps.length = ptr;
-  }
-};
-
-const targetMap = /* @__PURE__ */ new WeakMap();
-let effectTrackDepth = 0;
-let trackOpBit = 1;
-const maxMarkerBits = 30;
 let activeEffect;
-const ITERATE_KEY = Symbol(!!(process.env.NODE_ENV !== "production") ? "iterate" : "");
-const MAP_KEY_ITERATE_KEY = Symbol(!!(process.env.NODE_ENV !== "production") ? "Map key iterate" : "");
 class ReactiveEffect {
-  constructor(fn, scheduler = null, scope) {
+  constructor(fn, trigger, scheduler, scope) {
     this.fn = fn;
+    this.trigger = trigger;
     this.scheduler = scheduler;
     this.active = true;
     this.deps = [];
-    this.parent = void 0;
+    /**
+     * @internal
+     */
+    this._dirtyLevel = 3;
+    /**
+     * @internal
+     */
+    this._trackId = 0;
+    /**
+     * @internal
+     */
+    this._runnings = 0;
+    /**
+     * @internal
+     */
+    this._queryings = 0;
+    /**
+     * @internal
+     */
+    this._depsLength = 0;
     recordEffectScope(this, scope);
   }
+  get dirty() {
+    if (this._dirtyLevel === 1) {
+      this._dirtyLevel = 0;
+      this._queryings++;
+      pauseTracking();
+      for (const dep of this.deps) {
+        if (dep.computed) {
+          triggerComputed(dep.computed);
+          if (this._dirtyLevel >= 2) {
+            break;
+          }
+        }
+      }
+      resetTracking();
+      this._queryings--;
+    }
+    return this._dirtyLevel >= 2;
+  }
+  set dirty(v) {
+    this._dirtyLevel = v ? 3 : 0;
+  }
   run() {
+    this._dirtyLevel = 0;
     if (!this.active) {
       return this.fn();
     }
-    let parent = activeEffect;
     let lastShouldTrack = shouldTrack;
-    while (parent) {
-      if (parent === this) {
-        return;
-      }
-      parent = parent.parent;
-    }
+    let lastEffect = activeEffect;
     try {
-      this.parent = activeEffect;
-      activeEffect = this;
       shouldTrack = true;
-      trackOpBit = 1 << ++effectTrackDepth;
-      if (effectTrackDepth <= maxMarkerBits) {
-        initDepMarkers(this);
-      } else {
-        cleanupEffect(this);
-      }
+      activeEffect = this;
+      this._runnings++;
+      preCleanupEffect(this);
       return this.fn();
     } finally {
-      if (effectTrackDepth <= maxMarkerBits) {
-        finalizeDepMarkers(this);
-      }
-      trackOpBit = 1 << --effectTrackDepth;
-      activeEffect = this.parent;
+      postCleanupEffect(this);
+      this._runnings--;
+      activeEffect = lastEffect;
       shouldTrack = lastShouldTrack;
-      this.parent = void 0;
-      if (this.deferStop) {
-        this.stop();
-      }
     }
   }
   stop() {
-    if (activeEffect === this) {
-      this.deferStop = true;
-    } else if (this.active) {
-      cleanupEffect(this);
-      if (this.onStop) {
-        this.onStop();
-      }
+    var _a;
+    if (this.active) {
+      preCleanupEffect(this);
+      postCleanupEffect(this);
+      (_a = this.onStop) == null ? void 0 : _a.call(this);
       this.active = false;
     }
   }
 }
-function cleanupEffect(effect2) {
-  const { deps } = effect2;
-  if (deps.length) {
-    for (let i = 0; i < deps.length; i++) {
-      deps[i].delete(effect2);
+function triggerComputed(computed) {
+  return computed.value;
+}
+function preCleanupEffect(effect2) {
+  effect2._trackId++;
+  effect2._depsLength = 0;
+}
+function postCleanupEffect(effect2) {
+  if (effect2.deps && effect2.deps.length > effect2._depsLength) {
+    for (let i = effect2._depsLength; i < effect2.deps.length; i++) {
+      cleanupDepEffect(effect2.deps[i], effect2);
     }
-    deps.length = 0;
+    effect2.deps.length = effect2._depsLength;
+  }
+}
+function cleanupDepEffect(dep, effect2) {
+  const trackId = dep.get(effect2);
+  if (trackId !== void 0 && effect2._trackId !== trackId) {
+    dep.delete(effect2);
+    if (dep.size === 0) {
+      dep.cleanup();
+    }
   }
 }
 let shouldTrack = true;
+let pauseScheduleStack = 0;
 const trackStack = [];
 function pauseTracking() {
   trackStack.push(shouldTrack);
@@ -2978,6 +2990,68 @@ function resetTracking() {
   const last = trackStack.pop();
   shouldTrack = last === void 0 ? true : last;
 }
+function pauseScheduling() {
+  pauseScheduleStack++;
+}
+function resetScheduling() {
+  pauseScheduleStack--;
+  while (!pauseScheduleStack && queueEffectSchedulers.length) {
+    queueEffectSchedulers.shift()();
+  }
+}
+function trackEffect(effect2, dep, debuggerEventExtraInfo) {
+  var _a;
+  if (dep.get(effect2) !== effect2._trackId) {
+    dep.set(effect2, effect2._trackId);
+    const oldDep = effect2.deps[effect2._depsLength];
+    if (oldDep !== dep) {
+      if (oldDep) {
+        cleanupDepEffect(oldDep, effect2);
+      }
+      effect2.deps[effect2._depsLength++] = dep;
+    } else {
+      effect2._depsLength++;
+    }
+    if (!!(process.env.NODE_ENV !== "production")) {
+      (_a = effect2.onTrack) == null ? void 0 : _a.call(effect2, extend({ effect: effect2 }, debuggerEventExtraInfo));
+    }
+  }
+}
+const queueEffectSchedulers = [];
+function triggerEffects(dep, dirtyLevel, debuggerEventExtraInfo) {
+  var _a;
+  pauseScheduling();
+  for (const effect2 of dep.keys()) {
+    if (!effect2.allowRecurse && effect2._runnings) {
+      continue;
+    }
+    if (effect2._dirtyLevel < dirtyLevel && (!effect2._runnings || dirtyLevel !== 2)) {
+      const lastDirtyLevel = effect2._dirtyLevel;
+      effect2._dirtyLevel = dirtyLevel;
+      if (lastDirtyLevel === 0 && (!effect2._queryings || dirtyLevel !== 2)) {
+        if (!!(process.env.NODE_ENV !== "production")) {
+          (_a = effect2.onTrigger) == null ? void 0 : _a.call(effect2, extend({ effect: effect2 }, debuggerEventExtraInfo));
+        }
+        effect2.trigger();
+        if (effect2.scheduler) {
+          queueEffectSchedulers.push(effect2.scheduler);
+        }
+      }
+    }
+  }
+  resetScheduling();
+}
+
+const createDep = (cleanup, computed) => {
+  const dep = /* @__PURE__ */ new Map();
+  dep.cleanup = cleanup;
+  dep.computed = computed;
+  return dep;
+};
+
+const targetMap = /* @__PURE__ */ new WeakMap();
+const ITERATE_KEY = Symbol(!!(process.env.NODE_ENV !== "production") ? "iterate" : "");
+const MAP_KEY_ITERATE_KEY = Symbol(!!(process.env.NODE_ENV !== "production") ? "Map key iterate" : "");
 function track(target, type, key) {
   if (shouldTrack && activeEffect) {
     let depsMap = targetMap.get(target);
@@ -2986,35 +3060,17 @@ function track(target, type, key) {
     }
     let dep = depsMap.get(key);
     if (!dep) {
-      depsMap.set(key, dep = createDep());
+      depsMap.set(key, dep = createDep(() => depsMap.delete(key)));
     }
-    const eventInfo = !!(process.env.NODE_ENV !== "production") ? { effect: activeEffect, target, type, key } : void 0;
-    trackEffects(dep, eventInfo);
-  }
-}
-function trackEffects(dep, debuggerEventExtraInfo) {
-  let shouldTrack2 = false;
-  if (effectTrackDepth <= maxMarkerBits) {
-    if (!newTracked(dep)) {
-      dep.n |= trackOpBit;
-      shouldTrack2 = !wasTracked(dep);
-    }
-  } else {
-    shouldTrack2 = !dep.has(activeEffect);
-  }
-  if (shouldTrack2) {
-    dep.add(activeEffect);
-    activeEffect.deps.push(dep);
-    if (!!(process.env.NODE_ENV !== "production") && activeEffect.onTrack) {
-      activeEffect.onTrack(
-        extend(
-          {
-            effect: activeEffect
-          },
-          debuggerEventExtraInfo
-        )
-      );
-    }
+    trackEffect(
+      activeEffect,
+      dep,
+      !!(process.env.NODE_ENV !== "production") ? {
+        target,
+        type,
+        key
+      } : void 0
+    );
   }
 }
 function trigger(target, type, key, newValue, oldValue, oldTarget) {
@@ -3028,7 +3084,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
   } else if (key === "length" && isArray(target)) {
     const newLength = Number(newValue);
     depsMap.forEach((dep, key2) => {
-      if (key2 === "length" || key2 >= newLength) {
+      if (key2 === "length" || !isSymbol(key2) && key2 >= newLength) {
         deps.push(dep);
       }
     });
@@ -3062,53 +3118,24 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
         break;
     }
   }
-  const eventInfo = !!(process.env.NODE_ENV !== "production") ? { target, type, key, newValue, oldValue, oldTarget } : void 0;
-  if (deps.length === 1) {
-    if (deps[0]) {
-      if (!!(process.env.NODE_ENV !== "production")) {
-        triggerEffects(deps[0], eventInfo);
-      } else {
-        triggerEffects(deps[0]);
-      }
-    }
-  } else {
-    const effects = [];
-    for (const dep of deps) {
-      if (dep) {
-        effects.push(...dep);
-      }
-    }
-    if (!!(process.env.NODE_ENV !== "production")) {
-      triggerEffects(createDep(effects), eventInfo);
-    } else {
-      triggerEffects(createDep(effects));
+  pauseScheduling();
+  for (const dep of deps) {
+    if (dep) {
+      triggerEffects(
+        dep,
+        3,
+        !!(process.env.NODE_ENV !== "production") ? {
+          target,
+          type,
+          key,
+          newValue,
+          oldValue,
+          oldTarget
+        } : void 0
+      );
     }
   }
-}
-function triggerEffects(dep, debuggerEventExtraInfo) {
-  const effects = isArray(dep) ? dep : [...dep];
-  for (const effect2 of effects) {
-    if (effect2.computed) {
-      triggerEffect(effect2, debuggerEventExtraInfo);
-    }
-  }
-  for (const effect2 of effects) {
-    if (!effect2.computed) {
-      triggerEffect(effect2, debuggerEventExtraInfo);
-    }
-  }
-}
-function triggerEffect(effect2, debuggerEventExtraInfo) {
-  if (effect2 !== activeEffect || effect2.allowRecurse) {
-    if (!!(process.env.NODE_ENV !== "production") && effect2.onTrigger) {
-      effect2.onTrigger(extend({ effect: effect2 }, debuggerEventExtraInfo));
-    }
-    if (effect2.scheduler) {
-      effect2.scheduler();
-    } else {
-      effect2.run();
-    }
-  }
+  resetScheduling();
 }
 function getDepFromReactive(object, key) {
   var _a;
@@ -3119,9 +3146,6 @@ const isNonTrackableKeys = /* @__PURE__ */ makeMap(`__proto__,__v_isRef,__isVue`
 const builtInSymbols = new Set(
   /* @__PURE__ */ Object.getOwnPropertyNames(Symbol).filter((key) => key !== "arguments" && key !== "caller").map((key) => Symbol[key]).filter(isSymbol)
 );
-const get$1 = /* @__PURE__ */ createGetter();
-const readonlyGet = /* @__PURE__ */ createGetter(true);
-const shallowReadonlyGet = /* @__PURE__ */ createGetter(true, true);
 const arrayInstrumentations = /* @__PURE__ */ createArrayInstrumentations();
 function createArrayInstrumentations() {
   const instrumentations = {};
@@ -3142,7 +3166,9 @@ function createArrayInstrumentations() {
   ["push", "pop", "shift", "unshift", "splice"].forEach((key) => {
     instrumentations[key] = function(...args) {
       pauseTracking();
+      pauseScheduling();
       const res = toRaw(this)[key].apply(this, args);
+      resetScheduling();
       resetTracking();
       return res;
     };
@@ -3154,16 +3180,26 @@ function hasOwnProperty(key) {
   track(obj, "has", key);
   return obj.hasOwnProperty(key);
 }
-function createGetter(isReadonly2 = false, shallow = false) {
-  return function get2(target, key, receiver) {
+class BaseReactiveHandler {
+  constructor(_isReadonly = false, _shallow = false) {
+    this._isReadonly = _isReadonly;
+    this._shallow = _shallow;
+  }
+  get(target, key, receiver) {
+    const isReadonly2 = this._isReadonly, shallow = this._shallow;
     if (key === "__v_isReactive") {
       return !isReadonly2;
     } else if (key === "__v_isReadonly") {
       return isReadonly2;
     } else if (key === "__v_isShallow") {
       return shallow;
-    } else if (key === "__v_raw" && receiver === (isReadonly2 ? shallow ? shallowReadonlyMap : readonlyMap : shallow ? shallowReactiveMap : reactiveMap).get(target)) {
-      return target;
+    } else if (key === "__v_raw") {
+      if (receiver === (isReadonly2 ? shallow ? shallowReadonlyMap : readonlyMap : shallow ? shallowReactiveMap : reactiveMap).get(target) || // receiver is not the reactive proxy, but has the same prototype
+      // this means the reciever is a user proxy of the reactive proxy
+      Object.getPrototypeOf(target) === Object.getPrototypeOf(receiver)) {
+        return target;
+      }
+      return;
     }
     const targetIsArray = isArray(target);
     if (!isReadonly2) {
@@ -3191,23 +3227,27 @@ function createGetter(isReadonly2 = false, shallow = false) {
       return isReadonly2 ? readonly(res) : reactive(res);
     }
     return res;
-  };
+  }
 }
-const set$1 = /* @__PURE__ */ createSetter();
-function createSetter(shallow = false) {
-  return function set2(target, key, value, receiver) {
+class MutableReactiveHandler extends BaseReactiveHandler {
+  constructor(shallow = false) {
+    super(false, shallow);
+  }
+  set(target, key, value, receiver) {
     let oldValue = target[key];
-    if (isReadonly(oldValue) && isRef(oldValue) && !isRef(value)) {
-      return false;
-    }
-    if (!shallow) {
+    if (!this._shallow) {
+      const isOldValueReadonly = isReadonly(oldValue);
       if (!isShallow$1(value) && !isReadonly(value)) {
         oldValue = toRaw(oldValue);
         value = toRaw(value);
       }
       if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
-        oldValue.value = value;
-        return true;
+        if (isOldValueReadonly) {
+          return false;
+        } else {
+          oldValue.value = value;
+          return true;
+        }
       }
     }
     const hadKey = isArray(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn(target, key);
@@ -3220,63 +3260,58 @@ function createSetter(shallow = false) {
       }
     }
     return result;
-  };
-}
-function deleteProperty(target, key) {
-  const hadKey = hasOwn(target, key);
-  const oldValue = target[key];
-  const result = Reflect.deleteProperty(target, key);
-  if (result && hadKey) {
-    trigger(target, "delete", key, void 0, oldValue);
   }
-  return result;
-}
-function has$1(target, key) {
-  const result = Reflect.has(target, key);
-  if (!isSymbol(key) || !builtInSymbols.has(key)) {
-    track(target, "has", key);
+  deleteProperty(target, key) {
+    const hadKey = hasOwn(target, key);
+    const oldValue = target[key];
+    const result = Reflect.deleteProperty(target, key);
+    if (result && hadKey) {
+      trigger(target, "delete", key, void 0, oldValue);
+    }
+    return result;
   }
-  return result;
+  has(target, key) {
+    const result = Reflect.has(target, key);
+    if (!isSymbol(key) || !builtInSymbols.has(key)) {
+      track(target, "has", key);
+    }
+    return result;
+  }
+  ownKeys(target) {
+    track(
+      target,
+      "iterate",
+      isArray(target) ? "length" : ITERATE_KEY
+    );
+    return Reflect.ownKeys(target);
+  }
 }
-function ownKeys(target) {
-  track(target, "iterate", isArray(target) ? "length" : ITERATE_KEY);
-  return Reflect.ownKeys(target);
-}
-const mutableHandlers = {
-  get: get$1,
-  set: set$1,
-  deleteProperty,
-  has: has$1,
-  ownKeys
-};
-const readonlyHandlers = {
-  get: readonlyGet,
+class ReadonlyReactiveHandler extends BaseReactiveHandler {
+  constructor(shallow = false) {
+    super(true, shallow);
+  }
   set(target, key) {
     if (!!(process.env.NODE_ENV !== "production")) {
-      warn$1(
+      warn(
         `Set operation on key "${String(key)}" failed: target is readonly.`,
         target
       );
     }
     return true;
-  },
+  }
   deleteProperty(target, key) {
     if (!!(process.env.NODE_ENV !== "production")) {
-      warn$1(
+      warn(
         `Delete operation on key "${String(key)}" failed: target is readonly.`,
         target
       );
     }
     return true;
   }
-};
-const shallowReadonlyHandlers = /* @__PURE__ */ extend(
-  {},
-  readonlyHandlers,
-  {
-    get: shallowReadonlyGet
-  }
-);
+}
+const mutableHandlers = /* @__PURE__ */ new MutableReactiveHandler();
+const readonlyHandlers = /* @__PURE__ */ new ReadonlyReactiveHandler();
+const shallowReadonlyHandlers = /* @__PURE__ */ new ReadonlyReactiveHandler(true);
 
 const toShallow = (value) => value;
 const getProto = (v) => Reflect.getPrototypeOf(v);
@@ -3285,7 +3320,7 @@ function get(target, key, isReadonly = false, isShallow = false) {
   const rawTarget = toRaw(target);
   const rawKey = toRaw(key);
   if (!isReadonly) {
-    if (key !== rawKey) {
+    if (hasChanged(key, rawKey)) {
       track(rawTarget, "get", key);
     }
     track(rawTarget, "get", rawKey);
@@ -3305,7 +3340,7 @@ function has(key, isReadonly = false) {
   const rawTarget = toRaw(target);
   const rawKey = toRaw(key);
   if (!isReadonly) {
-    if (key !== rawKey) {
+    if (hasChanged(key, rawKey)) {
       track(rawTarget, "has", key);
     }
     track(rawTarget, "has", rawKey);
@@ -3328,7 +3363,7 @@ function add(value) {
   }
   return this;
 }
-function set$2(key, value) {
+function set$1(key, value) {
   value = toRaw(value);
   const target = toRaw(this);
   const { has: has2, get: get2 } = getProto(target);
@@ -3426,7 +3461,7 @@ function createReadonlyMethod(type) {
         toRaw(this)
       );
     }
-    return type === "delete" ? false : this;
+    return type === "delete" ? false : type === "clear" ? void 0 : this;
   };
 }
 function createInstrumentations() {
@@ -3439,7 +3474,7 @@ function createInstrumentations() {
     },
     has,
     add,
-    set: set$2,
+    set: set$1,
     delete: deleteEntry,
     clear,
     forEach: createForEach(false, false)
@@ -3453,7 +3488,7 @@ function createInstrumentations() {
     },
     has,
     add,
-    set: set$2,
+    set: set$1,
     delete: deleteEntry,
     clear,
     forEach: createForEach(false, true)
@@ -3664,34 +3699,94 @@ function markRaw(value) {
 const toReactive = (value) => isObject(value) ? reactive(value) : value;
 const toReadonly = (value) => isObject(value) ? readonly(value) : value;
 
+class ComputedRefImpl {
+  constructor(getter, _setter, isReadonly, isSSR) {
+    this._setter = _setter;
+    this.dep = void 0;
+    this.__v_isRef = true;
+    this["__v_isReadonly"] = false;
+    this.effect = new ReactiveEffect(
+      () => getter(this._value),
+      () => triggerRefValue(this, 1)
+    );
+    this.effect.computed = this;
+    this.effect.active = this._cacheable = !isSSR;
+    this["__v_isReadonly"] = isReadonly;
+  }
+  get value() {
+    const self = toRaw(this);
+    trackRefValue(self);
+    if (!self._cacheable || self.effect.dirty) {
+      if (hasChanged(self._value, self._value = self.effect.run())) {
+        triggerRefValue(self, 2);
+      }
+    }
+    return self._value;
+  }
+  set value(newValue) {
+    this._setter(newValue);
+  }
+  // #region polyfill _dirty for backward compatibility third party code for Vue <= 3.3.x
+  get _dirty() {
+    return this.effect.dirty;
+  }
+  set _dirty(v) {
+    this.effect.dirty = v;
+  }
+  // #endregion
+}
+function computed$1(getterOrOptions, debugOptions, isSSR = false) {
+  let getter;
+  let setter;
+  const onlyGetter = isFunction(getterOrOptions);
+  if (onlyGetter) {
+    getter = getterOrOptions;
+    setter = !!(process.env.NODE_ENV !== "production") ? () => {
+      console.warn("Write operation failed: computed value is readonly");
+    } : NOOP;
+  } else {
+    getter = getterOrOptions.get;
+    setter = getterOrOptions.set;
+  }
+  const cRef = new ComputedRefImpl(getter, setter, onlyGetter || !setter, isSSR);
+  if (!!(process.env.NODE_ENV !== "production") && debugOptions && !isSSR) {
+    cRef.effect.onTrack = debugOptions.onTrack;
+    cRef.effect.onTrigger = debugOptions.onTrigger;
+  }
+  return cRef;
+}
+
 function trackRefValue(ref2) {
   if (shouldTrack && activeEffect) {
     ref2 = toRaw(ref2);
-    if (!!(process.env.NODE_ENV !== "production")) {
-      trackEffects(ref2.dep || (ref2.dep = createDep()), {
+    trackEffect(
+      activeEffect,
+      ref2.dep || (ref2.dep = createDep(
+        () => ref2.dep = void 0,
+        ref2 instanceof ComputedRefImpl ? ref2 : void 0
+      )),
+      !!(process.env.NODE_ENV !== "production") ? {
         target: ref2,
         type: "get",
         key: "value"
-      });
-    } else {
-      trackEffects(ref2.dep || (ref2.dep = createDep()));
-    }
+      } : void 0
+    );
   }
 }
-function triggerRefValue(ref2, newVal) {
+function triggerRefValue(ref2, dirtyLevel = 3, newVal) {
   ref2 = toRaw(ref2);
   const dep = ref2.dep;
   if (dep) {
-    if (!!(process.env.NODE_ENV !== "production")) {
-      triggerEffects(dep, {
+    triggerEffects(
+      dep,
+      dirtyLevel,
+      !!(process.env.NODE_ENV !== "production") ? {
         target: ref2,
         type: "set",
         key: "value",
         newValue: newVal
-      });
-    } else {
-      triggerEffects(dep);
-    }
+      } : void 0
+    );
   }
 }
 function isRef(r) {
@@ -3724,7 +3819,7 @@ class RefImpl {
     if (hasChanged(newVal, this._rawValue)) {
       this._rawValue = newVal;
       this._value = useDirectValue ? newVal : toReactive(newVal);
-      triggerRefValue(this, newVal);
+      triggerRefValue(this, 3, newVal);
     }
   }
 }
@@ -3797,62 +3892,7 @@ function toRef(source, key, defaultValue) {
 }
 function propertyToRef(source, key, defaultValue) {
   const val = source[key];
-  return isRef(val) ? val : new ObjectRefImpl(
-    source,
-    key,
-    defaultValue
-  );
-}
-
-class ComputedRefImpl {
-  constructor(getter, _setter, isReadonly, isSSR) {
-    this._setter = _setter;
-    this.dep = void 0;
-    this.__v_isRef = true;
-    this["__v_isReadonly"] = false;
-    this._dirty = true;
-    this.effect = new ReactiveEffect(getter, () => {
-      if (!this._dirty) {
-        this._dirty = true;
-        triggerRefValue(this);
-      }
-    });
-    this.effect.computed = this;
-    this.effect.active = this._cacheable = !isSSR;
-    this["__v_isReadonly"] = isReadonly;
-  }
-  get value() {
-    const self = toRaw(this);
-    trackRefValue(self);
-    if (self._dirty || !self._cacheable) {
-      self._dirty = false;
-      self._value = self.effect.run();
-    }
-    return self._value;
-  }
-  set value(newValue) {
-    this._setter(newValue);
-  }
-}
-function computed$1(getterOrOptions, debugOptions, isSSR = false) {
-  let getter;
-  let setter;
-  const onlyGetter = isFunction(getterOrOptions);
-  if (onlyGetter) {
-    getter = getterOrOptions;
-    setter = !!(process.env.NODE_ENV !== "production") ? () => {
-      console.warn("Write operation failed: computed value is readonly");
-    } : NOOP;
-  } else {
-    getter = getterOrOptions.get;
-    setter = getterOrOptions.set;
-  }
-  const cRef = new ComputedRefImpl(getter, setter, onlyGetter || !setter, isSSR);
-  if (!!(process.env.NODE_ENV !== "production") && debugOptions && !isSSR) {
-    cRef.effect.onTrack = debugOptions.onTrack;
-    cRef.effect.onTrigger = debugOptions.onTrigger;
-  }
-  return cRef;
+  return isRef(val) ? val : new ObjectRefImpl(source, key, defaultValue);
 }
 
 const stack = [];
@@ -3862,9 +3902,7 @@ function pushWarningContext(vnode) {
 function popWarningContext() {
   stack.pop();
 }
-function warn(msg, ...args) {
-  if (!!!(process.env.NODE_ENV !== "production"))
-    return;
+function warn$1(msg, ...args) {
   pauseTracking();
   const instance = stack.length ? stack[stack.length - 1].component : null;
   const appWarnHandler = instance && instance.appContext.config.warnHandler;
@@ -3961,8 +3999,7 @@ function formatProp(key, value, raw) {
     return raw ? value : [`${key}=`, value];
   }
 }
-
-const ErrorTypeStrings = {
+const ErrorTypeStrings$1 = {
   ["sp"]: "serverPrefetch hook",
   ["bc"]: "beforeCreate hook",
   ["c"]: "created hook",
@@ -3991,7 +4028,7 @@ const ErrorTypeStrings = {
   [11]: "app warnHandler",
   [12]: "ref function",
   [13]: "async component loader",
-  [14]: "scheduler flush. This is likely a Vue internals bug. Please open an issue at https://new-issue.vuejs.org/?repo=vuejs/core"
+  [14]: "scheduler flush. This is likely a Vue internals bug. Please open an issue at https://github.com/vuejs/core ."
 };
 function callWithErrorHandling(fn, instance, type, args) {
   let res;
@@ -4023,7 +4060,7 @@ function handleError(err, instance, type, throwInDev = true) {
   if (instance) {
     let cur = instance.parent;
     const exposedInstance = instance.proxy;
-    const errorInfo = !!(process.env.NODE_ENV !== "production") ? ErrorTypeStrings[type] : type;
+    const errorInfo = !!(process.env.NODE_ENV !== "production") ? ErrorTypeStrings$1[type] : `https://vuejs.org/errors/#runtime-${type}`;
     while (cur) {
       const errorCapturedHooks = cur.ec;
       if (errorCapturedHooks) {
@@ -4050,11 +4087,11 @@ function handleError(err, instance, type, throwInDev = true) {
 }
 function logError(err, type, contextVNode, throwInDev = true) {
   if (!!(process.env.NODE_ENV !== "production")) {
-    const info = ErrorTypeStrings[type];
+    const info = ErrorTypeStrings$1[type];
     if (contextVNode) {
       pushWarningContext(contextVNode);
     }
-    warn(`Unhandled error${info ? ` during execution of ${info}` : ``}`);
+    warn$1(`Unhandled error${info ? ` during execution of ${info}` : ``}`);
     if (contextVNode) {
       popWarningContext();
     }
@@ -4087,8 +4124,13 @@ function findInsertionIndex(id) {
   let end = queue.length;
   while (start < end) {
     const middle = start + end >>> 1;
-    const middleJobId = getId(queue[middle]);
-    middleJobId < id ? start = middle + 1 : end = middle;
+    const middleJob = queue[middle];
+    const middleJobId = getId(middleJob);
+    if (middleJobId < id || middleJobId === id && middleJob.pre) {
+      start = middle + 1;
+    } else {
+      end = middle;
+    }
   }
   return start;
 }
@@ -4195,8 +4237,10 @@ function checkRecursiveUpdates(seen, fn) {
     if (count > RECURSION_LIMIT) {
       const instance = fn.ownerInstance;
       const componentName = instance && getComponentName(instance.type);
-      warn(
-        `Maximum recursive updates exceeded${componentName ? ` in component <${componentName}>` : ``}. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.`
+      handleError(
+        `Maximum recursive updates exceeded${componentName ? ` in component <${componentName}>` : ``}. This means you have a reactive effect that is mutating its own dependencies and thus recursively triggering itself. Possible sources include component template, render function, updated hook or watcher source function.`,
+        null,
+        10
       );
       return true;
     } else {
@@ -4238,6 +4282,7 @@ function rerender(id, newRender) {
       normalizeClassComponent(instance.type).render = newRender;
     }
     instance.renderCache = [];
+    instance.effect.dirty = true;
     instance.update();
   });
 }
@@ -4264,6 +4309,7 @@ function reload(id, newComp) {
       instance.ceReload(newComp.styles);
       hmrDirtyComponents.delete(oldComp);
     } else if (instance.parent) {
+      instance.parent.effect.dirty = true;
       queueJob(instance.parent.update);
     } else if (instance.appContext.reload) {
       instance.appContext.reload();
@@ -4304,10 +4350,43 @@ function tryWrap(fn) {
   };
 }
 
+let devtools$1;
+let buffer = [];
+function setDevtoolsHook$1(hook, target) {
+  var _a, _b;
+  devtools$1 = hook;
+  if (devtools$1) {
+    devtools$1.enabled = true;
+    buffer.forEach(({ event, args }) => devtools$1.emit(event, ...args));
+    buffer = [];
+  } else if (
+    // handle late devtools injection - only do this if we are in an actual
+    // browser environment to avoid the timer handle stalling test runner exit
+    // (#4815)
+    typeof window !== "undefined" && // some envs mock window but not fully
+    window.HTMLElement && // also exclude jsdom
+    !((_b = (_a = window.navigator) == null ? void 0 : _a.userAgent) == null ? void 0 : _b.includes("jsdom"))
+  ) {
+    const replay = target.__VUE_DEVTOOLS_HOOK_REPLAY__ = target.__VUE_DEVTOOLS_HOOK_REPLAY__ || [];
+    replay.push((newHook) => {
+      setDevtoolsHook$1(newHook, target);
+    });
+    setTimeout(() => {
+      if (!devtools$1) {
+        target.__VUE_DEVTOOLS_HOOK_REPLAY__ = null;
+        buffer = [];
+      }
+    }, 3e3);
+  } else {
+    buffer = [];
+  }
+}
+
 let currentRenderingInstance = null;
 let currentScopeId = null;
 function markAttrsAccessed() {
 }
+const NULL_DYNAMIC_COMPONENT = Symbol.for("v-ndc");
 
 const isSuspense = (type) => type.__isSuspense;
 function queueEffectWithSuspense(fn, suspense) {
@@ -4321,37 +4400,77 @@ function queueEffectWithSuspense(fn, suspense) {
     queuePostFlushCb(fn);
   }
 }
+
+const ssrContextKey = Symbol.for("v-scx");
+const useSSRContext = () => {
+  {
+    const ctx = inject(ssrContextKey);
+    if (!ctx) {
+      !!(process.env.NODE_ENV !== "production") && warn$1(
+        `Server rendering context not provided. Make sure to only call useSSRContext() conditionally in the server build.`
+      );
+    }
+    return ctx;
+  }
+};
 const INITIAL_WATCHER_VALUE = {};
 function watch(source, cb, options) {
   if (!!(process.env.NODE_ENV !== "production") && !isFunction(cb)) {
-    warn(
+    warn$1(
       `\`watch(fn, options?)\` signature has been moved to a separate API. Use \`watchEffect(fn, options?)\` instead. \`watch\` now only supports \`watch(source, cb, options?) signature.`
     );
   }
   return doWatch(source, cb, options);
 }
-function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EMPTY_OBJ) {
-  var _a;
+function doWatch(source, cb, {
+  immediate,
+  deep,
+  flush,
+  once,
+  onTrack,
+  onTrigger
+} = EMPTY_OBJ) {
+  if (cb && once) {
+    const _cb = cb;
+    cb = (...args) => {
+      _cb(...args);
+      unwatch();
+    };
+  }
+  if (!!(process.env.NODE_ENV !== "production") && deep !== void 0 && typeof deep === "number") {
+    warn$1(
+      `watch() "deep" option with number value will be used as watch depth in future versions. Please use a boolean instead to avoid potential breakage.`
+    );
+  }
   if (!!(process.env.NODE_ENV !== "production") && !cb) {
     if (immediate !== void 0) {
-      warn(
+      warn$1(
         `watch() "immediate" option is only respected when using the watch(source, callback, options?) signature.`
       );
     }
     if (deep !== void 0) {
-      warn(
+      warn$1(
         `watch() "deep" option is only respected when using the watch(source, callback, options?) signature.`
+      );
+    }
+    if (once !== void 0) {
+      warn$1(
+        `watch() "once" option is only respected when using the watch(source, callback, options?) signature.`
       );
     }
   }
   const warnInvalidSource = (s) => {
-    warn(
+    warn$1(
       `Invalid watch source: `,
       s,
       `A watch source can only be a getter/effect function, a ref, a reactive object, or an array of these types.`
     );
   };
-  const instance = getCurrentScope() === ((_a = currentInstance) == null ? void 0 : _a.scope) ? currentInstance : null;
+  const instance = currentInstance;
+  const reactiveGetter = (source2) => deep === true ? source2 : (
+    // for deep: false, only traverse root-level properties
+    traverse(source2, deep === false ? 1 : void 0)
+  );
   let getter;
   let forceTrigger = false;
   let isMultiSource = false;
@@ -4359,8 +4478,8 @@ function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EM
     getter = () => source.value;
     forceTrigger = isShallow$1(source);
   } else if (isReactive(source)) {
-    getter = () => source;
-    deep = true;
+    getter = () => reactiveGetter(source);
+    forceTrigger = true;
   } else if (isArray(source)) {
     isMultiSource = true;
     forceTrigger = source.some((s) => isReactive(s) || isShallow$1(s));
@@ -4368,7 +4487,7 @@ function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EM
       if (isRef(s)) {
         return s.value;
       } else if (isReactive(s)) {
-        return traverse(s);
+        return reactiveGetter(s);
       } else if (isFunction(s)) {
         return callWithErrorHandling(s, instance, 2);
       } else {
@@ -4380,9 +4499,6 @@ function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EM
       getter = () => callWithErrorHandling(source, instance, 2);
     } else {
       getter = () => {
-        if (instance && instance.isUnmounted) {
-          return;
-        }
         if (cleanup) {
           cleanup();
         }
@@ -4406,18 +4522,36 @@ function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EM
   let onCleanup = (fn) => {
     cleanup = effect.onStop = () => {
       callWithErrorHandling(fn, instance, 4);
+      cleanup = effect.onStop = void 0;
     };
   };
+  let ssrCleanup;
+  if (isInSSRComponentSetup) {
+    onCleanup = NOOP;
+    if (!cb) {
+      getter();
+    } else if (immediate) {
+      callWithAsyncErrorHandling(cb, instance, 3, [
+        getter(),
+        isMultiSource ? [] : void 0,
+        onCleanup
+      ]);
+    }
+    if (flush === "sync") {
+      const ctx = useSSRContext();
+      ssrCleanup = ctx.__watcherHandles || (ctx.__watcherHandles = []);
+    } else {
+      return NOOP;
+    }
+  }
   let oldValue = isMultiSource ? new Array(source.length).fill(INITIAL_WATCHER_VALUE) : INITIAL_WATCHER_VALUE;
   const job = () => {
-    if (!effect.active) {
+    if (!effect.active || !effect.dirty) {
       return;
     }
     if (cb) {
       const newValue = effect.run();
-      if (deep || forceTrigger || (isMultiSource ? newValue.some(
-        (v, i) => hasChanged(v, oldValue[i])
-      ) : hasChanged(newValue, oldValue)) || false) {
+      if (deep || forceTrigger || (isMultiSource ? newValue.some((v, i) => hasChanged(v, oldValue[i])) : hasChanged(newValue, oldValue)) || false) {
         if (cleanup) {
           cleanup();
         }
@@ -4445,7 +4579,13 @@ function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EM
       job.id = instance.uid;
     scheduler = () => queueJob(job);
   }
-  const effect = new ReactiveEffect(getter, scheduler);
+  const effect = new ReactiveEffect(getter, NOOP, scheduler);
+  const unwatch = () => {
+    effect.stop();
+    if (instance && instance.scope) {
+      remove(instance.scope.effects, effect);
+    }
+  };
   if (!!(process.env.NODE_ENV !== "production")) {
     effect.onTrack = onTrack;
     effect.onTrigger = onTrigger;
@@ -4464,12 +4604,8 @@ function doWatch(source, cb, { immediate, deep, flush, onTrack, onTrigger } = EM
   } else {
     effect.run();
   }
-  const unwatch = () => {
-    effect.stop();
-    if (instance && instance.scope) {
-      remove(instance.scope.effects, effect);
-    }
-  };
+  if (ssrCleanup)
+    ssrCleanup.push(unwatch);
   return unwatch;
 }
 function instanceWatch(source, value, options) {
@@ -4502,9 +4638,15 @@ function createPathGetter(ctx, path) {
     return cur;
   };
 }
-function traverse(value, seen) {
+function traverse(value, depth, currentDepth = 0, seen) {
   if (!isObject(value) || value["__v_skip"]) {
     return value;
+  }
+  if (depth && depth > 0) {
+    if (currentDepth >= depth) {
+      return value;
+    }
+    currentDepth++;
   }
   seen = seen || /* @__PURE__ */ new Set();
   if (seen.has(value)) {
@@ -4512,23 +4654,22 @@ function traverse(value, seen) {
   }
   seen.add(value);
   if (isRef(value)) {
-    traverse(value.value, seen);
+    traverse(value.value, depth, currentDepth, seen);
   } else if (isArray(value)) {
     for (let i = 0; i < value.length; i++) {
-      traverse(value[i], seen);
+      traverse(value[i], depth, currentDepth, seen);
     }
   } else if (isSet(value) || isMap(value)) {
     value.forEach((v) => {
-      traverse(v, seen);
+      traverse(v, depth, currentDepth, seen);
     });
   } else if (isPlainObject$1(value)) {
     for (const key in value) {
-      traverse(value[key], seen);
+      traverse(value[key], depth, currentDepth, seen);
     }
   }
   return value;
 }
-const NULL_DYNAMIC_COMPONENT = Symbol.for("v-ndc");
 
 const getPublicInstance = (i) => {
   if (!i)
@@ -4552,7 +4693,10 @@ const publicPropertiesMap = (
     $root: (i) => getPublicInstance(i.root),
     $emit: (i) => i.emit,
     $options: (i) => __VUE_OPTIONS_API__ ? resolveMergedOptions(i) : i.type,
-    $forceUpdate: (i) => i.f || (i.f = () => queueJob(i.update)),
+    $forceUpdate: (i) => i.f || (i.f = () => {
+      i.effect.dirty = true;
+      queueJob(i.update);
+    }),
     $nextTick: (i) => i.n || (i.n = nextTick.bind(i.proxy)),
     $watch: (i) => __VUE_OPTIONS_API__ ? instanceWatch.bind(i) : NOOP
   })
@@ -4628,13 +4772,13 @@ const PublicInstanceProxyHandlers = {
     // to infinite warning loop
     key.indexOf("__v") !== 0)) {
       if (data !== EMPTY_OBJ && isReservedPrefix(key[0]) && hasOwn(data, key)) {
-        warn(
+        warn$1(
           `Property ${JSON.stringify(
             key
           )} must be accessed via $data because it starts with a reserved character ("$" or "_") and is not proxied on the render context.`
         );
       } else if (instance === currentRenderingInstance) {
-        warn(
+        warn$1(
           `Property ${JSON.stringify(key)} was accessed during render but is not defined on instance.`
         );
       }
@@ -4646,17 +4790,17 @@ const PublicInstanceProxyHandlers = {
       setupState[key] = value;
       return true;
     } else if (!!(process.env.NODE_ENV !== "production") && setupState.__isScriptSetup && hasOwn(setupState, key)) {
-      warn(`Cannot mutate <script setup> binding "${key}" from Options API.`);
+      warn$1(`Cannot mutate <script setup> binding "${key}" from Options API.`);
       return false;
     } else if (data !== EMPTY_OBJ && hasOwn(data, key)) {
       data[key] = value;
       return true;
     } else if (hasOwn(instance.props, key)) {
-      !!(process.env.NODE_ENV !== "production") && warn(`Attempting to mutate prop "${key}". Props are readonly.`);
+      !!(process.env.NODE_ENV !== "production") && warn$1(`Attempting to mutate prop "${key}". Props are readonly.`);
       return false;
     }
     if (key[0] === "$" && key.slice(1) in instance) {
-      !!(process.env.NODE_ENV !== "production") && warn(
+      !!(process.env.NODE_ENV !== "production") && warn$1(
         `Attempting to mutate public property "${key}". Properties starting with $ are reserved and readonly.`
       );
       return false;
@@ -4690,7 +4834,7 @@ const PublicInstanceProxyHandlers = {
 };
 if (!!(process.env.NODE_ENV !== "production") && true) {
   PublicInstanceProxyHandlers.ownKeys = (target) => {
-    warn(
+    warn$1(
       `Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.`
     );
     return Reflect.ownKeys(target);
@@ -4745,7 +4889,7 @@ function mergeOptions(to, from, strats, asMixin = false) {
   }
   for (const key in from) {
     if (asMixin && key === "expose") {
-      !!(process.env.NODE_ENV !== "production") && warn(
+      !!(process.env.NODE_ENV !== "production") && warn$1(
         `"expose" option is ignored when declared in mixins or extends. It should only be declared in the base component itself.`
       );
     } else {
@@ -4854,10 +4998,10 @@ function inject(key, defaultValue, treatDefaultAsFactory = false) {
     } else if (arguments.length > 1) {
       return treatDefaultAsFactory && isFunction(defaultValue) ? defaultValue.call(instance && instance.proxy) : defaultValue;
     } else if (!!(process.env.NODE_ENV !== "production")) {
-      warn(`injection "${String(key)}" not found.`);
+      warn$1(`injection "${String(key)}" not found.`);
     }
   } else if (!!(process.env.NODE_ENV !== "production")) {
-    warn(`inject() can only be used inside setup() or functional components.`);
+    warn$1(`inject() can only be used inside setup() or functional components.`);
   }
 }
 function hasInjectionContext() {
@@ -4930,7 +5074,7 @@ function createBaseVNode(type, props = null, children = null, patchFlag = 0, dyn
     vnode.shapeFlag |= isString(children) ? 8 : 16;
   }
   if (!!(process.env.NODE_ENV !== "production") && vnode.key !== vnode.key) {
-    warn(`VNode created with invalid key (NaN). VNode type:`, vnode.type);
+    warn$1(`VNode created with invalid key (NaN). VNode type:`, vnode.type);
   }
   if (// avoid a block node from tracking itself
   !isBlockNode && // has current parent block
@@ -4949,7 +5093,7 @@ const createVNode = !!(process.env.NODE_ENV !== "production") ? createVNodeWithA
 function _createVNode(type, props = null, children = null, patchFlag = 0, dynamicProps = null, isBlockNode = false) {
   if (!type || type === NULL_DYNAMIC_COMPONENT) {
     if (!!(process.env.NODE_ENV !== "production") && !type) {
-      warn(`Invalid vnode type when creating vnode: ${type}.`);
+      warn$1(`Invalid vnode type when creating vnode: ${type}.`);
     }
     type = Comment;
   }
@@ -4992,8 +5136,8 @@ function _createVNode(type, props = null, children = null, patchFlag = 0, dynami
   const shapeFlag = isString(type) ? 1 : isSuspense(type) ? 128 : isTeleport(type) ? 64 : isObject(type) ? 4 : isFunction(type) ? 2 : 0;
   if (!!(process.env.NODE_ENV !== "production") && shapeFlag & 4 && isProxy(type)) {
     type = toRaw(type);
-    warn(
-      `Vue received a Component which was made a reactive object. This can lead to unnecessary performance overhead, and should be avoided by marking the component with \`markRaw\` or using \`shallowRef\` instead of \`ref\`.`,
+    warn$1(
+      `Vue received a Component that was made a reactive object. This can lead to unnecessary performance overhead and should be avoided by marking the component with \`markRaw\` or using \`shallowRef\` instead of \`ref\`.`,
       `
 Component that was made reactive: `,
       type
@@ -5144,20 +5288,28 @@ function mergeProps(...args) {
 let currentInstance = null;
 const getCurrentInstance = () => currentInstance || currentRenderingInstance;
 let internalSetCurrentInstance;
-let globalCurrentInstanceSetters;
-let settersKey = "__VUE_INSTANCE_SETTERS__";
 {
-  if (!(globalCurrentInstanceSetters = getGlobalThis()[settersKey])) {
-    globalCurrentInstanceSetters = getGlobalThis()[settersKey] = [];
-  }
-  globalCurrentInstanceSetters.push((i) => currentInstance = i);
-  internalSetCurrentInstance = (instance) => {
-    if (globalCurrentInstanceSetters.length > 1) {
-      globalCurrentInstanceSetters.forEach((s) => s(instance));
-    } else {
-      globalCurrentInstanceSetters[0](instance);
-    }
+  const g = getGlobalThis();
+  const registerGlobalSetter = (key, setter) => {
+    let setters;
+    if (!(setters = g[key]))
+      setters = g[key] = [];
+    setters.push(setter);
+    return (v) => {
+      if (setters.length > 1)
+        setters.forEach((set) => set(v));
+      else
+        setters[0](v);
+    };
   };
+  internalSetCurrentInstance = registerGlobalSetter(
+    `__VUE_INSTANCE_SETTERS__`,
+    (v) => currentInstance = v
+  );
+  registerGlobalSetter(
+    `__VUE_SSR_SETTERS__`,
+    (v) => isInSSRComponentSetup = v
+  );
 }
 const setCurrentInstance = (instance) => {
   internalSetCurrentInstance(instance);
@@ -5231,9 +5383,9 @@ function initCustomFormatter() {
     return;
   }
   const vueStyle = { style: "color:#3ba776" };
-  const numberStyle = { style: "color:#0b1bc9" };
-  const stringStyle = { style: "color:#b62e24" };
-  const keywordStyle = { style: "color:#9d288c" };
+  const numberStyle = { style: "color:#1677ff" };
+  const stringStyle = { style: "color:#f5222d" };
+  const keywordStyle = { style: "color:#eb2f96" };
   const formatter = {
     header(obj) {
       if (!isObject(obj)) {
@@ -5401,6 +5553,9 @@ function initCustomFormatter() {
     window.devtoolsFormatters = [formatter];
   }
 }
+!!(process.env.NODE_ENV !== "production") ? warn$1 : NOOP;
+!!(process.env.NODE_ENV !== "production") || __VUE_PROD_DEVTOOLS__ ? devtools$1 : void 0;
+!!(process.env.NODE_ENV !== "production") || __VUE_PROD_DEVTOOLS__ ? setDevtoolsHook$1 : NOOP;
 
 function initDev() {
   {
@@ -7410,6 +7565,23 @@ class RPCService extends Eventable {
   constructor(eventId, initialState) {
     super(eventId, initialState);
   }
+  async waitForAPI(processID, namespace, timeout) {
+    return new Promise(async (resolve) => {
+      for (let i = 0; i < timeout / 100; i++) {
+        if (this._protocols[processID] && this._protocols[processID].exposedAPIs[namespace] && this._protocols[processID].exposedAPIs[namespace].length > 0) {
+          resolve(true);
+          break;
+        } else {
+          await new Promise((resolve2) => setTimeout(resolve2, 100));
+        }
+      }
+      if (this._protocols[processID] && this._protocols[processID].exposedAPIs[namespace] && this._protocols[processID].exposedAPIs[namespace].length > 0) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  }
   setActionor(actionors) {
     this._actionors = actionors;
   }
@@ -7453,22 +7625,6 @@ class RendererRPCService extends RPCService {
       }
     });
     ipcRenderer.postMessage("request-port", this._processID);
-  }
-  async waitForAPI(processID, namespace, timeout) {
-    return new Promise(async (resolve) => {
-      for (let i = 0; i < timeout / 100; i++) {
-        if (this._protocols[processID] && this._protocols[processID].exposedAPIs[namespace]) {
-          resolve(true);
-        } else {
-          await new Promise((resolve2) => setTimeout(resolve2, 100));
-        }
-      }
-      if (this._protocols[processID] && this._protocols[processID].exposedAPIs[namespace]) {
-        resolve(true);
-      } else {
-        resolve(false);
-      }
-    });
   }
   setActionor(actionors) {
     this._actionors = actionors;

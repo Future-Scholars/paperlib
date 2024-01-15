@@ -1,4 +1,8 @@
+import { NetworkTool } from "@/base/network";
+import { NetworkTool as NetworkToolLegacy } from "@/base/network-legacy";
+import { Proxied } from "@/base/rpc/proxied";
 import { PreferenceService } from "@/common/services/preference-service";
+import { PLExtension } from "@/extension/base/pl-extension";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
 import { ExtensionPreferenceService } from "@/extension/services/extension-preference-service";
 import { ContextMenuService } from "@/main/services/contextmenu-service";
@@ -21,10 +25,6 @@ import { SmartFilterService } from "@/renderer/services/smartfilter-service";
 import { UISlotService } from "@/renderer/services/uislot-service";
 import { UIStateService } from "@/renderer/services/uistate-service";
 
-import { NetworkTool } from "@/base/network";
-import { Proxied } from "@/base/rpc/proxied";
-import { PLExtension } from "@/extension/base/pl-extension";
-
 declare namespace PLAPI {
   const logService: Proxied<LogService>;
   const cacheService: Proxied<CacheService>;
@@ -42,7 +42,7 @@ declare namespace PLAPI {
   const uiStateService: Proxied<UIStateService>;
   const preferenceService: Proxied<PreferenceService>;
   const uiSlotService: Proxied<UISlotService>;
-  const networkTool: Proxied<NetworkTool>;
+  const networkTool: Proxied<NetworkToolLegacy>;
 }
 
 declare namespace PLMainAPI {
@@ -55,6 +55,7 @@ declare namespace PLMainAPI {
 declare namespace PLExtAPI {
   const extensionManagementService: ExtensionManagementService;
   const extensionPreferenceService: ExtensionPreferenceService;
+  const networkTool: Proxied<NetworkTool>;
 }
 
 export { PLAPI, PLExtAPI, PLExtension, PLMainAPI };

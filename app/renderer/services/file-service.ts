@@ -435,7 +435,7 @@ export class FileService extends Eventable<IFileServiceState> {
   @errorcatching("Failed to show the URL in Finder.", true, "FileService")
   async showInFinder(url: string) {
     const accessedURL = eraseProtocol(await this.access(url, true));
-    shell.showItemInFolder(accessedURL);
+    PLMainAPI.fileSystemService.showInFinder(accessedURL);
   }
 
   /**

@@ -52,7 +52,7 @@ const props = defineProps({
         :class="active ? 'bg-red-400' : 'bg-red-500 '"
         v-if="!item.read"
       />
-      <div class="truncate">{{ item.title }}</div>
+      <div class="truncate"><span v-html="item.title"></span></div>
     </div>
 
     <div
