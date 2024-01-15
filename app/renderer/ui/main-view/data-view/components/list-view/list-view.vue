@@ -8,7 +8,6 @@ import PaperListItem from "./components/paper-list-item.vue";
 import { OID } from "@/models/id";
 import { disposable } from "@/base/dispose";
 import { onMounted } from "vue";
-import { e } from "vitest/dist/reporters-qc5Smpt5.js";
 
 const props = defineProps({
   entities: {

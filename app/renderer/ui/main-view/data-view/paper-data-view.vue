@@ -4,11 +4,11 @@ import { useI18n } from "vue-i18n";
 
 import { disposable } from "@/base/dispose";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
+import { eraseProtocol } from "@/base/url";
 
 import ListView from "./components/list-view/list-view.vue";
 import TablePreviewView from "./components/table-view/table-preview-view.vue";
 import TableView from "./components/table-view/table-view.vue";
-import { eraseProtocol } from "@/base/url";
 
 // ================================
 // State
