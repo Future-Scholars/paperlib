@@ -65,6 +65,7 @@ const emits = defineEmits([
   "event:dblclick",
   "event:contextmenu",
   "event:drag",
+  "event:drag-file",
   "event:header-click",
   "event:header-width-change",
 ]);
@@ -114,14 +115,23 @@ const onItemDoubleClicked = (event: MouseEvent, index: number) => {
 };
 
 const onItemDraged = (event: DragEvent, index: number, id: OID) => {
-  const el = event.target as HTMLElement;
-  event.dataTransfer?.setDragImage(el, 0, 0);
-  event.dataTransfer?.setData("text/plain", `${id}`);
-
   let selectedIndex = props.selectedIndex;
   if (props.selectedIndex.indexOf(index) === -1) {
     selectedIndex = calSelectedIndex(event, index);
   }
+
+  if (event.altKey || event.metaKey) {
+    event.preventDefault();
+    event.stopPropagation();
+    emits("event:drag-file", selectedIndex);
+
+    return;
+  }
+
+  const el = event.target as HTMLElement;
+  event.dataTransfer?.setDragImage(el, 0, 0);
+  event.dataTransfer?.setData("text/plain", `${id}`);
+
   emits("event:drag", selectedIndex);
 };
 

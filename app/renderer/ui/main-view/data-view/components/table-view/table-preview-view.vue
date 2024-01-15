@@ -60,6 +60,7 @@ const emits = defineEmits([
   "event:dblclick",
   "event:contextmenu",
   "event:drag",
+  "event:drag-file",
   "event:header-click",
   "event:header-width-change",
 ]);
@@ -85,6 +86,7 @@ const emits = defineEmits([
         @event:contextmenu="(args) => emits('event:contextmenu', args)"
         @event:dblclick="(args) => emits('event:dblclick', args)"
         @event:drag="(args) => emits('event:drag', args)"
+        @event:drag-file="(args) => emits('event:drag-file', args)"
         @event:header-click="(args) => emits('event:header-click', args)"
         @event:header-width-change="
           (args) => emits('event:header-width-change', args)

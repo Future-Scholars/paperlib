@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import { disposable } from "@/base/dispose";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
+import { eraseProtocol } from "@/base/url";
 
 import ListView from "./components/list-view/list-view.vue";
 import TablePreviewView from "./components/table-view/table-preview-view.vue";
@@ -189,13 +190,26 @@ const onItemDoubleClicked = async (selectedIndex: number[]) => {
   fileService.open(fileURL);
 };
 
-const onItemDraged = (selectedIndex: number[]) => {
+const onItemDraged = async (selectedIndex: number[]) => {
   uiState.selectedIndex = selectedIndex;
   const draggingIds: string[] = [];
   for (const index of selectedIndex) {
     draggingIds.push(`${paperEntities.value[index].id}`);
   }
   uiState.dragingIds = draggingIds;
+};
+
+const onItemDragFileed = async (selectedIndex: number[]) => {
+  uiState.selectedIndex = selectedIndex;
+  const fileURLs = await Promise.all(
+    selectedIndex.map(async (index) => {
+      return eraseProtocol(
+        await fileService.access(paperEntities.value[index].mainURL, true)
+      );
+    })
+  );
+
+  PLMainAPI.fileSystemService.startDrag(fileURLs);
 };
 
 const onTableHeaderClicked = (key: string) => {
@@ -293,6 +307,7 @@ onMounted(() => {
       @event:contextmenu="onItemRightClicked"
       @event:dblclick="onItemDoubleClicked"
       @event:drag="onItemDraged"
+      @event:drag-file="onItemDragFileed"
     />
     <TableView
       id="table-data-view"
@@ -312,6 +327,7 @@ onMounted(() => {
       @event:contextmenu="onItemRightClicked"
       @event:dblclick="onItemDoubleClicked"
       @event:drag="onItemDraged"
+      @event:drag-file="onItemDragFileed"
       @event:header-click="onTableHeaderClicked"
       @event:header-width-change="onTableHeaderWidthChanged"
     />
@@ -334,6 +350,7 @@ onMounted(() => {
       @event:contextmenu="onItemRightClicked"
       @event:dblclick="onItemDoubleClicked"
       @event:drag="onItemDraged"
+      @event:drag-file="onItemDragFileed"
       @event:header-click="onTableHeaderClicked"
       @event:header-width-change="onTableHeaderWidthChanged"
     />
