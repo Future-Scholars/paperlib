@@ -149,6 +149,9 @@ export class NetworkTool {
     cookies?: CookieJar | ICookieObject[]
   ): Promise<string[]> {
     await this._checkExtAPIExposed();
+
+    console.log("downloadPDFs", urlList, cookies);
+
     return await PLExtAPI.networkTool.downloadPDFs(urlList, cookies);
   }
 

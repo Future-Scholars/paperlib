@@ -135,29 +135,6 @@ export class MessagePortRPCProtocol {
 
     this._pendingRPCReplies[callId] = result;
 
-    // Process Error Object for Jsonify
-    args = args.map((arg) => {
-      if (arg instanceof Error) {
-        return {
-          name: arg.name,
-          message: arg.message,
-          stack: arg.stack,
-        };
-      } else if (arg.constructor.name.includes("Error")) {
-        try {
-          return {
-            name: arg.name ? arg.name || arg.constructor.name : "",
-            message: arg.message ? arg.message : "",
-            stack: arg.stack ? arg.stack : "",
-          };
-        } catch {
-          return `${arg}`;
-        }
-      } else {
-        return arg;
-      }
-    });
-
     const msg = JSONstringify({
       callId,
       callerId: this._callerId,

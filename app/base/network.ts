@@ -236,6 +236,7 @@ export class NetworkTool {
     const response = await ky.get(url, {
       headers: headers,
       onDownloadProgress: (progress) => {
+        console.log(progress);
         if (
           this._donwloadProgress[url] &&
           (progress.percent - this._donwloadProgress[url] > 0.05 ||
