@@ -132,9 +132,6 @@ export default {
 
     renderer({
       resolve: {
-        "electron-store": {
-          type: "cjs",
-        },
         ws: {
           type: "cjs",
         },

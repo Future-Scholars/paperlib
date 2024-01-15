@@ -1,6 +1,6 @@
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
-import { NetworkTool } from "@/base/network";
+import { NetworkTool } from "@/base/network-legacy";
 import { PreferenceService } from "@/common/services/preference-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
 import { CacheService } from "@/renderer/services/cache-service";

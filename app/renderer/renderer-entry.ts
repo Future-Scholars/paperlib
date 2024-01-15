@@ -9,7 +9,7 @@ import draggable from "vuedraggable";
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { InjectionContainer } from "@/base/injection/injection";
-import { NetworkTool } from "@/base/network";
+import { NetworkTool } from "@/base/network-legacy";
 import { Process } from "@/base/process-id";
 import { PreferenceService } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";

@@ -1,4 +1,5 @@
 import { NetworkTool } from "@/base/network";
+import { NetworkTool as NetworkToolLegacy } from "@/base/network-legacy";
 import { Proxied } from "@/base/rpc/proxied";
 import { PreferenceService } from "@/common/services/preference-service";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
@@ -36,7 +37,7 @@ export interface APIShape {
   categorizerService: Proxied<CategorizerService>;
   referenceService: Proxied<ReferenceService>;
   fileService: Proxied<FileService>;
-  networkTool: Proxied<NetworkTool>;
+  networkTool: Proxied<NetworkToolLegacy>;
 }
 
 export interface MainAPIShape {
@@ -51,4 +52,5 @@ export interface MainAPIShape {
 export interface ExtAPIShape {
   extensionManagementService: Proxied<ExtensionManagementService>;
   extensionPreferenceService: Proxied<ExtensionPreferenceService>;
+  networkTool: Proxied<NetworkTool>;
 }

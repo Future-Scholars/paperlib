@@ -29,8 +29,6 @@ export const IScrapeService = createDecorator("scrapeService");
  * | ----------------
  */
 export class ScrapeService extends Eventable<{}> {
-  // TODO: deperacated custom scraper, we alert this in 2.2.9 version
-
   constructor(
     @IHookService private readonly _hookService: HookService,
     @ILogService private readonly _logService: LogService
@@ -143,7 +141,7 @@ export class ScrapeService extends Eventable<{}> {
       paperEntityDrafts = (
         await this._hookService.transformhookPoint<any[], Object[]>(
           "scrapeEntry",
-          16000,
+          180000, // 3 min
           payloads
         )
       ).map((p) => {
