@@ -166,7 +166,7 @@ onUnmounted(() => {
     <div class="px-2 flex flex-wrap space-y-1">
       <div
         v-for="value in modelValue"
-        class="text-xxs bg-neutral-300 pl-1 py-0.5 rounded flex my-auto mr-1 mt-1"
+        class="text-xxs bg-neutral-300 dark:bg-neutral-800 pl-1 py-0.5 rounded flex my-auto mr-1 mt-1"
       >
         <span class="my-auto">{{ value }} </span>
         <BIconX class="text-sm my-auto cursor-pointer" @click="remove(value)" />
@@ -181,7 +181,7 @@ onUnmounted(() => {
       />
     </div>
     <div
-      class="bg-neutral-300 fixed max-h-24 rounded-md shadow-md flex flex-col p-1 overflow-y-scroll"
+      class="bg-neutral-300 dark:bg-neutral-700 fixed max-h-24 rounded-md shadow-md flex flex-col p-1 overflow-y-scroll"
       :style="`width: ${boxWidth}px; margin-top: ${boxHeight + 2}px`"
       v-if="filteredOptions.length > 0 && (isFocused || isMouseOver)"
       ref="dropdown"

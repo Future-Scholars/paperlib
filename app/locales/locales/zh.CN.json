@@ -168,7 +168,12 @@
     "install": "安装",
     "installdone": "完成",
     "exportcsv": "导出 CSV",
-    "exportcsvintro": "将整个文献库导出到一个CSV文件"
+    "exportcsvintro": "将整个文献库导出到一个CSV文件",
+    "fontsize": "字体大小",
+    "fontsizeintro": "界面字体大小",
+    "fontnormal": "普通",
+    "fontlarge": "大号",
+    "fontlarger": "更大号"
   },
   "confirmation": {
     "title": "确认",
