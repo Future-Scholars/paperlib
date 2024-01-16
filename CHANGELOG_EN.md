@@ -1,3 +1,9 @@
+## v3.0.0-beta.2 Jan 15 2024
+
+1. Doesn't support Windows 7 anymore.
+2. Fixed some bugs.
+3. Extension Recommendation: paperlib-ai-summary-extension
+
 ## v3.0.0-beta.1 Jan 8 2024
 
 1. The entire code has been refactored to support the extensible architecture. For details on extension development, please refer to our official website. Let's make Paperlib better together!
