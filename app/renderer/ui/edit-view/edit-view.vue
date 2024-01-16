@@ -96,7 +96,7 @@ onUnmounted(() => {
             />
             <InputBox
               id="paper-edit-view-publication-input"
-              :placeholder="$t('mainview.publicationtitle')"
+              :placeholder="$t('mainview.publication')"
               :value="editingPaperEntityDraft.publication"
               @event:change="
                 (value: string) => (editingPaperEntityDraft.publication = value)
@@ -104,13 +104,13 @@ onUnmounted(() => {
             />
             <div class="flex w-full space-x-2">
               <InputBox
-                :placeholder="$t('mainview.publicationyear')"
+                :placeholder="$t('mainview.pubTime')"
                 class="w-1/2"
                 :value="editingPaperEntityDraft.pubTime"
                 @event:change="(value: string) => (editingPaperEntityDraft.pubTime = value)"
               />
               <SelectBox
-                :placeholder="$t('mainview.publicationtype')"
+                :placeholder="$t('mainview.pubType')"
                 class="w-1/2 h-10"
                 :options="pubTypes"
                 :value="pubTypes[editingPaperEntityDraft.pubType]"

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { PropType, ref } from "vue";
-
-import { PaperEntity } from "@/models/paper-entity";
+import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableHeaderItem from "./table-header-item.vue";
 
@@ -14,12 +13,8 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  fieldLabel: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity, string>>>,
-    required: true,
-  },
-  fieldWidth: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity, number>>>,
+  fieldTemplates: {
+    type: Object as PropType<Map<string, FieldTemplate>>,
     required: true,
   },
   minWidth: {
@@ -41,16 +36,13 @@ const onResizeBarMouseDown = (event: MouseEvent, index: number) => {
     "mouseup",
     () => {
       document.removeEventListener("mousemove", moveListener);
-      emits("event:width-change", [
-        {
-          key: Object.keys(props.fieldWidth)[index - 1],
-          width: resizingPrevWidth.value,
-        },
-        {
-          key: Object.keys(props.fieldWidth)[index],
-          width: resizingNextWidth.value,
-        },
-      ]);
+
+      const keys = [...props.fieldTemplates.keys()];
+
+      emits("event:width-change", {
+        [keys[index - 1]]: resizingPrevWidth.value,
+        [keys[index]]: resizingNextWidth.value,
+      });
       resizingPrevWidth.value = -1;
       resizingNextWidth.value = -1;
     },
@@ -105,18 +97,16 @@ const onResizeBarMouseMove = (event: MouseEvent, moveEvent: MouseEvent) => {
   >
     <div
       class="flex"
-      :style="{ width: `${fieldWidth[key]}%` }"
-      v-for="[index, [key, label]] of Object.entries(
-        Object.entries(fieldLabel)
-      )"
+      v-for="([key, template], index) of fieldTemplates.entries()"
+      :style="{ width: `${template.width}%` }"
     >
       <div
         class="w-1 cursor-col-resize hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md transition-colors duration-50"
-        v-if="parseInt(index) > 0"
-        @mousedown="(e) => onResizeBarMouseDown(e, parseInt(index))"
+        v-if="index > 0"
+        @mousedown="(e) => onResizeBarMouseDown(e, index)"
       ></div>
       <TableHeaderItem
-        :title="label!"
+        :title="template.label"
         :sortBy="sortBy === key"
         :sortOrder="sortOrder"
         @event:click="() => emits('event:click', key)"

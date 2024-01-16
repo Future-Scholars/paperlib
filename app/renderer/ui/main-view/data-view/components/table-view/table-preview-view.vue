@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { PropType } from "vue";
 
-import { PaperEntity } from "@/models/paper-entity";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
+import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableView from "./table-view.vue";
 
@@ -11,25 +11,9 @@ const props = defineProps({
     type: Object as PropType<IPaperEntityCollection>,
     required: true,
   },
-  fieldEnable: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity, boolean>>>,
+  fieldTemplates: {
+    type: Object as PropType<Map<string, FieldTemplate>>,
     required: true,
-  },
-  fieldLabel: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity, string>>>,
-    required: true,
-  },
-  fieldWidth: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity, number>>>,
-    required: true,
-  },
-  categorizerSortBy: {
-    type: String,
-    default: "name",
-  },
-  categorizerSortOrder: {
-    type: String,
-    default: "asce",
   },
   entitySortBy: {
     type: String,
@@ -42,6 +26,10 @@ const props = defineProps({
   platform: {
     type: String,
     required: true,
+  },
+  itemSize: {
+    type: Number,
+    default: 28,
   },
   selectedIndex: {
     type: Array<number>,
@@ -73,15 +61,12 @@ const emits = defineEmits([
         id="table-data-view"
         class="w-full max-h-[calc(100vh-4rem)]"
         :entities="entities"
-        :field-enable="fieldEnable"
-        :field-label="fieldLabel"
-        :field-width="fieldWidth"
+        :field-templates="fieldTemplates"
         :selected-index="selectedIndex"
         :platform="platform"
-        :categorizer-sort-by="categorizerSortBy"
-        :categorizer-sort-order="categorizerSortOrder"
         :entity-sort-by="entitySortBy"
         :entity-sort-order="entitySortOrder"
+        :item-size="itemSize"
         @event:click="(args) => emits('event:click', args)"
         @event:contextmenu="(args) => emits('event:contextmenu', args)"
         @event:dblclick="(args) => emits('event:dblclick', args)"

@@ -15,7 +15,6 @@ import PaperDataView from "./data-view/paper-data-view.vue";
 import FeedDetailView from "./detail-view/feed-detail-view.vue";
 import PaperDetailView from "./detail-view/paper-detail-view.vue";
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
-import { OID } from "@/models/id";
 
 // ================================
 // State
@@ -509,9 +508,8 @@ disposable(
                 v-if="uiState.contentType === 'library'"
                 class="h-full w-full"
               />
-
               <FeedDataView
-                v-if="uiState.contentType === 'feed'"
+                v-else-if="uiState.contentType === 'feed'"
                 class="h-full w-full"
               />
             </pane>

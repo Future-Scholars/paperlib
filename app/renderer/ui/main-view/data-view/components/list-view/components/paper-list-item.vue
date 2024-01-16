@@ -15,7 +15,7 @@ const props = defineProps({
     type: Object as PropType<PaperEntity>,
     required: true,
   },
-  fieldEnable: {
+  fieldEnables: {
     type: Object as PropType<Partial<Record<keyof PaperEntity, boolean>>>,
     required: true,
     default: {
@@ -88,17 +88,17 @@ scp {
       class="text-[0.7rem] leading-[0.9rem] text-neutral-400 flex space-x-2"
       :class="active ? 'text-neutral-300' : ''"
     >
-      <div v-if="fieldEnable.pubTime">{{ item.pubTime }}</div>
+      <div v-if="fieldEnables.pubTime">{{ item.pubTime }}</div>
       <div
         class="flex space-x-2 text-ellipsis overflow-hidden shrink"
-        v-if="fieldEnable.publication"
+        v-if="fieldEnables.publication"
       >
         <div>|</div>
         <div class="italic truncate">
           {{ item.publication }}
         </div>
       </div>
-      <div class="flex space-x-2" v-if="fieldEnable.pubType">
+      <div class="flex space-x-2" v-if="fieldEnables.pubType">
         <div>|</div>
         <div class="">
           {{ getPubTypeString(item.pubType) }}
@@ -107,7 +107,7 @@ scp {
 
       <div
         class="flex space-x-2"
-        v-if="fieldEnable.tags && item.tags.length > 0"
+        v-if="fieldEnables.tags && item.tags.length > 0"
       >
         <div>|</div>
         <BIconTag
@@ -127,7 +127,7 @@ scp {
 
       <div
         class="flex space-x-2"
-        v-if="fieldEnable.folders && item.folders.length > 0"
+        v-if="fieldEnables.folders && item.folders.length > 0"
       >
         <div>|</div>
         <BIconFolder
@@ -145,14 +145,14 @@ scp {
         </div>
       </div>
 
-      <div class="flex space-x-2" v-if="fieldEnable.rating && item.rating > 0">
+      <div class="flex space-x-2" v-if="fieldEnables.rating && item.rating > 0">
         <div>|</div>
         <div class="flex text-xxxs">
           <BIconStarFill v-for="_ in item.rating" class="my-auto mr-[1px]" />
         </div>
       </div>
 
-      <div class="flex space-x-2" v-if="fieldEnable.flag && item.flag">
+      <div class="flex space-x-2" v-if="fieldEnables.flag && item.flag">
         <div>|</div>
         <div class="flex">
           <BIconFlagFill class="m-auto text-xxs" />
@@ -161,7 +161,7 @@ scp {
 
       <div
         class="flex space-x-2 shrink text-ellipsis overflow-hidden"
-        v-if="fieldEnable.note && item.note"
+        v-if="fieldEnables.note && item.note"
       >
         <div>|</div>
         <div class="truncate underline">

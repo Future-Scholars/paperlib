@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Ref, computed, inject, onMounted, ref } from "vue";
+import { Ref, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { isEqual } from "lodash-es";
 
 import { disposable } from "@/base/dispose";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 import { eraseProtocol } from "@/base/url";
+import { FieldTemplate } from "@/renderer/types/data-view";
 
 import ListView from "./components/list-view/list-view.vue";
 import TablePreviewView from "./components/table-view/table-preview-view.vue";
@@ -19,131 +20,86 @@ const uiState = uiStateService.useState();
 
 const i18n = useI18n();
 
+const itemSize = ref(28);
+
 // ================================
 // Data
 // ================================
 const paperEntities = inject<Ref<IPaperEntityCollection>>("paperEntities")!;
 const displayingURL = ref("");
-const fieldEnable = computed(() => {
-  return {
-    pubTime: prefState.showMainYear,
-    publication: prefState.showMainPublication,
-    pubType: prefState.showMainPubType,
-    rating: prefState.showMainRating,
-    tags: prefState.showMainTags,
-    folders: prefState.showMainFolders,
-    flag: prefState.showMainFlag,
-    note: prefState.showMainNote,
-    addTime: prefState.showMainAddTime,
-  };
-});
-const fieldLabel = computed(() => {
-  const labels = {
-    publication: i18n.t("mainview.publicationtitle"),
-    pubTime: i18n.t("mainview.pubyear"),
-    pubType: i18n.t("mainview.pubtype"),
-    tags: i18n.t("mainview.tags"),
-    folders: i18n.t("mainview.folders"),
-    note: i18n.t("mainview.note"),
-    rating: i18n.t("mainview.rating"),
-    flag: i18n.t("mainview.flag"),
-    addTime: i18n.t("mainview.addtime"),
-  };
 
-  const result: Record<string, string> = {};
-  result.title = i18n.t("mainview.title");
-  result.authors = i18n.t("mainview.authors");
-  for (const [key, label] of Object.entries(labels)) {
-    if (fieldEnable.value[key as keyof typeof fieldEnable.value]) {
-      result[key] = label;
-    }
+// For List View
+const fieldEnables = ref({});
+const computeFieldEnables = () => {
+  const fieldPrefs = prefState.mainFields;
+  for (const fieldPref of fieldPrefs) {
+    fieldEnables.value[fieldPref.key] = fieldPref.enable;
   }
+};
 
-  return result;
-});
-const fieldWidth = ref({});
+// For Table View
+const fieldTemplates: Ref<Map<string, FieldTemplate>> = ref(new Map());
+const computeFieldTemplates = () => {
+  fieldTemplates.value.clear();
 
-const calTableFieldWidth = (reset = false) => {
-  if (reset) {
-    preferenceService.set({
-      mainTitleWidth: -1,
-      mainAuthorsWidth: -1,
-      mainPublicationWidth: -1,
-      mainYearWidth: -1,
-      mainPubTypeWidth: -1,
-      mainTagsWidth: -1,
-      mainFoldersWidth: -1,
-      mainNoteWidth: -1,
-      mainRatingWidth: -1,
-      mainFlagWidth: -1,
-      mainAddTimeWidth: -1,
-    });
-  }
+  const fieldPrefs = prefState.mainFields;
 
-  const keyPrefMap: Record<string, Record<string, string>> = {
-    title: { widthKey: "mainTitleWidth", enableKey: "showMainTitle" },
-    authors: { widthKey: "mainAuthorsWidth", enableKey: "showMainAuthors" },
-    publication: {
-      widthKey: "mainPublicationWidth",
-      enableKey: "showMainPublication",
-    },
-    pubTime: { widthKey: "mainYearWidth", enableKey: "showMainYear" },
-    pubType: { widthKey: "mainPubTypeWidth", enableKey: "showMainPubType" },
-    tags: { widthKey: "mainTagsWidth", enableKey: "showMainTags" },
-    folders: { widthKey: "mainFoldersWidth", enableKey: "showMainFolders" },
-    note: { widthKey: "mainNoteWidth", enableKey: "showMainNote" },
-    rating: { widthKey: "mainRatingWidth", enableKey: "showMainRating" },
-    flag: { widthKey: "mainFlagWidth", enableKey: "showMainFlag" },
-    addTime: { widthKey: "mainAddTimeWidth", enableKey: "showMainAddTime" },
-  };
-  const alwaysShowKeys = ["title", "authors"];
-
+  // 1. Calculate auto width.
   let totalWidth = 0;
-  let autoWidthNumber = 0;
-
-  const fieldWidthBuffer: Record<string, number> = {};
-
-  for (const [key, prefKey] of Object.entries(keyPrefMap)) {
-    const prefWidth = prefState[prefKey.widthKey];
-    const prefEnable =
-      prefState[prefKey.enableKey] || alwaysShowKeys.includes(key);
-
-    if (!prefEnable) {
+  let autoWidthCount = 0;
+  for (const fieldPref of fieldPrefs) {
+    const width = fieldPref.width;
+    const enable = fieldPref.enable;
+    if (!enable) {
       continue;
     }
-
-    if (prefWidth !== -1) {
-      fieldWidthBuffer[key] = prefWidth;
-      totalWidth += prefWidth;
+    if (width !== -1) {
+      totalWidth += width;
     } else {
-      autoWidthNumber += 1;
+      autoWidthCount += 1;
     }
   }
+  const autoWidth = (100 - totalWidth) / autoWidthCount;
 
-  // Calculate the width percentage of each column
-  const autoWidth = (100 - totalWidth) / autoWidthNumber;
-  for (const [key, prefKey] of Object.entries(keyPrefMap)) {
-    const prefWidth = prefState[prefKey.widthKey];
-    const prefEnable =
-      prefState[prefKey.enableKey] || alwaysShowKeys.includes(key);
+  // 2. Compute field templates.
+  const templateTypes = {
+    title: "html",
+    rating: "rating",
+    flag: "flag",
+    mainURL: "file",
+    codes: "code",
+    supURLs: "file",
+  };
 
-    if (!prefEnable) {
+  // 3. Add rest width to the first field.
+  let restWidth = 100;
+  for (const fieldPref of fieldPrefs) {
+    if (!fieldPref.enable) {
+      fieldTemplates.value.delete(fieldPref.key);
       continue;
     }
+    const template = {
+      type: templateTypes[fieldPref.key] || "string",
+      value: undefined,
+      label: i18n.t(`mainview.${fieldPref.key}`),
+      width: fieldPref.width === -1 ? autoWidth : fieldPref.width,
+      sortBy: ["tags", "folders"].includes(fieldPref.key)
+        ? prefState.sidebarSortBy
+        : undefined,
+      sortOrder: ["tags", "folders"].includes(fieldPref.key)
+        ? prefState.sidebarSortOrder
+        : undefined,
+    };
 
-    if (prefWidth === -1) {
-      fieldWidthBuffer[key] = autoWidth;
-    }
+    restWidth -= template.width;
+
+    fieldTemplates.value.set(fieldPref.key, template);
   }
-
-  let restWidth = 0;
-  for (const [key, width] of Object.entries(fieldWidthBuffer)) {
-    restWidth += width;
+  restWidth = Math.max(restWidth, 0);
+  for (const [k, v] of fieldTemplates.value.entries()) {
+    v.width += restWidth;
+    break;
   }
-  restWidth = 100 - restWidth;
-  fieldWidthBuffer.title += restWidth;
-
-  fieldWidth.value = fieldWidthBuffer;
 };
 
 // ================================
@@ -204,7 +160,7 @@ const onItemDraged = async (selectedIndex: number[]) => {
   uiState.dragingIds = draggingIds;
 };
 
-const onItemDragFileed = async (selectedIndex: number[]) => {
+const onItemFileDraged = async (selectedIndex: number[]) => {
   uiState.selectedIndex = selectedIndex;
   const fileURLs = await Promise.all(
     selectedIndex.map(async (index) => {
@@ -227,28 +183,14 @@ const onTableHeaderClicked = (key: string) => {
   });
 };
 
-const onTableHeaderWidthChanged = (
-  changedWidths: { key: string; width: number }[]
-) => {
-  const keyPrefMap = {
-    title: "mainTitleWidth",
-    authors: "mainAuthorsWidth",
-    publication: "mainPublicationWidth",
-    pubTime: "mainYearWidth",
-    pubType: "mainPubTypeWidth",
-    tags: "mainTagsWidth",
-    folders: "mainFoldersWidth",
-    note: "mainNoteWidth",
-    rating: "mainRatingWidth",
-    flag: "mainFlagWidth",
-    addTime: "mainAddTimeWidth",
-  } as Record<string, string>;
-  const patch = {};
-  for (const changedWidth of changedWidths) {
-    patch[keyPrefMap[changedWidth.key]] = changedWidth.width;
+const onTableHeaderWidthChanged = (changedWidths: Record<string, number>) => {
+  const mainFieldPrefs = prefState.mainFields;
+  for (const mainFieldPref of mainFieldPrefs) {
+    if (changedWidths[mainFieldPref.key]) {
+      mainFieldPref.width = changedWidths[mainFieldPref.key];
+    }
   }
-  preferenceService.set(patch);
-  calTableFieldWidth();
+  preferenceService.set({ mainFields: mainFieldPrefs });
 };
 
 const onDropped = async (e: DragEvent) => {
@@ -268,25 +210,38 @@ const onDropped = async (e: DragEvent) => {
   await paperService.create(filePaths);
 };
 
+const onFontSizeChanged = (fontSize: "normal" | "large" | "larger") => {
+  if (prefState.mainviewType === "list") {
+    itemSize.value = { normal: 64, large: 72, larger: 78 }[fontSize];
+  } else {
+    itemSize.value = { normal: 28, large: 32, larger: 34 }[fontSize];
+  }
+};
+
 disposable(
-  preferenceService.onChanged(
-    [
-      "showMainYear",
-      "showMainPublication",
-      "showMainPubType",
-      "showMainTags",
-      "showMainFolders",
-      "showMainNote",
-      "showMainRating",
-      "showMainFlag",
-      "showMainAddTime",
-    ],
-    () => calTableFieldWidth(true)
-  )
+  preferenceService.onChanged("fontsize", (newValue) => {
+    onFontSizeChanged(newValue.value);
+  })
+);
+
+disposable(
+  preferenceService.onChanged(["mainFields", "mainviewType"], () => {
+    onFontSizeChanged(prefState.fontsize);
+    if (prefState.mainviewType === "list") {
+      computeFieldEnables();
+    } else {
+      computeFieldTemplates();
+    }
+  })
 );
 
 onMounted(() => {
-  calTableFieldWidth();
+  onFontSizeChanged(prefState.fontsize);
+  if (prefState.mainviewType === "list") {
+    computeFieldEnables();
+  } else {
+    computeFieldTemplates();
+  }
 });
 </script>
 
@@ -303,36 +258,34 @@ onMounted(() => {
       class="w-full max-h-[calc(100vh-4rem)]"
       v-if="prefState.mainviewType === 'list'"
       :entities="paperEntities"
-      :field-enable="fieldEnable"
+      :field-enables="fieldEnables"
       :selected-index="uiState.selectedIndex"
       :platform="uiState.os"
       :categorizer-sort-by="prefState.sidebarSortBy"
       :categorizer-sort-order="prefState.sidebarSortOrder"
+      :item-size="itemSize"
       @event:click="onItemClicked"
       @event:contextmenu="onItemRightClicked"
       @event:dblclick="onItemDoubleClicked"
       @event:drag="onItemDraged"
-      @event:drag-file="onItemDragFileed"
+      @event:drag-file="onItemFileDraged"
     />
     <TableView
       id="table-data-view"
       class="w-full max-h-[calc(100vh-4rem)]"
       v-else-if="prefState.mainviewType === 'table'"
       :entities="paperEntities"
-      :field-enable="fieldEnable"
-      :field-label="fieldLabel"
-      :field-width="fieldWidth"
+      :field-templates="fieldTemplates"
       :selected-index="uiState.selectedIndex"
       :platform="uiState.os"
-      :categorizer-sort-by="prefState.sidebarSortBy"
-      :categorizer-sort-order="prefState.sidebarSortOrder"
       :entity-sort-by="prefState.mainviewSortBy"
       :entity-sort-order="prefState.mainviewSortOrder"
+      :item-size="itemSize"
       @event:click="onItemClicked"
       @event:contextmenu="onItemRightClicked"
       @event:dblclick="onItemDoubleClicked"
       @event:drag="onItemDraged"
-      @event:drag-file="onItemDragFileed"
+      @event:drag-file="onItemFileDraged"
       @event:header-click="onTableHeaderClicked"
       @event:header-width-change="onTableHeaderWidthChanged"
     />
@@ -341,21 +294,18 @@ onMounted(() => {
       class="w-full max-h-[calc(100vh-4rem)]"
       v-else-if="prefState.mainviewType === 'tableandpreview'"
       :entities="paperEntities"
-      :field-enable="fieldEnable"
-      :field-label="fieldLabel"
-      :field-width="fieldWidth"
+      :field-templates="fieldTemplates"
       :selected-index="uiState.selectedIndex"
       :displayingURL="displayingURL"
       :platform="uiState.os"
-      :categorizer-sort-by="prefState.sidebarSortBy"
-      :categorizer-sort-order="prefState.sidebarSortOrder"
       :entity-sort-by="prefState.mainviewSortBy"
       :entity-sort-order="prefState.mainviewSortOrder"
+      :item-size="itemSize"
       @event:click="onItemClicked"
       @event:contextmenu="onItemRightClicked"
       @event:dblclick="onItemDoubleClicked"
       @event:drag="onItemDraged"
-      @event:drag-file="onItemDragFileed"
+      @event:drag-file="onItemFileDraged"
       @event:header-click="onTableHeaderClicked"
       @event:header-width-change="onTableHeaderWidthChanged"
     />

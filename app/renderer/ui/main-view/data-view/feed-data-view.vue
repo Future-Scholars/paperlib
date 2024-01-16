@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { Ref, computed, inject, onMounted, ref } from "vue";
+import { Ref, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { isEqual } from "lodash-es";
 
 import { disposable } from "@/base/dispose";
 import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
+import { FieldTemplate } from "@/renderer/types/data-view";
 
-import FeedTableView from "./components/table-view/feed-table-view.vue";
+import TableView from "./components/table-view/table-view.vue";
 
 // ================================
 // State
@@ -16,86 +17,65 @@ const uiState = uiStateService.useState();
 
 const i18n = useI18n();
 
+const itemSize = ref(28);
+
 // ================================
 // Data
 // ================================
 const feedEntities = inject<Ref<IFeedEntityCollection>>("feedEntities")!;
-const fieldEnable = {
-  pubTime: true,
-  publication: true,
-  pubType: true,
-  addTime: true,
-};
-const fieldLabel = computed(() => {
-  const labels = {
-    title: i18n.t("mainview.title"),
-    authors: i18n.t("mainview.authors"),
-    publication: i18n.t("mainview.publicationtitle"),
-    pubTime: i18n.t("mainview.pubyear"),
-    pubType: i18n.t("mainview.pubtype"),
-    addTime: i18n.t("mainview.addtime"),
-  };
-  return labels;
-});
-const fieldWidth = ref({});
 
-const calTableFieldWidth = (reset = false) => {
-  if (reset) {
-    preferenceService.set({
-      feedTitleWidth: -1,
-      feedAuthorsWidth: -1,
-      feedYearWidth: -1,
-      feedPublicationWidth: -1,
-      feedPubTypeWidth: -1,
-      feedAddTimeWidth: -1,
-    });
-  }
+// For Table View
+const fieldTemplates: Ref<Map<string, FieldTemplate>> = ref(new Map());
+const computeFieldTemplates = () => {
+  fieldTemplates.value.clear();
 
-  const keyPrefMap: Record<string, Record<string, string>> = {
-    title: { widthKey: "feedTitleWidth" },
-    authors: { widthKey: "feedAuthorsWidth" },
-    publication: {
-      widthKey: "feedPublicationWidth",
-    },
-    pubTime: { widthKey: "feedYearWidth" },
-    pubType: { widthKey: "feedPubTypeWidth" },
-    addTime: { widthKey: "feedAddTimeWidth" },
-  };
+  const fieldPrefs = prefState.feedFields;
 
+  // 1. Calculate auto width.
   let totalWidth = 0;
-  let autoWidthNumber = 0;
-
-  const fieldWidthBuffer: Record<string, number> = {};
-
-  for (const [key, prefKey] of Object.entries(keyPrefMap)) {
-    const prefWidth = prefState[prefKey.widthKey];
-
-    if (prefWidth !== -1) {
-      fieldWidthBuffer[key] = prefWidth;
-      totalWidth += prefWidth;
+  let autoWidthCount = 0;
+  for (const fieldPref of fieldPrefs) {
+    const width = fieldPref.width;
+    const enable = fieldPref.enable;
+    if (!enable) {
+      continue;
+    }
+    if (width !== -1) {
+      totalWidth += width;
     } else {
-      autoWidthNumber += 1;
+      autoWidthCount += 1;
     }
   }
+  const autoWidth = (100 - totalWidth) / autoWidthCount;
 
-  // Calculate the width percentage of each column
-  const autoWidth = (100 - totalWidth) / autoWidthNumber;
-  for (const [key, prefKey] of Object.entries(keyPrefMap)) {
-    const prefWidth = prefState[prefKey.widthKey];
+  // 2. Compute field templates.
+  const templateTypes = {
+    title: "html",
+  };
 
-    if (prefWidth === -1) {
-      fieldWidthBuffer[key] = autoWidth;
+  // 3. Add rest width to the first field.
+  let restWidth = 100;
+  for (const fieldPref of fieldPrefs) {
+    if (!fieldPref.enable) {
+      fieldTemplates.value.delete(fieldPref.key);
+      continue;
     }
-  }
+    const template = {
+      type: templateTypes[fieldPref.key] || "string",
+      value: undefined,
+      label: i18n.t(`mainview.${fieldPref.key}`),
+      width: fieldPref.width === -1 ? autoWidth : fieldPref.width,
+    };
 
-  let restWidth = 0;
-  for (const [key, width] of Object.entries(fieldWidthBuffer)) {
-    restWidth += width;
-  }
-  restWidth = 100 - restWidth;
-  fieldWidthBuffer.title += restWidth;
+    restWidth -= template.width;
 
-  fieldWidth.value = fieldWidthBuffer;
+    fieldTemplates.value.set(fieldPref.key, template);
+  }
+  restWidth = Math.max(restWidth, 0);
+  for (const [k, v] of fieldTemplates.value.entries()) {
+    v.width += restWidth;
+    break;
+  }
 };
 
 // ================================
@@ -132,55 +112,51 @@ const onTableHeaderClicked = (key: string) => {
   });
 };
 
-const onTableHeaderWidthChanged = (
-  changedWidths: { key: string; width: number }[]
-) => {
-  const keyPrefMap = {
-    title: "feedTitleWidth",
-    authors: "feedAuthorsWidth",
-    publication: "feedPublicationWidth",
-    pubTime: "feedYearWidth",
-    pubType: "feedPubTypeWidth",
-    addTime: "feedAddTimeWidth",
-  } as Record<string, string>;
-  const patch = {};
-  for (const changedWidth of changedWidths) {
-    patch[keyPrefMap[changedWidth.key]] = changedWidth.width;
+const onTableHeaderWidthChanged = (changedWidths: Record<string, number>) => {
+  const feedFieldPrefs = prefState.feedFields;
+  for (const feedFieldPref of feedFieldPrefs) {
+    if (changedWidths[feedFieldPref.key]) {
+      feedFieldPref.width = changedWidths[feedFieldPref.key];
+    }
   }
-  preferenceService.set(patch);
-  calTableFieldWidth();
+  preferenceService.set({ feedFields: feedFieldPrefs });
+};
+
+const onFontSizeChanged = (fontSize: "normal" | "large" | "larger") => {
+  itemSize.value = { normal: 28, large: 32, larger: 34 }[fontSize];
 };
 
 disposable(
-  preferenceService.onChanged(
-    [
-      "showMainYear",
-      "showMainPublication",
-      "showMainPubType",
-      "showMainAddTime",
-    ],
-    () => calTableFieldWidth(true)
-  )
+  preferenceService.onChanged("fontsize", (newValue) => {
+    onFontSizeChanged(newValue.value);
+  })
+);
+
+disposable(
+  preferenceService.onChanged(["feedFields", "mainviewType"], () => {
+    onFontSizeChanged(prefState.fontsize);
+    computeFieldTemplates();
+  })
 );
 
 onMounted(() => {
-  calTableFieldWidth();
+  onFontSizeChanged(prefState.fontsize);
+  computeFieldTemplates();
 });
 </script>
 
 <template>
   <div id="feed-view" class="px-2">
-    <FeedTableView
+    <TableView
       id="table-feed-view"
       class="w-full max-h-[calc(100vh-4rem)]"
       :entities="feedEntities"
-      :field-enable="fieldEnable"
-      :field-label="fieldLabel"
-      :field-width="fieldWidth"
+      :field-templates="fieldTemplates"
       :selected-index="uiState.selectedIndex"
       :platform="uiState.os"
       :entity-sort-by="prefState.mainviewSortBy"
       :entity-sort-order="prefState.mainviewSortOrder"
+      :item-size="itemSize"
       @event:click="onItemClicked"
       @event:contextmenu="onItemRightClicked"
       @event:dblclick="onItemDoubleClicked"

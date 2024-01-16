@@ -1,26 +1,15 @@
 <script setup lang="ts">
-import {
-  BIconBook,
-  BIconCalendar2,
-  BIconCalendarDate,
-  BIconCardHeading,
-  BIconFlag,
-  BIconFolder,
-  BIconFonts,
-  BIconStar,
-  BIconTag,
-} from "bootstrap-icons-vue";
 import { ObjectId } from "bson";
-import { computed, onMounted, ref } from "vue";
+import { Ref, onMounted, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
-import { IPreferenceStore } from "@/common/services/preference-service";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import PaperListItem from "@/renderer/ui/main-view/data-view/components/list-view/components/paper-list-item.vue";
-import PaperTableItem from "@/renderer/ui/main-view/data-view/components/table-view/components/paper-table-item.vue";
+import TableItem from "@/renderer/ui/main-view/data-view/components/table-view/components/table-item.vue";
+import { FieldTemplate } from "@/renderer/types/data-view";
 
-import MainSection from "./components/main-section.vue";
+import MainField from "./components/main-field.vue";
 
 const prefState = preferenceService.useState();
 
@@ -29,8 +18,8 @@ const item = ref(new PaperEntity({}));
 item.value.initialize({
   id: `${new ObjectId()}`,
   _id: `${new ObjectId()}`,
-  arxiv: "",
-  doi: "",
+  arxiv: "xxx.xxx",
+  doi: "xxx.xxx",
   addTime: new Date(),
   title: "Deep Residual Learning for Image Recognition",
   authors: "Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun",
@@ -38,141 +27,120 @@ item.value.initialize({
   pubTime: "2016",
   pubType: 1,
   flag: true,
-  rating: 5,
+  rating: 4,
   tags: [new PaperTag({ name: "architecture" })],
   folders: [new PaperFolder({ name: "Computer-Vision" })],
   note: "ResNet, proposed a residual architecture to train very deep models.",
-  mainURL: "",
-  supURLs: [],
-  codes: [],
-  pages: "",
-  volume: "",
-  number: "",
-  publisher: "",
+  mainURL: "pdf.pdf",
+  supURLs: ["sup.pdf"],
+  codes: [""],
+  pages: "1",
+  volume: "2",
+  number: "3",
+  publisher: "IEEE",
   _partition: "",
 });
 
-const fieldEnable = computed(() => {
-  return {
-    pubTime: prefState.showMainYear,
-    publication: prefState.showMainPublication,
-    pubType: prefState.showMainPubType,
-    rating: prefState.showMainRating,
-    tags: prefState.showMainTags,
-    folders: prefState.showMainFolders,
-    flag: prefState.showMainFlag,
-    note: prefState.showMainNote,
-    addTime: prefState.showMainAddTime,
-  };
-});
-const fieldWidth = ref({});
+const fieldEnable = ref({});
+const fieldTemplates: Ref<Map<string, FieldTemplate>> = ref(new Map());
 
-const calTableFieldWidth = (reset = false) => {
-  if (reset) {
-    preferenceService.set({
-      mainTitleWidth: -1,
-      mainAuthorsWidth: -1,
-      mainPublicationWidth: -1,
-      mainYearWidth: -1,
-      mainPubTypeWidth: -1,
-      mainTagsWidth: -1,
-      mainFoldersWidth: -1,
-      mainNoteWidth: -1,
-      mainRatingWidth: -1,
-      mainFlagWidth: -1,
-      mainAddTimeWidth: -1,
-    });
-  }
+const computeFieldTemplates = () => {
+  fieldTemplates.value.clear();
+  const fieldPrefs = prefState.mainFields;
 
-  const keyPrefMap: Record<string, Record<string, string>> = {
-    title: { widthKey: "mainTitleWidth", enableKey: "showMainTitle" },
-    authors: { widthKey: "mainAuthorsWidth", enableKey: "showMainAuthors" },
-    publication: {
-      widthKey: "mainPublicationWidth",
-      enableKey: "showMainPublication",
-    },
-    pubTime: { widthKey: "mainYearWidth", enableKey: "showMainYear" },
-    pubType: { widthKey: "mainPubTypeWidth", enableKey: "showMainPubType" },
-    tags: { widthKey: "mainTagsWidth", enableKey: "showMainTags" },
-    folders: { widthKey: "mainFoldersWidth", enableKey: "showMainFolders" },
-    note: { widthKey: "mainNoteWidth", enableKey: "showMainNote" },
-    rating: { widthKey: "mainRatingWidth", enableKey: "showMainRating" },
-    flag: { widthKey: "mainFlagWidth", enableKey: "showMainFlag" },
-    addTime: { widthKey: "mainAddTimeWidth", enableKey: "showMainAddTime" },
-  };
-  const alwaysShowKeys = ["title", "authors"];
-
+  // 1. Calculate auto width.
   let totalWidth = 0;
-  let autoWidthNumber = 0;
-
-  const fieldWidthBuffer: Record<string, number> = {};
-
-  for (const [key, prefKey] of Object.entries(keyPrefMap)) {
-    const prefWidth = prefState[prefKey.widthKey];
-    const prefEnable =
-      prefState[prefKey.enableKey] || alwaysShowKeys.includes(key);
-
-    if (!prefEnable) {
+  let autoWidthCount = 0;
+  for (const fieldPref of fieldPrefs) {
+    const width = fieldPref.width;
+    const enable = fieldPref.enable;
+    if (!enable) {
       continue;
     }
-
-    if (prefWidth !== -1) {
-      fieldWidthBuffer[key] = prefWidth;
-      totalWidth += prefWidth;
+    if (width !== -1) {
+      totalWidth += width;
     } else {
-      autoWidthNumber += 1;
+      autoWidthCount += 1;
     }
   }
+  const autoWidth = (100 - totalWidth) / autoWidthCount;
 
-  // Calculate the width percentage of each column
-  const autoWidth = (100 - totalWidth) / autoWidthNumber;
-  for (const [key, prefKey] of Object.entries(keyPrefMap)) {
-    const prefWidth = prefState[prefKey.widthKey];
-    const prefEnable =
-      prefState[prefKey.enableKey] || alwaysShowKeys.includes(key);
+  // 2. Compute field templates.
+  const templateTypes = {
+    title: "html",
+    rating: "rating",
+    flag: "flag",
+    mainURL: "file",
+    codes: "code",
+    supURLs: "file",
+  };
 
-    if (!prefEnable) {
+  // 3. Add rest width to the first field.
+  let restWidth = 100;
+  for (const fieldPref of fieldPrefs) {
+    if (!fieldPref.enable) {
+      fieldTemplates.value.delete(fieldPref.key);
+      fieldEnable.value[fieldPref.key] = false;
       continue;
     }
+    const template = {
+      type: templateTypes[fieldPref.key] || "string",
+      value: undefined,
+      width: fieldPref.width === -1 ? autoWidth : fieldPref.width,
+      label: fieldPref.key,
+      sortBy: ["tags", "folders"].includes(fieldPref.key)
+        ? prefState.sidebarSortBy
+        : undefined,
+      sortOrder: ["tags", "folders"].includes(fieldPref.key)
+        ? prefState.sidebarSortOrder
+        : undefined,
+    };
 
-    if (prefWidth === -1) {
-      fieldWidthBuffer[key] = autoWidth;
-    }
+    restWidth -= template.width;
+
+    fieldTemplates.value.set(fieldPref.key, template);
+    fieldEnable.value[fieldPref.key] = true;
   }
-
-  let restWidth = 0;
-  for (const [key, width] of Object.entries(fieldWidthBuffer)) {
-    restWidth += width;
+  restWidth = Math.max(restWidth, 0);
+  for (const [k, v] of fieldTemplates.value.entries()) {
+    v.width += restWidth;
+    break;
   }
-  restWidth = 100 - restWidth;
-  fieldWidthBuffer.title += restWidth;
-
-  fieldWidth.value = fieldWidthBuffer;
 };
 
-const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set({ [key]: value });
+const toggleField = (index: number) => {
+  const mainFieldPrefs = prefState.mainFields;
+  mainFieldPrefs[index].enable = !mainFieldPrefs[index].enable;
+  mainFieldPrefs.forEach((fieldPref) => {
+    fieldPref.width = -1;
+  });
+  preferenceService.set({ mainFields: mainFieldPrefs });
+};
+
+const onMovePreClicked = (index: number) => {
+  const mainFieldPrefs = prefState.mainFields;
+  const fieldPref = mainFieldPrefs[index];
+  mainFieldPrefs.splice(index, 1);
+  mainFieldPrefs.splice(index - 1, 0, fieldPref);
+  preferenceService.set({ mainFields: mainFieldPrefs });
+};
+
+const onMoveNextClicked = (index: number) => {
+  const mainFieldPrefs = prefState.mainFields;
+  const fieldPref = mainFieldPrefs[index];
+  mainFieldPrefs.splice(index, 1);
+  mainFieldPrefs.splice(index + 1, 0, fieldPref);
+  preferenceService.set({ mainFields: mainFieldPrefs });
 };
 
 disposable(
-  preferenceService.onChanged(
-    [
-      "showMainYear",
-      "showMainPublication",
-      "showMainPubType",
-      "showMainTags",
-      "showMainFolders",
-      "showMainNote",
-      "showMainRating",
-      "showMainFlag",
-      "showMainAddTime",
-    ],
-    () => calTableFieldWidth(true)
-  )
+  preferenceService.onChanged(["mainFields"], () => {
+    computeFieldTemplates();
+  })
 );
 
 onMounted(() => {
-  calTableFieldWidth();
+  computeFieldTemplates();
 });
 </script>
 
@@ -192,83 +160,25 @@ onMounted(() => {
       :categorizer-sort-order="prefState.sidebarSortOrder"
     />
 
-    <PaperTableItem
+    <TableItem
       class="bg-neutral-200 dark:bg-neutral-700 cursor-default"
       :item="item"
-      :field-enable="fieldEnable"
-      :field-width="fieldWidth"
+      :field-templates="fieldTemplates"
       :categorizer-sort-by="prefState.sidebarSortBy"
       :categorizer-sort-order="prefState.sidebarSortOrder"
       :active="false"
       :striped="false"
     />
 
-    <div class="flex mt-6 flex-wrap">
-      <MainSection
-        description="Year"
-        :enable="prefState.showMainYear"
-        @click="updatePref('showMainYear', !prefState.showMainYear)"
-      >
-        <BIconCalendarDate class="my-auto text-xs" />
-      </MainSection>
-      <MainSection
-        description="Publication"
-        :enable="prefState.showMainPublication"
-        @click="
-          updatePref('showMainPublication', !prefState.showMainPublication)
-        "
-      >
-        <BIconFonts class="my-auto text-xs" />
-      </MainSection>
-      <MainSection
-        description="PubType"
-        :enable="prefState.showMainPubType"
-        @click="updatePref('showMainPubType', !prefState.showMainPubType)"
-      >
-        <BIconBook class="my-auto text-xs" />
-      </MainSection>
-      <MainSection
-        description="Flag"
-        :enable="prefState.showMainFlag"
-        @click="updatePref('showMainFlag', !prefState.showMainFlag)"
-      >
-        <BIconFlag class="my-auto text-xs" />
-      </MainSection>
-      <MainSection
-        description="Rating"
-        :enable="prefState.showMainRating"
-        @click="updatePref('showMainRating', !prefState.showMainRating)"
-      >
-        <BIconStar class="my-auto text-xs" />
-      </MainSection>
-      <MainSection
-        description="Tags"
-        :enable="prefState.showMainTags"
-        @click="updatePref('showMainTags', !prefState.showMainTags)"
-      >
-        <BIconTag class="my-auto text-xs" />
-      </MainSection>
-      <MainSection
-        description="Folders"
-        :enable="prefState.showMainFolders"
-        @click="updatePref('showMainFolders', !prefState.showMainFolders)"
-      >
-        <BIconFolder class="my-auto text-xs" />
-      </MainSection>
-      <MainSection
-        description="Note"
-        :enable="prefState.showMainNote"
-        @click="updatePref('showMainNote', !prefState.showMainNote)"
-      >
-        <BIconCardHeading class="my-auto text-xs" />
-      </MainSection>
-      <MainSection
-        description="Add Time"
-        :enable="prefState.showMainAddTime"
-        @click="updatePref('showMainAddTime', !prefState.showMainAddTime)"
-      >
-        <BIconCalendar2 class="my-auto text-xs" />
-      </MainSection>
+    <div class="grid mt-6 lg:grid-cols-6 grid-cols-4 gap-1">
+      <MainField
+        v-for="(field, index) in prefState.mainFields"
+        :description="$t(`mainview.${field.key}`)"
+        :enable="field.enable"
+        @event:click="toggleField(index)"
+        @event:pre-click="onMovePreClicked(index)"
+        @event:next-click="onMoveNextClicked(index)"
+      />
     </div>
   </div>
 </template>
