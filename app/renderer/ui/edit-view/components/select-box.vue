@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
-
 const props = defineProps({
   placeholder: {
     type: String,
@@ -33,7 +31,7 @@ const onChanged = (event: Event) => {
       {{ placeholder }}
     </label>
     <select
-      v-model="props.value"
+      :value="props.value"
       class="text-xs dark:text-neutral-300 mx-2 focus:outline-none bg-transparent"
       @change="onChanged"
     >
