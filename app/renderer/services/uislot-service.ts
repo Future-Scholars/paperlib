@@ -32,7 +32,7 @@ export class UISlotService extends Eventable<IUISlotState> {
    * @returns
    */
   updateSlot(slotID: keyof IUISlotState, patch: { [id: string]: any }) {
-    const currentSlot = this.getState(slotID);
+    const currentSlot = JSON.parse(JSON.stringify(this.getState(slotID)));
 
     if (!currentSlot) {
       this._logService.error(
@@ -47,9 +47,11 @@ export class UISlotService extends Eventable<IUISlotState> {
     for (const [sectionID, value] of Object.entries(patch)) {
       if (value === undefined) {
         delete currentSlot[sectionID];
+      } else {
+        currentSlot[sectionID] = value;
       }
-
-      currentSlot[sectionID] = value;
     }
+
+    this.fire({ [slotID]: currentSlot });
   }
 }

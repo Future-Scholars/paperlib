@@ -1,3 +1,8 @@
+## v3.0.0-beta.3 15/01 2024
+
+1. 修复了一些 Bug。
+2. 插件推荐：paperlib-ai-summary-extension
+
 ## v3.0.0-beta.2 15/01 2024
 
 1. 摒弃了 Windows 7 的支持。
