@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Ref, computed, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { isEqual } from "lodash-es";
 
 import { disposable } from "@/base/dispose";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
@@ -149,6 +150,10 @@ const calTableFieldWidth = (reset = false) => {
 // Event Handler
 // ================================
 const onItemClicked = async (selectedIndex: number[]) => {
+  if (isEqual(new Set(uiState.selectedIndex), new Set(selectedIndex))) {
+    return;
+  }
+
   uiState.selectedIndex = selectedIndex;
 
   if (
