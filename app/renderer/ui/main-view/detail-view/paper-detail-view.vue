@@ -220,7 +220,7 @@ onUpdated(() => {
         :number="entity.number"
         :publisher="entity.publisher"
       />
-      <Section :title="$t('mainview.publicationyear')">
+      <Section :title="$t('mainview.pubTime')">
         <div class="text-xxs">
           {{ entity.pubTime }}
         </div>
@@ -264,7 +264,7 @@ onUpdated(() => {
           "
         />
       </Section>
-      <Section :title="$t('mainview.addtime')">
+      <Section :title="$t('mainview.addTime')">
         <div class="text-xxs">
           {{ entity.addTime.toLocaleString() }}
         </div>

@@ -9,6 +9,12 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { isRendererProcess } from "@/base/process";
 
+export interface IDataViewField {
+  key: string;
+  enable: boolean;
+  width: number;
+}
+
 export interface IPreferenceStore {
   preferenceVersion: number;
   windowSize: { height: number; width: number };
@@ -20,34 +26,9 @@ export interface IPreferenceStore {
   showSidebarCount: boolean;
   isSidebarCompact: boolean;
 
-  showMainYear: boolean;
-  showMainPublication: boolean;
-  showMainPubType: boolean;
-  showMainRating: boolean;
-  showMainFlag: boolean;
-  showMainTags: boolean;
-  showMainFolders: boolean;
-  showMainNote: boolean;
-  showMainAddTime: boolean;
+  mainFields: IDataViewField[];
 
-  mainTitleWidth: number;
-  mainAuthorsWidth: number;
-  mainYearWidth: number;
-  mainPublicationWidth: number;
-  mainPubTypeWidth: number;
-  mainRatingWidth: number;
-  mainFlagWidth: number;
-  mainTagsWidth: number;
-  mainFoldersWidth: number;
-  mainNoteWidth: number;
-  mainAddTimeWidth: number;
-
-  feedTitleWidth: number;
-  feedAuthorsWidth: number;
-  feedYearWidth: number;
-  feedPublicationWidth: number;
-  feedPubTypeWidth: number;
-  feedAddTimeWidth: number;
+  feedFields: IDataViewField[];
 
   preferedTheme: "light" | "dark" | "system";
   invertColor: boolean;
@@ -123,34 +104,46 @@ const _defaultPreferences: IPreferenceStore = {
   showSidebarCount: true,
   isSidebarCompact: false,
 
-  showMainYear: true,
-  showMainPublication: true,
-  showMainPubType: false,
-  showMainRating: true,
-  showMainFlag: true,
-  showMainTags: false,
-  showMainFolders: false,
-  showMainNote: false,
-  showMainAddTime: false,
+  mainFields: [
+    { key: "title", enable: true, width: -1 },
+    { key: "authors", enable: true, width: -1 },
+    { key: "publication", enable: true, width: -1 },
+    { key: "pubTime", enable: true, width: -1 },
+    { key: "pubType", enable: false, width: -1 },
+    { key: "doi", enable: false, width: -1 },
+    { key: "arxiv", enable: false, width: -1 },
+    { key: "mainURL", enable: false, width: -1 },
+    { key: "supURLs", enable: false, width: -1 },
+    { key: "rating", enable: false, width: -1 },
+    { key: "tags", enable: false, width: -1 },
+    { key: "folders", enable: false, width: -1 },
+    { key: "flag", enable: false, width: -1 },
+    { key: "note", enable: false, width: -1 },
+    { key: "codes", enable: false, width: -1 },
+    { key: "pages", enable: false, width: -1 },
+    { key: "volume", enable: false, width: -1 },
+    { key: "number", enable: false, width: -1 },
+    { key: "publisher", enable: false, width: -1 },
+    { key: "addTime", enable: true, width: -1 },
+  ],
 
-  mainTitleWidth: -1,
-  mainAuthorsWidth: -1,
-  mainYearWidth: -1,
-  mainPublicationWidth: -1,
-  mainPubTypeWidth: -1,
-  mainRatingWidth: -1,
-  mainFlagWidth: -1,
-  mainTagsWidth: -1,
-  mainFoldersWidth: -1,
-  mainNoteWidth: -1,
-  mainAddTimeWidth: -1,
-
-  feedTitleWidth: -1,
-  feedAuthorsWidth: -1,
-  feedYearWidth: -1,
-  feedPublicationWidth: -1,
-  feedPubTypeWidth: -1,
-  feedAddTimeWidth: -1,
+  feedFields: [
+    { key: "feed", enable: false, width: -1 },
+    { key: "feedTime", enable: false, width: -1 },
+    { key: "title", enable: true, width: -1 },
+    { key: "authors", enable: true, width: -1 },
+    { key: "abstract", enable: false, width: -1 },
+    { key: "publication", enable: true, width: -1 },
+    { key: "pubTime", enable: true, width: -1 },
+    { key: "pubType", enable: false, width: -1 },
+    { key: "doi", enable: false, width: -1 },
+    { key: "arxiv", enable: false, width: -1 },
+    { key: "pages", enable: false, width: -1 },
+    { key: "volume", enable: false, width: -1 },
+    { key: "number", enable: false, width: -1 },
+    { key: "publisher", enable: false, width: -1 },
+    { key: "addTime", enable: true, width: -1 },
+  ],
 
   preferedTheme: "light",
   invertColor: true,
@@ -221,7 +214,8 @@ function _migrate(
 ) {
   // Versions:
   // 0: Paperlib < 3.0.0
-  // 1: Paperlib >= 3.0.0
+  // 1: Paperlib >= 3.0.0-beta.1
+  // 2: Paperlib >= 3.0.0-beta.4
   const prevVersion = store.has("preferenceVersion")
     ? store.get("preferenceVersion")
     : 0;
@@ -244,6 +238,85 @@ function _migrate(
     }
   }
 
+  // TODO: check this one.
+  if (prevVersion <= 1) {
+    // depracated data field settings.
+    const keyMap = {
+      title: [null, "mainTitleWidth", "feedTitleWidth"],
+      authors: [null, "mainAuthorsWidth", "feedAuthorsWidth"],
+      pubTime: ["showMainYear", "mainYearWidth", "feedYearWidth"],
+      publication: [
+        "showMainPublication",
+        "mainPublicationWidth",
+        "feedPublicationWidth",
+      ],
+      pubType: ["showMainPubType", "mainPubTypeWidth", "feedPubTypeWidth"],
+      rating: ["showMainRating", "mainRatingWidth", "feedRatingWidth"],
+      flag: ["showMainFlag", "mainFlagWidth", null],
+      tags: ["showMainTag", "mainTagWidth", null],
+      folders: ["showMainFolder", "mainFolderWidth", null],
+      note: ["showMainNote", "mainNoteWidth", null],
+      addTime: ["showMainAddTime", "mainAddTimeWidth", "feedAddTimeWidth"],
+    };
+
+    const mainFields: IDataViewField[] = [];
+    const feedFields: IDataViewField[] = [];
+
+    for (const [key, defaultMainFields] of Object.entries(
+      _defaultPreferences.mainFields
+    )) {
+      const [preShowKey, preMainWidthKey, preFeedWidthKey] = keyMap[key] || [
+        null,
+        null,
+        null,
+      ];
+
+      const enable =
+        preShowKey && key !== "title" && key! == "authors"
+          ? (store.get(preShowKey) as boolean)
+          : true;
+
+      if (preMainWidthKey !== null) {
+        defaultMainFields["width"] = store.get(preMainWidthKey) || -1;
+        defaultMainFields["enable"] = enable;
+
+        store.delete(preMainWidthKey as any);
+      }
+      mainFields.push(defaultMainFields);
+    }
+
+    for (const [key, defaultFeedFields] of Object.entries(
+      _defaultPreferences.feedFields
+    )) {
+      const [preShowKey, preMainWidthKey, preFeedWidthKey] = keyMap[key] || [
+        null,
+        null,
+        null,
+      ];
+
+      const enable =
+        preShowKey && key !== "title" && key! == "authors"
+          ? (store.get(preShowKey) as boolean)
+          : true;
+
+      if (preFeedWidthKey !== null) {
+        defaultFeedFields["width"] = store.get(preFeedWidthKey) || -1;
+        defaultFeedFields["enable"] = enable;
+
+        store.delete(preFeedWidthKey as any);
+      }
+
+      feedFields.push(defaultFeedFields);
+
+      if (preShowKey !== null) {
+        store.delete(preShowKey as any);
+      }
+    }
+
+    store.set("mainFields", mainFields);
+    store.set("feedFields", feedFields);
+  }
+
   store.set("preferenceVersion", preferenceVersion);
 
   return store;
@@ -251,7 +324,7 @@ function _migrate(
 
 export const IPreferenceService = createDecorator("preferenceService");
 
-export const PREFERENCE_VERSION: number = 1;
+export const PREFERENCE_VERSION: number = 2;
 
 /**
  * Preference service.

@@ -1,38 +1,22 @@
 <script setup lang="ts">
-import { PropType, onMounted, ref } from "vue";
+import { PropType, ref } from "vue";
 
-import { PaperEntity } from "@/models/paper-entity";
-import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
-
-import PaperTableItem from "./components/paper-table-item.vue";
-import TableHeader from "./components/table-header.vue";
 import { OID } from "@/models/id";
-import { disposable } from "@/base/dispose";
+import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
+import { FieldTemplate } from "@/renderer/types/data-view";
+
+import TableItem from "./components/table-item.vue";
+import TableHeader from "./components/table-header.vue";
 
 const props = defineProps({
   entities: {
-    type: Object as PropType<IPaperEntityCollection>,
+    type: Object as PropType<IPaperEntityCollection | IFeedEntityCollection>,
     required: true,
   },
-  fieldEnable: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity, boolean>>>,
+  fieldTemplates: {
+    type: Object as PropType<Map<string, FieldTemplate>>,
     required: true,
-  },
-  fieldLabel: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity, string>>>,
-    required: true,
-  },
-  fieldWidth: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity, number>>>,
-    required: true,
-  },
-  categorizerSortBy: {
-    type: String,
-    default: "name",
-  },
-  categorizerSortOrder: {
-    type: String,
-    default: "asce",
   },
   entitySortBy: {
     type: String,
@@ -46,6 +30,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  itemSize: {
+    type: Number,
+    default: 28,
+  },
   selectedIndex: {
     type: Array<number>,
     required: true,
@@ -54,9 +42,7 @@ const props = defineProps({
 
 // ================
 // State
-const prefState = preferenceService.useState();
 const lastSelectedSingleIndex = ref<number>(-1);
-const itemSize = ref(28);
 
 // =================
 // Event handlers
@@ -134,16 +120,6 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
 
   emits("event:drag", selectedIndex);
 };
-
-disposable(
-  preferenceService.onChanged("fontsize", (newValue) => {
-    itemSize.value = { normal: 28, large: 32, larger: 34 }[newValue.value];
-  })
-);
-
-onMounted(() => {
-  itemSize.value = { normal: 28, large: 32, larger: 34 }[prefState.fontsize];
-});
 </script>
 
 <template>
@@ -152,10 +128,9 @@ onMounted(() => {
       class="mb-1"
       :sort-by="entitySortBy"
       :sort-order="entitySortOrder"
-      :field-label="fieldLabel"
-      :field-width="fieldWidth"
+      :field-templates="fieldTemplates"
       @event:click="(key: string) => emits('event:header-click', key)"
-      @event:width-change="(payloads: {'key': string, 'width': number}[]) => emits('event:header-width-change', payloads)"
+      @event:width-change="(payloads: Record<string, number>) => emits('event:header-width-change', payloads)"
     />
     <RecycleScroller
       class="scroller h-full table-body"
@@ -165,13 +140,10 @@ onMounted(() => {
       v-slot="{ item, index }"
       :buffer="300"
     >
-      <PaperTableItem
+      <TableItem
         :id="`item-${index}`"
         :item="item"
-        :field-enable="fieldEnable"
-        :field-width="fieldWidth"
-        :categorizer-sort-by="categorizerSortBy"
-        :categorizer-sort-order="categorizerSortOrder"
+        :field-templates="fieldTemplates"
         :active="selectedIndex.indexOf(index) >= 0"
         :striped="index % 2 === 0"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"

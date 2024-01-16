@@ -214,7 +214,7 @@ const onMaximizeClicked = () => {
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconClock class="my-auto" />
-                    <span>{{ $t("menu.addtime") }}</span>
+                    <span>{{ $t("menu.addTime") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"

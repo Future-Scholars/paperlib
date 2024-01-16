@@ -6,15 +6,13 @@ import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entit
 
 import PaperListItem from "./components/paper-list-item.vue";
 import { OID } from "@/models/id";
-import { disposable } from "@/base/dispose";
-import { onMounted } from "vue";
 
 const props = defineProps({
   entities: {
     type: Object as PropType<IPaperEntityCollection>,
     required: true,
   },
-  fieldEnable: {
+  fieldEnables: {
     type: Object as PropType<Partial<Record<keyof PaperEntity, boolean>>>,
     required: true,
   },
@@ -34,14 +32,16 @@ const props = defineProps({
     type: Array<number>,
     required: true,
   },
+  itemSize: {
+    type: Number,
+    default: 64,
+  },
 });
 
 // ================
 // State
 // ================
-const prefState = preferenceService.useState();
 const lastSelectedSingleIndex = ref<number>(-1);
-const itemSize = ref(64);
 
 // =================
 // Event handlers
@@ -116,16 +116,6 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
 
   emits("event:drag", selectedIndex);
 };
-
-disposable(
-  preferenceService.onChanged("fontsize", (newValue) => {
-    itemSize.value = { normal: 64, large: 72, larger: 78 }[newValue.value];
-  })
-);
-
-onMounted(() => {
-  itemSize.value = { normal: 64, large: 72, larger: 78 }[prefState.fontsize];
-});
 </script>
 
 <template>
@@ -142,7 +132,7 @@ onMounted(() => {
         :id="`item-${index}`"
         :height="itemSize"
         :item="item"
-        :field-enable="fieldEnable"
+        :field-enables="fieldEnables"
         :active="selectedIndex.indexOf(index) >= 0"
         :categorizer-sort-by="categorizerSortBy"
         :categorizer-sort-order="categorizerSortOrder"
