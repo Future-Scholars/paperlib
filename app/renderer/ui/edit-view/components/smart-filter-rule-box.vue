@@ -2,6 +2,8 @@
 import { BIconDash } from "bootstrap-icons-vue";
 import { ref } from "vue";
 
+import SelectBox from "./select-box.vue";
+
 // ================================
 // Data
 // ================================
@@ -13,6 +15,7 @@ const fields = [
   "authors",
   "publication",
   "pubTime",
+  "pubType",
   "rating",
   "note",
   "tags.name",
@@ -87,46 +90,40 @@ const constructFilter = () => {
 <template>
   <div class="flex space-x-1">
     <div
-      class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-8 flex-none"
+      class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-10 flex-none"
     >
-      <v-select
+      <SelectBox
+        class="w-full"
         placeholder="StartOps"
         :options="startOps"
-        v-model="selectedStartOp"
-        class="vue-select text-xs dark:text-neutral-300 my-auto w-full"
-        transition="none"
-        :clearable="false"
+        :value="selectedStartOp"
         @option:selected="onSelectStartOp"
-      ></v-select>
+      />
     </div>
     <div
-      class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-8 flex-none"
+      class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-10 flex-none"
     >
-      <v-select
+      <SelectBox
+        class="w-full"
         placeholder="Fields"
         :options="fields"
-        v-model="selectedField"
-        class="vue-select text-xs dark:text-neutral-300 my-auto w-full"
-        transition="none"
-        :clearable="false"
-        @option:selected="onSelectField"
-      ></v-select>
+        :value="selectedField"
+        @event:change="onSelectField"
+      />
     </div>
     <div
-      class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-8 flex-none"
+      class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-10 flex-none"
     >
-      <v-select
+      <SelectBox
+        class="w-full"
         placeholder="OP"
         :options="ops"
-        v-model="selectedOp"
-        class="vue-select text-xs dark:text-neutral-300 my-auto w-full"
-        transition="none"
-        :clearable="false"
-        @option:selected="onSelectOp"
-      ></v-select>
+        :value="selectedOp"
+        @event:change="onSelectOp"
+      />
     </div>
     <div
-      class="rounded-md bg-neutral-200 dark:bg-neutral-700 flex h-8 px-3 grow"
+      class="rounded-md bg-neutral-200 dark:bg-neutral-700 flex h-10 px-3 grow"
     >
       <input
         class="text-xs bg-transparent focus:outline-none dark:text-neutral-300"

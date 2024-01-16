@@ -114,7 +114,7 @@ onUnmounted(() => {
         />
 
         <SmartFilterRuleBox
-          @event:delete-clicked="onDeleteRuleClicked(i)"
+          @event:delete-click="onDeleteRuleClicked(i)"
           @event:change="(filter) => onRuleUpdated(i, filter)"
           v-for="(filterRule, i) in filterRules"
         />
