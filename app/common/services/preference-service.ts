@@ -20,13 +20,12 @@ export interface IPreferenceStore {
   windowSize: { height: number; width: number };
 
   appLibFolder: string;
-  deleteSourceFile: boolean; // deprecated, use sourceFileOperation = 'cut'
   sourceFileOperation: "cut" | "copy" | "link";
 
   showSidebarCount: boolean;
   isSidebarCompact: boolean;
 
-  mainFields: IDataViewField[];
+  mainTableFields: IDataViewField[];
 
   feedFields: IDataViewField[];
 
@@ -98,13 +97,12 @@ const _defaultPreferences: IPreferenceStore = {
   windowSize: { height: 800, width: 1440 },
 
   appLibFolder: join(os.homedir(), "Documents", "paperlib"),
-  deleteSourceFile: false,
   sourceFileOperation: "copy",
 
   showSidebarCount: true,
   isSidebarCompact: false,
 
-  mainFields: [
+  mainTableFields: [
     { key: "title", enable: true, width: -1 },
     { key: "authors", enable: true, width: -1 },
     { key: "publication", enable: true, width: -1 },
@@ -259,11 +257,11 @@ function _migrate(
       addTime: ["showMainAddTime", "mainAddTimeWidth", "feedAddTimeWidth"],
     };
 
-    const mainFields: IDataViewField[] = [];
+    const mainTableFields: IDataViewField[] = [];
     const feedFields: IDataViewField[] = [];
 
-    for (const [key, defaultMainFields] of Object.entries(
-      _defaultPreferences.mainFields
+    for (const [key, defaultMainTableFields] of Object.entries(
+      _defaultPreferences.mainTableFields
     )) {
       const [preShowKey, preMainWidthKey, preFeedWidthKey] = keyMap[key] || [
         null,
@@ -277,12 +275,12 @@ function _migrate(
           : true;
 
       if (preMainWidthKey !== null) {
-        defaultMainFields["width"] = store.get(preMainWidthKey) || -1;
-        defaultMainFields["enable"] = enable;
+        defaultMainTableFields["width"] = store.get(preMainWidthKey) || -1;
+        defaultMainTableFields["enable"] = enable;
 
         store.delete(preMainWidthKey as any);
       }
-      mainFields.push(defaultMainFields);
+      mainTableFields.push(defaultMainTableFields);
     }
 
     for (const [key, defaultFeedFields] of Object.entries(
@@ -313,7 +311,7 @@ function _migrate(
       }
     }
 
-    store.set("mainFields", mainFields);
+    store.set("mainTableFields", mainTableFields);
     store.set("feedFields", feedFields);
   }
 

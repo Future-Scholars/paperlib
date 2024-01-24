@@ -46,7 +46,7 @@ const fieldTemplates: Ref<Map<string, FieldTemplate>> = ref(new Map());
 
 const computeFieldTemplates = () => {
   fieldTemplates.value.clear();
-  const fieldPrefs = prefState.mainFields;
+  const fieldPrefs = prefState.mainTableFields;
 
   // 1. Calculate auto width.
   let totalWidth = 0;
@@ -109,32 +109,32 @@ const computeFieldTemplates = () => {
 };
 
 const toggleField = (index: number) => {
-  const mainFieldPrefs = prefState.mainFields;
+  const mainFieldPrefs = prefState.mainTableFields;
   mainFieldPrefs[index].enable = !mainFieldPrefs[index].enable;
   mainFieldPrefs.forEach((fieldPref) => {
     fieldPref.width = -1;
   });
-  preferenceService.set({ mainFields: mainFieldPrefs });
+  preferenceService.set({ mainTableFields: mainFieldPrefs });
 };
 
 const onMovePreClicked = (index: number) => {
-  const mainFieldPrefs = prefState.mainFields;
+  const mainFieldPrefs = prefState.mainTableFields;
   const fieldPref = mainFieldPrefs[index];
   mainFieldPrefs.splice(index, 1);
   mainFieldPrefs.splice(index - 1, 0, fieldPref);
-  preferenceService.set({ mainFields: mainFieldPrefs });
+  preferenceService.set({ mainTableFields: mainFieldPrefs });
 };
 
 const onMoveNextClicked = (index: number) => {
-  const mainFieldPrefs = prefState.mainFields;
+  const mainFieldPrefs = prefState.mainTableFields;
   const fieldPref = mainFieldPrefs[index];
   mainFieldPrefs.splice(index, 1);
   mainFieldPrefs.splice(index + 1, 0, fieldPref);
-  preferenceService.set({ mainFields: mainFieldPrefs });
+  preferenceService.set({ mainTableFields: mainFieldPrefs });
 };
 
 disposable(
-  preferenceService.onChanged(["mainFields"], () => {
+  preferenceService.onChanged(["mainTableFields"], () => {
     computeFieldTemplates();
   })
 );
@@ -172,7 +172,7 @@ onMounted(() => {
 
     <div class="grid mt-6 lg:grid-cols-6 grid-cols-4 gap-1">
       <MainField
-        v-for="(field, index) in prefState.mainFields"
+        v-for="(field, index) in prefState.mainTableFields"
         :description="$t(`mainview.${field.key}`)"
         :enable="field.enable"
         @event:click="toggleField(index)"

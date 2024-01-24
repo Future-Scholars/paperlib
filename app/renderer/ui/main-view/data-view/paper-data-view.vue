@@ -31,7 +31,7 @@ const displayingURL = ref("");
 // For List View
 const fieldEnables = ref({});
 const computeFieldEnables = () => {
-  const fieldPrefs = prefState.mainFields;
+  const fieldPrefs = prefState.mainTableFields;
   for (const fieldPref of fieldPrefs) {
     fieldEnables.value[fieldPref.key] = fieldPref.enable;
   }
@@ -42,7 +42,7 @@ const fieldTemplates: Ref<Map<string, FieldTemplate>> = ref(new Map());
 const computeFieldTemplates = () => {
   fieldTemplates.value.clear();
 
-  const fieldPrefs = prefState.mainFields;
+  const fieldPrefs = prefState.mainTableFields;
 
   // 1. Calculate auto width.
   let totalWidth = 0;
@@ -184,13 +184,13 @@ const onTableHeaderClicked = (key: string) => {
 };
 
 const onTableHeaderWidthChanged = (changedWidths: Record<string, number>) => {
-  const mainFieldPrefs = prefState.mainFields;
+  const mainFieldPrefs = prefState.mainTableFields;
   for (const mainFieldPref of mainFieldPrefs) {
     if (changedWidths[mainFieldPref.key]) {
       mainFieldPref.width = changedWidths[mainFieldPref.key];
     }
   }
-  preferenceService.set({ mainFields: mainFieldPrefs });
+  preferenceService.set({ mainTableFields: mainFieldPrefs });
 };
 
 const onDropped = async (e: DragEvent) => {
@@ -225,7 +225,7 @@ disposable(
 );
 
 disposable(
-  preferenceService.onChanged(["mainFields", "mainviewType"], () => {
+  preferenceService.onChanged(["mainTableFields", "mainviewType"], () => {
     onFontSizeChanged(prefState.fontsize);
     if (prefState.mainviewType === "list") {
       computeFieldEnables();
