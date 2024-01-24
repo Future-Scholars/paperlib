@@ -2,8 +2,9 @@ import { ObjectId } from "bson";
 import path from "path";
 import Realm from "realm";
 
-import { CategorizerType } from "@/models/categorizer";
+import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
+import { QuerySentence } from "@/models/query-sentence";
 
 export function migrate(oldRealm: Realm, newRealm: Realm) {
   const oldVersion = oldRealm.schemaVersion;
@@ -93,5 +94,119 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
       newEntity["number"] = "";
       newEntity["publisher"] = "";
     }
+  }
+
+  if (oldVersion <= 9) {
+    // Migrate PaperTag
+    const oldTags = oldRealm.objects<PaperTag>("PaperTag");
+    if (oldTags.length > 0) {
+      const _partition = oldTags[0]._partition;
+      // 1. Create Tag Root QuerySentence for Tags.
+      const tagRootQuerySentence = newRealm.create<QuerySentence>(
+        "QuerySentence",
+        {
+          _id: new ObjectId(),
+          _partition,
+          name: "Tags",
+          query: "true",
+          color: "blue",
+          inEdgeNodes: [],
+        }
+      );
+
+      // 2. Create Tag QuerySentence for each Tag.
+      for (const oldTag of oldTags) {
+        const tagQuerySentence = newRealm.create<QuerySentence>(
+          "QuerySentence",
+          {
+            _id: new ObjectId(),
+            _partition,
+            name: oldTag.name,
+            query: `tags.name == "${oldTag.name}"`,
+            // @ts-ignore
+            color: oldTag.color,
+            inEdgeNodes: [],
+          }
+        );
+
+        tagRootQuerySentence.inEdgeNodes.push(tagQuerySentence);
+      }
+    }
+
+    // Migrate PaperFolder
+    const oldFolders = oldRealm.objects<PaperFolder>("PaperFolder");
+    if (oldFolders.length > 0) {
+      const _partition = oldFolders[0]._partition;
+      // 1. Create Folder Root QuerySentence for Folders.
+      const folderRootQuerySentence = newRealm.create<QuerySentence>(
+        "QuerySentence",
+        {
+          _id: new ObjectId(),
+          _partition,
+          name: "Folders",
+          query: "true",
+          color: "blue",
+          inEdgeNodes: [],
+        }
+      );
+
+      // 2. Create Folder QuerySentence for each Folder.
+      for (const oldFolder of oldFolders) {
+        const folderQuerySentence = newRealm.create<QuerySentence>(
+          "QuerySentence",
+          {
+            _id: new ObjectId(),
+            _partition,
+            name: oldFolder.name,
+            query: `folders.name == "${oldFolder.name}"`,
+            // @ts-ignore
+            color: oldFolder.color,
+            inEdgeNodes: [],
+          }
+        );
+
+        folderRootQuerySentence.inEdgeNodes.push(folderQuerySentence);
+      }
+    }
+
+    // Migrate SmartFilters
+    const oldSmartFilters = oldRealm.objects("PaperPaperSmartFilter");
+    if (oldSmartFilters.length > 0) {
+      // @ts-ignore
+      const _partition = oldSmartFilters[0]._partition;
+      // 1. Create SmartFilter Root QuerySentence for SmartFilters.
+      const smartFilterRootQuerySentence = newRealm.create<QuerySentence>(
+        "QuerySentence",
+        {
+          _id: new ObjectId(),
+          _partition,
+          name: "SmartFilters",
+          query: "true",
+          color: "blue",
+          inEdgeNodes: [],
+        }
+      );
+
+      // 2. Create SmartFilter QuerySentence for each SmartFilter.
+      for (const oldSmartFilter of oldSmartFilters) {
+        const smartFilterQuerySentence = newRealm.create<QuerySentence>(
+          "QuerySentence",
+          {
+            _id: new ObjectId(),
+            _partition,
+            // @ts-ignore
+            name: oldSmartFilter.name,
+            // @ts-ignore
+            query: oldSmartFilter.filter,
+            // @ts-ignore
+            color: oldSmartFilter.color,
+            inEdgeNodes: [],
+          }
+        );
+
+        smartFilterRootQuerySentence.inEdgeNodes.push(smartFilterQuerySentence);
+      }
+    }
+    newRealm.deleteModel("PaperPaperSmartFilter");
   }
 }

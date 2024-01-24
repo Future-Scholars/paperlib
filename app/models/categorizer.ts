@@ -5,8 +5,6 @@ export interface ICategorizerDraft {
   _id?: OID;
   _partition?: string;
   name?: string;
-  count?: number;
-  color?: string;
 }
 
 export class Categorizer {
@@ -15,15 +13,11 @@ export class Categorizer {
   _id: OID;
   _partition: string;
   name: string;
-  count: number;
-  color?: string;
 
   constructor(object: ICategorizerDraft, initObjectId = false) {
     this._id = object._id ? new ObjectId(object._id) : "";
     this._partition = object._partition || "";
     this.name = object.name || "";
-    this.count = object.count || 0;
-    this.color = object.color;
 
     if (initObjectId) {
       this._id = new ObjectId();
@@ -46,8 +40,6 @@ export class Categorizer {
     this._id = object._id ? new ObjectId(object._id) : "";
     this._partition = object._partition || "";
     this.name = object.name || "";
-    this.count = object.count || 0;
-    this.color = object.color;
 
     return this;
   }
@@ -61,8 +53,6 @@ export class PaperTag extends Categorizer {
       _id: "objectId",
       _partition: "string?",
       name: "string",
-      count: "int",
-      color: "string?",
     },
   };
 
@@ -79,8 +69,6 @@ export class PaperFolder extends Categorizer {
       _id: "objectId",
       _partition: "string?",
       name: "string",
-      count: "int",
-      color: "string?",
     },
   };
 

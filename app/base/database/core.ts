@@ -14,12 +14,12 @@ import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
-import { PaperSmartFilter } from "@/models/smart-filter";
+import { QuerySentence } from "@/models/query-sentence";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 
-export const DATABASE_SCHEMA_VERSION = 9;
+export const DATABASE_SCHEMA_VERSION = 10;
 
 enum ConfigType {
   Cloud,
@@ -216,7 +216,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
         PaperEntity.schema,
         PaperTag.schema,
         PaperFolder.schema,
-        PaperSmartFilter.schema,
+        QuerySentence.schema,
         Feed.schema,
         FeedEntity.schema,
       ],
@@ -244,7 +244,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
             PaperEntity.schema,
             PaperTag.schema,
             PaperFolder.schema,
-            PaperSmartFilter.schema,
+            QuerySentence.schema,
             Feed.schema,
             FeedEntity.schema,
           ],
@@ -280,10 +280,10 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
                 );
                 subs.add(
                   realm
-                    .objects<PaperSmartFilter>("PaperPaperSmartFilter")
+                    .objects<QuerySentence>("QuerySentence")
                     .filtered(`_partition == '${cloudUser.id}'`),
                   {
-                    name: "PaperPaperSmartFilter",
+                    name: "QuerySentence",
                   }
                 );
                 subs.add(
@@ -321,7 +321,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
             PaperEntity.schema,
             PaperTag.schema,
             PaperFolder.schema,
-            PaperSmartFilter.schema,
+            QuerySentence.schema,
             Feed.schema,
             FeedEntity.schema,
           ],

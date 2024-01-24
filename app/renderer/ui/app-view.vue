@@ -108,11 +108,12 @@ const reloadFolders = async () => {
 disposable(categorizerService.on("foldersUpdated", () => reloadFolders()));
 
 const reloadPaperSmartFilters = async () => {
-  smartfilters.value = await smartFilterService.load(
-    "PaperPaperSmartFilter",
-    prefState.sidebarSortBy === "count" ? "name" : prefState.sidebarSortBy,
-    prefState.sidebarSortOrder
-  );
+  // smartfilters.value = await smartFilterService.load(
+  //   "PaperPaperSmartFilter",
+  //   prefState.sidebarSortBy === "count" ? "name" : prefState.sidebarSortBy,
+  //   prefState.sidebarSortOrder
+  // );
+  smartfilters.value = [];
 };
 disposable(smartFilterService.on("updated", () => reloadPaperSmartFilters()));
 
