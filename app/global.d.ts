@@ -1,13 +1,4 @@
-import fs from "fs";
-import path from "path";
-import { Store } from "pinia";
-
 import { APIShape, ExtAPIShape, MainAPIShape } from "./api/api";
-import { NetworkTool } from "./base/network";
-import { PreferenceService } from "./common/services/preference-service";
-import { ExtensionRPCService } from "./extension/services/extension-rpc-service";
-import { ContextMenuService } from "./main/services/contextmenu-service";
-import { FileSystemService } from "./main/services/filesystem-service";
 import { Preference } from "./preference/preference";
 
 declare global {
@@ -24,6 +15,7 @@ declare global {
     tagsListened: boolean;
     foldersListened: boolean;
     smartfilterListened: boolean;
+    querySentenceListened: { [key: string]: boolean };
     feedEntityListened: boolean;
     feedListened: boolean;
   }

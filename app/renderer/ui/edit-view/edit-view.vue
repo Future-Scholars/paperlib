@@ -26,16 +26,11 @@ const editingPaperEntityDraft = ref(new PaperEntity({}));
 // ==============================
 const pubTypes = ["Article", "Conference", "Others", "Book"];
 const tags = inject<Ref<ICategorizerCollection>>("tags");
-const folders = inject<Ref<ICategorizerCollection>>("folders");
 
 const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
   if (type === CategorizerType.PaperTag) {
     editingPaperEntityDraft.value.tags = names.map((name: string) => {
       return new PaperTag({ name });
-    });
-  } else if (type === CategorizerType.PaperFolder) {
-    editingPaperEntityDraft.value.folders = names.map((name: string) => {
-      return new PaperFolder({ name });
     });
   }
 };
@@ -173,19 +168,6 @@ onUnmounted(() => {
               :model-value="editingPaperEntityDraft.tags.map((tag) => tag.name)"
               :options="(tags ? tags : []).map((tag) => tag.name)"
               @event:change="(values: string[]) => onCategorizerUpdated(values, CategorizerType.PaperTag)"
-            />
-            <MultiselectBox
-              id="paper-edit-view-folders-input"
-              :placeholder="$t('mainview.folders')"
-              :model-value="
-                editingPaperEntityDraft.folders.map((folder) => folder.name)
-              "
-              :options="(folders ? folders : []).map((folder) => folder.name)"
-              @event:change="
-                (values: string[]) => {
-                  onCategorizerUpdated(values, CategorizerType.PaperFolder);
-                }
-              "
             />
             <InputField
               :placeholder="$t('mainview.note')"

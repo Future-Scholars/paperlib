@@ -5,6 +5,7 @@ import { computed, ref } from "vue";
 import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
 import { ICommand } from "@/renderer/services/command-service";
+import { PaperFilterOptions } from "@/renderer/services/paper-service";
 
 // ================================
 // State
@@ -19,6 +20,13 @@ const commandInput = ref<HTMLInputElement | null>(null);
 
 const onSearchTextChanged = debounce(() => {
   uiState.commandBarText = `${commandText.value}`;
+
+  const filterOptions = new PaperFilterOptions({
+    search: commandText.value,
+    searchMode: uiState.commandBarSearchMode,
+  });
+
+  uiState.querySentenceCommandbar = filterOptions.toString();
 }, 300);
 
 disposable(
@@ -189,6 +197,7 @@ const onFocus = async (payload: Event) => {
       if (commandText.value === "") {
         uiState.commandBarText = "";
         uiState.commandBarSearchMode = "general";
+        uiState.querySentenceCommandbar = "";
       }
     },
     false,

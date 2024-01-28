@@ -14,7 +14,7 @@ const selected = ref(0);
 </script>
 
 <template>
-  <div class="flex px-5">
+  <div class="flex px-6">
     <div
       class="my-auto text-xxs font-bold text-neutral-400 dark:text-neutral-500 select-none flex space-x-2"
     >

@@ -10,7 +10,7 @@ const uiState = uiStateService.useState();
 const onViewContentSwitch = (view: number) => {
   if (view === 0) {
     uiState.selectedIndex = [];
-    uiState.selectedCategorizer = "lib-all";
+    uiState.selectedQuerySentenceId = "lib-all";
   } else {
     uiState.selectedIndex = [];
     uiState.selectedFeed = "feed-all";
@@ -31,11 +31,11 @@ const onViewContentSwitch = (view: number) => {
     />
 
     <SidebarLibraryView
-      class="w-full h-[calc(100vh-5rem)] px-3 overflow-y-auto no-scrollbar"
+      class="w-full h-[calc(100vh-5rem)] px-2 overflow-y-auto no-scrollbar"
       v-if="uiState.contentType === 'library'"
     />
     <SidebarFeedsView
-      class="w-full h-[calc(100vh-5rem)] px-3 overflow-y-auto no-scrollbar"
+      class="w-full h-[calc(100vh-5rem)] px-2 overflow-y-auto no-scrollbar"
       v-if="uiState.contentType === 'feed'"
     />
 

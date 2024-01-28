@@ -24,6 +24,7 @@ import { HookService } from "@/renderer/services/hook-service";
 import { IInjectable } from "@/renderer/services/injectable";
 import { LogService } from "@/renderer/services/log-service";
 import { PaperService } from "@/renderer/services/paper-service";
+import { QuerySentenceService } from "@/renderer/services/querysentence-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";
 import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
@@ -41,6 +42,7 @@ import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 
+// import { QuerySentenceRepository } from "@/repositories/db-repository/querysentence-repository";
 import "./css/index.css";
 import "./css/katex.min.css";
 
@@ -87,11 +89,13 @@ async function initialize() {
     paperService: PaperService,
     paperEntityRepository: PaperEntityRepository,
     categorizerRepository: CategorizerRepository,
+    // querySentenceRepository: QuerySentenceRepository,
     scrapeService: ScrapeService,
     fileService: FileService,
     cacheDatabaseCore: CacheDatabaseCore,
     cacheService: CacheService,
     categorizerService: CategorizerService,
+    querySentenceService: QuerySentenceService,
     smartFilterService: SmartFilterService,
     paperSmartFilterRepository: PaperSmartFilterRepository,
     browserExtensionService: BrowserExtensionService,

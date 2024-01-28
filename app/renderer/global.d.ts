@@ -8,6 +8,7 @@ import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
 import { LogService } from "@/renderer/services/log-service";
 import { PaperService } from "@/renderer/services/paper-service";
+import { QuerySentenceService } from "@/renderer/services/querysentence-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";
 import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
@@ -37,4 +38,5 @@ declare global {
   var rendererRPCService: RendererRPCService;
   var uiStateService: UIStateService;
   var uiSlotService: UISlotService;
+  var querySentenceService: QuerySentenceService;
 }

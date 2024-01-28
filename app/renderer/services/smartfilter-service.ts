@@ -9,6 +9,7 @@ import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   IPaperSmartFilterCollection,
+  IPaperSmartFilterRealmObject,
   IPaperSmartFilterRepository,
   PaperSmartFilterRepository,
 } from "@/repositories/db-repository/smartfilter-repository";
@@ -34,6 +35,13 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
       this.fire({
         [payload.key]: payload.value,
       });
+    });
+
+    this._databaseCore.on("dbInitialized", async () => {
+      this._paperSmartFilterRepository.createRoots(
+        await this._databaseCore.realm(),
+        this._databaseCore.getPartition()
+      );
     });
   }
 
@@ -82,41 +90,109 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
 
   /**
    * Colorize a smartfilter.
-   * @param color - The color
-   * @param type - The type of the smartfilter
-   * @param id - The id of the smartfilter
-   * @param smartfilter - The smartfilter
+   * @param id - The id of the smartfilter.
+   * @param color - The color.
+   * @param type - The type of the smartfilter.
+   * @returns
    */
   @processing(ProcessingKey.General)
-  @errorcatching("Failed to colorize smartfilter.", true, "SmartFilterService")
-  async colorize(
-    color: Colors,
-    type: PaperSmartFilterType,
-    id?: OID,
-    smartfilter?: PaperSmartFilter
-  ) {
-    this._paperSmartFilterRepository.colorize(
-      await this._databaseCore.realm(),
-      color,
-      type,
+  @errorcatching("Failed to colorize smartfilter.", true, "SmartfilterService")
+  async colorize(id: OID, color: Colors, type: PaperSmartFilterType) {
+    const realm = await this._databaseCore.realm();
+    const objects = this._paperSmartFilterRepository.loadByIds(realm, type, [
       id,
-      smartfilter
+    ]);
+
+    if (objects.length === 0) {
+      throw new Error(`Smartfilter not found: ${id}`);
+    }
+    const object = objects[0] as IPaperSmartFilterRealmObject;
+    const parents = object.linkingObjects<IPaperSmartFilterRealmObject>(
+      type,
+      "children"
+    );
+    const parent = parents.length > 0 ? parents[0] : undefined;
+
+    this._paperSmartFilterRepository.update(
+      await this._databaseCore.realm(),
+      type,
+      new PaperSmartFilter(
+        {
+          _id: id,
+          name: object.name,
+          color,
+        },
+        false
+      ),
+      this._databaseCore.getPartition(),
+      parent
     );
   }
 
   /**
-   * Insert a smartfilter.
-   * @param smartfilter - The smartfilter
-   * @param type - The type of the smartfilter
+   * Rename a smartfilter.
+   * @param id - The id of the smartfilter.
+   * @param name - The new name of the smartfilter.
+   * @param type - The type of the smartfilter.
+   * @returns
    */
   @processing(ProcessingKey.General)
-  @errorcatching("Failed to insert smartfilter.", true, "SmartFilterService")
-  async insert(smartfilter: PaperSmartFilter, type: PaperSmartFilterType) {
-    this._paperSmartFilterRepository.insert(
-      await this._databaseCore.realm(),
-      smartfilter,
+  @errorcatching("Failed to rename smartfilters.", true, "SmartfilterService")
+  async rename(id: OID, name: string, type: PaperSmartFilterType) {
+    const realm = await this._databaseCore.realm();
+    const objects = this._paperSmartFilterRepository.loadByIds(realm, type, [
+      id,
+    ]);
+
+    if (objects.length === 0) {
+      throw new Error(`Smartfilter not found: ${id}`);
+    }
+    const object = objects[0] as IPaperSmartFilterRealmObject;
+    const oldName = object.name;
+
+    const parents = object.linkingObjects<IPaperSmartFilterRealmObject>(
       type,
-      this._databaseCore.getPartition()
+      "children"
+    );
+    const parent = parents.length > 0 ? parents[0] : undefined;
+
+    this.update(
+      type,
+      new PaperSmartFilter(
+        {
+          _id: id,
+          name,
+        },
+        false
+      ),
+      parent
+    );
+  }
+
+  /**
+   * Update/Insert a smartfilter.
+   * @param type - The type of the smartfilter
+   * @param smartfilter - The smartfilter
+   * @param parentSmartfilter - The parent smartfilter
+   * @returns
+   */
+  @processing(ProcessingKey.General)
+  @errorcatching("Failed to update smartfilter.", true, "SmartFilterService")
+  async update(
+    type: PaperSmartFilterType,
+    smartfilter: PaperSmartFilter,
+    parentSmartfilter?: PaperSmartFilter
+  ) {
+    if (!smartfilter.name || smartfilter.name?.includes("/")) {
+      throw new Error("Invalid name, name cannot be empty or contain '/'");
+    }
+
+    return this._paperSmartFilterRepository.update(
+      await this._databaseCore.realm(),
+      type,
+      smartfilter,
+      this._databaseCore.getPartition(),
+      parentSmartfilter
     );
   }
 
@@ -128,21 +204,22 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
     "DatabaseService"
   )
   async migrateLocaltoCloud() {
-    const localConfig = await this._databaseCore.getLocalConfig(false);
-    const localRealm = new Realm(localConfig);
-
-    const entities = localRealm.objects<PaperSmartFilter>(
-      "PaperPaperSmartFilter"
-    );
-    for (const entity of entities) {
-      await this.insert(new PaperSmartFilter(entity), "PaperPaperSmartFilter");
-    }
-
-    this._logService.info(
-      `Migrated ${entities.length} smartfilter(s) to cloud database.`,
-      "",
-      true,
-      "SmartFilterService"
-    );
+    // const localConfig = await this._databaseCore.getLocalConfig(false);
+    // const localRealm = new Realm(localConfig);
+    // const entities = localRealm.objects<PaperSmartFilter>(
+    //   PaperSmartFilter.schema.name
+    // );
+    // for (const entity of entities) {
+    //   await this.update(
+    //     new PaperSmartFilter(entity),
+    //     PaperSmartFilter.schema.name
+    //   );
+    // }
+    // this._logService.info(
+    //   `Migrated ${entities.length} smartfilter(s) to cloud database.`,
+    //   "",
+    //   true,
+    //   "SmartFilterService"
+    // );
   }
 }

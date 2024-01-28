@@ -2,6 +2,7 @@ import { Eventable, IEventState } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
+import { PaperSmartFilter } from "@/models/smart-filter";
 
 export interface IUIStateServiceState {
   // =========================================
@@ -28,8 +29,13 @@ export interface IUIStateServiceState {
   // It can be accessed in any component. But it is read-only. It can be only changed by the event listener of selectedIndex in the dataview.
   selectedPaperEntities: Array<PaperEntity>;
   selectedFeedEntities: Array<FeedEntity>;
-  selectedCategorizer: string;
+  selectedQuerySentenceId: string;
   selectedFeed: string;
+
+  editingPaperSmartFilter: PaperSmartFilter;
+
+  querySentenceSidebar: string;
+  querySentenceCommandbar: string;
 
   dragingIds: Array<string>;
 
@@ -73,9 +79,14 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       selectedIds: [],
       selectedPaperEntities: [],
       selectedFeedEntities: [],
-      selectedCategorizer: "lib-all",
+      selectedQuerySentenceId: "",
       selectedFeed: "feed-all",
       dragingIds: [],
+
+      querySentenceSidebar: "",
+      querySentenceCommandbar: "",
+
+      editingPaperSmartFilter: new PaperSmartFilter(),
 
       commandBarText: "",
       commandBarSearchMode: "general",
@@ -175,7 +186,6 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       selectedIds: [],
       selectedPaperEntities: [],
       selectedFeedEntities: [],
-      selectedCategorizer: "lib-all",
       selectedFeed: "feed-all",
       dragingIds: [],
       pluginLinkedFolder: "",

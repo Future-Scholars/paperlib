@@ -149,6 +149,9 @@ export class CacheService {
 
     const createPromise = async (paperEntity: PaperEntity) => {
       try {
+        if (!paperEntity.mainURL) {
+          return;
+        }
         const fulltext = await this._getPDFText(paperEntity.mainURL);
         const md5String = await md5(
           eraseProtocol(
@@ -238,6 +241,11 @@ export class CacheService {
       const filePath = eraseProtocol(
         await this._fileService.access(paperEntity.mainURL, false)
       );
+
+      if (!filePath) {
+        return;
+      }
+
       let md5String = "";
       if (filePath && (await promises.lstat(filePath)).isFile()) {
         md5String = await md5(filePath);
