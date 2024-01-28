@@ -193,7 +193,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
   /**
    * Load paper entities with filter and sort.
-   * @param filterOptions - filter object
+   * @param querySentence - Query sentence, string or PaperFilterOptions
    * @param sortBy - Sort by
    * @param sortOrder - Sort order
    * @returns Paper entities
@@ -201,44 +201,31 @@ export class PaperService extends Eventable<IPaperServiceState> {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to load paper entities.", true, "PaperService", [])
   async load(
-    filterOptions: PaperFilterOptions,
+    querySentence: string,
     sortBy: string = "addTime",
-    sortOrder: "asce" | "desc"
+    sortOrder: "asce" | "desc",
+    fulltextQuerySentence?: string
   ): Promise<IPaperEntityCollection> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
-    if (!(filterOptions instanceof PaperFilterOptions)) {
-      filterOptions = new PaperFilterOptions(filterOptions);
-    }
 
-    const isFulltextFilter = filterOptions.filters.find((filter) => {
-      return filter.startsWith("(fulltext contains[c]");
-    });
-
-    if (isFulltextFilter) {
-      const filterOptionsWithoutFulltext = new PaperFilterOptions();
-      filterOptionsWithoutFulltext.update(filterOptions);
-      filterOptionsWithoutFulltext.filters =
-        filterOptionsWithoutFulltext.filters.filter((filter) => {
-          return !filter.startsWith("(fulltext contains[c]");
-        });
-
+    if (fulltextQuerySentence) {
       const allPaperEntities = this._paperEntityRepository.load(
         await this._databaseCore.realm(),
-        filterOptionsWithoutFulltext.toString(),
+        querySentence,
         sortBy,
         sortOrder
       );
 
       return this._cacheService.fullTextFilter(
-        filterOptions.toString(),
+        fulltextQuerySentence,
         allPaperEntities
       );
     } else {
       return this._paperEntityRepository.load(
         await this._databaseCore.realm(),
-        filterOptions.toString(),
+        querySentence,
         sortBy,
         sortOrder
       );
@@ -311,7 +298,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
         return await this._fileService.move(
           paperEntityDraft,
-          this._preferenceService.get("deleteSourceFile") as boolean
+          this._preferenceService.get("sourceFileOperation") === "cut"
         );
       },
       async (paperEntityDraft) => {
@@ -435,16 +422,17 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     paperEntityDrafts = paperEntityDrafts.map((paperEntityDraft) => {
       if (type === CategorizerType.PaperTag) {
-        let tagNames = paperEntityDraft.tags.map((tag) => tag.name);
-        if (!tagNames.includes(categorizer.name)) {
-          paperEntityDraft.tags.push(categorizer);
-        }
-      }
-      if (type === CategorizerType.PaperFolder) {
-        let folderNames = paperEntityDraft.folders.map((folder) => folder.name);
-        if (!folderNames.includes(categorizer.name)) {
-          paperEntityDraft.folders.push(categorizer);
-        }
+        paperEntityDraft.tags = paperEntityDraft.tags.filter(
+          (tag) => `${tag._id}` !== `${categorizer._id}`
+        );
+
+        paperEntityDraft.tags.push(new PaperTag(categorizer));
+      } else if (type === CategorizerType.PaperFolder) {
+        paperEntityDraft.folders = paperEntityDraft.folders.filter(
+          (folder) => `${folder._id}` !== `${categorizer._id}`
+        );
+
+        paperEntityDraft.folders.push(new PaperFolder(categorizer));
       }
 
       return paperEntityDraft;
@@ -654,11 +642,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       return;
     }
     this._logService.info(`Renaming all paper(s)...`, "", true, "PaperService");
-    let paperEntities = await this.load(
-      new PaperFilterOptions(),
-      "title",
-      "desc"
-    );
+    let paperEntities = await this.load("", "title", "desc");
     const paperEntityDrafts = paperEntities.map((paperEntity: PaperEntity) => {
       return new PaperEntity(paperEntity);
     });

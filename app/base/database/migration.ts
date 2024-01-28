@@ -4,7 +4,7 @@ import Realm from "realm";
 
 import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { QuerySentence } from "@/models/query-sentence";
+import { PaperSmartFilter } from "@/models/smart-filter";
 
 export function migrate(oldRealm: Realm, newRealm: Realm) {
   const oldVersion = oldRealm.schemaVersion;
@@ -97,114 +97,116 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
   }
 
   if (oldVersion <= 9) {
+    console.log("Migrate from version <=9 to 10");
     // Migrate PaperTag
-    const oldTags = oldRealm.objects<PaperTag>("PaperTag");
+    const oldTags = oldRealm.objects<PaperTag>(PaperTag.schema.name);
+    const newTags = newRealm.objects<PaperTag>(PaperTag.schema.name);
+
     if (oldTags.length > 0) {
       const _partition = oldTags[0]._partition;
-      // 1. Create Tag Root QuerySentence for Tags.
-      const tagRootQuerySentence = newRealm.create<QuerySentence>(
-        "QuerySentence",
-        {
-          _id: new ObjectId(),
-          _partition,
-          name: "Tags",
-          query: "true",
-          color: "blue",
-          inEdgeNodes: [],
+      // 1. Create Tag Root for Tags.
+      const tagRoot = newRealm.create<PaperTag>(PaperTag.schema.name, {
+        _id: new ObjectId(),
+        _partition,
+        name: "Tags",
+        count: 0,
+        color: "blue",
+        children: [],
+      });
+
+      for (const tag of newTags) {
+        if (tag.name === "Tags") {
+          continue;
         }
-      );
 
-      // 2. Create Tag QuerySentence for each Tag.
-      for (const oldTag of oldTags) {
-        const tagQuerySentence = newRealm.create<QuerySentence>(
-          "QuerySentence",
-          {
-            _id: new ObjectId(),
-            _partition,
-            name: oldTag.name,
-            query: `tags.name == "${oldTag.name}"`,
-            // @ts-ignore
-            color: oldTag.color,
-            inEdgeNodes: [],
-          }
-        );
+        const oldTag = oldTags.find((t) => `${t._id}` === `${tag._id}`);
+        if (!oldTag) {
+          continue;
+        }
 
-        tagRootQuerySentence.inEdgeNodes.push(tagQuerySentence);
+        tag.children = [];
+        tag.color = oldTag.color || "blue";
+        tagRoot.children.push(tag);
+        tag.count = tag.linkingObjects<PaperEntity>(
+          PaperEntity.schema.name,
+          "tags"
+        ).length;
       }
     }
 
     // Migrate PaperFolder
-    const oldFolders = oldRealm.objects<PaperFolder>("PaperFolder");
+    const oldFolders = oldRealm.objects<PaperFolder>(PaperFolder.schema.name);
+    const newFolders = newRealm.objects<PaperFolder>(PaperFolder.schema.name);
     if (oldFolders.length > 0) {
       const _partition = oldFolders[0]._partition;
-      // 1. Create Folder Root QuerySentence for Folders.
-      const folderRootQuerySentence = newRealm.create<QuerySentence>(
-        "QuerySentence",
-        {
-          _id: new ObjectId(),
-          _partition,
-          name: "Folders",
-          query: "true",
-          color: "blue",
-          inEdgeNodes: [],
+      // 1. Create Folder Root for Folders.
+      const folderRoot = newRealm.create<PaperFolder>(PaperFolder.schema.name, {
+        _id: new ObjectId(),
+        _partition,
+        name: "Folders",
+        color: "blue",
+        count: 0,
+        children: [],
+      });
+
+      for (const folder of newFolders) {
+        if (folder.name === "Folders") {
+          continue;
         }
-      );
-
-      // 2. Create Folder QuerySentence for each Folder.
-      for (const oldFolder of oldFolders) {
-        const folderQuerySentence = newRealm.create<QuerySentence>(
-          "QuerySentence",
-          {
-            _id: new ObjectId(),
-            _partition,
-            name: oldFolder.name,
-            query: `folders.name == "${oldFolder.name}"`,
-            // @ts-ignore
-            color: oldFolder.color,
-            inEdgeNodes: [],
-          }
+        const oldFolder = oldFolders.find(
+          (t) => `${t._id}` === `${folder._id}`
         );
+        if (!oldFolder) {
+          continue;
+        }
 
-        folderRootQuerySentence.inEdgeNodes.push(folderQuerySentence);
+        folder.children = [];
+        folder.color = oldFolder.color || "blue";
+        folderRoot.children.push(folder);
+        folder.count = folder.linkingObjects<PaperEntity>(
+          PaperEntity.schema.name,
+          "folders"
+        ).length;
       }
     }
 
     // Migrate SmartFilters
-    const oldSmartFilters = oldRealm.objects("PaperPaperSmartFilter");
+    const oldSmartFilters = oldRealm.objects<PaperSmartFilter>(
+      "PaperPaperSmartFilter"
+    );
+    const newSmartFilters = newRealm.objects<PaperSmartFilter>(
+      PaperSmartFilter.schema.name
+    );
+
     if (oldSmartFilters.length > 0) {
-      // @ts-ignore
       const _partition = oldSmartFilters[0]._partition;
-      // 1. Create SmartFilter Root QuerySentence for SmartFilters.
-      const smartFilterRootQuerySentence = newRealm.create<QuerySentence>(
-        "QuerySentence",
+      // 1. Create SmartFilter Root for SmartFilters.
+      const smartFilterRoot = newRealm.create<PaperSmartFilter>(
+        PaperSmartFilter.schema.name,
         {
           _id: new ObjectId(),
           _partition,
           name: "SmartFilters",
-          query: "true",
           color: "blue",
-          inEdgeNodes: [],
+          filter: "true",
+          children: [],
         }
       );
 
-      // 2. Create SmartFilter QuerySentence for each SmartFilter.
-      for (const oldSmartFilter of oldSmartFilters) {
-        const smartFilterQuerySentence = newRealm.create<QuerySentence>(
-          "QuerySentence",
-          {
-            _id: new ObjectId(),
-            _partition,
-            // @ts-ignore
-            name: oldSmartFilter.name,
-            // @ts-ignore
-            query: oldSmartFilter.filter,
-            // @ts-ignore
-            color: oldSmartFilter.color,
-            inEdgeNodes: [],
-          }
+      for (const smartFilter of newSmartFilters) {
+        if (smartFilter.name === "SmartFilters") {
+          continue;
+        }
+        const oldSmartFilter = oldSmartFilters.find(
+          (t) => `${t._id}` === `${smartFilter._id}`
         );
+        if (!oldSmartFilter) {
+          continue;
+        }
 
-        smartFilterRootQuerySentence.inEdgeNodes.push(smartFilterQuerySentence);
+        smartFilter.children = [];
+        smartFilter.color = oldSmartFilter.color || "blue";
+        smartFilterRoot.children.push(smartFilter);
       }
     }
     newRealm.deleteModel("PaperPaperSmartFilter");

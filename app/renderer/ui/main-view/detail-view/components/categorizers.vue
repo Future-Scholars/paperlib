@@ -26,7 +26,7 @@ const onClick = (e: MouseEvent, categorizerName: string) => {
   const key =
     props.categorizerType === CategorizerType.PaperTag ? "tags" : "folders";
 
-  uiState.commandBarText = `${key}.name contains '${categorizerName}'`;
+  uiState.querySentenceCommandbar = `${key}.name contains '${categorizerName}'`;
 };
 
 const onDeleteClick = (e: MouseEvent, categorizer: Categorizer) => {
@@ -59,18 +59,29 @@ const colorClass = (color?: string) => {
 };
 </script>
 
+<style scoped>
+.truncate-start {
+  width: 100%;
+  direction: rtl;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+</style>
+
 <template>
   <div class="flex flex-wrap space-x-2">
     <div
-      class="flex cursor-pointer space-x-[2px] group"
+      class="flex cursor-pointer space-x-[2px] group max-w-full"
       v-for="categorizer in categorizers"
     >
       <div
-        class="w-[2px] h-[10px] my-auto"
+        class="w-[2px] min-w-[2px] h-[10px] my-auto flex-none"
         :class="colorClass(categorizer.color)"
       ></div>
       <div
-        class="text-xxs hover:underline my-auto"
+        class="text-xxs hover:underline my-auto truncate-start grow"
         @click="onClick($event, categorizer.name)"
       >
         {{ categorizer.name }}

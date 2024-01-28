@@ -2,7 +2,7 @@
 import { BIconPlus } from "bootstrap-icons-vue";
 import { onMounted, onUnmounted, ref } from "vue";
 
-import { PaperSmartFilter } from "@/models/smart-filter";
+import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 
 import { disposable } from "@/base/dispose";
 import InputBox from "./components/input-box.vue";
@@ -16,6 +16,7 @@ const uiState = uiStateService.useState();
 const editingPaperSmartFilterDraft = ref<PaperSmartFilter>(
   new PaperSmartFilter()
 );
+const selfName = ref<string>("");
 
 // ==============================
 // Data
@@ -41,9 +42,11 @@ const onSaveClicked = async () => {
     return;
   }
 
-  smartFilterService.insert(
-    new PaperSmartFilter(editingPaperSmartFilterDraft.value),
-    "PaperPaperSmartFilter"
+  editingPaperSmartFilterDraft.value.name = selfName.value;
+
+  smartFilterService.update(
+    PaperSmartFilterType.smartfilter,
+    editingPaperSmartFilterDraft.value
   );
 
   onCloseClicked();
@@ -72,7 +75,11 @@ disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 onMounted(() => {
   PLMainAPI.menuService.disableAll();
 
-  editingPaperSmartFilterDraft.value = new PaperSmartFilter();
+  editingPaperSmartFilterDraft.value.initialize(
+    uiState.editingPaperSmartFilter
+  );
+  selfName.value = editingPaperSmartFilterDraft.value.name.split("/").pop()!;
+
   filterRules.value = [];
 
   filterMatchType.value = "AND";
@@ -94,8 +101,8 @@ onUnmounted(() => {
       >
         <InputBox
           placeholder="Name"
-          :value="editingPaperSmartFilterDraft.name"
-          @event:change="(value) => (editingPaperSmartFilterDraft.name = value)"
+          :value="selfName"
+          @event:change="(value) => (selfName = value)"
         />
         <InputBox
           placeholder="Filter"

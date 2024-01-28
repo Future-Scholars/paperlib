@@ -7,11 +7,12 @@ export interface IPaperSmartFilterDraft {
   name?: string;
   filter?: string;
   color?: string;
+  children?: IPaperSmartFilterDraft[];
 }
 
 export class PaperSmartFilter {
   static schema = {
-    name: "PaperPaperSmartFilter",
+    name: "PaperSmartFilter",
     primaryKey: "_id",
     properties: {
       _id: "objectId",
@@ -19,6 +20,7 @@ export class PaperSmartFilter {
       name: "string",
       filter: "string",
       color: "string?",
+      children: "PaperSmartFilter[]",
     },
   };
 
@@ -26,14 +28,17 @@ export class PaperSmartFilter {
   _partition: string = "";
   name: string = "";
   filter: string = "";
-  color?: string;
+  color: string;
+  children: PaperSmartFilter[] = [];
 
   constructor(object?: IPaperSmartFilterDraft, initObjectId = false) {
     this._id = object?._id ? new ObjectId(object._id) : "";
     this._partition = object?._partition || "";
     this.name = object?.name || "";
     this.filter = object?.filter || "";
-    this.color = object?.color;
+    this.color = object?.color || "blue";
+    this.children =
+      object?.children?.map((child) => new PaperSmartFilter(child)) || [];
 
     if (initObjectId) {
       this._id = new ObjectId();
@@ -57,10 +62,16 @@ export class PaperSmartFilter {
     this._partition = object._partition || "";
     this.name = object.name || "";
     this.filter = object.filter || "";
-    this.color = object.color;
+    this.color = object.color || "blue";
+    this.children =
+      object.children?.map((child) =>
+        new PaperSmartFilter().initialize(child)
+      ) || [];
 
     return this;
   }
 }
 
-export type PaperSmartFilterType = "PaperPaperSmartFilter";
+export enum PaperSmartFilterType {
+  smartfilter = "PaperSmartFilter",
+}

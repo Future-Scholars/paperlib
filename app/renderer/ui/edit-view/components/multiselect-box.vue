@@ -21,8 +21,6 @@ const props = defineProps({
 
 const emits = defineEmits(["event:add", "event:delete", "event:change"]);
 
-const modelValueBuffer = ref(props.modelValue);
-
 const isFocused = ref(false);
 const isMouseOver = ref(false);
 const inputValue = ref("");
@@ -76,26 +74,23 @@ const add = () => {
     return;
   }
 
-  if (modelValueBuffer.value.includes(inputValue.value)) {
+  if (props.modelValue.includes(inputValue.value)) {
     inputValue.value = "";
     return;
   }
 
-  modelValueBuffer.value.push(inputValue.value);
-
   emits("event:add", inputValue.value);
-  emits("event:change", modelValueBuffer.value);
+  emits("event:change", [...props.modelValue, inputValue.value]);
 
   inputValue.value = "";
   selectedIndex.value = -1;
 };
 
 const remove = (value: string) => {
-  modelValueBuffer.value = modelValueBuffer.value.filter((v) => v !== value);
   emits("event:delete", value);
   emits(
     "event:change",
-    modelValueBuffer.value.filter((v) => v !== value)
+    props.modelValue.filter((v) => v !== value)
   );
 };
 

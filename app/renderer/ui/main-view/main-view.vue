@@ -474,7 +474,12 @@ disposable(
 
 disposable(
   uiStateService.onChanged(
-    ["contentType", "commandBarText", "selectedCategorizer", "selectedFeed"],
+    [
+      "contentType",
+      "selectedFeed",
+      "querySentenceSidebar",
+      "querySentenceCommandbar",
+    ],
     clearSelected
   )
 );

@@ -14,7 +14,7 @@ import { PaperFolder, PaperTag } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
-import { QuerySentence } from "@/models/query-sentence";
+import { PaperSmartFilter } from "@/models/smart-filter";
 import { FileService, IFileService } from "@/renderer/services/file-service";
 import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
@@ -216,7 +216,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
         PaperEntity.schema,
         PaperTag.schema,
         PaperFolder.schema,
-        QuerySentence.schema,
+        PaperSmartFilter.schema,
         Feed.schema,
         FeedEntity.schema,
       ],
@@ -225,7 +225,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
         this._preferenceService.get("appLibFolder") as string,
         "default.realm"
       ),
-      migration: migrate,
+      onMigration: migrate,
     };
     return config;
   }
@@ -244,7 +244,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
             PaperEntity.schema,
             PaperTag.schema,
             PaperFolder.schema,
-            QuerySentence.schema,
+            PaperSmartFilter.schema,
             Feed.schema,
             FeedEntity.schema,
           ],
@@ -264,26 +264,26 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
                 );
                 subs.add(
                   realm
-                    .objects<PaperTag>("PaperTag")
+                    .objects<PaperTag>(PaperTag.schema.name)
                     .filtered(`_partition == '${cloudUser.id}'`),
                   {
-                    name: "PaperTag",
+                    name: PaperTag.schema.name,
                   }
                 );
                 subs.add(
                   realm
-                    .objects<PaperFolder>("PaperFolder")
+                    .objects<PaperFolder>(PaperFolder.schema.name)
                     .filtered(`_partition == '${cloudUser.id}'`),
                   {
-                    name: "PaperFolder",
+                    name: PaperFolder.schema.name,
                   }
                 );
                 subs.add(
                   realm
-                    .objects<QuerySentence>("QuerySentence")
+                    .objects<PaperSmartFilter>(PaperSmartFilter.schema.name)
                     .filtered(`_partition == '${cloudUser.id}'`),
                   {
-                    name: "QuerySentence",
+                    name: PaperSmartFilter.schema.name,
                   }
                 );
                 subs.add(
@@ -321,7 +321,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
             PaperEntity.schema,
             PaperTag.schema,
             PaperFolder.schema,
-            QuerySentence.schema,
+            PaperSmartFilter.schema,
             Feed.schema,
             FeedEntity.schema,
           ],

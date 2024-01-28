@@ -5,6 +5,8 @@ export interface ICategorizerDraft {
   _id?: OID;
   _partition?: string;
   name?: string;
+  color?: string;
+  children?: ICategorizerDraft[];
 }
 
 export class Categorizer {
@@ -13,11 +15,17 @@ export class Categorizer {
   _id: OID;
   _partition: string;
   name: string;
+  color: string;
+  count: number = 0;
+  children: Categorizer[];
 
-  constructor(object: ICategorizerDraft, initObjectId = false) {
-    this._id = object._id ? new ObjectId(object._id) : "";
-    this._partition = object._partition || "";
-    this.name = object.name || "";
+  constructor(object?: ICategorizerDraft, initObjectId = false) {
+    this._id = object?._id ? new ObjectId(object._id) : "";
+    this._partition = object?._partition || "";
+    this.name = object?.name || "";
+    this.color = object?.color || "blue";
+    this.children =
+      object?.children?.map((child) => new Categorizer(child)) || [];
 
     if (initObjectId) {
       this._id = new ObjectId();
@@ -40,6 +48,10 @@ export class Categorizer {
     this._id = object._id ? new ObjectId(object._id) : "";
     this._partition = object._partition || "";
     this.name = object.name || "";
+    this.color = object.color || "blue";
+    this.children =
+      object.children?.map((child) => new Categorizer().initialize(child)) ||
+      [];
 
     return this;
   }
@@ -53,6 +65,9 @@ export class PaperTag extends Categorizer {
       _id: "objectId",
       _partition: "string?",
       name: "string",
+      color: "string",
+      count: "int",
+      children: "PaperTag[]",
     },
   };
 
@@ -69,6 +84,9 @@ export class PaperFolder extends Categorizer {
       _id: "objectId",
       _partition: "string?",
       name: "string",
+      color: "string",
+      count: "int",
+      children: "PaperFolder[]",
     },
   };
 

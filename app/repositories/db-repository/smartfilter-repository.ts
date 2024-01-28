@@ -6,7 +6,6 @@ import { Colors } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { ISmartFilterServiceState } from "@/renderer/services/smartfilter-service";
-import { ObjectId } from "bson";
 
 export const IPaperSmartFilterRepository = createDecorator(
   "paperSmartFilterRepository"
@@ -27,17 +26,14 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
    */
   toRealmObject(realm: Realm, paperSmartFilter: IPaperSmartFilterObject) {
     if (paperSmartFilter instanceof Realm.Object) {
-      return paperSmartFilter as IPaperSmartFilterObject;
+      return paperSmartFilter as IPaperSmartFilterRealmObject;
     } else {
-      const objects = realm
-        .objects<PaperSmartFilter>("PaperPaperSmartFilter")
-        .filtered(`name == "${paperSmartFilter.name}"`);
+      const object = realm.objectForPrimaryKey<PaperSmartFilter>(
+        PaperSmartFilter.schema.name,
+        new Realm.BSON.ObjectId(paperSmartFilter._id)
+      );
 
-      if (objects.length > 0) {
-        return objects[0] as IPaperSmartFilterObject;
-      } else {
-        return undefined;
-      }
+      return object as IPaperSmartFilterRealmObject | null;
     }
   }
 
@@ -96,6 +92,27 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
     return objects;
   }
 
+  createRoots(realm: Realm, partition: string) {
+    const roots = realm
+      .objects<PaperSmartFilter>(PaperSmartFilter.schema.name)
+      .filtered(`name == 'SmartFilters'`);
+    if (roots.length === 0) {
+      const root = realm.create<PaperSmartFilter>(
+        PaperSmartFilter.schema.name,
+        new PaperSmartFilter(
+          {
+            _partition: partition,
+            name: "SmartFilters",
+            color: Colors.blue,
+            filter: "true",
+            children: [],
+          },
+          true
+        )
+      );
+    }
+  }
+
   /**
    * Delete smartfilter
    * @param realm - Realm instance
@@ -124,91 +141,163 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
         throw new Error(`Invalid arguments: ${smartfilters}, ${ids}, ${type}`);
       }
 
+      for (const object of objects) {
+        if (object.children.length > 0) {
+          this.delete(realm, type, undefined, object.children);
+        }
+      }
+
       realm.delete(objects);
       return true;
     });
   }
 
-  /**
-   * Colorize smartfilter
-   * @param realm - Realm instance
-   * @param color - Color
-   * @param type - SmartFilter type
-   * @param smartfilter - SmartFilter
-   * @param name - SmartFilter name
-   * @returns True if success
-   */
-  async colorize(
-    realm: Realm,
-    color: Colors,
-    type: PaperSmartFilterType,
-    id?: OID,
-    smartfilter?: PaperSmartFilter
-  ) {
-    realm.safeWrite(() => {
-      let objects: IPaperSmartFilterCollection;
-      if (smartfilter) {
-        const object = this.toRealmObject(realm, smartfilter);
-        objects = object ? [object] : [];
-      } else if (id) {
-        objects = this.loadByIds(realm, type, [id]);
-      } else {
-        throw new Error(`Invalid arguments: ${smartfilter}, ${name}, ${type}`);
-      }
-      for (const object of objects) {
-        object.color = color;
-      }
-    });
-  }
-
   makeSureProperties(smartfilter: IPaperSmartFilterObject) {
-    smartfilter._id = smartfilter._id
-      ? new ObjectId(smartfilter._id)
-      : new ObjectId();
+    smartfilter._id = (smartfilter._id
+      ? new Realm.BSON.ObjectId(smartfilter._id)
+      : new Realm.BSON.ObjectId()) as unknown as OID;
     smartfilter._partition = smartfilter._partition || "";
     smartfilter.name = smartfilter.name || "";
     smartfilter.color = smartfilter.color || Colors.blue;
-    smartfilter.filter = smartfilter.filter || "";
+    smartfilter.filter = smartfilter.filter || "true";
     return smartfilter;
   }
 
   /**
    * Update smartfilter
    * @param realm - Realm instance
-   * @param smartfilter - SmartFilter
    * @param type - SmartFilter type
+   * @param smartfilter - SmartFilter
    * @param partition - Partition
    * @returns Updated smartfilter
    */
-  insert(
+  update(
     realm: Realm,
-    smartfilter: IPaperSmartFilterObject,
     type: PaperSmartFilterType,
-    partition: string
+    smartfilter: IPaperSmartFilterObject,
+    partition: string,
+    parent?: IPaperSmartFilterObject
   ) {
     smartfilter = this.makeSureProperties(smartfilter);
 
     return realm.safeWrite(() => {
-      // Add or Link categorizer
-      const dbExistPaperSmartFilter = this.toRealmObject(realm, smartfilter);
+      const object = this.toRealmObject(realm, smartfilter);
 
-      if (dbExistPaperSmartFilter) {
-        throw new Error(
-          `SmartFilter already exists: ${smartfilter.name}, ${type}`
-        );
-      } else {
+      if (object) {
+        // Update
+        const preSelfName = object.name.split("/").pop();
+
+        object.name = [...object.name.split("/").slice(0, -1), smartfilter.name]
+          .filter((x) => x)
+          .join("/");
+
+        object.color = smartfilter.color;
+        object.filter = smartfilter.filter;
         if (partition) {
-          smartfilter._partition = partition;
+          object._partition = partition;
         }
 
-        return realm.create(type, smartfilter);
+        if (parent) {
+          const preParents =
+            object.linkingObjects<IPaperSmartFilterRealmObject>(
+              type,
+              "children"
+            );
+          const preParent = preParents.length > 0 ? preParents[0] : undefined;
+          const curParent = this.toRealmObject(realm, parent);
+
+          this._checkCircularReference(realm, type, object, parent);
+
+          if (preParent && curParent && preParent._id != curParent._id) {
+            preParent.children.splice(preParent.children.indexOf(object), 1);
+
+            curParent.children.push(object);
+
+            // Update name
+            object.name = [
+              `${curParent.name === "SmartFilters" ? "" : curParent.name}`,
+              `${smartfilter.name}`,
+            ].join("/");
+          }
+        }
+
+        if (preSelfName !== smartfilter.name) {
+          // Update children name
+          this._updateChildrenName(realm, type, object);
+        }
+
+        return object;
+      } else {
+        // Insert
+        let parentObject: IPaperSmartFilterRealmObject | null;
+        if (!parent) {
+          parentObject = realm
+            .objects<PaperSmartFilter>(type)
+            .filtered(
+              `name == 'SmartFilters'`
+            )[0] as IPaperSmartFilterRealmObject;
+        } else {
+          parentObject = this.toRealmObject(realm, parent);
+        }
+
+        const newObject = realm.create<PaperSmartFilter>(type, smartfilter);
+        if (partition) {
+          newObject._partition = partition;
+        }
+        if (parentObject) {
+          // concat parent name
+          if (parentObject.name && parentObject.name !== "SmartFilters") {
+            newObject.name = `${parentObject.name}/${newObject.name}`;
+          }
+
+          parentObject.children.push(newObject);
+        } else {
+          throw new Error(
+            `Parent object not found: ${parent}, ${type}, ${smartfilter}`
+          );
+        }
+
+        return newObject;
       }
     });
+  }
+
+  /**
+   * Recursively update children name.
+   */
+  private _updateChildrenName(
+    realm: Realm,
+    type: PaperSmartFilterType,
+    smartfilter: IPaperSmartFilterObject
+  ) {
+    const children = smartfilter.children;
+    for (const child of children) {
+      child.name = `${smartfilter.name}/${child.name.split("/").pop()}`;
+      this._updateChildrenName(realm, type, child);
+    }
+  }
+
+  private _checkCircularReference(
+    realm: Realm,
+    type: PaperSmartFilterType,
+    smartfilter: IPaperSmartFilterObject,
+    parent: IPaperSmartFilterObject
+  ) {
+    const children = smartfilter.children;
+    for (const child of children) {
+      if (child._id.toString() === parent._id.toString()) {
+        throw new Error("Circular reference");
+      }
+      this._checkCircularReference(realm, type, child, parent);
+    }
   }
 }
 
 export type IPaperSmartFilterRealmObject = PaperSmartFilter &
-  Realm.Object<PaperSmartFilter, "_id" | "name" | "filter">;
+  Realm.Object<
+    PaperSmartFilter,
+    "_id" | "name" | "filter" | "color" | "children"
+  >;
 
 export type IPaperSmartFilterObject =
   | PaperSmartFilter

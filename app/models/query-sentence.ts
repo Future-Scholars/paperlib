@@ -9,20 +9,22 @@ export interface IQuerySentenceDraft {
   color?: string;
   inEdgeNodes?: QuerySentence[];
   inEdgeNodeIds?: OID[];
+  root: string;
 }
 
 export class QuerySentence {
-  static schema: {
-    name: "QuerySentence";
-    primaryKey: "_id";
+  static schema = {
+    name: "QuerySentence",
+    primaryKey: "_id",
     properties: {
-      _id: "objectId";
-      _partition: "string?";
-      name: "string";
-      query: "string";
-      color: "string?";
-      inEdgeNodes: "QuerySentence[]";
-    };
+      _id: "objectId",
+      _partition: "string?",
+      name: "string",
+      query: "string",
+      color: "string?",
+      root: "string",
+      inEdgeNodes: "QuerySentence[]",
+    },
   };
 
   _id: OID;
@@ -31,6 +33,7 @@ export class QuerySentence {
   query: string;
   color: string;
   inEdgeNodes: QuerySentence[];
+  root: string;
 
   constructor(object: IQuerySentenceDraft, initObjectId = false) {
     this._id = object._id ? new ObjectId(object._id) : "";
@@ -39,6 +42,7 @@ export class QuerySentence {
     this.query = object.query || "true";
     this.color = object.color || Colors.red;
     this.inEdgeNodes = object.inEdgeNodes || [];
+    this.root = object.root;
 
     if (initObjectId) {
       this._id = new ObjectId();

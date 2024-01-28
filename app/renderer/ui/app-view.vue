@@ -23,6 +23,7 @@ import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import PresettingView from "./presetting-view/presetting-view.vue";
 import WhatsNewView from "./whats-new-view/whats-new-view.vue";
+import { PaperSmartFilterType } from "@/models/smart-filter";
 
 // ================================
 // State
@@ -46,6 +47,7 @@ const folders: Ref<ICategorizerCollection> = ref([]);
 provide("folders", folders);
 const smartfilters: Ref<IPaperSmartFilterCollection> = ref([]);
 provide("smartfilters", smartfilters);
+
 const feeds: Ref<IFeedCollection> = ref([]);
 provide("feeds", feeds);
 const feedEntities: Ref<IFeedEntityCollection> = ref([]);
@@ -58,29 +60,28 @@ provide(
 // Data load
 // ================================
 const reloadPaperEntities = async () => {
-  let flaged = false;
-
-  let tag = "";
-  let folder = "";
-
-  if (uiState.selectedCategorizer.startsWith("tag-")) {
-    tag = uiState.selectedCategorizer.replace("tag-", "");
-  } else if (uiState.selectedCategorizer.startsWith("folder-")) {
-    folder = uiState.selectedCategorizer.replace("folder-", "");
-  } else if (uiState.selectedCategorizer === "lib-flaged") {
-    flaged = true;
+  let querySentence: string;
+  let fulltextQuerySetence: string | undefined = undefined;
+  if (uiState.querySentenceCommandbar.includes("(fulltext contains")) {
+    querySentence = uiState.querySentenceSidebar;
+    fulltextQuerySetence = uiState.querySentenceCommandbar;
+  } else {
+    querySentence = [
+      uiState.querySentenceCommandbar,
+      uiState.querySentenceSidebar,
+    ]
+      .filter((x) => x)
+      .map((x) => `(${x})`)
+      .join(" AND ");
   }
+
   paperEntities.value = await paperService.load(
-    new PaperFilterOptions({
-      search: uiState.commandBarText,
-      searchMode: uiState.commandBarSearchMode,
-      flaged,
-      tag: tag,
-      folder: folder,
-    }),
+    querySentence,
     prefState.mainviewSortBy,
-    prefState.mainviewSortOrder
+    prefState.mainviewSortOrder,
+    fulltextQuerySetence
   );
+
   uiStateService.fire({ entitiesReloaded: Date.now() });
 };
 disposable(
@@ -108,12 +109,11 @@ const reloadFolders = async () => {
 disposable(categorizerService.on("foldersUpdated", () => reloadFolders()));
 
 const reloadPaperSmartFilters = async () => {
-  // smartfilters.value = await smartFilterService.load(
-  //   "PaperPaperSmartFilter",
-  //   prefState.sidebarSortBy === "count" ? "name" : prefState.sidebarSortBy,
-  //   prefState.sidebarSortOrder
-  // );
-  smartfilters.value = [];
+  smartfilters.value = await smartFilterService.load(
+    PaperSmartFilterType.smartfilter,
+    prefState.sidebarSortBy === "count" ? "name" : prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
+  );
 };
 disposable(smartFilterService.on("updated", () => reloadPaperSmartFilters()));
 
@@ -190,13 +190,27 @@ disposable(
 
 disposable(
   uiStateService.onChanged(
-    ["selectedCategorizer", "selectedFeed", "contentType", "commandBarText"],
+    [
+      "selectedFeed",
+      "contentType",
+      "querySentenceSidebar",
+      "querySentenceCommandbar",
+    ],
     (value) => {
       if (uiState.contentType === "library") {
         reloadPaperEntities();
       } else if (uiState.contentType === "feed") {
         reloadFeedEntities();
       }
+    }
+  )
+);
+
+disposable(
+  uiStateService.onChanged(
+    ["querySentenceSidebar", "querySentenceCommandbar"],
+    (value) => {
+      reloadPaperEntities();
     }
   )
 );
@@ -345,14 +359,10 @@ const onPrintClicked = () => {
   }
 
   console.log("tags ========");
-  for (let i = 0; i < Math.min(10, tags.value.length); i++) {
-    console.log(tags.value[i]);
-  }
+  console.log(tags.value);
 
   console.log("folders ========");
-  for (let i = 0; i < Math.min(10, folders.value.length); i++) {
-    console.log(folders.value[i]);
-  }
+  console.log(folders.value);
 };
 const onNotifyInfoClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);

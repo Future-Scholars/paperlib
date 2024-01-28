@@ -8,8 +8,7 @@ const uiState = uiStateService.useState();
 const onClick = (e: MouseEvent, author: string) => {
   e.preventDefault();
   e.stopPropagation();
-  uiState.commandBarSearchMode = "advanced";
-  uiState.commandBarText = `authors contains '${author}'`;
+  uiState.querySentenceCommandbar = `authors contains '${author}'`;
 };
 
 const onRightClick = (e: MouseEvent, author: string) => {

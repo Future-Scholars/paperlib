@@ -243,7 +243,7 @@ onUpdated(() => {
       >
         <Categorizers
           :categorizers="entity.tags"
-          categorizerType="PaperTag"
+          categorizerType="PaperTag.schema.name"
           @event:delete="
             (categorizer) =>
               onDeleteCategorizer(categorizer, CategorizerType.PaperTag)
@@ -257,7 +257,7 @@ onUpdated(() => {
       >
         <Categorizers
           :categorizers="entity.folders"
-          categorizerType="PaperFolder"
+          categorizerType="PaperFolder.schema.name"
           @event:delete="
             (categorizer) =>
               onDeleteCategorizer(categorizer, CategorizerType.PaperFolder)

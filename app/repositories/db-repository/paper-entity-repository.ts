@@ -271,16 +271,16 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           object._partition = partition;
         }
 
-        this._categorizerRepository.updateCount(
-          realm,
-          CategorizerType.PaperTag,
-          shouldBeUpdatedTags
-        );
-        this._categorizerRepository.updateCount(
-          realm,
-          CategorizerType.PaperFolder,
-          shouldBeUpdatedFolders
-        );
+        // this._categorizerRepository.updateCount(
+        //   realm,
+        //   CategorizerType.PaperTag,
+        //   shouldBeUpdatedTags
+        // );
+        // this._categorizerRepository.updateCount(
+        //   realm,
+        //   CategorizerType.PaperFolder,
+        //   shouldBeUpdatedFolders
+        // );
       }
 
       return true;
@@ -344,16 +344,16 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
 
         realm.delete(toBeDeleted);
 
-        this._categorizerRepository.updateCount(
-          realm,
-          CategorizerType.PaperTag,
-          toBeUpdatedTags
-        );
-        this._categorizerRepository.updateCount(
-          realm,
-          CategorizerType.PaperFolder,
-          toBeUpdatedFolders
-        );
+        // this._categorizerRepository.updateCount(
+        //   realm,
+        //   CategorizerType.PaperTag,
+        //   toBeUpdatedTags
+        // );
+        // this._categorizerRepository.updateCount(
+        //   realm,
+        //   CategorizerType.PaperFolder,
+        //   toBeUpdatedFolders
+        // );
 
         return toBeDeletedFiles;
       } else {
