@@ -1,6 +1,6 @@
 {
   "name": "paperlib-beta",
-  "version": "3.0.0-beta.3",
+  "version": "3.0.0-beta.4",
   "main": "dist/main-entry.js",
   "description": "A simple academic paper management tool.",
   "author": "Future Scholars <hi@paperlib.app>",
