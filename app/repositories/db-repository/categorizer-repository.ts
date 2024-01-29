@@ -313,10 +313,10 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
           parentObject = this.toRealmObject(realm, type, parent);
         }
 
-        const newObject = realm.create<Categorizer>(type, categorizer);
         if (partition) {
-          newObject._partition = partition;
+          categorizer._partition = partition;
         }
+        const newObject = realm.create<Categorizer>(type, categorizer);
         if (parentObject) {
           // concat parent name
           if (
