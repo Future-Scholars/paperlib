@@ -2,6 +2,10 @@ import { DirectedGraph } from "graphology";
 
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
+import {
+  IPreferenceService,
+  PreferenceService,
+} from "@/common/services/preference-service";
 import { CategorizerType } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperSmartFilterType } from "@/models/smart-filter";
@@ -14,7 +18,9 @@ import {
 export const IQuerySentenceService = createDecorator("querySentenceService");
 
 export class QuerySentenceService {
-  constructor() {}
+  constructor(
+    @IPreferenceService private readonly _preferenceService: PreferenceService
+  ) {}
 
   /**
    * Create a DAG from a list of Categorizers or PaperSmartFilters.
@@ -34,6 +40,9 @@ export class QuerySentenceService {
     type: T
   ): DirectedGraph {
     const graph = new DirectedGraph();
+
+    const linkedFolderName = this._preferenceService.get("pluginLinkedFolder");
+
     for (const obj of data) {
       const node = {};
       node["_id"] = obj._id;
@@ -41,10 +50,19 @@ export class QuerySentenceService {
       node["color"] = obj.color;
       node["count"] = obj["count"] || -1;
       node["type"] = type;
+      node["icon"] = {
+        [CategorizerType.PaperTag]: "tag",
+        [CategorizerType.PaperFolder]: "folder",
+        [PaperSmartFilterType.smartfilter]: "funnel",
+      }[type];
+
       if (type === CategorizerType.PaperTag) {
         node["query"] = `tags.name == "${obj.name}"`;
       } else if (type === CategorizerType.PaperFolder) {
         node["query"] = `folders.name == "${obj.name}"`;
+        if (obj.name === linkedFolderName) {
+          node["icon"] = "folder-link";
+        }
       } else if (type === PaperSmartFilterType.smartfilter) {
         node["query"] = (obj as IPaperSmartFilterObject).filter;
       }
@@ -82,6 +100,7 @@ export class QuerySentenceService {
         query: "",
         type: PaperSmartFilterType.smartfilter,
         color: "",
+        icon: "funnel",
         count: -1,
         children: [],
       };
@@ -143,6 +162,7 @@ export class QuerySentenceService {
       query: "",
       type: nodeData.type,
       color: nodeData.color,
+      icon: nodeData.icon,
       count: nodeData.count || -1,
       children: [],
     };
@@ -198,5 +218,6 @@ export interface ViewTreeNode {
   color: string;
   type: CategorizerType | PaperSmartFilterType;
   count: number;
+  icon: "tag" | "folder" | "folder-link" | "funnel";
   children: ViewTreeNode[];
 }

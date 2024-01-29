@@ -53,7 +53,7 @@ const onEditSubmit = (e: Event) => {
 </script>
 
 <template>
-  <div class="flex space-x-2">
+  <div class="flex space-x-2 truncate">
     <div
       class="text-sm my-auto flex-none w-3.5"
       :class="`text-${color || 'blue'}-500`"

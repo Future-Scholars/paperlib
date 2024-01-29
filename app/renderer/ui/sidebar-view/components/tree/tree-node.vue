@@ -228,7 +228,7 @@ const onDragged = (event: DragEvent) => {
       'bg-neutral-300': activated && !isRoot,
     }"
   >
-    <div class="flex space-x-1 flex-none" v-if="children.length > 0">
+    <div class="flex flex-none w-3" v-if="children.length > 0">
       <BIconChevronDown
         class="my-auto text-[0.6rem] text-neutral-400 w-3"
         v-if="!collopsed"
@@ -261,7 +261,7 @@ const onDragged = (event: DragEvent) => {
       @dragstart="onDragged"
     />
     <BIconPlus
-      class="my-auto text-neutral-400 hover:text-neutral-500 hover:dark:text-neutral-300 invisible group-hover:visible flex-none"
+      class="my-auto text-neutral-400 hover:text-neutral-500 hover:dark:text-neutral-300 hidden group-hover:block flex-none w-3"
       v-if="addable"
       @click="
         (e: MouseEvent) => {
@@ -306,7 +306,7 @@ const onDragged = (event: DragEvent) => {
       :child-addable="childAddable"
       :show-counter="showCounter"
       :compact="compact"
-      :icon="icon"
+      :icon="child.icon"
       :children="child.children"
       :indent="indent"
       :count="child.count"

@@ -23,10 +23,6 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  icon: {
-    type: String,
-    default: "",
-  },
   withSpinner: {
     type: Boolean,
     default: false,
@@ -156,7 +152,7 @@ watch(
     :default-collopsed="false"
     :show-counter="showCounter"
     :compact="compact"
-    :icon="icon"
+    :icon="viewTree.icon"
     :count="viewTree.count"
     :with-spinner="withSpinner"
     :item-draggable="itemDraggable"

@@ -43,6 +43,7 @@ const tagsViewTree = computed(() => {
 
 const folders = inject<Ref<ICategorizerCollection>>("folders");
 const foldersViewTree = computed(() => {
+  const linked = prefState.pluginLinkedFolder;
   return querySentenceService.parseViewTree(
     folders?.value || [],
     CategorizerType.PaperFolder
@@ -279,7 +280,6 @@ disposable(
       :view-tree="smartfiltersViewTree"
       :show-counter="prefState.showSidebarCount"
       :compact="prefState.isSidebarCompact"
-      :icon="'funnel'"
       :with-spinner="false"
       :editing-item-id="editingItemId"
       :selected-item-id="uiState.selectedQuerySentenceId"
@@ -304,7 +304,6 @@ disposable(
       :view-tree="tagsViewTree"
       :show-counter="prefState.showSidebarCount"
       :compact="prefState.isSidebarCompact"
-      :icon="'tag'"
       :with-spinner="false"
       :editing-item-id="editingItemId"
       :selected-item-id="uiState.selectedQuerySentenceId"
@@ -328,7 +327,6 @@ disposable(
       :view-tree="foldersViewTree"
       :show-counter="prefState.showSidebarCount"
       :compact="prefState.isSidebarCompact"
-      :icon="'folder'"
       :with-spinner="false"
       :editing-item-id="editingItemId"
       :selected-item-id="uiState.selectedQuerySentenceId"

@@ -45,8 +45,8 @@ const onSearchTextChanged = debounce(async () => {
         flaged: false,
         tag: "",
         folder: "",
-        limit: 2,
-      }),
+        limit: 8,
+      }).toString(),
       mainviewSortBy.value,
       mainviewSortOrder.value
     )) as PaperEntity[];
@@ -169,11 +169,13 @@ const exportSelectedCiteBodiesInFolder = async () => {
 };
 
 const onLinkClicked = async () => {
-  folders.value = (await PLAPI.categorizerService.load(
-    CategorizerType.PaperFolder,
-    "name",
-    "desc"
-  )) as PaperFolder[];
+  folders.value = (
+    await PLAPI.categorizerService.load(
+      CategorizerType.PaperFolder,
+      "name",
+      "desc"
+    )
+  ).filter((f) => f.name !== "Folders") as PaperFolder[];
   PLMainAPI.contextMenuService.showQuickpasteLinkMenu(folders.value as any);
 };
 
@@ -185,11 +187,13 @@ const onUnlinkClicked = async () => {
 };
 
 const checkLinkedFolder = async () => {
-  folders.value = (await PLAPI.categorizerService.load(
-    CategorizerType.PaperFolder,
-    "name",
-    "desc"
-  )) as PaperFolder[];
+  folders.value = (
+    await PLAPI.categorizerService.load(
+      CategorizerType.PaperFolder,
+      "name",
+      "desc"
+    )
+  ).filter((f) => f.name !== "Folders") as PaperFolder[];
   linkedFolder.value = (await PLAPI.preferenceService.get(
     "pluginLinkedFolder"
   )) as string;
@@ -252,7 +256,7 @@ disposable(
 );
 
 disposable(
-  shortcutService.registerInInputField("Eascape", async () => {
+  shortcutService.registerInInputField("Escape", async () => {
     searchText.value = "";
     paperEntities.value = [];
     await PLMainAPI.windowProcessManagementService.hide(
@@ -289,6 +293,17 @@ disposable(
     "pluginLinkedFolder",
     (newValue: { value: string }) => {
       linkedFolder.value = newValue.value as string;
+    }
+  )
+);
+
+disposable(
+  PLMainAPI.windowProcessManagementService.on(
+    "quickpasteProcess",
+    (payload: { value: string }) => {
+      if (payload.value === "show" || payload.value === "hide") {
+        paperEntities.value = [];
+      }
     }
   )
 );
