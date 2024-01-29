@@ -393,6 +393,16 @@ onUnmounted(async () => {
         >
           {{ editingExtension?.description }}
         </div>
+
+        <div class="flex justify-end space-x-2 px-2">
+          <button
+            class="flex h-6 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
+            @click="onCloseExtensionPreferenceClicked"
+          >
+            <span class="m-auto text-xs">{{ $t("menu.save") }}</span>
+          </button>
+        </div>
+
         <div class="my-2 h-[0.5px] mx-2 bg-neutral-300 dark:bg-neutral-600" />
 
         <div class="px-2 overflow-y-auto h-full flex flex-col py-4 space-y-3">
@@ -409,15 +419,6 @@ onUnmounted(async () => {
               "
             />
           </div>
-        </div>
-
-        <div class="flex justify-end space-x-2 px-2">
-          <button
-            class="flex h-6 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
-            @click="onCloseExtensionPreferenceClicked"
-          >
-            <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
-          </button>
         </div>
       </div>
     </div>

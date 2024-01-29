@@ -5,7 +5,7 @@ const props = defineProps({
     required: true,
   },
   options: {
-    type: Array as () => string[],
+    type: Object as () => Record<string, any>,
     required: true,
   },
   value: {
@@ -31,12 +31,16 @@ const onChanged = (event: Event) => {
       {{ placeholder }}
     </label>
     <select
-      :value="props.value"
+      :value="value"
       class="text-xs dark:text-neutral-300 mx-2 focus:outline-none bg-transparent"
       @change="onChanged"
     >
-      <option v-for="option in props.options" :key="option" :value="option">
-        {{ option }}
+      <option
+        v-for="[key, value] of Object.entries(options)"
+        :key="value"
+        :value="value"
+      >
+        {{ key }}
       </option>
     </select>
   </div>

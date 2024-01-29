@@ -84,33 +84,32 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
     ids: OID[]
   ): IPaperSmartFilterCollection {
     const idsQuery = ids.map((id) => `oid(${id})`).join(", ");
-
-    let objects = realm
+    return realm
       .objects<PaperSmartFilter>(type)
-      .filtered(`_id IN {${idsQuery}}`);
-
-    return objects;
+      .filtered(`_id IN { ${idsQuery}} `);
   }
 
   createRoots(realm: Realm, partition: string) {
-    const roots = realm
-      .objects<PaperSmartFilter>(PaperSmartFilter.schema.name)
-      .filtered(`name == 'SmartFilters'`);
-    if (roots.length === 0) {
-      const root = realm.create<PaperSmartFilter>(
-        PaperSmartFilter.schema.name,
-        new PaperSmartFilter(
-          {
-            _partition: partition,
-            name: "SmartFilters",
-            color: Colors.blue,
-            filter: "true",
-            children: [],
-          },
-          true
-        )
-      );
-    }
+    realm.safeWrite(() => {
+      const roots = realm
+        .objects<PaperSmartFilter>(PaperSmartFilter.schema.name)
+        .filtered(`name == 'SmartFilters'`);
+      if (roots.length === 0) {
+        const root = realm.create<PaperSmartFilter>(
+          PaperSmartFilter.schema.name,
+          new PaperSmartFilter(
+            {
+              _partition: partition,
+              name: "SmartFilters",
+              color: Colors.blue,
+              filter: "true",
+              children: [],
+            },
+            true
+          )
+        );
+      }
+    });
   }
 
   /**

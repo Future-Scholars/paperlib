@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ObjectID } from "bson";
-import { Ref, inject, ref } from "vue";
+import { Ref, inject, ref, computed } from "vue";
 
 import {
   Categorizer,
@@ -20,7 +20,6 @@ import TreeRoot from "./components/tree/tree-root.vue";
 import ItemRow from "./components/tree/item-row.vue";
 import Counter from "./components/counter.vue";
 import Spinner from "@/renderer/ui/components/spinner.vue";
-import { computed } from "vue";
 
 // ================================
 // State
@@ -102,17 +101,6 @@ const onDroped = async (
 
     categorizerService.update(type, sourceCategorizer, categorizer);
   }
-};
-
-const onItemDroped = (categorizer: Categorizer, type: CategorizerType) => {
-  let dragingIds: (string | ObjectID)[] = [];
-  if (uiState.selectedIds.includes(uiState.dragingIds[0])) {
-    uiState.dragingIds = uiState.selectedIds;
-    dragingIds = uiState.selectedIds;
-  } else {
-    dragingIds = uiState.dragingIds;
-  }
-  paperService.updateWithCategorizer(dragingIds, categorizer, type);
 };
 
 const onUpdate = (
@@ -220,7 +208,17 @@ disposable(
   PLMainAPI.contextMenuService.on(
     "sidebarContextMenuEditClicked",
     async (newValue: { value: { data: string; type: string } }) => {
-      editingItemId.value = newValue.value.data;
+      if (newValue.value.type === PaperSmartFilterType.smartfilter) {
+        const smartfilter = (
+          await smartFilterService.loadByIds([newValue.value.data])
+        )[0];
+        if (smartfilter) {
+          uiState.editingPaperSmartFilter = smartfilter;
+          uiState.paperSmartFilterEditViewShown = true;
+        }
+      } else {
+        editingItemId.value = newValue.value.data;
+      }
     }
   )
 );
