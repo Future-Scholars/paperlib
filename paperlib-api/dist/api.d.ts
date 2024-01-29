@@ -121,22 +121,23 @@ declare class Categorizer {
     _id: OID;
     _partition: string;
     name: string;
+    color: string;
     count: number;
-    color?: string;
-    constructor(object: ICategorizerDraft, initObjectId?: boolean);
+    children: Categorizer[];
+    constructor(object?: ICategorizerDraft, initObjectId?: boolean);
     initialize(object: ICategorizerDraft): this;
 }
 
 declare class CategorizerRepository extends Eventable<ICategorizerRepositoryState> {
     constructor();
     /**
-     * Transform categorizer to realm object if exists in database. Otherwise, return undefined.
+     * Transform categorizer to realm object if exists in database. Otherwise, return null.
      * @param realm - Realm instance
      * @param type - Categorizer type
      * @param categorizer - Categorizer
-     * @returns Realm object or undefined
+     * @returns Realm object or null
      */
-    toRealmObject(realm: Realm_2, type: CategorizerType, categorizer: ICategorizerObject): ICategorizerRealmObject | undefined;
+    toRealmObject(realm: Realm_2, type: CategorizerType, categorizer: ICategorizerObject): ICategorizerRealmObject | null;
     /**
      * Load all categorizers.
      * @param realm - Realm instance
@@ -153,34 +154,15 @@ declare class CategorizerRepository extends Eventable<ICategorizerRepositoryStat
      * @returns Categorizers
      */
     loadByIds(realm: Realm_2, type: CategorizerType, ids: OID[]): ICategorizerCollection;
+    createRoots(realm: Realm_2, partation: string): void;
     /**
      * Delete categorizer.
      * @param realm - Realm instance.
-     * @param deleteAll - Delete all categorizers.
      * @param type - Categorizer type.
      * @param id - Id of categorizer to delete.
      * @param categorizer - Categorizer to delete.
      */
-    delete(realm: Realm_2, deleteAll: boolean | undefined, type: CategorizerType, ids?: OID[], categorizers?: ICategorizerCollection): boolean;
-    /**
-     * Colorize categorizer.
-     * @param realm - Realm instance
-     * @param color - Color
-     * @param type - Categorizer type
-     * @param categorizer - Categorizer
-     * @param name - Name of categorizer
-     * @returns True if success
-     */
-    colorize(realm: Realm_2, color: Colors, type: CategorizerType, id?: OID, categorizer?: ICategorizerObject): void;
-    /**
-     * Rename categorizer.
-     * @param realm - Realm instance
-     * @param oldName - Old name
-     * @param newName - New name
-     * @param type - Categorizer type
-     * @returns True if success
-     */
-    rename(realm: Realm_2, oldName: string, newName: string, type: CategorizerType): boolean;
+    delete(realm: Realm_2, type: CategorizerType, ids?: OID[], categorizers?: ICategorizerCollection): boolean;
     makeSureProperties(categorizer: ICategorizerObject): ICategorizerObject;
     /**
      * Update/Insert categorizer.
@@ -188,9 +170,18 @@ declare class CategorizerRepository extends Eventable<ICategorizerRepositoryStat
      * @param type - Categorizer type
      * @param categorizer - Categorizer
      * @param partition - Partition
+     * @param parent - Parent categorizer
      * @returns Categorizer
      */
-    update(realm: Realm_2, type: CategorizerType, categorizer: ICategorizerObject, partition: string): ICategorizerRealmObject | (Categorizer & Realm_2.Object<unknown, never>);
+    update(realm: Realm_2, type: CategorizerType, categorizer: ICategorizerObject, partition: string, parent?: ICategorizerObject): ICategorizerRealmObject | (Categorizer & Realm_2.Object<unknown, never>);
+    /**
+     * Recursively update children name.
+     */
+    private _updateChildrenName;
+    /**
+     * Check circular reference.
+     */
+    private _checkCircularReference;
     updateCount(realm: Realm_2, type: CategorizerType, categorizers: ICategorizerCollection): void;
 }
 
@@ -209,12 +200,19 @@ declare class CategorizerService extends Eventable<ICategorizerServiceState> {
      */
     load(type: CategorizerType, sortBy: string, sortOrder: string): Promise<ICategorizerCollection>;
     /**
+     * Load categorizers by ids.
+     * @param type - The type of the categorizer.
+     * @param ids - The ids of the categorizers.
+     * @returns
+     */
+    loadByIds(type: CategorizerType, ids: OID[]): Promise<ICategorizerCollection>;
+    /**
      * Update a categorizer.
      * @param type - The type of categorizer.
      * @param categorizer - The categorizer.
      * @returns
      */
-    create(type: CategorizerType, categorizer: Categorizer): Promise<ICategorizerRealmObject | (Categorizer & Realm.Object<unknown, never>)>;
+    create(type: CategorizerType, categorizer: Categorizer, parent?: Categorizer): Promise<ICategorizerRealmObject | (Categorizer & Realm.Object<unknown, never>)>;
     /**
      * Delete a categorizer.
      * @param type - The type of categorizer.
@@ -225,21 +223,28 @@ declare class CategorizerService extends Eventable<ICategorizerServiceState> {
     delete(type: CategorizerType, ids?: OID[], categorizers?: ICategorizerCollection): Promise<void>;
     /**
      * Colorize a categorizer.
+     * @param id - The id of the categorizer.
      * @param color - The color.
      * @param type - The type of the categorizer.
-     * @param name - The name of the categorizer.
-     * @param categorizer - The categorizer.
      * @returns
      */
-    colorize(color: Colors, type: CategorizerType, id?: OID, categorizer?: ICategorizerObject): Promise<void>;
+    colorize(id: OID, color: Colors, type: CategorizerType): Promise<void>;
     /**
      * Rename a categorizer.
-     * @param oldName - The old name.
-     * @param newName - The new name.
+     * @param id - The id of the categorizer.
+     * @param name - The new name of the categorizer.
      * @param type - The type of the categorizer.
      * @returns
      */
-    rename(oldName: string, newName: string, type: CategorizerType): Promise<void>;
+    rename(id: OID, name: string, type: CategorizerType): Promise<void>;
+    /**
+     * Update/Insert a categorizer.
+     * @param type - The type of the categorizer.
+     * @param categorizer - The categorizer.
+     * @param parentCategorizer - The parent categorizer to insert.
+     * @returns
+     */
+    update(type: CategorizerType, categorizer: Categorizer, parentCategorizer?: Categorizer): Promise<ICategorizerRealmObject | (Categorizer & Realm.Object<unknown, never>)>;
 }
 
 declare enum CategorizerType {
@@ -1109,13 +1114,13 @@ declare interface ICategorizerDraft {
     _id?: OID;
     _partition?: string;
     name?: string;
-    count?: number;
     color?: string;
+    children?: ICategorizerDraft[];
 }
 
 declare type ICategorizerObject = Categorizer | ICategorizerRealmObject;
 
-declare type ICategorizerRealmObject = Categorizer & Realm_2.Object<Categorizer, "_id" | "name" | "count">;
+declare type ICategorizerRealmObject = Categorizer & Realm_2.Object<Categorizer, "_id" | "name" | "color" | "children">;
 
 declare interface ICategorizerRepositoryState {
     tagsUpdated: number;
@@ -1190,6 +1195,12 @@ declare interface IDatabaseCoreState {
 declare interface IDatabaseServiceState {
     dbInitializing: number;
     dbInitialized: number;
+}
+
+declare interface IDataViewField {
+    key: string;
+    enable: boolean;
+    width: number;
 }
 
 declare interface IDisposable {
@@ -1383,15 +1394,6 @@ declare interface IPaperEntityRepositoryState {
     updated: number;
 }
 
-declare interface IPaperFilterOptions {
-    search?: string;
-    searchMode?: "general" | "fulltext" | "advanced";
-    flaged?: boolean;
-    tag?: string;
-    folder?: string;
-    limit?: number;
-}
-
 declare interface IPaperServiceState {
     count: number;
     updated: number;
@@ -1405,11 +1407,12 @@ declare interface IPaperSmartFilterDraft {
     name?: string;
     filter?: string;
     color?: string;
+    children?: IPaperSmartFilterDraft[];
 }
 
 declare type IPaperSmartFilterObject = PaperSmartFilter | IPaperSmartFilterRealmObject;
 
-declare type IPaperSmartFilterRealmObject = PaperSmartFilter & Realm_2.Object<PaperSmartFilter, "_id" | "name" | "filter">;
+declare type IPaperSmartFilterRealmObject = PaperSmartFilter & Realm_2.Object<PaperSmartFilter, "_id" | "name" | "filter" | "color" | "children">;
 
 declare interface IPreferenceStore {
     preferenceVersion: number;
@@ -1418,36 +1421,11 @@ declare interface IPreferenceStore {
         width: number;
     };
     appLibFolder: string;
-    deleteSourceFile: boolean;
     sourceFileOperation: "cut" | "copy" | "link";
     showSidebarCount: boolean;
     isSidebarCompact: boolean;
-    showMainYear: boolean;
-    showMainPublication: boolean;
-    showMainPubType: boolean;
-    showMainRating: boolean;
-    showMainFlag: boolean;
-    showMainTags: boolean;
-    showMainFolders: boolean;
-    showMainNote: boolean;
-    showMainAddTime: boolean;
-    mainTitleWidth: number;
-    mainAuthorsWidth: number;
-    mainYearWidth: number;
-    mainPublicationWidth: number;
-    mainPubTypeWidth: number;
-    mainRatingWidth: number;
-    mainFlagWidth: number;
-    mainTagsWidth: number;
-    mainFoldersWidth: number;
-    mainNoteWidth: number;
-    mainAddTimeWidth: number;
-    feedTitleWidth: number;
-    feedAuthorsWidth: number;
-    feedYearWidth: number;
-    feedPublicationWidth: number;
-    feedPubTypeWidth: number;
-    feedAddTimeWidth: number;
+    mainTableFields: IDataViewField[];
+    feedFields: IDataViewField[];
     preferedTheme: "light" | "dark" | "system";
     invertColor: boolean;
     sidebarSortBy: "name" | "count" | "color";
@@ -1544,8 +1522,11 @@ declare interface IUIStateServiceState {
     selectedIds: Array<string>;
     selectedPaperEntities: Array<PaperEntity>;
     selectedFeedEntities: Array<FeedEntity>;
-    selectedCategorizer: string;
+    selectedQuerySentenceId: string;
     selectedFeed: string;
+    editingPaperSmartFilter: PaperSmartFilter;
+    querySentenceSidebar: string;
+    querySentenceCommandbar: string;
     dragingIds: Array<string>;
     commandBarText: string;
     commandBarSearchMode: "general" | "fulltext" | "advanced";
@@ -1938,19 +1919,6 @@ declare class PaperEntityRepository extends Eventable<IPaperEntityRepositoryStat
     delete(realm: Realm_2, ids?: OID[], paperEntitys?: IPaperEntityCollection): string[];
 }
 
-declare class PaperFilterOptions implements IPaperFilterOptions {
-    filters: string[];
-    search?: string;
-    searchMode?: "general" | "fulltext" | "advanced";
-    flaged?: boolean;
-    tag?: string;
-    folder?: string;
-    limit?: number;
-    constructor(options?: Partial<IPaperFilterOptions>);
-    update(options: Partial<IPaperFilterOptions>): void;
-    toString(): string;
-}
-
 declare class PaperFolder extends Categorizer {
     static schema: {
         name: string;
@@ -1959,8 +1927,9 @@ declare class PaperFolder extends Categorizer {
             _id: string;
             _partition: string;
             name: string;
-            count: string;
             color: string;
+            count: string;
+            children: string;
         };
     };
     constructor(object: ICategorizerDraft, initObjectId?: boolean);
@@ -1981,12 +1950,12 @@ declare class PaperService extends Eventable<IPaperServiceState> {
     constructor(_databaseCore: DatabaseCore, _paperEntityRepository: PaperEntityRepository, _scrapeService: ScrapeService, _cacheService: CacheService, _schedulerService: SchedulerService, _fileService: FileService, _preferenceService: PreferenceService, _logService: LogService);
     /**
      * Load paper entities with filter and sort.
-     * @param filterOptions - filter object
+     * @param querySentence - Query sentence, string or PaperFilterOptions
      * @param sortBy - Sort by
      * @param sortOrder - Sort order
      * @returns Paper entities
      */
-    load(filterOptions: PaperFilterOptions, sortBy: string | undefined, sortOrder: "asce" | "desc"): Promise<IPaperEntityCollection>;
+    load(querySentence: string, sortBy: string | undefined, sortOrder: "asce" | "desc", fulltextQuerySentence?: string): Promise<IPaperEntityCollection>;
     /**
      * Load paper entities by IDs.
      * @param ids - Paper entity ids
@@ -2061,13 +2030,15 @@ declare class PaperSmartFilter {
             name: string;
             filter: string;
             color: string;
+            children: string;
         };
     };
     _id: OID;
     _partition: string;
     name: string;
     filter: string;
-    color?: string;
+    color: string;
+    children: PaperSmartFilter[];
     constructor(object?: IPaperSmartFilterDraft, initObjectId?: boolean);
     initialize(object: IPaperSmartFilterDraft): this;
 }
@@ -2080,7 +2051,7 @@ declare class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSt
      * @param paperSmartFilter - PaperSmartFilter
      * @returns Realm object or undefined
      */
-    toRealmObject(realm: Realm_2, paperSmartFilter: IPaperSmartFilterObject): PaperSmartFilter | undefined;
+    toRealmObject(realm: Realm_2, paperSmartFilter: IPaperSmartFilterObject): IPaperSmartFilterRealmObject | null;
     /**
      *
      * @param realm - Realm instance
@@ -2098,6 +2069,7 @@ declare class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSt
      * @returns Results of smartfilter
      */
     loadByIds(realm: Realm_2, type: PaperSmartFilterType, ids: OID[]): IPaperSmartFilterCollection;
+    createRoots(realm: Realm_2, partition: string): void;
     /**
      * Delete smartfilter
      * @param realm - Realm instance
@@ -2107,29 +2079,26 @@ declare class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSt
      * @returns True if success
      */
     delete(realm: Realm_2, type: PaperSmartFilterType, ids?: OID[], smartfilters?: IPaperSmartFilterCollection): boolean;
-    /**
-     * Colorize smartfilter
-     * @param realm - Realm instance
-     * @param color - Color
-     * @param type - SmartFilter type
-     * @param smartfilter - SmartFilter
-     * @param name - SmartFilter name
-     * @returns True if success
-     */
-    colorize(realm: Realm_2, color: Colors, type: PaperSmartFilterType, id?: OID, smartfilter?: PaperSmartFilter): Promise<void>;
     makeSureProperties(smartfilter: IPaperSmartFilterObject): IPaperSmartFilterObject;
     /**
      * Update smartfilter
      * @param realm - Realm instance
-     * @param smartfilter - SmartFilter
      * @param type - SmartFilter type
+     * @param smartfilter - SmartFilter
      * @param partition - Partition
      * @returns Updated smartfilter
      */
-    insert(realm: Realm_2, smartfilter: IPaperSmartFilterObject, type: PaperSmartFilterType, partition: string): Realm_2.Object<unknown, never>;
+    update(realm: Realm_2, type: PaperSmartFilterType, smartfilter: IPaperSmartFilterObject, partition: string, parent?: IPaperSmartFilterObject): (PaperSmartFilter & Realm_2.Object<unknown, never>) | IPaperSmartFilterRealmObject;
+    /**
+     * Recursively update children name.
+     */
+    private _updateChildrenName;
+    private _checkCircularReference;
 }
 
-declare type PaperSmartFilterType = "PaperPaperSmartFilter";
+declare enum PaperSmartFilterType {
+    smartfilter = "PaperSmartFilter"
+}
 
 declare class PaperTag extends Categorizer {
     static schema: {
@@ -2139,8 +2108,9 @@ declare class PaperTag extends Categorizer {
             _id: string;
             _partition: string;
             name: string;
-            count: string;
             color: string;
+            count: string;
+            children: string;
         };
     };
     constructor(object: ICategorizerDraft, initObjectId?: boolean);
@@ -2214,7 +2184,7 @@ declare class PreferenceService extends Eventable<IPreferenceStore> {
     get(key: keyof IPreferenceStore): string | number | boolean | {
         height: number;
         width: number;
-    } | {
+    } | IDataViewField[] | {
         from: string;
         to: string;
     }[];
@@ -2469,6 +2439,12 @@ declare class SmartFilterService extends Eventable<ISmartFilterServiceState> {
      */
     load(type: PaperSmartFilterType, sortBy: string, sortOrder: string): Promise<IPaperSmartFilterCollection>;
     /**
+     * Load smartfilters by ids.
+     * @param ids - The ids of the smartfilters
+     * @returns
+     */
+    loadByIds(ids: OID[]): Promise<IPaperSmartFilterCollection>;
+    /**
      * Delete a smartfilter.
      * @param type - The type of the smartfilter
      * @param ids - The ids of the smartfilters
@@ -2477,18 +2453,28 @@ declare class SmartFilterService extends Eventable<ISmartFilterServiceState> {
     delete(type: PaperSmartFilterType, ids?: OID[], smartfilters?: IPaperSmartFilterCollection): Promise<void>;
     /**
      * Colorize a smartfilter.
-     * @param color - The color
-     * @param type - The type of the smartfilter
-     * @param id - The id of the smartfilter
-     * @param smartfilter - The smartfilter
+     * @param id - The id of the smartfilter.
+     * @param color - The color.
+     * @param type - The type of the smartfilter.
+     * @returns
      */
-    colorize(color: Colors, type: PaperSmartFilterType, id?: OID, smartfilter?: PaperSmartFilter): Promise<void>;
+    colorize(id: OID, color: Colors, type: PaperSmartFilterType): Promise<void>;
     /**
-     * Insert a smartfilter.
-     * @param smartfilter - The smartfilter
-     * @param type - The type of the smartfilter
+     * Rename a smartfilter.
+     * @param id - The id of the smartfilter.
+     * @param name - The new name of the smartfilter.
+     * @param type - The type of the smartfilter.
+     * @returns
      */
-    insert(smartfilter: PaperSmartFilter, type: PaperSmartFilterType): Promise<void>;
+    rename(id: OID, name: string, type: PaperSmartFilterType): Promise<void>;
+    /**
+     * Update/Insert a smartfilter.
+     * @param type - The type of the smartfilter
+     * @param smartfilter - The smartfilter
+     * @param parentSmartfilter - The parent smartfilter
+     * @returns
+     */
+    update(type: PaperSmartFilterType, smartfilter: PaperSmartFilter, parentSmartfilter?: PaperSmartFilter): Promise<(PaperSmartFilter & Realm.Object<unknown, never>) | IPaperSmartFilterRealmObject>;
     /**
      * Migrate the local database to the cloud database. */
     migrateLocaltoCloud(): Promise<void>;
@@ -3052,8 +3038,162 @@ declare class UIStateService extends Eventable<IUIStateServiceState> {
             };
             _partition: string;
             name: string;
+            color: string;
             count: number;
-            color?: string | undefined;
+            children: {
+                _id: string | {
+                    _bsontype: "ObjectID";
+                    id: {
+                        [x: number]: number;
+                        write: {
+                            (string: string, encoding?: BufferEncoding | undefined): number;
+                            (string: string, offset: number, encoding?: BufferEncoding | undefined): number;
+                            (string: string, offset: number, length: number, encoding?: BufferEncoding | undefined): number;
+                        };
+                        toString: (encoding?: BufferEncoding | undefined, start?: number | undefined, end?: number | undefined) => string;
+                        toJSON: () => {
+                            type: "Buffer";
+                            data: number[];
+                        };
+                        equals: (otherBuffer: Uint8Array) => boolean;
+                        compare: (target: Uint8Array, targetStart?: number | undefined, targetEnd?: number | undefined, sourceStart?: number | undefined, sourceEnd?: number | undefined) => 0 | 1 | -1;
+                        copy: (target: Uint8Array, targetStart?: number | undefined, sourceStart?: number | undefined, sourceEnd?: number | undefined) => number;
+                        slice: (start?: number | undefined, end?: number | undefined) => Buffer;
+                        subarray: (start?: number | undefined, end?: number | undefined) => Buffer;
+                        writeBigInt64BE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigInt64LE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigUInt64BE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigUint64BE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigUInt64LE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigUint64LE: (value: bigint, offset?: number | undefined) => number;
+                        writeUIntLE: (value: number, offset: number, byteLength: number) => number;
+                        writeUintLE: (value: number, offset: number, byteLength: number) => number;
+                        writeUIntBE: (value: number, offset: number, byteLength: number) => number;
+                        writeUintBE: (value: number, offset: number, byteLength: number) => number;
+                        writeIntLE: (value: number, offset: number, byteLength: number) => number;
+                        writeIntBE: (value: number, offset: number, byteLength: number) => number;
+                        readBigUInt64BE: (offset?: number | undefined) => bigint;
+                        readBigUint64BE: (offset?: number | undefined) => bigint;
+                        readBigUInt64LE: (offset?: number | undefined) => bigint;
+                        readBigUint64LE: (offset?: number | undefined) => bigint;
+                        readBigInt64BE: (offset?: number | undefined) => bigint;
+                        readBigInt64LE: (offset?: number | undefined) => bigint;
+                        readUIntLE: (offset: number, byteLength: number) => number;
+                        readUintLE: (offset: number, byteLength: number) => number;
+                        readUIntBE: (offset: number, byteLength: number) => number;
+                        readUintBE: (offset: number, byteLength: number) => number;
+                        readIntLE: (offset: number, byteLength: number) => number;
+                        readIntBE: (offset: number, byteLength: number) => number;
+                        readUInt8: (offset?: number | undefined) => number;
+                        readUint8: (offset?: number | undefined) => number;
+                        readUInt16LE: (offset?: number | undefined) => number;
+                        readUint16LE: (offset?: number | undefined) => number;
+                        readUInt16BE: (offset?: number | undefined) => number;
+                        readUint16BE: (offset?: number | undefined) => number;
+                        readUInt32LE: (offset?: number | undefined) => number;
+                        readUint32LE: (offset?: number | undefined) => number;
+                        readUInt32BE: (offset?: number | undefined) => number;
+                        readUint32BE: (offset?: number | undefined) => number;
+                        readInt8: (offset?: number | undefined) => number;
+                        readInt16LE: (offset?: number | undefined) => number;
+                        readInt16BE: (offset?: number | undefined) => number;
+                        readInt32LE: (offset?: number | undefined) => number;
+                        readInt32BE: (offset?: number | undefined) => number;
+                        readFloatLE: (offset?: number | undefined) => number;
+                        readFloatBE: (offset?: number | undefined) => number;
+                        readDoubleLE: (offset?: number | undefined) => number;
+                        readDoubleBE: (offset?: number | undefined) => number;
+                        reverse: () => Buffer;
+                        swap16: () => Buffer;
+                        swap32: () => Buffer;
+                        swap64: () => Buffer;
+                        writeUInt8: (value: number, offset?: number | undefined) => number;
+                        writeUint8: (value: number, offset?: number | undefined) => number;
+                        writeUInt16LE: (value: number, offset?: number | undefined) => number;
+                        writeUint16LE: (value: number, offset?: number | undefined) => number;
+                        writeUInt16BE: (value: number, offset?: number | undefined) => number;
+                        writeUint16BE: (value: number, offset?: number | undefined) => number;
+                        writeUInt32LE: (value: number, offset?: number | undefined) => number;
+                        writeUint32LE: (value: number, offset?: number | undefined) => number;
+                        writeUInt32BE: (value: number, offset?: number | undefined) => number;
+                        writeUint32BE: (value: number, offset?: number | undefined) => number;
+                        writeInt8: (value: number, offset?: number | undefined) => number;
+                        writeInt16LE: (value: number, offset?: number | undefined) => number;
+                        writeInt16BE: (value: number, offset?: number | undefined) => number;
+                        writeInt32LE: (value: number, offset?: number | undefined) => number;
+                        writeInt32BE: (value: number, offset?: number | undefined) => number;
+                        writeFloatLE: (value: number, offset?: number | undefined) => number;
+                        writeFloatBE: (value: number, offset?: number | undefined) => number;
+                        writeDoubleLE: (value: number, offset?: number | undefined) => number;
+                        writeDoubleBE: (value: number, offset?: number | undefined) => number;
+                        fill: (value: string | number | Uint8Array, offset?: number | undefined, end?: number | undefined, encoding?: BufferEncoding | undefined) => Buffer;
+                        indexOf: (value: string | number | Uint8Array, byteOffset?: number | undefined, encoding?: BufferEncoding | undefined) => number;
+                        lastIndexOf: (value: string | number | Uint8Array, byteOffset?: number | undefined, encoding?: BufferEncoding | undefined) => number;
+                        entries: () => IterableIterator<[number, number]>;
+                        includes: (value: string | number | Buffer, byteOffset?: number | undefined, encoding?: BufferEncoding | undefined) => boolean;
+                        keys: () => IterableIterator<number>;
+                        values: () => IterableIterator<number>;
+                        readonly BYTES_PER_ELEMENT: number;
+                        readonly buffer: {
+                            readonly byteLength: number;
+                            slice: (begin: number, end?: number | undefined) => ArrayBuffer;
+                            readonly [Symbol.toStringTag]: string;
+                        } | {
+                            readonly byteLength: number;
+                            slice: (begin: number, end?: number | undefined) => SharedArrayBuffer;
+                            readonly [Symbol.species]: SharedArrayBuffer;
+                            readonly [Symbol.toStringTag]: "SharedArrayBuffer";
+                        };
+                        readonly byteLength: number;
+                        readonly byteOffset: number;
+                        copyWithin: (target: number, start?: number | undefined, end?: number | undefined) => Buffer;
+                        every: (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any) => boolean;
+                        filter: (predicate: (value: number, index: number, array: Uint8Array) => any, thisArg?: any) => Uint8Array;
+                        find: (predicate: (value: number, index: number, obj: Uint8Array) => boolean, thisArg?: any) => number | undefined;
+                        findIndex: (predicate: (value: number, index: number, obj: Uint8Array) => boolean, thisArg?: any) => number;
+                        forEach: (callbackfn: (value: number, index: number, array: Uint8Array) => void, thisArg?: any) => void;
+                        join: (separator?: string | undefined) => string;
+                        readonly length: number;
+                        map: (callbackfn: (value: number, index: number, array: Uint8Array) => number, thisArg?: any) => Uint8Array;
+                        reduce: {
+                            (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number): number;
+                            (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number, initialValue: number): number;
+                            <U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: Uint8Array) => U, initialValue: U): U;
+                        };
+                        reduceRight: {
+                            (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number): number;
+                            (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number, initialValue: number): number;
+                            <U_1>(callbackfn: (previousValue: U_1, currentValue: number, currentIndex: number, array: Uint8Array) => U_1, initialValue: U_1): U_1;
+                        };
+                        set: (array: ArrayLike<number>, offset?: number | undefined) => void;
+                        some: (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any) => boolean;
+                        sort: (compareFn?: ((a: number, b: number) => number) | undefined) => Buffer;
+                        toLocaleString: () => string;
+                        valueOf: () => Uint8Array;
+                        at: (index: number) => number | undefined;
+                        findLast: {
+                            <S extends number>(predicate: (value: number, index: number, array: Uint8Array) => value is S, thisArg?: any): S | undefined;
+                            (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any): number | undefined;
+                        };
+                        findLastIndex: (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any) => number;
+                        [Symbol.iterator]: () => IterableIterator<number>;
+                        readonly [Symbol.toStringTag]: "Uint8Array";
+                    };
+                    generationTime: number;
+                    toHexString: () => string;
+                    toString: (format?: string | undefined) => string;
+                    toJSON: () => string;
+                    equals: (otherId: string | ObjectID | ObjectIdLike) => boolean;
+                    getTimestamp: () => Date;
+                    inspect: () => string;
+                };
+                _partition: string;
+                name: string;
+                color: string;
+                count: number;
+                children: any[];
+                initialize: (object: ICategorizerDraft) => Categorizer;
+            }[];
             initialize: (object: ICategorizerDraft) => PaperTag;
         }[];
         folders: {
@@ -3205,8 +3345,162 @@ declare class UIStateService extends Eventable<IUIStateServiceState> {
             };
             _partition: string;
             name: string;
+            color: string;
             count: number;
-            color?: string | undefined;
+            children: {
+                _id: string | {
+                    _bsontype: "ObjectID";
+                    id: {
+                        [x: number]: number;
+                        write: {
+                            (string: string, encoding?: BufferEncoding | undefined): number;
+                            (string: string, offset: number, encoding?: BufferEncoding | undefined): number;
+                            (string: string, offset: number, length: number, encoding?: BufferEncoding | undefined): number;
+                        };
+                        toString: (encoding?: BufferEncoding | undefined, start?: number | undefined, end?: number | undefined) => string;
+                        toJSON: () => {
+                            type: "Buffer";
+                            data: number[];
+                        };
+                        equals: (otherBuffer: Uint8Array) => boolean;
+                        compare: (target: Uint8Array, targetStart?: number | undefined, targetEnd?: number | undefined, sourceStart?: number | undefined, sourceEnd?: number | undefined) => 0 | 1 | -1;
+                        copy: (target: Uint8Array, targetStart?: number | undefined, sourceStart?: number | undefined, sourceEnd?: number | undefined) => number;
+                        slice: (start?: number | undefined, end?: number | undefined) => Buffer;
+                        subarray: (start?: number | undefined, end?: number | undefined) => Buffer;
+                        writeBigInt64BE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigInt64LE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigUInt64BE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigUint64BE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigUInt64LE: (value: bigint, offset?: number | undefined) => number;
+                        writeBigUint64LE: (value: bigint, offset?: number | undefined) => number;
+                        writeUIntLE: (value: number, offset: number, byteLength: number) => number;
+                        writeUintLE: (value: number, offset: number, byteLength: number) => number;
+                        writeUIntBE: (value: number, offset: number, byteLength: number) => number;
+                        writeUintBE: (value: number, offset: number, byteLength: number) => number;
+                        writeIntLE: (value: number, offset: number, byteLength: number) => number;
+                        writeIntBE: (value: number, offset: number, byteLength: number) => number;
+                        readBigUInt64BE: (offset?: number | undefined) => bigint;
+                        readBigUint64BE: (offset?: number | undefined) => bigint;
+                        readBigUInt64LE: (offset?: number | undefined) => bigint;
+                        readBigUint64LE: (offset?: number | undefined) => bigint;
+                        readBigInt64BE: (offset?: number | undefined) => bigint;
+                        readBigInt64LE: (offset?: number | undefined) => bigint;
+                        readUIntLE: (offset: number, byteLength: number) => number;
+                        readUintLE: (offset: number, byteLength: number) => number;
+                        readUIntBE: (offset: number, byteLength: number) => number;
+                        readUintBE: (offset: number, byteLength: number) => number;
+                        readIntLE: (offset: number, byteLength: number) => number;
+                        readIntBE: (offset: number, byteLength: number) => number;
+                        readUInt8: (offset?: number | undefined) => number;
+                        readUint8: (offset?: number | undefined) => number;
+                        readUInt16LE: (offset?: number | undefined) => number;
+                        readUint16LE: (offset?: number | undefined) => number;
+                        readUInt16BE: (offset?: number | undefined) => number;
+                        readUint16BE: (offset?: number | undefined) => number;
+                        readUInt32LE: (offset?: number | undefined) => number;
+                        readUint32LE: (offset?: number | undefined) => number;
+                        readUInt32BE: (offset?: number | undefined) => number;
+                        readUint32BE: (offset?: number | undefined) => number;
+                        readInt8: (offset?: number | undefined) => number;
+                        readInt16LE: (offset?: number | undefined) => number;
+                        readInt16BE: (offset?: number | undefined) => number;
+                        readInt32LE: (offset?: number | undefined) => number;
+                        readInt32BE: (offset?: number | undefined) => number;
+                        readFloatLE: (offset?: number | undefined) => number;
+                        readFloatBE: (offset?: number | undefined) => number;
+                        readDoubleLE: (offset?: number | undefined) => number;
+                        readDoubleBE: (offset?: number | undefined) => number;
+                        reverse: () => Buffer;
+                        swap16: () => Buffer;
+                        swap32: () => Buffer;
+                        swap64: () => Buffer;
+                        writeUInt8: (value: number, offset?: number | undefined) => number;
+                        writeUint8: (value: number, offset?: number | undefined) => number;
+                        writeUInt16LE: (value: number, offset?: number | undefined) => number;
+                        writeUint16LE: (value: number, offset?: number | undefined) => number;
+                        writeUInt16BE: (value: number, offset?: number | undefined) => number;
+                        writeUint16BE: (value: number, offset?: number | undefined) => number;
+                        writeUInt32LE: (value: number, offset?: number | undefined) => number;
+                        writeUint32LE: (value: number, offset?: number | undefined) => number;
+                        writeUInt32BE: (value: number, offset?: number | undefined) => number;
+                        writeUint32BE: (value: number, offset?: number | undefined) => number;
+                        writeInt8: (value: number, offset?: number | undefined) => number;
+                        writeInt16LE: (value: number, offset?: number | undefined) => number;
+                        writeInt16BE: (value: number, offset?: number | undefined) => number;
+                        writeInt32LE: (value: number, offset?: number | undefined) => number;
+                        writeInt32BE: (value: number, offset?: number | undefined) => number;
+                        writeFloatLE: (value: number, offset?: number | undefined) => number;
+                        writeFloatBE: (value: number, offset?: number | undefined) => number;
+                        writeDoubleLE: (value: number, offset?: number | undefined) => number;
+                        writeDoubleBE: (value: number, offset?: number | undefined) => number;
+                        fill: (value: string | number | Uint8Array, offset?: number | undefined, end?: number | undefined, encoding?: BufferEncoding | undefined) => Buffer;
+                        indexOf: (value: string | number | Uint8Array, byteOffset?: number | undefined, encoding?: BufferEncoding | undefined) => number;
+                        lastIndexOf: (value: string | number | Uint8Array, byteOffset?: number | undefined, encoding?: BufferEncoding | undefined) => number;
+                        entries: () => IterableIterator<[number, number]>;
+                        includes: (value: string | number | Buffer, byteOffset?: number | undefined, encoding?: BufferEncoding | undefined) => boolean;
+                        keys: () => IterableIterator<number>;
+                        values: () => IterableIterator<number>;
+                        readonly BYTES_PER_ELEMENT: number;
+                        readonly buffer: {
+                            readonly byteLength: number;
+                            slice: (begin: number, end?: number | undefined) => ArrayBuffer;
+                            readonly [Symbol.toStringTag]: string;
+                        } | {
+                            readonly byteLength: number;
+                            slice: (begin: number, end?: number | undefined) => SharedArrayBuffer;
+                            readonly [Symbol.species]: SharedArrayBuffer;
+                            readonly [Symbol.toStringTag]: "SharedArrayBuffer";
+                        };
+                        readonly byteLength: number;
+                        readonly byteOffset: number;
+                        copyWithin: (target: number, start?: number | undefined, end?: number | undefined) => Buffer;
+                        every: (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any) => boolean;
+                        filter: (predicate: (value: number, index: number, array: Uint8Array) => any, thisArg?: any) => Uint8Array;
+                        find: (predicate: (value: number, index: number, obj: Uint8Array) => boolean, thisArg?: any) => number | undefined;
+                        findIndex: (predicate: (value: number, index: number, obj: Uint8Array) => boolean, thisArg?: any) => number;
+                        forEach: (callbackfn: (value: number, index: number, array: Uint8Array) => void, thisArg?: any) => void;
+                        join: (separator?: string | undefined) => string;
+                        readonly length: number;
+                        map: (callbackfn: (value: number, index: number, array: Uint8Array) => number, thisArg?: any) => Uint8Array;
+                        reduce: {
+                            (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number): number;
+                            (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number, initialValue: number): number;
+                            <U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: Uint8Array) => U, initialValue: U): U;
+                        };
+                        reduceRight: {
+                            (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number): number;
+                            (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number, initialValue: number): number;
+                            <U_1>(callbackfn: (previousValue: U_1, currentValue: number, currentIndex: number, array: Uint8Array) => U_1, initialValue: U_1): U_1;
+                        };
+                        set: (array: ArrayLike<number>, offset?: number | undefined) => void;
+                        some: (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any) => boolean;
+                        sort: (compareFn?: ((a: number, b: number) => number) | undefined) => Buffer;
+                        toLocaleString: () => string;
+                        valueOf: () => Uint8Array;
+                        at: (index: number) => number | undefined;
+                        findLast: {
+                            <S extends number>(predicate: (value: number, index: number, array: Uint8Array) => value is S, thisArg?: any): S | undefined;
+                            (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any): number | undefined;
+                        };
+                        findLastIndex: (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any) => number;
+                        [Symbol.iterator]: () => IterableIterator<number>;
+                        readonly [Symbol.toStringTag]: "Uint8Array";
+                    };
+                    generationTime: number;
+                    toHexString: () => string;
+                    toString: (format?: string | undefined) => string;
+                    toJSON: () => string;
+                    equals: (otherId: string | ObjectID | ObjectIdLike) => boolean;
+                    getTimestamp: () => Date;
+                    inspect: () => string;
+                };
+                _partition: string;
+                name: string;
+                color: string;
+                count: number;
+                children: any[];
+                initialize: (object: ICategorizerDraft) => Categorizer;
+            }[];
             initialize: (object: ICategorizerDraft) => PaperFolder;
         }[];
         flag: boolean;
@@ -3957,7 +4251,160 @@ declare class UIStateService extends Eventable<IUIStateServiceState> {
         read: boolean;
         initialize: (object: IFeedEntityDraft) => FeedEntity;
         fromPaper: (paperEntity: PaperEntity) => void;
-    }[];
+    }[] | {
+        _id: string | {
+            _bsontype: "ObjectID";
+            id: {
+                [x: number]: number;
+                write: {
+                    (string: string, encoding?: BufferEncoding | undefined): number;
+                    (string: string, offset: number, encoding?: BufferEncoding | undefined): number;
+                    (string: string, offset: number, length: number, encoding?: BufferEncoding | undefined): number;
+                };
+                toString: (encoding?: BufferEncoding | undefined, start?: number | undefined, end?: number | undefined) => string;
+                toJSON: () => {
+                    type: "Buffer";
+                    data: number[];
+                };
+                equals: (otherBuffer: Uint8Array) => boolean;
+                compare: (target: Uint8Array, targetStart?: number | undefined, targetEnd?: number | undefined, sourceStart?: number | undefined, sourceEnd?: number | undefined) => 0 | 1 | -1;
+                copy: (target: Uint8Array, targetStart?: number | undefined, sourceStart?: number | undefined, sourceEnd?: number | undefined) => number;
+                slice: (start?: number | undefined, end?: number | undefined) => Buffer;
+                subarray: (start?: number | undefined, end?: number | undefined) => Buffer;
+                writeBigInt64BE: (value: bigint, offset?: number | undefined) => number;
+                writeBigInt64LE: (value: bigint, offset?: number | undefined) => number;
+                writeBigUInt64BE: (value: bigint, offset?: number | undefined) => number;
+                writeBigUint64BE: (value: bigint, offset?: number | undefined) => number;
+                writeBigUInt64LE: (value: bigint, offset?: number | undefined) => number;
+                writeBigUint64LE: (value: bigint, offset?: number | undefined) => number;
+                writeUIntLE: (value: number, offset: number, byteLength: number) => number;
+                writeUintLE: (value: number, offset: number, byteLength: number) => number;
+                writeUIntBE: (value: number, offset: number, byteLength: number) => number;
+                writeUintBE: (value: number, offset: number, byteLength: number) => number;
+                writeIntLE: (value: number, offset: number, byteLength: number) => number;
+                writeIntBE: (value: number, offset: number, byteLength: number) => number;
+                readBigUInt64BE: (offset?: number | undefined) => bigint;
+                readBigUint64BE: (offset?: number | undefined) => bigint;
+                readBigUInt64LE: (offset?: number | undefined) => bigint;
+                readBigUint64LE: (offset?: number | undefined) => bigint;
+                readBigInt64BE: (offset?: number | undefined) => bigint;
+                readBigInt64LE: (offset?: number | undefined) => bigint;
+                readUIntLE: (offset: number, byteLength: number) => number;
+                readUintLE: (offset: number, byteLength: number) => number;
+                readUIntBE: (offset: number, byteLength: number) => number;
+                readUintBE: (offset: number, byteLength: number) => number;
+                readIntLE: (offset: number, byteLength: number) => number;
+                readIntBE: (offset: number, byteLength: number) => number;
+                readUInt8: (offset?: number | undefined) => number;
+                readUint8: (offset?: number | undefined) => number;
+                readUInt16LE: (offset?: number | undefined) => number;
+                readUint16LE: (offset?: number | undefined) => number;
+                readUInt16BE: (offset?: number | undefined) => number;
+                readUint16BE: (offset?: number | undefined) => number;
+                readUInt32LE: (offset?: number | undefined) => number;
+                readUint32LE: (offset?: number | undefined) => number;
+                readUInt32BE: (offset?: number | undefined) => number;
+                readUint32BE: (offset?: number | undefined) => number;
+                readInt8: (offset?: number | undefined) => number;
+                readInt16LE: (offset?: number | undefined) => number;
+                readInt16BE: (offset?: number | undefined) => number;
+                readInt32LE: (offset?: number | undefined) => number;
+                readInt32BE: (offset?: number | undefined) => number;
+                readFloatLE: (offset?: number | undefined) => number;
+                readFloatBE: (offset?: number | undefined) => number;
+                readDoubleLE: (offset?: number | undefined) => number;
+                readDoubleBE: (offset?: number | undefined) => number;
+                reverse: () => Buffer;
+                swap16: () => Buffer;
+                swap32: () => Buffer;
+                swap64: () => Buffer;
+                writeUInt8: (value: number, offset?: number | undefined) => number;
+                writeUint8: (value: number, offset?: number | undefined) => number;
+                writeUInt16LE: (value: number, offset?: number | undefined) => number;
+                writeUint16LE: (value: number, offset?: number | undefined) => number;
+                writeUInt16BE: (value: number, offset?: number | undefined) => number;
+                writeUint16BE: (value: number, offset?: number | undefined) => number;
+                writeUInt32LE: (value: number, offset?: number | undefined) => number;
+                writeUint32LE: (value: number, offset?: number | undefined) => number;
+                writeUInt32BE: (value: number, offset?: number | undefined) => number;
+                writeUint32BE: (value: number, offset?: number | undefined) => number;
+                writeInt8: (value: number, offset?: number | undefined) => number;
+                writeInt16LE: (value: number, offset?: number | undefined) => number;
+                writeInt16BE: (value: number, offset?: number | undefined) => number;
+                writeInt32LE: (value: number, offset?: number | undefined) => number;
+                writeInt32BE: (value: number, offset?: number | undefined) => number;
+                writeFloatLE: (value: number, offset?: number | undefined) => number;
+                writeFloatBE: (value: number, offset?: number | undefined) => number;
+                writeDoubleLE: (value: number, offset?: number | undefined) => number;
+                writeDoubleBE: (value: number, offset?: number | undefined) => number;
+                fill: (value: string | number | Uint8Array, offset?: number | undefined, end?: number | undefined, encoding?: BufferEncoding | undefined) => Buffer;
+                indexOf: (value: string | number | Uint8Array, byteOffset?: number | undefined, encoding?: BufferEncoding | undefined) => number;
+                lastIndexOf: (value: string | number | Uint8Array, byteOffset?: number | undefined, encoding?: BufferEncoding | undefined) => number;
+                entries: () => IterableIterator<[number, number]>;
+                includes: (value: string | number | Buffer, byteOffset?: number | undefined, encoding?: BufferEncoding | undefined) => boolean;
+                keys: () => IterableIterator<number>;
+                values: () => IterableIterator<number>;
+                readonly BYTES_PER_ELEMENT: number;
+                readonly buffer: {
+                    readonly byteLength: number;
+                    slice: (begin: number, end?: number | undefined) => ArrayBuffer;
+                    readonly [Symbol.toStringTag]: string;
+                } | {
+                    readonly byteLength: number;
+                    slice: (begin: number, end?: number | undefined) => SharedArrayBuffer;
+                    readonly [Symbol.species]: SharedArrayBuffer;
+                    readonly [Symbol.toStringTag]: "SharedArrayBuffer";
+                };
+                readonly byteLength: number;
+                readonly byteOffset: number;
+                copyWithin: (target: number, start?: number | undefined, end?: number | undefined) => Buffer;
+                every: (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any) => boolean;
+                filter: (predicate: (value: number, index: number, array: Uint8Array) => any, thisArg?: any) => Uint8Array;
+                find: (predicate: (value: number, index: number, obj: Uint8Array) => boolean, thisArg?: any) => number | undefined;
+                findIndex: (predicate: (value: number, index: number, obj: Uint8Array) => boolean, thisArg?: any) => number;
+                forEach: (callbackfn: (value: number, index: number, array: Uint8Array) => void, thisArg?: any) => void;
+                join: (separator?: string | undefined) => string;
+                readonly length: number;
+                map: (callbackfn: (value: number, index: number, array: Uint8Array) => number, thisArg?: any) => Uint8Array;
+                reduce: {
+                    (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number): number;
+                    (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number, initialValue: number): number;
+                    <U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: Uint8Array) => U, initialValue: U): U;
+                };
+                reduceRight: {
+                    (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number): number;
+                    (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array) => number, initialValue: number): number;
+                    <U_1>(callbackfn: (previousValue: U_1, currentValue: number, currentIndex: number, array: Uint8Array) => U_1, initialValue: U_1): U_1;
+                };
+                set: (array: ArrayLike<number>, offset?: number | undefined) => void;
+                some: (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any) => boolean;
+                sort: (compareFn?: ((a: number, b: number) => number) | undefined) => Buffer;
+                toLocaleString: () => string;
+                valueOf: () => Uint8Array;
+                at: (index: number) => number | undefined;
+                findLast: {
+                    <S extends number>(predicate: (value: number, index: number, array: Uint8Array) => value is S, thisArg?: any): S | undefined;
+                    (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any): number | undefined;
+                };
+                findLastIndex: (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any) => number;
+                [Symbol.iterator]: () => IterableIterator<number>;
+                readonly [Symbol.toStringTag]: "Uint8Array";
+            };
+            generationTime: number;
+            toHexString: () => string;
+            toString: (format?: string | undefined) => string;
+            toJSON: () => string;
+            equals: (otherId: string | ObjectID | ObjectIdLike) => boolean;
+            getTimestamp: () => Date;
+            inspect: () => string;
+        };
+        _partition: string;
+        name: string;
+        filter: string;
+        color: string;
+        children: any[];
+        initialize: (object: IPaperSmartFilterDraft) => PaperSmartFilter;
+    };
     /**
      * Get all UI states.
      * @returns The state

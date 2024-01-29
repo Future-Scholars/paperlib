@@ -5493,14 +5493,15 @@ class Categorizer {
   _id;
   _partition;
   name;
-  count;
   color;
+  count = 0;
+  children;
   constructor(object, initObjectId = false) {
-    this._id = object._id ? new ObjectId(object._id) : "";
-    this._partition = object._partition || "";
-    this.name = object.name || "";
-    this.count = object.count || 0;
-    this.color = object.color;
+    this._id = object?._id ? new ObjectId(object._id) : "";
+    this._partition = object?._partition || "";
+    this.name = object?.name || "";
+    this.color = object?.color || "blue";
+    this.children = object?.children?.map((child) => new Categorizer(child)) || [];
     if (initObjectId) {
       this._id = new ObjectId();
     }
@@ -5519,8 +5520,8 @@ class Categorizer {
     this._id = object._id ? new ObjectId(object._id) : "";
     this._partition = object._partition || "";
     this.name = object.name || "";
-    this.count = object.count || 0;
-    this.color = object.color;
+    this.color = object.color || "blue";
+    this.children = object.children?.map((child) => new Categorizer().initialize(child)) || [];
     return this;
   }
 }
@@ -5532,8 +5533,9 @@ class PaperTag extends Categorizer {
       _id: "objectId",
       _partition: "string?",
       name: "string",
+      color: "string?",
       count: "int",
-      color: "string?"
+      children: "PaperTag[]"
     }
   };
   constructor(object, initObjectId = false) {
@@ -5548,8 +5550,9 @@ class PaperFolder extends Categorizer {
       _id: "objectId",
       _partition: "string?",
       name: "string",
+      color: "string?",
       count: "int",
-      color: "string?"
+      children: "PaperFolder[]"
     }
   };
   constructor(object, initObjectId = false) {
@@ -12175,14 +12178,15 @@ class PaperEntity {
 
 class PaperSmartFilter {
   static schema = {
-    name: "PaperPaperSmartFilter",
+    name: "PaperSmartFilter",
     primaryKey: "_id",
     properties: {
       _id: "objectId",
       _partition: "string?",
       name: "string",
       filter: "string",
-      color: "string?"
+      color: "string?",
+      children: "PaperSmartFilter[]"
     }
   };
   _id = "";
@@ -12190,12 +12194,14 @@ class PaperSmartFilter {
   name = "";
   filter = "";
   color;
+  children = [];
   constructor(object, initObjectId = false) {
     this._id = object?._id ? new ObjectId(object._id) : "";
     this._partition = object?._partition || "";
     this.name = object?.name || "";
     this.filter = object?.filter || "";
-    this.color = object?.color;
+    this.color = object?.color || "blue";
+    this.children = object?.children?.map((child) => new PaperSmartFilter(child)) || [];
     if (initObjectId) {
       this._id = new ObjectId();
     }
@@ -12215,7 +12221,10 @@ class PaperSmartFilter {
     this._partition = object._partition || "";
     this.name = object.name || "";
     this.filter = object.filter || "";
-    this.color = object.color;
+    this.color = object.color || "blue";
+    this.children = object.children?.map(
+      (child) => new PaperSmartFilter().initialize(child)
+    ) || [];
     return this;
   }
 }

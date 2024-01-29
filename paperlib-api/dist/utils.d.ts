@@ -5,9 +5,10 @@ declare class Categorizer {
     _id: OID;
     _partition: string;
     name: string;
+    color: string;
     count: number;
-    color?: string;
-    constructor(object: ICategorizerDraft, initObjectId?: boolean);
+    children: Categorizer[];
+    constructor(object?: ICategorizerDraft, initObjectId?: boolean);
     initialize(object: ICategorizerDraft): this;
 }
 
@@ -139,8 +140,8 @@ declare interface ICategorizerDraft {
     _id?: OID;
     _partition?: string;
     name?: string;
-    count?: number;
     color?: string;
+    children?: ICategorizerDraft[];
 }
 
 declare interface IFeedDraft {
@@ -306,8 +307,9 @@ declare class PaperFolder extends Categorizer {
             _id: string;
             _partition: string;
             name: string;
-            count: string;
             color: string;
+            count: string;
+            children: string;
         };
     };
     constructor(object: ICategorizerDraft, initObjectId?: boolean);
@@ -321,8 +323,9 @@ declare class PaperTag extends Categorizer {
             _id: string;
             _partition: string;
             name: string;
-            count: string;
             color: string;
+            count: string;
+            children: string;
         };
     };
     constructor(object: ICategorizerDraft, initObjectId?: boolean);

@@ -1,3 +1,10 @@
+## v3.0.0-beta.4 29/01 2024
+
+1. Important New Feature: Hierarchy Folders and SmartFilters!
+2. New Feature: Table view column order and more columns.
+3. New Feature: SmartFilter can be edited after creation. Add more human-friendly labels for SmartFilter creation.
+4. Fixed some bugs.
+
 ## v3.0.0-beta.3 Jan 15 2024
 
 1. Fixed some bugs.

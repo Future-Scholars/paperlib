@@ -5,9 +5,10 @@ declare class Categorizer {
     _id: OID;
     _partition: string;
     name: string;
+    color: string;
     count: number;
-    color?: string;
-    constructor(object: ICategorizerDraft, initObjectId?: boolean);
+    children: Categorizer[];
+    constructor(object?: ICategorizerDraft, initObjectId?: boolean);
     initialize(object: ICategorizerDraft): this;
 }
 
@@ -92,8 +93,8 @@ declare interface ICategorizerDraft {
     _id?: OID;
     _partition?: string;
     name?: string;
-    count?: number;
     color?: string;
+    children?: ICategorizerDraft[];
 }
 
 declare interface IFeedDraft {
@@ -161,6 +162,7 @@ declare interface IPaperSmartFilterDraft {
     name?: string;
     filter?: string;
     color?: string;
+    children?: IPaperSmartFilterDraft[];
 }
 
 declare type OID = ObjectId | string;
@@ -244,8 +246,9 @@ export declare class PaperFolder extends Categorizer {
             _id: string;
             _partition: string;
             name: string;
-            count: string;
             color: string;
+            count: string;
+            children: string;
         };
     };
     constructor(object: ICategorizerDraft, initObjectId?: boolean);
@@ -261,13 +264,15 @@ export declare class PaperSmartFilter {
             name: string;
             filter: string;
             color: string;
+            children: string;
         };
     };
     _id: OID;
     _partition: string;
     name: string;
     filter: string;
-    color?: string;
+    color: string;
+    children: PaperSmartFilter[];
     constructor(object?: IPaperSmartFilterDraft, initObjectId?: boolean);
     initialize(object: IPaperSmartFilterDraft): this;
 }
@@ -280,8 +285,9 @@ export declare class PaperTag extends Categorizer {
             _id: string;
             _partition: string;
             name: string;
-            count: string;
             color: string;
+            count: string;
+            children: string;
         };
     };
     constructor(object: ICategorizerDraft, initObjectId?: boolean);
