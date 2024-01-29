@@ -2,7 +2,7 @@ import { existsSync, promises } from "fs";
 import path from "path";
 import Realm, { ConfigurationWithSync } from "realm";
 
-import { migrate } from "@/base/database/migration";
+import { migrate, syncMigrate } from "@/base/database/migration";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
@@ -89,6 +89,17 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       try {
         this._realm = new Realm(config);
         this._syncSession = this._realm.syncSession;
+
+        await new Promise((resolve) => {
+          this._realm!.write(() => {
+            syncMigrate(
+              this._realm!,
+              this.getPartition(),
+              this._preferenceService.get("lastDBVersion") as number
+            );
+            resolve(true);
+          });
+        });
       } catch (err) {
         if (
           (err as Error).message.includes("Unexpected future history schema")
@@ -148,6 +159,9 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
     await this._fileService.startWatch();
 
     this._logService.info("Database initialized.", "", false, "Database");
+
+    this._preferenceService.set({ lastDBVersion: DATABASE_SCHEMA_VERSION });
+
     return this._realm!;
   }
 
@@ -247,6 +261,18 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
             PaperSmartFilter.schema,
             Feed.schema,
             FeedEntity.schema,
+            // Legacy, will be removed in the future
+            {
+              name: "PaperPaperSmartFilter",
+              primaryKey: "_id",
+              properties: {
+                _id: "objectId",
+                _partition: "string?",
+                name: "string",
+                filter: "string",
+                color: "string?",
+              },
+            },
           ],
           schemaVersion: DATABASE_SCHEMA_VERSION,
           sync: {
@@ -324,6 +350,18 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
             PaperSmartFilter.schema,
             Feed.schema,
             FeedEntity.schema,
+            // Legacy, will be removed in the future
+            {
+              name: "PaperPaperSmartFilter",
+              primaryKey: "_id",
+              properties: {
+                _id: "objectId",
+                _partition: "string?",
+                name: "string",
+                filter: "string",
+                color: "string?",
+              },
+            },
           ],
           schemaVersion: DATABASE_SCHEMA_VERSION,
           sync: {

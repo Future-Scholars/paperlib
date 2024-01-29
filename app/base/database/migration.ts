@@ -193,7 +193,7 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
         }
       );
 
-      for (const smartFilter of newSmartFilters) {
+      for (const smartFilter of oldSmartFilters) {
         if (smartFilter.name === "SmartFilters") {
           continue;
         }
@@ -210,5 +210,127 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
       }
     }
     newRealm.deleteModel("PaperPaperSmartFilter");
+  }
+}
+
+export function syncMigrate(
+  realm: Realm,
+  partition: string,
+  oldVersion: number
+) {
+  if (oldVersion <= 9) {
+    console.log("Migrate sync db from version <=9 to 10");
+    // Migrate PaperTag
+    // Check if have Tag Root
+    const oldTags = realm.objects<PaperTag>(PaperTag.schema.name);
+    const oldTagRoot = oldTags.filtered("name == 'Tags'")[0];
+    if (oldTagRoot) {
+      realm.delete(oldTagRoot);
+    }
+
+    const tagRoot = realm.create<PaperTag>(PaperTag.schema.name, {
+      _id: new ObjectId(),
+      _partition: partition,
+      name: "Tags",
+      count: 0,
+      color: "blue",
+      children: [],
+    });
+
+    for (const tag of oldTags) {
+      if (tag.name === "Tags") {
+        continue;
+      }
+
+      tag.children = [];
+      tag.color = tag.color || "blue";
+      tagRoot.children.push(tag);
+      tag.count = tag.linkingObjects<PaperEntity>(
+        PaperEntity.schema.name,
+        "tags"
+      ).length;
+    }
+
+    // Migrate PaperFolder
+    // Check if have Folder Root
+    const oldFolders = realm.objects<PaperFolder>(PaperFolder.schema.name);
+    const oldFolderRoot = oldFolders.filtered("name == 'Folders'")[0];
+    if (oldFolderRoot) {
+      realm.delete(oldFolderRoot);
+    }
+
+    const folderRoot = realm.create<PaperFolder>(PaperFolder.schema.name, {
+      _id: new ObjectId(),
+      _partition: partition,
+      name: "Folders",
+      color: "blue",
+      count: 0,
+      children: [],
+    });
+
+    for (const folder of oldFolders) {
+      if (folder.name === "Folders") {
+        continue;
+      }
+
+      folder.children = [];
+      folder.color = folder.color || "blue";
+      folderRoot.children.push(folder);
+      folder.count = folder.linkingObjects<PaperEntity>(
+        PaperEntity.schema.name,
+        "folders"
+      ).length;
+    }
+
+    // Migrate SmartFilters
+    const oldSmartFilters = realm.objects<PaperSmartFilter>(
+      "PaperPaperSmartFilter"
+    );
+
+    const newSmartFilters = realm.objects<PaperSmartFilter>(
+      PaperSmartFilter.schema.name
+    );
+
+    // Check if have SmartFilter Root
+    const oldSmartFilterRoot = newSmartFilters.filtered(
+      "name == 'SmartFilters'"
+    )[0];
+
+    if (oldSmartFilterRoot) {
+      realm.delete(oldSmartFilterRoot);
+    }
+
+    const smartFilterRoot = realm.create<PaperSmartFilter>(
+      PaperSmartFilter.schema.name,
+      {
+        _id: new ObjectId(),
+        _partition: partition,
+        name: "SmartFilters",
+        color: "blue",
+        filter: "true",
+        children: [],
+      }
+    );
+
+    if (oldSmartFilters.length > 0) {
+      for (const smartFilter of oldSmartFilters) {
+        if (smartFilter.name === "SmartFilters") {
+          continue;
+        }
+
+        const newSmartFilter = realm.create<PaperSmartFilter>(
+          PaperSmartFilter.schema.name,
+          {
+            _id: new ObjectId(),
+            _partition: partition,
+            name: smartFilter.name,
+            color: smartFilter.color || "blue",
+            filter: smartFilter.filter || "true",
+            children: [],
+          }
+        );
+        smartFilterRoot.children.push(newSmartFilter);
+      }
+    }
   }
 }

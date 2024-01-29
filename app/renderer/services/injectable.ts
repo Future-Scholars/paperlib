@@ -26,7 +26,6 @@ import { CategorizerRepository } from "@/repositories/db-repository/categorizer-
 import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
 import { FeedRepository } from "@/repositories/db-repository/feed-repository";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity-repository";
-import { QuerySentenceRepository } from "@/repositories/db-repository/querysentence-repository";
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 
@@ -60,5 +59,4 @@ export type IInjectable =
   | HookService
   | UIStateService
   | UISlotService
-  | QuerySentenceService
-  | QuerySentenceRepository;
+  | QuerySentenceService;
