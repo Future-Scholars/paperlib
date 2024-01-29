@@ -58,6 +58,7 @@ const onAddRuleClicked = () => {
 
 const onDeleteRuleClicked = (index: number) => {
   filterRules.value = filterRules.value.filter((_, i) => i !== index);
+  constructFilter();
 };
 
 const onRuleUpdated = (index: number, filter: string) => {
@@ -80,7 +81,23 @@ onMounted(() => {
   );
   selfName.value = editingPaperSmartFilterDraft.value.name.split("/").pop()!;
 
-  filterRules.value = [];
+  if (!["", "true"].includes(editingPaperSmartFilterDraft.value.filter)) {
+    const filter = editingPaperSmartFilterDraft.value.filter;
+    const rules = filter.split(" AND ");
+
+    // Check if all rules are a atomic rule.
+    const isAtomicRule = rules.every(
+      (rule) => !rule.includes(" OR ") && !rule.includes(" AND ")
+    );
+
+    if (isAtomicRule) {
+      filterRules.value = rules;
+    } else {
+      filterRules.value = [];
+    }
+  } else {
+    filterRules.value = [];
+  }
 
   filterMatchType.value = "AND";
   infoText.value = "";
@@ -100,12 +117,12 @@ onUnmounted(() => {
         class="m-auto flex flex-col justify-between p-2 border-[1px] dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 w-[700px] rounded-lg shadow-lg select-none space-y-2"
       >
         <InputBox
-          placeholder="Name"
+          :placeholder="$t('smartfilter.name')"
           :value="selfName"
           @event:change="(value) => (selfName = value)"
         />
         <InputBox
-          placeholder="Filter"
+          :placeholder="$t('smartfilter.filter')"
           :value="editingPaperSmartFilterDraft.filter"
           @event:change="
             (value) => (editingPaperSmartFilterDraft.filter = value)
@@ -114,13 +131,17 @@ onUnmounted(() => {
         <div class="dark:bg-neutral-700 w-full h-[1px]" />
 
         <SelectBox
-          placeholder="Match"
-          :options="['AND', 'OR']"
+          :placeholder="$t('smartfilter.match')"
+          :options="{
+            [$t('smartfilter.and')]: 'AND',
+            [$t('smartfilter.or')]: 'OR',
+          }"
           :value="filterMatchType"
           @event:change="(value) => (filterMatchType = value)"
         />
 
         <SmartFilterRuleBox
+          :init-filter="filterRule"
           @event:delete-click="onDeleteRuleClicked(i)"
           @event:change="(filter) => onRuleUpdated(i, filter)"
           v-for="(filterRule, i) in filterRules"

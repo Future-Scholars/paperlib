@@ -3,47 +3,48 @@ import { BIconDash } from "bootstrap-icons-vue";
 import { ref } from "vue";
 
 import SelectBox from "./select-box.vue";
+import { useI18n } from "vue-i18n";
+import { onMounted } from "vue";
+
+const i18n = useI18n();
+
+const props = defineProps({
+  initFilter: {
+    type: String,
+    default: "",
+  },
+});
 
 // ================================
 // Data
 // ================================
 
-const startOps = ["", "ALL", "ANY", "NONE", "NOT"];
-
-const fields = [
-  "title",
-  "authors",
-  "publication",
-  "pubTime",
-  "pubType",
-  "rating",
-  "note",
-  "tags.name",
-  "tags.count",
-  "folders.name",
-  "folders.count",
-  "addTime",
-  "flag",
-];
-
-const ops = [
-  "==",
-  "<",
-  ">",
-  "<=",
-  ">=",
-  "!=",
-  "in",
-  "CONTAINS",
-  "LIKE",
-  "BEGINSWITH",
-  "ENDSWITH",
-];
+const startOps = ref({});
+const fields = ref({});
+const ops = ref({});
 
 const selectedStartOp = ref("");
-const selectedField = ref("Fields");
-const selectedOp = ref("OPs");
-const value = ref("");
+const selectedField = ref("");
+const selectedOp = ref("");
+const selectedValue = ref("");
+
+const parseInitFilter = () => {
+  if (props.initFilter !== "") {
+    const filter = props.initFilter.replace(/^\(/, "").replace(/\)$/, "");
+    const comps = filter.split(" ");
+
+    if (comps.length === 3) {
+      selectedField.value = comps[0];
+      selectedOp.value = comps[1].toUpperCase().replaceAll("[C]", "[c]");
+      selectedValue.value = comps[2].replace(/^["']/, "").replace(/["']$/, "");
+    } else if (comps.length === 4) {
+      selectedStartOp.value = comps[0].toUpperCase();
+      selectedField.value = comps[1];
+      selectedOp.value = comps[2].toUpperCase().replaceAll("[C]", "[c]");
+      selectedValue.value = comps[3].replace(/^["']/, "").replace(/["']$/, "");
+    }
+  }
+};
 
 const onSelectStartOp = (value: string) => {
   selectedStartOp.value = value;
@@ -61,7 +62,7 @@ const onSelectOp = (value: string) => {
 };
 
 const onInput = (payload: Event) => {
-  value.value = (payload.target as HTMLInputElement).value;
+  selectedValue.value = (payload.target as HTMLInputElement).value;
   constructFilter();
 };
 
@@ -70,21 +71,70 @@ const constructFilter = () => {
   if (
     selectedField.value !== "" &&
     selectedOp.value !== "" &&
-    value.value !== ""
+    selectedValue.value !== ""
   ) {
-    const filter = `${selectedStartOp.value}(${selectedField.value} ${
-      selectedOp.value
-    } ${
-      selectedField.value.includes("count") ||
-      selectedField.value.includes("rating") ||
-      selectedField.value.includes("flag") ||
-      selectedField.value.includes("addTime")
-        ? value.value
-        : `"${value.value}"`
-    })`;
+    let filter = [
+      selectedStartOp.value,
+      selectedField.value,
+      selectedOp.value,
+      `${
+        selectedField.value.includes("count") ||
+        selectedField.value.includes("rating") ||
+        selectedField.value.includes("flag") ||
+        selectedField.value.includes("addTime")
+          ? selectedValue.value
+          : `"${selectedValue.value}"`
+      }`,
+    ]
+      .filter((v) => v)
+      .join(" ");
+    filter = `(${filter})`;
     emits("event:change", filter);
   }
 };
+
+onMounted(() => {
+  startOps.value = {
+    "": "",
+    [i18n.t("smartfilter.all")]: "ALL",
+    [i18n.t("smartfilter.any")]: "ANY",
+    [i18n.t("smartfilter.none")]: "NONE",
+    [i18n.t("smartfilter.not")]: "NOT",
+  };
+
+  fields.value = {
+    [i18n.t("mainview.title")]: "title",
+    [i18n.t("mainview.authors")]: "authors",
+    [i18n.t("mainview.publication")]: "publication",
+    [i18n.t("mainview.pubTime")]: "pubTime",
+    [i18n.t("mainview.pubType")]: "pubType",
+    [i18n.t("mainview.rating")]: "rating",
+    [i18n.t("mainview.note")]: "note",
+    [i18n.t("smartfilter.tagname")]: "tags.name",
+    [i18n.t("smartfilter.tagcount")]: "tags.count",
+    [i18n.t("smartfilter.foldername")]: "folders.name",
+    [i18n.t("smartfilter.foldercount")]: "folders.count",
+    [i18n.t("mainview.addTime")]: "addTime",
+    [i18n.t("mainview.flag")]: "flag",
+  };
+
+  ops.value = {
+    "==": "==",
+    "<": "<",
+    ">": ">",
+    "<=": "<=",
+    ">=": ">=",
+    "!=": "!=",
+    [i18n.t("smartfilter.in")]: "in",
+    [i18n.t("smartfilter.contains")]: "CONTAINS",
+    [i18n.t("smartfilter.containsc")]: "CONTAINS[c]",
+    [i18n.t("smartfilter.like")]: "LIKE",
+    [i18n.t("smartfilter.beginswith")]: "BEGINSWITH",
+    [i18n.t("smartfilter.endswith")]: "ENDSWITH",
+  };
+
+  parseInitFilter();
+});
 </script>
 
 <template>
@@ -94,10 +144,10 @@ const constructFilter = () => {
     >
       <SelectBox
         class="w-full"
-        placeholder="StartOps"
+        :placeholder="$t('smartfilter.startops')"
         :options="startOps"
         :value="selectedStartOp"
-        @option:selected="onSelectStartOp"
+        @event:change="onSelectStartOp"
       />
     </div>
     <div
@@ -105,7 +155,7 @@ const constructFilter = () => {
     >
       <SelectBox
         class="w-full"
-        placeholder="Fields"
+        :placeholder="$t('smartfilter.fields')"
         :options="fields"
         :value="selectedField"
         @event:change="onSelectField"
@@ -116,7 +166,7 @@ const constructFilter = () => {
     >
       <SelectBox
         class="w-full"
-        placeholder="OP"
+        :placeholder="$t('smartfilter.operators')"
         :options="ops"
         :value="selectedOp"
         @event:change="onSelectOp"
@@ -128,9 +178,9 @@ const constructFilter = () => {
       <input
         class="text-xs bg-transparent focus:outline-none dark:text-neutral-300"
         type="text"
-        placeholder=""
-        v-model="value"
-        :name="value"
+        :placeholder="$t('smartfilter.value')"
+        v-model="selectedValue"
+        :name="selectedValue"
         @input="onInput"
       />
     </div>

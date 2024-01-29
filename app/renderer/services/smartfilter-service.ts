@@ -68,6 +68,29 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
   }
 
   /**
+   * Load smartfilters by ids.
+   * @param ids - The ids of the smartfilters
+   * @returns
+   */
+  @processing(ProcessingKey.General)
+  @errorcatching(
+    "Failed to load smartfilters bt ids.",
+    true,
+    "SmartFilterService",
+    []
+  )
+  async loadByIds(ids: OID[]) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return [];
+    }
+    return this._paperSmartFilterRepository.loadByIds(
+      await this._databaseCore.realm(),
+      PaperSmartFilterType.smartfilter,
+      ids
+    );
+  }
+
+  /**
    * Delete a smartfilter.
    * @param type - The type of the smartfilter
    * @param ids - The ids of the smartfilters

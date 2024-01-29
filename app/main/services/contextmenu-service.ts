@@ -8,7 +8,7 @@ import {
   PreferenceService,
 } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
-import { Colors } from "@/models/categorizer";
+import { Colors, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperSmartFilter } from "@/models/smart-filter";
 
 const isMac = process.platform === "darwin";
@@ -426,8 +426,13 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
           this.fire({ sidebarContextMenuFeedRefreshClicked: { data, type } });
         },
       });
-    } else if (type === PaperSmartFilter.schema.name) {
-    } else {
+    } else if (
+      [
+        PaperSmartFilter.schema.name,
+        PaperTag.schema.name,
+        PaperFolder.schema.name,
+      ].includes(type)
+    ) {
       template.push({
         label: this._locales.t("menu.edit"),
         click: () => {

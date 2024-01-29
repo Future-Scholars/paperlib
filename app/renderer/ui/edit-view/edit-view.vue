@@ -24,14 +24,31 @@ const editingPaperEntityDraft = ref(new PaperEntity({}));
 // ==============================
 // Data
 // ==============================
-const pubTypes = ["Article", "Conference", "Others", "Book"];
+const pubTypes = {
+  Article: 0,
+  Conference: 1,
+  Others: 2,
+  Book: 3,
+};
 const tags = inject<Ref<ICategorizerCollection>>("tags");
 
 const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
   if (type === CategorizerType.PaperTag) {
-    editingPaperEntityDraft.value.tags = names.map((name: string) => {
-      return new PaperTag({ name });
-    });
+    const existingTagNames = editingPaperEntityDraft.value.tags.map(
+      (tag) => tag.name
+    );
+    const newTagNames = names.filter(
+      (name) => !existingTagNames.includes(name)
+    );
+    const discardedTagNames = existingTagNames.filter(
+      (name) => !names.includes(name)
+    );
+    editingPaperEntityDraft.value.tags =
+      editingPaperEntityDraft.value.tags.filter(
+        (tag) => !discardedTagNames.includes(tag.name)
+      );
+    const newTags = newTagNames.map((name) => new PaperTag({ name }, true));
+    editingPaperEntityDraft.value.tags.push(...newTags);
   }
 };
 
@@ -111,7 +128,7 @@ onUnmounted(() => {
                 :value="pubTypes[editingPaperEntityDraft.pubType]"
                 @event:change="
                   (value: string) => {
-                    editingPaperEntityDraft.pubType = pubTypes.indexOf(value);
+                    editingPaperEntityDraft.pubType = pubTypes[value];
                   }
                 "
               />
@@ -166,7 +183,12 @@ onUnmounted(() => {
               id="paper-edit-view-tags-input"
               :placeholder="$t('mainview.tags')"
               :model-value="editingPaperEntityDraft.tags.map((tag) => tag.name)"
-              :options="(tags ? tags : []).map((tag) => tag.name)"
+              :options="
+                (tags ? tags : [])
+                  .map((tag) => tag.name)
+                  .filter((name) => name !== 'Tags')
+              "
+              :invalid-values="['Tags']"
               @event:change="(values: string[]) => onCategorizerUpdated(values, CategorizerType.PaperTag)"
             />
             <InputField

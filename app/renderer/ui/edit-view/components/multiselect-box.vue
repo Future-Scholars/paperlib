@@ -17,6 +17,11 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  invalidValues: {
+    type: Array as () => string[],
+    required: false,
+    default: () => [],
+  },
 });
 
 const emits = defineEmits(["event:add", "event:delete", "event:change"]);
@@ -70,11 +75,11 @@ const fixScrolling = () => {
 };
 
 const add = () => {
-  if (inputValue.value === "") {
-    return;
-  }
-
-  if (props.modelValue.includes(inputValue.value)) {
+  if (
+    inputValue.value === "" ||
+    props.modelValue.includes(inputValue.value) ||
+    props.invalidValues.includes(inputValue.value)
+  ) {
     inputValue.value = "";
     return;
   }
