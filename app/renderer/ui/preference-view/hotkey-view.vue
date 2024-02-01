@@ -16,6 +16,7 @@ let existingShortcuts = {
   shortcutScrape: prefState.shortcutScrape,
   shortcutEdit: prefState.shortcutEdit,
   shortcutFlag: prefState.shortcutFlag,
+  shortcutDelete: prefState.shortcutDelete,
 };
 
 const info = ref("");
@@ -34,7 +35,8 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     modifier1 === "none" &&
     modifier2 === "none" &&
     keyName !== "Enter" &&
-    keyName !== "Space"
+    keyName !== "Space" &&
+    keyName !== "Delete" 
   ) {
     info.value = "Cannot use single key.";
     PLAPI.logService.warn("Cannot use a single key.", "", true, "ShortcutUI");
@@ -110,6 +112,12 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
         title="Copy Bibtex Key to Clipboard"
         :choosed-key="prefState.shortcutCopyKey"
         @event:change="(key) => onUpdate('shortcutCopyKey', key)"
+      />
+
+      <HotkeyOption
+        title="Delete"
+        :choosed-key="prefState.shortcutDelete"
+        @event:change="(key) => onUpdate('shortcutDelete', key)"
       />
     </div>
     <div class="text-xs text-red-600 dark:text-red-500 mb-5">
