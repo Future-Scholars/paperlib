@@ -292,17 +292,6 @@ disposable(
   })
 );
 
-disposable(
-  shortcutService.register(
-    preferenceService.get("shortcutPreview") as string,
-    () => {
-      PLMainAPI.menuService.fire("View-preview");
-    },
-    true,
-    true
-  )
-);
-
 // ================================
 // Dev Functions
 // ================================

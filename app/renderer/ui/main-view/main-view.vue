@@ -410,6 +410,14 @@ disposable(
     previewSelectedEntities();
   })
 );
+disposable(
+  shortcutService.register(
+    preferenceService.get("shortcutPreview") as string,
+    previewSelectedEntities,
+    true,
+    true
+  )
+);
 
 disposable(
   PLMainAPI.menuService.onClick("File-copyBibTex", () => {
@@ -452,8 +460,10 @@ disposable(
 );
 
 disposable(PLMainAPI.menuService.onClick("View-previous", onArrowUpPressed));
+disposable(shortcutService.register("ArrowUp", onArrowUpPressed, true));
 
 disposable(PLMainAPI.menuService.onClick("View-next", onArrowDownPressed));
+disposable(shortcutService.register("ArrowDown", onArrowDownPressed, true));
 
 // =======================================
 // Register State Changes
