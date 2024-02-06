@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { BIconArrowsCollapse, BIconArrowsExpand } from "bootstrap-icons-vue";
+import { watch } from "vue";
 import { onMounted, onUpdated, ref } from "vue";
 
 const props = defineProps({
@@ -53,17 +54,21 @@ const render = async (renderFull = false) => {
 const markdownArea = ref();
 
 const onExpandClicked = async () => {
-  await render(!isExpanded.value);
   isExpanded.value = !isExpanded.value;
+  await render(isExpanded.value);
 };
 
 onMounted(() => {
-  render();
+  render(isExpanded.value);
 });
 
-onUpdated(() => {
-  render();
-});
+watch(
+  () => props.content,
+  () => {
+    isExpanded.value = false;
+    render(isExpanded.value);
+  }
+);
 </script>
 
 <template>
