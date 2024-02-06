@@ -37,7 +37,9 @@ const tags = inject<Ref<ICategorizerCollection>>("tags");
 const tagsViewTree = computed(() => {
   return querySentenceService.parseViewTree(
     tags?.value || [],
-    CategorizerType.PaperTag
+    CategorizerType.PaperTag,
+    prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
   );
 });
 
@@ -46,7 +48,9 @@ const foldersViewTree = computed(() => {
   const linked = prefState.pluginLinkedFolder;
   return querySentenceService.parseViewTree(
     folders?.value || [],
-    CategorizerType.PaperFolder
+    CategorizerType.PaperFolder,
+    prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
   );
 });
 
@@ -54,7 +58,9 @@ const smartfilters = inject<Ref<IPaperSmartFilterCollection>>("smartfilters");
 const smartfiltersViewTree = computed(() => {
   return querySentenceService.parseViewTree(
     smartfilters?.value || [],
-    PaperSmartFilterType.smartfilter
+    PaperSmartFilterType.smartfilter,
+    prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
   );
 });
 

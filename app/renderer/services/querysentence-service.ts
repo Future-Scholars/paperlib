@@ -91,7 +91,9 @@ export class QuerySentenceService {
   )
   parseViewTree(
     data: ICategorizerCollection | IPaperSmartFilterCollection,
-    type: CategorizerType | PaperSmartFilterType
+    type: CategorizerType | PaperSmartFilterType,
+    sortBy: string,
+    sortOrder: string
   ): ViewTreeNode {
     if (data.length === 0) {
       return {
@@ -124,6 +126,10 @@ export class QuerySentenceService {
       this._DAG2Tree(graph, rootID),
       `0-${rootID}`
     );
+
+    // Sort the view tree
+    this._sortViewTree(viewTree, sortBy, sortOrder);
+
     return viewTree;
   }
 
@@ -208,6 +214,23 @@ export class QuerySentenceService {
     });
 
     return { updatedTree, viewTree };
+  }
+
+  private _sortViewTree(
+    viewTree: ViewTreeNode,
+    sortBy: string,
+    sortOrder: string
+  ) {
+    viewTree.children.sort((a: ViewTreeNode, b: ViewTreeNode) => {
+      if (sortOrder === "asce") {
+        return a[sortBy] > b[sortBy] ? 1 : -1;
+      } else {
+        return a[sortBy] < b[sortBy] ? 1 : -1;
+      }
+    });
+    viewTree.children.forEach((child) => {
+      this._sortViewTree(child, sortBy, sortOrder);
+    });
   }
 }
 
