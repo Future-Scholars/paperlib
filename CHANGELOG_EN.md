@@ -1,3 +1,10 @@
+## v3.0.0-beta.5 14/02 2024
+
+1. Fix: sidebar sorting issue.
+2. Fix: the bug that hindered the markdown note preview from being extended.
+3. Fix: scrolling issue with the keyboard shortcuts.
+4. Fix: a database partition bug.
+
 ## v3.0.0-beta.4 29/01 2024
 
 1. Important New Feature: Hierarchy Folders and SmartFilters!
