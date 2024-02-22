@@ -52,6 +52,8 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     [key: string]: IExtensionInfo;
   };
 
+  private _npmRegistry = "https://registry.npmjs.org/";
+
   constructor(
     @IExtensionPreferenceService
     private readonly _extensionPreferenceService: ExtensionPreferenceService,
@@ -78,6 +80,26 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
 
     this._installedExtensions = {};
     this._installedExtensionInfos = {};
+
+    this._chooseNPMRegistry();
+  }
+
+  async _chooseNPMRegistry() {
+    const { countryCode } = (
+      await this._networkTool.get(
+        "http://ip-api.com/json/?fields=countryCode",
+        {},
+        0,
+        5000,
+        false,
+        true
+      )
+    ).body;
+    if (countryCode === "CN") {
+      // @ts-ignore
+      this._extManager.npmRegistry.npmUrl = "https://registry.npmmirror.com/";
+      this._npmRegistry = "https://registry.npmmirror.com/";
+    }
   }
 
   /**
@@ -360,17 +382,19 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
    */
   async listExtensionMarketplace(query: string) {
     try {
+      let npmQueryUrl = "";
+      if (this._npmRegistry === "https://registry.npmmirror.com/") {
+        npmQueryUrl = query
+          ? `https://api.paperlib.app/extensions/query?keywords=${query}`
+          : `https://api.paperlib.app/extensions/query`;
+      } else {
+        npmQueryUrl = query
+          ? `https://registry.npmjs.org/-/v1/search?text=${query} keywords:paperlib&size=20`
+          : "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20";
+      }
+
       const packages = (
-        await this._networkTool.get(
-          query
-            ? `https://registry.npmjs.org/-/v1/search?text=${query} keywords:paperlib&size=20`
-            : "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20",
-          {},
-          1,
-          10000,
-          false,
-          true
-        )
+        await this._networkTool.get(npmQueryUrl, {}, 1, 10000, false, true)
       ).body.objects as {
         package: {
           name: string;
@@ -380,9 +404,10 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
           };
           author?: { name: string };
           description?: string;
-          links: {
+          links?: {
             homepage?: string;
           };
+          keywords: string[];
         };
       }[];
 
@@ -399,6 +424,9 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
       } = {};
 
       for (const pkg of packages) {
+        if (!pkg.package.keywords.includes("paperlib")) {
+          continue;
+        }
         extensions[pkg.package.name] = {
           id: pkg.package.name,
           name: pkg.package.name.replaceAll("@future-scholars/", ""),
@@ -408,7 +436,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
             : pkg.package.publisher.username,
           verified: pkg.package.name.startsWith("@future-scholars/"),
           description: pkg.package.description || "",
-          homepage: pkg.package.links.homepage,
+          homepage: pkg.package.links?.homepage,
         };
       }
 
