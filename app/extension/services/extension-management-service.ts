@@ -85,20 +85,24 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
   }
 
   async _chooseNPMRegistry() {
-    const { countryCode } = (
-      await this._networkTool.get(
-        "http://ip-api.com/json/?fields=countryCode",
-        {},
-        0,
-        5000,
-        false,
-        true
-      )
-    ).body;
-    if (countryCode === "CN") {
-      // @ts-ignore
-      this._extManager.npmRegistry.npmUrl = "https://registry.npmmirror.com/";
-      this._npmRegistry = "https://registry.npmmirror.com/";
+    try {
+      const { countryCode } = (
+        await this._networkTool.get(
+          "http://ip-api.com/json/?fields=countryCode",
+          {},
+          0,
+          5000,
+          false,
+          true
+        )
+      ).body;
+      if (countryCode === "CN") {
+        // @ts-ignore
+        this._extManager.npmRegistry.npmUrl = "https://registry.npmmirror.com/";
+        this._npmRegistry = "https://registry.npmmirror.com/";
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 
