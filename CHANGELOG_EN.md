@@ -1,3 +1,7 @@
+## v3.0.0-beta.6 23/02 2024
+
+1. For users in mainland China, the extensions downloading is accelerated by using a NPM mirror.
+
 ## v3.0.0-beta.5 14/02 2024
 
 1. Fix: sidebar sorting issue.
