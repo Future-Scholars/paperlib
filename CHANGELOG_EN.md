@@ -1,3 +1,12 @@
+## v3.0.0-beta.7 25/02 2024
+
+1. Fix: The sidebar activation background color.
+2. Fix: The sidebar count bug.
+3. Fix: A UI bug in the extension setting page.
+4. Fix: A cache bug.
+5. Fix: A filter bug.
+6. For extension developers: increased some hook points' timeout.
+
 ## v3.0.0-beta.6 23/02 2024
 
 1. For users in mainland China, the extensions downloading is accelerated by using a NPM mirror.

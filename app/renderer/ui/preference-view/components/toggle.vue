@@ -44,7 +44,7 @@ watch(props, (value) => {
           ? 'bg-neutral-500 dark:bg-neutral-400'
           : 'bg-neutral-300 dark:bg-neutral-700'
       "
-      class="my-auto relative inline-flex h-5 w-10 items-center rounded-full"
+      class="my-auto relative inline-flex h-5 w-10 items-center rounded-full min-w-10"
       @update:model-value="emits('event:change', enabled)"
     >
       <span

@@ -6,7 +6,7 @@ on:
 
 jobs:
   mac_x86_develop:
-    runs-on: macos-latest
+    runs-on: macos-13
 
     defaults:
       run:
