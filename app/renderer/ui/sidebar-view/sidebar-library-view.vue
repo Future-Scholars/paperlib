@@ -70,6 +70,9 @@ const smartfiltersViewTree = computed(() => {
 const onSelect = (payload: { _id: string; query: string }) => {
   uiState.selectedQuerySentenceId = payload._id;
   uiState.querySentenceSidebar = payload.query;
+  if (payload._id === "lib-all") {
+    uiState.querySentenceCommandbar = "";
+  }
 };
 
 const onDroped = async (
