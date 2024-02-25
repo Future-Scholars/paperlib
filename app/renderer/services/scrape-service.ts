@@ -141,7 +141,7 @@ export class ScrapeService extends Eventable<{}> {
       paperEntityDrafts = (
         await this._hookService.transformhookPoint<any[], Object[]>(
           "scrapeEntry",
-          180000, // 3 min
+          600000, // 10 min
           payloads
         )
       ).map((p) => {
@@ -192,7 +192,7 @@ export class ScrapeService extends Eventable<{}> {
       [scrapedPaperEntityDrafts, scrapers, force] =
         await this._hookService.modifyHookPoint(
           "scrapeMetadata",
-          16000,
+          60000,
           paperEntityDrafts,
           scrapers,
           force
