@@ -471,6 +471,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
         }
       })
     );
+
+    const cacheIds = ids || paperEntities?.map((entity) => entity._id);
+    if (cacheIds) await this._cacheService.delete(cacheIds);
   }
 
   /**

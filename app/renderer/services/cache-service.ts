@@ -167,7 +167,12 @@ export class CacheService {
           });
         });
       } catch (err) {
-        console.error(err);
+        this._logService.error(
+          "Failed to create fulltext cache",
+          err as Error,
+          false,
+          "CacheService"
+        );
       }
     };
     await Promise.all(
@@ -251,28 +256,30 @@ export class CacheService {
         md5String = await md5(filePath);
       }
 
-      const object = realm.objectForPrimaryKey<PaperEntityCache>(
-        "PaperEntityCache",
-        new ObjectId(paperEntity.id) as unknown as PrimaryKey
-      );
-
-      if (object && object.md5 === md5String) {
-        return;
-      }
-
       const fulltext = await this._getPDFText(paperEntity.mainURL);
+      return realm.safeWrite(() => {
+        const objects = realm
+          .objects<PaperEntityCache>("PaperEntityCache")
+          .filtered("_id == $0", new ObjectId(paperEntity._id));
+        const object = objects[0] || null;
 
-      realm.safeWrite(() => {
-        realm.create<PaperEntityCache>(
-          "PaperEntityCache",
-          {
-            _id: new ObjectId(paperEntity._id),
-            _partition: "",
-            fulltext: fulltext,
-            md5: md5String,
-          },
-          Realm.UpdateMode.Modified
-        );
+        if (object && object.md5 === md5String) {
+          return;
+        } else if (object) {
+          object.fulltext = fulltext;
+          object.md5 = md5String;
+        } else {
+          realm.create<PaperEntityCache>(
+            "PaperEntityCache",
+            {
+              _id: new ObjectId(paperEntity._id),
+              _partition: "",
+              fulltext: fulltext,
+              md5: md5String,
+            },
+            Realm.UpdateMode.Modified
+          );
+        }
       });
     };
 
@@ -296,36 +303,28 @@ export class CacheService {
       await this._fileService.access(paperEntity.mainURL, false)
     );
 
-    let md5String = "";
-    if (filePath && (await promises.lstat(filePath)).isFile()) {
-      md5String = await md5(filePath);
-    }
-    const object = realm.objectForPrimaryKey<PaperEntityCache>(
-      "PaperEntityCache",
-      new ObjectId(paperEntity.id) as unknown as PrimaryKey
-    );
+    realm.safeWrite(() => {
+      const objects = realm
+        .objects<PaperEntityCache>("PaperEntityCache")
+        .filtered("_id == $0", new ObjectId(paperEntity.id));
+      const object = objects[0] || null;
 
-    if (object) {
-      realm.safeWrite(() => {
+      if (object) {
         object.thumbnail = thumbnailCache.blob;
-        object.md5 = md5String;
         object.thumbnailWidth = thumbnailCache.width;
         object.thumbnailHeight = thumbnailCache.height;
-      });
-    } else {
-      const fulltext = await this._getPDFText(paperEntity.mainURL);
-      realm.safeWrite(() => {
+      } else {
         realm.create<PaperEntityCache>("PaperEntityCache", {
           _id: new ObjectId(paperEntity.id),
           _partition: "",
-          fulltext: fulltext,
+          fulltext: "",
           thumbnail: thumbnailCache.blob,
           thumbnailWidth: thumbnailCache.width,
           thumbnailHeight: thumbnailCache.height,
-          md5: md5String,
+          md5: "",
         });
-      });
-    }
+      }
+    });
   }
 
   /**
