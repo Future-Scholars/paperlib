@@ -225,7 +225,7 @@ const onDragged = (event: DragEvent) => {
     :class="{
       'h-6': compact,
       'h-7': !compact,
-      'bg-neutral-300': activated && !isRoot,
+      'bg-neutral-400 bg-opacity-30': activated && !isRoot,
     }"
   >
     <div class="flex flex-none w-3" v-if="children.length > 0">

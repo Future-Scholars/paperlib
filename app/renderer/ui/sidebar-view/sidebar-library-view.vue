@@ -238,7 +238,8 @@ disposable(
       :class="{
         'h-6': prefState.isSidebarCompact,
         'h-7': !prefState.isSidebarCompact,
-        'bg-neutral-300': uiState.selectedQuerySentenceId === 'lib-all',
+        'bg-neutral-400 bg-opacity-30':
+          uiState.selectedQuerySentenceId === 'lib-all',
       }"
       @click="onSelect({ _id: 'lib-all', query: '' })"
     >
@@ -265,7 +266,8 @@ disposable(
       :class="{
         'h-6': prefState.isSidebarCompact,
         'h-7': !prefState.isSidebarCompact,
-        'bg-neutral-300': uiState.selectedQuerySentenceId === 'lib-flag',
+        'bg-neutral-400 bg-opacity-30':
+          uiState.selectedQuerySentenceId === 'lib-flag',
       }"
       @click="onSelect({ _id: 'lib-flag', query: 'flag == true' })"
     >
