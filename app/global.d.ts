@@ -1,14 +1,6 @@
 import { APIShape, ExtAPIShape, MainAPIShape } from "./api/api";
-import { Preference } from "./preference/preference";
 
 declare global {
-  interface Window {
-    previewInteractor: PreviewInteractor;
-    pluginSideInteractor: PluginSideInteractor;
-
-    preference: Preference;
-  }
-
   interface Realm {
     safeWrite: <T>(callback: () => T) => T;
     paperEntityListened: boolean;

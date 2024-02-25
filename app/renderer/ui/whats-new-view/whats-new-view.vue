@@ -47,6 +47,12 @@ const darkMode = ref(false);
 onMounted(async () => {
   darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
 
+  const lastVersion = preferenceService.get("lastVersion");
+  if (lastVersion < "3.0.0-beta.7") {
+    // TODO: dirty fix here
+    cacheService.clear();
+  }
+
   await loadCurrent();
   await loadHistory();
 });

@@ -4,7 +4,6 @@ import { Ref, computed, nextTick, onMounted, provide, ref } from "vue";
 import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/preload/loading";
 import { FeedEntityFilterOptions } from "@/renderer/services/feed-service";
-import { PaperFilterOptions } from "@/renderer/services/paper-service";
 import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
 import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
 import { IFeedCollection } from "@/repositories/db-repository/feed-repository";

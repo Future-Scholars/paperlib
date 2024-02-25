@@ -368,4 +368,16 @@ export class CacheService {
       realm.delete(entitiesCache);
     });
   }
+
+  /**
+   * Clear the cache.
+   */
+  @processing(ProcessingKey.General)
+  @errorcatching("Failed to clear cache.", true, "CacheService")
+  async clear() {
+    const realm = await this._cacheDatabaseCore.realm();
+    realm.safeWrite(() => {
+      realm.delete(realm.objects<PaperEntityCache>("PaperEntityCache"));
+    });
+  }
 }
