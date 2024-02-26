@@ -40,6 +40,8 @@ interface IExtensionManagementServiceState {
   uninstalled: string;
   reloading: string;
   reloaded: string;
+  updating: string;
+  updated: string;
   installedLoaded: boolean;
 }
 
@@ -66,6 +68,8 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
       uninstalled: "",
       reloading: "",
       reloaded: "",
+      updating: "",
+      updated: "",
       installedLoaded: false,
     });
     this._extStore = new ElectronStore({
@@ -164,15 +168,18 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
           )
         ).body.version;
 
-        if (latestVersion !== info.version) {
+        if (
+          latestVersion !== info.version &&
+          info.originLocation === undefined
+        ) {
           PLAPI.logService.info(
             `New version of ${id} has been released.`,
             "Automatically updating...",
             true,
             "ExtManagementService"
           );
-          await this.uninstall(id);
-          await this.install(id, true, "latest");
+
+          await this.update(id);
         }
       } catch (e) {
         console.error(e);
@@ -186,10 +193,109 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     }
   }
 
+  async update(extensionID: string) {
+    if (isLocalPath(extensionID)) {
+      return;
+    }
+
+    const currentVersion = this._installedExtensionInfos[extensionID].version;
+    const currentExtensionPath = path.join(
+      globalThis["extensionWorkingDir"],
+      extensionID
+    );
+
+    try {
+      PLAPI.logService.info(
+        "Trying to update extensions.",
+        extensionID,
+        false,
+        "ExtManagementService"
+      );
+      this.fire({ updating: extensionID });
+
+      // 1. Backup the current extension.
+      fs.cpSync(currentExtensionPath, currentExtensionPath + ".bak", {
+        recursive: true,
+      });
+
+      // 2. Uninstall the current extension.
+      await this.uninstall(extensionID, true);
+    } catch (e) {
+      console.error(e);
+      PLAPI.logService.error(
+        `Failed to update extension ${extensionID}`,
+        e as Error,
+        true,
+        "ExtManagementService"
+      );
+      return;
+    }
+    try {
+      // 3. Install the latest version of the extension.
+      let info: IPluginInfo = await this._extManager.installFromNpm(
+        extensionID,
+        "latest"
+      );
+
+      const extension = this._extManager.require(info.name);
+
+      this._installedExtensions[info.name] = await extension.initialize();
+
+      this._installedExtensionInfos[info.name] = {
+        id: info.name,
+        name: info.name.replace("@future-scholars/", ""),
+        version: info.version,
+        author: info.author ? info.author.name : "community",
+        verified: info.name.startsWith("@future-scholars/"),
+        description: info.description || "",
+        homepage: info.homepage,
+        preference:
+          this._extensionPreferenceService.getAllMetadata(info.name) || {},
+        location: info.location,
+        originLocation: undefined,
+      };
+
+      this._extStore.set(extensionID, this._installedExtensionInfos[info.name]);
+
+      PLAPI.logService.info(
+        `Extension has been updated.`,
+        `${extensionID} ${currentVersion} -> ${info.version}`,
+        true,
+        "ExtManagementService"
+      );
+
+      fs.rmSync(currentExtensionPath + ".bak", {
+        recursive: true,
+        force: true,
+      });
+
+      this.fire({ updated: extensionID });
+    } catch (e) {
+      console.log(e);
+      PLAPI.logService.error(
+        `Failed to update extension ${extensionID}`,
+        e as Error,
+        true,
+        "ExtManagementService"
+      );
+
+      // 4. Restore the backup.
+      fs.cpSync(currentExtensionPath + ".bak", currentExtensionPath, {
+        recursive: true,
+      });
+      fs.rmSync(currentExtensionPath + ".bak", {
+        recursive: true,
+        force: true,
+      });
+      this.install(extensionID, false, currentVersion);
+    }
+  }
+
   /**
    * Install an extension from the given path or extensionID.
    * @param extensionIDorPath - extensionID or path to the extension
    * @param notify - whether to show notification, default to true
+   * @param version - version to install, default to "latest"
    */
   async install(
     extensionIDorPath: string,
@@ -277,7 +383,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
    * Uninstall an extension.
    * @param extensionID - extensionID to uninstall
    */
-  async uninstall(extensionID: string) {
+  async uninstall(extensionID: string, keepInfo = false) {
     try {
       this.fire({ uninstalling: extensionID });
       if (
@@ -328,7 +434,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
         "ExtManagementService"
       );
     } finally {
-      this.clean(extensionID);
+      this.clean(extensionID, keepInfo);
     }
   }
 
@@ -336,7 +442,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
    * Clean the extension related files, preference, etc.
    * @param extensionIDorPath - extensionID or path to the extension
    */
-  async clean(extensionIDorPath: string) {
+  async clean(extensionIDorPath: string, keepInfo = false) {
     let extensionPath: string;
     let extensionID: string;
 
@@ -359,14 +465,14 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     }
     // Clean the extension preference if exists.
     this._extensionPreferenceService.unregister(extensionID);
-    if (fs.existsSync(extensionPath + ".json")) {
+    if (fs.existsSync(extensionPath + ".json") && !keepInfo) {
       fs.rmSync(extensionPath + ".json", { force: true });
     }
     // Clean the extension info.
     delete this._installedExtensions[extensionID];
     delete this._installedExtensionInfos[extensionID];
     // Clean the extension record in the store.
-    if (this._extStore.has(extensionID)) {
+    if (this._extStore.has(extensionID) && !keepInfo) {
       this._extStore.delete(extensionID);
     }
   }
@@ -388,11 +494,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
         await this.uninstall(extensionID);
         await this.install(location);
       } else {
-        // Installed from other sources.
-        fs.copyFileSync(location, location + ".bak");
-        await this.uninstall(extensionID);
-        fs.linkSync(location + ".bak", location);
-        await this.install(location);
+        // TODO: support reload from npm
       }
 
       this.fire({ reloaded: extensionID });
