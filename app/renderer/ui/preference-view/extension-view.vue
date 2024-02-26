@@ -200,6 +200,10 @@ const installExtension = async (id: string) => {
   installingExtIDs.value = installingExtIDs.value.filter((i) => i !== id);
 };
 
+const onCheckForUpdateClicked = async () => {
+  await PLExtAPI.extensionManagementService.checkUpdate();
+};
+
 const onOpenHomepageClicked = async (homepage?: string) => {
   if (homepage && homepage.match(/^(https?|ftp):\/\//)) {
     await PLAPI.fileService.open(homepage);
@@ -254,6 +258,18 @@ onUnmounted(async () => {
       <div
         class="flex text-xs space-x-4 text-neutral-400 dark:text-neutral-500 cursor-pointer"
       >
+        <div
+          class="transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300"
+          :class="
+            viewMode == 'installed'
+              ? ' hover:text-neutral-600  dark:hover:text-neutral-200 block'
+              : 'hidden'
+          "
+          @click="onCheckForUpdateClicked"
+        >
+          {{ $t("menu.checkforupdate") }}
+        </div>
+
         <div
           class="transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300"
           :class="
