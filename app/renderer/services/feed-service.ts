@@ -461,19 +461,15 @@ export class FeedService extends Eventable<IFeedServiceState> {
       "Feed"
     );
 
-    const paperEntityDrafts = await this._scrapeService.scrape(
-      feedEntities.map((feedEntityDraft: IFeedEntityObject) => {
+    const paperEntityDrafts = feedEntities.map(
+      (feedEntityDraft: IFeedEntityObject) => {
         const paperEntityDraft = new PaperEntity({}, true).fromFeed(
           feedEntityDraft
         );
         // NOTE: we don't want to download the PDFs when adding to library.
         paperEntityDraft.mainURL = "";
-        return {
-          type: "PaperEntity",
-          value: paperEntityDraft,
-        };
-      }),
-      ["semanticscholar"]
+        return paperEntityDraft;
+      }
     );
 
     // NOTE: here we decide to not download the PDFs when adding to library.

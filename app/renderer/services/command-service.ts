@@ -92,6 +92,15 @@ export class CommandService extends Eventable<{}> {
         });
       },
     });
+
+    this.register({
+      id: "scrape_preprints",
+      description: "Scrape metadata for all preprint papers in the library.",
+      priority: 99996,
+      handler: () => {
+        paperService.scrapePreprint();
+      },
+    });
   }
 
   @errorcatching("Failed to register command.", true, "CommandService")

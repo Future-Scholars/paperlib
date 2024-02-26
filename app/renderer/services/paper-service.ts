@@ -180,7 +180,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       this._schedulerService.createTask(
         "paperServiceScrapePreprint",
         () => {
-          this.scrapePreprint();
+          this._routineScrapePreprint();
         },
         7 * 86400,
         undefined,
@@ -604,6 +604,38 @@ export class PaperService extends Eventable<IPaperServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
+    this._logService.info(
+      `Scraping metadata of preprint paper(s)...`,
+      "",
+      true,
+      "PaperService"
+    );
+    const preprintPaperEntities = this._paperEntityRepository.load(
+      await this._databaseCore.realm(),
+      '(publication contains[c] "arXiv") OR (publication contains[c] "openreview") OR publication == ""',
+      "addTime",
+      "desc"
+    );
+    await this.scrape(
+      preprintPaperEntities.map((paperEntity) => {
+        return new PaperEntity(paperEntity);
+      })
+    );
+  }
+
+  /**
+   * Scrape preprint paper entities.
+   */
+  @processing(ProcessingKey.General)
+  @errorcatching(
+    "Failed to scrape metadata of preprints.",
+    true,
+    "PaperService"
+  )
+  async _routineScrapePreprint() {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     if (this._preferenceService.get("allowRoutineMatch") as boolean) {
       if (
         Math.round(Date.now() / 1000) -
@@ -612,23 +644,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       ) {
         return;
       }
-      this._logService.info(
-        `Scraping metadata of preprint paper(s)...`,
-        "",
-        true,
-        "PaperService"
-      );
-      const preprintPaperEntities = this._paperEntityRepository.load(
-        await this._databaseCore.realm(),
-        '(publication contains[c] "arXiv") OR (publication contains[c] "openreview") OR publication == ""',
-        "addTime",
-        "desc"
-      );
-      await this.scrape(
-        preprintPaperEntities.map((paperEntity) => {
-          return new PaperEntity(paperEntity);
-        })
-      );
+      await this.scrapePreprint();
       this._preferenceService.set({
         lastRematchTime: Math.round(Date.now() / 1000),
       });
