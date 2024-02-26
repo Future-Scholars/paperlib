@@ -1,6 +1,4 @@
-1. Fix: The sidebar activation background color.
-2. Fix: The sidebar count bug.
-3. Fix: A UI bug in the extension setting page.
-4. Fix: A cache bug.
-5. Fix: A filter bug.
-6. For extension developers: increased some hook points' timeout.
+1. Fix: some UI bugs in darkmode.
+2. Fix: the extension loading and unloading bugs.
+3. Fix: fix a quicklook bug when editing a tag/folder.
+4. Fix: optimise for China mainland users.
