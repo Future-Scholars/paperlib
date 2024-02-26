@@ -50,6 +50,15 @@ const onEditSubmit = (e: Event) => {
     emits("event:submit-name-editing", selfName.value);
   }
 };
+
+const onFocused = () => {
+  PLMainAPI.menuService.disableAll();
+};
+
+const onBlured = () => {
+  PLMainAPI.menuService.enableAll();
+  emits("event:blur-name-editing");
+};
 </script>
 
 <template>
@@ -80,7 +89,8 @@ const onEditSubmit = (e: Event) => {
       autofocus
       v-model="selfName"
       v-else
-      @blur="emits('event:blur-name-editing')"
+      @focus="onFocused"
+      @blur="onBlured"
       @keydown.enter="(e) => onEditSubmit(e)"
     />
   </div>
