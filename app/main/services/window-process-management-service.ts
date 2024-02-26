@@ -165,6 +165,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           webSecurity: false,
           nodeIntegration: true,
           contextIsolation: false,
+          enableBlinkFeatures: "CSSColorSchemeUARendering",
         },
         frame: false,
         vibrancy: "sidebar",

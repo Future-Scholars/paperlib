@@ -139,7 +139,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="overflow-scroll px-6">
+      <div class="overflow-auto px-6">
         <GeneralView v-if="preferenceTab === 'general'" />
         <SidebarView v-if="preferenceTab === 'sidebar'" />
         <MainviewView v-if="preferenceTab === 'mainview'" />
