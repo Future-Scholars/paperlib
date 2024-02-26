@@ -469,7 +469,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
         // NOTE: we don't want to download the PDFs when adding to library.
         paperEntityDraft.mainURL = "";
         return {
-          type: "paperEntity",
+          type: "PaperEntity",
           value: paperEntityDraft,
         };
       }),

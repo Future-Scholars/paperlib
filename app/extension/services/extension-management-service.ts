@@ -123,7 +123,11 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
       promises.push(
         new Promise(async (resolve, reject) => {
           try {
-            await this.install(extInfo.originLocation || extInfo.id, false);
+            await this.install(
+              extInfo.originLocation || extInfo.id,
+              false,
+              extInfo.version
+            );
           } catch (e) {
             console.error(e);
             PLAPI.logService.error(
@@ -147,7 +151,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
    * @param extensionIDorPath - extensionID or path to the extension
    * @param notify - whether to show notification, default to true
    */
-  async install(extensionIDorPath: string, notify = true) {
+  async install(extensionIDorPath: string, notify = true, version?: string) {
     let extensionID;
     try {
       PLAPI.logService.info(
@@ -178,7 +182,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
         }
       } else {
         extensionID = extensionIDorPath;
-        info = await this._extManager.installFromNpm(extensionID);
+        info = await this._extManager.installFromNpm(extensionID, version);
       }
 
       const extension = this._extManager.require(info.name);
