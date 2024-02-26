@@ -80,8 +80,12 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
 
     this._installedExtensions = {};
     this._installedExtensionInfos = {};
+  }
 
-    this._chooseNPMRegistry();
+  async initialize() {
+    await this._chooseNPMRegistry();
+    await this.loadInstalledExtensions();
+    await this.checkUpdate();
   }
 
   async _chooseNPMRegistry() {
@@ -146,12 +150,52 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     this.fire({ installedLoaded: true });
   }
 
+  async checkUpdate() {
+    for (const [id, info] of Object.entries(this._installedExtensionInfos)) {
+      try {
+        const latestVersion = (
+          await this._networkTool.get(
+            `${this._npmRegistry}${id}/latest`,
+            {},
+            0,
+            5000,
+            false,
+            true
+          )
+        ).body.version;
+
+        if (latestVersion !== info.version) {
+          PLAPI.logService.info(
+            `New version of ${id} has been released.`,
+            "Automatically updating...",
+            true,
+            "ExtManagementService"
+          );
+          await this.uninstall(id);
+          await this.install(id, true, "latest");
+        }
+      } catch (e) {
+        console.error(e);
+        PLAPI.logService.error(
+          `Failed to check update for extension ${id}`,
+          e as Error,
+          true,
+          "ExtManagementService"
+        );
+      }
+    }
+  }
+
   /**
    * Install an extension from the given path or extensionID.
    * @param extensionIDorPath - extensionID or path to the extension
    * @param notify - whether to show notification, default to true
    */
-  async install(extensionIDorPath: string, notify = true, version?: string) {
+  async install(
+    extensionIDorPath: string,
+    notify = true,
+    version: string = "latest"
+  ) {
     let extensionID;
     try {
       PLAPI.logService.info(
