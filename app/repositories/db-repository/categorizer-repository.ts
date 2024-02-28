@@ -57,10 +57,22 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
           return object as ICategorizerRealmObject | null;
         }
       } else {
-        const object = realm.objectForPrimaryKey<Categorizer>(
-          type,
-          new Realm.BSON.ObjectId(categorizer._id)
-        );
+        let object: ICategorizerObject | null;
+        if (categorizer._id) {
+          object = realm.objectForPrimaryKey<Categorizer>(
+            type,
+            new Realm.BSON.ObjectId(categorizer._id)
+          );
+        } else {
+          const objects = realm
+            .objects<Categorizer>(type)
+            .filtered(`name == "${categorizer.name}"`);
+          if (objects.length > 0) {
+            object = objects[0];
+          } else {
+            object = null;
+          }
+        }
         return object as ICategorizerRealmObject | null;
       }
     }

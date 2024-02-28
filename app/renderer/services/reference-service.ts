@@ -351,7 +351,7 @@ export class ReferenceService {
       case "BibTex":
         copyStr = this.exportBibTexBody(this.toCite(paperEntityDrafts));
         break;
-      case "BibTexKey":
+      case "BibTex-Key":
         copyStr = this.exportBibTexKey(this.toCite(paperEntityDrafts));
         break;
       case "PlainText":
