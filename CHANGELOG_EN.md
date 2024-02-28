@@ -1,3 +1,7 @@
+## v3.0.0-beta.9 28/02 2024
+
+1. Fix: a bug in the reference quickpast plugin.
+
 ## v3.0.0-beta.8 26/02 2024
 
 1. Fix: some UI bugs in darkmode.
