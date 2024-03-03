@@ -271,7 +271,6 @@ disposable(
       :placeholder="`${$t('mainview.commandBarPlaceholder')}...`"
       v-model="commandText"
       @input="onInput"
-      @change="onInputPressEnter"
       @blur="onBlur"
       @focus="onFocus"
       @keydown="onKeydown"
