@@ -204,7 +204,8 @@
     "fontsizeintro": "界面字体大小",
     "fontnormal": "普通",
     "fontlarge": "大号",
-    "fontlarger": "更大号"
+    "fontlarger": "更大号",
+    "mainviewshortauthor": "使用 et.al. 替代长作者列表"
   },
   "confirmation": {
     "title": "确认",

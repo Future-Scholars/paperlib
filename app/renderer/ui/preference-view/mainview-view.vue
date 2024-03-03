@@ -9,7 +9,9 @@ import PaperListItem from "@/renderer/ui/main-view/data-view/components/list-vie
 import TableItem from "@/renderer/ui/main-view/data-view/components/table-view/components/table-item.vue";
 import { FieldTemplate } from "@/renderer/types/data-view";
 
+import Toggle from "./components/toggle.vue";
 import MainField from "./components/main-field.vue";
+import { IPreferenceStore } from "@/common/services/preference-service";
 
 const prefState = preferenceService.useState();
 
@@ -94,6 +96,8 @@ const computeFieldTemplates = () => {
       sortOrder: ["tags", "folders"].includes(fieldPref.key)
         ? prefState.sidebarSortOrder
         : undefined,
+      short:
+        fieldPref.key === "authors" ? prefState.mainviewShortAuthor : undefined,
     };
 
     restWidth -= template.width;
@@ -134,14 +138,21 @@ const onMoveNextClicked = (index: number) => {
 };
 
 disposable(
-  preferenceService.onChanged(["mainTableFields"], () => {
-    computeFieldTemplates();
-  })
+  preferenceService.onChanged(
+    ["mainTableFields", "mainviewShortAuthor"],
+    () => {
+      computeFieldTemplates();
+    }
+  )
 );
 
 onMounted(() => {
   computeFieldTemplates();
 });
+
+const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
+  preferenceService.set({ [key]: value });
+};
 </script>
 
 <template>
@@ -180,5 +191,13 @@ onMounted(() => {
         @event:next-click="onMoveNextClicked(index)"
       />
     </div>
+
+    <Toggle
+      class="mt-5"
+      :title="$t('preference.mainviewshortauthor')"
+      :info="$t('preference.mainviewshortauthor')"
+      :enable="prefState.mainviewShortAuthor"
+      @event:change="(value) => updatePref('mainviewShortAuthor', value)"
+    />
   </div>
 </template>

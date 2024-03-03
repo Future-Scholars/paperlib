@@ -79,6 +79,7 @@ export interface IPreferenceStore {
   mainviewSortBy: string;
   mainviewSortOrder: "desc" | "asce";
   mainviewType: string;
+  mainviewShortAuthor: boolean;
 
   pluginLinkedFolder: string;
 
@@ -193,6 +194,7 @@ const _defaultPreferences: IPreferenceStore = {
   mainviewSortBy: "addTime",
   mainviewSortOrder: "desc",
   mainviewType: "list",
+  mainviewShortAuthor: false,
 
   pluginLinkedFolder: "",
 

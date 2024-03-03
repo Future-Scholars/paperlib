@@ -8,7 +8,11 @@ import {
 } from "bootstrap-icons-vue";
 import { computed, PropType } from "vue";
 
-import { getCategorizerString, getPubTypeString } from "@/base/string";
+import {
+  getCategorizerString,
+  getPubTypeString,
+  getShortAuthorString,
+} from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
 import { FieldTemplate, ItemField } from "@/renderer/types/data-view";
 
@@ -68,6 +72,12 @@ const fields = computed(() => {
       }
       case "supURLs": {
         value = value.length > 0;
+        break;
+      }
+      case "authors": {
+        if (fieldTemplate.short) {
+          value = getShortAuthorString(value);
+        }
         break;
       }
     }

@@ -8,4 +8,5 @@ export interface FieldTemplate extends ItemField {
   label: string;
   sortBy?: string;
   sortOrder?: string;
+  short?: boolean;
 }

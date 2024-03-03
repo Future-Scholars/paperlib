@@ -65,6 +65,8 @@ const computeFieldTemplates = () => {
       value: undefined,
       label: i18n.t(`mainview.${fieldPref.key}`),
       width: fieldPref.width === -1 ? autoWidth : fieldPref.width,
+      short:
+        fieldPref.key === "authors" ? prefState.mainviewShortAuthor : undefined,
     };
 
     restWidth -= template.width;
@@ -133,10 +135,13 @@ disposable(
 );
 
 disposable(
-  preferenceService.onChanged(["feedFields", "mainviewType"], () => {
-    onFontSizeChanged(prefState.fontsize);
-    computeFieldTemplates();
-  })
+  preferenceService.onChanged(
+    ["feedFields", "mainviewType", "mainviewShortAuthor"],
+    () => {
+      onFontSizeChanged(prefState.fontsize);
+      computeFieldTemplates();
+    }
+  )
 );
 
 onMounted(() => {

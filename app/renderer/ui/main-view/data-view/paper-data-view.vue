@@ -89,6 +89,8 @@ const computeFieldTemplates = () => {
       sortOrder: ["tags", "folders"].includes(fieldPref.key)
         ? prefState.sidebarSortOrder
         : undefined,
+      short:
+        fieldPref.key === "authors" ? prefState.mainviewShortAuthor : undefined,
     };
 
     restWidth -= template.width;
@@ -225,14 +227,17 @@ disposable(
 );
 
 disposable(
-  preferenceService.onChanged(["mainTableFields", "mainviewType"], () => {
-    onFontSizeChanged(prefState.fontsize);
-    if (prefState.mainviewType === "list") {
-      computeFieldEnables();
-    } else {
-      computeFieldTemplates();
+  preferenceService.onChanged(
+    ["mainTableFields", "mainviewType", "mainviewShortAuthor"],
+    () => {
+      onFontSizeChanged(prefState.fontsize);
+      if (prefState.mainviewType === "list") {
+        computeFieldEnables();
+      } else {
+        computeFieldTemplates();
+      }
     }
-  })
+  )
 );
 
 onMounted(() => {
