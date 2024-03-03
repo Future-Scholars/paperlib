@@ -45,7 +45,6 @@ const tagsViewTree = computed(() => {
 
 const folders = inject<Ref<ICategorizerCollection>>("folders");
 const foldersViewTree = computed(() => {
-  const linked = prefState.pluginLinkedFolder;
   return querySentenceService.parseViewTree(
     folders?.value || [],
     CategorizerType.PaperFolder,
@@ -86,6 +85,7 @@ const onDroped = async (
   const categorizer = (
     await categorizerService.loadByIds(type, [dropData.dest._id])
   )[0];
+  console.log(categorizer);
 
   if (dropData.type === "PaperEntity" && categorizer) {
     let dragingIds: (string | ObjectID)[] = [];
