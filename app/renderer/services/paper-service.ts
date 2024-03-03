@@ -702,5 +702,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       true,
       "PaperService"
     );
+
+    localRealm.close();
   }
 }

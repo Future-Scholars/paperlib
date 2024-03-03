@@ -59,4 +59,10 @@ export class DatabaseService extends Eventable<IDatabaseServiceState> {
   resumeSync() {
     this._databaseCore.resumeSync();
   }
+
+  /**
+   * Delete the synchronization cache. */
+  async deleteSyncCache() {
+    await this._databaseCore.deleteSyncCache();
+  }
 }

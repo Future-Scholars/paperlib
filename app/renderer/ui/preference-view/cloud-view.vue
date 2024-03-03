@@ -35,16 +35,18 @@ const onLogoutClicked = async () => {
   preferenceService.set({ useSync: false });
 
   await databaseService.initialize();
+  await databaseService.deleteSyncCache();
 };
 
 const onClickGuide = () => {
   fileService.open("https://paperlib.app/en/doc/cloud-sync/setup.html");
 };
 
-const onMigrateClicked = () => {
-  paperService.migrateLocaltoCloud();
-  feedService.migrateLocaltoCloud();
-  smartFilterService.migrateLocaltoCloud();
+const onMigrateClicked = async () => {
+  await categorizerService.migrateLocaltoCloud();
+  await paperService.migrateLocaltoCloud();
+  await feedService.migrateLocaltoCloud();
+  await smartFilterService.migrateLocaltoCloud();
 };
 
 // =============================================================================

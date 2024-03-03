@@ -38,10 +38,18 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     type: CategorizerType,
     categorizer: ICategorizerObject
   ) {
+    // For Root
     if (categorizer instanceof Realm.Object) {
       return categorizer as ICategorizerRealmObject;
     } else {
       if (type === CategorizerType.PaperTag) {
+        // Return Root
+        if (categorizer.name === "Tags") {
+          return realm
+            .objects<Categorizer>(type)
+            .filtered(`name == "Tags"`)[0] as ICategorizerRealmObject;
+        }
+
         // Keep Atomic
         const objects = realm
           .objects<Categorizer>(type)
@@ -57,6 +65,13 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
           return object as ICategorizerRealmObject | null;
         }
       } else {
+        // Return Root
+        if (categorizer.name === "Folders") {
+          return realm
+            .objects<Categorizer>(type)
+            .filtered(`name == "Folders"`)[0] as ICategorizerRealmObject;
+        }
+
         let object: ICategorizerObject | null;
         if (categorizer._id) {
           object = realm.objectForPrimaryKey<Categorizer>(

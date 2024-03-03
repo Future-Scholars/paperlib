@@ -28,6 +28,12 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
     if (paperSmartFilter instanceof Realm.Object) {
       return paperSmartFilter as IPaperSmartFilterRealmObject;
     } else {
+      if (paperSmartFilter.name === "PaperSmartFilters") {
+        return realm
+          .objects<PaperSmartFilter>("PaperSmartFilter")
+          .filtered(`name == "Categorizer"`)[0] as IPaperSmartFilterRealmObject;
+      }
+
       const object = realm.objectForPrimaryKey<PaperSmartFilter>(
         PaperSmartFilter.schema.name,
         new Realm.BSON.ObjectId(paperSmartFilter._id)

@@ -6,6 +6,8 @@ import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 
+// TODO: replace all '/' with '-'
+
 export function migrate(oldRealm: Realm, newRealm: Realm) {
   const oldVersion = oldRealm.schemaVersion;
   // only apply this change if upgrading to schemaVersion 2
