@@ -14,7 +14,6 @@ const props = defineProps({
   editing: Boolean,
 });
 
-const item = ref(null);
 const emits = defineEmits([
   "event:drop",
   "event:item-drop",
@@ -73,7 +72,6 @@ const onNameInputBlured = () => {
     </div>
     <input
       class="my-auto text-xs bg-transparent grow text-ellipsis overflow-hidden whitespace-nowrap border-2 rounded-md px-1 border-accentlight dark:border-accentdark"
-      autofocus
       type="text"
       :value="name"
       v-if="editing"

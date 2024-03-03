@@ -14,11 +14,13 @@ import {
 import { CSL } from "@/models/csl";
 import { PaperEntity } from "@/models/paper-entity";
 import { ILogService, LogService } from "@/renderer/services/log-service";
+import { IPaperService, PaperService } from "@/renderer/services/paper-service";
 
 export const IReferenceService = createDecorator("referenceService");
 
 export class ReferenceService {
   constructor(
+    @IPaperService private readonly _paperService: PaperService,
     @IPreferenceService private readonly _preferenceService: PreferenceService,
     @ILogService private readonly _logService: LogService
   ) {
@@ -53,10 +55,10 @@ export class ReferenceService {
       const titleArray = paperEntityDraft.title.split(" ");
       for (const word of titleArray) {
         if (
-          word.toLocaleLowerCase() !== "the" ||
-          word.toLocaleLowerCase() !== "a" ||
-          word.toLocaleLowerCase() !== "an" ||
-          word.length <= 3
+          word.toLocaleLowerCase() !== "the" &&
+          word.toLocaleLowerCase() !== "a" &&
+          word.toLocaleLowerCase() !== "an" &&
+          word.length > 3
         ) {
           citeKey += formatString({
             str: word.toLowerCase(),
@@ -242,6 +244,26 @@ export class ReferenceService {
   }
 
   /**
+   * Export BibTex body string in folder.
+   * @param folderName - The folder name.
+   */
+  @errorcatching(
+    "Failed to export BibTex body in folder.",
+    true,
+    "ReferenceService",
+    ""
+  )
+  async exportBibTexBodyInFolder(folderName: string) {
+    const paperEntities = await this._paperService.load(
+      `folders.name == '${folderName}'`,
+      "title",
+      "asce"
+    );
+    console.log(paperEntities);
+    return this.exportBibTexBody(this.toCite(paperEntities as PaperEntity[]));
+  }
+
+  /**
    * Export plain text.
    * @param cite - The cite object.
    * @returns The plain text.
@@ -282,6 +304,25 @@ export class ReferenceService {
         return cite.format("bibliography", { template: "apa" });
       }
     }
+  }
+
+  /**
+   * Export plain text in folder.
+   * @param folderName - The folder name.
+   */
+  @errorcatching(
+    "Failed to export plain text in folder.",
+    true,
+    "ReferenceService",
+    ""
+  )
+  async exportPlainTextInFolder(folderName: string) {
+    const paperEntities = await this._paperService.load(
+      `folders.name == '${folderName}'`,
+      "title",
+      "asce"
+    );
+    return this.exportPlainText(this.toCite(paperEntities as PaperEntity[]));
   }
 
   /**
@@ -347,6 +388,7 @@ export class ReferenceService {
     });
 
     let copyStr = "";
+    let folderName = "";
     switch (format) {
       case "BibTex":
         copyStr = this.exportBibTexBody(this.toCite(paperEntityDrafts));
@@ -360,6 +402,25 @@ export class ReferenceService {
       case "CSV":
         copyStr = await this.exportCSV(paperEntityDrafts);
         break;
+      case "BibTex-In-Folder":
+        folderName = this._preferenceService.get(
+          "pluginLinkedFolder"
+        ) as string;
+        if (!folderName) {
+          return;
+        }
+        copyStr = await this.exportBibTexBodyInFolder(folderName as string);
+        break;
+      case "PlainText-In-Folder":
+        folderName = this._preferenceService.get(
+          "pluginLinkedFolder"
+        ) as string;
+        if (!folderName) {
+          return;
+        }
+        copyStr = await this.exportPlainTextInFolder(folderName);
+        break;
+
       default:
         throw new Error(`Unsupported export format: ${format}`);
         break;
