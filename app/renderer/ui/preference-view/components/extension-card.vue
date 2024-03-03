@@ -3,14 +3,13 @@ import {
   BIconArrowClockwise,
   BIconDownload,
   BIconGear,
-  BIconGlobe,
   BIconInfoCircle,
   BIconPatchCheckFill,
   BIconTrash3,
 } from "bootstrap-icons-vue";
 import Spinner from "../../components/spinner.vue";
 
-defineProps<{
+const props = defineProps<{
   name: string;
   verified: boolean;
   version: string;
@@ -19,6 +18,7 @@ defineProps<{
   homepage?: string;
   installed: boolean;
   installing: boolean;
+  isMarketView: boolean;
 }>();
 
 const emits = defineEmits([
@@ -28,11 +28,20 @@ const emits = defineEmits([
   "event:reload",
   "event:setting",
 ]);
+
+const onCardClick = () => {
+  if (props.isMarketView && props.homepage) {
+    emits("event:homepageclicked");
+  } else {
+    emits("event:setting");
+  }
+};
 </script>
 
 <template>
   <div
-    class="bg-neutral-200 dark:bg-neutral-700 flex flex-col py-2 px-3 rounded-md shadow-sm justify-between hover:bg-neutral-300 hover:dark:bg-neutral-700 transition-colors ease-in-out cursor-pointer duration-75"
+    class="bg-neutral-200 dark:bg-neutral-700 flex flex-col py-2 px-3 rounded-md justify-between transition-colors ease-in-out cursor-pointer duration-75"
+    @click="onCardClick"
   >
     <div class="flex flex-col">
       <div class="flex space-x-2">
@@ -56,39 +65,39 @@ const emits = defineEmits([
       </span>
     </div>
     <div
-      class="flex justify-end space-x-2 text-neutral-400 dark:text-neutral-500"
+      class="flex justify-end space-x-2 text-neutral-500 dark:text-neutral-400"
     >
       <Spinner class="my-auto" v-if="installing" />
 
       <BIconInfoCircle
         title="Homepage"
-        class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
+        class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
         v-if="homepage"
         @click="emits('event:homepageclicked')"
       />
 
       <BIconDownload
         title="Install"
-        class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
+        class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
         v-if="!installed && !installing"
         @click="emits('event:install')"
       />
       <BIconTrash3
         title="Uninstall"
-        class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
+        class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
         v-if="installed"
         @click="emits('event:uninstall')"
       />
       <BIconArrowClockwise
         title="Reload"
-        class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
-        v-if="installed"
+        class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
+        v-if="installed && !isMarketView"
         @click="emits('event:reload')"
       />
       <BIconGear
         title="Settings"
-        class="my-auto text-xs transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300 cursor-pointer"
-        v-if="installed"
+        class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
+        v-if="installed && !isMarketView"
         @click="emits('event:setting')"
       />
     </div>

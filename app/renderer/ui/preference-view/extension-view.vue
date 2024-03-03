@@ -201,6 +201,7 @@ const installExtension = async (id: string) => {
 };
 
 const onCheckForUpdateClicked = async () => {
+  logService.info("Checking for extension updates", "", true, "Extension");
   await PLExtAPI.extensionManagementService.checkUpdate();
 };
 
@@ -334,6 +335,7 @@ onUnmounted(async () => {
           :description="extension.description"
           :homepage="extension.homepage"
           installed
+          :is-market-view="false"
           :installing="false"
           @event:homepageclicked="onOpenHomepageClicked(extension.homepage)"
           @event:reload="reloadExtension(extension.id)"
@@ -379,12 +381,12 @@ onUnmounted(async () => {
             :author="extension.author"
             :description="extension.description"
             :homepage="extension.homepage"
+            :is-market-view="true"
             :installed="installedExtensions.hasOwnProperty(extension.id)"
             :installing="installingExtIDs.includes(extension.id)"
+            @event:homepageclicked="onOpenHomepageClicked(extension.homepage)"
             @event:install="installExtension(extension.id)"
-            @event:reload="reloadExtension(extension.id)"
             @event:uninstall="uninstallExtension(extension.id)"
-            @event:setting="showSettingView(extension.id)"
           />
         </div>
       </div>

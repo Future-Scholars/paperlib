@@ -58,11 +58,8 @@ scp {
 <template>
   <div
     class="flex flex-col w-full p-2 rounded-md select-none cursor-pointer"
-    :class="
-      active
-        ? `bg-accentlight dark:bg-accentdark h-[${height}px]`
-        : `h-[${height}px]`
-    "
+    :class="active ? `bg-accentlight dark:bg-accentdark` : ''"
+    :style="`height: ${height}px`"
   >
     <div class="flex space-x-2">
       <!-- <div
