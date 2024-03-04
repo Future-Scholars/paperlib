@@ -30,6 +30,7 @@ const pubTypes = {
   Others: 2,
   Book: 3,
 };
+const pubTypeKeys = ["Article", "Conference", "Others", "Book"];
 const tags = inject<Ref<ICategorizerCollection>>("tags");
 
 const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
@@ -125,10 +126,10 @@ onUnmounted(() => {
                 :placeholder="$t('mainview.pubType')"
                 class="w-1/2 h-10"
                 :options="pubTypes"
-                :value="pubTypes[editingPaperEntityDraft.pubType]"
+                :value="editingPaperEntityDraft.pubType"
                 @event:change="
-                  (value: string) => {
-                    editingPaperEntityDraft.pubType = pubTypes[value];
+                  (value: any) => {
+                    editingPaperEntityDraft.pubType = value;
                   }
                 "
               />

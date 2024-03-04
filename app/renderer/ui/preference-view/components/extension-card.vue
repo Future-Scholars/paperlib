@@ -73,32 +73,32 @@ const onCardClick = () => {
         title="Homepage"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
         v-if="homepage"
-        @click="emits('event:homepageclicked')"
+        @click.stop="emits('event:homepageclicked')"
       />
 
       <BIconDownload
         title="Install"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
         v-if="!installed && !installing"
-        @click="emits('event:install')"
+        @click.stop="emits('event:install')"
       />
       <BIconTrash3
         title="Uninstall"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
         v-if="installed"
-        @click="emits('event:uninstall')"
+        @click.stop="emits('event:uninstall')"
       />
       <BIconArrowClockwise
         title="Reload"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
         v-if="installed && !isMarketView"
-        @click="emits('event:reload')"
+        @click.stop="emits('event:reload')"
       />
       <BIconGear
         title="Settings"
         class="my-auto text-xs transition ease-in-out hover:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer"
         v-if="installed && !isMarketView"
-        @click="emits('event:setting')"
+        @click.stop="emits('event:setting')"
       />
     </div>
   </div>

@@ -9,8 +9,8 @@ import draggable from "vuedraggable";
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { InjectionContainer } from "@/base/injection/injection";
-import { NetworkTool } from "@/base/network-legacy";
 import { Process } from "@/base/process-id";
+import { LogService } from "@/common/services/log-service";
 import { PreferenceService } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
@@ -22,7 +22,6 @@ import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
 import { HookService } from "@/renderer/services/hook-service";
 import { IInjectable } from "@/renderer/services/injectable";
-import { LogService } from "@/renderer/services/log-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { QuerySentenceService } from "@/renderer/services/querysentence-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
@@ -89,7 +88,6 @@ async function initialize() {
     paperService: PaperService,
     paperEntityRepository: PaperEntityRepository,
     categorizerRepository: CategorizerRepository,
-    // querySentenceRepository: QuerySentenceRepository,
     scrapeService: ScrapeService,
     fileService: FileService,
     cacheDatabaseCore: CacheDatabaseCore,
@@ -111,7 +109,6 @@ async function initialize() {
     hookService: HookService,
     uiStateService: UIStateService,
     uiSlotService: UISlotService,
-    networkTool: NetworkTool,
   });
   // 4.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {

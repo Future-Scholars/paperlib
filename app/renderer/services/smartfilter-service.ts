@@ -2,10 +2,10 @@ import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { ILogService, LogService } from "@/common/services/log-service";
 import { Colors } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   IPaperSmartFilterCollection,

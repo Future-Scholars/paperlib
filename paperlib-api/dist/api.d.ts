@@ -114,6 +114,10 @@ declare class CacheService {
      * @param ids - The ids of the paper entities to delete the cache of.
      */
     delete(ids: OID[]): Promise<void>;
+    /**
+     * Clear the cache.
+     */
+    clear(): Promise<void>;
 }
 
 declare class Categorizer {
@@ -207,12 +211,13 @@ declare class CategorizerService extends Eventable<ICategorizerServiceState> {
      */
     loadByIds(type: CategorizerType, ids: OID[]): Promise<ICategorizerCollection>;
     /**
-     * Update a categorizer.
+     * Create a categorizer.
      * @param type - The type of categorizer.
      * @param categorizer - The categorizer.
+     * @param parentCategorizer - The parent categorizer to insert.
      * @returns
      */
-    create(type: CategorizerType, categorizer: Categorizer, parent?: Categorizer): Promise<ICategorizerRealmObject | (Categorizer & Realm.Object<unknown, never>)>;
+    create(type: CategorizerType, categorizer: Categorizer, parentCategorizer?: Categorizer): Promise<ICategorizerRealmObject | (Categorizer & Realm.Object<unknown, never>)>;
     /**
      * Delete a categorizer.
      * @param type - The type of categorizer.
@@ -245,6 +250,9 @@ declare class CategorizerService extends Eventable<ICategorizerServiceState> {
      * @returns
      */
     update(type: CategorizerType, categorizer: Categorizer, parentCategorizer?: Categorizer): Promise<ICategorizerRealmObject | (Categorizer & Realm.Object<unknown, never>)>;
+    /**
+     * Migrate the local database to the cloud database. */
+    migrateLocaltoCloud(): Promise<void>;
 }
 
 declare enum CategorizerType {
@@ -409,6 +417,7 @@ declare class DatabaseCore extends Eventable<IDatabaseCoreState> {
      * @returns
      */
     resumeSync(): void;
+    deleteSyncCache(): Promise<void>;
 }
 
 /**
@@ -427,6 +436,9 @@ declare class DatabaseService extends Eventable<IDatabaseServiceState> {
     /**
      * Resume the synchronization of the database. */
     resumeSync(): void;
+    /**
+     * Delete the synchronization cache. */
+    deleteSyncCache(): Promise<void>;
 }
 
 /**
@@ -489,27 +501,33 @@ declare class ExtensionManagementService extends Eventable<IExtensionManagementS
     private readonly _extManager;
     private readonly _installedExtensions;
     private readonly _installedExtensionInfos;
-    constructor(_extensionPreferenceService: ExtensionPreferenceService, _networkTool: NetworkTool_2);
+    private _npmRegistry;
+    constructor(_extensionPreferenceService: ExtensionPreferenceService, _networkTool: NetworkTool);
+    initialize(): Promise<void>;
+    _chooseNPMRegistry(): Promise<void>;
     /**
      * Load all installed extensions.
      */
     loadInstalledExtensions(): Promise<void>;
+    checkUpdate(): Promise<void>;
+    update(extensionID: string): Promise<void>;
     /**
      * Install an extension from the given path or extensionID.
      * @param extensionIDorPath - extensionID or path to the extension
      * @param notify - whether to show notification, default to true
+     * @param version - version to install, default to "latest"
      */
-    install(extensionIDorPath: string, notify?: boolean): Promise<void>;
+    install(extensionIDorPath: string, notify?: boolean, version?: string): Promise<void>;
     /**
      * Uninstall an extension.
      * @param extensionID - extensionID to uninstall
      */
-    uninstall(extensionID: string): Promise<void>;
+    uninstall(extensionID: string, keepInfo?: boolean): Promise<void>;
     /**
      * Clean the extension related files, preference, etc.
      * @param extensionIDorPath - extensionID or path to the extension
      */
-    clean(extensionIDorPath: string): Promise<void>;
+    clean(extensionIDorPath: string, keepInfo?: boolean): Promise<void>;
     /**
      * Reload an extension.
      * @param extensionID - extensionID to reload
@@ -1182,11 +1200,6 @@ declare interface ICookieObject {
     currentUrl: string;
 }
 
-declare interface ICookieObject_2 {
-    cookieStr: string;
-    currentUrl: string;
-}
-
 declare interface IDatabaseCoreState {
     dbInitializing: boolean;
     dbInitialized: boolean;
@@ -1231,6 +1244,8 @@ declare interface IExtensionManagementServiceState {
     uninstalled: string;
     reloading: string;
     reloaded: string;
+    updating: string;
+    updated: string;
     installedLoaded: boolean;
 }
 
@@ -1469,6 +1484,7 @@ declare interface IPreferenceStore {
     mainviewSortBy: string;
     mainviewSortOrder: "desc" | "asce";
     mainviewType: string;
+    mainviewShortAuthor: boolean;
     pluginLinkedFolder: string;
     selectedPDFViewer: string;
     selectedPDFViewerPath: string;
@@ -1554,7 +1570,7 @@ declare interface IWindowProcessManagementServiceState {
 
 declare class LogService extends Eventable<ILogEventState> {
     private logGroups;
-    constructor(name?: string);
+    constructor(name: string);
     /**
      * Log info to the console and the log file.
      * @param {string} level - Log level
@@ -1622,93 +1638,7 @@ declare class MenuService extends Eventable<IMenuServiceState> {
     disableAll(): void;
 }
 
-/**
- * Network tool
- * @deprecated Use `PLExtAPI.networkTool` instead.
- */
 declare class NetworkTool {
-    constructor();
-    private _checkExtAPIExposed;
-    /**
-     * HTTP GET
-     * @deprecated Use `PLExtAPI.networkTool.get()` instead.
-     * @param url - URL
-     * @param headers - Headers
-     * @param retry - Retry times
-     * @param timeout - Timeout
-     * @param cache - Use cache
-     * @param parse - Try to parse response body
-     * @returns Response
-     */
-    get(url: string, headers?: Record<string, string>, retry?: number, timeout?: number, cache?: boolean, parse?: boolean): Promise<{
-        body: any;
-        status: number;
-        statusText: string;
-        headers: Record<string, string>;
-    }>;
-    /**
-     * HTTP POST
-     * @deprecated Use `PLExtAPI.networkTool.post()` instead.
-     * @param url - URL
-     * @param data - Data
-     * @param headers - Headers
-     * @param retry - Retry times
-     * @param timeout - Timeout
-     * @param compress - Compress data
-     * @param parse - Try to parse response body
-     * @returns Response
-     */
-    post(url: string, data: Record<string, any> | string, headers?: Record<string, string>, retry?: number, timeout?: number, compress?: boolean, parse?: boolean): Promise<{
-        body: any;
-        status: number;
-        statusText: string;
-        headers: Record<string, string>;
-    }>;
-    /**
-     * HTTP POST with form data
-     * @deprecated Use `PLExtAPI.networkTool.postForm()` instead.
-     * @param url - URL
-     * @param data - Data
-     * @param headers - Headers
-     * @param retry - Retry times
-     * @param timeout - Timeout
-     * @param parse - Try to parse response body
-     * @returns Response
-     */
-    postForm(url: string, data: FormData, headers?: Record<string, string>, retry?: number, timeout?: number, parse?: boolean): Promise<{
-        body: any;
-        status: number;
-        statusText: string;
-        headers: Record<string, string>;
-    }>;
-    /**
-     * Download
-     * @deprecated Use `PLExtAPI.networkTool.download()` instead.
-     * @param url - URL
-     * @param targetPath - Target path
-     * @param cookies - Cookies
-     * @returns Target path
-     */
-    download(url: string, targetPath: string, cookies?: CookieJar | ICookieObject[]): Promise<string>;
-    /**
-     * Download PDFs
-     * @deprecated Use `PLExtAPI.networkTool.downloadPDFs()` instead.
-     * @param urlList - URL list
-     * @param cookies - Cookies
-     * @returns Target paths
-     */
-    downloadPDFs(urlList: string[], cookies?: CookieJar | ICookieObject[]): Promise<string[]>;
-    /**
-     * Check if the network is connected
-     * @deprecated Use `PLExtAPI.networkTool.connected()` instead.
-     * @returns Whether the network is connected
-     */
-    connected(): Promise<boolean>;
-}
-
-declare class NetworkTool_2 {
-    private readonly _axios;
-    private readonly _axiosCache;
     private _agent;
     private _donwloadProgress;
     constructor();
@@ -1722,7 +1652,10 @@ declare class NetworkTool_2 {
      * Check proxy settings, if exists, set it as proxy agent, otherwise, check system proxy settings.
      */
     checkProxy(): Promise<void>;
+    private _cachePreHook;
+    private _cacheAfterHook;
     private _parseResponse;
+    private _fetch;
     /**
      * HTTP GET
      * @param url - URL
@@ -1737,7 +1670,7 @@ declare class NetworkTool_2 {
         body: any;
         status: number;
         statusText: string;
-        headers: Record<string, string>;
+        headers: Headers;
     }>;
     /**
      * HTTP POST
@@ -1754,7 +1687,7 @@ declare class NetworkTool_2 {
         body: any;
         status: number;
         statusText: string;
-        headers: Record<string, string>;
+        headers: Headers;
     }>;
     /**
      * HTTP POST with form data
@@ -1769,7 +1702,7 @@ declare class NetworkTool_2 {
         body: any;
         status: number;
         statusText: string;
-        headers: Record<string, string>;
+        headers: Headers;
     }>;
     /**
      * Download
@@ -1778,14 +1711,14 @@ declare class NetworkTool_2 {
      * @param cookies - Cookies
      * @returns Target path
      */
-    download(url: string, targetPath: string, cookies?: CookieJar | ICookieObject_2[]): Promise<string>;
+    download(url: string, targetPath: string, cookies?: CookieJar | ICookieObject[]): Promise<string>;
     /**
      * Download PDFs
      * @param urlList - URL list
      * @param cookies - Cookies
      * @returns Target paths
      */
-    downloadPDFs(urlList: string[], cookies?: CookieJar | ICookieObject_2[]): Promise<string[]>;
+    downloadPDFs(urlList: string[], cookies?: CookieJar | ICookieObject[]): Promise<string[]>;
     /**
      * Check if the network is connected
      * @returns Whether the network is connected
@@ -2012,6 +1945,10 @@ declare class PaperService extends Eventable<IPaperServiceState> {
      */
     scrapePreprint(): Promise<void>;
     /**
+     * Scrape preprint paper entities.
+     */
+    _routineScrapePreprint(): Promise<void>;
+    /**
      * Rename all paper entities.
      */
     renameAll(): Promise<void>;
@@ -2133,14 +2070,13 @@ declare namespace PLAPI_2 {
     const uiStateService: Proxied<UIStateService>;
     const preferenceService: Proxied<PreferenceService>;
     const uiSlotService: Proxied<UISlotService>;
-    const networkTool: Proxied<NetworkTool>;
 }
 export { PLAPI_2 as PLAPI }
 
 declare namespace PLExtAPI_2 {
     const extensionManagementService: ExtensionManagementService;
     const extensionPreferenceService: ExtensionPreferenceService;
-    const networkTool: Proxied<NetworkTool_2>;
+    const networkTool: Proxied<NetworkTool>;
 }
 export { PLExtAPI_2 as PLExtAPI }
 
@@ -2214,9 +2150,10 @@ declare type Proxied<T> = {
 };
 
 declare class ReferenceService {
+    private readonly _paperService;
     private readonly _preferenceService;
     private readonly _logService;
-    constructor(_preferenceService: PreferenceService, _logService: LogService);
+    constructor(_paperService: PaperService, _preferenceService: PreferenceService, _logService: LogService);
     private _setupCitePlugin;
     /**
      * Abbreviate the publication name according to the abbreviation list set in the preference interface.
@@ -2243,11 +2180,21 @@ declare class ReferenceService {
      */
     exportBibTexBody(cite: Cite): string;
     /**
+     * Export BibTex body string in folder.
+     * @param folderName - The folder name.
+     */
+    exportBibTexBodyInFolder(folderName: string): Promise<string>;
+    /**
      * Export plain text.
      * @param cite - The cite object.
      * @returns The plain text.
      */
     exportPlainText(cite: Cite): Promise<string>;
+    /**
+     * Export plain text in folder.
+     * @param folderName - The folder name.
+     */
+    exportPlainTextInFolder(folderName: string): Promise<string>;
     /**
      * Export papers as csv string.
      * @param papers - The PaperEntity array.

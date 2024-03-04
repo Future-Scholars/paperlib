@@ -6,6 +6,7 @@ import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
@@ -20,7 +21,6 @@ import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { CacheService, ICacheService } from "@/renderer/services/cache-service";
 import { FileService, IFileService } from "@/renderer/services/file-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   ISchedulerService,
   SchedulerService,

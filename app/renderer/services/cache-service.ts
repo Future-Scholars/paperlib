@@ -12,6 +12,7 @@ import {
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
 import { constructFileURL, eraseProtocol } from "@/base/url";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
@@ -20,7 +21,6 @@ import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperEntityCache, ThumbnailCache } from "@/models/paper-entity-cache";
 import { FileService, IFileService } from "@/renderer/services/file-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   IPaperEntityCollection,

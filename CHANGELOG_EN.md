@@ -1,3 +1,11 @@
+## v3.0.0-beta.11 04/03 2024
+
+1. Enhance: better network tools for proxy.
+2. Enhance: log more information of the extension process.
+3. Fix: a file bug when remove a paper from the library.
+4. Fix: quicklook on Windows/Linux.
+5. Fix: some UI bugs.
+
 ## v3.0.0-beta.10 03/03 2024
 
 1. Feat: add an option to show the short author string (et al.) in the table view.

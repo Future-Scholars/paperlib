@@ -2,7 +2,7 @@ import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
 
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
-import { ILogService, LogService } from "@/renderer/services/log-service";
+import { ILogService, LogService } from "@/common/services/log-service";
 
 export const ISchedulerService = createDecorator("schedulerService");
 

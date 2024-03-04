@@ -1,6 +1,6 @@
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { ILogService, LogService } from "@/renderer/services/log-service";
+import { ILogService, LogService } from "@/common/services/log-service";
 
 export const IUIStateService = createDecorator("uiStateService");
 

@@ -2,8 +2,8 @@ import pTimeout, { ClearablePromise } from "p-timeout";
 
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
+import { ILogService, LogService } from "@/common/services/log-service";
 import { PaperEntity } from "@/models/paper-entity";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 
 export const IHookService = createDecorator("hookService");
 

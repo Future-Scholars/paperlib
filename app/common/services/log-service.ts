@@ -44,7 +44,7 @@ export const ILogService = createDecorator("logService");
 export class LogService extends Eventable<ILogEventState> {
   private logGroups: { [key: string]: ILogGroup };
 
-  constructor(name?: string) {
+  constructor(name: string) {
     super("logService", {
       infoLogMessage: {
         id: "",
@@ -75,6 +75,8 @@ export class LogService extends Eventable<ILogEventState> {
         .path.split("/")
         .slice(0, -1)
         .join("/");
+
+      console.log(`${folder}/${name}`);
       loglib.transports.file.resolvePath = () => `${folder}/${name}`;
     }
 
