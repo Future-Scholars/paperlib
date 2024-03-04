@@ -1898,9 +1898,10 @@ declare class PaperService extends Eventable<IPaperServiceState> {
     /**
      * Update paper entities.
      * @param paperEntityDrafts - paper entity drafts
+     * @param updateCache - Update cache, default is true
      * @returns Updated paper entities
      */
-    update(paperEntityDrafts: IPaperEntityCollection): Promise<IPaperEntityCollection>;
+    update(paperEntityDrafts: IPaperEntityCollection, updateCache?: boolean): Promise<IPaperEntityCollection>;
     /**
      * Update paper entities with a categorizer.
      * @param ids - The list of paper IDs.

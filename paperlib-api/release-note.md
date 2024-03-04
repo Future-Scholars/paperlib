@@ -1,5 +1,9 @@
 # Paperlib API Release Note
 
+## v0.1.2
+
+- add `updateCache` option for `PLAPI.paperService.update
+
 ## v0.1.1
 
 - `PLAPI.networkTool` has been removed.
