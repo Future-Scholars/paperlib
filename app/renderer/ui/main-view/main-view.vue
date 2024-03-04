@@ -410,14 +410,6 @@ disposable(
     previewSelectedEntities();
   })
 );
-disposable(
-  shortcutService.register(
-    preferenceService.get("shortcutPreview") as string,
-    previewSelectedEntities,
-    true,
-    true
-  )
-);
 
 disposable(
   PLMainAPI.menuService.onClick("File-copyBibTex", () => {
