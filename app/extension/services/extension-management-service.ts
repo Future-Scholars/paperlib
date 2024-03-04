@@ -155,7 +155,6 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
   }
 
   async checkUpdate() {
-    throw new Error("DEBUG ERROR");
     for (const [id, info] of Object.entries(this._installedExtensionInfos)) {
       try {
         const latestVersion = (

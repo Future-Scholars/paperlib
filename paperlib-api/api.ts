@@ -1,5 +1,4 @@
 import { NetworkTool } from "@/base/network";
-import { NetworkTool as NetworkToolLegacy } from "@/base/network-legacy";
 import { Proxied } from "@/base/rpc/proxied";
 import { LogService } from "@/common/services/log-service";
 import { PreferenceService } from "@/common/services/preference-service";
@@ -42,7 +41,6 @@ declare namespace PLAPI {
   const uiStateService: Proxied<UIStateService>;
   const preferenceService: Proxied<PreferenceService>;
   const uiSlotService: Proxied<UISlotService>;
-  const networkTool: Proxied<NetworkToolLegacy>;
 }
 
 declare namespace PLMainAPI {

@@ -44,7 +44,7 @@ export const ILogService = createDecorator("logService");
 export class LogService extends Eventable<ILogEventState> {
   private logGroups: { [key: string]: ILogGroup };
 
-  constructor(name: string = "app.log") {
+  constructor(name: string) {
     super("logService", {
       infoLogMessage: {
         id: "",
