@@ -250,7 +250,7 @@ export class NetworkTool {
         retry: retry,
         timeout: timeout,
       };
-    } else if (data instanceof Object) {
+    } else if (typeof data === "object") {
       options = {
         json: data,
         headers: headers,

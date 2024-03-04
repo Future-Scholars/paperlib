@@ -491,7 +491,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
 
       if (location !== this._installedExtensionInfos[extensionID].location) {
         // Installed from local file.
-        await this.uninstall(extensionID);
+        await this.uninstall(extensionID, true);
         await this.install(location);
       } else {
         // TODO: support reload from npm
