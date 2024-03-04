@@ -9,7 +9,6 @@ const props = defineProps({
     required: true,
   },
   value: {
-    type: String,
     required: true,
   },
 });
@@ -35,11 +34,7 @@ const onChanged = (event: Event) => {
       class="text-xs dark:text-neutral-300 mx-2 focus:outline-none bg-transparent"
       @change="onChanged"
     >
-      <option
-        v-for="[key, value] of Object.entries(options)"
-        :key="value"
-        :value="value"
-      >
+      <option v-for="[key, value] of Object.entries(options)" :value="value">
         {{ key }}
       </option>
     </select>
