@@ -1,5 +1,12 @@
 # Paperlib API Release Note
 
+## v0.1.1
+
+- `PLAPI.networkTool` has been removed.
+- a new preference `mainviewShortAuthor`.
+- add `exportBibTexBodyInFolder` for `PLAPI.ReferenceService`.
+- add `exportPlainTextInFolder` for `PLAPI.ReferenceService`.
+
 ## v0.0.16
 
 - `PLAPI.networkTool` is deprecated. Use `PLExtAPI.networkTool` instead.
