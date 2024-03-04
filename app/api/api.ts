@@ -1,6 +1,6 @@
 import { NetworkTool } from "@/base/network";
-import { NetworkTool as NetworkToolLegacy } from "@/base/network-legacy";
 import { Proxied } from "@/base/rpc/proxied";
+import { LogService } from "@/common/services/log-service";
 import { PreferenceService } from "@/common/services/preference-service";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
 import { ExtensionPreferenceService } from "@/extension/services/extension-preference-service";
@@ -13,7 +13,6 @@ import { WindowProcessManagementService } from "@/main/services/window-process-m
 import { CategorizerService } from "@/renderer/services/categorizer-service";
 import { CommandService } from "@/renderer/services/command-service";
 import { FileService } from "@/renderer/services/file-service";
-import { LogService } from "@/renderer/services/log-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 
@@ -37,7 +36,6 @@ export interface APIShape {
   categorizerService: Proxied<CategorizerService>;
   referenceService: Proxied<ReferenceService>;
   fileService: Proxied<FileService>;
-  networkTool: Proxied<NetworkToolLegacy>;
 }
 
 export interface MainAPIShape {

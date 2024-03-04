@@ -1,6 +1,7 @@
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
 import { NetworkTool } from "@/base/network";
+import { LogService } from "@/common/services/log-service";
 import { PreferenceService } from "@/common/services/preference-service";
 import { ContextMenuService } from "@/main/services/contextmenu-service";
 import { ExtensionProcessManagementService } from "@/main/services/extension-process-management-service";
@@ -16,7 +17,6 @@ import { CategorizerService } from "@/renderer/services/categorizer-service";
 import { DatabaseService } from "@/renderer/services/database-service";
 import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
-import { LogService } from "@/renderer/services/log-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";

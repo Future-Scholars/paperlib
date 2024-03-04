@@ -352,16 +352,20 @@ const onReloadAllClicked = async () => {
   await reloadPaperSmartFilters();
 };
 const onPrintClicked = () => {
-  console.log("paperEntities ========");
-  for (let i = 0; i < Math.min(10, paperEntities.value.length); i++) {
-    console.log(paperEntities.value[i]);
-  }
+  PLExtAPI.networkTool.download(
+    "https://ftp.sjtu.edu.cn/ubuntu-cd/23.10.1/ubuntu-23.10-live-server-amd64.iso",
+    "/Users/administrator/Downloads/testfile"
+  );
+  // console.log("paperEntities ========");
+  // for (let i = 0; i < Math.min(10, paperEntities.value.length); i++) {
+  //   console.log(paperEntities.value[i]);
+  // }
 
-  console.log("tags ========");
-  console.log(tags.value);
+  // console.log("tags ========");
+  // console.log(tags.value);
 
-  console.log("folders ========");
-  console.log(folders.value);
+  // console.log("folders ========");
+  // console.log(folders.value);
 };
 const onNotifyInfoClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);

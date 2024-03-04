@@ -4,12 +4,12 @@ import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
+import { ILogService, LogService } from "@/common/services/log-service";
 import { Colors } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { IPaperService, PaperService } from "@/renderer/services/paper-service";
 import {
   ISchedulerService,

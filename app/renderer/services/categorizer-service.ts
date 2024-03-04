@@ -2,6 +2,7 @@ import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
@@ -14,7 +15,6 @@ import {
   PaperTag,
 } from "@/models/categorizer";
 import { OID } from "@/models/id";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   CategorizerRepository,

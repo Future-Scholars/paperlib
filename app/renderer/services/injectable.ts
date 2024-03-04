@@ -1,6 +1,7 @@
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
-import { NetworkTool } from "@/base/network-legacy";
+import { NetworkTool } from "@/base/network";
+import { LogService } from "@/common/services/log-service";
 import { PreferenceService } from "@/common/services/preference-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
 import { CacheService } from "@/renderer/services/cache-service";
@@ -10,7 +11,6 @@ import { DatabaseService } from "@/renderer/services/database-service";
 import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
 import { HookService } from "@/renderer/services/hook-service";
-import { LogService } from "@/renderer/services/log-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { QuerySentenceService } from "@/renderer/services/querysentence-service";
 import { ReferenceService } from "@/renderer/services/reference-service";

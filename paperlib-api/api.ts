@@ -1,6 +1,7 @@
 import { NetworkTool } from "@/base/network";
 import { NetworkTool as NetworkToolLegacy } from "@/base/network-legacy";
 import { Proxied } from "@/base/rpc/proxied";
+import { LogService } from "@/common/services/log-service";
 import { PreferenceService } from "@/common/services/preference-service";
 import { PLExtension } from "@/extension/base/pl-extension";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
@@ -16,7 +17,6 @@ import { DatabaseService } from "@/renderer/services/database-service";
 import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
 import { HookService } from "@/renderer/services/hook-service";
-import { LogService } from "@/renderer/services/log-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";

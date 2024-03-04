@@ -5,12 +5,12 @@ import Realm from "realm";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
 import { PaperEntityCache } from "@/models/paper-entity-cache";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 
 export const DATABASE_SCHEMA_VERSION = 2;

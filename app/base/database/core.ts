@@ -6,6 +6,7 @@ import { migrate, syncMigrate } from "@/base/database/migration";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
@@ -16,7 +17,6 @@ import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 import { FileService, IFileService } from "@/renderer/services/file-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 
 export const DATABASE_SCHEMA_VERSION = 10;
