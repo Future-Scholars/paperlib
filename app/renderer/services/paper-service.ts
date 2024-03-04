@@ -257,12 +257,14 @@ export class PaperService extends Eventable<IPaperServiceState> {
   /**
    * Update paper entities.
    * @param paperEntityDrafts - paper entity drafts
+   * @param updateCache - Update cache, default is true
    * @returns Updated paper entities
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update paper entities.", true, "PaperService", [])
   async update(
-    paperEntityDrafts: IPaperEntityCollection
+    paperEntityDrafts: IPaperEntityCollection,
+    updateCache: boolean = true
   ): Promise<IPaperEntityCollection> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
@@ -387,7 +389,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
     ) as IPaperEntityCollection;
 
     // Don't wait this
-    this._cacheService.updateFullTextCache(successfulEntityDrafts);
+    if (updateCache) {
+      this._cacheService.updateFullTextCache(successfulEntityDrafts);
+    }
 
     return successfulEntityDrafts;
   }
@@ -422,23 +426,15 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     paperEntityDrafts = paperEntityDrafts.map((paperEntityDraft) => {
       if (type === CategorizerType.PaperTag) {
-        paperEntityDraft.tags = paperEntityDraft.tags.filter((tag) => {
-          if (categorizer._id) {
-            return `${tag._id}` !== `${categorizer._id}`;
-          } else {
-            return tag.name !== categorizer.name;
-          }
-        });
+        paperEntityDraft.tags = paperEntityDraft.tags.filter(
+          (tag) => `${tag._id}` !== `${categorizer._id}`
+        );
 
         paperEntityDraft.tags.push(new PaperTag(categorizer));
       } else if (type === CategorizerType.PaperFolder) {
-        paperEntityDraft.folders = paperEntityDraft.folders.filter((folder) => {
-          if (categorizer._id) {
-            return `${folder._id}` !== `${categorizer._id}`;
-          } else {
-            return folder.name !== categorizer.name;
-          }
-        });
+        paperEntityDraft.folders = paperEntityDraft.folders.filter(
+          (folder) => `${folder._id}` !== `${categorizer._id}`
+        );
 
         paperEntityDraft.folders.push(new PaperFolder(categorizer));
       }
