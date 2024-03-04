@@ -422,15 +422,23 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     paperEntityDrafts = paperEntityDrafts.map((paperEntityDraft) => {
       if (type === CategorizerType.PaperTag) {
-        paperEntityDraft.tags = paperEntityDraft.tags.filter(
-          (tag) => `${tag._id}` !== `${categorizer._id}`
-        );
+        paperEntityDraft.tags = paperEntityDraft.tags.filter((tag) => {
+          if (categorizer._id) {
+            return `${tag._id}` !== `${categorizer._id}`;
+          } else {
+            return tag.name !== categorizer.name;
+          }
+        });
 
         paperEntityDraft.tags.push(new PaperTag(categorizer));
       } else if (type === CategorizerType.PaperFolder) {
-        paperEntityDraft.folders = paperEntityDraft.folders.filter(
-          (folder) => `${folder._id}` !== `${categorizer._id}`
-        );
+        paperEntityDraft.folders = paperEntityDraft.folders.filter((folder) => {
+          if (categorizer._id) {
+            return `${folder._id}` !== `${categorizer._id}`;
+          } else {
+            return folder.name !== categorizer.name;
+          }
+        });
 
         paperEntityDraft.folders.push(new PaperFolder(categorizer));
       }
