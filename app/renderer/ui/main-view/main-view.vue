@@ -162,7 +162,7 @@ const flagSelectedEntities = () => {
         return paperEntityDraft;
       }
     );
-    paperService.update(paperEntityDrafts);
+    paperService.update(paperEntityDrafts, false);
   }
 };
 

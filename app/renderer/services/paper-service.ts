@@ -442,7 +442,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       return paperEntityDraft;
     });
 
-    await this.update(paperEntityDrafts);
+    await this.update(paperEntityDrafts, false);
   }
 
   /**

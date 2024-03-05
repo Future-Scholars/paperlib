@@ -58,14 +58,15 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
-  paperService.update([new PaperEntity(editingPaperEntityDraft.value)]);
+  paperService.update([new PaperEntity(editingPaperEntityDraft.value)], false);
   onCloseClicked();
 };
 
 const onSaveAndScrapeClicked = async () => {
-  const savedPaperEntityDraft = await paperService.update([
-    new PaperEntity(editingPaperEntityDraft.value),
-  ]);
+  const savedPaperEntityDraft = await paperService.update(
+    [new PaperEntity(editingPaperEntityDraft.value)],
+    false
+  );
   paperService.scrape(savedPaperEntityDraft);
 };
 
