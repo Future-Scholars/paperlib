@@ -46,7 +46,7 @@ const fields = computed(() => {
 
     switch (fieldKey) {
       case "addTime": {
-        value = new Date(value).toLocaleString().slice(0, 10);
+        value = new Date(value).toLocaleDateString();
         break;
       }
       case "tags":
