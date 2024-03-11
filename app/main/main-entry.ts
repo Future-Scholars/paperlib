@@ -1,7 +1,7 @@
 import { app, globalShortcut } from "electron";
 import Store from "electron-store";
-import path from "node:path";
 import { release } from "os";
+import path from "path";
 
 import { InjectionContainer } from "@/base/injection/injection.ts";
 import { PreferenceService } from "@/common/services/preference-service.ts";
@@ -39,51 +39,6 @@ if (process.defaultApp) {
 } else {
   app.setAsDefaultProtocolClient("paperlib");
 }
-
-// Remove electron security warnings
-// This warning only shows in development mode
-// Read more on https://www.electronjs.org/docs/latest/tutorial/security
-// process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
-
-// let win: BrowserWindow | null = null;
-// let winPlugin: BrowserWindow | null = null;
-// let winSidework: BrowserWindow | null = null;
-
-// async function createWindow() {
-//   win = await createMainWindow(win, preference, winPlugin, winSidework);
-
-//   globalShortcut.register(
-//     (preference.get("shortcutPlugin") as string) || "CommandOrControl+Shift+I",
-//     async () => {
-//       // win?.blur();
-//       if (winPlugin === null || winPlugin?.isDestroyed()) {
-//         winPlugin = await createPluginWindow(winPlugin);
-//         winPlugin.on("ready-to-show", () => {
-//           setMainPluginCommunicationChannel(win, winPlugin);
-
-//           setWindowsSpecificStyles(winPlugin);
-//         });
-
-//         winPlugin.on("hide", () => {
-//           winPlugin?.setSize(600, 76);
-
-//           if (platform() === "darwin") {
-//             win?.hide();
-//             app.hide();
-//           }
-//         });
-//       }
-
-//       const { x, y } = screen.getCursorScreenPoint();
-//       const currentDisplay = screen.getDisplayNearestPoint({ x, y });
-//       const bounds = currentDisplay.bounds;
-//       const centerx = bounds.x + (bounds.width - 600) / 2;
-//       const centery = bounds.y + (bounds.height - 76) / 2;
-//       winPlugin?.setPosition(parseInt(`${centerx}`), parseInt(`${centery}`));
-//       winPlugin?.show();
-//     }
-//   );
-// }
 
 async function initialize() {
   // ============================================================
@@ -215,3 +170,31 @@ async function initialize() {
 }
 
 app.whenReady().then(initialize);
+
+app.on("open-url", (event, urlStr) => {
+  try {
+    const { protocol, hostname, pathname, search } = new URL(urlStr);
+
+    if (protocol === "paperlib:") {
+      const [apiGroup, serviceName, methodName] = hostname.split(".");
+
+      if (["PLAPI", "PLMainAPI", "PLExtAPI"].includes(apiGroup)) {
+        const args = JSON.parse(
+          decodeURIComponent(search.slice(1)).split("=")[1]
+        );
+        globalThis[apiGroup][serviceName][methodName](...args);
+      } else {
+        throw new Error("Invalid URL");
+      }
+    }
+  } catch (e) {
+    try {
+      PLAPI.logService.error(
+        "SchemeURL error",
+        `${(e as Error).message}\n${(e as Error).stack}`,
+        true,
+        "SchemeURL"
+      );
+    } catch (err) {}
+  }
+});
