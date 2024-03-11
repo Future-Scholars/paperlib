@@ -2,9 +2,9 @@
 import { BIconDash } from "bootstrap-icons-vue";
 import { ref } from "vue";
 
-import SelectBox from "./select-box.vue";
-import { useI18n } from "vue-i18n";
 import { onMounted } from "vue";
+import { useI18n } from "vue-i18n";
+import SelectBox from "./select-box.vue";
 
 const i18n = useI18n();
 
@@ -32,17 +32,17 @@ const parseInitFilter = () => {
   if (props.initFilter !== "") {
     const filter = props.initFilter.replace(/^\(/, "").replace(/\)$/, "");
     const comps = filter.split(" ");
-
-    if (comps.length === 3) {
-      selectedField.value = comps[0];
-      selectedOp.value = comps[1].toUpperCase().replaceAll("[C]", "[c]");
-      selectedValue.value = comps[2].replace(/^["']/, "").replace(/["']$/, "");
-    } else if (comps.length === 4) {
+    if (Array.from(Object.values(startOps.value)).includes(comps[0])) {
       selectedStartOp.value = comps[0].toUpperCase();
-      selectedField.value = comps[1];
-      selectedOp.value = comps[2].toUpperCase().replaceAll("[C]", "[c]");
-      selectedValue.value = comps[3].replace(/^["']/, "").replace(/["']$/, "");
     }
+    selectedField.value = comps[1];
+    selectedOp.value = comps[2].toUpperCase().replaceAll("[C]", "[c]");
+
+    selectedValue.value = comps
+      .slice(3)
+      .join(" ")
+      .replace(/^["']/, "")
+      .replace(/["']$/, "");
   }
 };
 
@@ -81,7 +81,8 @@ const constructFilter = () => {
         selectedField.value.includes("count") ||
         selectedField.value.includes("rating") ||
         selectedField.value.includes("flag") ||
-        selectedField.value.includes("addTime")
+        selectedField.value.includes("addTime") ||
+        selectedOp.value === "IN"
           ? selectedValue.value
           : `"${selectedValue.value}"`
       }`,
@@ -125,7 +126,7 @@ onMounted(() => {
     "<=": "<=",
     ">=": ">=",
     "!=": "!=",
-    [i18n.t("smartfilter.in")]: "in",
+    [i18n.t("smartfilter.in")]: "IN",
     [i18n.t("smartfilter.contains")]: "CONTAINS",
     [i18n.t("smartfilter.containsc")]: "CONTAINS[c]",
     [i18n.t("smartfilter.like")]: "LIKE",
