@@ -1,3 +1,9 @@
+# v3.0.0-beta.12 11/03 2024
+
+1. 新特性：再其他 App 中和 Paperlib 通信的 API：paperlib://APIGroup.serviceName.methodName/?args=\[...\]
+2. 改进: 添加了一个新的快捷键 `Ctrl/Cmd + s` 来保存当前编辑的论文。
+3. 修复：一个 smartfilter 编辑器的 Bug。致谢 @Rccubc
+
 # v3.0.0-beta.11 04/03 2024
 
 1. 改进：更好的网络代理工具。

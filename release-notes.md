@@ -1,5 +1,3 @@
-1. Enhance: better network tools for proxy.
-2. Enhance: log more information for the extension process.
-3. Fix: a file bug when removing a paper from the library.
-4. Fix: quicklook on Windows/Linux.
-5. Fix: some UI bugs.
+1. New Feature: API for other APPs: paperlib://APIGroup.serviceName.methodName/?args=\[...\]
+2. Enhance: add `Ctrl/CMD + s` shortcut for the editing window.
+3. Fix: a bug in smartfilter editor. Thanks @Rccubc
