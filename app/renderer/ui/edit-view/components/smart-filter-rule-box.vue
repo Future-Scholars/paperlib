@@ -2,9 +2,9 @@
 import { BIconDash } from "bootstrap-icons-vue";
 import { ref } from "vue";
 
-import SelectBox from "./select-box.vue";
-import { useI18n } from "vue-i18n";
 import { onMounted } from "vue";
+import { useI18n } from "vue-i18n";
+import SelectBox from "./select-box.vue";
 
 const i18n = useI18n();
 
@@ -33,6 +33,11 @@ const parseInitFilter = () => {
     const filter = props.initFilter.replace(/^\(/, "").replace(/\)$/, "");
     const comps = filter.split(" ");
 
+    if (comps.some(str => str.toLowerCase().includes('in'))) {
+      const selectedValueStartIndex = comps.findIndex(str => str.startsWith('{'));
+      const selectedValue = comps.slice(selectedValueStartIndex).join('');
+      comps.splice(selectedValueStartIndex, comps.length - selectedValueStartIndex, selectedValue)
+    }
     if (comps.length === 3) {
       selectedField.value = comps[0];
       selectedOp.value = comps[1].toUpperCase().replaceAll("[C]", "[c]");
@@ -77,13 +82,13 @@ const constructFilter = () => {
       selectedStartOp.value,
       selectedField.value,
       selectedOp.value,
-      `${
-        selectedField.value.includes("count") ||
+      `${selectedField.value.includes("count") ||
         selectedField.value.includes("rating") ||
         selectedField.value.includes("flag") ||
-        selectedField.value.includes("addTime")
-          ? selectedValue.value
-          : `"${selectedValue.value}"`
+        selectedField.value.includes("addTime") ||
+        selectedOp.value.includes("IN")
+        ? selectedValue.value
+        : `"${selectedValue.value}"`
       }`,
     ]
       .filter((v) => v)
@@ -125,7 +130,7 @@ onMounted(() => {
     "<=": "<=",
     ">=": ">=",
     "!=": "!=",
-    [i18n.t("smartfilter.in")]: "in",
+    [i18n.t("smartfilter.in")]: "IN",
     [i18n.t("smartfilter.contains")]: "CONTAINS",
     [i18n.t("smartfilter.containsc")]: "CONTAINS[c]",
     [i18n.t("smartfilter.like")]: "LIKE",
@@ -139,55 +144,25 @@ onMounted(() => {
 
 <template>
   <div class="flex space-x-1">
-    <div
-      class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-10 flex-none"
-    >
-      <SelectBox
-        class="w-full"
-        :placeholder="$t('smartfilter.startops')"
-        :options="startOps"
-        :value="selectedStartOp"
-        @event:change="onSelectStartOp"
-      />
+    <div class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-10 flex-none">
+      <SelectBox class="w-full" :placeholder="$t('smartfilter.startops')" :options="startOps" :value="selectedStartOp"
+        @event:change="onSelectStartOp" />
     </div>
-    <div
-      class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-10 flex-none"
-    >
-      <SelectBox
-        class="w-full"
-        :placeholder="$t('smartfilter.fields')"
-        :options="fields"
-        :value="selectedField"
-        @event:change="onSelectField"
-      />
+    <div class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-10 flex-none">
+      <SelectBox class="w-full" :placeholder="$t('smartfilter.fields')" :options="fields" :value="selectedField"
+        @event:change="onSelectField" />
     </div>
-    <div
-      class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-10 flex-none"
-    >
-      <SelectBox
-        class="w-full"
-        :placeholder="$t('smartfilter.operators')"
-        :options="ops"
-        :value="selectedOp"
-        @event:change="onSelectOp"
-      />
+    <div class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/6 flex h-10 flex-none">
+      <SelectBox class="w-full" :placeholder="$t('smartfilter.operators')" :options="ops" :value="selectedOp"
+        @event:change="onSelectOp" />
     </div>
-    <div
-      class="rounded-md bg-neutral-200 dark:bg-neutral-700 flex h-10 px-3 grow"
-    >
-      <input
-        class="text-xs bg-transparent focus:outline-none dark:text-neutral-300"
-        type="text"
-        :placeholder="$t('smartfilter.value')"
-        v-model="selectedValue"
-        :name="selectedValue"
-        @input="onInput"
-      />
+    <div class="rounded-md bg-neutral-200 dark:bg-neutral-700 flex h-10 px-3 grow">
+      <input class="text-xs bg-transparent focus:outline-none dark:text-neutral-300" type="text"
+        :placeholder="$t('smartfilter.value')" v-model="selectedValue" :name="selectedValue" @input="onInput" />
     </div>
     <div
       class="rounded-md bg-neutral-200 dark:bg-neutral-700 w-1/8 px-2 flex hover:bg-neutral-300 dark:hover:bg-neutral-600 cursor-pointer"
-      @click="emits('event:delete-click')"
-    >
+      @click="emits('event:delete-click')">
       <BIconDash class="my-auto" />
     </div>
   </div>
