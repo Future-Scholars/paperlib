@@ -71,6 +71,9 @@ const onSaveAndScrapeClicked = async () => {
 };
 
 disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
+disposable(
+  shortcutService.registerInInputField("ctrlmeta+KeyS", onSaveClicked)
+);
 
 onMounted(() => {
   PLMainAPI.menuService.disableAll();
