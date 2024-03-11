@@ -34,15 +34,24 @@ const parseInitFilter = () => {
     const comps = filter.split(" ");
     if (Array.from(Object.values(startOps.value)).includes(comps[0])) {
       selectedStartOp.value = comps[0].toUpperCase();
-    }
-    selectedField.value = comps[1];
-    selectedOp.value = comps[2].toUpperCase().replaceAll("[C]", "[c]");
+      selectedField.value = comps[1];
+      selectedOp.value = comps[2].toUpperCase().replaceAll("[C]", "[c]");
 
-    selectedValue.value = comps
-      .slice(3)
-      .join(" ")
-      .replace(/^["']/, "")
-      .replace(/["']$/, "");
+      selectedValue.value = comps
+        .slice(3)
+        .join(" ")
+        .replace(/^["']/, "")
+        .replace(/["']$/, "");
+    } else {
+      selectedField.value = comps[0];
+      selectedOp.value = comps[1].toUpperCase().replaceAll("[C]", "[c]");
+
+      selectedValue.value = comps
+        .slice(2)
+        .join(" ")
+        .replace(/^["']/, "")
+        .replace(/["']$/, "");
+    }
   }
 };
 
