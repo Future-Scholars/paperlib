@@ -258,13 +258,15 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * Update paper entities.
    * @param paperEntityDrafts - paper entity drafts
    * @param updateCache - Update cache, default is true
+   * @param isUpdate - Is update, default is false, if true, it is insert. This is for PDF file operation.
    * @returns Updated paper entities
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update paper entities.", true, "PaperService", [])
   async update(
     paperEntityDrafts: IPaperEntityCollection,
-    updateCache: boolean = true
+    updateCache: boolean = true,
+    isUpdate = false
   ): Promise<IPaperEntityCollection> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
@@ -300,7 +302,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
         return await this._fileService.move(
           paperEntityDraft,
-          this._preferenceService.get("sourceFileOperation") === "cut"
+          this._preferenceService.get("sourceFileOperation") === "cut" ||
+            isUpdate,
+          isUpdate
         );
       },
       async (paperEntityDraft) => {

@@ -13,26 +13,37 @@ const darkMode = ref(false);
 
 const language = ref("en-GB");
 
+const isShowSlogan = ref(true);
+
 onMounted(async () => {
   darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
   language.value = `${prefState.language}`;
+
+  setTimeout(() => {
+    isShowSlogan.value = false;
+  }, 2500);
 });
 </script>
 
 <style>
-#release-note ul {
-  list-style-type: disc;
+@keyframes typing {
+  from {
+    width: 0;
+  }
 }
 
-#history-release-note h2 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.2em;
+@keyframes caret {
+  50% {
+    border-right-color: transparent;
+  }
 }
 
-#history-release-note ol {
-  margin-bottom: 2em;
-  list-style-type: circle;
+.typing-style {
+  width: 24ch;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 0.05em solid;
+  animation: typing 2s steps(15), caret 0.5s steps(1) infinite;
 }
 </style>
 
@@ -41,7 +52,13 @@ onMounted(async () => {
     id="welcome-view"
     class="absolute w-full h-full top-0 left-0 bg-white dark:bg-neutral-800 z-50 overflow-auto dark:text-neutral-200"
   >
-    <div class="w-[45rem] px-3 mx-auto my-20 flex flex-col">
+    <div
+      class="typing-style text-xl font-bold font-mono mx-auto my-40"
+      v-if="isShowSlogan"
+    >
+      WELCOME TO PAPERLIB 3.0
+    </div>
+    <div class="w-[45rem] px-3 mx-auto my-20 flex flex-col" v-else>
       <div class="mx-auto font-semibold mb-8 space-x-2 flex">
         <span class="text-3xl my-auto">PAPERLIB</span>
         <span

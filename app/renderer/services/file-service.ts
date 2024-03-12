@@ -140,7 +140,7 @@ export class FileService extends Eventable<IFileServiceState> {
       }
 
       let title =
-        paperEntity.title.replace(/[^\p{L}|\s]/gu, "").replace(/\s/g, "_") ||
+        paperEntity.title.replace(/[^\p{L}\s\d]/gu, "").replace(/\s/g, "_") ||
         "untitled";
       const firstCharTitle =
         title

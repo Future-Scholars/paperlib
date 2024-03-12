@@ -11,9 +11,9 @@ const defaultExtensions = ref({
 });
 
 const recommandedExtensions = ref({
-  "@future-scholars/paperlib-msword-extension": "f",
-  "@future-scholars/paperlib-preview-extension": "f",
+  "@future-scholars/paperlib-ai-summary-extension": "f",
   "@future-scholars/paperlib-citation-count-extension": "f",
+  "@future-scholars/paperlib-preview-extension": "f",
 });
 
 const installedExtensions = ref<{
