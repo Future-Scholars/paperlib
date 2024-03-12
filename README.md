@@ -12,7 +12,6 @@ An open-source academic paper management tool.
 Join our <a href="https://discord.gg/4unrSRjcM9">Discord community</a>!
 </p>
 
-
 <p align='center'>
 <a href='https://paperlib.app/en/'>Webpage</a> | <a href='https://paperlib.app/en/download.html'>Download</a> | <a href='https://paperlib.app/en/doc/getting-started.html'>Quick Start</a> | <a href='https://github.com/users/Future-Scholars/projects/1/views/1'>Roadmap</a>
 </p>
@@ -21,10 +20,9 @@ Join our <a href="https://discord.gg/4unrSRjcM9">Discord community</a>!
 
 ---
 
-
 📣 **I'm looking for someone to work with me on developing Paperlib.** 📣
 
- If you are interested please contact me. 
+If you are interested please contact me.
 
 ## Introduction
 
@@ -40,41 +38,44 @@ What we need may be to: import a paper, scrape the metadata of it as accurately 
 
 That is Paperlib.
 
-
 ## Highlights
--   Scrape paper’s metadata with many scrapers. Support writing your metadata scrapers. Tailored for many disciplines (still growing):
-    - [x] **General**
-        - [x] arXiv
-        - [x] doi.org
-        - [x] Semantic Scholar
-        - [x] Crossref
-        - [x] Google Scholar
-        - [x] Springer
-        - [x] Elseivier Scopus
-    - [x] **Computer Science and Electronic Engineering**
-        - [x] openreview.net
-        - [x] IEEE
-        - [x] DBLP
-        - [x] Paper with Code (scrape available in the code repository)
-    - [x] **Earth Science**
-    - [x] **Physics**
-        - [x] NASA Astrophysics Data System
-        - [x] SPIE: Inte. Society for Optics and Photonics
-    - [ ] **Chemistry**
-        - [x] ChemRxiv
-    - [ ] **Biology**
-        - [x] BioRxiv / MedRxiv
 
-    - ...
--   Fulltext and advanced search.
--   Smart filter.
--   Rating, flag, tag, folder and markdown/plain text note.
--   RSS feed subscription to follow the newest publications on your research topic.
--   Locate and download PDF files from the web.
--   macOS spotlight-like plugin to copy-paste references easily when writing a draft paper. Also supports MS Word.
--   Cloud sync, supports macOS, Linux, and Windows.
--   Beautiful and clean UI.
--   Extensible. You can write your own extensions.
+- Scrape paper’s metadata with many scrapers. Support writing your metadata scrapers. Tailored for many disciplines (still growing):
+
+  - [x] **General**
+    - [x] arXiv
+    - [x] doi.org
+    - [x] Semantic Scholar
+    - [x] Crossref
+    - [x] Google Scholar
+    - [x] Springer
+    - [x] Elseivier Scopus
+  - [x] **Computer Science and Electronic Engineering**
+    - [x] openreview.net
+    - [x] IEEE
+    - [x] DBLP
+    - [x] Paper with Code (scrape available in the code repository)
+  - [x] **Earth Science**
+  - [x] **Physics**
+    - [x] NASA Astrophysics Data System
+    - [x] SPIE: Inte. Society for Optics and Photonics
+  - [ ] **Chemistry**
+    - [x] ChemRxiv
+  - [ ] **Biology**
+
+    - [x] BioRxiv / MedRxiv
+
+  - ...
+
+- Fulltext and advanced search.
+- Smart filter.
+- Rating, flag, tag, folder and markdown/plain text note.
+- RSS feed subscription to follow the newest publications on your research topic.
+- Locate and download PDF files from the web.
+- macOS spotlight-like plugin to copy-paste references easily when writing a draft paper. Also supports MS Word.
+- Cloud sync, supports macOS, Linux, and Windows.
+- Beautiful and clean UI.
+- Extensible. You can write your own extensions.
 
 ## Download and Install
 
@@ -106,8 +107,8 @@ See [here](https://paperlib.app/en/download-linux.html).
 ## Sponsors
 
 ### Apple Silicon Build
-<img src="https://user-images.githubusercontent.com/14183213/179353324-42ee9831-68a8-4816-97f5-cc7be7189ce8.png" style="width: 160px"/>
 
+<img src="https://user-images.githubusercontent.com/14183213/179353324-42ee9831-68a8-4816-97f5-cc7be7189ce8.png" style="width: 160px"/>
 
 ## Contribute to Paperlib
 
