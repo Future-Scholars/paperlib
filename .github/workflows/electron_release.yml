@@ -2,7 +2,8 @@ name: Build and Release (electron)
 
 on:
   push:
-    tags: [release-electron*]
+    tags: |
+      - release*
 
 permissions:
   contents: write
