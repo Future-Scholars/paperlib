@@ -1,11 +1,10 @@
 name: End-to-End Testing
 
-# TODO: update all yml for 3.0
-on:
-  pull_request_target:
-    types: [opened, reopened, synchronize]
-    branches:
-      - master
+# on:
+#   pull_request_target:
+#     types: [opened, reopened, synchronize]
+#     branches:
+#       - master
 
 jobs:
   e2e_test_mac_arm:
