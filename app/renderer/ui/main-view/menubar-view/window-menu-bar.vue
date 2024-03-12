@@ -380,7 +380,7 @@ const onMaximizeClicked = () => {
         @click="onMaximizeClicked"
       >
         <div
-          class="m-auto mt-[14px] w-[10px] h-[10px] border-[1.5px] border-neutral-500"
+          class="m-auto mt-[18px] w-[10px] h-[10px] border-[1.5px] border-neutral-500"
         ></div>
       </div>
       <div
