@@ -22,6 +22,7 @@ import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import PresettingView from "./presetting-view/presetting-view.vue";
 import WhatsNewView from "./whats-new-view/whats-new-view.vue";
+import WelcomeView from "./welcome-view/welcome-view.vue";
 import { PaperSmartFilterType } from "@/models/smart-filter";
 
 // ================================
@@ -352,20 +353,16 @@ const onReloadAllClicked = async () => {
   await reloadPaperSmartFilters();
 };
 const onPrintClicked = () => {
-  PLExtAPI.networkTool.download(
-    "https://ftp.sjtu.edu.cn/ubuntu-cd/23.10.1/ubuntu-23.10-live-server-amd64.iso",
-    "/Users/administrator/Downloads/testfile"
-  );
-  // console.log("paperEntities ========");
-  // for (let i = 0; i < Math.min(10, paperEntities.value.length); i++) {
-  //   console.log(paperEntities.value[i]);
-  // }
+  console.log("paperEntities ========");
+  for (let i = 0; i < Math.min(10, paperEntities.value.length); i++) {
+    console.log(paperEntities.value[i]);
+  }
 
-  // console.log("tags ========");
-  // console.log(tags.value);
+  console.log("tags ========");
+  console.log(tags.value);
 
-  // console.log("folders ========");
-  // console.log(folders.value);
+  console.log("folders ========");
+  console.log(folders.value);
 };
 const onNotifyInfoClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
@@ -503,6 +500,17 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <WhatsNewView v-if="isWhatsNewShown" />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <WelcomeView v-if="prefState.showWelcome" />
     </Transition>
   </div>
 </template>
