@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main
+    tags: [release-electron*]
+  workflow_dispatch:
 
 jobs:
   mac_x86_deploy:
