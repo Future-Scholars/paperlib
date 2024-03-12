@@ -1,0 +1,288 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  mac_x86_deploy:
+    runs-on: macos-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      matrix:
+        node-versions: ["18.16.1"]
+
+    steps:
+      - name: "Checkout Project"
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          brew install jq
+          VERSION=$(cat package.json | jq .version)
+          export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
+          export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
+
+      - name: "Import Certificates"
+        run: |
+          echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output certificate.p12
+          export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+          security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-versions }}
+
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: "Install Node Module"
+        run: |
+          pnpm install
+
+      - name: "Build and Package"
+        run: pnpm run build-mac-x86
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Oracle Cloud CLI
+        run: |
+          brew install oci-cli && mkdir ~/.oci
+          echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode --output config
+          mv config ~/.oci
+          echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode --output oraclekey.cer
+          mv oraclekey.cer ~/.oci
+
+      - name: Upload to Oracle Storage
+        run: |
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/Paperlib_${{ env.VERSION }}.zip
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/Paperlib_${{ env.VERSION }}.zip.blockmap
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/Paperlib_${{ env.VERSION }}.dmg
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/latest.dmg
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/Paperlib_${{ env.VERSION }}.dmg.blockmap
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/latest-mac.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/latest-mac.yml
+
+  mac_arm_deploy:
+    runs-on: self-hosted
+
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      matrix:
+        node-versions: ["18.16.1"]
+
+    steps:
+      - name: "Checkout Project"
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          brew install jq
+          VERSION=$(cat package.json | jq .version)
+          export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
+          export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
+
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: "Install Node Module"
+        run: |
+          pnpm install
+
+      - name: "Build and Package"
+        run: |
+          pnpm run build-mac-arm
+          cp ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}_arm.dmg
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}_arm.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Oracle Cloud CLI
+        run: |
+          brew install oci-cli && mkdir -p ~/.oci
+          echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode -o config
+          mv config ~/.oci
+          echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode -o oraclekey.cer
+          mv oraclekey.cer ~/.oci
+
+      - name: Upload to Oracle Storage
+        run: |
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/Paperlib_${{ env.VERSION }}.zip
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/Paperlib_${{ env.VERSION }}.zip.blockmap
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/Paperlib_${{ env.VERSION }}.dmg
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/latest.dmg
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/Paperlib_${{ env.VERSION }}.dmg.blockmap
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/latest-mac.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/latest-mac.yml
+
+      - name: Clean Up
+        run: |
+          rm -rf ./*
+
+  win_deploy:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      matrix:
+        node-versions: ["18.16.1"]
+
+    steps:
+      - name: "Checkout Project"
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          curl -L -o /usr/bin/jq.exe https://github.com/stedolan/jq/releases/latest/download/jq-win64.exe
+          VERSION=$(cat package.json | jq .version)
+          export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
+          export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
+
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-versions }}
+
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: "Install Node Module"
+        run: |
+          pnpm install
+
+      - name: "Build and Package"
+        run: pnpm run build-win
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Oracle Cloud CLI
+        run: |
+          pip install cffi
+          curl https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1 --output install.ps1
+          powershell ./install.ps1 -AcceptAllDefaults
+          mkdir ~/.oci
+          echo ${{ secrets.OCI_CFG_DATA }} > config.secret
+          base64 --decode config.secret > config
+          mv config ~/.oci
+          echo ${{ secrets.OCI_KEY_DATA }} > oraclekey.cer.secret
+          base64 --decode oraclekey.cer.secret > oraclekey.cer
+          mv oraclekey.cer ~/.oci
+
+      - name: Upload to Oracle Storage
+        run: |
+          powershell "Compress-Archive -Path '.\release\${{ env.VERSION }}\Paperlib_${{ env.VERSION }}.exe' -DestinationPath '.\latest.zip'"
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './latest.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/latest.zip'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/Paperlib_${{ env.VERSION }}.exe'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-win/latest.exe
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/Paperlib_${{ env.VERSION }}.exe.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/latest.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-win/latest.yml
+
+  linux_deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      matrix:
+        node-versions: ["18.16.1"]
+
+    steps:
+      - name: "Checkout Project"
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          sudo apt install -y jq
+          VERSION=$(cat package.json | jq .version)
+          export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
+          export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
+
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: "Install Node Module"
+        run: |
+          pnpm install
+
+      - name: "Build and Package"
+        run: pnpm run build-linux
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Oracle Cloud CLI
+        run: |
+          curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
+          bash ./install.sh --accept-all-defaults
+          mkdir ~/.oci
+          echo -n ${{ secrets.OCI_CFG_DATA }} | base64 --decode > config
+          mv config ~/.oci
+          echo -n ${{ secrets.OCI_KEY_DATA }} | base64 --decode > oraclekey.cer
+          mv oraclekey.cer ~/.oci
+
+      - name: Upload to Oracle Storage
+        run: |
+          cp ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.AppImage ./release/${{ env.VERSION }}/Paperlib_latest.AppImage
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.AppImage --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-linux/Paperlib_${{ env.VERSION }}.AppImage
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_latest.AppImage --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-linux/Paperlib_latest.AppImage
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/latest-linux.yml --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-linux/latest-linux.yml
