@@ -272,14 +272,25 @@ export class WebDavFileBackend implements IFileBackend {
   }
 
   async _removeFileCache(url: string) {
-    const basename = path.basename(url);
-    const localURL = constructFileURL(
-      basename,
-      true,
-      false,
-      this._appLibFolder
-    );
-    await fsPromise.unlink(localURL);
+    try {
+      const basename = path.basename(url);
+      const localURL = constructFileURL(
+        basename,
+        true,
+        false,
+        this._appLibFolder
+      );
+      await fsPromise.unlink(localURL);
+    } catch (error) {
+      logService?.warn(
+        "Failed to remove file cache",
+        `url: ${url}, error: ${(error as Error).message}\n${
+          (error as Error).stack
+        }`,
+        false,
+        "WebDAVBackend"
+      );
+    }
   }
 
   async removeFile(sourceURL: string): Promise<void> {
