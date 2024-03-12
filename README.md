@@ -74,6 +74,7 @@ That is Paperlib.
 -   macOS spotlight-like plugin to copy-paste references easily when writing a draft paper. Also supports MS Word.
 -   Cloud sync, supports macOS, Linux, and Windows.
 -   Beautiful and clean UI.
+-   Extensible. You can write your own extensions.
 
 ## Download and Install
 
@@ -110,8 +111,9 @@ See [here](https://paperlib.app/en/download-linux.html).
 
 ## Contribute to Paperlib
 
-### Metadata Scrapers
-My research topic is computer vision, which is only one piece of the puzzle of computer science. I tried to contact some friends to provide information about the paper metadata database in different disciplines. However, However, it does not cover all disciplines. If the [builtin metadata scrapers](https://github.com/Future-Scholars/paperlib/tree/master/app/repositories/scraper-repository/scrapers) are not suitable for your research, feel free to open an issue or a pull request.
+### Extensions
+
+Please refer to [link](https://paperlib.app/en/extension-doc/) for the development document.
 
 ### New Features
 
