@@ -328,6 +328,14 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
                     name: "FeedEntity",
                   }
                 );
+                subs.add(
+                  realm
+                    .objects("PaperPaperSmartFilter")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperPaperSmartFilter",
+                  }
+                );
               },
               rerunOnOpen: true,
             },
