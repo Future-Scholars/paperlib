@@ -563,6 +563,13 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
           };
           keywords: string[];
         };
+        score: {
+          detail: {
+            quality: number;
+            popularity: number;
+            maintenance: number;
+          };
+        };
       }[];
 
       const extensions: {
@@ -576,6 +583,10 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
           homepage?: string;
         };
       } = {};
+
+      packages.sort((a, b) => {
+        return b.score.detail.popularity - a.score.detail.popularity;
+      });
 
       for (const pkg of packages) {
         if (!pkg.package.keywords.includes("paperlib")) {
