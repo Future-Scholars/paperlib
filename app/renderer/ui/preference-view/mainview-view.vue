@@ -169,6 +169,7 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
       :active="false"
       :categorizer-sort-by="prefState.sidebarSortBy"
       :categorizer-sort-order="prefState.sidebarSortOrder"
+      :height="{ normal: 64, large: 72, larger: 78 }[prefState.fontsize]"
     />
 
     <TableItem

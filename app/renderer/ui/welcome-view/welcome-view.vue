@@ -62,7 +62,7 @@ onMounted(async () => {
       <div class="mx-auto font-semibold mb-8 space-x-2 flex">
         <span class="text-3xl my-auto">PAPERLIB</span>
         <span
-          class="text-xl bg-neutral-700 text-white rounded-md px-2 py-1 my-auto"
+          class="text-xl bg-neutral-700 text-white dark:bg-neutral-300 dark:text-neutral-800 rounded-md px-2 py-1 my-auto"
           >3.0</span
         >
       </div>

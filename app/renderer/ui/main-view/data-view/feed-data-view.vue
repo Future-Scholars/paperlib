@@ -50,7 +50,7 @@ const computeFieldTemplates = () => {
 
   // 2. Compute field templates.
   const templateTypes = {
-    title: "html",
+    title: "html-read",
   };
 
   // 3. Add rest width to the first field.

@@ -33,6 +33,10 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  read: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const fields = computed(() => {
@@ -149,6 +153,17 @@ const fields = computed(() => {
           :calss="active ? 'text-white' : ''"
           v-if="field.value"
         />
+      </span>
+      <span
+        class="my-auto truncate flex"
+        v-else-if="field.type === 'html-read'"
+      >
+        <div
+          class="my-auto h-1.5 w-1.5 rounded-md flex-none mr-1"
+          :class="active ? 'bg-red-400' : 'bg-red-500 '"
+          v-if="!read"
+        />
+        <span class="my-auto truncate" v-html="field.value"> </span>
       </span>
       <span class="my-auto truncate" v-else>
         {{ field.value }}

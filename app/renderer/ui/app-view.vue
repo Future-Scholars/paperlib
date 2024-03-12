@@ -35,7 +35,6 @@ const prefState = preferenceService.useState();
 // ================================
 // Data
 // ================================
-// TODO: Test performance of numerous data
 const paperEntities: Ref<IPaperEntityCollection> = ref([]);
 provide(
   "paperEntities",
@@ -289,6 +288,12 @@ disposable(
 disposable(
   preferenceService.onChanged("fontsize", (newValue) => {
     changeFontsize(newValue.value);
+  })
+);
+
+disposable(
+  preferenceService.onChanged("sourceFileOperation", (newValue) => {
+    fileService.initialize();
   })
 );
 

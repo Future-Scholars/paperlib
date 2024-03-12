@@ -6,8 +6,6 @@ import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 
-// TODO: replace all '/' with '-'
-
 export function migrate(oldRealm: Realm, newRealm: Realm) {
   const oldVersion = oldRealm.schemaVersion;
   // only apply this change if upgrading to schemaVersion 2
@@ -128,6 +126,7 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
 
         tag.children = [];
         tag.color = oldTag.color || "blue";
+        tag.name = tag.name.replaceAll("/", "-");
         tagRoot.children.push(tag);
         tag.count = tag.linkingObjects<PaperEntity>(
           PaperEntity.schema.name,
@@ -164,6 +163,7 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
 
         folder.children = [];
         folder.color = oldFolder.color || "blue";
+        folder.name = folder.name.replaceAll("/", "-");
         folderRoot.children.push(folder);
         folder.count = folder.linkingObjects<PaperEntity>(
           PaperEntity.schema.name,
@@ -208,6 +208,7 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
 
         smartFilter.children = [];
         smartFilter.color = oldSmartFilter.color || "blue";
+        smartFilter.name = smartFilter.name.replaceAll("/", "-");
         smartFilterRoot.children.push(smartFilter);
       }
     }
@@ -246,6 +247,7 @@ export function syncMigrate(
 
       tag.children = [];
       tag.color = tag.color || "blue";
+      tag.name = tag.name.replaceAll("/", "-");
       tagRoot.children.push(tag);
       tag.count = tag.linkingObjects<PaperEntity>(
         PaperEntity.schema.name,
@@ -277,6 +279,7 @@ export function syncMigrate(
 
       folder.children = [];
       folder.color = folder.color || "blue";
+      folder.name = folder.name.replaceAll("/", "-");
       folderRoot.children.push(folder);
       folder.count = folder.linkingObjects<PaperEntity>(
         PaperEntity.schema.name,
@@ -325,7 +328,7 @@ export function syncMigrate(
           {
             _id: new ObjectId(),
             _partition: partition,
-            name: smartFilter.name,
+            name: smartFilter.name.replaceAll("/", "-"),
             color: smartFilter.color || "blue",
             filter: smartFilter.filter || "true",
             children: [],

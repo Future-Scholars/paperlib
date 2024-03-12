@@ -28,16 +28,30 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
     if (paperSmartFilter instanceof Realm.Object) {
       return paperSmartFilter as IPaperSmartFilterRealmObject;
     } else {
-      if (paperSmartFilter.name === "PaperSmartFilters") {
+      if (paperSmartFilter.name === "SmartFilters") {
         return realm
           .objects<PaperSmartFilter>("PaperSmartFilter")
-          .filtered(`name == "Categorizer"`)[0] as IPaperSmartFilterRealmObject;
+          .filtered(
+            `name == "SmartFilters"`
+          )[0] as IPaperSmartFilterRealmObject;
       }
 
-      const object = realm.objectForPrimaryKey<PaperSmartFilter>(
-        PaperSmartFilter.schema.name,
-        new Realm.BSON.ObjectId(paperSmartFilter._id)
-      );
+      let object: IPaperSmartFilterObject | null;
+      if (paperSmartFilter._id) {
+        object = realm.objectForPrimaryKey<PaperSmartFilter>(
+          PaperSmartFilter.schema.name,
+          new Realm.BSON.ObjectId(paperSmartFilter._id)
+        );
+      } else {
+        const objects = realm
+          .objects<PaperSmartFilter>(PaperSmartFilter.schema.name)
+          .filtered(`name == "${paperSmartFilter.name}"`);
+        if (objects.length > 0) {
+          object = objects[0];
+        } else {
+          object = null;
+        }
+      }
 
       return object as IPaperSmartFilterRealmObject | null;
     }
@@ -249,6 +263,7 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
           smartfilter._partition = partition;
         }
         const newObject = realm.create<PaperSmartFilter>(type, smartfilter);
+        console.log(parentObject);
         if (parentObject) {
           // concat parent name
           if (parentObject.name && parentObject.name !== "SmartFilters") {

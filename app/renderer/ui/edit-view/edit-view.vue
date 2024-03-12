@@ -138,7 +138,7 @@ onUnmounted(() => {
                 :value="editingPaperEntityDraft.pubType"
                 @event:change="
                   (value: any) => {
-                    editingPaperEntityDraft.pubType = value;
+                    editingPaperEntityDraft.pubType = parseInt(value);
                   }
                 "
               />

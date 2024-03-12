@@ -1,5 +1,13 @@
 export interface ItemField {
-  type: "string" | "boolean" | "html" | "flag" | "rating" | "file" | "code";
+  type:
+    | "string"
+    | "boolean"
+    | "html"
+    | "flag"
+    | "rating"
+    | "file"
+    | "code"
+    | "html-read";
   value: any;
   width: number;
 }

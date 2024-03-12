@@ -176,7 +176,7 @@ const onItemFileDraged = async (selectedIndex: number[]) => {
 };
 
 const onTableHeaderClicked = (key: string) => {
-  if (key === "tags" || key === "folders") {
+  if (key === "tags" || key === "folders" || key == "codes") {
     return;
   }
   preferenceService.set({ mainviewSortBy: key });

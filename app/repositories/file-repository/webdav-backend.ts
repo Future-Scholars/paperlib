@@ -28,7 +28,6 @@ export class WebDavFileBackend implements IFileBackend {
     this._webdavClient = null;
 
     this._appLibFolder = appLibFolder;
-    // TODO: should we use this?
     this._fileMoveOperation = fileMoveOperation;
 
     this._webdavURL = webdavURL;

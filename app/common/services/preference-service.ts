@@ -240,7 +240,6 @@ function _migrate(
     }
   }
 
-  // TODO: check this one.
   if (prevVersion <= 1) {
     // depracated data field settings.
     const keyMap = {

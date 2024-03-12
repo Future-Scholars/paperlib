@@ -152,6 +152,7 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
         :field-templates="fieldTemplates"
         :active="selectedIndex.indexOf(index) >= 0"
         :striped="index % 2 === 0"
+        :read="item.read !== undefined ? item.read : true"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"

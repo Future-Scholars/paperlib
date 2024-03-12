@@ -315,7 +315,9 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
                   : curParent.name
               }`,
               `${categorizer.name}`,
-            ].join("/");
+            ]
+              .filter((x) => x)
+              .join("/");
           }
         }
 

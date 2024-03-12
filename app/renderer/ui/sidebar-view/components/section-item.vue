@@ -52,7 +52,7 @@ const onNameInputBlured = () => {
 
 <template>
   <div
-    class="w-full flex justify-between rounded-md pl-2 pr-1 cursor-pointer space-x-2"
+    class="w-full flex justify-between rounded-md pl-5 pr-1 cursor-pointer space-x-2"
     :class="{
       'bg-neutral-400 bg-opacity-30': active,
       'h-6': compact,

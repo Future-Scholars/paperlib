@@ -137,7 +137,6 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
 
     paperEntity._partition = paperEntity._partition || "";
     paperEntity.addTime = paperEntity.addTime || new Date();
-    // TODO: if it should be a string, do something like this:
     paperEntity.title = `${paperEntity.title}` || "";
     paperEntity.authors = paperEntity.authors || "";
     paperEntity.publication = paperEntity.publication || "";

@@ -300,7 +300,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     }
     const updatedFeeds = await this.update(feeds);
 
-    this.refresh(undefined, updatedFeeds);
+    await this.refresh(undefined, updatedFeeds);
   }
 
   /**

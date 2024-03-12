@@ -206,8 +206,14 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
     smartfilter: PaperSmartFilter,
     parentSmartfilter?: PaperSmartFilter
   ) {
-    if (!smartfilter.name || smartfilter.name?.includes("/")) {
-      throw new Error("Invalid name, name cannot be empty or contain '/'");
+    if (
+      !smartfilter.name ||
+      smartfilter.name?.includes("/") ||
+      smartfilter.name === "SmartFilters"
+    ) {
+      throw new Error(
+        "Invalid name, name cannot be empty, 'SmartFilters', or contain '/'"
+      );
     }
 
     return this._paperSmartFilterRepository.update(
@@ -227,22 +233,47 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
     "DatabaseService"
   )
   async migrateLocaltoCloud() {
-    // const localConfig = await this._databaseCore.getLocalConfig(false);
-    // const localRealm = new Realm(localConfig);
-    // const entities = localRealm.objects<PaperSmartFilter>(
-    //   PaperSmartFilter.schema.name
-    // );
-    // for (const entity of entities) {
-    //   await this.update(
-    //     new PaperSmartFilter(entity),
-    //     PaperSmartFilter.schema.name
-    //   );
-    // }
-    // this._logService.info(
-    //   `Migrated ${entities.length} smartfilter(s) to cloud database.`,
-    //   "",
-    //   true,
-    //   "SmartFilterService"
-    // );
+    const localConfig = await this._databaseCore.getLocalConfig(false);
+    const localRealm = new Realm(localConfig);
+
+    const rootSmartFilter = localRealm
+      .objects<PaperSmartFilter>(PaperSmartFilter.schema.name)
+      .filtered("name == 'SmartFilters'");
+
+    const _migrate = async (
+      type: PaperSmartFilterType,
+      smartfilter: PaperSmartFilter,
+      parent?: PaperSmartFilter
+    ) => {
+      const migrateSmartFilter = new PaperSmartFilter();
+      migrateSmartFilter._id = smartfilter._id;
+      migrateSmartFilter.name = smartfilter.name.split("/").pop() as string;
+      migrateSmartFilter.color = smartfilter.color;
+      migrateSmartFilter.filter = smartfilter.filter;
+      await this.update(
+        type,
+        migrateSmartFilter,
+        new PaperSmartFilter({ _id: parent?._id, name: parent?.name })
+      );
+
+      smartfilter.children.forEach(async (child) => {
+        await _migrate(type, child, migrateSmartFilter);
+      });
+    };
+
+    for (const smartfilter of rootSmartFilter[0].children) {
+      await _migrate(
+        PaperSmartFilterType.smartfilter,
+        smartfilter,
+        rootSmartFilter[0]
+      );
+    }
+
+    this._logService.info(
+      `Migrated smartfilters to cloud database.`,
+      "",
+      true,
+      "SmartFilterService"
+    );
   }
 }

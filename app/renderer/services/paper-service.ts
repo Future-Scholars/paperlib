@@ -553,10 +553,10 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     const toBeUpdatedPaperEntityDrafts = paperEntityDrafts.map(
       (paperEntityDraft) => {
-        if ((type = CategorizerType.PaperTag)) {
-          paperEntityDraft.setValue("tags", [new PaperTag(categorizer)]);
+        if (type === CategorizerType.PaperTag) {
+          paperEntityDraft.tags.push(new PaperTag(categorizer));
         } else if (type === CategorizerType.PaperFolder) {
-          paperEntityDraft.setValue("folders", [new PaperFolder(categorizer)]);
+          paperEntityDraft.folders.push(new PaperFolder(categorizer));
         }
         return paperEntityDraft;
       }

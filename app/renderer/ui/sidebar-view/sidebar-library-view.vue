@@ -85,7 +85,6 @@ const onDroped = async (
   const categorizer = (
     await categorizerService.loadByIds(type, [dropData.dest._id])
   )[0];
-  console.log(categorizer);
 
   if (dropData.type === "PaperEntity" && categorizer) {
     let dragingIds: (string | ObjectID)[] = [];
@@ -98,11 +97,7 @@ const onDroped = async (
     paperService.updateWithCategorizer(dragingIds, categorizer, type);
   } else if (dropData.type === "files" && categorizer) {
     paperService.createIntoCategorizer(dropData.value, categorizer, type);
-  } else if (
-    (dropData.type === CategorizerType.PaperTag ||
-      dropData.type === CategorizerType.PaperFolder) &&
-    categorizer
-  ) {
+  } else if (dropData.type === CategorizerType.PaperFolder && categorizer) {
     const sourceCategorizer = new (
       type === CategorizerType.PaperTag ? PaperTag : PaperFolder
     )((await categorizerService.loadByIds(type, [dropData.value]))[0], false);

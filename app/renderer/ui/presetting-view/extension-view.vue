@@ -52,8 +52,6 @@ const listenExtensionManagementStateChange = async () => {
         )) {
           if (installedExtensions.value[extID]) {
             defaultExtensions.value[extID] = "t";
-          } else {
-            defaultExtensions.value[extID] = "f";
           }
         }
 
@@ -62,8 +60,6 @@ const listenExtensionManagementStateChange = async () => {
         )) {
           if (installedExtensions.value[extID]) {
             recommandedExtensions.value[extID] = "t";
-          } else {
-            recommandedExtensions.value[extID] = "f";
           }
         }
       }
