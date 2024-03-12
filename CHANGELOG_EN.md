@@ -1,87 +1,18 @@
-## v3.0.0-beta.13 11/03 2024
+## v3.0.0 Mar 12 2024
 
-1. New Feature: API for other APPs: paperlib://APIGroup.serviceName.methodName/?args=\[...\]
-2. Enhance: add `Ctrl/CMD + s` shortcut for the editing window.
-3. Fix: a bug in smartfilter editor. Thanks @Rccubc
+1. New Feature: The entire code has been refactored to support the extensible architecture. For details on extension development, please refer to our official website. Let's make Paperlib better together!
+2. New Feature: Hierarchy Folders and SmartFilters!
+3. New Feature: All metadata scrapers and downloaders have been moved into corresponding extensions.
+4. New Feature: A new command panel interface has been introduced to replace the basic search bar.
+5. New Feature: Support for creating new tags and folders in the sidebar.
+6. New Feature: Changable table view column order and more columns.
+7. New Feature: SmartFilter can be edited after creation. Add more human-friendly labels for SmartFilter creation.
+8. Others: Fixed some bugs.
+9. Others: Doesn't support Windows 7 anymore.
 
-## v3.0.0-beta.12 11/03 2024
+## v2.2.9 Jan 09 2024
 
-1. New Feature: API for other APPs: paperlib://APIGroup.serviceName.methodName/?args=\[...\]
-2. Enhance: add `Ctrl/CMD + s` shortcut for the editing window.
-3. Fix: a bug in smartfilter editor. Thanks @Rccubc
-
-## v3.0.0-beta.11 04/03 2024
-
-1. Enhance: better network tools for proxy.
-2. Enhance: log more information for the extension process.
-3. Fix: a file bug when removing a paper from the library.
-4. Fix: quicklook on Windows/Linux.
-5. Fix: some UI bugs.
-
-## v3.0.0-beta.10 03/03 2024
-
-1. Feat: add an option to show the short author string (et al.) in the table view.
-2. Fix: a bug when dragging a table item to tags/folders.
-3. Fix: quickpaste cannot export BibTex for the linked folder.
-4. Fix: a bug in the database related to root tags/folders.
-5. Fix: some UI bugs.
-
-## v3.0.0-beta.9 28/02 2024
-
-1. Fix: a bug in the reference quickpast plugin.
-
-## v3.0.0-beta.8 26/02 2024
-
-1. Fix: some UI bugs in darkmode.
-2. Fix: the extension loading and unloading bugs.
-3. Fix: fix a quicklook bug when editing a tag/folder.
-4. Fix: optimise for China mainland users.
-
-## v3.0.0-beta.7 25/02 2024
-
-1. Fix: The sidebar activation background color.
-2. Fix: The sidebar count bug.
-3. Fix: A UI bug in the extension setting page.
-4. Fix: A cache bug.
-5. Fix: A filter bug.
-6. For extension developers: increased some hook points' timeout.
-
-## v3.0.0-beta.6 23/02 2024
-
-1. For users in mainland China, the extensions downloading is accelerated by using a NPM mirror.
-
-## v3.0.0-beta.5 14/02 2024
-
-1. Fix: sidebar sorting issue.
-2. Fix: the bug that hindered the markdown note preview from being extended.
-3. Fix: scrolling issue with the keyboard shortcuts.
-4. Fix: a database partition bug.
-
-## v3.0.0-beta.4 29/01 2024
-
-1. Important New Feature: Hierarchy Folders and SmartFilters!
-2. New Feature: Table view column order and more columns.
-3. New Feature: SmartFilter can be edited after creation. Add more human-friendly labels for SmartFilter creation.
-4. Fixed some bugs.
-
-## v3.0.0-beta.3 Jan 15 2024
-
-1. Fixed some bugs.
-2. Extension Recommendation: paperlib-ai-summary-extension
-
-## v3.0.0-beta.2 Jan 15 2024
-
-1. Doesn't support Windows 7 anymore.
-2. Fixed some bugs.
-3. Extension Recommendation: paperlib-ai-summary-extension
-
-## v3.0.0-beta.1 Jan 8 2024
-
-1. The entire code has been refactored to support the extensible architecture. For details on extension development, please refer to our official website. Let's make Paperlib better together!
-2. All metadata scrapers and downloaders have been moved into corresponding extensions.
-3. A new command panel interface has been introduced to replace the basic search bar.
-4. Support for creating new tags and folders in the sidebar.
-5. Fixed some bugs.
+1. Prepare for version 3.0.
 
 ## v2.2.8 Dec 21 2023
 
