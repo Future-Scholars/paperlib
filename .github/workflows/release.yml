@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags: |
-      - 'release-electron*'
+    - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   mac_x86_deploy:
