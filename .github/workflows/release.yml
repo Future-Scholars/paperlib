@@ -1,9 +1,6 @@
 name: Build and Release
 
-on:
-  push:
-    tags: [release-electron*]
-  workflow_dispatch:
+on: create
 
 jobs:
   mac_x86_deploy:
