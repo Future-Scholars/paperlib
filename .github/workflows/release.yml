@@ -1,9 +1,9 @@
-name: Build and Release (electron)
+name: Build and Release
 
 on:
   push:
     tags: |
-      - release*
+      - 'release-electron*'
 
 jobs:
   mac_x86_deploy:
