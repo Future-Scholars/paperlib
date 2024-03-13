@@ -58,7 +58,6 @@ That is Paperlib.
   - [x] **Earth Science**
   - [x] **Physics**
     - [x] NASA Astrophysics Data System
-    - [x] SPIE: Inte. Society for Optics and Photonics
   - [ ] **Chemistry**
     - [x] ChemRxiv
   - [ ] **Biology**
