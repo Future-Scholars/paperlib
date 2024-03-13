@@ -517,5 +517,12 @@ onMounted(async () => {
     >
       <WelcomeView v-if="prefState.showWelcome" />
     </Transition>
+
+    <div
+      class="absolute w-full h-full top-0 left-0 bg-white dark:bg-neutral-800 z-50 overflow-auto dark:text-neutral-200"
+    >
+      Version 3.0.0 is released now, Please go to download the release from the
+      website. The beta channel is now closed.
+    </div>
   </div>
 </template>
