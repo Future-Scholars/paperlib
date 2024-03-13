@@ -368,26 +368,26 @@ const onMaximizeClicked = () => {
       />
     </div>
 
-    <div class="flex nodraggable-item mx-1" v-if="uiState.os === 'win32'">
+    <div class="flex nodraggable-item mx-1 my-auto" v-if="uiState.os === 'win32'">
       <div
-        class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out"
+        class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out justify-center items-center"
         @click="onMinimizeClicked"
       >
-        <BIconDash class="m-auto mt-2.5 text-lg text-neutral-500" />
+        <BIconDash class="text-lg text-neutral-500" />
       </div>
       <div
-        class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out"
+        class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out justify-center items-center"
         @click="onMaximizeClicked"
       >
         <div
-          class="m-auto mt-[18px] w-[10px] h-[10px] border-[1.5px] border-neutral-500"
+          class="w-[10px] h-[10px] border-[1.5px] border-neutral-500"
         ></div>
       </div>
       <div
-        class="flex w-10 h-8 text-neutral-500 hover:bg-red-600 transition ease-in-out hover:text-neutral-200"
+        class="flex w-10 h-8 text-neutral-500 hover:bg-red-600 transition ease-in-out hover:text-neutral-200 justify-center items-center"
         @click="onCloseClicked"
       >
-        <BIconX class="m-auto mt-2.5 text-lg" />
+        <BIconX class="text-lg" />
       </div>
     </div>
   </div>
