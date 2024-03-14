@@ -328,12 +328,6 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     if (windowId === Process.renderer) {
       const win = this.browserWindows.get(windowId);
       win.unmaximize();
-
-      for (const [windowId, win] of Object.entries(this.browserWindows.all())) {
-        if (windowId !== Process.renderer) {
-          win.unmaximize();
-        }
-      }
     }
   }
 
