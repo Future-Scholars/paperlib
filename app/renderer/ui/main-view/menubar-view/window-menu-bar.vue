@@ -403,9 +403,9 @@ disposable(
         class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out justify-center items-center"
         @click="onUnmaximizeClicked"
       >
-        <div
-          class="w-[8px] h-[8px] border-[1.5px] border-neutral-500"
-        ></div>
+        <div class="h-[8px] w-[8px] border-[1px] border-neutral-500 rounded-sm">
+          <div class="relative right-[-2px] top-[-3px] h-[8px] w-[8px] rounded-sm border-r-[1px] border-t-[1px] border-neutral-500"></div>
+        </div>
       </div>
       <div
         v-else
