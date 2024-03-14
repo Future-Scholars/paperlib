@@ -105,9 +105,9 @@ See [here](https://paperlib.app/en/download-linux.html).
 
 ## Sponsors
 
-### Apple Silicon Build
-
 <img src="https://user-images.githubusercontent.com/14183213/179353324-42ee9831-68a8-4816-97f5-cc7be7189ce8.png" style="width: 160px"/>
+
+<a href="cloudflare.com"><img src="https://blog.cloudflare.com/content/images/2022/10/CF_logo_stacked_blktype.png" style="width: 160px"/></a>
 
 ## Contribute to Paperlib
 
