@@ -22,6 +22,8 @@ import {
 import { Process } from "@/base/process-id";
 import CommandBar from "./components/command-bar.vue";
 import MenuBarBtn from "./components/menu-bar-btn.vue";
+import { disposable } from "@/base/dispose.ts";
+import { ref } from "vue";
 
 const props = defineProps({
   disableSingleBtn: {
@@ -42,6 +44,8 @@ const emits = defineEmits(["event:click"]);
 const uiState = uiStateService.useState();
 const prefState = preferenceService.useState();
 
+const isMaximized = ref(false)
+
 const onCloseClicked = () => {
   PLMainAPI.windowProcessManagementService.close(Process.renderer);
 };
@@ -50,9 +54,28 @@ const onMinimizeClicked = () => {
   PLMainAPI.windowProcessManagementService.minimize(Process.renderer);
 };
 
+const onUnmaximizeClicked = () => {
+  PLMainAPI.windowProcessManagementService.unmaximize(Process.renderer);
+};
+
 const onMaximizeClicked = () => {
   PLMainAPI.windowProcessManagementService.maximize(Process.renderer);
 };
+
+
+disposable(
+  PLMainAPI.windowProcessManagementService.on(
+    Process.renderer,
+    (newValue: { value: string }) => {
+      if (newValue.value === "unmaximize") {
+        isMaximized.value = false
+      } else if (newValue.value === "maximize") {
+        isMaximized.value = true
+      }
+    }
+  )
+)
+
 </script>
 
 <template>
@@ -376,6 +399,16 @@ const onMaximizeClicked = () => {
         <BIconDash class="text-lg text-neutral-500" />
       </div>
       <div
+        v-if="isMaximized"
+        class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out justify-center items-center"
+        @click="onUnmaximizeClicked"
+      >
+        <div
+          class="w-[8px] h-[8px] border-[1.5px] border-neutral-500"
+        ></div>
+      </div>
+      <div
+        v-else
         class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out justify-center items-center"
         @click="onMaximizeClicked"
       >
