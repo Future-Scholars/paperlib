@@ -132,6 +132,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       "focus",
       "close",
       "show",
+      "unmaximize",
+      "maximize"
     ]) {
       this.browserWindows.get(id).on(eventName as any, (e) => {
         this.fire({ [id]: eventName });
@@ -315,6 +317,17 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           win.hide();
         }
       }
+    }
+  }
+
+  /**
+   * Unmaximize the window with the given id.
+   * @param windowId - The id of the window to be unmaximized
+   */
+  unmaximize(windowId: string) {
+    if (windowId === Process.renderer) {
+      const win = this.browserWindows.get(windowId);
+      win.unmaximize();
     }
   }
 
