@@ -412,6 +412,17 @@ disposable(
 );
 
 disposable(
+  shortcutService.register(
+    "Space",
+    () => {
+      PLMainAPI.menuService.click("View-preview");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
   PLMainAPI.menuService.onClick("File-copyBibTex", () => {
     if (uiState.selectedPaperEntities.length >= 1) {
       exportSelectedEntities("BibTex");
