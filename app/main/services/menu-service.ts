@@ -269,4 +269,12 @@ export class MenuService extends Eventable<IMenuServiceState> {
   disableAll() {
     this._isDisabled = true;
   }
+
+  /**
+   * Click menu item in a programmatic way.
+   * @param key
+   */
+  click(key: keyof IMenuServiceState) {
+    this.fire(key);
+  }
 }
