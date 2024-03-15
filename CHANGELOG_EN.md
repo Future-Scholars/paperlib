@@ -1,3 +1,10 @@
+## v3.0.1 Mar 15 2024
+
+1. Feat: supports unmaximizing on Windows. Thanks @igoogolx.
+2. Fix: style of window control buttons. Thanks @igoogolx.
+3. Fix: scrolling when pressing Space.
+4. Fix: cannot open supplementary.
+
 ## v3.0.0 Mar 12 2024
 
 1. New Feature: The entire code has been refactored to support the extensible architecture. For details on extension development, please refer to our official website. Let's make Paperlib better together!
