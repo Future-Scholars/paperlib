@@ -22,7 +22,12 @@ const onViewContentSwitch = (view: number) => {
 <template>
   <div class="flex-none flex flex-col w-full h-screen justify-between">
     <WindowControlBar class="flex-none" v-if="uiState.os !== 'win32'" />
-    <div class="h-6 draggable-title" v-if="uiState.os === 'win32'"></div>
+    <div class="h-6 draggable-title relative" v-if="uiState.os === 'win32'">
+      <img
+        class="w-6 h-6 absolute left-5 top-1"
+        src="@/renderer/assets/icon.png"
+      />
+    </div>
 
     <SwitcherTitle
       class="h-7"
