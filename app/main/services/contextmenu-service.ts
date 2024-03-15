@@ -1,5 +1,3 @@
-import { Menu, nativeImage } from "electron";
-
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -10,6 +8,7 @@ import {
 import { loadLocales } from "@/locales/load";
 import { Colors, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperSmartFilter } from "@/models/smart-filter";
+import { Menu, MenuItemConstructorOptions, nativeImage } from "electron";
 
 const isMac = process.platform === "darwin";
 
@@ -76,12 +75,17 @@ export interface IContextMenuServiceState {
   thumbnailContextMenuReplaceClicked: number;
   thumbnailContextMenuRefreshClicked: number;
   linkToFolderClicked: string;
+  dataContextMenuFromExtensionsClicked: { extID: string; itemID: string };
 }
 
 export const IContextMenuService = createDecorator("contextMenuService");
 
 export class ContextMenuService extends Eventable<IContextMenuServiceState> {
   private readonly _locales: { t: (key: string) => string };
+
+  private readonly _extensionContextMenuItems: {
+    [extID: string]: { id: string; label: string }[];
+  };
 
   private readonly _registedScraperExtensions: {
     [extID: string]: { [id: string]: string };
@@ -112,6 +116,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       thumbnailContextMenuReplaceClicked: 0,
       thumbnailContextMenuRefreshClicked: 0,
       linkToFolderClicked: "",
+      dataContextMenuFromExtensionsClicked: { extID: "", itemID: "" },
     });
 
     this._locales = loadLocales(
@@ -119,6 +124,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     );
 
     this._registedScraperExtensions = {};
+    this._extensionContextMenuItems = {};
   }
 
   /**
@@ -152,7 +158,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     "ContextMenu"
   )
   showPaperDataMenu(allowEdit: boolean) {
-    let scraperMenuTemplate: Record<string, any> = [];
+    let scraperMenuTemplate: MenuItemConstructorOptions[] = [];
 
     for (const [extID, scrapers] of Object.entries(
       this._registedScraperExtensions
@@ -169,7 +175,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       }
     }
 
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
       {
         label: this._locales.t("menu.open"),
         accelerator: "Enter",
@@ -254,7 +260,25 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         ],
       },
     ];
-    // @ts-ignore
+    const contextMenuTemplate: MenuItemConstructorOptions[] = [];
+
+    for (const [extID, items] of Object.entries(
+      this._extensionContextMenuItems
+    )) {
+      items.forEach((item) => {
+        contextMenuTemplate.push({
+          label: item.label,
+          click: () => {
+            this.fire({
+              dataContextMenuFromExtensionsClicked: { extID, itemID: item.id },
+            });
+          },
+        });
+      });
+    }
+
+    template.push(...contextMenuTemplate);
+
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -268,7 +292,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     "ContextMenu"
   )
   showFeedDataMenu() {
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
       {
         label: this._locales.t("menu.open"),
         accelerator: "Enter",
@@ -290,7 +314,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         },
       },
     ];
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -306,7 +329,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     "ContextMenu"
   )
   showSidebarMenu(data: string, type: string) {
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
       {
         label: "Blue",
         click: () => {
@@ -440,7 +463,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         },
       });
     }
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -463,7 +485,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         },
       },
     ];
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -492,7 +513,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         },
       },
     ];
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -507,7 +527,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     "ContextMenu"
   )
   showQuickpasteLinkMenu(folderNames: { id: string; name: string }[]) {
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
       {
         label: `Create New`,
         click: () => {
@@ -527,8 +547,34 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       });
     }
 
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
+  }
+
+  /**
+   * Registers context menus form extensions.
+   * @param extID - The id of the extension to register menus
+   * @param items - The menu items to be registered
+   */
+  @errorcatching(
+    "Failed to register context menu from extensions.",
+    false,
+    "ContextMenu"
+  )
+  registerContextMenu(extID: string, items: { id: string; label: string }[]) {
+    this._extensionContextMenuItems[extID] = items;
+  }
+
+  /**
+   * Registers context menus form extensions.
+   * @param extID - The id of the extension to unregister menu items
+   */
+  @errorcatching(
+    "Failed to unregister context menu from extensions.",
+    false,
+    "ContextMenu"
+  )
+  unregisterContextMenu(extID: string) {
+    delete this._extensionContextMenuItems[extID];
   }
 }
