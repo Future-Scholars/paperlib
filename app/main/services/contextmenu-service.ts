@@ -1,5 +1,3 @@
-import { Menu, nativeImage } from "electron";
-
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -10,6 +8,7 @@ import {
 import { loadLocales } from "@/locales/load";
 import { Colors, PaperFolder, PaperTag } from "@/models/categorizer";
 import { PaperSmartFilter } from "@/models/smart-filter";
+import { Menu, MenuItemConstructorOptions, nativeImage } from "electron";
 
 const isMac = process.platform === "darwin";
 
@@ -152,7 +151,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     "ContextMenu"
   )
   showPaperDataMenu(allowEdit: boolean) {
-    let scraperMenuTemplate: Record<string, any> = [];
+    let scraperMenuTemplate: MenuItemConstructorOptions[] = [];
 
     for (const [extID, scrapers] of Object.entries(
       this._registedScraperExtensions
@@ -169,7 +168,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       }
     }
 
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
       {
         label: this._locales.t("menu.open"),
         accelerator: "Enter",
@@ -254,7 +253,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         ],
       },
     ];
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -268,7 +266,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     "ContextMenu"
   )
   showFeedDataMenu() {
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
       {
         label: this._locales.t("menu.open"),
         accelerator: "Enter",
@@ -290,7 +288,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         },
       },
     ];
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -306,7 +303,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     "ContextMenu"
   )
   showSidebarMenu(data: string, type: string) {
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
       {
         label: "Blue",
         click: () => {
@@ -440,7 +437,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         },
       });
     }
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -463,7 +459,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         },
       },
     ];
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -492,7 +487,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         },
       },
     ];
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -507,7 +501,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     "ContextMenu"
   )
   showQuickpasteLinkMenu(folderNames: { id: string; name: string }[]) {
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
       {
         label: `Create New`,
         click: () => {
@@ -527,7 +521,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       });
     }
 
-    // @ts-ignore
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
