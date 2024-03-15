@@ -260,19 +260,21 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         ],
       },
     ];
-    const contextMenuTemplate = [];
+    const contextMenuTemplate: MenuItemConstructorOptions[] = [];
 
     for (const [extID, items] of Object.entries(
       this._extensionContextMenuItems
     )) {
-      items.forEach((item) => ({
-        label: item.label,
-        click: () => {
-          this.fire({
-            dataContextMenuFromExtensionsClicked: { extID, itemID: item.id },
-          });
-        },
-      }));
+      items.forEach((item) => {
+        contextMenuTemplate.push({
+          label: item.label,
+          click: () => {
+            this.fire({
+              dataContextMenuFromExtensionsClicked: { extID, itemID: item.id },
+            });
+          },
+        });
+      });
     }
 
     template.push(...contextMenuTemplate);
