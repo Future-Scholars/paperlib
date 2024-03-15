@@ -75,12 +75,17 @@ export interface IContextMenuServiceState {
   thumbnailContextMenuReplaceClicked: number;
   thumbnailContextMenuRefreshClicked: number;
   linkToFolderClicked: string;
+  dataContextMenuFromExtensionsClicked: { extID: string; itemID: string };
 }
 
 export const IContextMenuService = createDecorator("contextMenuService");
 
 export class ContextMenuService extends Eventable<IContextMenuServiceState> {
   private readonly _locales: { t: (key: string) => string };
+
+  private readonly _extensionContextMenuItems: {
+    [extID: string]: { id: string; label: string }[];
+  };
 
   private readonly _registedScraperExtensions: {
     [extID: string]: { [id: string]: string };
@@ -111,6 +116,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       thumbnailContextMenuReplaceClicked: 0,
       thumbnailContextMenuRefreshClicked: 0,
       linkToFolderClicked: "",
+      dataContextMenuFromExtensionsClicked: { extID: "", itemID: "" },
     });
 
     this._locales = loadLocales(
@@ -118,6 +124,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     );
 
     this._registedScraperExtensions = {};
+    this._extensionContextMenuItems = {};
   }
 
   /**
@@ -253,6 +260,23 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         ],
       },
     ];
+    const contextMenuTemplate = [];
+
+    for (const [extID, items] of Object.entries(
+      this._extensionContextMenuItems
+    )) {
+      items.forEach((item) => ({
+        label: item.label,
+        click: () => {
+          this.fire({
+            dataContextMenuFromExtensionsClicked: { extID, itemID: item.id },
+          });
+        },
+      }));
+    }
+
+    template.push(...contextMenuTemplate);
+
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
   }
@@ -523,5 +547,32 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
 
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
+  }
+
+  /**
+   * Registers context menus form extensions.
+   * @param extID - The id of the extension to register menus
+   * @param items - The menu items to be registered
+   */
+  @errorcatching(
+    "Failed to register context menu from extensions.",
+    false,
+    "ContextMenu"
+  )
+  registerContextMenu(extID: string, items: { id: string; label: string }[]) {
+    this._extensionContextMenuItems[extID] = items;
+  }
+
+  /**
+   * Registers context menus form extensions.
+   * @param extID - The id of the extension to unregister menu items
+   */
+  @errorcatching(
+    "Failed to unregister context menu from extensions.",
+    false,
+    "ContextMenu"
+  )
+  unregisterContextMenu(extID: string) {
+    delete this._extensionContextMenuItems[extID];
   }
 }
