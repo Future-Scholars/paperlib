@@ -1491,6 +1491,7 @@ declare interface IPreferenceStore {
     selectedCSLStyle: string;
     importedCSLStylesPath: string;
     showPresetting: boolean;
+    showWelcome: boolean;
     fontsize: "normal" | "large" | "larger";
 }
 
@@ -1636,6 +1637,11 @@ declare class MenuService extends Eventable<IMenuServiceState> {
      * Disable all menu items.
      */
     disableAll(): void;
+    /**
+     * Click menu item in a programmatic way.
+     * @param key
+     */
+    click(key: keyof IMenuServiceState): void;
 }
 
 declare class NetworkTool {
@@ -1899,9 +1905,10 @@ declare class PaperService extends Eventable<IPaperServiceState> {
      * Update paper entities.
      * @param paperEntityDrafts - paper entity drafts
      * @param updateCache - Update cache, default is true
+     * @param isUpdate - Is update, default is false, if true, it is insert. This is for PDF file operation.
      * @returns Updated paper entities
      */
-    update(paperEntityDrafts: IPaperEntityCollection, updateCache?: boolean): Promise<IPaperEntityCollection>;
+    update(paperEntityDrafts: IPaperEntityCollection, updateCache?: boolean, isUpdate?: boolean): Promise<IPaperEntityCollection>;
     /**
      * Update paper entities with a categorizer.
      * @param ids - The list of paper IDs.
@@ -4413,6 +4420,11 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
      * @param windowId - The id of the window to be minimized
      */
     minimize(windowId: string): void;
+    /**
+     * Unmaximize the window with the given id.
+     * @param windowId - The id of the window to be unmaximized
+     */
+    unmaximize(windowId: string): void;
     /**
      * Maximize the window with the given id.
      * @param windowId - The id of the window to be maximized
