@@ -253,7 +253,7 @@ const onDragged = (event: DragEvent) => {
       :draggable="itemDraggable"
       @click="onClicked"
       @event:blur-name-editing="onEditBlur"
-      @event:submit-name-editing="(newName: string) => onEditSubmit({ _id: id, name: newName, parent_id: parent_id })"
+      @event:submit-name-editing="(newName: string) => onEditSubmit({ _id: id, name: newName, parent_id: parent_id, color: color })"
       @contextmenu="onRightClicked"
       @dragenter.prevent
       @dragover.prevent
@@ -291,7 +291,7 @@ const onDragged = (event: DragEvent) => {
         :indent="indent"
         :editing="true"
         @event:blur-name-editing="onEditBlur"
-        @event:submit-name-editing="(newName: string) => onEditSubmit({ parent_id: id, name: newName })"
+        @event:submit-name-editing="(newName: string) => onEditSubmit({ parent_id: id, name: newName, color: color})"
       />
     </div>
     <TreeNode

@@ -7,7 +7,7 @@ import {
   BIconCollection,
   BIconFunnel,
 } from "bootstrap-icons-vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps({
   title: String,
@@ -33,21 +33,18 @@ const props = defineProps({
   },
 });
 
-const selfName = ref(props.title?.split("/").pop());
+const selfName = computed(() => props.title?.split("/").pop());
 
 const emits = defineEmits([
   "event:blur-name-editing",
   "event:submit-name-editing",
 ]);
 
-const onEditSubmit = (e: Event) => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (!selfName.value) {
+const onEditSubmit = (value: string) => {
+  if (!value) {
     emits("event:blur-name-editing");
   } else {
-    emits("event:submit-name-editing", selfName.value);
+    emits("event:submit-name-editing", value);
   }
 };
 
@@ -87,11 +84,12 @@ const onBlured = () => {
       size="1"
       type="text"
       autofocus
-      v-model="selfName"
+      :value="selfName"
       v-else
       @focus="onFocused"
       @blur="onBlured"
-      @keydown.enter="(e) => onEditSubmit(e)"
+      @keydown.enter="onEditSubmit(($event.target as HTMLInputElement).value)"
+      @click.stop
     />
   </div>
 </template>
