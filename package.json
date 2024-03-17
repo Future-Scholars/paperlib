@@ -44,6 +44,7 @@
     "electron-log": "4.4.8",
     "electron-store": "8.1.0",
     "fast-xml-parser": "4.0.6",
+    "got": "13.0.0",
     "graph-data-structure": "3.5.0",
     "graphology": "0.25.4",
     "ky": "1.2.2",
