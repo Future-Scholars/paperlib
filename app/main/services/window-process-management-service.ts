@@ -133,7 +133,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       "close",
       "show",
       "unmaximize",
-      "maximize"
+      "maximize",
     ]) {
       this.browserWindows.get(id).on(eventName as any, (e) => {
         this.fire({ [id]: eventName });
@@ -497,6 +497,35 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   }
   
   `);
+    }
+  }
+
+  /**
+   * Check if the window exists with the given id.
+   * @param windowId - The id of the window to be checked
+   * @returns Whether the window exists.
+   */
+  exist(windowId: string): boolean {
+    return this.browserWindows.has(windowId);
+  }
+
+  /**
+   * Focus the window with the given id.
+   * @param windowId - The id of the window to be focused
+   */
+  focus(windowId: string): void {
+    if (this.exist(windowId)) {
+      this.browserWindows.get(windowId).focus();
+    }
+  }
+
+  /**
+   * Blur the window with the given id.
+   * @param windowId - The id of the window to be blurred
+   */
+  blur(windowId: string): void {
+    if (this.exist(windowId)) {
+      this.browserWindows.get(windowId).blur();
     }
   }
 }
