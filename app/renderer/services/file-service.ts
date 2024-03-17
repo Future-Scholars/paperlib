@@ -196,6 +196,8 @@ export class FileService extends Eventable<IFileServiceState> {
         formatedFilename = `${title.slice(0, 200)}_${id}`;
       }
 
+      formatedFilename = formatedFilename.replace(/[<>:"/\\|?*]+/g, "");
+
       const movedMainFilename = await this._backend.moveFile(
         paperEntity.mainURL,
         `${formatedFilename}_main${path.extname(paperEntity.mainURL)}`,
