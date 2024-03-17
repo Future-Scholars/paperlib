@@ -515,8 +515,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    */
   focus(windowId: string): void {
     if (this.exist(windowId)) {
-      const curWindow = this.browserWindows.get(windowId);
-      curWindow.focus();
+      this.browserWindows.get(windowId).focus();
     }
   }
 
@@ -526,8 +525,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    */
   blur(windowId: string): void {
     if (this.exist(windowId)) {
-      const curWindow = this.browserWindows.get(windowId);
-      curWindow.blur();
+      this.browserWindows.get(windowId).blur();
     }
   }
 }
