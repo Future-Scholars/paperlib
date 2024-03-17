@@ -34,12 +34,12 @@ preferenceService.on("preferedTheme", async () => {
   <div class="flex-none flex flex-col w-full h-screen justify-between">
     <WindowControlBar class="flex-none" v-if="uiState.os !== 'win32'" />
     <div
-      class="h-8 draggable-title flex w-full pl-6"
+      class="h-16 draggable-title flex w-full pl-6"
       v-if="uiState.os === 'win32'"
     >
-      <div class="flex-row flex items-center">
-        <img class="w-4 h-4" :src="darkMode ? darkLogo : lightLogo" />
-        <span class="text-xs pl-2">Paperlib</span>
+      <div class="flex-row flex items-center space-x-3">
+        <img class="w-4" :src="darkMode ? darkLogo : lightLogo" />
+        <span class="text-sm font-semibold">PAPERLIB</span>
       </div>
     </div>
 
