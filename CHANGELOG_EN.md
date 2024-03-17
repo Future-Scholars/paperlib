@@ -1,3 +1,14 @@
+## v3.0.2 Mar 17 2024
+
+0. New Community Extension: `paperlib-cn-scrape-extension` - A new extension to scrape metadata from the Chinese CNKI database.
+1. New Feature in Official Extensions: `paperlib-ai-summary-extension` - add a new command `\tagit` to let LLM help you tag your papers. by @geoffreychen777
+2. Fix: a filename bug when importing a file. by @geoffreychen777
+3. Fix: a categorizer editing bug. by @geoffreychen777
+4. Fix: a filename bug in table preview mode. by @geoffreychen777
+5. Enhance: add a logo at the top-left corner of the app in Windows. by @igoogolx
+6. For Ext Developer: add two methods in the contextMenuService to register and unregister context menu items. by @igoogolx
+7. For Ext Developer: add three methods in the windowManagementService to find, focus, and blur a window. by @igoogolx
+
 ## v3.0.1 Mar 15 2024
 
 1. Feat: supports unmaximizing on Windows. Thanks @igoogolx.

@@ -1,3 +1,14 @@
+## v3.0.2 17/03 2024
+
+0. 新社区插件：`paperlib-cn-scrape-extension` - 一个元数据搜刮器插件，让你可以从中国知网搜刮元数据。
+1. 官方扩展中的新功能：`paperlib-ai-summary-extension` - 添加了一个新命令 `\tagit`，让 LLM 帮助您给论文打标签。by @geoffreychen777
+2. 修复：导入文件时的文件名 Bug。by @geoffreychen777
+3. 修复：标签，组编辑时的 Bug。by @geoffreychen777
+4. 修复：表格预览模式中的文件名错误 Bug。by @geoffreychen777
+5. 增强：在 Windows 上添加了一个图标。by @igoogolx
+6. 插件开发者：添加了两个方法，以注册和注销上下文菜单项。by @igoogolx
+7. 插件开发者：添加了三个方法，以查找、聚焦和模糊化窗口。by @igoogolx
+
 ## v3.0.1 15/03 2024
 
 1. 新功能：支持 Windows 下的最大化和最小化。感谢 @igoogolx。
