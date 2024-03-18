@@ -90,7 +90,7 @@ export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
     if (this.feedNames && this.feedNames.length > 0) {
       const feedNamesQuery = this.feedNames
         .filter((feedName) => feedName)
-        .map((feedName) => `'${feedName}'`)
+        .map((feedName) => `"${feedName}"`)
         .join(", ");
 
       this.filters.push(`(feed.name IN { ${feedNamesQuery} })`);
@@ -98,7 +98,7 @@ export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
     if (this.feedIds && this.feedIds.length > 0) {
       const feedIdsQuery = this.feedIds
         .filter((feedId) => feedId)
-        .map((feedId) => `'${feedId}'`)
+        .map((feedId) => `oid(${feedId})`)
         .join(", ");
 
       this.filters.push(`(feed._id IN { ${feedIdsQuery} })`);
@@ -308,6 +308,10 @@ export class FeedService extends Eventable<IFeedServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
+    feeds.forEach((feed) => {
+      feed.name = feed.name.replace(/"/g, "'");
+    });
+
     const updatedFeeds = await this.update(feeds);
 
     await this.refresh(undefined, updatedFeeds);
