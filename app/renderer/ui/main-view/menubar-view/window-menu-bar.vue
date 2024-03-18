@@ -323,7 +323,7 @@ disposable(
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconListUl class="my-auto" />
-                    <span>List View</span>
+                    <span>{{ $t("menu.listview") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -340,7 +340,7 @@ disposable(
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconGrid3x2 class="my-auto" />
-                    <span>Table View</span>
+                    <span>{{ $t("menu.tableview") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -357,7 +357,7 @@ disposable(
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconAspectRatio class="my-auto" />
-                    <span>Table and Reader View</span>
+                    <span>{{ $t("menu.tablereaderview") }}</span>
                   </div>
                   <BIconCheck2
                     class="my-auto"
@@ -374,7 +374,7 @@ disposable(
                 <div class="flex justify-between px-2">
                   <div class="flex space-x-2">
                     <BIconGear class="my-auto" />
-                    <span>Preference</span>
+                    <span>{{ $t("menu.preference") }}</span>
                   </div>
                 </div>
               </MenuItem>
