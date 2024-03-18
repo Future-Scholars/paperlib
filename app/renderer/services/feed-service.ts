@@ -40,6 +40,7 @@ import {
 export interface IFeedEntityFilterOptions {
   search?: string;
   searchMode?: "general" | "fulltext" | "advanced";
+  feedIds?: OID[];
   feedNames?: string[];
   unread?: boolean;
   title?: string;
@@ -51,6 +52,7 @@ export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
   public placeholders: string[] = [];
   public search?: string;
   public searchMode?: "general" | "fulltext" | "advanced";
+  public feedIds?: OID[];
   public feedNames?: string[];
   public unread?: boolean;
   public title?: string;
@@ -92,6 +94,14 @@ export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
         .join(", ");
 
       this.filters.push(`(feed.name IN { ${feedNamesQuery} })`);
+    }
+    if (this.feedIds && this.feedIds.length > 0) {
+      const feedIdsQuery = this.feedIds
+        .filter((feedId) => feedId)
+        .map((feedId) => `'${feedId}'`)
+        .join(", ");
+
+      this.filters.push(`(feed._id IN { ${feedIdsQuery} })`);
     }
     if (this.unread) {
       this.filters.push(`(read == false)`);
@@ -430,7 +440,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     }
 
     const filter = new FeedEntityFilterOptions({
-      feedNames: feeds.map((feed: IFeedObject) => feed.name),
+      feedIds: feeds.map((feed: IFeedObject) => feed._id),
     });
     const toBeDeletedEntities = this._feedEntityRepository.load(
       realm,
