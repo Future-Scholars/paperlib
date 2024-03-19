@@ -202,7 +202,9 @@ export class RenderService {
 
 function renderWithDelimitersToString(text: string) {
   var CleanAndRender = function (str: string) {
-    return katex.renderToString(str.replace(/\\\(|\$|\\\)/g, ""));
+    return katex.renderToString(str.replace(/\\\(|\$|\\\)/g, ""), {
+      throwOnError: false,
+    });
   };
   return text.replace(
     /(\\\([^]*?\\\))|(\$[^]*?\$)/g,
