@@ -446,7 +446,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       return paperEntityDraft;
     });
 
-    await this.update(paperEntityDrafts, false);
+    await this.update(paperEntityDrafts, false, true);
   }
 
   /**
@@ -502,7 +502,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     paperEntity.supURLs = paperEntity.supURLs.filter(
       (supUrl) => supUrl !== path.basename(url)
     );
-    await this.update([paperEntity]);
+    await this.update([paperEntity], true, true);
   }
 
   /**
@@ -524,7 +524,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     );
 
     // 2. Update.
-    return await this.update(scrapedPaperEntityDrafts);
+    return await this.update(scrapedPaperEntityDrafts, true, false);
   }
 
   /**
@@ -561,7 +561,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
         return paperEntityDraft;
       }
     );
-    return await this.update(toBeUpdatedPaperEntityDrafts);
+    return await this.update(toBeUpdatedPaperEntityDrafts, true, false);
   }
 
   /**
@@ -596,7 +596,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       specificScrapers ? true : false
     );
 
-    await this.update(scrapedPaperEntityDrafts);
+    await this.update(scrapedPaperEntityDrafts, true, true);
   }
 
   /**
@@ -686,7 +686,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       }
     }
 
-    await this.update(movedEntityDrafts);
+    await this.update(movedEntityDrafts, false, true);
   }
 
   /**
@@ -702,7 +702,11 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     const entities = localRealm.objects<PaperEntity>("PaperEntity");
 
-    await this.update(entities.map((entity) => new PaperEntity(entity)));
+    await this.update(
+      entities.map((entity) => new PaperEntity(entity)),
+      false,
+      true
+    );
 
     this._logService.info(
       `Migrated ${entities.length} paper(s) to cloud database.`,
