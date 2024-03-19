@@ -40,32 +40,7 @@ That is Paperlib.
 
 ## Highlights
 
-- Scrape paper’s metadata with many scrapers. Support writing your metadata scrapers. Tailored for many disciplines (still growing):
-
-  - [x] **General**
-    - [x] arXiv
-    - [x] doi.org
-    - [x] Semantic Scholar
-    - [x] Crossref
-    - [x] Google Scholar
-    - [x] Springer
-    - [x] Elseivier Scopus
-  - [x] **Computer Science and Electronic Engineering**
-    - [x] openreview.net
-    - [x] IEEE
-    - [x] DBLP
-    - [x] Paper with Code (scrape available in the code repository)
-  - [x] **Earth Science**
-  - [x] **Physics**
-    - [x] NASA Astrophysics Data System
-  - [ ] **Chemistry**
-    - [x] ChemRxiv
-  - [ ] **Biology**
-
-    - [x] BioRxiv / MedRxiv
-
-  - ...
-
+- Scrape paper’s metadata with many scrapers. Support writing your metadata scrapers. Tailored for many disciplines.
 - Fulltext and advanced search.
 - Smart filter.
 - Rating, flag, tag, folder and markdown/plain text note.
@@ -102,6 +77,23 @@ See [here](https://paperlib.app/en/download-linux.html).
 <a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 <a href="https://www.buymeacoffee.com/geoffreychen777" target="_blank"><img src="./assets/wechat.png" alt="Buy Me A Coffee" height="174" width="174"></a>
+
+## Usage Demos
+
+### Scrape metadata for conference papers such as ICLR, ICML, NeurIPS
+<img src="https://github.com/Future-Scholars/paperlib/assets/14183213/4ffc556e-ba9c-48f3-9066-0370487a90ca" />
+
+### Smooth paper writing integration with any editors.
+![Screen Recording 2024-03-17 at 19 00 12](https://github.com/Future-Scholars/paperlib/assets/14183213/fefb4e9e-7d6e-4259-b4f1-bc7109c87802)
+
+### Summarize your papers by LLM. Tag your papers by LLM
+![Screen Recording 2024-03-17 at 18 15 24](https://github.com/Future-Scholars/paperlib/assets/14183213/87040ded-dd4a-470a-bceb-73cd9d334cc3)
+
+### Organize your library with tags, folders and smart filters
+![Screen Recording 2024-03-17 at 18 14 02](https://github.com/Future-Scholars/paperlib/assets/14183213/391ee552-a3be-4e16-8023-e1c57ba45481)
+
+### Three view mode
+![Screen Recording 2024-03-17 at 18 11 40](https://github.com/Future-Scholars/paperlib/assets/14183213/c8a06b1d-0dc2-4291-9f4b-d38b01e760c2)
 
 ## Sponsors
 
