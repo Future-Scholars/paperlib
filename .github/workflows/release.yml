@@ -1,35 +1,35 @@
-name: Build and Release (electron)
+name: Build and Release
 
 on:
   push:
     tags: [release-electron*]
 
-permissions:
-  contents: write
-
 jobs:
   mac_x86_deploy:
     runs-on: macos-latest
 
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       matrix:
-        node-versions: ['16.17.1']
+        node-versions: ["18.16.1"]
 
     steps:
-      - name: 'Checkout Project'
+      - name: "Checkout Project"
         uses: actions/checkout@v2
 
       - name: Set env
         run: |
-          release_version=${GITHUB_REF#refs/*/}
-          export VERSION=${release_version:17}
+          brew install jq
+          VERSION=$(cat package.json | jq .version)
+          export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
           export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
-          cp ./build_configs/electron-builder.mac.json5 ./electron-builder.json5
-          rm -rf ./app/utils/crypto
 
-      - name: 'Import Certificates'
+      - name: "Import Certificates"
         run: |
           echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output certificate.p12
           export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
@@ -37,26 +37,25 @@ jobs:
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
           security import certificate.p12 -P ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
-
-      - name: 'Clone Private Repository'
-        uses: actions/checkout@v2
-        with:
-          repository: Future-Scholars/paperlib-crypto
-          token: ${{ secrets.CRYPTO_REPO_KEY }}
-          path: ./app/utils/crypto
-
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-versions }}
 
-      - name: 'Install Node Module'
-        run: npm install --force
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
-      - name: 'Build and Package'
-        run: npm run build
+      - name: "Install Node Module"
+        run: |
+          pnpm install
+
+      - name: "Build and Package"
+        run: pnpm run build-mac-x86
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -65,12 +64,6 @@ jobs:
             ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Convert Change Log to HTML
-        run: |
-          brew install pandoc
-          pandoc -f markdown -t html ./CHANGELOG_EN.md -o changelog_en.html
-          pandoc -f markdown -t html ./CHANGELOG_CN.md -o changelog_cn.html
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -82,8 +75,6 @@ jobs:
 
       - name: Upload to Oracle Storage
         run: |
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./changelog_en.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/changelog_en.html
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./changelog_cn.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/changelog_cn.html
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/Paperlib_${{ env.VERSION }}.zip
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/Paperlib_${{ env.VERSION }}.zip.blockmap
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac/Paperlib_${{ env.VERSION }}.dmg
@@ -94,43 +85,40 @@ jobs:
   mac_arm_deploy:
     runs-on: self-hosted
 
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       matrix:
-        node-versions: ['16.16.0']
+        node-versions: ["18.16.1"]
 
     steps:
-      - name: 'Checkout Project'
+      - name: "Checkout Project"
         uses: actions/checkout@v2
 
       - name: Set env
         run: |
-          release_version=${GITHUB_REF#refs/*/}
-          export VERSION=${release_version:17}
+          brew install jq
+          VERSION=$(cat package.json | jq .version)
+          export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
           export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
-          cp ./build_configs/electron-builder.mac.arm.json5 ./electron-builder.json5
-          rm -rf ./app/utils/crypto
 
-      - name: 'Clone Private Repository'
-        uses: actions/checkout@v2
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
         with:
-          repository: Future-Scholars/paperlib-crypto
-          token: ${{ secrets.CRYPTO_REPO_KEY }}
-          path: ./app/utils/crypto
+          version: 8
 
-      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-versions }}
-
-      - name: 'Install Node Module'
-        run: npm install --force
-
-      - name: 'Build and Package'
+      - name: "Install Node Module"
         run: |
-          npm run build
-          cp ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}_arm.dmg 
+          pnpm install
+
+      - name: "Build and Package"
+        run: |
+          pnpm run build-mac-arm
+          cp ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}_arm.dmg
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -139,12 +127,6 @@ jobs:
             ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}_arm.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Convert Change Log to HTML
-        run: |
-          brew install pandoc
-          pandoc -f markdown -t html ./CHANGELOG_EN.md -o changelog_en.html
-          pandoc -f markdown -t html ./CHANGELOG_CN.md -o changelog_cn.html
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -156,8 +138,6 @@ jobs:
 
       - name: Upload to Oracle Storage
         run: |
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./changelog_en.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/changelog_en.html
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./changelog_cn.html --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/changelog_cn.html
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/Paperlib_${{ env.VERSION }}.zip
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip.blockmap --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/Paperlib_${{ env.VERSION }}.zip.blockmap
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-mac-arm/Paperlib_${{ env.VERSION }}.dmg
@@ -178,39 +158,37 @@ jobs:
 
     strategy:
       matrix:
-        node-versions: ['16.16.0']
+        node-versions: ["18.16.1"]
 
     steps:
-      - name: 'Checkout Project'
+      - name: "Checkout Project"
         uses: actions/checkout@v2
 
       - name: Set env
         run: |
-          release_version=${GITHUB_REF#refs/*/}
-          export VERSION=${release_version:17}
+          curl -L -o /usr/bin/jq.exe https://github.com/stedolan/jq/releases/latest/download/jq-win64.exe
+          VERSION=$(cat package.json | jq .version)
+          export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
           export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
-          cp ./build_configs/electron-builder.win.json5 ./electron-builder.json5
-          rm -rf ./app/utils/crypto
-
-      - name: 'Clone Private Repository'
-        uses: actions/checkout@v2
-        with:
-          repository: Future-Scholars/paperlib-crypto
-          token: ${{ secrets.CRYPTO_REPO_KEY }}
-          path: ./app/utils/crypto
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-versions }}
 
-      - name: 'Install Node Module'
-        run: npm install --force
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
-      - name: 'Build and Package'
-        run: npm run build
+      - name: "Install Node Module"
+        run: |
+          pnpm install
+
+      - name: "Build and Package"
+        run: pnpm run build-win
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -219,13 +197,6 @@ jobs:
             ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to WinGet
-        uses: vedantmgoyal2009/winget-releaser@v2
-        with:
-          identifier: FutureScholars.Paperlib
-          version: ${{ env.VERSION }}
-          token: ${{ secrets.WINGET_TOKEN }}
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -242,7 +213,7 @@ jobs:
 
       - name: Upload to Oracle Storage
         run: |
-          powershell Compress-Archive './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' './latest.zip'
+          powershell "Compress-Archive -Path '.\release\${{ env.VERSION }}\Paperlib_${{ env.VERSION }}.exe' -DestinationPath '.\latest.zip'"
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './latest.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/latest.zip'
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/electron-win/Paperlib_${{ env.VERSION }}.exe'
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name distribution/electron-win/latest.exe
@@ -252,41 +223,51 @@ jobs:
   linux_deploy:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       matrix:
-        node-versions: ['16.16.0']
+        node-versions: ["18.16.1"]
 
     steps:
-      - name: 'Checkout Project'
+      - name: "Checkout Project"
         uses: actions/checkout@v2
 
       - name: Set env
         run: |
-          release_version=${GITHUB_REF#refs/*/}
-          export VERSION=${release_version:17}
+          sudo apt install -y jq
+          VERSION=$(cat package.json | jq .version)
+          export VERSION=$(echo ${VERSION:1:${#VERSION}-2})
           export VERSION_SHORT=$(echo $VERSION | sed 's/\.//g')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_SHORT=$VERSION_SHORT" >> $GITHUB_ENV
-          cp ./build_configs/electron-builder.linux.json5 ./electron-builder.json5
-          rm -rf ./app/utils/crypto
-
-      - name: 'Clone Private Repository'
-        uses: actions/checkout@v2
-        with:
-          repository: Future-Scholars/paperlib-crypto
-          token: ${{ secrets.CRYPTO_REPO_KEY }}
-          path: ./app/utils/crypto
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: 'Install Node Module'
-        run: npm install --force
+      - name: "Setup PNPM"
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
-      - name: 'Build and Package'
-        run: npm run build
+      - name: "Install Node Module"
+        run: |
+          pnpm install
+
+      - name: "Build and Package"
+        run: pnpm run build-linux
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Oracle Cloud CLI
         run: |

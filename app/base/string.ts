@@ -111,6 +111,15 @@ export const getPubTypeString = (pubType: number) => {
   }
 };
 
+export const getShortAuthorString = (authors: string) => {
+  const authorList = authors.split(",").map((a) => a.trim());
+  if (authorList.length > 2) {
+    return `${authorList[0]} et al.`;
+  } else {
+    return authors;
+  }
+};
+
 export const compressString = async (
   str: string,
   encoding = "gzip" as CompressionFormat

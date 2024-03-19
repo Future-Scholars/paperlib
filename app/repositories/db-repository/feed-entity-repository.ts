@@ -224,6 +224,8 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
         feedEntity.feed = feed;
         const newObject = realm.create<FeedEntity>("FeedEntity", feedEntity);
 
+        this._feedRepository.updateCount(realm, [feed]);
+
         return newObject;
       }
     });

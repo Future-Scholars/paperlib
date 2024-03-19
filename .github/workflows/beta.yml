@@ -57,15 +57,7 @@ jobs:
           pnpm install
 
       - name: "Build and Package"
-        run: pnpm run build-mac-x86-dev
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.dmg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run build-mac-x86
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -78,12 +70,12 @@ jobs:
       - name: Upload to Oracle Storage
         run: |
           oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/dev_channel/
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib Beta_${{ env.VERSION }}.zip'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.zip.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib Beta_${{ env.VERSION }}.zip.blockmap'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib Beta_${{ env.VERSION }}.dmg'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/latest.dmg'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib Beta_${{ env.VERSION }}.dmg.blockmap'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/beta-mac.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/beta-mac.yml'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib_${{ env.VERSION }}.zip'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib_${{ env.VERSION }}.zip.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib_${{ env.VERSION }}.dmg'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/latest.dmg'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/Paperlib_${{ env.VERSION }}.dmg.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/latest-mac.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/dev_channel/beta-mac.yml'
 
   mac_arm_develop:
     runs-on: self-hosted
@@ -125,16 +117,8 @@ jobs:
 
       - name: "Build and Package"
         run: |
-          pnpm run build-mac-arm-dev
-          cp ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.dmg ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}_arm.dmg
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}_arm.dmg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pnpm run build-mac-arm
+          cp ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg ./release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}_arm.dmg
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -147,12 +131,12 @@ jobs:
       - name: Upload to Oracle Storage
         run: |
           oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/arm_dev_channel/
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib Beta_${{ env.VERSION }}.zip'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.zip.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib Beta_${{ env.VERSION }}.zip.blockmap'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib Beta_${{ env.VERSION }}.dmg'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/latest.dmg'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.dmg.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib Beta_${{ env.VERSION }}.dmg.blockmap'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/beta-mac.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/beta-mac.yml'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib_${{ env.VERSION }}.zip'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.zip.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib_${{ env.VERSION }}.zip.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib_${{ env.VERSION }}.dmg'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/latest.dmg'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.dmg.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/Paperlib_${{ env.VERSION }}.dmg.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/latest-mac.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/arm_dev_channel/beta-mac.yml'
 
       - name: Clean Up
         run: |
@@ -197,15 +181,7 @@ jobs:
           pnpm install
 
       - name: "Build and Package"
-        run: pnpm run build-win-dev
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run build-win
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -222,13 +198,13 @@ jobs:
 
       - name: Upload to Oracle Storage
         run: |
-          powershell "Compress-Archive -Path '.\release\${{ env.VERSION }}\Paperlib Beta_${{ env.VERSION }}.exe' -DestinationPath '.\latest.zip'"
+          powershell "Compress-Archive -Path '.\release\${{ env.VERSION }}\Paperlib_${{ env.VERSION }}.exe' -DestinationPath '.\latest.zip'"
           oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/win_dev_channel/
           oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './latest.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/latest.zip'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/Paperlib Beta_${{ env.VERSION }}.exe'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.exe.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/Paperlib Beta_${{ env.VERSION }}.exe.blockmap'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/latest.exe'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/beta.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/beta.yml'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/Paperlib_${{ env.VERSION }}.exe'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe.blockmap' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/Paperlib_${{ env.VERSION }}.exe.blockmap'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.exe' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/latest.exe'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/latest.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/win_dev_channel/beta.yml'
 
   linux_develop:
     runs-on: ubuntu-latest
@@ -269,15 +245,7 @@ jobs:
           pnpm install
 
       - name: "Build and Package"
-        run: pnpm run build-linux-dev
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ./release/${{ env.VERSION }}/Paperlib\ Beta_${{ env.VERSION }}.AppImage
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run build-linux
 
       - name: Install Oracle Cloud CLI
         run: |
@@ -292,6 +260,6 @@ jobs:
       - name: Upload to Oracle Storage
         run: |
           ~/bin/oci os object bulk-delete --bucket-name ${{ secrets.OCI_OS_BUCKET }} --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --prefix distribution/linux_dev_channel/
-          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.AppImage' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/linux_dev_channel/Paperlib Beta_${{ env.VERSION }}.AppImage'
-          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib Beta_${{ env.VERSION }}.AppImage' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/linux_dev_channel/latest.AppImage'
-          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/beta-linux.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/linux_dev_channel/beta-linux.yml'
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.AppImage' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/linux_dev_channel/Paperlib_${{ env.VERSION }}.AppImage'
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/Paperlib_${{ env.VERSION }}.AppImage' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/linux_dev_channel/latest.AppImage'
+          ~/bin/oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './release/${{ env.VERSION }}/latest-linux.yml' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'distribution/linux_dev_channel/beta-linux.yml'

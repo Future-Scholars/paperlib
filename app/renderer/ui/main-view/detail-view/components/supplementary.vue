@@ -12,8 +12,8 @@ const getExtension = (sup: string) => {
   }
 };
 
-const onClick = (url: string) => {
-  fileService.open(url);
+const onClick = async (url: string) => {
+  fileService.open(await fileService.access(url, true));
 };
 
 const onRightClicked = (event: MouseEvent, url: string) => {

@@ -39,7 +39,7 @@ export class BrowserExtensionService {
     if (scrapedPaperEntities.length === 0) {
       this._ws?.send(JSON.stringify({ response: "no-avaliable-importer" }));
     } else {
-      await this._paperService.update(scrapedPaperEntities);
+      await this._paperService.update(scrapedPaperEntities, true, false);
       this._ws?.send(JSON.stringify({ response: "successful" }));
     }
   }

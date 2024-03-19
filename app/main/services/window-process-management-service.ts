@@ -132,6 +132,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       "focus",
       "close",
       "show",
+      "unmaximize",
+      "maximize",
     ]) {
       this.browserWindows.get(id).on(eventName as any, (e) => {
         this.fire({ [id]: eventName });
@@ -165,6 +167,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           webSecurity: false,
           nodeIntegration: true,
           contextIsolation: false,
+          enableBlinkFeatures: "CSSColorSchemeUARendering",
         },
         frame: false,
         vibrancy: "sidebar",
@@ -199,9 +202,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   }
 
   createQuickpasteRenderer() {
-    this.create(
-      "quickpasteProcess",
-      {
+    const options: WindowOptions = {
         entry: "app/index_quickpaste.html",
         title: "Quickpaste",
         width: 600,
@@ -220,17 +221,18 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
         vibrancy: "sidebar",
         visualEffectState: "active",
         show: false,
-      },
+    }
+    if (os.platform() === "darwin") {
+      options["type"] = "panel";
+    }
+    
+    this.create(
+      "quickpasteProcess",
+      options,
       {
         blur: (win: BrowserWindow) => {
           win.setSize(600, 76);
-          if (os.platform() === "darwin") {
-            win.hide();
-            app.hide();
-          } else {
-            win.minimize();
-            win.hide();
-          }
+          win.hide();
         },
 
         focus: (win: BrowserWindow) => {
@@ -314,6 +316,17 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           win.hide();
         }
       }
+    }
+  }
+
+  /**
+   * Unmaximize the window with the given id.
+   * @param windowId - The id of the window to be unmaximized
+   */
+  unmaximize(windowId: string) {
+    if (windowId === Process.renderer) {
+      const win = this.browserWindows.get(windowId);
+      win.unmaximize();
     }
   }
 
@@ -483,6 +496,35 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   }
   
   `);
+    }
+  }
+
+  /**
+   * Check if the window exists with the given id.
+   * @param windowId - The id of the window to be checked
+   * @returns Whether the window exists.
+   */
+  exist(windowId: string): boolean {
+    return this.browserWindows.has(windowId);
+  }
+
+  /**
+   * Focus the window with the given id.
+   * @param windowId - The id of the window to be focused
+   */
+  focus(windowId: string): void {
+    if (this.exist(windowId)) {
+      this.browserWindows.get(windowId).focus();
+    }
+  }
+
+  /**
+   * Blur the window with the given id.
+   * @param windowId - The id of the window to be blurred
+   */
+  blur(windowId: string): void {
+    if (this.exist(windowId)) {
+      this.browserWindows.get(windowId).blur();
     }
   }
 }

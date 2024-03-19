@@ -17,7 +17,7 @@ const loadCurrent = async () => {
   const response = await fetch(
     `https://api.paperlib.app/release-notes/json?lang=${
       preState.language === "zh-CN" ? "CN" : "EN"
-    }&latest=1&branch=dev-3.0.0`
+    }&latest=1&branch=main`
   );
 
   const json = await response.json();
@@ -37,7 +37,7 @@ const loadHistory = async () => {
   const response = await fetch(
     `https://api.paperlib.app/release-notes/html?lang=${
       preState.language === "zh-CN" ? "CN" : "EN"
-    }&latest=5&branch=dev-3.0.0`
+    }&latest=5&branch=main`
   );
 
   historyReleaseNoteHTML.value = await response.text();

@@ -4,12 +4,19 @@ import path from "path";
 import { InjectionContainer } from "@/base/injection/injection";
 import { NetworkTool } from "@/base/network";
 import { Process } from "@/base/process-id";
+import { LogService } from "@/common/services/log-service";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
 import { ExtensionPreferenceService } from "@/extension/services/extension-preference-service";
 import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
 import { IInjectable } from "@/extension/services/injectable";
 
 async function initialize() {
+  const extLogService = new LogService("extension.log");
+
+  process.on("uncaughtException", (err) => {
+    extLogService.error("Uncaught exception:", err, false, "Extension");
+  });
+
   // ============================================================
   // 1. Initilize the RPC service for current process
   const extensionRPCService = new ExtensionRPCService();
@@ -72,7 +79,7 @@ async function initialize() {
   //    Expose the APIs of the current process to other processes
   extensionRPCService.setActionor(instances);
 
-  extensionManagementService.loadInstalledExtensions();
+  extensionManagementService.initialize();
 }
 
 initialize();

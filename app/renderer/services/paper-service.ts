@@ -6,6 +6,7 @@ import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
@@ -20,7 +21,6 @@ import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { CacheService, ICacheService } from "@/renderer/services/cache-service";
 import { FileService, IFileService } from "@/renderer/services/file-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import {
   ISchedulerService,
   SchedulerService,
@@ -180,7 +180,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       this._schedulerService.createTask(
         "paperServiceScrapePreprint",
         () => {
-          this.scrapePreprint();
+          this._routineScrapePreprint();
         },
         7 * 86400,
         undefined,
@@ -257,12 +257,16 @@ export class PaperService extends Eventable<IPaperServiceState> {
   /**
    * Update paper entities.
    * @param paperEntityDrafts - paper entity drafts
+   * @param updateCache - Update cache, default is true
+   * @param isUpdate - Is update, default is false, if true, it is insert. This is for PDF file operation.
    * @returns Updated paper entities
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update paper entities.", true, "PaperService", [])
   async update(
-    paperEntityDrafts: IPaperEntityCollection
+    paperEntityDrafts: IPaperEntityCollection,
+    updateCache: boolean = true,
+    isUpdate = false
   ): Promise<IPaperEntityCollection> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
@@ -298,7 +302,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
         return await this._fileService.move(
           paperEntityDraft,
-          this._preferenceService.get("sourceFileOperation") === "cut"
+          this._preferenceService.get("sourceFileOperation") === "cut" ||
+            isUpdate,
+          isUpdate
         );
       },
       async (paperEntityDraft) => {
@@ -387,7 +393,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
     ) as IPaperEntityCollection;
 
     // Don't wait this
-    this._cacheService.updateFullTextCache(successfulEntityDrafts);
+    if (updateCache) {
+      this._cacheService.updateFullTextCache(successfulEntityDrafts);
+    }
 
     return successfulEntityDrafts;
   }
@@ -422,15 +430,15 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     paperEntityDrafts = paperEntityDrafts.map((paperEntityDraft) => {
       if (type === CategorizerType.PaperTag) {
-        paperEntityDraft.tags = paperEntityDraft.tags.filter(
-          (tag) => `${tag._id}` !== `${categorizer._id}`
-        );
+        paperEntityDraft.tags = paperEntityDraft.tags
+          .filter((tag) => `${tag._id}` !== `${categorizer._id}`)
+          .filter((tag) => tag.name !== categorizer.name);
 
         paperEntityDraft.tags.push(new PaperTag(categorizer));
       } else if (type === CategorizerType.PaperFolder) {
-        paperEntityDraft.folders = paperEntityDraft.folders.filter(
-          (folder) => `${folder._id}` !== `${categorizer._id}`
-        );
+        paperEntityDraft.folders = paperEntityDraft.folders
+          .filter((folder) => `${folder._id}` !== `${categorizer._id}`)
+          .filter((folder) => folder.name !== categorizer.name);
 
         paperEntityDraft.folders.push(new PaperFolder(categorizer));
       }
@@ -438,7 +446,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       return paperEntityDraft;
     });
 
-    await this.update(paperEntityDrafts);
+    await this.update(paperEntityDrafts, false, true);
   }
 
   /**
@@ -471,6 +479,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
         }
       })
     );
+
+    const cacheIds = ids || paperEntities?.map((entity) => entity._id);
+    if (cacheIds) await this._cacheService.delete(cacheIds);
   }
 
   /**
@@ -491,7 +502,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     paperEntity.supURLs = paperEntity.supURLs.filter(
       (supUrl) => supUrl !== path.basename(url)
     );
-    await this.update([paperEntity]);
+    await this.update([paperEntity], true, true);
   }
 
   /**
@@ -513,7 +524,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     );
 
     // 2. Update.
-    return await this.update(scrapedPaperEntityDrafts);
+    return await this.update(scrapedPaperEntityDrafts, true, false);
   }
 
   /**
@@ -542,15 +553,15 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     const toBeUpdatedPaperEntityDrafts = paperEntityDrafts.map(
       (paperEntityDraft) => {
-        if ((type = CategorizerType.PaperTag)) {
-          paperEntityDraft.setValue("tags", [new PaperTag(categorizer)]);
+        if (type === CategorizerType.PaperTag) {
+          paperEntityDraft.tags.push(new PaperTag(categorizer));
         } else if (type === CategorizerType.PaperFolder) {
-          paperEntityDraft.setValue("folders", [new PaperFolder(categorizer)]);
+          paperEntityDraft.folders.push(new PaperFolder(categorizer));
         }
         return paperEntityDraft;
       }
     );
-    return await this.update(toBeUpdatedPaperEntityDrafts);
+    return await this.update(toBeUpdatedPaperEntityDrafts, true, false);
   }
 
   /**
@@ -585,7 +596,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       specificScrapers ? true : false
     );
 
-    await this.update(scrapedPaperEntityDrafts);
+    await this.update(scrapedPaperEntityDrafts, true, true);
   }
 
   /**
@@ -601,6 +612,38 @@ export class PaperService extends Eventable<IPaperServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
+    this._logService.info(
+      `Scraping metadata of preprint paper(s)...`,
+      "",
+      true,
+      "PaperService"
+    );
+    const preprintPaperEntities = this._paperEntityRepository.load(
+      await this._databaseCore.realm(),
+      '(publication contains[c] "arXiv") OR (publication contains[c] "openreview") OR publication == ""',
+      "addTime",
+      "desc"
+    );
+    await this.scrape(
+      preprintPaperEntities.map((paperEntity) => {
+        return new PaperEntity(paperEntity);
+      })
+    );
+  }
+
+  /**
+   * Scrape preprint paper entities.
+   */
+  @processing(ProcessingKey.General)
+  @errorcatching(
+    "Failed to scrape metadata of preprints.",
+    true,
+    "PaperService"
+  )
+  async _routineScrapePreprint() {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
     if (this._preferenceService.get("allowRoutineMatch") as boolean) {
       if (
         Math.round(Date.now() / 1000) -
@@ -609,23 +652,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       ) {
         return;
       }
-      this._logService.info(
-        `Scraping metadata of preprint paper(s)...`,
-        "",
-        true,
-        "PaperService"
-      );
-      const preprintPaperEntities = this._paperEntityRepository.load(
-        await this._databaseCore.realm(),
-        '(publication contains[c] "arXiv") OR (publication contains[c] "openreview") OR publication == ""',
-        "addTime",
-        "desc"
-      );
-      await this.scrape(
-        preprintPaperEntities.map((paperEntity) => {
-          return new PaperEntity(paperEntity);
-        })
-      );
+      await this.scrapePreprint();
       this._preferenceService.set({
         lastRematchTime: Math.round(Date.now() / 1000),
       });
@@ -659,7 +686,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       }
     }
 
-    await this.update(movedEntityDrafts);
+    await this.update(movedEntityDrafts, false, true);
   }
 
   /**
@@ -675,7 +702,11 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     const entities = localRealm.objects<PaperEntity>("PaperEntity");
 
-    await this.update(entities.map((entity) => new PaperEntity(entity)));
+    await this.update(
+      entities.map((entity) => new PaperEntity(entity)),
+      false,
+      true
+    );
 
     this._logService.info(
       `Migrated ${entities.length} paper(s) to cloud database.`,
@@ -683,5 +714,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       true,
       "PaperService"
     );
+
+    localRealm.close();
   }
 }

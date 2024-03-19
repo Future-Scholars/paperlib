@@ -8,7 +8,11 @@ import {
 } from "bootstrap-icons-vue";
 import { computed, PropType } from "vue";
 
-import { getCategorizerString, getPubTypeString } from "@/base/string";
+import {
+  getCategorizerString,
+  getPubTypeString,
+  getShortAuthorString,
+} from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
 import { FieldTemplate, ItemField } from "@/renderer/types/data-view";
 
@@ -29,6 +33,10 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  read: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const fields = computed(() => {
@@ -42,7 +50,7 @@ const fields = computed(() => {
 
     switch (fieldKey) {
       case "addTime": {
-        value = new Date(value).toLocaleString().slice(0, 10);
+        value = new Date(value).toLocaleDateString();
         break;
       }
       case "tags":
@@ -68,6 +76,12 @@ const fields = computed(() => {
       }
       case "supURLs": {
         value = value.length > 0;
+        break;
+      }
+      case "authors": {
+        if (fieldTemplate.short) {
+          value = getShortAuthorString(value);
+        }
         break;
       }
     }
@@ -139,6 +153,17 @@ const fields = computed(() => {
           :calss="active ? 'text-white' : ''"
           v-if="field.value"
         />
+      </span>
+      <span
+        class="my-auto truncate flex"
+        v-else-if="field.type === 'html-read'"
+      >
+        <div
+          class="my-auto h-1.5 w-1.5 rounded-md flex-none mr-1"
+          :class="active ? 'bg-red-400' : 'bg-red-500 '"
+          v-if="!read"
+        />
+        <span class="my-auto truncate" v-html="field.value"> </span>
       </span>
       <span class="my-auto truncate" v-else>
         {{ field.value }}

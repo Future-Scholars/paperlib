@@ -1,7 +1,7 @@
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { ILogService, LogService } from "@/renderer/services/log-service";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IUIStateService,
   UIStateService,
@@ -90,6 +90,15 @@ export class CommandService extends Eventable<{}> {
         this._uiStateService.setState({
           commandBarSearchMode: "advanced",
         });
+      },
+    });
+
+    this.register({
+      id: "scrape_preprints",
+      description: "Scrape metadata for all preprint papers in the library.",
+      priority: 99996,
+      handler: () => {
+        paperService.scrapePreprint();
       },
     });
   }

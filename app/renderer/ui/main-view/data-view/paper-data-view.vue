@@ -89,6 +89,8 @@ const computeFieldTemplates = () => {
       sortOrder: ["tags", "folders"].includes(fieldPref.key)
         ? prefState.sidebarSortOrder
         : undefined,
+      short:
+        fieldPref.key === "authors" ? prefState.mainviewShortAuthor : undefined,
     };
 
     restWidth -= template.width;
@@ -111,27 +113,39 @@ const onItemClicked = async (selectedIndex: number[]) => {
   }
 
   uiState.selectedIndex = selectedIndex;
-
-  if (
-    selectedIndex.length === 1 &&
-    prefState.mainviewType === "tableandpreview"
-  ) {
-    const fileURL = await fileService.access(
-      paperEntities.value[selectedIndex[0]].mainURL,
-      true
-    );
-    if (
-      uiState.commandBarSearchMode === "fulltext" &&
-      uiState.commandBarText !== ""
-    ) {
-      displayingURL.value = `../viewer/viewer.html?file=${fileURL}&search=${uiState.commandBarText}`;
-    } else {
-      displayingURL.value = `../viewer/viewer.html?file=${fileURL}`;
-    }
-  } else {
-    displayingURL.value = "";
-  }
 };
+
+disposable(
+  uiStateService.onChanged(
+    "selectedIndex",
+    async (newValue: { value: number[] }) => {
+      const selectedIndex = newValue.value;
+      if (
+        selectedIndex.length === 1 &&
+        prefState.mainviewType === "tableandpreview"
+      ) {
+        const fileURL = await fileService.access(
+          paperEntities.value[selectedIndex[0]].mainURL,
+          true
+        );
+        if (
+          uiState.commandBarSearchMode === "fulltext" &&
+          uiState.commandBarText !== ""
+        ) {
+          displayingURL.value = `../viewer/viewer.html?file=${encodeURIComponent(
+            fileURL
+          )}&search=${uiState.commandBarText}`;
+        } else {
+          displayingURL.value = `../viewer/viewer.html?file=${encodeURIComponent(
+            fileURL
+          )}`;
+        }
+      } else {
+        displayingURL.value = "";
+      }
+    }
+  )
+);
 
 const onItemRightClicked = (selectedIndex: number[]) => {
   onItemClicked(selectedIndex);
@@ -174,7 +188,7 @@ const onItemFileDraged = async (selectedIndex: number[]) => {
 };
 
 const onTableHeaderClicked = (key: string) => {
-  if (key === "tags" || key === "folders") {
+  if (key === "tags" || key === "folders" || key == "codes") {
     return;
   }
   preferenceService.set({ mainviewSortBy: key });
@@ -225,14 +239,17 @@ disposable(
 );
 
 disposable(
-  preferenceService.onChanged(["mainTableFields", "mainviewType"], () => {
-    onFontSizeChanged(prefState.fontsize);
-    if (prefState.mainviewType === "list") {
-      computeFieldEnables();
-    } else {
-      computeFieldTemplates();
+  preferenceService.onChanged(
+    ["mainTableFields", "mainviewType", "mainviewShortAuthor"],
+    () => {
+      onFontSizeChanged(prefState.fontsize);
+      if (prefState.mainviewType === "list") {
+        computeFieldEnables();
+      } else {
+        computeFieldTemplates();
+      }
     }
-  })
+  )
 );
 
 onMounted(() => {

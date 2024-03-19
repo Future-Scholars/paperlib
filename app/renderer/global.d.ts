@@ -1,4 +1,5 @@
 import { NetworkTool } from "@/base/network";
+import { LogService } from "@/common/services/log-service";
 import { PreferenceService } from "@/common/services/preference-service";
 import { CacheService } from "@/renderer/services/cache-service";
 import { CategorizerService } from "@/renderer/services/categorizer-service";
@@ -6,7 +7,6 @@ import { CommandService } from "@/renderer/services/command-service";
 import { DatabaseService } from "@/renderer/services/database-service";
 import { FeedService } from "@/renderer/services/feed-service";
 import { FileService } from "@/renderer/services/file-service";
-import { LogService } from "@/renderer/services/log-service";
 import { PaperService } from "@/renderer/services/paper-service";
 import { QuerySentenceService } from "@/renderer/services/querysentence-service";
 import { ReferenceService } from "@/renderer/services/reference-service";

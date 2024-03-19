@@ -138,24 +138,18 @@ const exportSelectedCiteBodiesInFolder = async () => {
       `https://scholar.google.com/scholar?q=${searchText.value}`
     );
   } else {
-    if (exportMode.value === "BibTex") {
-      await PLAPI.referenceService.export(
-        [selectedEntity] as any,
-        "BibTex-In-Folder"
-      );
-    } else if (exportMode.value === "PlainText") {
-      await PLAPI.referenceService.export(
-        [selectedEntity] as any,
-        "PlainText-In-Folder"
-      );
-    }
-
-    if (linkedFolder.value) {
+    if (linkedFolder.value && selectedEntity) {
       await PLAPI.paperService.updateWithCategorizer(
         [`${selectedEntity.id}`],
         new PaperFolder({ name: linkedFolder.value }),
         CategorizerType.PaperFolder
       );
+    }
+
+    if (exportMode.value === "BibTex") {
+      await PLAPI.referenceService.export([], "BibTex-In-Folder");
+    } else if (exportMode.value === "PlainText") {
+      await PLAPI.referenceService.export([], "PlainText-In-Folder");
     }
   }
 

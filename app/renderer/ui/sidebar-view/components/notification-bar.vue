@@ -63,6 +63,9 @@ const pushMsgToHistory = (
           msg.progressId === newMsg.progressId
         ) {
           msg.value = newMsg.value;
+          msg.name = newMsg.name;
+          msg.msg = newMsg.msg;
+          msg.additional = newMsg.additional;
           msg.show = true;
           updated = true;
         }

@@ -37,16 +37,19 @@ const tags = inject<Ref<ICategorizerCollection>>("tags");
 const tagsViewTree = computed(() => {
   return querySentenceService.parseViewTree(
     tags?.value || [],
-    CategorizerType.PaperTag
+    CategorizerType.PaperTag,
+    prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
   );
 });
 
 const folders = inject<Ref<ICategorizerCollection>>("folders");
 const foldersViewTree = computed(() => {
-  const linked = prefState.pluginLinkedFolder;
   return querySentenceService.parseViewTree(
     folders?.value || [],
-    CategorizerType.PaperFolder
+    CategorizerType.PaperFolder,
+    prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
   );
 });
 
@@ -54,7 +57,9 @@ const smartfilters = inject<Ref<IPaperSmartFilterCollection>>("smartfilters");
 const smartfiltersViewTree = computed(() => {
   return querySentenceService.parseViewTree(
     smartfilters?.value || [],
-    PaperSmartFilterType.smartfilter
+    PaperSmartFilterType.smartfilter,
+    prefState.sidebarSortBy,
+    prefState.sidebarSortOrder
   );
 });
 
@@ -64,6 +69,9 @@ const smartfiltersViewTree = computed(() => {
 const onSelect = (payload: { _id: string; query: string }) => {
   uiState.selectedQuerySentenceId = payload._id;
   uiState.querySentenceSidebar = payload.query;
+  if (payload._id === "lib-all") {
+    uiState.querySentenceCommandbar = "";
+  }
 };
 
 const onDroped = async (
@@ -89,11 +97,7 @@ const onDroped = async (
     paperService.updateWithCategorizer(dragingIds, categorizer, type);
   } else if (dropData.type === "files" && categorizer) {
     paperService.createIntoCategorizer(dropData.value, categorizer, type);
-  } else if (
-    (dropData.type === CategorizerType.PaperTag ||
-      dropData.type === CategorizerType.PaperFolder) &&
-    categorizer
-  ) {
+  } else if (dropData.type === CategorizerType.PaperFolder && categorizer) {
     const sourceCategorizer = new (
       type === CategorizerType.PaperTag ? PaperTag : PaperFolder
     )((await categorizerService.loadByIds(type, [dropData.value]))[0], false);
@@ -232,7 +236,8 @@ disposable(
       :class="{
         'h-6': prefState.isSidebarCompact,
         'h-7': !prefState.isSidebarCompact,
-        'bg-neutral-300': uiState.selectedQuerySentenceId === 'lib-all',
+        'bg-neutral-400 bg-opacity-30':
+          uiState.selectedQuerySentenceId === 'lib-all',
       }"
       @click="onSelect({ _id: 'lib-all', query: '' })"
     >
@@ -259,7 +264,8 @@ disposable(
       :class="{
         'h-6': prefState.isSidebarCompact,
         'h-7': !prefState.isSidebarCompact,
-        'bg-neutral-300': uiState.selectedQuerySentenceId === 'lib-flag',
+        'bg-neutral-400 bg-opacity-30':
+          uiState.selectedQuerySentenceId === 'lib-flag',
       }"
       @click="onSelect({ _id: 'lib-flag', query: 'flag == true' })"
     >

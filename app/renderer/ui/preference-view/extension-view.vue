@@ -200,6 +200,11 @@ const installExtension = async (id: string) => {
   installingExtIDs.value = installingExtIDs.value.filter((i) => i !== id);
 };
 
+const onCheckForUpdateClicked = async () => {
+  logService.info("Checking for extension updates", "", true, "Extension");
+  await PLExtAPI.extensionManagementService.checkUpdate();
+};
+
 const onOpenHomepageClicked = async (homepage?: string) => {
   if (homepage && homepage.match(/^(https?|ftp):\/\//)) {
     await PLAPI.fileService.open(homepage);
@@ -254,6 +259,18 @@ onUnmounted(async () => {
       <div
         class="flex text-xs space-x-4 text-neutral-400 dark:text-neutral-500 cursor-pointer"
       >
+        <div
+          class="transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300"
+          :class="
+            viewMode == 'installed'
+              ? ' hover:text-neutral-600  dark:hover:text-neutral-200 block'
+              : 'hidden'
+          "
+          @click="onCheckForUpdateClicked"
+        >
+          {{ $t("menu.checkforupdate") }}
+        </div>
+
         <div
           class="transition ease-in-out hover:text-neutral-500 dark:hover:text-neutral-300"
           :class="
@@ -318,6 +335,7 @@ onUnmounted(async () => {
           :description="extension.description"
           :homepage="extension.homepage"
           installed
+          :is-market-view="false"
           :installing="false"
           @event:homepageclicked="onOpenHomepageClicked(extension.homepage)"
           @event:reload="reloadExtension(extension.id)"
@@ -363,12 +381,12 @@ onUnmounted(async () => {
             :author="extension.author"
             :description="extension.description"
             :homepage="extension.homepage"
+            :is-market-view="true"
             :installed="installedExtensions.hasOwnProperty(extension.id)"
             :installing="installingExtIDs.includes(extension.id)"
+            @event:homepageclicked="onOpenHomepageClicked(extension.homepage)"
             @event:install="installExtension(extension.id)"
-            @event:reload="reloadExtension(extension.id)"
             @event:uninstall="uninstallExtension(extension.id)"
-            @event:setting="showSettingView(extension.id)"
           />
         </div>
       </div>

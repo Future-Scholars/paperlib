@@ -204,7 +204,8 @@
     "fontsizeintro": "The font size of the UI.",
     "fontnormal": "Normal",
     "fontlarge": "Large",
-    "fontlarger": "Larger"
+    "fontlarger": "Larger",
+    "mainviewshortauthor": "Use et al. for long author list."
   },
   "confirmation": {
     "title": "Confirmation",

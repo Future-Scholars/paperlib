@@ -4,12 +4,12 @@ import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
+import { ILogService, LogService } from "@/common/services/log-service";
 import { Colors } from "@/models/categorizer";
 import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { IPaperService, PaperService } from "@/renderer/services/paper-service";
 import {
   ISchedulerService,
@@ -40,6 +40,7 @@ import {
 export interface IFeedEntityFilterOptions {
   search?: string;
   searchMode?: "general" | "fulltext" | "advanced";
+  feedIds?: OID[];
   feedNames?: string[];
   unread?: boolean;
   title?: string;
@@ -51,6 +52,7 @@ export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
   public placeholders: string[] = [];
   public search?: string;
   public searchMode?: "general" | "fulltext" | "advanced";
+  public feedIds?: OID[];
   public feedNames?: string[];
   public unread?: boolean;
   public title?: string;
@@ -88,10 +90,18 @@ export class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
     if (this.feedNames && this.feedNames.length > 0) {
       const feedNamesQuery = this.feedNames
         .filter((feedName) => feedName)
-        .map((feedName) => `'${feedName}'`)
+        .map((feedName) => `"${feedName}"`)
         .join(", ");
 
       this.filters.push(`(feed.name IN { ${feedNamesQuery} })`);
+    }
+    if (this.feedIds && this.feedIds.length > 0) {
+      const feedIdsQuery = this.feedIds
+        .filter((feedId) => feedId)
+        .map((feedId) => `oid(${feedId})`)
+        .join(", ");
+
+      this.filters.push(`(feed._id IN { ${feedIdsQuery} })`);
     }
     if (this.unread) {
       this.filters.push(`(read == false)`);
@@ -298,9 +308,13 @@ export class FeedService extends Eventable<IFeedServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
+    feeds.forEach((feed) => {
+      feed.name = feed.name.replace(/"/g, "'");
+    });
+
     const updatedFeeds = await this.update(feeds);
 
-    this.refresh(undefined, updatedFeeds);
+    await this.refresh(undefined, updatedFeeds);
   }
 
   /**
@@ -430,7 +444,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     }
 
     const filter = new FeedEntityFilterOptions({
-      feedNames: feeds.map((feed: IFeedObject) => feed.name),
+      feedIds: feeds.map((feed: IFeedObject) => feed._id),
     });
     const toBeDeletedEntities = this._feedEntityRepository.load(
       realm,
@@ -461,23 +475,19 @@ export class FeedService extends Eventable<IFeedServiceState> {
       "Feed"
     );
 
-    const paperEntityDrafts = await this._scrapeService.scrape(
-      feedEntities.map((feedEntityDraft: IFeedEntityObject) => {
+    const paperEntityDrafts = feedEntities.map(
+      (feedEntityDraft: IFeedEntityObject) => {
         const paperEntityDraft = new PaperEntity({}, true).fromFeed(
           feedEntityDraft
         );
         // NOTE: we don't want to download the PDFs when adding to library.
         paperEntityDraft.mainURL = "";
-        return {
-          type: "paperEntity",
-          value: paperEntityDraft,
-        };
-      }),
-      ["semanticscholar"]
+        return paperEntityDraft;
+      }
     );
 
     // NOTE: here we decide to not download the PDFs when adding to library.
-    await this._paperService.update(paperEntityDrafts);
+    await this._paperService.update(paperEntityDrafts, false, false);
   }
 
   @processing(ProcessingKey.General)

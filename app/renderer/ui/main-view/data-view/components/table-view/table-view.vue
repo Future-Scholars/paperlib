@@ -101,6 +101,14 @@ const onItemDoubleClicked = (event: MouseEvent, index: number) => {
 };
 
 const onItemDraged = (event: DragEvent, index: number, id: OID) => {
+  event.dataTransfer?.setData(
+    "application/json",
+    JSON.stringify({
+      type: "PaperEntity",
+      value: id,
+    })
+  );
+
   let selectedIndex = props.selectedIndex;
   if (props.selectedIndex.indexOf(index) === -1) {
     selectedIndex = calSelectedIndex(event, index);
@@ -116,8 +124,6 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
 
   const el = event.target as HTMLElement;
   event.dataTransfer?.setDragImage(el, 0, 0);
-  event.dataTransfer?.setData("text/plain", `${id}`);
-
   emits("event:drag", selectedIndex);
 };
 </script>
@@ -146,6 +152,7 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
         :field-templates="fieldTemplates"
         :active="selectedIndex.indexOf(index) >= 0"
         :striped="index % 2 === 0"
+        :read="item.read !== undefined ? item.read : true"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"

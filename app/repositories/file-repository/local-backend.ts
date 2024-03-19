@@ -1,4 +1,3 @@
-import { shell } from "electron";
 import { existsSync, promises as fsPromise } from "fs";
 import path from "path";
 
@@ -130,17 +129,7 @@ export class LocalFileBackend implements IFileBackend {
       if (stat.isDirectory()) {
         throw new Error("Cannot remove a directory");
       }
-      // ENHANCE: https://github.com/electron/electron/issues/35786
-      try {
-        await shell.trashItem(_sourceURL);
-      } catch (error) {
-        console.error(error);
-        try {
-          await fsPromise.unlink(_sourceURL);
-        } catch (error) {
-          throw new Error("Cannot remove file");
-        }
-      }
+      await fsPromise.rm(_sourceURL);
       return true;
     } catch (error) {
       throw new Error("Cannot remove file");

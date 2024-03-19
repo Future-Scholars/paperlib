@@ -1,4 +1,4 @@
-import { existsSync, promises } from "fs";
+import { existsSync, promises, rmSync, unlinkSync } from "fs";
 import path from "path";
 import Realm, { ConfigurationWithSync } from "realm";
 
@@ -6,6 +6,7 @@ import { migrate, syncMigrate } from "@/base/database/migration";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
@@ -16,7 +17,6 @@ import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 import { FileService, IFileService } from "@/renderer/services/file-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 
 export const DATABASE_SCHEMA_VERSION = 10;
@@ -87,7 +87,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
 
     if (type === ConfigType.Cloud) {
       try {
-        this._realm = new Realm(config);
+        this._realm = await Realm.open(config);
         this._syncSession = this._realm.syncSession;
 
         await new Promise((resolve) => {
@@ -107,7 +107,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
           if (existsSync(config.path || "")) {
             await promises.unlink(config.path!);
             try {
-              this._realm = new Realm(config);
+              this._realm = await Realm.open(config);
               this._syncSession = this._realm.syncSession;
             } catch (err) {
               this._logService.error(
@@ -129,7 +129,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       }
     } else {
       try {
-        this._realm = new Realm(config);
+        this._realm = await Realm.open(config);
       } catch (err) {
         this._logService.error(
           "Failed to open local database",
@@ -328,6 +328,14 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
                     name: "FeedEntity",
                   }
                 );
+                subs.add(
+                  realm
+                    .objects("PaperPaperSmartFilter")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "PaperPaperSmartFilter",
+                  }
+                );
               },
               rerunOnOpen: true,
             },
@@ -503,6 +511,37 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
   resumeSync() {
     if (this._syncSession) {
       this._syncSession.resume();
+    }
+  }
+
+  async deleteSyncCache() {
+    const syncDBPath = path.join(
+      await PLMainAPI.fileSystemService.getSystemPath(
+        "userData",
+        Process.renderer
+      ),
+      "synced.realm"
+    );
+    try {
+      if (existsSync(syncDBPath)) {
+        unlinkSync(syncDBPath);
+      }
+      if (existsSync(syncDBPath + ".lock")) {
+        unlinkSync(syncDBPath + ".lock");
+      }
+      if (existsSync(syncDBPath + ".management")) {
+        rmSync(syncDBPath + ".management", { recursive: true });
+      }
+      if (existsSync(syncDBPath + ".note")) {
+        rmSync(syncDBPath + ".note");
+      }
+    } catch (err) {
+      this._logService.warn(
+        "Failed to delete sync cache",
+        "",
+        false,
+        "Database"
+      );
     }
   }
 }

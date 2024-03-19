@@ -25,7 +25,11 @@ const emit = defineEmits([
 <template>
   <div
     class="flex rounded-md justify-between cursor-pointer group select-none"
-    :class="enable ? 'bg-neutral-200' : 'bg-neutral-300 text-neutral-400'"
+    :class="
+      enable
+        ? 'bg-neutral-200 dark:bg-neutral-500'
+        : 'bg-neutral-300 text-neutral-400 dark:bg-neutral-700'
+    "
   >
     <div
       class="flex hover:bg-neutral-300 rounded-md group-hover:visible invisible flex-none"

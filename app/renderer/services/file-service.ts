@@ -14,13 +14,13 @@ import {
   hasProtocol,
   listAllFiles,
 } from "@/base/url";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
 import { PaperEntity } from "@/models/paper-entity";
 import { HookService, IHookService } from "@/renderer/services/hook-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { IFileBackend } from "@/repositories/file-repository/backend";
 import { LocalFileBackend } from "@/repositories/file-repository/local-backend";
 import { WebDavFileBackend } from "@/repositories/file-repository/webdav-backend";
@@ -140,7 +140,7 @@ export class FileService extends Eventable<IFileServiceState> {
       }
 
       let title =
-        paperEntity.title.replace(/[^\p{L}|\s]/gu, "").replace(/\s/g, "_") ||
+        paperEntity.title.replace(/[^\p{L}\s\d]/gu, "").replace(/\s/g, "_") ||
         "untitled";
       const firstCharTitle =
         title
@@ -195,6 +195,8 @@ export class FileService extends Eventable<IFileServiceState> {
       } else {
         formatedFilename = `${title.slice(0, 200)}_${id}`;
       }
+
+      formatedFilename = formatedFilename.replace(/[<>:"/\\|?*]+/g, "");
 
       const movedMainFilename = await this._backend.moveFile(
         paperEntity.mainURL,

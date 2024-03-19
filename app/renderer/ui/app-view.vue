@@ -4,7 +4,6 @@ import { Ref, computed, nextTick, onMounted, provide, ref } from "vue";
 import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/preload/loading";
 import { FeedEntityFilterOptions } from "@/renderer/services/feed-service";
-import { PaperFilterOptions } from "@/renderer/services/paper-service";
 import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
 import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
 import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
@@ -23,6 +22,7 @@ import MainView from "./main-view/main-view.vue";
 import PreferenceView from "./preference-view/preference-view.vue";
 import PresettingView from "./presetting-view/presetting-view.vue";
 import WhatsNewView from "./whats-new-view/whats-new-view.vue";
+import WelcomeView from "./welcome-view/welcome-view.vue";
 import { PaperSmartFilterType } from "@/models/smart-filter";
 
 // ================================
@@ -35,7 +35,6 @@ const prefState = preferenceService.useState();
 // ================================
 // Data
 // ================================
-// TODO: Test performance of numerous data
 const paperEntities: Ref<IPaperEntityCollection> = ref([]);
 provide(
   "paperEntities",
@@ -267,9 +266,11 @@ disposable(
       if (newValue.value === "blur") {
         uiState.mainViewFocused = false;
         databaseService.pauseSync();
+        PLMainAPI.menuService.disableAll();
       } else if (newValue.value === "focus") {
         uiState.mainViewFocused = true;
         databaseService.resumeSync();
+        PLMainAPI.menuService.enableAll();
       }
     }
   )
@@ -292,6 +293,12 @@ disposable(
   })
 );
 
+disposable(
+  preferenceService.onChanged("sourceFileOperation", (newValue) => {
+    fileService.initialize();
+  })
+);
+
 // ================================
 // Dev Functions
 // ================================
@@ -306,7 +313,7 @@ const onAddDummyClicked = async () => {
     const dummyPaperEntity = new PaperEntity(
       {
         title: `Dummy Paper <scp>D</scp>-${i}<sup>+T</sup>`,
-        authors: "Dummy Author",
+        authors: "Dummy Author A, Dummy Author B, Dummy Author C",
         pubTime: `${Math.round(2021 + Math.random() * 10)}`,
         publication: `Publication ${Math.round(Math.random() * 10)}`,
       },
@@ -500,6 +507,17 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <WhatsNewView v-if="isWhatsNewShown" />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <WelcomeView v-if="prefState.showWelcome" />
     </Transition>
   </div>
 </template>

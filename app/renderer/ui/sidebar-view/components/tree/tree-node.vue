@@ -225,7 +225,7 @@ const onDragged = (event: DragEvent) => {
     :class="{
       'h-6': compact,
       'h-7': !compact,
-      'bg-neutral-300': activated && !isRoot,
+      'bg-neutral-400 bg-opacity-30': activated && !isRoot,
     }"
   >
     <div class="flex flex-none w-3" v-if="children.length > 0">
@@ -253,7 +253,7 @@ const onDragged = (event: DragEvent) => {
       :draggable="itemDraggable"
       @click="onClicked"
       @event:blur-name-editing="onEditBlur"
-      @event:submit-name-editing="(newName: string) => onEditSubmit({ _id: id, name: newName, parent_id: parent_id })"
+      @event:submit-name-editing="(newName: string) => onEditSubmit({ _id: id, name: newName, parent_id: parent_id, color: color })"
       @contextmenu="onRightClicked"
       @dragenter.prevent
       @dragover.prevent
@@ -291,7 +291,7 @@ const onDragged = (event: DragEvent) => {
         :indent="indent"
         :editing="true"
         @event:blur-name-editing="onEditBlur"
-        @event:submit-name-editing="(newName: string) => onEditSubmit({ parent_id: id, name: newName })"
+        @event:submit-name-editing="(newName: string) => onEditSubmit({ parent_id: id, name: newName, color: color})"
       />
     </div>
     <TreeNode

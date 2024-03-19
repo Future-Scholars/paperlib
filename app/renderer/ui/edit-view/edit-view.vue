@@ -30,6 +30,7 @@ const pubTypes = {
   Others: 2,
   Book: 3,
 };
+const pubTypeKeys = ["Article", "Conference", "Others", "Book"];
 const tags = inject<Ref<ICategorizerCollection>>("tags");
 
 const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
@@ -57,18 +58,27 @@ const onCloseClicked = () => {
 };
 
 const onSaveClicked = async () => {
-  paperService.update([new PaperEntity(editingPaperEntityDraft.value)]);
+  paperService.update(
+    [new PaperEntity(editingPaperEntityDraft.value)],
+    false,
+    true
+  );
   onCloseClicked();
 };
 
 const onSaveAndScrapeClicked = async () => {
-  const savedPaperEntityDraft = await paperService.update([
-    new PaperEntity(editingPaperEntityDraft.value),
-  ]);
+  const savedPaperEntityDraft = await paperService.update(
+    [new PaperEntity(editingPaperEntityDraft.value)],
+    false,
+    true
+  );
   paperService.scrape(savedPaperEntityDraft);
 };
 
 disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
+disposable(
+  shortcutService.registerInInputField("ctrlmeta+KeyS", onSaveClicked)
+);
 
 onMounted(() => {
   PLMainAPI.menuService.disableAll();
@@ -125,10 +135,10 @@ onUnmounted(() => {
                 :placeholder="$t('mainview.pubType')"
                 class="w-1/2 h-10"
                 :options="pubTypes"
-                :value="pubTypes[editingPaperEntityDraft.pubType]"
+                :value="editingPaperEntityDraft.pubType"
                 @event:change="
-                  (value: string) => {
-                    editingPaperEntityDraft.pubType = pubTypes[value];
+                  (value: any) => {
+                    editingPaperEntityDraft.pubType = parseInt(value);
                   }
                 "
               />

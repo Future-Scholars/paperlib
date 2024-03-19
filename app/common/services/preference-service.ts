@@ -81,6 +81,7 @@ export interface IPreferenceStore {
   mainviewSortBy: string;
   mainviewSortOrder: "desc" | "asce";
   mainviewType: string;
+  mainviewShortAuthor: boolean;
 
   pluginLinkedFolder: string;
 
@@ -91,6 +92,7 @@ export interface IPreferenceStore {
   importedCSLStylesPath: string;
 
   showPresetting: boolean;
+  showWelcome: boolean;
   fontsize: "normal" | "large" | "larger";
 }
 
@@ -197,6 +199,7 @@ const _defaultPreferences: IPreferenceStore = {
   mainviewSortBy: "addTime",
   mainviewSortOrder: "desc",
   mainviewType: "list",
+  mainviewShortAuthor: false,
 
   pluginLinkedFolder: "",
 
@@ -207,6 +210,7 @@ const _defaultPreferences: IPreferenceStore = {
   importedCSLStylesPath: "",
 
   showPresetting: true,
+  showWelcome: true,
   fontsize: "normal",
 };
 
@@ -240,7 +244,6 @@ function _migrate(
     }
   }
 
-  // TODO: check this one.
   if (prevVersion <= 1) {
     // depracated data field settings.
     const keyMap = {

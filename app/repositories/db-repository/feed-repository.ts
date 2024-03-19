@@ -198,10 +198,10 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
         }
         return object;
       } else {
-        const newObject = realm.create<Feed>("Feed", feed);
         if (partition) {
-          newObject._partition = partition;
+          feed._partition = partition;
         }
+        const newObject = realm.create<Feed>("Feed", feed);
         return newObject;
       }
     });

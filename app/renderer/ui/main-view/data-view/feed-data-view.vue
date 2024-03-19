@@ -50,7 +50,7 @@ const computeFieldTemplates = () => {
 
   // 2. Compute field templates.
   const templateTypes = {
-    title: "html",
+    title: "html-read",
   };
 
   // 3. Add rest width to the first field.
@@ -65,6 +65,8 @@ const computeFieldTemplates = () => {
       value: undefined,
       label: i18n.t(`mainview.${fieldPref.key}`),
       width: fieldPref.width === -1 ? autoWidth : fieldPref.width,
+      short:
+        fieldPref.key === "authors" ? prefState.mainviewShortAuthor : undefined,
     };
 
     restWidth -= template.width;
@@ -133,10 +135,13 @@ disposable(
 );
 
 disposable(
-  preferenceService.onChanged(["feedFields", "mainviewType"], () => {
-    onFontSizeChanged(prefState.fontsize);
-    computeFieldTemplates();
-  })
+  preferenceService.onChanged(
+    ["feedFields", "mainviewType", "mainviewShortAuthor"],
+    () => {
+      onFontSizeChanged(prefState.fontsize);
+      computeFieldTemplates();
+    }
+  )
 );
 
 onMounted(() => {

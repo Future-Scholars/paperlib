@@ -162,7 +162,7 @@ const flagSelectedEntities = () => {
         return paperEntityDraft;
       }
     );
-    paperService.update(paperEntityDrafts);
+    paperService.update(paperEntityDrafts, false, true);
   }
 };
 
@@ -412,6 +412,17 @@ disposable(
 );
 
 disposable(
+  shortcutService.register(
+    "Space",
+    () => {
+      PLMainAPI.menuService.click("View-preview");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
   PLMainAPI.menuService.onClick("File-copyBibTex", () => {
     if (uiState.selectedPaperEntities.length >= 1) {
       exportSelectedEntities("BibTex");
@@ -452,8 +463,10 @@ disposable(
 );
 
 disposable(PLMainAPI.menuService.onClick("View-previous", onArrowUpPressed));
+disposable(shortcutService.register("ArrowUp", onArrowUpPressed, true));
 
 disposable(PLMainAPI.menuService.onClick("View-next", onArrowDownPressed));
+disposable(shortcutService.register("ArrowDown", onArrowDownPressed, true));
 
 // =======================================
 // Register State Changes

@@ -1,28 +1,46 @@
-## v3.0.0-beta.4 29/01 2024
+## v3.0.3 Mar 19 2024
 
-1. Important New Feature: Hierarchy Folders and SmartFilters!
-2. New Feature: Table view column order and more columns.
-3. New Feature: SmartFilter can be edited after creation. Add more human-friendly labels for SmartFilter creation.
-4. Fixed some bugs.
+0. The significant changes introduced in version 3 introduced some bugs. Two months of beta testing still cannot avoid them. We apologize for the recent frequent updates. Please bear with us.
+1. Fix: Duplicate folder bug in the QuickPaste plugin. by @geoffreychen777
+2. Fix: Some RSS-related bugs. by @geoffreychen777
+3. Fix: A file moving bug. by @geoffreychen777
+4. Fix: A macOS bug when the window was closed by Cmd+W. by @geoffreychen777
+5. Fix: A sync bug for partition-based database. by @geoffreychen777
+6. Enhance: Some Chinese translation issues. by @Rccubc
 
-## v3.0.0-beta.3 Jan 15 2024
+## v3.0.2 Mar 17 2024
 
-1. Fixed some bugs.
-2. Extension Recommendation: paperlib-ai-summary-extension
+0. New Community Extension: `paperlib-cn-scrape-extension` - A new extension to scrape metadata from the Chinese CNKI database.
+1. New Feature in Official Extensions: `paperlib-ai-summary-extension` - add a new command `\tagit` to let LLM help you tag your papers. by @geoffreychen777
+2. Fix: a filename bug when importing a file. by @geoffreychen777
+3. Fix: a categorizer editing bug. by @geoffreychen777
+4. Fix: a filename bug in table preview mode. by @geoffreychen777
+5. Enhance: add a logo at the top-left corner of the app in Windows. by @igoogolx
+6. For Ext Developer: add two methods in the contextMenuService to register and unregister context menu items. by @igoogolx
+7. For Ext Developer: add three methods in the windowManagementService to find, focus, and blur a window. by @igoogolx
 
-## v3.0.0-beta.2 Jan 15 2024
+## v3.0.1 Mar 15 2024
 
-1. Doesn't support Windows 7 anymore.
-2. Fixed some bugs.
-3. Extension Recommendation: paperlib-ai-summary-extension
+1. Feat: supports unmaximizing on Windows. Thanks @igoogolx.
+2. Fix: the style of the window control buttons. Thanks @igoogolx.
+3. Fix: scrolling when pressing Space.
+4. Fix: cannot open supplementary.
 
-## v3.0.0-beta.1 Jan 8 2024
+## v3.0.0 Mar 12 2024
 
-1. The entire code has been refactored to support the extensible architecture. For details on extension development, please refer to our official website. Let's make Paperlib better together!
-2. All metadata scrapers and downloaders have been moved into corresponding extensions.
-3. A new command panel interface has been introduced to replace the basic search bar.
-4. Support for creating new tags and folders in the sidebar.
-5. Fixed some bugs.
+1. New Feature: The entire code has been refactored to support the extensible architecture. For details on extension development, please refer to our official website. Let's make Paperlib better together!
+2. New Feature: Hierarchy Folders and SmartFilters!
+3. New Feature: All metadata scrapers and downloaders have been moved into corresponding extensions.
+4. New Feature: A new command panel interface has been introduced to replace the basic search bar.
+5. New Feature: Support for creating new tags and folders in the sidebar.
+6. New Feature: Changable table view column order and more columns.
+7. New Feature: SmartFilter can be edited after creation. Add more human-friendly labels for SmartFilter creation.
+8. Others: Fixed some bugs.
+9. Others: Doesn't support Windows 7 anymore.
+
+## v2.2.9 Jan 09 2024
+
+1. Prepare for version 3.0.
 
 ## v2.2.8 Dec 21 2023
 

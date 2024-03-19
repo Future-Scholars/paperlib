@@ -40,6 +40,8 @@ interface IExtensionManagementServiceState {
   uninstalled: string;
   reloading: string;
   reloaded: string;
+  updating: string;
+  updated: string;
   installedLoaded: boolean;
 }
 
@@ -51,6 +53,8 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
   private readonly _installedExtensionInfos: {
     [key: string]: IExtensionInfo;
   };
+
+  private _npmRegistry = "https://registry.npmjs.org/";
 
   constructor(
     @IExtensionPreferenceService
@@ -64,6 +68,8 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
       uninstalled: "",
       reloading: "",
       reloaded: "",
+      updating: "",
+      updated: "",
       installedLoaded: false,
     });
     this._extStore = new ElectronStore({
@@ -78,6 +84,34 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
 
     this._installedExtensions = {};
     this._installedExtensionInfos = {};
+  }
+
+  async initialize() {
+    await this._chooseNPMRegistry();
+    await this.loadInstalledExtensions();
+    await this.checkUpdate();
+  }
+
+  async _chooseNPMRegistry() {
+    try {
+      const { countryCode } = (
+        await this._networkTool.get(
+          "http://ip-api.com/json/?fields=countryCode",
+          {},
+          0,
+          5000,
+          false,
+          true
+        )
+      ).body;
+      if (countryCode === "CN") {
+        // @ts-ignore
+        this._extManager.npmRegistry.npmUrl = "https://registry.npmmirror.com/";
+        this._npmRegistry = "https://registry.npmmirror.com/";
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   /**
@@ -97,7 +131,11 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
       promises.push(
         new Promise(async (resolve, reject) => {
           try {
-            await this.install(extInfo.originLocation || extInfo.id, false);
+            await this.install(
+              extInfo.originLocation || extInfo.id,
+              false,
+              extInfo.version
+            );
           } catch (e) {
             console.error(e);
             PLAPI.logService.error(
@@ -116,12 +154,154 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     this.fire({ installedLoaded: true });
   }
 
+  async checkUpdate() {
+    for (const [id, info] of Object.entries(this._installedExtensionInfos)) {
+      try {
+        const latestVersion = (
+          await this._networkTool.get(
+            `${this._npmRegistry}${id}/latest`,
+            {},
+            0,
+            5000,
+            false,
+            true
+          )
+        ).body.version;
+
+        if (
+          latestVersion !== info.version &&
+          info.originLocation === undefined
+        ) {
+          PLAPI.logService.info(
+            `New version of ${id} has been released.`,
+            "Automatically updating...",
+            true,
+            "ExtManagementService"
+          );
+
+          await this.update(id);
+        }
+      } catch (e) {
+        console.error(e);
+        PLAPI.logService.error(
+          `Failed to check update for extension ${id}`,
+          e as Error,
+          true,
+          "ExtManagementService"
+        );
+      }
+    }
+  }
+
+  async update(extensionID: string) {
+    if (isLocalPath(extensionID)) {
+      return;
+    }
+
+    const currentVersion = this._installedExtensionInfos[extensionID].version;
+    const currentExtensionPath = path.join(
+      globalThis["extensionWorkingDir"],
+      extensionID
+    );
+
+    try {
+      PLAPI.logService.info(
+        "Trying to update extensions.",
+        extensionID,
+        false,
+        "ExtManagementService"
+      );
+      this.fire({ updating: extensionID });
+
+      // 1. Backup the current extension.
+      fs.cpSync(currentExtensionPath, currentExtensionPath + ".bak", {
+        recursive: true,
+      });
+
+      // 2. Uninstall the current extension.
+      await this.uninstall(extensionID, true);
+    } catch (e) {
+      console.error(e);
+      PLAPI.logService.error(
+        `Failed to update extension ${extensionID}`,
+        e as Error,
+        true,
+        "ExtManagementService"
+      );
+      return;
+    }
+    try {
+      // 3. Install the latest version of the extension.
+      let info: IPluginInfo = await this._extManager.installFromNpm(
+        extensionID,
+        "latest"
+      );
+
+      const extension = this._extManager.require(info.name);
+
+      this._installedExtensions[info.name] = await extension.initialize();
+
+      this._installedExtensionInfos[info.name] = {
+        id: info.name,
+        name: info.name.replace("@future-scholars/", ""),
+        version: info.version,
+        author: info.author ? info.author.name : "community",
+        verified: info.name.startsWith("@future-scholars/"),
+        description: info.description || "",
+        homepage: info.homepage,
+        preference:
+          this._extensionPreferenceService.getAllMetadata(info.name) || {},
+        location: info.location,
+        originLocation: undefined,
+      };
+
+      this._extStore.set(extensionID, this._installedExtensionInfos[info.name]);
+
+      PLAPI.logService.info(
+        `Extension has been updated.`,
+        `${extensionID} ${currentVersion} -> ${info.version}`,
+        true,
+        "ExtManagementService"
+      );
+
+      fs.rmSync(currentExtensionPath + ".bak", {
+        recursive: true,
+        force: true,
+      });
+
+      this.fire({ updated: extensionID });
+    } catch (e) {
+      console.log(e);
+      PLAPI.logService.error(
+        `Failed to update extension ${extensionID}`,
+        e as Error,
+        true,
+        "ExtManagementService"
+      );
+
+      // 4. Restore the backup.
+      fs.cpSync(currentExtensionPath + ".bak", currentExtensionPath, {
+        recursive: true,
+      });
+      fs.rmSync(currentExtensionPath + ".bak", {
+        recursive: true,
+        force: true,
+      });
+      this.install(extensionID, false, currentVersion);
+    }
+  }
+
   /**
    * Install an extension from the given path or extensionID.
    * @param extensionIDorPath - extensionID or path to the extension
    * @param notify - whether to show notification, default to true
+   * @param version - version to install, default to "latest"
    */
-  async install(extensionIDorPath: string, notify = true) {
+  async install(
+    extensionIDorPath: string,
+    notify = true,
+    version: string = "latest"
+  ) {
     let extensionID;
     try {
       PLAPI.logService.info(
@@ -152,7 +332,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
         }
       } else {
         extensionID = extensionIDorPath;
-        info = await this._extManager.installFromNpm(extensionID);
+        info = await this._extManager.installFromNpm(extensionID, version);
       }
 
       const extension = this._extManager.require(info.name);
@@ -203,7 +383,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
    * Uninstall an extension.
    * @param extensionID - extensionID to uninstall
    */
-  async uninstall(extensionID: string) {
+  async uninstall(extensionID: string, keepInfo = false) {
     try {
       this.fire({ uninstalling: extensionID });
       if (
@@ -254,7 +434,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
         "ExtManagementService"
       );
     } finally {
-      this.clean(extensionID);
+      this.clean(extensionID, keepInfo);
     }
   }
 
@@ -262,7 +442,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
    * Clean the extension related files, preference, etc.
    * @param extensionIDorPath - extensionID or path to the extension
    */
-  async clean(extensionIDorPath: string) {
+  async clean(extensionIDorPath: string, keepInfo = false) {
     let extensionPath: string;
     let extensionID: string;
 
@@ -285,14 +465,14 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     }
     // Clean the extension preference if exists.
     this._extensionPreferenceService.unregister(extensionID);
-    if (fs.existsSync(extensionPath + ".json")) {
+    if (fs.existsSync(extensionPath + ".json") && !keepInfo) {
       fs.rmSync(extensionPath + ".json", { force: true });
     }
     // Clean the extension info.
     delete this._installedExtensions[extensionID];
     delete this._installedExtensionInfos[extensionID];
     // Clean the extension record in the store.
-    if (this._extStore.has(extensionID)) {
+    if (this._extStore.has(extensionID) && !keepInfo) {
       this._extStore.delete(extensionID);
     }
   }
@@ -311,14 +491,10 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
 
       if (location !== this._installedExtensionInfos[extensionID].location) {
         // Installed from local file.
-        await this.uninstall(extensionID);
+        await this.uninstall(extensionID, true);
         await this.install(location);
       } else {
-        // Installed from other sources.
-        fs.copyFileSync(location, location + ".bak");
-        await this.uninstall(extensionID);
-        fs.linkSync(location + ".bak", location);
-        await this.install(location);
+        // TODO: support reload from npm
       }
 
       this.fire({ reloaded: extensionID });
@@ -360,17 +536,19 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
    */
   async listExtensionMarketplace(query: string) {
     try {
+      let npmQueryUrl = "";
+      if (this._npmRegistry === "https://registry.npmmirror.com/") {
+        npmQueryUrl = query
+          ? `https://api.paperlib.app/extensions/query?keywords=${query}`
+          : `https://api.paperlib.app/extensions/query`;
+      } else {
+        npmQueryUrl = query
+          ? `https://registry.npmjs.org/-/v1/search?text=${query} keywords:paperlib&size=20`
+          : "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20";
+      }
+
       const packages = (
-        await this._networkTool.get(
-          query
-            ? `https://registry.npmjs.org/-/v1/search?text=${query} keywords:paperlib&size=20`
-            : "https://registry.npmjs.org/-/v1/search?text=keywords:paperlib&size=20",
-          {},
-          1,
-          10000,
-          false,
-          true
-        )
+        await this._networkTool.get(npmQueryUrl, {}, 1, 10000, false, true)
       ).body.objects as {
         package: {
           name: string;
@@ -380,8 +558,16 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
           };
           author?: { name: string };
           description?: string;
-          links: {
+          links?: {
             homepage?: string;
+          };
+          keywords: string[];
+        };
+        score: {
+          detail: {
+            quality: number;
+            popularity: number;
+            maintenance: number;
           };
         };
       }[];
@@ -398,7 +584,14 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
         };
       } = {};
 
+      packages.sort((a, b) => {
+        return b.score.detail.popularity - a.score.detail.popularity;
+      });
+
       for (const pkg of packages) {
+        if (!pkg.package.keywords.includes("paperlib")) {
+          continue;
+        }
         extensions[pkg.package.name] = {
           id: pkg.package.name,
           name: pkg.package.name.replaceAll("@future-scholars/", ""),
@@ -408,7 +601,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
             : pkg.package.publisher.username,
           verified: pkg.package.name.startsWith("@future-scholars/"),
           description: pkg.package.description || "",
-          homepage: pkg.package.links.homepage,
+          homepage: pkg.package.links?.homepage,
         };
       }
 

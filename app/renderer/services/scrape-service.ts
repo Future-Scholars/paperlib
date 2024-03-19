@@ -2,9 +2,9 @@ import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
+import { ILogService, LogService } from "@/common/services/log-service";
 import { PaperEntity } from "@/models/paper-entity";
 import { HookService, IHookService } from "@/renderer/services/hook-service";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 
 export const IScrapeService = createDecorator("scrapeService");
@@ -95,29 +95,60 @@ export class ScrapeService extends Eventable<{}> {
     // 0. Wait for scraper extension to be ready.
     await this._scrapeExtensionReady();
 
-    // 1. Entry scraper transforms data source payloads into a PaperEntity list.
-    const paperEntityDrafts = await this.scrapeEntry(payloads);
+    // Do in chunks 10
+    const jobID = Math.random().toString(36).substring(7);
+    const results: PaperEntity[] = [];
+    for (let i = 0; i < payloads.length; i += 10) {
+      if (payloads.length >= 20) {
+        this._logService.progress(
+          `Processing ${i} / ${payloads.length}...`,
+          (i / payloads.length) * 100,
+          true,
+          "ScrapeService",
+          jobID
+        );
+      }
+      try {
+        let payloadChunk = payloads.slice(i, i + 10);
 
-    if (paperEntityDrafts.length === 0) {
-      this._logService.warn(
-        "The data source yields no PaperEntity.",
-        "",
-        true,
-        "ScrapeService"
-      );
-      return [];
+        // 1. Entry scraper transforms data source payloads into a PaperEntity list.
+        const paperEntityDrafts = await this.scrapeEntry(payloadChunk);
+
+        if (paperEntityDrafts.length === 0) {
+          this._logService.warn(
+            "The data source yields no PaperEntity.",
+            "",
+            true,
+            "ScrapeService"
+          );
+          return [];
+        }
+
+        // ENHANCE: merge duplicated paperEntityDrafts?
+
+        // 2. Metadata scraper fullfills the metadata of PaperEntitys.
+        const scrapedPaperEntityDrafts = await this.scrapeMetadata(
+          paperEntityDrafts,
+          specificScrapers,
+          force
+        );
+
+        results.push(...scrapedPaperEntityDrafts);
+      } catch (e) {
+        this._logService.error(
+          "Failed to scrape data source.",
+          `${(e as Error).message} ${(e as Error).stack}`,
+          true,
+          "ScrapeService"
+        );
+      }
     }
 
-    // ENHANCE: merge duplicated paperEntityDrafts?
+    if (payloads.length >= 20) {
+      this._logService.progress(`Done!`, 100, true, "ScrapeService", jobID);
+    }
 
-    // 2. Metadata scraper fullfills the metadata of PaperEntitys.
-    const scrapedPaperEntityDrafts = await this.scrapeMetadata(
-      paperEntityDrafts,
-      specificScrapers,
-      force
-    );
-
-    return scrapedPaperEntityDrafts;
+    return results;
   }
 
   /**
@@ -141,7 +172,7 @@ export class ScrapeService extends Eventable<{}> {
       paperEntityDrafts = (
         await this._hookService.transformhookPoint<any[], Object[]>(
           "scrapeEntry",
-          180000, // 3 min
+          600000, // 10 min
           payloads
         )
       ).map((p) => {
@@ -192,7 +223,7 @@ export class ScrapeService extends Eventable<{}> {
       [scrapedPaperEntityDrafts, scrapers, force] =
         await this._hookService.modifyHookPoint(
           "scrapeMetadata",
-          16000,
+          60000,
           paperEntityDrafts,
           scrapers,
           force

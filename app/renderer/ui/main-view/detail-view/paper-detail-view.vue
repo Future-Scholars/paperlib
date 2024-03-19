@@ -49,7 +49,7 @@ const uiState = uiStateService.useState();
 const onRatingChanged = (value: number) => {
   const paperEntityDraft = new PaperEntity(props.entity);
   paperEntityDraft.rating = value;
-  paperService.update([paperEntityDraft]);
+  paperService.update([paperEntityDraft], false, true);
 };
 
 const onDeleteCategorizer = (
@@ -66,13 +66,17 @@ const onDeleteCategorizer = (
       return folder.name !== categorizer.name;
     });
   }
-  paperService.update([paperEntityDraft]);
+  paperService.update([paperEntityDraft], false, true);
 };
 
 const modifyMainFile = async (url: string) => {
   const paperEntityDraft = new PaperEntity(props.entity);
   paperEntityDraft.mainURL = url;
-  const updatedPaperEntity = await paperService.update([paperEntityDraft]);
+  const updatedPaperEntity = await paperService.update(
+    [paperEntityDraft],
+    true,
+    false
+  );
   await cacheService.updateCache(updatedPaperEntity);
   setTimeout(() => {
     uiState.renderRequired = Date.now();
@@ -84,14 +88,14 @@ const locateMainFile = async () => {
   const updatedPaperEntities = await fileService.locateFileOnWeb([
     paperEntityDraft,
   ]);
-  await paperService.update(updatedPaperEntities);
+  await paperService.update(updatedPaperEntities, true, true);
   uiState.renderRequired = Date.now();
 };
 
 const addSups = (urls: string[]) => {
   const paperEntityDraft = new PaperEntity(props.entity);
   paperEntityDraft.supURLs = [...paperEntityDraft.supURLs, ...urls];
-  paperService.update([paperEntityDraft]);
+  paperService.update([paperEntityDraft], true, true);
 };
 
 const onDeleteSup = (url: string) => {

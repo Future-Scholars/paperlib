@@ -2,13 +2,19 @@ import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   IPreferenceService,
   PreferenceService,
 } from "@/common/services/preference-service";
-import { Categorizer, CategorizerType, Colors } from "@/models/categorizer";
+import {
+  Categorizer,
+  CategorizerType,
+  Colors,
+  PaperFolder,
+  PaperTag,
+} from "@/models/categorizer";
 import { OID } from "@/models/id";
-import { ILogService, LogService } from "@/renderer/services/log-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
   CategorizerRepository,
@@ -89,9 +95,10 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
   }
 
   /**
-   * Update a categorizer.
+   * Create a categorizer.
    * @param type - The type of categorizer.
    * @param categorizer - The categorizer.
+   * @param parentCategorizer - The parent categorizer to insert.
    * @returns
    */
   @processing(ProcessingKey.General)
@@ -99,16 +106,9 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
   async create(
     type: CategorizerType,
     categorizer: Categorizer,
-    parent?: Categorizer
+    parentCategorizer?: Categorizer
   ) {
-    const realm = await this._databaseCore.realm();
-    return this._categorizerRepository.update(
-      realm,
-      type,
-      categorizer,
-      this._databaseCore.getPartition(),
-      parent
-    );
+    return this.update(type, categorizer, parentCategorizer);
   }
 
   /**
@@ -231,8 +231,15 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
     categorizer: Categorizer,
     parentCategorizer?: Categorizer
   ) {
-    if (!categorizer.name || categorizer.name?.includes("/")) {
-      throw new Error("Invalid name, name cannot be empty or contain '/'");
+    if (
+      !categorizer.name ||
+      categorizer.name?.includes("/") ||
+      categorizer.name === "Tags" ||
+      categorizer.name === "Folders"
+    ) {
+      throw new Error(
+        "Invalid name, name cannot be empty, 'Tags', 'Folders', or contain '/'"
+      );
     }
 
     return this._categorizerRepository.update(
@@ -242,5 +249,63 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
       this._databaseCore.getPartition(),
       parentCategorizer
     );
+  }
+
+  /**
+   * Migrate the local database to the cloud database. */
+  @errorcatching(
+    "Failed to migrate the local categorizers to the cloud database.",
+    true,
+    "DatabaseService"
+  )
+  async migrateLocaltoCloud() {
+    const localConfig = await this._databaseCore.getLocalConfig(false);
+    const localRealm = new Realm(localConfig);
+
+    const rootTag = localRealm
+      .objects<PaperTag>("PaperTag")
+      .filtered("name == 'Tags'");
+    const rootFolder = localRealm
+      .objects<PaperFolder>("PaperFolder")
+      .filtered("name == 'Folders'");
+
+    const _migrate = async (
+      type: CategorizerType,
+      categorizer: Categorizer,
+      parent?: Categorizer
+    ) => {
+      const migrateCategorizer = new Categorizer();
+      migrateCategorizer._id = categorizer._id;
+      migrateCategorizer.name = categorizer.name.split("/").pop() as string;
+      migrateCategorizer.color = categorizer.color;
+      migrateCategorizer.count = 0;
+      console.log(migrateCategorizer);
+      await this.update(
+        type,
+        migrateCategorizer,
+        new Categorizer({ _id: parent?._id, name: parent?.name })
+      );
+
+      categorizer.children.forEach(async (child) => {
+        await _migrate(type, child, migrateCategorizer);
+      });
+    };
+
+    for (const tag of rootTag[0].children) {
+      await _migrate(CategorizerType.PaperTag, tag, rootTag[0]);
+    }
+
+    for (const folder of rootFolder[0].children) {
+      await _migrate(CategorizerType.PaperFolder, folder, rootFolder[0]);
+    }
+
+    this._logService.info(
+      `Migrated tags and folders to cloud database.`,
+      "",
+      true,
+      "PaperService"
+    );
+
+    localRealm.close();
   }
 }

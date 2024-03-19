@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { expect, test } from "vitest";
 
-import { LogService } from "@/renderer/services/log-service";
+import { LogService } from "@/common/services/log-service";
 
 test("Log Service", () => {
   const logService = new LogService("unit-test.log");

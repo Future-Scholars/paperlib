@@ -126,6 +126,7 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
 
         tag.children = [];
         tag.color = oldTag.color || "blue";
+        tag.name = tag.name.replaceAll("/", "-");
         tagRoot.children.push(tag);
         tag.count = tag.linkingObjects<PaperEntity>(
           PaperEntity.schema.name,
@@ -162,6 +163,7 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
 
         folder.children = [];
         folder.color = oldFolder.color || "blue";
+        folder.name = folder.name.replaceAll("/", "-");
         folderRoot.children.push(folder);
         folder.count = folder.linkingObjects<PaperEntity>(
           PaperEntity.schema.name,
@@ -197,16 +199,19 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
         if (smartFilter.name === "SmartFilters") {
           continue;
         }
-        const oldSmartFilter = oldSmartFilters.find(
-          (t) => `${t._id}` === `${smartFilter._id}`
-        );
-        if (!oldSmartFilter) {
-          continue;
-        }
 
-        smartFilter.children = [];
-        smartFilter.color = oldSmartFilter.color || "blue";
-        smartFilterRoot.children.push(smartFilter);
+        const newSmartFilter = new PaperSmartFilter();
+        newSmartFilter._id = smartFilter._id;
+        newSmartFilter.children = [];
+        newSmartFilter.color = smartFilter.color || "blue";
+        newSmartFilter.name = smartFilter.name.replaceAll("/", "-");
+        newSmartFilter.filter = smartFilter.filter || "true";
+        smartFilterRoot.children.push(
+          newRealm.create<PaperSmartFilter>(
+            PaperSmartFilter.schema.name,
+            newSmartFilter
+          )
+        );
       }
     }
     newRealm.deleteModel("PaperPaperSmartFilter");
@@ -244,6 +249,7 @@ export function syncMigrate(
 
       tag.children = [];
       tag.color = tag.color || "blue";
+      tag.name = tag.name.replaceAll("/", "-");
       tagRoot.children.push(tag);
       tag.count = tag.linkingObjects<PaperEntity>(
         PaperEntity.schema.name,
@@ -275,6 +281,7 @@ export function syncMigrate(
 
       folder.children = [];
       folder.color = folder.color || "blue";
+      folder.name = folder.name.replaceAll("/", "-");
       folderRoot.children.push(folder);
       folder.count = folder.linkingObjects<PaperEntity>(
         PaperEntity.schema.name,
@@ -312,25 +319,23 @@ export function syncMigrate(
       }
     );
 
-    if (oldSmartFilters.length > 0) {
-      for (const smartFilter of oldSmartFilters) {
-        if (smartFilter.name === "SmartFilters") {
-          continue;
-        }
-
-        const newSmartFilter = realm.create<PaperSmartFilter>(
-          PaperSmartFilter.schema.name,
-          {
-            _id: new ObjectId(),
-            _partition: partition,
-            name: smartFilter.name,
-            color: smartFilter.color || "blue",
-            filter: smartFilter.filter || "true",
-            children: [],
-          }
-        );
-        smartFilterRoot.children.push(newSmartFilter);
+    for (const smartFilter of oldSmartFilters) {
+      if (smartFilter.name === "SmartFilters") {
+        continue;
       }
+
+      const newSmartFilter = realm.create<PaperSmartFilter>(
+        PaperSmartFilter.schema.name,
+        {
+          _id: new ObjectId(),
+          _partition: partition,
+          name: smartFilter.name.replaceAll("/", "-"),
+          color: smartFilter.color || "blue",
+          filter: smartFilter.filter || "true",
+          children: [],
+        }
+      );
+      smartFilterRoot.children.push(newSmartFilter);
     }
   }
 }
