@@ -1,6 +1,6 @@
 ## v3.0.3 Mar 19 2024
 
-0. The significant changes introduced in version 3.0 introduced some bugs. Two months of beta testing still cannot avoid them. We apologize for the recent frequent updates. Please bear with us.
+0. The significant changes introduced in version 3 introduced some bugs. Two months of beta testing still cannot avoid them. We apologize for the recent frequent updates. Please bear with us.
 1. Fix: Duplicate folder bug in the QuickPaste plugin. by @geoffreychen777
 2. Fix: Some RSS-related bugs. by @geoffreychen777
 3. Fix: A file moving bug. by @geoffreychen777
