@@ -202,9 +202,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   }
 
   createQuickpasteRenderer() {
-    this.create(
-      "quickpasteProcess",
-      {
+    const options: WindowOptions = {
         entry: "app/index_quickpaste.html",
         title: "Quickpaste",
         width: 600,
@@ -223,17 +221,18 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
         vibrancy: "sidebar",
         visualEffectState: "active",
         show: false,
-      },
+    }
+    if (os.platform() === "darwin") {
+      options["type"] = "panel";
+    }
+    
+    this.create(
+      "quickpasteProcess",
+      options,
       {
         blur: (win: BrowserWindow) => {
           win.setSize(600, 76);
-          if (os.platform() === "darwin") {
-            win.hide();
-            app.hide();
-          } else {
-            win.minimize();
-            win.hide();
-          }
+          win.hide();
         },
 
         focus: (win: BrowserWindow) => {
