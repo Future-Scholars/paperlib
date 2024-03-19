@@ -81,19 +81,20 @@ See [here](https://paperlib.app/en/download-linux.html).
 ## Usage Demos
 
 ### Scrape metadata for conference papers such as ICLR, ICML, NeurIPS
-<img src="https://github.com/Future-Scholars/paperlib/assets/14183213/4ffc556e-ba9c-48f3-9066-0370487a90ca" />
+<img src="https://github.com/Future-Scholars/paperlib/assets/14183213/4ffc556e-ba9c-48f3-9066-0370487a90ca" style="width: 70%" />
+
 
 ### Smooth paper writing integration with any editors.
-![Screen Recording 2024-03-17 at 19 00 12](https://github.com/Future-Scholars/paperlib/assets/14183213/fefb4e9e-7d6e-4259-b4f1-bc7109c87802)
+<img src="https://github.com/Future-Scholars/paperlib/assets/14183213/fefb4e9e-7d6e-4259-b4f1-bc7109c87802" style="width: 70%" />
 
 ### Summarize your papers by LLM. Tag your papers by LLM
-![Screen Recording 2024-03-17 at 18 15 24](https://github.com/Future-Scholars/paperlib/assets/14183213/87040ded-dd4a-470a-bceb-73cd9d334cc3)
+<img src="https://github.com/Future-Scholars/paperlib/assets/14183213/87040ded-dd4a-470a-bceb-73cd9d334cc3" style="width: 70%" />
 
 ### Organize your library with tags, folders and smart filters
-![Screen Recording 2024-03-17 at 18 14 02](https://github.com/Future-Scholars/paperlib/assets/14183213/391ee552-a3be-4e16-8023-e1c57ba45481)
+<img src="https://github.com/Future-Scholars/paperlib/assets/14183213/391ee552-a3be-4e16-8023-e1c57ba45481" style="width: 70%" />
 
 ### Three view mode
-![Screen Recording 2024-03-17 at 18 11 40](https://github.com/Future-Scholars/paperlib/assets/14183213/c8a06b1d-0dc2-4291-9f4b-d38b01e760c2)
+<img src="https://github.com/Future-Scholars/paperlib/assets/14183213/c8a06b1d-0dc2-4291-9f4b-d38b01e760c2" style="width: 70%" />
 
 ## Sponsors
 
