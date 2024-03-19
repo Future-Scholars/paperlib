@@ -9,12 +9,12 @@ const props = defineProps({
   },
 });
 const rating = ref(props.rating || 0);
-const resetting = ref(false);
+const isResetting = ref(false);
 const hoverRating = ref(0);
 const emits = defineEmits(["event:change"]);
 
 const onHover = (value: number) => {
-  if (resetting.value) {
+  if (isResetting.value) {
     return;
   }
   hoverRating.value = value;
@@ -22,14 +22,14 @@ const onHover = (value: number) => {
 
 const onHoverLeave = () => {
   hoverRating.value = 0;
-  resetting.value = false;
+  isResetting.value = false;
 };
 
 const onClick = (value: number) => {
   let latestRating = value;
   if (latestRating === rating.value) {
     latestRating = 0;
-    resetting.value = true;
+    isResetting.value = true;
   }
   emits("event:change", latestRating);
 };
