@@ -8,6 +8,7 @@ import {
 } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
 
+import { Process } from "@/base/process-id";
 import { IUpgradeService, UpgradeService } from "./upgrade-service";
 
 const isMac = process.platform === "darwin";
@@ -123,7 +124,13 @@ export class MenuService extends Eventable<IMenuServiceState> {
               }
             },
           },
-          isMac ? { role: "close" } : { role: "quit" },
+          {
+            label: this._locales.t("menu.close"),
+            accelerator: "CommandOrControl+W",
+            click: () => {
+              windowProcessManagementService.hide(Process.renderer, true);
+            },
+          },
         ],
       },
       // { role: 'editMenu' }
