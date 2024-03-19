@@ -40,7 +40,11 @@ const emits = defineEmits([
   "event:submit-name-editing",
 ]);
 
-const onEditSubmit = (value: string) => {
+const onEditSubmit = (e: Event) => {
+  e.preventDefault();
+  e.stopPropagation();
+  const value = (e.target as HTMLInputElement).value;
+
   if (!value) {
     emits("event:blur-name-editing");
   } else {
@@ -88,7 +92,7 @@ const onBlured = () => {
       v-else
       @focus="onFocused"
       @blur="onBlured"
-      @keydown.enter="onEditSubmit(($event.target as HTMLInputElement).value)"
+      @keydown.enter="onEditSubmit"
       @click.stop
     />
   </div>
