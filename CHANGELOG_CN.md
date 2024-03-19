@@ -1,3 +1,13 @@
+## v3.0.3 19/03 2024
+
+0. 3.0 版本引入的巨大变化导致了一些 Bug。尽管经历了两个月的 beta 测试还是无法避免。请原谅最近的频繁更新。我们会尽快稳定下来。感谢您的理解。
+1. 修复：QuickPaste 插件中的重复文件夹 Bug。by @geoffreychen777
+2. 修复：一些 RSS 相关的 Bug。by @geoffreychen777
+3. 修复：文件移动 Bug。by @geoffreychen777
+4. 修复：macOS 下 Cmd+W 关闭窗口的 Bug。by @geoffreychen777
+5. 修复：基于分区的数据库同步 Bug。by @geoffreychen777
+6. 增强：一些中文翻译问题。by @Rccubc
+
 ## v3.0.2 17/03 2024
 
 0. 新社区插件：`paperlib-cn-scrape-extension` - 一个元数据搜刮器插件，让你可以从中国知网搜刮元数据。

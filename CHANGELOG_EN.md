@@ -1,3 +1,13 @@
+## v3.0.3 Mar 19 2024
+
+0. The significant changes introduced in version 3.0 introduced some bugs. Two months of beta testing still cannot avoid them. We apologize for the recent frequent updates. Please bear with us.
+1. Fix: Duplicate folder bug in the QuickPaste plugin. by @geoffreychen777
+2. Fix: Some RSS-related bugs. by @geoffreychen777
+3. Fix: A file moving bug. by @geoffreychen777
+4. Fix: A macOS bug when the window was closed by Cmd+W. by @geoffreychen777
+5. Fix: A sync bug for partition-based database. by @geoffreychen777
+6. Enhance: Some Chinese translation issues. by @Rccubc
+
 ## v3.0.2 Mar 17 2024
 
 0. New Community Extension: `paperlib-cn-scrape-extension` - A new extension to scrape metadata from the Chinese CNKI database.
