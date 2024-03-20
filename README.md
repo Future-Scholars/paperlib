@@ -102,6 +102,11 @@ See [here](https://paperlib.app/en/download-linux.html).
 
 <a href="cloudflare.com"><img src="https://blog.cloudflare.com/content/images/2022/10/CF_logo_stacked_blktype.png" style="width: 160px"/></a>
 
+
+<img src="https://github.com/Future-Scholars/paperlib/assets/14183213/660ce421-02df-4b31-aa7e-232be2b43436" style="width: 160px"/>
+
+
+
 ## Contribute to Paperlib
 
 ### Extensions
