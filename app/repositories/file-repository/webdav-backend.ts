@@ -1,22 +1,21 @@
 import chokidar from "chokidar";
 import { existsSync, promises as fsPromise, readFileSync } from "fs";
-import path, { isAbsolute } from "path";
+import path from "path";
 import { WebDAVClient, createClient } from "webdav";
 
-import { constructFileURL, eraseProtocol, isLocalPath } from "@/base/url";
+import { constructFileURL, eraseProtocol, getRelativePath } from "@/base/url";
 
-import { IFileBackend } from "./backend";
+import { LocalFileBackend } from "./local-backend";
 
-export class WebDavFileBackend implements IFileBackend {
+export class WebDavFileBackend extends LocalFileBackend {
   private _webdavClient: WebDAVClient | null;
   private _watcher?: chokidar.FSWatcher;
-
-  private readonly _appLibFolder: string;
-  private readonly _fileMoveOperation: string;
 
   private readonly _webdavURL: string;
   private readonly _webdavUsername: string;
   private readonly _webdavPassword: string;
+
+  private _tempDisableWatch: boolean = false;
 
   constructor(
     appLibFolder: string,
@@ -25,16 +24,19 @@ export class WebDavFileBackend implements IFileBackend {
     webdavUsername: string,
     webdavPassword: string
   ) {
-    this._webdavClient = null;
+    if (fileMoveOperation === "link") {
+      fileMoveOperation = "copy";
+    }
 
-    this._appLibFolder = appLibFolder;
-    this._fileMoveOperation = fileMoveOperation;
+    super(appLibFolder, fileMoveOperation);
+
+    this._webdavClient = null;
 
     this._webdavURL = webdavURL;
     this._webdavUsername = webdavUsername;
     this._webdavPassword = webdavPassword;
 
-    void this.check();
+    this.check();
     this.startWatch();
   }
 
@@ -43,18 +45,135 @@ export class WebDavFileBackend implements IFileBackend {
       return true;
     }
 
+    if (!this._webdavURL || !this._webdavUsername || !this._webdavPassword) {
+      return false;
+    }
     this._webdavClient = createClient(this._webdavURL, {
       username: this._webdavUsername,
       password: this._webdavPassword,
     });
 
-    await this._webdavClient.getDirectoryContents("/");
+    try {
+      await this._webdavClient.getDirectoryContents("/");
+    } catch (error) {
+      console.log("WebDAV connection failed.", error);
+    }
 
     if (!(await this._webdavClient.exists("/paperlib"))) {
       await this._webdavClient.createDirectory("/paperlib");
     }
 
     return true;
+  }
+
+  private _isValidFilePath(filePath: string): boolean {
+    return (
+      filePath !== "" &&
+      !filePath.endsWith(".realm") &&
+      !filePath.endsWith(".realm.lock") &&
+      !filePath.endsWith(".mx") &&
+      !filePath.endsWith(".realm.note") &&
+      !filePath.endsWith(".DS_Store") &&
+      !filePath.includes(".realm.management") &&
+      !this._tempDisableWatch
+    );
+  }
+
+  async startWatch(): Promise<void> {
+    this._watcher = chokidar.watch(this._appLibFolder);
+
+    this._watcher
+      .on("add", async (filePath) => {
+        if (this._isValidFilePath(filePath)) {
+          try {
+            await this._local2serverMove(
+              filePath,
+              constructFileURL(
+                getRelativePath(filePath, this._appLibFolder),
+                false,
+                true,
+                "",
+                "webdav://"
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      })
+      .on("change", async (filePath) => {
+        if (this._isValidFilePath(filePath)) {
+          try {
+            await this._local2serverMove(
+              filePath,
+              constructFileURL(
+                getRelativePath(filePath, this._appLibFolder),
+                false,
+                true,
+                "",
+                "webdav://"
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      })
+      .on("unlink", async (filePath) => {
+        if (this._isValidFilePath(filePath)) {
+          try {
+            await this._serverRemove(
+              constructFileURL(
+                getRelativePath(filePath, this._appLibFolder),
+                false,
+                true,
+                "",
+                "webdav://"
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      })
+      .on("addDir", async (dirPath) => {
+        if (this._isValidFilePath(dirPath)) {
+          try {
+            await this._serverCreateDir(
+              constructFileURL(
+                getRelativePath(dirPath, this._appLibFolder),
+                false,
+                true,
+                "",
+                "webdav://"
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      })
+      .on("unlinkDir", async (dirPath) => {
+        if (this._isValidFilePath(dirPath)) {
+          try {
+            await this._serverRemoveDir(
+              constructFileURL(
+                getRelativePath(dirPath, this._appLibFolder),
+                false,
+                true,
+                "",
+                "webdav://"
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      });
+  }
+
+  async stopWatch(): Promise<void> {
+    await this._watcher?.close();
   }
 
   async access(url: string, download = true): Promise<string> {
@@ -105,43 +224,16 @@ export class WebDavFileBackend implements IFileBackend {
     );
   }
 
-  async startWatch(): Promise<void> {
-    this._watcher = chokidar.watch(this._appLibFolder);
-
-    this._watcher.on("change", async (filePath) => {
-      if (
-        filePath &&
-        !filePath.endsWith(".realm") &&
-        !filePath.endsWith(".realm.lock") &&
-        !filePath.endsWith(".write.mx") &&
-        !filePath.endsWith(".control.mx")
-      ) {
-        try {
-          await this._local2serverMove(
-            filePath,
-            constructFileURL(
-              path.basename(filePath),
-              false,
-              true,
-              "",
-              "webdav://"
-            )
-          );
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    });
-  }
-
-  async stopWatch(): Promise<void> {
-    await this._watcher?.close();
-  }
-
   async _serverExists(url: string): Promise<boolean> {
     const _URL = url.replace("webdav://", "/paperlib/");
 
     return (await this._webdavClient?.exists(_URL)) === true;
+  }
+
+  async _serverRemove(url: string): Promise<void> {
+    const _URL = url.replace("webdav://", "/paperlib/");
+
+    await this._webdavClient?.deleteFile(_URL);
   }
 
   async _server2serverMove(
@@ -155,20 +247,8 @@ export class WebDavFileBackend implements IFileBackend {
     }
   }
 
-  async _local2localMove(sourceURL: string, targetURL: string): Promise<void> {
-    const _sourceURL = eraseProtocol(sourceURL);
-    const _targetURL = eraseProtocol(targetURL);
-    const stat = await fsPromise.lstat(_sourceURL);
-    if (stat.isDirectory()) {
-      throw new Error("Cannot move a directory");
-    }
-    if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
-      await fsPromise.copyFile(_sourceURL, _targetURL);
-    }
-  }
-
   async _local2serverMove(sourceURL: string, targetURL: string): Promise<void> {
-    const _sourceURL = sourceURL.replace("file://", "");
+    const _sourceURL = eraseProtocol(sourceURL);
     const _targetURL = targetURL.replace("webdav://", "/paperlib/");
 
     const buffer = readFileSync(_sourceURL);
@@ -188,137 +268,15 @@ export class WebDavFileBackend implements IFileBackend {
     await fsPromise.appendFile(_targetURL, Buffer.from(buffer));
   }
 
-  async _move(
-    sourceURL: string,
-    targetURL: string,
-    targetCacheURL: string,
-    forceDelete: boolean = false
-  ): Promise<void> {
-    if (sourceURL.startsWith("file://")) {
-      await this._local2localMove(sourceURL, targetCacheURL);
+  async _serverCreateDir(url: string): Promise<void> {
+    const _URL = url.replace("webdav://", "/paperlib/");
 
-      const moveLocalToServer = async () => {
-        logService?.info(
-          "Uploading file to WebDAV...",
-          sourceURL,
-          true,
-          "WebDAV"
-        );
-
-        await this._local2serverMove(sourceURL, targetURL);
-        if (this._fileMoveOperation === "cut" || forceDelete) {
-          await fsPromise.unlink(sourceURL.replace("file://", ""));
-        }
-      };
-
-      moveLocalToServer();
-    } else if (sourceURL.startsWith("webdav://")) {
-      await this._server2serverMove(sourceURL, targetURL);
-      if (
-        (this._fileMoveOperation === "cut" || forceDelete) &&
-        sourceURL.toLowerCase() !== targetURL.toLowerCase()
-      ) {
-        await this._webdavClient?.deleteFile(
-          sourceURL.replace("webdav://", "/paperlib/")
-        );
-      }
-    } else {
-      throw new Error("Invalid source URL:" + sourceURL);
-    }
+    await this._webdavClient?.createDirectory(_URL);
   }
 
-  async checkBaseFolder(folderPath: string): Promise<void> {
-    console.log("check webdav", folderPath);
+  async _serverRemoveDir(url: string): Promise<void> {
+    const _URL = url.replace("webdav://", "/paperlib/");
 
-    await this.check();
-    if (!(await this._serverExists(folderPath))) {
-      await this._webdavClient?.createDirectory(
-        folderPath.replace("webdav://", "/paperlib/"),
-        {
-          recursive: true,
-        }
-      );
-    }
-  }
-
-  /**
-   * Move file from sourceURL to targetURL
-   * @param sourceURL - Source URL, also can be a file name in the app library folder
-   * @param targetURL - Target URL, also can be a file name in the app library folder
-   * @param forceDelete - Force delete source file
-   * @param forceNotLink - Force not to use link, not available for webdav
-   * @returns Target file name in the app library folder
-   */
-  async moveFile(
-    sourceURL: string,
-    targetURL: string,
-    outerFileOperation: boolean = true
-  ): Promise<string> {
-    await this.check();
-
-    // 1. Move main file.
-    if (!isAbsolute(eraseProtocol(sourceURL))) {
-      sourceURL = constructFileURL(sourceURL, false, true, "", "webdav://");
-    } else {
-      sourceURL = constructFileURL(sourceURL, false, true, "", "file://");
-    }
-    const targetCacheURL = constructFileURL(
-      targetURL,
-      true,
-      false,
-      this._appLibFolder
-    );
-    targetURL = constructFileURL(targetURL, false, true, "", "webdav://");
-
-    console.log("sourceURL", sourceURL);
-    console.log("targetURL", targetURL);
-
-    // Webdav target url must be a file name.
-    if (isLocalPath(eraseProtocol(sourceURL))) {
-      const _folderPath = eraseProtocol(sourceURL);
-      if (!existsSync(_folderPath)) {
-        await fsPromise.mkdir(_folderPath, { recursive: true });
-      }
-    } else {
-      await this.checkBaseFolder(sourceURL);
-    }
-    await this.checkBaseFolder(targetURL);
-
-    await this._move(sourceURL, targetURL, targetCacheURL, forceDelete);
-    return path.basename(targetURL);
-  }
-
-  async _remove(sourceURL: string) {
-    await this._removeFileCache(sourceURL);
-    const _sourceURL = sourceURL.replace("webdav://", "/paperlib/");
-    await this._webdavClient?.deleteFile(_sourceURL);
-  }
-
-  async _removeFileCache(url: string) {
-    try {
-      const basename = path.basename(url);
-      const localURL = constructFileURL(
-        basename,
-        true,
-        false,
-        this._appLibFolder
-      );
-      await fsPromise.unlink(localURL);
-    } catch (error) {
-      logService?.warn(
-        "Failed to remove file cache",
-        `url: ${url}, error: ${(error as Error).message}\n${
-          (error as Error).stack
-        }`,
-        false,
-        "WebDAVBackend"
-      );
-    }
-  }
-
-  async removeFile(sourceURL: string): Promise<void> {
-    await this.check();
-    const fileURL = constructFileURL(sourceURL, false, true, "", "webdav://");
-    await this._remove(fileURL);
+    await this._webdavClient?.deleteFile(_URL);
   }
 }

@@ -54,6 +54,13 @@ const renderFromFile = async () => {
 const render = async () => {
   isRendering.value = true;
   fileExistingStatus.value = -1;
+
+  if (props.entity.mainURL === "") {
+    isRendering.value = false;
+    fileExistingStatus.value = 1;
+    return;
+  }
+
   const fileURL = await fileService.access(props.entity.mainURL, false);
   if (
     props.entity.mainURL &&

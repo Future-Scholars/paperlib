@@ -28,6 +28,8 @@ import { WebDavFileBackend } from "@/repositories/file-repository/webdav-backend
 export interface IFileServiceState {
   backend: string;
   available: boolean;
+  backendInitializing: boolean;
+  backendInitialized: boolean;
 }
 
 export const IFileService = createDecorator("fileService");
@@ -43,6 +45,8 @@ export class FileService extends Eventable<IFileServiceState> {
     super("fileService", {
       backend: "",
       available: false,
+      backendInitializing: false,
+      backendInitialized: false,
     });
   }
 
@@ -51,10 +55,12 @@ export class FileService extends Eventable<IFileServiceState> {
    */
   @errorcatching("Failed to initialize the file backend.", true, "FileService")
   async initialize() {
+    this._backend = undefined;
     this._backend = await this._initBackend();
   }
 
   private async _initBackend(): Promise<IFileBackend> {
+    this.fire({ backendInitializing: true });
     if (this._preferenceService.get("syncFileStorage") === "local") {
       this.fire({ backend: "local", available: true });
       return new LocalFileBackend(
@@ -72,7 +78,12 @@ export class FileService extends Eventable<IFileServiceState> {
         );
 
         const available = webdavBackend.check();
-        this.fire({ backend: "webdav", available });
+        this.fire({
+          backend: "webdav",
+          available,
+          backendInitializing: false,
+          backendInitialized: true,
+        });
         return webdavBackend;
       } catch (e) {
         this._logService.error(
@@ -92,6 +103,13 @@ export class FileService extends Eventable<IFileServiceState> {
     } else {
       throw new Error("Unknown file storage backend");
     }
+  }
+
+  async backend(): Promise<IFileBackend> {
+    if (!this._backend && !this._state.backendInitializing) {
+      this._backend = await this._initBackend();
+    }
+    return this._backend as IFileBackend;
   }
 
   /**
@@ -200,9 +218,7 @@ export class FileService extends Eventable<IFileServiceState> {
     paperEntity: PaperEntity,
     outerFileOperation: boolean
   ): Promise<PaperEntity> {
-    if (!this._backend) {
-      this._backend = await this._initBackend();
-    }
+    const backend = await this.backend();
 
     try {
       if (!paperEntity.mainURL) {
@@ -210,7 +226,7 @@ export class FileService extends Eventable<IFileServiceState> {
       }
       const formatedFilename = await this.inferRelativeFileName(paperEntity);
 
-      const movedMainFilename = await this._backend.moveFile(
+      const movedMainFilename = await backend.moveFile(
         paperEntity.mainURL,
         `${formatedFilename}_main${path.extname(paperEntity.mainURL)}`,
         outerFileOperation
@@ -219,7 +235,7 @@ export class FileService extends Eventable<IFileServiceState> {
 
       const movedSupURLs: string[] = [];
       for (let i = 0; i < paperEntity.supURLs.length; i++) {
-        const movedSupFileName = await this._backend.moveFile(
+        const movedSupFileName = await backend.moveFile(
           paperEntity.supURLs[i],
           `${formatedFilename}_sup${i}${path.extname(paperEntity.supURLs[i])}`,
           outerFileOperation
@@ -254,15 +270,9 @@ export class FileService extends Eventable<IFileServiceState> {
     targetURL: string,
     outerFileOperation: boolean
   ): Promise<string> {
-    if (!this._backend) {
-      this._backend = await this._initBackend();
-    }
+    const backend = await this.backend();
 
-    return await this._backend.moveFile(
-      sourceURL,
-      targetURL,
-      outerFileOperation
-    );
+    return await backend.moveFile(sourceURL, targetURL, outerFileOperation);
   }
 
   /**
@@ -275,14 +285,12 @@ export class FileService extends Eventable<IFileServiceState> {
     "FileService"
   )
   async remove(paperEntity: PaperEntity): Promise<void> {
-    if (!this._backend) {
-      this._backend = await this._initBackend();
-    }
+    const backend = await this.backend();
 
     const files = [paperEntity.mainURL, ...paperEntity.supURLs];
 
     const results = await Promise.allSettled(
-      files.map((file) => this._backend?.removeFile(file))
+      files.map((file) => backend.removeFile(file))
     );
 
     for (const result of results) {
@@ -303,11 +311,9 @@ export class FileService extends Eventable<IFileServiceState> {
    */
   @errorcatching("Failed to remove a file.", true, "FileService")
   async removeFile(url: string): Promise<void> {
-    if (!this._backend) {
-      this._backend = await this._initBackend();
-    }
+    const backend = await this.backend();
 
-    return await this._backend.removeFile(url);
+    return await backend.removeFile(url);
   }
 
   /**
@@ -317,10 +323,6 @@ export class FileService extends Eventable<IFileServiceState> {
    */
   @errorcatching("Failed to list all files.", true, "FileService", [])
   async listAllFiles(folderURL: string): Promise<string[]> {
-    if (!this._backend) {
-      this._backend = await this._initBackend();
-    }
-
     return listAllFiles(folderURL);
   }
 
@@ -330,10 +332,6 @@ export class FileService extends Eventable<IFileServiceState> {
    * @returns The paper entities with the located file URLs.
    */
   async locateFileOnWeb(paperEntities: PaperEntity[]) {
-    if (!this._backend) {
-      this._backend = await this._initBackend();
-    }
-
     try {
       this._logService.info(
         `Locating files for ${paperEntities.length} paper(s)...`,
@@ -377,11 +375,9 @@ export class FileService extends Eventable<IFileServiceState> {
    */
   @errorcatching("Failed to access the URL.", true, "FileService", "")
   async access(url: string, download: boolean): Promise<string> {
-    if (!this._backend) {
-      this._backend = await this._initBackend();
-    }
+    const backend = await this.backend();
 
-    return await this._backend.access(url, download);
+    return await backend.access(url, download);
   }
 
   /**
@@ -390,10 +386,6 @@ export class FileService extends Eventable<IFileServiceState> {
    */
   @errorcatching("Failed to open the URL.", true, "FileService")
   async open(url: string) {
-    if (!this._backend) {
-      this._backend = await this._initBackend();
-    }
-
     if (!hasProtocol(url)) {
       this._logService.error(
         "URL should have a protocol",

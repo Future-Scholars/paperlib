@@ -6,8 +6,8 @@ import { constructFileURL, eraseProtocol, getRelativePath } from "@/base/url";
 import { IFileBackend } from "./backend";
 
 export class LocalFileBackend implements IFileBackend {
-  private readonly _appLibFolder: string;
-  private readonly _fileMoveOperation: string;
+  protected readonly _appLibFolder: string;
+  protected readonly _fileMoveOperation: string;
 
   constructor(appLibFolder: string, fileMoveOperation: string) {
     this._appLibFolder = appLibFolder;
@@ -73,7 +73,7 @@ export class LocalFileBackend implements IFileBackend {
     }
 
     if (_sourceURL !== _targetURL) {
-      if (this._fileMoveOperation === "link") {
+      if (fileOperation === "link") {
         try {
           const stat = await fsPromise.lstat(_targetURL);
           if (!existsSync(_targetURL) && stat.isSymbolicLink()) {
@@ -88,9 +88,9 @@ export class LocalFileBackend implements IFileBackend {
           const realPath = await fsPromise.realpath(_sourceURL);
           await fsPromise.symlink(realPath, _targetURL);
         }
-      } else if (this._fileMoveOperation === "copy") {
+      } else if (fileOperation === "copy") {
         await fsPromise.copyFile(_sourceURL, _targetURL);
-      } else if (this._fileMoveOperation === "cut") {
+      } else if (fileOperation === "cut") {
         await fsPromise.rename(_sourceURL, _targetURL);
       }
     }
@@ -122,7 +122,9 @@ export class LocalFileBackend implements IFileBackend {
     await this.checkBaseFolder(path.dirname(targetURL));
     await this.checkBaseFolder(path.dirname(sourceURL));
 
-    const success = await this._move(sourceURL, targetURL, outerFileOperation);
+    console.log("Move file", sourceURL, targetURL, outerFileOperation);
+
+    await this._move(sourceURL, targetURL, outerFileOperation);
 
     return getRelativePath(targetURL, this._appLibFolder);
   }
