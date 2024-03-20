@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import TreeNode from "./tree-node.vue";
-import Counter from "../counter.vue";
-import Spinner from "@/renderer/ui/components/spinner.vue";
+import { CategorizerType } from "@/models/categorizer";
+import { PaperSmartFilterType } from "@/models/smart-filter";
 import { ViewTreeNode } from "@/renderer/services/querysentence-service";
+import Spinner from "@/renderer/ui/components/spinner.vue";
 import ItemRow from "@/renderer/ui/sidebar-view/components/tree/item-row.vue";
 import {
   BIconChevronDown,
   BIconChevronRight,
   BIconPlus,
 } from "bootstrap-icons-vue";
-import { Ref, ref } from "vue";
-import { CategorizerType } from "@/models/categorizer";
-import { PaperSmartFilterType } from "@/models/smart-filter";
-import { inject } from "vue";
+import { Ref, inject, ref } from "vue";
+import Counter from "../counter.vue";
+import TreeNode from "./tree-node.vue";
 
 const props = defineProps({
   parent_id: {
@@ -166,7 +165,7 @@ const selectedItemId = inject<Ref<string>>("selectedItemId");
 const dropEvent =
   inject<Ref<{ type: string; value: any; dest: { _id: string } }>>("dropEvent");
 const onDropped = (event: DragEvent) => {
-  if (!dropEvent) return;
+  if (!dropEvent || props.isRoot) return;
   event.preventDefault();
   event.stopPropagation();
 
