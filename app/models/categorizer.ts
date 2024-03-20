@@ -110,3 +110,9 @@ export enum CategorizerType {
   PaperTag = "PaperTag",
   PaperFolder = "PaperFolder",
 }
+
+export type CategorizerMenuItem = {
+  type: CategorizerType;
+  name: string;
+  id: OID;
+};

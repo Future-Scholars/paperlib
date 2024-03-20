@@ -6,7 +6,14 @@ import {
   PreferenceService,
 } from "@/common/services/preference-service";
 import { loadLocales } from "@/locales/load";
-import { Colors, PaperFolder, PaperTag } from "@/models/categorizer";
+import {
+  CategorizerMenuItem,
+  CategorizerType,
+  Colors,
+  PaperFolder,
+  PaperTag,
+} from "@/models/categorizer";
+import { OID } from "@/models/id";
 import { PaperSmartFilter } from "@/models/smart-filter";
 import { Menu, MenuItemConstructorOptions, nativeImage } from "electron";
 
@@ -54,6 +61,7 @@ let pinkIcon = nativeImage.createFromBuffer(pinkBuf, { width: 1, height: 1 });
 pinkIcon = pinkIcon.resize({ width: 3, height: 10 });
 
 export interface IContextMenuServiceState {
+  dataContextMenuRemoveFromClicked: { type: CategorizerType; id: OID };
   dataContextMenuScrapeFromClicked: string;
   dataContextMenuOpenClicked: number;
   dataContextMenuShowInFinderClicked: number;
@@ -95,6 +103,10 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     @IPreferenceService private readonly _preferenceService: PreferenceService
   ) {
     super("contextMenuService", {
+      dataContextMenuRemoveFromClicked: {
+        type: CategorizerType.PaperFolder,
+        id: "",
+      },
       dataContextMenuScrapeFromClicked: "",
       dataContextMenuOpenClicked: 0,
       dataContextMenuShowInFinderClicked: 0,
@@ -157,7 +169,32 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     false,
     "ContextMenu"
   )
-  showPaperDataMenu(allowEdit: boolean) {
+  showPaperDataMenu(allowEdit: boolean, categorizeList: CategorizerMenuItem[]) {
+    let removeFolderMenuTemplate: MenuItemConstructorOptions[] = [];
+    let removeTagMenuTemplate: MenuItemConstructorOptions[] = [];
+    categorizeList.forEach(({ type, name, id }) => {
+      if (type === CategorizerType.PaperFolder) {
+        removeFolderMenuTemplate.push({
+          label: name,
+          click: () => {
+            this.fire({
+              dataContextMenuRemoveFromClicked: { type, id },
+            });
+          },
+        });
+      }
+      if (type === CategorizerType.PaperTag) {
+        removeTagMenuTemplate.push({
+          label: name,
+          click: () => {
+            this.fire({
+              dataContextMenuRemoveFromClicked: { type, id },
+            });
+          },
+        });
+      }
+    });
+
     let scraperMenuTemplate: MenuItemConstructorOptions[] = [];
 
     for (const [extID, scrapers] of Object.entries(
@@ -211,6 +248,19 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       {
         label: this._locales.t("menu.rescrapefrom"),
         submenu: scraperMenuTemplate,
+      },
+      {
+        label: this._locales.t("menu.removefrom"),
+        submenu: [
+          {
+            label: this._locales.t("mainview.folders"),
+            submenu: removeFolderMenuTemplate,
+          },
+          {
+            label: this._locales.t("mainview.tags"),
+            submenu: removeTagMenuTemplate,
+          },
+        ],
       },
 
       {

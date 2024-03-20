@@ -4,9 +4,10 @@ import { useI18n } from "vue-i18n";
 import { isEqual } from "lodash-es";
 
 import { disposable } from "@/base/dispose";
-import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 import { eraseProtocol } from "@/base/url";
+import { CategorizerMenuItem, CategorizerType } from "@/models/categorizer";
 import { FieldTemplate } from "@/renderer/types/data-view";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 
 import ListView from "./components/list-view/list-view.vue";
 import TablePreviewView from "./components/table-view/table-preview-view.vue";
@@ -147,11 +148,42 @@ disposable(
   )
 );
 
+const getCategorizeList = (selectedList: number[]) => {
+  let categorizeIdSet = new Set<string>();
+  let categorizeList: CategorizerMenuItem[] = [];
+  selectedList.forEach((index) => {
+    const paper = paperEntities.value[index];
+    paper.folders.forEach((folder) => {
+      if (!categorizeIdSet.has(`${folder._id}`)) {
+        categorizeIdSet.add(`${folder._id}`);
+        categorizeList.push({
+          type: CategorizerType.PaperFolder,
+          name: folder.name,
+          id: folder._id,
+        } as CategorizerMenuItem);
+      }
+    });
+    paper.tags.forEach((tag) => {
+      if (!categorizeIdSet.has(`${tag._id}`)) {
+        categorizeIdSet.add(`${tag._id}`);
+        categorizeList.push({
+          type: CategorizerType.PaperTag,
+          name: tag.name,
+          id: tag._id,
+        } as CategorizerMenuItem);
+      }
+    });
+  });
+
+  return categorizeList;
+};
+
 const onItemRightClicked = (selectedIndex: number[]) => {
   onItemClicked(selectedIndex);
-
+  const categorizeList = getCategorizeList(selectedIndex);
   PLMainAPI.contextMenuService.showPaperDataMenu(
-    uiState.selectedIndex.length === 1
+    uiState.selectedIndex.length === 1,
+    categorizeList
   );
 };
 
