@@ -119,6 +119,77 @@ export class FileService extends Eventable<IFileServiceState> {
   }
 
   /**
+   * Infer the relative path of a paper entity.
+   * @param paperEntity - Paper entity to infer the relative path
+   */
+  async inferRelativeFileName(paperEntity: PaperEntity): Promise<string> {
+    // Prepare ingredients
+    let titleStr =
+      paperEntity.title.replace(/[^\p{L}\s\d]/gu, "").replace(/\s/g, "_") ||
+      "untitled";
+    const firstCharTitleStr =
+      titleStr
+        .split("_")
+        .map((word: string) => {
+          if (word) {
+            return word.slice(0, 1);
+          } else {
+            return "";
+          }
+        })
+        .filter((c: string) => c && c === c.toUpperCase())
+        .join("") || "untitled";
+    let authorStr =
+      paperEntity.authors.split(",").map((author) => author.trim())[0] ||
+      "anonymous";
+    const firstNameStr = authorStr.split(" ").shift() || "anonymous";
+    const lastNameStr = authorStr.split(" ").pop() || "anonymous";
+    const yearStr = paperEntity.pubTime || "0000";
+    const publicationStr =
+      paperEntity.publication.replace(/[^\p{L}\s\d]/gu, "") || "unknown";
+    let idStr = paperEntity._id.toString();
+
+    // =============================
+
+    const renamingFormat = this._preferenceService.get(
+      "renamingFormat"
+    ) as string;
+    let formatedFilename = "";
+    if (renamingFormat === "short") {
+      formatedFilename = `${firstCharTitleStr}_${idStr}`;
+    } else if (renamingFormat === "authortitle") {
+      if (authorStr !== paperEntity.authors && authorStr !== "anonymous") {
+        authorStr = `${authorStr} et al`;
+      }
+      idStr = idStr.slice(-5, -1);
+      formatedFilename = `${authorStr} - ${titleStr.slice(0, 20)}_${idStr}`;
+    } else if (renamingFormat === "custom") {
+      formatedFilename = (
+        this._preferenceService.get("customRenamingFormat") as string
+      )
+        .replaceAll("{title}", titleStr.slice(0, 150))
+        .replaceAll("{firstchartitle}", firstCharTitleStr)
+        .replaceAll("{author}", authorStr)
+        .replaceAll("{year}", yearStr)
+        .replaceAll("{lastname}", lastNameStr)
+        .replaceAll("{firstname}", firstNameStr)
+        .replaceAll("{publication}", publicationStr.slice(0, 100))
+        .slice(0, 250);
+      if (formatedFilename) {
+        formatedFilename = `${formatedFilename}_${idStr}`;
+      } else {
+        formatedFilename = `${idStr}`;
+      }
+    } else {
+      formatedFilename = `${titleStr.slice(0, 200)}_${idStr}`;
+    }
+
+    formatedFilename = formatedFilename.replace(/[<>:"\\|?*]+/g, "");
+
+    return formatedFilename;
+  }
+
+  /**
    * Move files of a paper entity to the library folder
    * @param paperEntity - Paper entity to move
    * @param fourceDelete - Force to delete the source file
@@ -127,8 +198,7 @@ export class FileService extends Eventable<IFileServiceState> {
    */
   async move(
     paperEntity: PaperEntity,
-    fourceDelete = false,
-    forceNotLink = false
+    outerFileOperation: boolean
   ): Promise<PaperEntity> {
     if (!this._backend) {
       this._backend = await this._initBackend();
@@ -138,71 +208,12 @@ export class FileService extends Eventable<IFileServiceState> {
       if (!paperEntity.mainURL) {
         return paperEntity;
       }
-
-      let title =
-        paperEntity.title.replace(/[^\p{L}\s\d]/gu, "").replace(/\s/g, "_") ||
-        "untitled";
-      const firstCharTitle =
-        title
-          .split("_")
-          .map((word: string) => {
-            if (word) {
-              return word.slice(0, 1);
-            } else {
-              return "";
-            }
-          })
-          .filter((c: string) => c && c === c.toUpperCase())
-          .join("") || "untitled";
-      let author =
-        paperEntity.authors.split(",").map((author) => author.trim())[0] ||
-        "anonymous";
-      const firstName = author.split(" ")[0] || "anonymous";
-      const lastName =
-        author.split(" ")[author.split(" ").length - 1] || "anonymous";
-      const year = paperEntity.pubTime || "0000";
-      const publication = paperEntity.publication || "unknown";
-      let id = paperEntity._id.toString();
-
-      let formatedFilename = "";
-      if (this._preferenceService.get("renamingFormat") === "short") {
-        formatedFilename = `${firstCharTitle}_${id}`;
-      } else if (
-        this._preferenceService.get("renamingFormat") === "authortitle"
-      ) {
-        if (author !== paperEntity.authors && author !== "anonymous") {
-          author = `${author} et al`;
-        }
-        id = id.slice(-5, -1);
-        formatedFilename = `${author} - ${title.slice(0, 20)}_${id}`;
-      } else if (this._preferenceService.get("renamingFormat") === "custom") {
-        formatedFilename = (
-          this._preferenceService.get("customRenamingFormat") as string
-        )
-          .replaceAll("{title}", title.slice(0, 150))
-          .replaceAll("{firstchartitle}", firstCharTitle)
-          .replaceAll("{author}", author)
-          .replaceAll("{year}", year)
-          .replaceAll("{lastname}", lastName)
-          .replaceAll("{firstname}", firstName)
-          .replaceAll("{publication}", publication.slice(0, 100))
-          .slice(0, 250);
-        if (formatedFilename) {
-          formatedFilename = `${formatedFilename}_${id}`;
-        } else {
-          formatedFilename = `${id}`;
-        }
-      } else {
-        formatedFilename = `${title.slice(0, 200)}_${id}`;
-      }
-
-      formatedFilename = formatedFilename.replace(/[<>:"/\\|?*]+/g, "");
+      const formatedFilename = await this.inferRelativeFileName(paperEntity);
 
       const movedMainFilename = await this._backend.moveFile(
         paperEntity.mainURL,
         `${formatedFilename}_main${path.extname(paperEntity.mainURL)}`,
-        fourceDelete,
-        forceNotLink
+        outerFileOperation
       );
       paperEntity.mainURL = movedMainFilename;
 
@@ -211,8 +222,7 @@ export class FileService extends Eventable<IFileServiceState> {
         const movedSupFileName = await this._backend.moveFile(
           paperEntity.supURLs[i],
           `${formatedFilename}_sup${i}${path.extname(paperEntity.supURLs[i])}`,
-          fourceDelete,
-          forceNotLink
+          outerFileOperation
         );
         movedSupURLs.push(movedSupFileName);
       }
@@ -242,8 +252,7 @@ export class FileService extends Eventable<IFileServiceState> {
   async moveFile(
     sourceURL: string,
     targetURL: string,
-    fourceDelete = false,
-    forceNotLink = false
+    outerFileOperation: boolean
   ): Promise<string> {
     if (!this._backend) {
       this._backend = await this._initBackend();
@@ -252,8 +261,7 @@ export class FileService extends Eventable<IFileServiceState> {
     return await this._backend.moveFile(
       sourceURL,
       targetURL,
-      fourceDelete,
-      forceNotLink
+      outerFileOperation
     );
   }
 

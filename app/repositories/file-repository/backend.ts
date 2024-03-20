@@ -10,8 +10,7 @@ export interface IFileBackend {
   moveFile(
     sourceURL: string,
     targetURL: string,
-    fourceDelete?: boolean,
-    forceNotLink?: boolean
+    outerFileOperation: boolean
   ): Promise<string>;
   removeFile(sourceURL: string): Promise<void>;
 }

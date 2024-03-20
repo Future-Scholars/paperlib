@@ -300,12 +300,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
           paperEntityDraft.mainURL = "";
         }
 
-        return await this._fileService.move(
-          paperEntityDraft,
-          this._preferenceService.get("sourceFileOperation") === "cut" ||
-            isUpdate,
-          isUpdate
-        );
+        return await this._fileService.move(paperEntityDraft, !isUpdate);
       },
       async (paperEntityDraft) => {
         return paperEntityDraft;
@@ -328,8 +323,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
           path.isAbsolute(paperEntityDraft.mainURL)
         ) {
           paperEntityDraft.mainURL = "";
-        } else {
-          paperEntityDraft.mainURL = path.basename(paperEntityDraft.mainURL);
         }
 
         paperEntityDraft.supURLs = paperEntityDraft.supURLs.filter((url) => {
@@ -378,7 +371,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
       ) {
         this._fileService.moveFile(
           fileMovedPaperEntityDraft.mainURL,
-          updatedPaperEntityDraft.mainURL
+          updatedPaperEntityDraft.mainURL,
+          !isUpdate
         );
       }
     }
@@ -676,7 +670,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     const movedEntityDrafts = await Promise.all(
       paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
-        this._fileService.move(paperEntityDraft, true, false)
+        this._fileService.move(paperEntityDraft, false)
       )
     );
 

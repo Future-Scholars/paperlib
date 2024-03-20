@@ -1,7 +1,7 @@
 import { existsSync, promises as fsPromise } from "fs";
 import path from "path";
 
-import { constructFileURL, eraseProtocol } from "@/base/url";
+import { constructFileURL, eraseProtocol, getRelativePath } from "@/base/url";
 
 import { IFileBackend } from "./backend";
 
@@ -53,11 +53,11 @@ export class LocalFileBackend implements IFileBackend {
   async _move(
     sourceURL: string,
     targetURL: string,
-    forceDelete: boolean = false,
-    forceNotLink: boolean = false
+    outerFileOperation: boolean = true
   ): Promise<void> {
     const _sourceURL = eraseProtocol(sourceURL);
     const _targetURL = eraseProtocol(targetURL);
+
     if (existsSync(_sourceURL)) {
       const stat = await fsPromise.lstat(_sourceURL);
       if (stat.isDirectory()) {
@@ -66,8 +66,14 @@ export class LocalFileBackend implements IFileBackend {
     } else {
       throw new Error("Cannot find the source file");
     }
-    if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
-      if (this._fileMoveOperation === "link" && !forceNotLink) {
+
+    let fileOperation = this._fileMoveOperation;
+    if (!outerFileOperation) {
+      fileOperation = "cut";
+    }
+
+    if (_sourceURL !== _targetURL) {
+      if (this._fileMoveOperation === "link") {
         try {
           const stat = await fsPromise.lstat(_targetURL);
           if (!existsSync(_targetURL) && stat.isSymbolicLink()) {
@@ -82,15 +88,18 @@ export class LocalFileBackend implements IFileBackend {
           const realPath = await fsPromise.realpath(_sourceURL);
           await fsPromise.symlink(realPath, _targetURL);
         }
-      } else {
+      } else if (this._fileMoveOperation === "copy") {
         await fsPromise.copyFile(_sourceURL, _targetURL);
+      } else if (this._fileMoveOperation === "cut") {
+        await fsPromise.rename(_sourceURL, _targetURL);
       }
     }
-    if (
-      (this._fileMoveOperation === "cut" || forceDelete) &&
-      _sourceURL.toLowerCase() !== _targetURL.toLowerCase()
-    ) {
-      await fsPromise.unlink(sourceURL);
+  }
+
+  async checkBaseFolder(folderPath: string): Promise<void> {
+    const _folderPath = eraseProtocol(folderPath);
+    if (!existsSync(_folderPath)) {
+      await fsPromise.mkdir(_folderPath, { recursive: true });
     }
   }
 
@@ -105,21 +114,17 @@ export class LocalFileBackend implements IFileBackend {
   async moveFile(
     sourceURL: string,
     targetURL: string,
-    forceDelete: boolean = false,
-    forceNotLink: boolean = false
+    outerFileOperation: boolean = true
   ): Promise<string> {
-    // 1. Move main file.
     sourceURL = constructFileURL(sourceURL, true, false, this._appLibFolder);
     targetURL = constructFileURL(targetURL, true, false, this._appLibFolder);
 
-    const success = await this._move(
-      sourceURL,
-      targetURL,
-      forceDelete,
-      forceNotLink
-    );
+    await this.checkBaseFolder(path.dirname(targetURL));
+    await this.checkBaseFolder(path.dirname(sourceURL));
 
-    return path.basename(targetURL);
+    const success = await this._move(sourceURL, targetURL, outerFileOperation);
+
+    return getRelativePath(targetURL, this._appLibFolder);
   }
 
   async _remove(sourceURL: string) {

@@ -122,3 +122,8 @@ export function isLocalPath(string: string) {
 
   return /^\.{0,2}\//.test(string);
 }
+
+export function getRelativePath(filePath: string, basePath: string): string {
+  const relativePath = path.relative(basePath, filePath);
+  return relativePath;
+}

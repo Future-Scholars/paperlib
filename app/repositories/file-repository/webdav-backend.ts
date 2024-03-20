@@ -3,7 +3,7 @@ import { existsSync, promises as fsPromise, readFileSync } from "fs";
 import path, { isAbsolute } from "path";
 import { WebDAVClient, createClient } from "webdav";
 
-import { constructFileURL, eraseProtocol } from "@/base/url";
+import { constructFileURL, eraseProtocol, isLocalPath } from "@/base/url";
 
 import { IFileBackend } from "./backend";
 
@@ -227,6 +227,20 @@ export class WebDavFileBackend implements IFileBackend {
     }
   }
 
+  async checkBaseFolder(folderPath: string): Promise<void> {
+    console.log("check webdav", folderPath);
+
+    await this.check();
+    if (!(await this._serverExists(folderPath))) {
+      await this._webdavClient?.createDirectory(
+        folderPath.replace("webdav://", "/paperlib/"),
+        {
+          recursive: true,
+        }
+      );
+    }
+  }
+
   /**
    * Move file from sourceURL to targetURL
    * @param sourceURL - Source URL, also can be a file name in the app library folder
@@ -238,13 +252,9 @@ export class WebDavFileBackend implements IFileBackend {
   async moveFile(
     sourceURL: string,
     targetURL: string,
-    forceDelete: boolean = false,
-    forceNotLink: boolean = false
+    outerFileOperation: boolean = true
   ): Promise<string> {
     await this.check();
-
-    // Webdav target url must be a file name.
-    targetURL = path.basename(targetURL);
 
     // 1. Move main file.
     if (!isAbsolute(eraseProtocol(sourceURL))) {
@@ -259,6 +269,20 @@ export class WebDavFileBackend implements IFileBackend {
       this._appLibFolder
     );
     targetURL = constructFileURL(targetURL, false, true, "", "webdav://");
+
+    console.log("sourceURL", sourceURL);
+    console.log("targetURL", targetURL);
+
+    // Webdav target url must be a file name.
+    if (isLocalPath(eraseProtocol(sourceURL))) {
+      const _folderPath = eraseProtocol(sourceURL);
+      if (!existsSync(_folderPath)) {
+        await fsPromise.mkdir(_folderPath, { recursive: true });
+      }
+    } else {
+      await this.checkBaseFolder(sourceURL);
+    }
+    await this.checkBaseFolder(targetURL);
 
     await this._move(sourceURL, targetURL, targetCacheURL, forceDelete);
     return path.basename(targetURL);
