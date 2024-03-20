@@ -309,6 +309,7 @@ declare enum ConfigType_2 {
 declare class ContextMenuService extends Eventable<IContextMenuServiceState> {
     private readonly _preferenceService;
     private readonly _locales;
+    private readonly _extensionContextMenuItems;
     private readonly _registedScraperExtensions;
     constructor(_preferenceService: PreferenceService);
     /**
@@ -355,6 +356,20 @@ declare class ContextMenuService extends Eventable<IContextMenuServiceState> {
         id: string;
         name: string;
     }[]): void;
+    /**
+     * Registers context menus form extensions.
+     * @param extID - The id of the extension to register menus
+     * @param items - The menu items to be registered
+     */
+    registerContextMenu(extID: string, items: {
+        id: string;
+        label: string;
+    }[]): void;
+    /**
+     * Registers context menus form extensions.
+     * @param extID - The id of the extension to unregister menu items
+     */
+    unregisterContextMenu(extID: string): void;
 }
 
 declare class DatabaseCore extends Eventable<IDatabaseCoreState> {
@@ -734,6 +749,7 @@ declare class FeedEntityFilterOptions implements IFeedEntityFilterOptions {
     placeholders: string[];
     search?: string;
     searchMode?: "general" | "fulltext" | "advanced";
+    feedIds?: OID[];
     feedNames?: string[];
     unread?: boolean;
     title?: string;
@@ -1193,6 +1209,10 @@ declare interface IContextMenuServiceState {
     thumbnailContextMenuReplaceClicked: number;
     thumbnailContextMenuRefreshClicked: number;
     linkToFolderClicked: string;
+    dataContextMenuFromExtensionsClicked: {
+        extID: string;
+        itemID: string;
+    };
 }
 
 declare interface ICookieObject {
@@ -1295,6 +1315,7 @@ declare interface IFeedEntityDraft {
 declare interface IFeedEntityFilterOptions {
     search?: string;
     searchMode?: "general" | "fulltext" | "advanced";
+    feedIds?: OID[];
     feedNames?: string[];
     unread?: boolean;
     title?: string;
@@ -4467,6 +4488,22 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
     };
     private _constructEntryURL;
     private _setNonMacSpecificStyles;
+    /**
+     * Check if the window exists with the given id.
+     * @param windowId - The id of the window to be checked
+     * @returns Whether the window exists.
+     */
+    exist(windowId: string): boolean;
+    /**
+     * Focus the window with the given id.
+     * @param windowId - The id of the window to be focused
+     */
+    focus(windowId: string): void;
+    /**
+     * Blur the window with the given id.
+     * @param windowId - The id of the window to be blurred
+     */
+    blur(windowId: string): void;
 }
 
 declare class WindowStorage {
