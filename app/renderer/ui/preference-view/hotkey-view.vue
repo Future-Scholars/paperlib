@@ -22,21 +22,22 @@ let existingShortcuts = {
 const info = ref("");
 
 const onUpdate = (key: keyof IPreferenceStore, value: string) => {
+  if (value.trim().length === 0) {
+    preferenceService.set({ [key]: "" });
+    return;
+  }
+
   const keyParts = value.split("+");
   const modifier1 = keyParts[0];
   const modifier2 = keyParts[1];
   const keyName = keyParts[2];
 
-  if (keyName === "none") {
-    preferenceService.set({ [key]: "" });
-  } else if (modifier2 === "Shift" && modifier1 === "none") {
+  if (modifier2 === "Shift" && modifier1 === "none") {
     return;
   } else if (
-    modifier1 === "none" &&
-    modifier2 === "none" &&
     keyName !== "Enter" &&
     keyName !== "Space" &&
-    keyName !== "Delete" 
+    keyName !== "Delete"
   ) {
     info.value = "Cannot use single key.";
     PLAPI.logService.warn("Cannot use a single key.", "", true, "ShortcutUI");
