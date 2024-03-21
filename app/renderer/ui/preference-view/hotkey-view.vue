@@ -27,10 +27,22 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     return;
   }
 
-  const keyParts = value.split("+");
+  const keyParts = value.trim().split("+");
+  const keysLength = keyParts.length;
+
   const modifier1 = keyParts[0];
   const modifier2 = keyParts[1];
   const keyName = keyParts[2];
+
+  if (keysLength === 1) {
+    const keyName = keyParts[0];
+    if (keyName !== "Enter" && keyName !== "Space" && keyName !== "Delete") {
+      info.value = "Cannot use single key.";
+      PLAPI.logService.warn("Cannot use a single key.", "", true, "ShortcutUI");
+      return;
+    }
+  } else if (keysLength === 2) {
+  }
 
   if (modifier2 === "Shift" && modifier1 === "none") {
     return;

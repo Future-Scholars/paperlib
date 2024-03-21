@@ -36,7 +36,7 @@ const onKeydown = (event: KeyboardEvent) => {
 };
 
 const onKeyup = () => {
-  if (recordKeys.value.length === 3) {
+  if (recordKeys.value.length >= 1 && recordKeys.value.length <= 3) {
     curValue.value = recordingValue.value;
     emits("event:change", recordingValue.value);
   } else {
@@ -81,6 +81,7 @@ watch(props, (newProps, oldProps) => {
     </div>
     <div class="flex space-x-2 relative">
       <input
+        :placeholder="$t('preference.hotkeysInputTip')"
         :spellcheck="false"
         class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow min-w-64 peer"
         :value="curValue"
