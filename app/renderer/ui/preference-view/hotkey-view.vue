@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { IPreferenceStore } from "@/common/services/preference-service";
 
 import HotkeyOption from "./components/hotkey-options.vue";
 
+const i18n = useI18n();
 const prefState = preferenceService.useState();
 
 let existingShortcuts = {
@@ -22,6 +24,7 @@ let existingShortcuts = {
 const info = ref("");
 
 const onUpdate = (key: keyof IPreferenceStore, value: string) => {
+  const newShortcut = value.trim();
   if (value.trim().length === 0) {
     preferenceService.set({ [key]: "" });
     return;
@@ -30,53 +33,43 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
   const keyParts = value.trim().split("+");
   const keysLength = keyParts.length;
 
-  const modifier1 = keyParts[0];
-  const modifier2 = keyParts[1];
-  const keyName = keyParts[2];
-
   if (keysLength === 1) {
     const keyName = keyParts[0];
-    if (keyName !== "Enter" && keyName !== "Space" && keyName !== "Delete") {
-      info.value = "Cannot use single key.";
-      PLAPI.logService.warn("Cannot use a single key.", "", true, "ShortcutUI");
-      return;
-    }
-  } else if (keysLength === 2) {
-  }
-
-  if (modifier2 === "Shift" && modifier1 === "none") {
-    return;
-  } else if (
-    keyName !== "Enter" &&
-    keyName !== "Space" &&
-    keyName !== "Delete"
-  ) {
-    info.value = "Cannot use single key.";
-    PLAPI.logService.warn("Cannot use a single key.", "", true, "ShortcutUI");
-    return;
-  } else {
-    const newShortcut = [modifier1, modifier2, keyName]
-      .filter((v) => v !== "none")
-      .join("+");
-
-    // Check if the shortcut is already used by others
     if (
-      Object.values(existingShortcuts).includes(newShortcut) &&
-      // @ts-ignore
-      newShortcut !== existingShortcuts[key]
+      keyName !== "Enter" &&
+      keyName !== "Space" &&
+      keyName !== "Delete" &&
+      keyName !== "Backspace" &&
+      !keyName.match(/F\d+/)
     ) {
-      info.value = "This shortcut is already used by another shortcut.";
-      PLAPI.logService.warn(
-        "This shortcut is already used by another shortcut.",
-        "",
-        true,
-        "ShortcutUI"
-      );
+      const warningInfo = i18n.t("preference.hotkeysInvalidSingleKeyInfo");
+      info.value = warningInfo;
+      PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
       return;
     }
-    info.value = "";
-    preferenceService.set({ [key]: newShortcut });
+  } else {
+    const modifier1 = keyParts[0];
+    if (!["Control", "Command", "Alt", "Option", "Shift"].includes(modifier1)) {
+      const warningInfo = i18n.t("preference.hotkeysInvalidMultipleKeysInfo");
+      info.value = warningInfo;
+      PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
+      return;
+    }
   }
+
+  // Check if the shortcut is already used by others
+  if (
+    Object.values(existingShortcuts).includes(newShortcut) &&
+    // @ts-ignore
+    newShortcut !== existingShortcuts[key]
+  ) {
+    const warningInfo = i18n.t("preference.hotkeysDuplicateKeysInfo");
+    info.value = warningInfo;
+    PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
+    return;
+  }
+  info.value = "";
+  preferenceService.set({ [key]: newShortcut });
 };
 </script>
 
