@@ -344,7 +344,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
         success = this._paperEntityRepository.update(
           realm,
           paperEntity,
-          this._databaseCore.getPartition()
+          this._databaseCore.getPartition(),
+          isUpdate
         );
       } catch (error) {
         success = false;
