@@ -2,6 +2,9 @@
 import { computed, ref, watch } from "vue";
 import { BIconX } from "bootstrap-icons-vue";
 
+const PRIMARY_KEYS = ["Control", "Command"];
+const SECONDARY_KEYS = ["Option", "Alt", "Shift"];
+
 const props = defineProps({
   title: {
     type: String,
@@ -14,10 +17,11 @@ const props = defineProps({
 });
 
 const emits = defineEmits(["event:change"]);
+
 const curValue = ref(props.choosedKey || "");
 const recordKeys = ref<string[]>([]);
 
-const recordingValue = computed(() => {
+const getRecordingValue = () => {
   return recordKeys.value
     .map((item) => {
       if (item.length === 1) {
@@ -26,22 +30,34 @@ const recordingValue = computed(() => {
       return item;
     })
     .join("+");
-});
+};
 
 const onKeydown = (event: KeyboardEvent) => {
   if (!recordKeys.value.includes(event.key)) {
-    recordKeys.value.push(event.key);
-    curValue.value = recordingValue.value;
+    recordKeys.value = [...recordKeys.value, event.key].sort((a, b) => {
+      if (PRIMARY_KEYS.includes(a)) {
+        return -1;
+      }
+      if (PRIMARY_KEYS.includes(b)) {
+        return 1;
+      }
+      if (SECONDARY_KEYS.includes(a)) {
+        if (PRIMARY_KEYS.includes(b)) {
+          return 1;
+        }
+        return -1;
+      }
+      return 0;
+    });
+    curValue.value = getRecordingValue();
   }
 };
 
 const onKeyup = () => {
   if (recordKeys.value.length >= 1 && recordKeys.value.length <= 3) {
-    curValue.value = recordingValue.value;
-    emits("event:change", recordingValue.value);
-  } else {
-    curValue.value = props.choosedKey;
+    emits("event:change", getRecordingValue());
   }
+  curValue.value = props.choosedKey;
   recordKeys.value = [];
 };
 
@@ -67,11 +83,14 @@ const onClearClicked = () => {
   emits("event:change", "");
 };
 
-watch(props, (newProps, oldProps) => {
-  if (newProps.choosedKey !== oldProps.choosedKey) {
-    curValue.value = newProps.choosedKey;
+watch(
+  () => props.choosedKey,
+  (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+      curValue.value = newValue;
+    }
   }
-});
+);
 </script>
 
 <template>
