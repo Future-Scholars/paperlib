@@ -117,9 +117,6 @@ export class LocalFileBackend implements IFileBackend {
     sourceURL = constructFileURL(sourceURL, true, false, this._appLibFolder);
     targetURL = constructFileURL(targetURL, true, false, this._appLibFolder);
 
-    console.log("sourceURL", sourceURL);
-    console.log("targetURL", targetURL);
-
     await this.checkBaseFolder(path.dirname(targetURL));
     await this.checkBaseFolder(path.dirname(sourceURL));
 
