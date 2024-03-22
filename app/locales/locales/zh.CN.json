@@ -69,6 +69,7 @@
   "menu": {
     "rescrape": "搜寻元数据",
     "rescrapefrom": "从 ... 搜寻元数据",
+    "removefrom": "从 ... 移除",
     "delete": "删除",
     "edit": "编辑",
     "flag": "标记",
