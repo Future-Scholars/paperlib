@@ -149,7 +149,6 @@ disposable(
 watch(
   () => props.entity.mainURL,
   () => {
-    console.log("mainURL changed");
     render();
   }
 );

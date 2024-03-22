@@ -259,7 +259,6 @@ export class ReferenceService {
       "title",
       "asce"
     );
-    console.log(paperEntities);
     return this.exportBibTexBody(this.toCite(paperEntities as PaperEntity[]));
   }
 

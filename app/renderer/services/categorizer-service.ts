@@ -279,7 +279,6 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
       migrateCategorizer.name = categorizer.name.split("/").pop() as string;
       migrateCategorizer.color = categorizer.color;
       migrateCategorizer.count = 0;
-      console.log(migrateCategorizer);
       await this.update(
         type,
         migrateCategorizer,
