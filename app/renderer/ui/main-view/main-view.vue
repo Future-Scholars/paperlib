@@ -4,7 +4,9 @@ import { Ref, inject, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
+import { CategorizerType } from "@/models/categorizer";
 import { FeedEntity } from "@/models/feed-entity";
+import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
@@ -138,6 +140,31 @@ const scrapeSelectedEntitiesFrom = (scraperName: string) => {
       }
     );
     void paperService.scrape(paperEntityDrafts, [scraperName]);
+  }
+};
+
+const removeSelectedEntitiesFrom = (
+  categorizeType: CategorizerType,
+  categorizeId: OID
+) => {
+  if (uiState.contentType === "library") {
+    const paperEntityDrafts = uiState.selectedPaperEntities.map(
+      (paperEntity) => {
+        const paperEntityDraft = new PaperEntity(paperEntity);
+        if (categorizeType === CategorizerType.PaperFolder) {
+          paperEntityDraft.folders = paperEntityDraft.folders.filter(
+            (folder) => `${folder._id}` !== categorizeId
+          );
+        }
+        if (categorizeType === CategorizerType.PaperTag) {
+          paperEntityDraft.tags = paperEntityDraft.tags.filter(
+            (tag) => `${tag._id}` !== categorizeId
+          );
+        }
+        return paperEntityDraft;
+      }
+    );
+    void paperService.update(paperEntityDrafts, false);
   }
 };
 
@@ -333,6 +360,15 @@ disposable(
       scrapeSelectedEntitiesFrom(
         `${newValues.value.extID}-${newValues.value.scraperID}`
       );
+    }
+  )
+);
+
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "dataContextMenuRemoveFromClicked",
+    (newValues: { value: { type: CategorizerType; id: OID } }) => {
+      removeSelectedEntitiesFrom(newValues.value.type, newValues.value.id);
     }
   )
 );
