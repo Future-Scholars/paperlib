@@ -111,18 +111,17 @@ export class LocalFileBackend implements IFileBackend {
    * @param forceNotLink - Force not to use link
    * @returns Target file name in the app library folder
    */
-  async moveFile(
-    sourceURL: string,
-    targetURL: string,
-    outerFileOperation: boolean = true
-  ): Promise<string> {
+  async moveFile(sourceURL: string, targetURL: string): Promise<string> {
+    const outerFileOperation = path.isAbsolute(eraseProtocol(sourceURL));
+
     sourceURL = constructFileURL(sourceURL, true, false, this._appLibFolder);
     targetURL = constructFileURL(targetURL, true, false, this._appLibFolder);
 
+    console.log("sourceURL", sourceURL);
+    console.log("targetURL", targetURL);
+
     await this.checkBaseFolder(path.dirname(targetURL));
     await this.checkBaseFolder(path.dirname(sourceURL));
-
-    console.log("Move file", sourceURL, targetURL, outerFileOperation);
 
     await this._move(sourceURL, targetURL, outerFileOperation);
 
@@ -147,6 +146,18 @@ export class LocalFileBackend implements IFileBackend {
     sourceURL = constructFileURL(sourceURL, true, false, this._appLibFolder);
     if (existsSync(sourceURL)) {
       await this._remove(sourceURL);
+    }
+
+    // Remove empty directories until the app library folder
+    const _sourceURL = eraseProtocol(sourceURL);
+    let targetPath = path.dirname(_sourceURL);
+    while (targetPath !== this._appLibFolder) {
+      try {
+        await fsPromise.rmdir(targetPath).catch(() => Promise.resolve(true));
+      } catch (error) {
+        break;
+      }
+      targetPath = path.dirname(targetPath);
     }
   }
 }

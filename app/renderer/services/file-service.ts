@@ -210,39 +210,41 @@ export class FileService extends Eventable<IFileServiceState> {
   /**
    * Move files of a paper entity to the library folder
    * @param paperEntity - Paper entity to move
-   * @param fourceDelete - Force to delete the source file
-   * @param forceNotLink - Force to do not use link
    * @returns
    */
   async move(
     paperEntity: PaperEntity,
-    outerFileOperation: boolean
+    moveMain: boolean = true,
+    moveSups: boolean = true
   ): Promise<PaperEntity> {
     const backend = await this.backend();
 
     try {
-      if (!paperEntity.mainURL) {
-        return paperEntity;
-      }
       const formatedFilename = await this.inferRelativeFileName(paperEntity);
 
-      const movedMainFilename = await backend.moveFile(
-        paperEntity.mainURL,
-        `${formatedFilename}_main${path.extname(paperEntity.mainURL)}`,
-        outerFileOperation
-      );
-      paperEntity.mainURL = movedMainFilename;
+      if (moveMain) {
+        if (!paperEntity.mainURL) {
+          return paperEntity;
+        }
 
-      const movedSupURLs: string[] = [];
-      for (let i = 0; i < paperEntity.supURLs.length; i++) {
-        const movedSupFileName = await backend.moveFile(
-          paperEntity.supURLs[i],
-          `${formatedFilename}_sup${i}${path.extname(paperEntity.supURLs[i])}`,
-          outerFileOperation
+        const movedMainFilename = await backend.moveFile(
+          paperEntity.mainURL,
+          `${formatedFilename}_main${path.extname(paperEntity.mainURL)}`
         );
-        movedSupURLs.push(movedSupFileName);
+        paperEntity.mainURL = movedMainFilename;
       }
-      paperEntity.supURLs = movedSupURLs;
+
+      if (moveSups) {
+        const movedSupURLs: string[] = [];
+        for (let i = 0; i < paperEntity.supURLs.length; i++) {
+          const movedSupFileName = await backend.moveFile(
+            paperEntity.supURLs[i],
+            `${formatedFilename}_sup${i}${path.extname(paperEntity.supURLs[i])}`
+          );
+          movedSupURLs.push(movedSupFileName);
+        }
+        paperEntity.supURLs = movedSupURLs;
+      }
 
       return paperEntity;
     } catch (e) {
@@ -260,19 +262,13 @@ export class FileService extends Eventable<IFileServiceState> {
    * Move a file
    * @param sourceURL - Source file URL
    * @param targetURL - Target file URL
-   * @param fourceDelete - Force to delete the source file
-   * @param forceNotLink - Force to do not use link
    * @returns
    */
   @errorcatching("Failed to move a file.", true, "FileService", "")
-  async moveFile(
-    sourceURL: string,
-    targetURL: string,
-    outerFileOperation: boolean
-  ): Promise<string> {
+  async moveFile(sourceURL: string, targetURL: string): Promise<string> {
     const backend = await this.backend();
 
-    return await backend.moveFile(sourceURL, targetURL, outerFileOperation);
+    return await backend.moveFile(sourceURL, targetURL);
   }
 
   /**

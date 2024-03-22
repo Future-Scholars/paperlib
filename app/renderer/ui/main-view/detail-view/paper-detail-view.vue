@@ -88,8 +88,7 @@ const locateMainFile = async () => {
 
 const addSups = (urls: string[]) => {
   const paperEntityDraft = new PaperEntity(props.entity);
-  paperEntityDraft.supURLs = [...paperEntityDraft.supURLs, ...urls];
-  paperService.update([paperEntityDraft], true, true);
+  paperService.updateSupURLs(paperEntityDraft, urls);
 };
 
 const onDeleteSup = (url: string) => {

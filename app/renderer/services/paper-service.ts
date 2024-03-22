@@ -300,7 +300,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
           paperEntityDraft.mainURL = "";
         }
 
-        return await this._fileService.move(paperEntityDraft, !isUpdate);
+        return await this._fileService.move(paperEntityDraft);
       },
       async (paperEntityDraft) => {
         return paperEntityDraft;
@@ -372,8 +372,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       ) {
         this._fileService.moveFile(
           fileMovedPaperEntityDraft.mainURL,
-          updatedPaperEntityDraft.mainURL,
-          !isUpdate
+          updatedPaperEntityDraft.mainURL
         );
       }
     }
@@ -451,10 +450,21 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     await this._fileService.removeFile(paperEntity.mainURL);
     paperEntity.mainURL = url;
-    paperEntity = await this._fileService.move(paperEntity, true);
+    paperEntity = await this._fileService.move(paperEntity, true, false);
 
     await this.update([paperEntity], false, true);
     await this._cacheService.updateCache([paperEntity]);
+  }
+
+  async updateSupURLs(paperEntity: PaperEntity, urls: string[]) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
+
+    paperEntity.supURLs.push(...urls);
+    paperEntity = await this._fileService.move(paperEntity, false, true);
+
+    await this.update([paperEntity], false, true);
   }
 
   /**
@@ -508,9 +518,10 @@ export class PaperService extends Eventable<IPaperServiceState> {
     );
     await this._fileService.removeFile(url);
     paperEntity.supURLs = paperEntity.supURLs.filter(
-      (supUrl) => supUrl !== path.basename(url)
+      (supUrl) => !url.endsWith(supUrl)
     );
-    await this.update([paperEntity], true, true);
+
+    await this.update([paperEntity], false, true);
   }
 
   /**
