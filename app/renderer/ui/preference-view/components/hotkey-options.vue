@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { BIconX } from "bootstrap-icons-vue";
 
 const PRIMARY_KEYS = ["Control", "Command"];
