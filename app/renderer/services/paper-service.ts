@@ -444,6 +444,19 @@ export class PaperService extends Eventable<IPaperServiceState> {
     await this.update(paperEntityDrafts, false, true);
   }
 
+  async updateMainURL(paperEntity: PaperEntity, url: string) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
+
+    await this._fileService.removeFile(paperEntity.mainURL);
+    paperEntity.mainURL = url;
+    paperEntity = await this._fileService.move(paperEntity, true);
+
+    await this.update([paperEntity], false, true);
+    await this._cacheService.updateCache([paperEntity]);
+  }
+
   /**
    * Delete paper entities.
    * @param ids - Paper entity ids

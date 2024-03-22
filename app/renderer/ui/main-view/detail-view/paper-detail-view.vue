@@ -71,13 +71,7 @@ const onDeleteCategorizer = (
 
 const modifyMainFile = async (url: string) => {
   const paperEntityDraft = new PaperEntity(props.entity);
-  paperEntityDraft.mainURL = url;
-  const updatedPaperEntity = await paperService.update(
-    [paperEntityDraft],
-    true,
-    false
-  );
-  await cacheService.updateCache(updatedPaperEntity);
+  await paperService.updateMainURL(paperEntityDraft, url);
   setTimeout(() => {
     uiState.renderRequired = Date.now();
   }, 500);
