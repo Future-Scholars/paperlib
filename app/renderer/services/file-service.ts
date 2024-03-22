@@ -55,6 +55,7 @@ export class FileService extends Eventable<IFileServiceState> {
    */
   @errorcatching("Failed to initialize the file backend.", true, "FileService")
   async initialize() {
+    this._backend?.stopWatch();
     this._backend = undefined;
     this._backend = await this._initBackend();
   }

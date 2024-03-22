@@ -164,7 +164,7 @@ const removeSelectedEntitiesFrom = (
         return paperEntityDraft;
       }
     );
-    void paperService.update(paperEntityDrafts, false);
+    void paperService.update(paperEntityDrafts, false, true);
   }
 };
 

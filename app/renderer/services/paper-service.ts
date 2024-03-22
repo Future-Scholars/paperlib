@@ -258,7 +258,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * Update paper entities.
    * @param paperEntityDrafts - paper entity drafts
    * @param updateCache - Update cache, default is true
-   * @param isUpdate - Is update, default is false, if true, it is insert. This is for PDF file operation.
+   * @param isUpdate - Is update, default is false, if false, it is insert. This is for preventing insert duplicated papers.
    * @returns Updated paper entities
    */
   @processing(ProcessingKey.General)
@@ -448,12 +448,16 @@ export class PaperService extends Eventable<IPaperServiceState> {
       return;
     }
 
-    await this._fileService.removeFile(paperEntity.mainURL);
+    if (paperEntity.mainURL) {
+      await this._fileService.removeFile(paperEntity.mainURL);
+    }
     paperEntity.mainURL = url;
     paperEntity = await this._fileService.move(paperEntity, true, false);
 
-    await this.update([paperEntity], false, true);
+    const updatedPaperEntities = await this.update([paperEntity], false, true);
     await this._cacheService.updateCache([paperEntity]);
+
+    return updatedPaperEntities[0];
   }
 
   async updateSupURLs(paperEntity: PaperEntity, urls: string[]) {
@@ -615,7 +619,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       specificScrapers ? true : false
     );
 
-    await this.update(scrapedPaperEntityDrafts, true, true);
+    await this.update(scrapedPaperEntityDrafts, false, true);
   }
 
   /**

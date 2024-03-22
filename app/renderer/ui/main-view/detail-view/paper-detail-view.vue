@@ -74,16 +74,22 @@ const modifyMainFile = async (url: string) => {
   await paperService.updateMainURL(paperEntityDraft, url);
   setTimeout(() => {
     uiState.renderRequired = Date.now();
-  }, 500);
+  }, 1000);
 };
 
 const locateMainFile = async () => {
   const paperEntityDraft = new PaperEntity(props.entity);
-  const updatedPaperEntities = await fileService.locateFileOnWeb([
+  const locatedPaperEntities = await fileService.locateFileOnWeb([
     paperEntityDraft,
   ]);
-  await paperService.update(updatedPaperEntities, true, true);
-  uiState.renderRequired = Date.now();
+  paperEntityDraft.mainURL = "";
+  await paperService.updateMainURL(
+    paperEntityDraft,
+    locatedPaperEntities[0].mainURL
+  );
+  setTimeout(() => {
+    uiState.renderRequired = Date.now();
+  }, 1000);
 };
 
 const addSups = (urls: string[]) => {
