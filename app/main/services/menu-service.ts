@@ -273,9 +273,11 @@ export class MenuService extends Eventable<IMenuServiceState> {
    */
   disableAll() {
     this._isDisabled = true;
-    globalShortcut.unregister(
-      this._preferenceService.get("shortcutPlugin") as string
-    );
+    const pluginKey = this._preferenceService.get("shortcutPlugin");
+    if (!pluginKey) {
+      return;
+    }
+    globalShortcut.unregister(pluginKey as string);
   }
 
   /**
@@ -290,27 +292,24 @@ export class MenuService extends Eventable<IMenuServiceState> {
    * Enable all global shortcuts.
    */
   enableGlobalShortcuts() {
-    if (
-      !globalShortcut.isRegistered(
-        this._preferenceService.get("shortcutPlugin") as string
-      )
-    ) {
-      globalShortcut.register(
-        this._preferenceService.get("shortcutPlugin") as string,
-        async () => {
-          if (
-            !windowProcessManagementService.browserWindows.has(
-              "quickpasteProcess"
-            )
-          ) {
-            windowProcessManagementService.createQuickpasteRenderer();
-          }
-
-          windowProcessManagementService.browserWindows
-            .get("quickpasteProcess")
-            .show();
+    const pluginKey = this._preferenceService.get("shortcutPlugin");
+    if (!pluginKey) {
+      return;
+    }
+    if (!globalShortcut.isRegistered(pluginKey as string)) {
+      globalShortcut.register(pluginKey as string, async () => {
+        if (
+          !windowProcessManagementService.browserWindows.has(
+            "quickpasteProcess"
+          )
+        ) {
+          windowProcessManagementService.createQuickpasteRenderer();
         }
-      );
+
+        windowProcessManagementService.browserWindows
+          .get("quickpasteProcess")
+          .show();
+      });
     }
   }
 }
