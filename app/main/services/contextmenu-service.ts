@@ -178,7 +178,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     const template: MenuItemConstructorOptions[] = [
       {
         label: this._locales.t("menu.open"),
-        accelerator: "Enter",
+        accelerator: preferenceService.getShortcut("shortcutOpen") as string,
         click: () => {
           this.fire("dataContextMenuOpenClicked");
         },
@@ -195,14 +195,14 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       {
         label: this._locales.t("menu.edit"),
         enabled: allowEdit,
-        accelerator: isMac ? "cmd+e" : "ctrl+e",
+        accelerator: preferenceService.getShortcut("shortcutEdit") as string,
         click: () => {
           this.fire("dataContextMenuEditClicked");
         },
       },
       {
         label: this._locales.t("menu.rescrape"),
-        accelerator: isMac ? "cmd+r" : "ctrl+r",
+        accelerator: preferenceService.getShortcut("shortcutScrape") as string,
         click: () => {
           this.fire("dataContextMenuScrapeClicked");
         },
@@ -215,13 +215,14 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
 
       {
         label: this._locales.t("menu.delete"),
+        accelerator: preferenceService.getShortcut("shortcutDelete") as string,
         click: () => {
           this.fire("dataContextMenuDeleteClicked");
         },
       },
       {
         label: this._locales.t("menu.toggleflag"),
-        accelerator: isMac ? "cmd+f" : "ctrl+f",
+        accelerator: preferenceService.getShortcut("shortcutFlag") as string,
         click: () => {
           this.fire("dataContextMenuFlagClicked");
         },
@@ -295,7 +296,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     const template: MenuItemConstructorOptions[] = [
       {
         label: this._locales.t("menu.open"),
-        accelerator: "Enter",
+        accelerator: preferenceService.getShortcut("shortcutOpen") as string,
         click: () => {
           this.fire("dataContextMenuOpenClicked");
         },

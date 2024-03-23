@@ -402,4 +402,52 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
   async setPassword(key: string, pwd: string) {
     await keytar.setPassword("paperlib", key, pwd);
   }
+
+  /**
+   * Get the shortcut
+   * @param key - Key of the shortcut
+   */
+  @errorcatching("Failed to get shortcut.", true, "PrefService")
+  getShortcut(key: keyof IPreferenceStore) {
+    let defaultValue = "";
+    switch (key) {
+      case "shortcutOpen": {
+        defaultValue = "Enter";
+        break;
+      }
+      case "shortcutCopy": {
+        defaultValue = "CommandOrControl+Shift+C";
+        break;
+      }
+      case "shortcutCopyKey": {
+        defaultValue = "CommandOrControl+Shift+K";
+        break;
+      }
+      case "shortcutScrape": {
+        defaultValue = "CommandOrControl+R";
+        break;
+      }
+      case "shortcutEdit": {
+        defaultValue = "CommandOrControl+E";
+        break;
+      }
+      case "shortcutFlag": {
+        defaultValue = "CommandOrControl+F";
+        break;
+      }
+      case "shortcutPreview": {
+        defaultValue = "Space";
+        break;
+      }
+      case "shortcutPlugin": {
+        defaultValue = "CommandOrControl+Shift+I";
+        break;
+      }
+      case "shortcutDelete": {
+        defaultValue = "Delete";
+        break;
+      }
+    }
+    return this.get(key) || defaultValue;
+  }
 }
