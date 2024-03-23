@@ -212,7 +212,7 @@
     "hotkeysDuplicateKeysInfo": "This shortcut is already used by another shortcut.",
     "hotkeysOpenPDFLabel": "Open PDF",
     "hotkeysEditLabel": "Edit Metadata",
-    "hotkeysCopyKeyLabel": "Copy Bibtex Key to Clipboard"
+    "hotkeysPluginLabel": "Open Quick Reference Plugin"
   },
   "confirmation": {
     "title": "Confirmation",
