@@ -57,7 +57,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
 
     const deleteItem = {
       label: this._locales.t("menu.delete"),
-      accelerator: this._preferenceService.getShortcut("shortcutDelete"),
+      accelerator: this._preferenceService.get("shortcutDelete"),
       click: () => {
         if (!this._isDisabled) {
           this.fire("File-delete");
@@ -106,7 +106,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
         submenu: [
           {
             label: this._locales.t("menu.open"),
-            accelerator: this._preferenceService.getShortcut("shortcutOpen"),
+            accelerator: this._preferenceService.get("shortcutOpen"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("File-enter");
@@ -116,7 +116,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           { type: "separator" },
           {
             label: this._locales.t("menu.copybibtext"),
-            accelerator: this._preferenceService.getShortcut("shortcutCopy"),
+            accelerator: this._preferenceService.get("shortcutCopy"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("File-copyBibTex");
@@ -125,7 +125,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           },
           {
             label: this._locales.t("menu.copybibtextkey"),
-            accelerator: this._preferenceService.getShortcut("shortcutCopyKey"),
+            accelerator: this._preferenceService.get("shortcutCopyKey"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("File-copyBibTexKey");
@@ -147,7 +147,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
         submenu: [
           {
             label: this._locales.t("menu.rescrape"),
-            accelerator: this._preferenceService.getShortcut("shortcutScrape"),
+            accelerator: this._preferenceService.get("shortcutScrape"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("Edit-rescrape");
@@ -156,7 +156,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           },
           {
             label: this._locales.t("menu.edit"),
-            accelerator: this._preferenceService.getShortcut("shortcutEdit"),
+            accelerator: this._preferenceService.get("shortcutEdit"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("Edit-edit");
@@ -165,7 +165,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           },
           {
             label: this._locales.t("menu.flag"),
-            accelerator: this._preferenceService.getShortcut("shortcutFlag"),
+            accelerator: this._preferenceService.get("shortcutFlag"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("Edit-flag");
@@ -190,7 +190,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
         submenu: [
           {
             label: this._locales.t("menu.preview"),
-            accelerator: this._preferenceService.getShortcut("shortcutPreview"),
+            accelerator: this._preferenceService.get("shortcutPreview"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("View-preview");
@@ -274,7 +274,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
   disableAll() {
     this._isDisabled = true;
     globalShortcut.unregister(
-      this._preferenceService.getShortcut("shortcutPlugin") as string
+      this._preferenceService.get("shortcutPlugin") as string
     );
   }
 
@@ -292,11 +292,11 @@ export class MenuService extends Eventable<IMenuServiceState> {
   enableGlobalShortcuts() {
     if (
       !globalShortcut.isRegistered(
-        this._preferenceService.getShortcut("shortcutPlugin") as string
+        this._preferenceService.get("shortcutPlugin") as string
       )
     ) {
       globalShortcut.register(
-        this._preferenceService.getShortcut("shortcutPlugin") as string,
+        this._preferenceService.get("shortcutPlugin") as string,
         async () => {
           if (
             !windowProcessManagementService.browserWindows.has(
