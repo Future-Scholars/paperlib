@@ -33,7 +33,10 @@ const getRecordingValue = () => {
 };
 
 const onKeydown = (event: KeyboardEvent) => {
-  const key = event.key.trim() || event.code;
+  let key = event.key.trim();
+  if (event.code === "Space") {
+    key = event.code.trim();
+  }
   if (!recordKeys.value.includes(key)) {
     recordKeys.value = [...recordKeys.value, key].sort((a, b) => {
       if (PRIMARY_KEYS.includes(a)) {
