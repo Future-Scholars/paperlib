@@ -1,4 +1,4 @@
-import { Menu, app } from "electron";
+import { Menu, app, globalShortcut } from "electron";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -267,6 +267,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
    * Enable all menu items.
    */
   enableAll() {
+    this.enableGlobalShortcuts();
     this._isDisabled = false;
   }
 
@@ -275,6 +276,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
    */
   disableAll() {
     this._isDisabled = true;
+    globalShortcut.unregisterAll();
   }
 
   /**
@@ -283,5 +285,35 @@ export class MenuService extends Eventable<IMenuServiceState> {
    */
   click(key: keyof IMenuServiceState) {
     this.fire(key);
+  }
+
+  /**
+   * Enable all global shortcuts.
+   */
+  enableGlobalShortcuts() {
+    if (
+      !globalShortcut.isRegistered(
+        (preferenceService.get("shortcutPlugin") as string) ||
+          "CommandOrControl+Shift+I"
+      )
+    ) {
+      globalShortcut.register(
+        (preferenceService.get("shortcutPlugin") as string) ||
+          "CommandOrControl+Shift+I",
+        async () => {
+          if (
+            !windowProcessManagementService.browserWindows.has(
+              "quickpasteProcess"
+            )
+          ) {
+            windowProcessManagementService.createQuickpasteRenderer();
+          }
+
+          windowProcessManagementService.browserWindows
+            .get("quickpasteProcess")
+            .show();
+        }
+      );
+    }
   }
 }
