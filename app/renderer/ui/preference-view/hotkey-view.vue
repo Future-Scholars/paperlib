@@ -85,43 +85,43 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     </div>
     <div class="flex flex-col space-y-2 mb-5">
       <HotkeyOption
-        title="Open PDF"
+        :title="$t('preference.hotkeysOpenPDFLabel')"
         :choosed-key="prefState.shortcutOpen"
         @event:change="(key) => onUpdate('shortcutOpen', key)"
       />
       <HotkeyOption
-        title="Scrape Metadata"
+        :title="$t('menu.rescrape')"
         :choosed-key="prefState.shortcutScrape"
         @event:change="(key) => onUpdate('shortcutScrape', key)"
       />
       <HotkeyOption
-        title="Edit Metadata"
+        :title="$t('preference.hotkeysEditLabel')"
         :choosed-key="prefState.shortcutEdit"
         @event:change="(key) => onUpdate('shortcutEdit', key)"
       />
       <HotkeyOption
-        title="Flag"
+        :title="$t('menu.flag')"
         :choosed-key="prefState.shortcutFlag"
         @event:change="(key) => onUpdate('shortcutFlag', key)"
       />
       <HotkeyOption
-        title="Open Quick Reference Plugin"
+        :title="$t('preference.hotkeysPluginLabel')"
         :choosed-key="prefState.shortcutPlugin"
         @event:change="(key) => onUpdate('shortcutPlugin', key)"
       />
       <HotkeyOption
-        title="Copy Bibtex to Clipboard"
+        :title="$t('menu.copybibtext')"
         :choosed-key="prefState.shortcutCopy"
         @event:change="(key) => onUpdate('shortcutCopy', key)"
       />
       <HotkeyOption
-        title="Copy Bibtex Key to Clipboard"
+        :title="$t('menu.copybibtextkey')"
         :choosed-key="prefState.shortcutCopyKey"
         @event:change="(key) => onUpdate('shortcutCopyKey', key)"
       />
 
       <HotkeyOption
-        title="Delete"
+        :title="$t('menu.delete')"
         :choosed-key="prefState.shortcutDelete"
         @event:change="(key) => onUpdate('shortcutDelete', key)"
       />
