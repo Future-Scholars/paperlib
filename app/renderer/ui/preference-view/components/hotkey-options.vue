@@ -33,8 +33,9 @@ const getRecordingValue = () => {
 };
 
 const onKeydown = (event: KeyboardEvent) => {
-  if (!recordKeys.value.includes(event.key)) {
-    recordKeys.value = [...recordKeys.value, event.key].sort((a, b) => {
+  const key = event.key.trim() || event.code;
+  if (!recordKeys.value.includes(key)) {
+    recordKeys.value = [...recordKeys.value, key].sort((a, b) => {
       if (PRIMARY_KEYS.includes(a)) {
         return -1;
       }

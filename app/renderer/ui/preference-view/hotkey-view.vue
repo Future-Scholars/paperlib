@@ -9,18 +9,6 @@ import HotkeyOption from "./components/hotkey-options.vue";
 const i18n = useI18n();
 const prefState = preferenceService.useState();
 
-let existingShortcuts = {
-  shortcutPlugin: prefState.shortcutPlugin,
-  shortcutPreview: prefState.shortcutPreview,
-  shortcutOpen: prefState.shortcutOpen,
-  shortcutCopy: prefState.shortcutCopy,
-  shortcutCopyKey: prefState.shortcutCopyKey,
-  shortcutScrape: prefState.shortcutScrape,
-  shortcutEdit: prefState.shortcutEdit,
-  shortcutFlag: prefState.shortcutFlag,
-  shortcutDelete: prefState.shortcutDelete,
-};
-
 const info = ref("");
 
 const onUpdate = (key: keyof IPreferenceStore, value: string) => {
@@ -56,6 +44,18 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
       return;
     }
   }
+
+  let existingShortcuts = {
+    shortcutPlugin: prefState.shortcutPlugin,
+    shortcutPreview: prefState.shortcutPreview,
+    shortcutOpen: prefState.shortcutOpen,
+    shortcutCopy: prefState.shortcutCopy,
+    shortcutCopyKey: prefState.shortcutCopyKey,
+    shortcutScrape: prefState.shortcutScrape,
+    shortcutEdit: prefState.shortcutEdit,
+    shortcutFlag: prefState.shortcutFlag,
+    shortcutDelete: prefState.shortcutDelete,
+  };
 
   // Check if the shortcut is already used by others
   if (
