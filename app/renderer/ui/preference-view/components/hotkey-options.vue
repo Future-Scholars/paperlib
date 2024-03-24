@@ -106,7 +106,7 @@ watch(
       <input
         :placeholder="$t('preference.hotkeysInputTip')"
         :spellcheck="false"
-        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow min-w-64 peer"
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow min-w-64 peer text-center font-mono focus:bg-neutral-300 focus:dark:bg-neutral-600"
         :value="curValue"
         @input="onInput"
         @focus="onFocus"
