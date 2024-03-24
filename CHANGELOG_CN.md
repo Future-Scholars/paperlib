@@ -1,23 +1,35 @@
+## v3.0.4 24/03 2024
+
+1. 新功能：现在你可以使用自定义重命名规则，比如：`{year}/{publication}/{title}` 在文件系统中层级地组织你的 PDF。by @geoffreychen777
+2. 新功能：添加一个上下文菜单，用于从标签/组中移除论文。by @Rccubc
+3. 新功能：点击评分星星以清除评分。by @igoogolx
+4. 增强：改进了快捷键的 UI 组件。by @igoogolx
+5. 增强：分批次抓取论文元数据。by @geoffreychen777
+6. 增强：优化了快速引用工具的体验。by @geoffreychen777
+7. 增强：支持自定义根证书。请查看我们的网站。by @geoffreychen777
+8. 修复：修复了侧边栏中的拖动 Bug。by @Rccubc
+9. 修复：修复了仅于 Linux 的路径 Bug。by @geoffreychen777
+
 ## v3.0.3 19/03 2024
 
-0. 3 版本引入的巨大变化导致了一些 Bug。尽管经历了两个月的 beta 测试还是无法避免。请原谅最近的频繁更新。我们会尽快稳定下来。感谢您的理解。
-1. 修复：QuickPaste 插件中的重复文件夹 Bug。by @geoffreychen777
-2. 修复：一些 RSS 相关的 Bug。by @geoffreychen777
-3. 修复：文件移动 Bug。by @geoffreychen777
-4. 修复：macOS 下 Cmd+W 关闭窗口的 Bug。by @geoffreychen777
-5. 修复：基于分区的数据库同步 Bug。by @geoffreychen777
-6. 增强：一些中文翻译问题。by @Rccubc
+1. 3 版本引入的巨大变化导致了一些 Bug。尽管经历了两个月的 beta 测试还是无法避免。请原谅最近的频繁更新。我们会尽快稳定下来。感谢您的理解。
+2. 修复：QuickPaste 插件中的重复文件夹 Bug。by @geoffreychen777
+3. 修复：一些 RSS 相关的 Bug。by @geoffreychen777
+4. 修复：文件移动 Bug。by @geoffreychen777
+5. 修复：macOS 下 Cmd+W 关闭窗口的 Bug。by @geoffreychen777
+6. 修复：基于分区的数据库同步 Bug。by @geoffreychen777
+7. 增强：一些中文翻译问题。by @Rccubc
 
 ## v3.0.2 17/03 2024
 
-0. 新社区插件：`paperlib-cn-scrape-extension` - 一个元数据搜刮器插件，让你可以从中国知网搜刮元数据。
-1. 官方扩展中的新功能：`paperlib-ai-summary-extension` - 添加了一个新命令 `\tagit`，让 LLM 帮助您给论文打标签。by @geoffreychen777
-2. 修复：导入文件时的文件名 Bug。by @geoffreychen777
-3. 修复：标签，组编辑时的 Bug。by @geoffreychen777
-4. 修复：表格预览模式中的文件名错误 Bug。by @geoffreychen777
-5. 增强：在 Windows 上添加了一个图标。by @igoogolx
-6. 插件开发者：添加了两个方法，以注册和注销上下文菜单项。by @igoogolx
-7. 插件开发者：添加了三个方法，以查找、聚焦和模糊化窗口。by @igoogolx
+1. 新社区插件：`paperlib-cn-scrape-extension` - 一个元数据搜刮器插件，让你可以从中国知网 2 刮元数据。
+2. 官方扩展中的新功能：`paperlib-ai-summary-extension` - 添加了一个新命令 `\tagit`，让 LLM 帮助您给论文打标签。by @geoffreychen777
+3. 修复：导入文件时的文件名 Bug。by @geoffreychen777
+4. 修复：标签，组编辑时的 Bug。by @geoffreychen777
+5. 修复：表格预览模式中的文件名错误 Bug。by @geoffreychen777
+6. 增强：在 Windows 上添加了一个图标。by @igoogolx
+7. 插件开发者：添加了两个方法，以注册和注销上下文菜单项。by @igoogolx
+8. 插件开发者：添加了三个方法，以查找、聚焦和模糊化窗口。by @igoogolx
 
 ## v3.0.1 15/03 2024
 

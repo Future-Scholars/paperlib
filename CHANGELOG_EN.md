@@ -1,23 +1,35 @@
+## v3.0.4 Mar 24 2024
+
+1. New Feature: Now you can use a custom renaming format such as `{year}/{publication}/{title}` to organize your PDFs in hierarchical folders. By @geoffreychen777.
+2. New Feature: Add a context menu to remove papers from tags/folders. By @Rccubc.
+3. New Feature: Clear the rating. By @igoogolx.
+4. Enhance: Improved UI component for shortcut keys. By @igoogolx, @charlieJ107
+5. Enhance: Scrape papers in batch. By @geoffreychen777.
+6. Enhance: Optimize the experience of the Quick Reference tool. By @geoffreychen777.
+7. Enhance: Support the custom root CA. See our website. By @geoffreychen777.
+8. Fix: Resolved a dragging bug in the sidebar. By @Rccubc.
+9. Fix: Fixed a Linux-only path bug. By @geoffreychen777.
+
 ## v3.0.3 Mar 19 2024
 
-0. The significant changes introduced in version 3 introduced some bugs. Two months of beta testing still cannot avoid them. We apologize for the recent frequent updates. Please bear with us.
-1. Fix: Duplicate folder bug in the QuickPaste plugin. by @geoffreychen777
-2. Fix: Some RSS-related bugs. by @geoffreychen777
-3. Fix: A file moving bug. by @geoffreychen777
-4. Fix: A macOS bug when the window was closed by Cmd+W. by @geoffreychen777
-5. Fix: A sync bug for partition-based database. by @geoffreychen777
-6. Enhance: Some Chinese translation issues. by @Rccubc
+1. The significant changes introduced in version 3 introduced some bugs. Two months of beta testing still cannot avoid them. We apologize for the recent frequent updates. Please bear with us.
+2. Fix: Duplicate folder bug in the QuickPaste plugin. by @geoffreychen777
+3. Fix: Some RSS-related bugs. by @geoffreychen777
+4. Fix: A file moving bug. by @geoffreychen777
+5. Fix: A macOS bug when the window was closed by Cmd+W. by @geoffreychen777
+6. Fix: A sync bug for partition-based database. by @geoffreychen777
+7. Enhance: Some Chinese translation issues. by @Rccubc
 
 ## v3.0.2 Mar 17 2024
 
-0. New Community Extension: `paperlib-cn-scrape-extension` - A new extension to scrape metadata from the Chinese CNKI database.
-1. New Feature in Official Extensions: `paperlib-ai-summary-extension` - add a new command `\tagit` to let LLM help you tag your papers. by @geoffreychen777
-2. Fix: a filename bug when importing a file. by @geoffreychen777
-3. Fix: a categorizer editing bug. by @geoffreychen777
-4. Fix: a filename bug in table preview mode. by @geoffreychen777
-5. Enhance: add a logo at the top-left corner of the app in Windows. by @igoogolx
-6. For Ext Developer: add two methods in the contextMenuService to register and unregister context menu items. by @igoogolx
-7. For Ext Developer: add three methods in the windowManagementService to find, focus, and blur a window. by @igoogolx
+1. New Community Extension: `paperlib-cn-scrape-extension` - A new extension to scrape metadata from the Chinese CNKI database.
+2. New Feature in Official Extensions: `paperlib-ai-summary-extension` - add a new command `\tagit` to let LLM help you tag your papers. by @geoffreychen777
+3. Fix: a filename bug when importing a file. by @geoffreychen777
+4. Fix: a categorizer editing bug. by @geoffreychen777
+5. Fix: a filename bug in table preview mode. by @geoffreychen777
+6. Enhance: add a logo at the top-left corner of the app in Windows. by @igoogolx
+7. For Ext Developer: add two methods in the contextMenuService to register and unregister context menu items. by @igoogolx
+8. For Ext Developer: add three methods in the windowManagementService to find, focus, and blur a window. by @igoogolx
 
 ## v3.0.1 Mar 15 2024
 

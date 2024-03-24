@@ -1,6 +1,9 @@
-1. Fix: Duplicate folder bug in the QuickPaste plugin. by @geoffreychen777
-2. Fix: Some RSS-related bugs. by @geoffreychen777
-3. Fix: A file moving bug. by @geoffreychen777
-4. Fix: A macOS bug when the window was closed by Cmd+W. by @geoffreychen777
-5. Fix: A sync bug for partition-based database. by @geoffreychen777
-6. Enhance: Some Chinese translation issues. by @Rccubc
+1. New Feature: Now you can use a custom renaming format such as `{year}/{publication}/{title}` to organize your PDFs in hierarchical folders. By @geoffreychen777.
+2. New Feature: Add a context menu to remove papers from tags/folders. By @Rccubc.
+3. New Feature: Clear the rating. By @igoogolx.
+4. Enhance: Improved UI component for shortcut keys. By @igoogolx, @charlieJ107
+5. Enhance: Scrape papers in batch. By @geoffreychen777.
+6. Enhance: Optimize the experience of the Quick Reference tool. By @geoffreychen777.
+7. Enhance: Support the custom root CA. See our website. By @geoffreychen777.
+8. Fix: Resolved a dragging bug in the sidebar. By @Rccubc.
+9. Fix: Fixed a Linux-only path bug. By @geoffreychen777.
