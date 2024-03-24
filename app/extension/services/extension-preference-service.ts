@@ -27,14 +27,15 @@ class ExtensionPreferenceStore<
       if (!this._store.has(key)) {
         this._store.set(key, value);
       } else {
-        if (typeof value === "object" && !(value instanceof Array)) {
-          const oldValue = this._store.get(key);
-          for (const [subKey, subValue] of Object.entries(value)) {
-            if (!(subKey in oldValue)) {
-              oldValue[subKey] = subValue;
-            }
+        if (value.type === "options") {
+          const curValue = this._store.get(key);
+
+          console.log(curValue, value);
+          curValue.options = value.options;
+          if (curValue.options[curValue.value]) {
+            curValue.value = curValue.options[0];
           }
-          this._store.set(key, oldValue);
+          this._store.set(key, curValue);
         }
       }
     }
