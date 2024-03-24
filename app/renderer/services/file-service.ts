@@ -203,8 +203,9 @@ export class FileService extends Eventable<IFileServiceState> {
       formatedFilename = `${titleStr.slice(0, 200)}_${idStr}`;
     }
 
-    formatedFilename = formatedFilename.replace(/[<>:"\\|?*]+/g, "");
-
+    formatedFilename = formatedFilename
+      .replace(/\\/g, "/")
+      .replace(/[*?"<>|:#\\]/g, "");
     return formatedFilename;
   }
 
@@ -401,6 +402,7 @@ export class FileService extends Eventable<IFileServiceState> {
         this._preferenceService.get("selectedPDFViewer") === "default" ||
         getFileType(accessableURL) !== "pdf"
       ) {
+        console.log("accessableURL", accessableURL);
         shell.openPath(accessableURL);
       } else {
         const viewerPath = this._preferenceService.get(
@@ -434,6 +436,7 @@ export class FileService extends Eventable<IFileServiceState> {
   @errorcatching("Failed to show the URL in Finder.", true, "FileService")
   async showInFinder(url: string) {
     const accessedURL = eraseProtocol(await this.access(url, true));
+    console.log("accessedURL", accessedURL);
     PLMainAPI.fileSystemService.showInFinder(accessedURL);
   }
 

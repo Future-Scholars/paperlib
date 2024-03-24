@@ -305,7 +305,9 @@ export class WebDavFileBackend extends LocalFileBackend {
   }
 
   async _server2localMove(sourceURL: string, targetURL: string): Promise<void> {
-    const _sourceURL = sourceURL.replace("webdav://", "/paperlib/");
+    const _sourceURL = sourceURL
+      .replace("webdav://", "/paperlib/")
+      .replace(/\\/g, "/");
     const _targetURL = targetURL.replace("file://", "/");
 
     const buffer: Buffer = (await this._webdavClient?.getFileContents(

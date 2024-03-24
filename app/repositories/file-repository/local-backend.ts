@@ -148,13 +148,28 @@ export class LocalFileBackend implements IFileBackend {
     // Remove empty directories until the app library folder
     const _sourceURL = eraseProtocol(sourceURL);
     let targetPath = path.dirname(_sourceURL);
-    while (targetPath !== this._appLibFolder) {
-      try {
-        await fsPromise.rmdir(targetPath).catch(() => Promise.resolve(true));
-      } catch (error) {
-        break;
-      }
+
+    const tobeDeletedDirs: string[] = [];
+    while (path.normalize(targetPath) !== path.normalize(this._appLibFolder)) {
+      tobeDeletedDirs.push(targetPath);
       targetPath = path.dirname(targetPath);
+    }
+
+    const fileDepth =
+      getRelativePath(_sourceURL, this._appLibFolder).split("/").length - 1;
+    if (fileDepth !== tobeDeletedDirs.length) {
+      console.log(
+        "Error: fileDepth !== tobeDeletedDirs.length",
+        fileDepth,
+        tobeDeletedDirs.length
+      );
+      return;
+    } else {
+      for (const dir of tobeDeletedDirs) {
+        try {
+          await fsPromise.rmdir(dir);
+        } catch (error) {}
+      }
     }
   }
 }
