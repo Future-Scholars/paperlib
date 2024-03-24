@@ -328,6 +328,10 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       });
     }
 
+    if (contextMenuTemplate.length > 0) {
+      template.push({ type: "separator" });
+    }
+
     template.push(...contextMenuTemplate);
 
     const menu = Menu.buildFromTemplate(template);
