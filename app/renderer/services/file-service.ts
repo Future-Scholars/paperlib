@@ -212,6 +212,8 @@ export class FileService extends Eventable<IFileServiceState> {
   /**
    * Move files of a paper entity to the library folder
    * @param paperEntity - Paper entity to move
+   * @param moveMain - Move the main file
+   * @param moveSups - Move the supplementary files
    * @returns
    */
   async move(

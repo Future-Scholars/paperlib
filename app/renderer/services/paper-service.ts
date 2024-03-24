@@ -443,6 +443,19 @@ export class PaperService extends Eventable<IPaperServiceState> {
     await this.update(paperEntityDrafts, false, true);
   }
 
+  /**
+   * Update the main file of a paper entity.
+   * @param paperEntity - The paper entity.
+   * @param url - The URL of the main file.
+   * @returns The updated paper entity.
+   */
+  @processing(ProcessingKey.General)
+  @errorcatching(
+    "Failed to update paper entitiy's main file.",
+    true,
+    "PaperService",
+    []
+  )
   async updateMainURL(paperEntity: PaperEntity, url: string) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
@@ -460,6 +473,17 @@ export class PaperService extends Eventable<IPaperServiceState> {
     return updatedPaperEntities[0];
   }
 
+  /**
+   * Update the supplementary files of a paper entity.
+   * @param paperEntity - The paper entity.
+   * @param urls - The URLs of the supplementary files.
+   */
+  @processing(ProcessingKey.General)
+  @errorcatching(
+    "Failed to update paper entity's supplementary files.",
+    true,
+    "PaperService"
+  )
   async updateSupURLs(paperEntity: PaperEntity, urls: string[]) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;

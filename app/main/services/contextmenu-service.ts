@@ -163,6 +163,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
   /**
    * Shows the context menu for paper data.
    * @param {boolean} allowEdit - Whether editing is allowed.
+   * @param {CategorizerMenuItem[]} categorizeList - The list of categorizers.
    */
   @errorcatching(
     "Failed to show the contextmenu for papers.",

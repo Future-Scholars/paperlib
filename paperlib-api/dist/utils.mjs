@@ -153,12 +153,12 @@ function constructFileURL(url, joined, withProtocol = true, root = "", protocol 
   }
   if (withProtocol) {
     if (outURL.startsWith(protocol)) {
-      return outURL;
+      return outURL.replace(/\\/g, "/");
     } else {
-      return protocol + outURL;
+      return (protocol + outURL).replace(/\\/g, "/");
     }
   } else {
-    return outURL.replace(protocol, "");
+    return outURL.replace(protocol, "").replace(/\\/g, "/");
   }
 }
 function listAllFiles(folderURL, arrayOfFiles = null) {

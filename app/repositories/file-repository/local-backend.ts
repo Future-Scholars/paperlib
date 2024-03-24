@@ -96,6 +96,10 @@ export class LocalFileBackend implements IFileBackend {
     }
   }
 
+  /**
+   * Check base folder, if not exist, create it.
+   * @param folderPath - Folder path
+   */
   async checkBaseFolder(folderPath: string): Promise<void> {
     const _folderPath = eraseProtocol(folderPath);
     if (!existsSync(_folderPath)) {
@@ -107,8 +111,6 @@ export class LocalFileBackend implements IFileBackend {
    * Move file from sourceURL to targetURL
    * @param sourceURL - Source URL, also can be a file name in the app library folder
    * @param targetURL - Target URL, also can be a file name in the app library folder
-   * @param forceDelete - Force delete source file
-   * @param forceNotLink - Force not to use link
    * @returns Target file name in the app library folder
    */
   async moveFile(sourceURL: string, targetURL: string): Promise<string> {
@@ -139,6 +141,11 @@ export class LocalFileBackend implements IFileBackend {
     }
   }
 
+  /**
+   * Remove file from sourceURL
+   * @param sourceURL - Source URL, also can be a file name in the app library folder
+   * @returns void
+   */
   async removeFile(sourceURL: string): Promise<void> {
     sourceURL = constructFileURL(sourceURL, true, false, this._appLibFolder);
     if (existsSync(sourceURL)) {

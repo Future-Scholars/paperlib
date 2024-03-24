@@ -12,6 +12,7 @@ import { OpenDialogReturnValue } from 'electron';
 import { default as Realm_2 } from 'realm';
 import { Results } from 'realm';
 import { Store } from 'pinia';
+import Watcher from 'watcher';
 import { XMLParser } from 'fast-xml-parser';
 
 declare enum APPTheme {
@@ -131,6 +132,12 @@ declare class Categorizer {
     constructor(object?: ICategorizerDraft, initObjectId?: boolean);
     initialize(object: ICategorizerDraft): this;
 }
+
+declare type CategorizerMenuItem = {
+    type: CategorizerType;
+    name: string;
+    id: OID;
+};
 
 declare class CategorizerRepository extends Eventable<ICategorizerRepositoryState> {
     constructor();
@@ -326,8 +333,9 @@ declare class ContextMenuService extends Eventable<IContextMenuServiceState> {
     /**
      * Shows the context menu for paper data.
      * @param {boolean} allowEdit - Whether editing is allowed.
+     * @param {CategorizerMenuItem[]} categorizeList - The list of categorizers.
      */
-    showPaperDataMenu(allowEdit: boolean): void;
+    showPaperDataMenu(allowEdit: boolean, categorizeList: CategorizerMenuItem[]): void;
     /**
      * Shows the context menu for feed data.
      */
@@ -964,6 +972,7 @@ declare class FileService extends Eventable<IFileServiceState> {
      */
     initialize(): Promise<void>;
     private _initBackend;
+    backend(): Promise<IFileBackend>;
     /**
      * Start watching file changes. (Only for WebDAV file backend)
      */
@@ -977,22 +986,25 @@ declare class FileService extends Eventable<IFileServiceState> {
      */
     check(): Promise<boolean | undefined>;
     /**
+     * Infer the relative path of a paper entity.
+     * @param paperEntity - Paper entity to infer the relative path
+     */
+    inferRelativeFileName(paperEntity: PaperEntity): Promise<string>;
+    /**
      * Move files of a paper entity to the library folder
      * @param paperEntity - Paper entity to move
-     * @param fourceDelete - Force to delete the source file
-     * @param forceNotLink - Force to do not use link
+     * @param moveMain - Move the main file
+     * @param moveSups - Move the supplementary files
      * @returns
      */
-    move(paperEntity: PaperEntity, fourceDelete?: boolean, forceNotLink?: boolean): Promise<PaperEntity>;
+    move(paperEntity: PaperEntity, moveMain?: boolean, moveSups?: boolean): Promise<PaperEntity>;
     /**
      * Move a file
      * @param sourceURL - Source file URL
      * @param targetURL - Target file URL
-     * @param fourceDelete - Force to delete the source file
-     * @param forceNotLink - Force to do not use link
      * @returns
      */
-    moveFile(sourceURL: string, targetURL: string, fourceDelete?: boolean, forceNotLink?: boolean): Promise<string>;
+    moveFile(sourceURL: string, targetURL: string): Promise<string>;
     /**
      * Remove files of a paper entity
      * @param paperEntity - Paper entity to remove
@@ -1175,6 +1187,10 @@ declare interface ICommand {
 }
 
 declare interface IContextMenuServiceState {
+    dataContextMenuRemoveFromClicked: {
+        type: CategorizerType;
+        id: OID;
+    };
     dataContextMenuScrapeFromClicked: string;
     dataContextMenuOpenClicked: number;
     dataContextMenuShowInFinderClicked: number;
@@ -1345,9 +1361,21 @@ declare interface IFeedServiceState {
     entitiesUpdated: number;
 }
 
+declare interface IFileBackend {
+    watcher?: Watcher;
+    check(): Promise<boolean>;
+    access(url: string, download: boolean): Promise<string>;
+    startWatch(): Promise<void>;
+    stopWatch(): Promise<void>;
+    moveFile(sourceURL: string, targetURL: string): Promise<string>;
+    removeFile(sourceURL: string): Promise<void>;
+}
+
 declare interface IFileServiceState {
     backend: string;
     available: boolean;
+    backendInitializing: boolean;
+    backendInitialized: boolean;
 }
 
 declare interface ILogEventState {
@@ -1391,6 +1419,7 @@ declare interface IMenuServiceState {
     "View-preview": number;
     "View-next": number;
     "View-previous": number;
+    "File-delete": number;
 }
 
 declare type IPaperEntityCollection = Results<IPaperEntityObject> | List<IPaperEntityObject> | Array<IPaperEntityObject>;
@@ -1500,6 +1529,7 @@ declare interface IPreferenceStore {
     shortcutEdit: string;
     shortcutFlag: string;
     shortcutCopyKey: string;
+    shortcutDelete: string;
     sidebarWidth: number;
     detailPanelWidth: number;
     mainviewSortBy: string;
@@ -1663,11 +1693,18 @@ declare class MenuService extends Eventable<IMenuServiceState> {
      * @param key
      */
     click(key: keyof IMenuServiceState): void;
+    /**
+     * Enable all global shortcuts.
+     */
+    enableGlobalShortcuts(): void;
 }
 
 declare class NetworkTool {
     private _agent;
     private _donwloadProgress;
+    private _caCert;
+    private _caClientKey;
+    private _caClinetCert;
     constructor();
     /**
      * Set proxy agent
@@ -1862,13 +1899,11 @@ declare class PaperEntityRepository extends Eventable<IPaperEntityRepositoryStat
      * Update paper entity.
      * @param realm - Realm instance.
      * @param paperEntity - Paper entity.
-     * @param paperTag - Paper tags.
-     * @param paperFolder - Paper folders.
-     * @param existingPaperEntity - Existing paper entity.
      * @param partition - Partition.
+     * @param allowUpdate - Allow update flag.
      * @returns - Updated boolean flag.
      */
-    update(realm: Realm_2, paperEntity: IPaperEntityObject, partition: string): boolean;
+    update(realm: Realm_2, paperEntity: IPaperEntityObject, partition: string, allowUpdate?: boolean): boolean;
     /**
      * Delete paper entity.
      * @param realm - Realm instance.
@@ -1926,7 +1961,7 @@ declare class PaperService extends Eventable<IPaperServiceState> {
      * Update paper entities.
      * @param paperEntityDrafts - paper entity drafts
      * @param updateCache - Update cache, default is true
-     * @param isUpdate - Is update, default is false, if true, it is insert. This is for PDF file operation.
+     * @param isUpdate - Is update, default is false, if false, it is insert. This is for preventing insert duplicated papers.
      * @returns Updated paper entities
      */
     update(paperEntityDrafts: IPaperEntityCollection, updateCache?: boolean, isUpdate?: boolean): Promise<IPaperEntityCollection>;
@@ -1937,6 +1972,19 @@ declare class PaperService extends Eventable<IPaperServiceState> {
      * @param type - The type of the categorizer.
      */
     updateWithCategorizer(ids: OID[], categorizer: Categorizer, type: CategorizerType): Promise<void>;
+    /**
+     * Update the main file of a paper entity.
+     * @param paperEntity - The paper entity.
+     * @param url - The URL of the main file.
+     * @returns The updated paper entity.
+     */
+    updateMainURL(paperEntity: PaperEntity, url: string): Promise<PaperEntity | undefined>;
+    /**
+     * Update the supplementary files of a paper entity.
+     * @param paperEntity - The paper entity.
+     * @param urls - The URLs of the supplementary files.
+     */
+    updateSupURLs(paperEntity: PaperEntity, urls: string[]): Promise<void>;
     /**
      * Delete paper entities.
      * @param ids - Paper entity ids
