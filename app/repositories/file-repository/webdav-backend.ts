@@ -87,6 +87,7 @@ export class WebDavFileBackend extends LocalFileBackend {
     this._watcher
       .on("add", async (filePath) => {
         if (this._isValidFilePath(filePath)) {
+          console.log("add", filePath);
           try {
             await this._local2serverMove(
               filePath,
@@ -105,6 +106,7 @@ export class WebDavFileBackend extends LocalFileBackend {
       })
       .on("change", async (filePath) => {
         if (this._isValidFilePath(filePath)) {
+          console.log("change", filePath);
           try {
             await this._local2serverMove(
               filePath,
@@ -123,6 +125,7 @@ export class WebDavFileBackend extends LocalFileBackend {
       })
       .on("unlink", async (filePath) => {
         if (this._isValidFilePath(filePath)) {
+          console.log("unlink", filePath);
           try {
             await this._serverRemove(
               constructFileURL(
@@ -140,6 +143,7 @@ export class WebDavFileBackend extends LocalFileBackend {
       })
       .on("addDir", async (dirPath) => {
         if (this._isValidFilePath(dirPath)) {
+          console.log("addDir", path.normalize(dirPath));
           try {
             await this._serverCreateDir(
               constructFileURL(
@@ -157,6 +161,7 @@ export class WebDavFileBackend extends LocalFileBackend {
       })
       .on("unlinkDir", async (dirPath) => {
         if (this._isValidFilePath(dirPath)) {
+          console.log("unlinkDir", dirPath);
           try {
             await this._serverRemoveDir(
               constructFileURL(
@@ -257,7 +262,7 @@ export class WebDavFileBackend extends LocalFileBackend {
   }
 
   async _serverExists(url: string): Promise<boolean> {
-    const _URL = url.replace("webdav://", "/paperlib/");
+    const _URL = url.replace("webdav://", "/paperlib/").replace(/\\/g, "/");
     try {
       return (await this._webdavClient?.exists(_URL)) === true;
     } catch (error) {
@@ -266,7 +271,7 @@ export class WebDavFileBackend extends LocalFileBackend {
   }
 
   async _serverRemove(url: string): Promise<void> {
-    const _URL = url.replace("webdav://", "/paperlib/");
+    const _URL = url.replace("webdav://", "/paperlib/").replace(/\\/g, "/");
 
     await this._webdavClient?.deleteFile(_URL);
   }
@@ -275,8 +280,13 @@ export class WebDavFileBackend extends LocalFileBackend {
     sourceURL: string,
     targetURL: string
   ): Promise<void> {
-    const _sourceURL = sourceURL.replace("webdav://", "/paperlib/");
-    const _targetURL = targetURL.replace("webdav://", "/paperlib/");
+    const _sourceURL = sourceURL
+      .replace("webdav://", "/paperlib/")
+      .replace(/\\/g, "/");
+    const _targetURL = targetURL
+      .replace("webdav://", "/paperlib/")
+      .replace(/\\/g, "/");
+
     if (_sourceURL.toLowerCase() !== _targetURL.toLowerCase()) {
       await this._webdavClient?.moveFile(_sourceURL, _targetURL);
     }
@@ -284,7 +294,9 @@ export class WebDavFileBackend extends LocalFileBackend {
 
   async _local2serverMove(sourceURL: string, targetURL: string): Promise<void> {
     const _sourceURL = eraseProtocol(sourceURL);
-    const _targetURL = targetURL.replace("webdav://", "/paperlib/");
+    const _targetURL = targetURL
+      .replace("webdav://", "/paperlib/")
+      .replace(/\\/g, "/");
 
     const buffer = readFileSync(_sourceURL);
     await this._webdavClient?.putFileContents(_targetURL, buffer, {
@@ -310,13 +322,13 @@ export class WebDavFileBackend extends LocalFileBackend {
   }
 
   async _serverCreateDir(url: string): Promise<void> {
-    const _URL = url.replace("webdav://", "/paperlib/");
+    const _URL = url.replace("webdav://", "/paperlib/").replace(/\\/g, "/");
 
     await this._webdavClient?.createDirectory(_URL, { recursive: true });
   }
 
   async _serverRemoveDir(url: string): Promise<void> {
-    const _URL = url.replace("webdav://", "/paperlib/");
+    const _URL = url.replace("webdav://", "/paperlib/").replace(/\\/g, "/");
 
     await this._webdavClient?.deleteFile(_URL);
   }
