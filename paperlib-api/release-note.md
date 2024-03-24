@@ -1,5 +1,14 @@
 # Paperlib API Release Note
 
+## v0.1.5
+
+- update `PLAPI.fileService.move`: add two options `moveMain` and `moveSups`.
+- update `PLAPI.fileService.moveFile`: remove two options `fourceDelete` and `forceNotLink`.
+- new Event `dataContextMenuRemoveFromClicked` for `PLMainAPI.contextMenuService`.
+- update `PLAPI.paperService.update`: add `isUpdate` option.
+- add `PLAPI.paperService.updateMainURL`
+- add `PLAPI.paperService.updateSupURLs`
+
 ## v0.1.2
 
 - add `updateCache` option for `PLAPI.paperService.update
