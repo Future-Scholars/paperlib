@@ -37,7 +37,11 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     }
   } else {
     const modifier1 = keyParts[0];
-    if (!["Control", "Command", "Alt", "Option", "Shift"].includes(modifier1)) {
+    if (
+      !["Control", "Command", "Alt", "Option", "Shift", "Meta"].includes(
+        modifier1
+      )
+    ) {
       const warningInfo = i18n.t("preference.hotkeysInvalidMultipleKeysInfo");
       info.value = warningInfo;
       PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");

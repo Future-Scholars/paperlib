@@ -2,7 +2,7 @@
 import { ref, watch } from "vue";
 import { BIconX } from "bootstrap-icons-vue";
 
-const PRIMARY_KEYS = ["Control", "Command"];
+const PRIMARY_KEYS = ["Control", "Command", "Meta"];
 const SECONDARY_KEYS = ["Option", "Alt", "Shift"];
 
 const props = defineProps({
