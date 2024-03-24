@@ -35,7 +35,8 @@ const getCustomRenamingFormatPreview = (customRenamingFormat: string) => {
     .replaceAll("{year}", year)
     .replaceAll("{lastname}", lastname)
     .replaceAll("{firstname}", firstname)
-    .replaceAll("{publication}", publication);
+    .replaceAll("{publication}", publication)
+    .replace(/\\/g, "/");
 };
 
 const customRenamingFormat = ref(prefState.customRenamingFormat);
@@ -166,9 +167,10 @@ const onChangeLanguage = (language: string) => {
       v-if="prefState.renamingFormat === 'custom'"
     >
       ⓘ <b>Avaliable components:</b> title, firstchartitle, author, firstname,
-      lastname, year, publication <br />
-      &nbsp;&nbsp;&nbsp; <b>Example:</b> {lastname}{year}-{firstchartitle} -->
-      he2022-MAE_id.pdf
+      lastname, year, publication. <br />
+      &nbsp;&nbsp;&nbsp; Use '/' for hierarchical organisation. <br />
+      &nbsp;&nbsp;&nbsp; <b>Example:</b> {year}/{firstchartitle} >
+      2022/MAE_id.pdf
     </div>
     <div
       class="text-xxs text-neutral-600 dark:text-neutral-500 w-[550px] flex pl-3"

@@ -30,7 +30,6 @@ class ExtensionPreferenceStore<
         if (value.type === "options") {
           const curValue = this._store.get(key);
 
-          console.log(curValue, value);
           curValue.options = value.options;
           if (curValue.options[curValue.value]) {
             curValue.value = curValue.options[0];
