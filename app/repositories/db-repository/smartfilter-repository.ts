@@ -263,7 +263,6 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceSta
           smartfilter._partition = partition;
         }
         const newObject = realm.create<PaperSmartFilter>(type, smartfilter);
-        console.log(parentObject);
         if (parentObject) {
           // concat parent name
           if (parentObject.name && parentObject.name !== "SmartFilters") {

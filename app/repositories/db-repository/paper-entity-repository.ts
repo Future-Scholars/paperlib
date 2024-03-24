@@ -162,13 +162,16 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * Update paper entity.
    * @param realm - Realm instance.
    * @param paperEntity - Paper entity.
-   * @param paperTag - Paper tags.
-   * @param paperFolder - Paper folders.
-   * @param existingPaperEntity - Existing paper entity.
    * @param partition - Partition.
+   * @param allowUpdate - Allow update flag.
    * @returns - Updated boolean flag.
    */
-  update(realm: Realm, paperEntity: IPaperEntityObject, partition: string) {
+  update(
+    realm: Realm,
+    paperEntity: IPaperEntityObject,
+    partition: string,
+    allowUpdate: boolean = true
+  ) {
     paperEntity = this.makeSureProperties(paperEntity);
 
     return realm.safeWrite(() => {
@@ -213,6 +216,9 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
       });
 
       if (object) {
+        if (!allowUpdate) {
+          return false;
+        }
         // Update
         const shouldBeUpdatedTags = [...tags, ...object.tags];
         const shouldBeUpdatedFolders = [...folders, ...object.folders];

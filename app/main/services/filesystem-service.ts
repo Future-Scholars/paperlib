@@ -134,6 +134,6 @@ export class FileSystemService {
    */
   @errorcatching("Failed to show the URL in Finder.", true, "FileService")
   async showInFinder(url: string) {
-    shell.showItemInFolder(url);
+    shell.showItemInFolder(path.normalize(url));
   }
 }

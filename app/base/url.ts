@@ -80,12 +80,12 @@ export function constructFileURL(
 
   if (withProtocol) {
     if (outURL.startsWith(protocol)) {
-      return outURL;
+      return outURL.replace(/\\/g, "/");
     } else {
-      return protocol + outURL;
+      return (protocol + outURL).replace(/\\/g, "/");
     }
   } else {
-    return outURL.replace(protocol, "");
+    return outURL.replace(protocol, "").replace(/\\/g, "/");
   }
 }
 
@@ -121,4 +121,9 @@ export function isLocalPath(string: string) {
   }
 
   return /^\.{0,2}\//.test(string);
+}
+
+export function getRelativePath(filePath: string, basePath: string): string {
+  const relativePath = path.relative(basePath, filePath);
+  return relativePath.replace(/\\/g, "/");
 }

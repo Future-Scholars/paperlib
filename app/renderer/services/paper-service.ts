@@ -258,7 +258,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * Update paper entities.
    * @param paperEntityDrafts - paper entity drafts
    * @param updateCache - Update cache, default is true
-   * @param isUpdate - Is update, default is false, if true, it is insert. This is for PDF file operation.
+   * @param isUpdate - Is update, default is false, if false, it is insert. This is for preventing insert duplicated papers.
    * @returns Updated paper entities
    */
   @processing(ProcessingKey.General)
@@ -300,12 +300,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
           paperEntityDraft.mainURL = "";
         }
 
-        return await this._fileService.move(
-          paperEntityDraft,
-          this._preferenceService.get("sourceFileOperation") === "cut" ||
-            isUpdate,
-          isUpdate
-        );
+        return await this._fileService.move(paperEntityDraft);
       },
       async (paperEntityDraft) => {
         return paperEntityDraft;
@@ -328,8 +323,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
           path.isAbsolute(paperEntityDraft.mainURL)
         ) {
           paperEntityDraft.mainURL = "";
-        } else {
-          paperEntityDraft.mainURL = path.basename(paperEntityDraft.mainURL);
         }
 
         paperEntityDraft.supURLs = paperEntityDraft.supURLs.filter((url) => {
@@ -351,7 +344,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
         success = this._paperEntityRepository.update(
           realm,
           paperEntity,
-          this._databaseCore.getPartition()
+          this._databaseCore.getPartition(),
+          isUpdate
         );
       } catch (error) {
         success = false;
@@ -449,6 +443,34 @@ export class PaperService extends Eventable<IPaperServiceState> {
     await this.update(paperEntityDrafts, false, true);
   }
 
+  async updateMainURL(paperEntity: PaperEntity, url: string) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
+
+    if (paperEntity.mainURL) {
+      await this._fileService.removeFile(paperEntity.mainURL);
+    }
+    paperEntity.mainURL = url;
+    paperEntity = await this._fileService.move(paperEntity, true, false);
+
+    const updatedPaperEntities = await this.update([paperEntity], false, true);
+    await this._cacheService.updateCache([paperEntity]);
+
+    return updatedPaperEntities[0];
+  }
+
+  async updateSupURLs(paperEntity: PaperEntity, urls: string[]) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
+
+    paperEntity.supURLs.push(...urls);
+    paperEntity = await this._fileService.move(paperEntity, false, true);
+
+    await this.update([paperEntity], false, true);
+  }
+
   /**
    * Delete paper entities.
    * @param ids - Paper entity ids
@@ -500,9 +522,10 @@ export class PaperService extends Eventable<IPaperServiceState> {
     );
     await this._fileService.removeFile(url);
     paperEntity.supURLs = paperEntity.supURLs.filter(
-      (supUrl) => supUrl !== path.basename(url)
+      (supUrl) => !url.endsWith(supUrl)
     );
-    await this.update([paperEntity], true, true);
+
+    await this.update([paperEntity], false, true);
   }
 
   /**
@@ -596,7 +619,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       specificScrapers ? true : false
     );
 
-    await this.update(scrapedPaperEntityDrafts, true, true);
+    await this.update(scrapedPaperEntityDrafts, false, true);
   }
 
   /**
@@ -676,7 +699,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     const movedEntityDrafts = await Promise.all(
       paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
-        this._fileService.move(paperEntityDraft, true, false)
+        this._fileService.move(paperEntityDraft, false)
       )
     );
 
