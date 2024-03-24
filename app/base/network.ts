@@ -1,11 +1,11 @@
-import { createWriteStream, existsSync, mkdirSync } from "fs";
+import { createWriteStream, existsSync, mkdirSync, readFileSync } from "fs";
 import ky, { Input as KyInput, Options as KyOptions, KyResponse } from "ky";
 import os from "os";
 import path from "path";
 import { Readable } from "stream";
 import { finished } from "stream/promises";
 import { CookieJar } from "tough-cookie";
-import { ProxyAgent } from "undici";
+import { Agent, ProxyAgent } from "undici";
 
 import { createDecorator } from "@/base/injection/injection";
 
@@ -31,7 +31,24 @@ export class NetworkTool {
     [key: string]: number;
   };
 
+  private _caCert: string | undefined;
+  private _caClientKey: string | undefined;
+  private _caClinetCert: string | undefined;
+
   constructor() {
+    if (globalThis["caCertPath"]) {
+      this._caCert = readFileSync(globalThis["caCertPath"], "utf-8");
+    }
+    if (globalThis["caClientKeyPath"]) {
+      this._caClientKey = readFileSync(globalThis["caClientKeyPath"], "utf-8");
+    }
+    if (globalThis["caClientCertPath"]) {
+      this._caClinetCert = readFileSync(
+        globalThis["caClientCertPath"],
+        "utf-8"
+      );
+    }
+
     this._donwloadProgress = {};
 
     this._agent = {};
@@ -57,55 +74,72 @@ export class NetworkTool {
    * Check proxy settings, if exists, set it as proxy agent, otherwise, check system proxy settings.
    */
   async checkProxy() {
-    if (!(await PLAPI.preferenceService.get("allowproxy"))) {
-      return;
-    }
+    if (this._caCert || this._caClientKey || this._caClinetCert) {
+      PLAPI.logService.info(
+        "CA certificates",
+        `CA: ${this._caCert} | Client key: ${this._caClientKey} | Client cert: ${this._caClinetCert}`,
+        false,
+        "Network"
+      );
 
-    let httpProxy = "";
-    let httpsProxy = "";
-
-    httpProxy = (await PLAPI.preferenceService.get("httpproxy")) as string;
-    httpsProxy = (await PLAPI.preferenceService.get("httpsproxy")) as string;
-
-    const proxy = await PLMainAPI.proxyService.getSystemProxy();
-
-    if (httpProxy === "" && httpsProxy === "" && proxy !== "DIRECT") {
-      const proxyUrlComponents = proxy.split(":");
-      let proxyHost = proxyUrlComponents[0].split(" ")[1].trim();
-      const proxyPort = parseInt(proxyUrlComponents[1].trim(), 10);
-      if (
-        !proxyHost.startsWith("http://") &&
-        !proxyHost.startsWith("https://")
-      ) {
-        proxyHost = "http://" + proxyHost;
+      this._agent["https"] = new Agent({
+        connect: {
+          ca: this._caCert,
+          key: this._caClientKey,
+          cert: this._caClinetCert,
+        },
+      });
+    } else {
+      if (!(await PLAPI.preferenceService.get("allowproxy"))) {
+        return;
       }
-      httpProxy = httpProxy || proxyHost + ":" + proxyPort;
-      httpsProxy = httpsProxy || proxyHost + ":" + proxyPort;
+
+      let httpProxy = "";
+      let httpsProxy = "";
+
+      httpProxy = (await PLAPI.preferenceService.get("httpproxy")) as string;
+      httpsProxy = (await PLAPI.preferenceService.get("httpsproxy")) as string;
+
+      const proxy = await PLMainAPI.proxyService.getSystemProxy();
+
+      if (httpProxy === "" && httpsProxy === "" && proxy !== "DIRECT") {
+        const proxyUrlComponents = proxy.split(":");
+        let proxyHost = proxyUrlComponents[0].split(" ")[1].trim();
+        const proxyPort = parseInt(proxyUrlComponents[1].trim(), 10);
+        if (
+          !proxyHost.startsWith("http://") &&
+          !proxyHost.startsWith("https://")
+        ) {
+          proxyHost = "http://" + proxyHost;
+        }
+        httpProxy = httpProxy || proxyHost + ":" + proxyPort;
+        httpsProxy = httpsProxy || proxyHost + ":" + proxyPort;
+      }
+
+      this.setProxyAgent(httpProxy, httpsProxy);
+
+      PLAPI.logService.info(
+        "Proxy settings",
+        `HTTP: ${httpProxy} | HTTPS: ${httpsProxy}`,
+        false,
+        "Network"
+      );
+
+      const result = await this.get(
+        "https://httpbin.org/ip",
+        {},
+        1,
+        5000,
+        false,
+        true
+      );
+      PLAPI.logService.info(
+        "Proxy check",
+        `Connected: ${JSON.stringify(result)}`,
+        false,
+        "Network"
+      );
     }
-
-    this.setProxyAgent(httpProxy, httpsProxy);
-
-    PLAPI.logService.info(
-      "Proxy settings",
-      `HTTP: ${httpProxy} | HTTPS: ${httpsProxy}`,
-      false,
-      "Network"
-    );
-
-    const result = await this.get(
-      "https://httpbin.org/ip",
-      {},
-      1,
-      5000,
-      false,
-      true
-    );
-    PLAPI.logService.info(
-      "Proxy check",
-      `Connected: ${JSON.stringify(result)}`,
-      false,
-      "Network"
-    );
   }
 
   private async _cachePreHook(_request: Request) {

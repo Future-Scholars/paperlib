@@ -48,6 +48,7 @@
     "graph-data-structure": "3.5.0",
     "graphology": "0.25.4",
     "ky": "1.2.2",
+    "lockfile": "^1.0.4",
     "lodash-es": "4.17.21",
     "markdown-it": "13.0.1",
     "markdown-it-texmath": "1.0.0",
@@ -81,7 +82,6 @@
     "webdav": "5.3.1"
   },
   "dependencies": {
-    "@future-scholars/live-plugin-manager": "0.18.2",
     "electron-updater": "5.0.1",
     "katex": "0.16.2",
     "keytar": "7.9.0",

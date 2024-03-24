@@ -44,16 +44,30 @@ async function initialize() {
     throw new Error("Renderer process API is not exposed");
   }
   // 3.1 Get extension working path
-  const extensionWorkingDir = await PLMainAPI.fileSystemService.getSystemPath(
+  const configDir = await PLMainAPI.fileSystemService.getSystemPath(
     "userData",
     Process.extension
   );
-  globalThis["extensionWorkingDir"] = path.join(
-    extensionWorkingDir,
-    "extensions"
-  );
+  globalThis["extensionWorkingDir"] = path.join(configDir, "extensions");
   if (!fs.existsSync(globalThis["extensionWorkingDir"])) {
     fs.mkdirSync(globalThis["extensionWorkingDir"]);
+  }
+
+  // 3.2 Get custom CA certificates
+  if (fs.existsSync(path.join(configDir, "ca.crt"))) {
+    globalThis["caCertPath"] = path.join(configDir, "ca.crt");
+  }
+  if (fs.existsSync(path.join(configDir, "ca.pem"))) {
+    globalThis["caCertPath"] = path.join(configDir, "ca.pem");
+  }
+  if (fs.existsSync(path.join(configDir, "ca.cer"))) {
+    globalThis["caCertPath"] = path.join(configDir, "ca.cer");
+  }
+  if (fs.existsSync(path.join(configDir, "ca.key"))) {
+    globalThis["clientKeyPath"] = path.join(configDir, "client.key");
+  }
+  if (fs.existsSync(path.join(configDir, "client.crt"))) {
+    globalThis["clientCertPath"] = path.join(configDir, "client.crt");
   }
 
   // ============================================================

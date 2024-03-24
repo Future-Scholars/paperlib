@@ -1,16 +1,14 @@
-import {
-  IPluginInfo,
-  PluginManager,
-} from "@future-scholars/live-plugin-manager";
 import ElectronStore from "electron-store";
 import fs from "fs";
 import path from "path";
 
-import { createDecorator } from "@/base/injection/injection";
-import { isLocalPath } from "@/base/url";
-
 import { Eventable } from "@/base/event";
+import { createDecorator } from "@/base/injection/injection";
 import { INetworkTool, NetworkTool } from "@/base/network";
+import { isLocalPath } from "@/base/url";
+import { PluginManager } from "@/extension/manager/manager";
+import { IPluginInfo } from "@/extension/manager/plugin-info";
+
 import {
   ExtensionPreferenceService,
   IExtensionPreferenceService,
@@ -78,7 +76,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     });
 
     // ENHANCE: different npm url for China
-    this._extManager = new PluginManager({
+    this._extManager = new PluginManager(_networkTool, {
       pluginsPath: globalThis["extensionWorkingDir"],
     });
 
