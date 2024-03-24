@@ -74,6 +74,8 @@ export interface IPreferenceStore {
   shortcutFlag: string;
   shortcutCopyKey: string;
 
+  shortcutDelete: string;
+
   sidebarWidth: number;
   detailPanelWidth: number;
   mainviewSortBy: string;
@@ -189,6 +191,8 @@ const _defaultPreferences: IPreferenceStore = {
   shortcutEdit: "CommandOrControl+E",
   shortcutFlag: "CommandOrControl+F",
   shortcutCopyKey: "CommandOrControl+Shift+K",
+
+  shortcutDelete: "Delete",
 
   sidebarWidth: 20,
   detailPanelWidth: 75,

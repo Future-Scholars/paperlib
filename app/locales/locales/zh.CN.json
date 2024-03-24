@@ -206,7 +206,14 @@
     "fontnormal": "普通",
     "fontlarge": "大号",
     "fontlarger": "更大号",
-    "mainviewshortauthor": "使用 et al. 替代长作者列表"
+    "mainviewshortauthor": "使用 et al. 替代长作者列表",
+    "hotkeysInputTip": "按键以更改",
+    "hotkeysInvalidSingleKeyInfo": "只有 Enter, Space, Delete 或 F1-F12 可以被用作单键",
+    "hotkeysInvalidMultipleKeysInfo": "快捷键必须以 Ctrl 或 Cmd, Alt 或 Option, 或 Shift 开始",
+    "hotkeysDuplicateKeysInfo": "快捷键已经被占用",
+    "hotkeysOpenPDFLabel": "打开 PDF",
+    "hotkeysEditLabel": "编辑元数据",
+    "hotkeysPluginLabel": "打开快捷搜索"
   },
   "confirmation": {
     "title": "确认",

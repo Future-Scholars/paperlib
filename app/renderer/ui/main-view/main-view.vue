@@ -442,6 +442,12 @@ disposable(
 );
 
 disposable(
+  PLMainAPI.menuService.onClick("File-delete", () => {
+    deleteSelectedEntities();
+  })
+);
+
+disposable(
   PLMainAPI.menuService.onClick("View-preview", () => {
     previewSelectedEntities();
   })

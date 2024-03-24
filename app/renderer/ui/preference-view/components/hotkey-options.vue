@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { BIconX } from "bootstrap-icons-vue";
+
+const PRIMARY_KEYS = ["Control", "Command", "Meta"];
+const SECONDARY_KEYS = ["Option", "Alt", "Shift"];
 
 const props = defineProps({
   title: {
@@ -12,61 +16,85 @@ const props = defineProps({
   },
 });
 
-// From a to z and 0 to 9
-const baseKeys = ref({
-  none: "none",
-  A: "A",
-  B: "B",
-  C: "C",
-  D: "D",
-  E: "E",
-  F: "F",
-  G: "G",
-  H: "H",
-  I: "I",
-  J: "J",
-  K: "K",
-  L: "L",
-  M: "M",
-  N: "N",
-  O: "O",
-  P: "P",
-  Q: "Q",
-  R: "R",
-  S: "S",
-  T: "T",
-  U: "U",
-  V: "V",
-  W: "W",
-  X: "X",
-  Y: "Y",
-  Z: "Z",
-  0: "0",
-  1: "1",
-  2: "2",
-  3: "3",
-  4: "4",
-  5: "5",
-  6: "6",
-  7: "7",
-  8: "8",
-  9: "9",
-  Enter: "Enter",
-});
-
-const keyPart = props.choosedKey.split("+");
-
-const key = ref(keyPart.pop() || "none");
-let modifier1 = ref("none");
-let modifier2 = ref("none");
-if (keyPart.length > 1) {
-  modifier2.value = keyPart.pop() || "none";
-}
-if (keyPart.length > 0) {
-  modifier1.value = keyPart.pop() || "none";
-}
-
 const emits = defineEmits(["event:change"]);
+
+const curValue = ref(props.choosedKey || "");
+const recordKeys = ref<string[]>([]);
+
+const getRecordingValue = () => {
+  return recordKeys.value
+    .map((item) => {
+      if (item.length === 1) {
+        return item.toUpperCase();
+      }
+      return item;
+    })
+    .join("+");
+};
+
+const onKeydown = (event: KeyboardEvent) => {
+  let key = event.key.trim();
+  if (event.code === "Space") {
+    key = event.code.trim();
+  }
+  if (!recordKeys.value.includes(key)) {
+    recordKeys.value = [...recordKeys.value, key].sort((a, b) => {
+      if (PRIMARY_KEYS.includes(a)) {
+        return -1;
+      }
+      if (PRIMARY_KEYS.includes(b)) {
+        return 1;
+      }
+      if (SECONDARY_KEYS.includes(a)) {
+        if (PRIMARY_KEYS.includes(b)) {
+          return 1;
+        }
+        return -1;
+      }
+      return 0;
+    });
+    curValue.value = getRecordingValue();
+  }
+};
+
+const onKeyup = () => {
+  if (recordKeys.value.length >= 1 && recordKeys.value.length <= 3) {
+    emits("event:change", getRecordingValue());
+  }
+  curValue.value = props.choosedKey;
+  recordKeys.value = [];
+};
+
+const onFocus = () => {
+  PLMainAPI.menuService.disableAll();
+  document.addEventListener("keydown", onKeydown);
+  document.addEventListener("keyup", onKeyup);
+};
+
+const onBlur = () => {
+  PLMainAPI.menuService.enableAll();
+  document.removeEventListener("keydown", onKeydown);
+  document.removeEventListener("keyup", onKeyup);
+};
+
+const onInput = (event) => {
+  if (event.target) {
+    event.target.value = curValue.value;
+  }
+};
+
+const onClearClicked = () => {
+  emits("event:change", "");
+};
+
+watch(
+  () => props.choosedKey,
+  (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+      curValue.value = newValue;
+    }
+  }
+);
 </script>
 
 <template>
@@ -74,74 +102,21 @@ const emits = defineEmits(["event:change"]);
     <div class="flex flex-col my-auto">
       <div class="text-xs font-semibold">{{ title }}</div>
     </div>
-    <div class="flex space-x-2">
-      <div
-        class="flex bg-neutral-200 dark:bg-neutral-700 rounded-md w-28 h-6"
-        :class="modifier1 === 'none' ? 'opacity-50' : ''"
-      >
-        <select
-          id="countries"
-          class="bg-gray-50 cursor-pointer border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          @change="
-            (e) => {
-              // @ts-ignore
-              modifier1 = e.target.value;
-              emits('event:change', `${modifier1}+${modifier2}+${key}`);
-            }
-          "
-        >
-          <option :selected="modifier1 === 'none'" value="none">none</option>
-          <option
-            :selected="modifier1 === 'CommandOrControl'"
-            value="CommandOrControl"
-          >
-            CMD / CTRL
-          </option>
-        </select>
-      </div>
-      <div
-        class="flex bg-neutral-200 dark:bg-neutral-700 rounded-md w-28 h-6"
-        :class="modifier2 === 'none' ? 'opacity-50' : ''"
-      >
-        <select
-          id="countries"
-          class="bg-gray-50 cursor-pointer border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          @change="
-            (e) => {
-              // @ts-ignore
-              modifier2 = e.target.value;
-              emits('event:change', `${modifier1}+${modifier2}+${key}`);
-            }
-          "
-        >
-          <option :selected="modifier2 === 'none'" value="none">none</option>
-          <option :selected="modifier2 === 'Shift'" value="Shift">Shift</option>
-        </select>
-      </div>
-      <div
-        class="flex bg-neutral-200 dark:bg-neutral-700 rounded-md w-28 h-6"
-        :class="key === 'none' ? 'opacity-50' : ''"
-      >
-        <select
-          id="countries"
-          class="bg-gray-50 cursor-pointer border text-xxs border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          @change="
-            (e) => {
-              // @ts-ignore
-              key = e.target.value;
-              emits('event:change', `${modifier1}+${modifier2}+${key}`);
-            }
-          "
-        >
-          <option
-            :value="v"
-            :selected="key === k"
-            v-for="[k, v] of Object.entries(baseKeys)"
-          >
-            {{ k }}
-          </option>
-        </select>
-      </div>
+    <div class="flex space-x-2 relative">
+      <input
+        :placeholder="$t('preference.hotkeysInputTip')"
+        :spellcheck="false"
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow min-w-64 peer text-center font-mono focus:bg-neutral-300 focus:dark:bg-neutral-600"
+        :value="curValue"
+        @input="onInput"
+        @focus="onFocus"
+        @blur="onBlur"
+      />
+      <BIconX
+        id="search-clear-btn"
+        class="text-neutral-400 dark:text-neutral-500 hover:text-neutral-800 hover:dark:text-neutral-300 cursor-pointer opacity-0 peer-focus:opacity-100 hover:opacity-100 group-hover:opacity-100 transition ease-in-out duration-75 absolute right-2 top-1/2 -translate-y-1/2"
+        @click="onClearClicked"
+      />
     </div>
   </div>
 </template>

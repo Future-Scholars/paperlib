@@ -1,4 +1,4 @@
-import { Menu, app } from "electron";
+import { Menu, app, globalShortcut } from "electron";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -24,6 +24,7 @@ export interface IMenuServiceState {
   "View-preview": number;
   "View-next": number;
   "View-previous": number;
+  "File-delete": number;
 }
 
 export const IMenuService = createDecorator("menuService");
@@ -47,11 +48,22 @@ export class MenuService extends Eventable<IMenuServiceState> {
       "View-preview": 0,
       "View-next": 0,
       "View-previous": 0,
+      "File-delete": 0,
     });
 
     this._locales = loadLocales(
       this._preferenceService.get("language") as string
     );
+
+    const deleteItem = {
+      label: this._locales.t("menu.delete"),
+      accelerator: this._preferenceService.get("shortcutDelete"),
+      click: () => {
+        if (!this._isDisabled) {
+          this.fire("File-delete");
+        }
+      },
+    };
 
     // ============================================================
     // 1. Create the app menu.
@@ -94,7 +106,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
         submenu: [
           {
             label: this._locales.t("menu.open"),
-            accelerator: this._preferenceService.get("shortcutOpen") || "Enter",
+            accelerator: this._preferenceService.get("shortcutOpen"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("File-enter");
@@ -104,9 +116,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           { type: "separator" },
           {
             label: this._locales.t("menu.copybibtext"),
-            accelerator:
-              this._preferenceService.get("shortcutCopy") ||
-              "CommandOrControl+Shift+C",
+            accelerator: this._preferenceService.get("shortcutCopy"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("File-copyBibTex");
@@ -115,9 +125,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           },
           {
             label: this._locales.t("menu.copybibtextkey"),
-            accelerator:
-              this._preferenceService.get("shortcutCopyKey") ||
-              "CommandOrControl+Shift+K",
+            accelerator: this._preferenceService.get("shortcutCopyKey"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("File-copyBibTexKey");
@@ -139,9 +147,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
         submenu: [
           {
             label: this._locales.t("menu.rescrape"),
-            accelerator:
-              this._preferenceService.get("shortcutScrape") ||
-              "CommandOrControl+R",
+            accelerator: this._preferenceService.get("shortcutScrape"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("Edit-rescrape");
@@ -150,9 +156,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           },
           {
             label: this._locales.t("menu.edit"),
-            accelerator:
-              this._preferenceService.get("shortcutEdit") ||
-              "CommandOrControl+E",
+            accelerator: this._preferenceService.get("shortcutEdit"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("Edit-edit");
@@ -161,9 +165,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           },
           {
             label: this._locales.t("menu.flag"),
-            accelerator:
-              this._preferenceService.get("shortcutFlag") ||
-              "CommandOrControl+F",
+            accelerator: this._preferenceService.get("shortcutFlag"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("Edit-flag");
@@ -178,12 +180,8 @@ export class MenuService extends Eventable<IMenuServiceState> {
           { role: "copy" },
           { role: "paste" },
           ...(isMac
-            ? [{ role: "delete" }, { role: "selectAll" }]
-            : [
-                { role: "delete" },
-                { type: "separator" },
-                { role: "selectAll" },
-              ]),
+            ? [deleteItem, { role: "selectAll" }]
+            : [deleteItem, { type: "separator" }, { role: "selectAll" }]),
         ],
       },
       // { role: 'viewMenu' }
@@ -192,8 +190,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
         submenu: [
           {
             label: this._locales.t("menu.preview"),
-            accelerator:
-              this._preferenceService.get("shortcutPreview") || "Space",
+            accelerator: this._preferenceService.get("shortcutPreview"),
             click: () => {
               if (!this._isDisabled) {
                 this.fire("View-preview");
@@ -267,6 +264,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
    * Enable all menu items.
    */
   enableAll() {
+    this.enableGlobalShortcuts();
     this._isDisabled = false;
   }
 
@@ -275,6 +273,11 @@ export class MenuService extends Eventable<IMenuServiceState> {
    */
   disableAll() {
     this._isDisabled = true;
+    const pluginKey = this._preferenceService.get("shortcutPlugin");
+    if (!pluginKey) {
+      return;
+    }
+    globalShortcut.unregister(pluginKey as string);
   }
 
   /**
@@ -283,5 +286,30 @@ export class MenuService extends Eventable<IMenuServiceState> {
    */
   click(key: keyof IMenuServiceState) {
     this.fire(key);
+  }
+
+  /**
+   * Enable all global shortcuts.
+   */
+  enableGlobalShortcuts() {
+    const pluginKey = this._preferenceService.get("shortcutPlugin");
+    if (!pluginKey) {
+      return;
+    }
+    if (!globalShortcut.isRegistered(pluginKey as string)) {
+      globalShortcut.register(pluginKey as string, async () => {
+        if (
+          !windowProcessManagementService.browserWindows.has(
+            "quickpasteProcess"
+          )
+        ) {
+          windowProcessManagementService.createQuickpasteRenderer();
+        }
+
+        windowProcessManagementService.browserWindows
+          .get("quickpasteProcess")
+          .show();
+      });
+    }
   }
 }

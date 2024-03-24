@@ -1,67 +1,79 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { IPreferenceStore } from "@/common/services/preference-service";
 
 import HotkeyOption from "./components/hotkey-options.vue";
 
+const i18n = useI18n();
 const prefState = preferenceService.useState();
-
-let existingShortcuts = {
-  shortcutPlugin: prefState.shortcutPlugin,
-  shortcutPreview: prefState.shortcutPreview,
-  shortcutOpen: prefState.shortcutOpen,
-  shortcutCopy: prefState.shortcutCopy,
-  shortcutCopyKey: prefState.shortcutCopyKey,
-  shortcutScrape: prefState.shortcutScrape,
-  shortcutEdit: prefState.shortcutEdit,
-  shortcutFlag: prefState.shortcutFlag,
-};
 
 const info = ref("");
 
 const onUpdate = (key: keyof IPreferenceStore, value: string) => {
-  const keyParts = value.split("+");
-  const modifier1 = keyParts[0];
-  const modifier2 = keyParts[1];
-  const keyName = keyParts[2];
-
-  if (keyName === "none") {
+  const newShortcut = value.trim();
+  if (value.trim().length === 0) {
     preferenceService.set({ [key]: "" });
-  } else if (modifier2 === "Shift" && modifier1 === "none") {
     return;
-  } else if (
-    modifier1 === "none" &&
-    modifier2 === "none" &&
-    keyName !== "Enter" &&
-    keyName !== "Space"
-  ) {
-    info.value = "Cannot use single key.";
-    PLAPI.logService.warn("Cannot use a single key.", "", true, "ShortcutUI");
-    return;
-  } else {
-    const newShortcut = [modifier1, modifier2, keyName]
-      .filter((v) => v !== "none")
-      .join("+");
+  }
 
-    // Check if the shortcut is already used by others
+  const keyParts = value.trim().split("+");
+  const keysLength = keyParts.length;
+
+  if (keysLength === 1) {
+    const keyName = keyParts[0];
     if (
-      Object.values(existingShortcuts).includes(newShortcut) &&
-      // @ts-ignore
-      newShortcut !== existingShortcuts[key]
+      keyName !== "Enter" &&
+      keyName !== "Space" &&
+      keyName !== "Delete" &&
+      keyName !== "Backspace" &&
+      !keyName.match(/F\d+/)
     ) {
-      info.value = "This shortcut is already used by another shortcut.";
-      PLAPI.logService.warn(
-        "This shortcut is already used by another shortcut.",
-        "",
-        true,
-        "ShortcutUI"
-      );
+      const warningInfo = i18n.t("preference.hotkeysInvalidSingleKeyInfo");
+      info.value = warningInfo;
+      PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
       return;
     }
-    info.value = "";
-    preferenceService.set({ [key]: newShortcut });
+  } else {
+    const modifier1 = keyParts[0];
+    if (
+      !["Control", "Command", "Alt", "Option", "Shift", "Meta"].includes(
+        modifier1
+      )
+    ) {
+      const warningInfo = i18n.t("preference.hotkeysInvalidMultipleKeysInfo");
+      info.value = warningInfo;
+      PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
+      return;
+    }
   }
+
+  let existingShortcuts = {
+    shortcutPlugin: prefState.shortcutPlugin,
+    shortcutPreview: prefState.shortcutPreview,
+    shortcutOpen: prefState.shortcutOpen,
+    shortcutCopy: prefState.shortcutCopy,
+    shortcutCopyKey: prefState.shortcutCopyKey,
+    shortcutScrape: prefState.shortcutScrape,
+    shortcutEdit: prefState.shortcutEdit,
+    shortcutFlag: prefState.shortcutFlag,
+    shortcutDelete: prefState.shortcutDelete,
+  };
+
+  // Check if the shortcut is already used by others
+  if (
+    Object.values(existingShortcuts).includes(newShortcut) &&
+    // @ts-ignore
+    newShortcut !== existingShortcuts[key]
+  ) {
+    const warningInfo = i18n.t("preference.hotkeysDuplicateKeysInfo");
+    info.value = warningInfo;
+    PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
+    return;
+  }
+  info.value = "";
+  preferenceService.set({ [key]: newShortcut });
 };
 </script>
 
@@ -77,39 +89,45 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     </div>
     <div class="flex flex-col space-y-2 mb-5">
       <HotkeyOption
-        title="Open PDF"
+        :title="$t('preference.hotkeysOpenPDFLabel')"
         :choosed-key="prefState.shortcutOpen"
         @event:change="(key) => onUpdate('shortcutOpen', key)"
       />
       <HotkeyOption
-        title="Scrape Metadata"
+        :title="$t('menu.rescrape')"
         :choosed-key="prefState.shortcutScrape"
         @event:change="(key) => onUpdate('shortcutScrape', key)"
       />
       <HotkeyOption
-        title="Edit Metadata"
+        :title="$t('preference.hotkeysEditLabel')"
         :choosed-key="prefState.shortcutEdit"
         @event:change="(key) => onUpdate('shortcutEdit', key)"
       />
       <HotkeyOption
-        title="Flag"
+        :title="$t('menu.flag')"
         :choosed-key="prefState.shortcutFlag"
         @event:change="(key) => onUpdate('shortcutFlag', key)"
       />
       <HotkeyOption
-        title="Open Quick Reference Plugin"
+        :title="$t('preference.hotkeysPluginLabel')"
         :choosed-key="prefState.shortcutPlugin"
         @event:change="(key) => onUpdate('shortcutPlugin', key)"
       />
       <HotkeyOption
-        title="Copy Bibtex to Clipboard"
+        :title="$t('menu.copybibtext')"
         :choosed-key="prefState.shortcutCopy"
         @event:change="(key) => onUpdate('shortcutCopy', key)"
       />
       <HotkeyOption
-        title="Copy Bibtex Key to Clipboard"
+        :title="$t('menu.copybibtextkey')"
         :choosed-key="prefState.shortcutCopyKey"
         @event:change="(key) => onUpdate('shortcutCopyKey', key)"
+      />
+
+      <HotkeyOption
+        :title="$t('menu.delete')"
+        :choosed-key="prefState.shortcutDelete"
+        @event:change="(key) => onUpdate('shortcutDelete', key)"
       />
     </div>
     <div class="text-xs text-red-600 dark:text-red-500 mb-5">

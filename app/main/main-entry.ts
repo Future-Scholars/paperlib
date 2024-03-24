@@ -1,4 +1,4 @@
-import { app, globalShortcut } from "electron";
+import { app } from "electron";
 import Store from "electron-store";
 import { release } from "os";
 import path from "path";
@@ -135,31 +135,7 @@ async function initialize() {
         ) {
           extensionProcessManagementService.createExtensionProcess();
         }
-
-        if (
-          !globalShortcut.isRegistered(
-            (preferenceService.get("shortcutPlugin") as string) ||
-              "CommandOrControl+Shift+I"
-          )
-        ) {
-          globalShortcut.register(
-            (preferenceService.get("shortcutPlugin") as string) ||
-              "CommandOrControl+Shift+I",
-            async () => {
-              if (
-                !windowProcessManagementService.browserWindows.has(
-                  "quickpasteProcess"
-                )
-              ) {
-                windowProcessManagementService.createQuickpasteRenderer();
-              }
-
-              windowProcessManagementService.browserWindows
-                .get("quickpasteProcess")
-                .show();
-            }
-          );
-        }
+        menuService.enableGlobalShortcuts();
       }
     }
   );
