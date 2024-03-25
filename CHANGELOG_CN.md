@@ -1,3 +1,16 @@
+## v3.0.5 25/03 2024
+
+0. 紧急修复一个 Bug。
+1. 新功能：现在你可以使用自定义重命名规则，比如：`{year}/{publication}/{title}` 在文件系统中层级地组织你的 PDF。by @geoffreychen777
+2. 新功能：添加一个上下文菜单，用于从标签/组中移除论文。by @Rccubc
+3. 新功能：点击评分星星以清除评分。by @igoogolx
+4. 增强：改进了快捷键的 UI 组件。by @igoogolx
+5. 增强：分批次抓取论文元数据。by @geoffreychen777
+6. 增强：优化了快速引用工具的体验。by @geoffreychen777
+7. 增强：支持自定义根证书。请查看我们的网站。by @geoffreychen777
+8. 修复：修复了侧边栏中的拖动 Bug。by @Rccubc
+9. 修复：修复了仅于 Linux 的路径 Bug。by @geoffreychen777
+
 ## v3.0.4 24/03 2024
 
 1. 新功能：现在你可以使用自定义重命名规则，比如：`{year}/{publication}/{title}` 在文件系统中层级地组织你的 PDF。by @geoffreychen777

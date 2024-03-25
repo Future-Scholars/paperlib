@@ -31,8 +31,9 @@ class ExtensionPreferenceStore<
           const curValue = this._store.get(key);
 
           curValue.options = value.options;
-          if (curValue.options[curValue.value]) {
-            curValue.value = curValue.options[0];
+          if (!curValue.options[curValue.value]) {
+            const firstKey = Object.keys(curValue.options)[0];
+            curValue.value = firstKey;
           }
           this._store.set(key, curValue);
         }
