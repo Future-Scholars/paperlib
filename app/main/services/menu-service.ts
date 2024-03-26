@@ -264,7 +264,6 @@ export class MenuService extends Eventable<IMenuServiceState> {
    * Enable all menu items.
    */
   enableAll() {
-    this.enableGlobalShortcuts();
     this._isDisabled = false;
   }
 
@@ -273,11 +272,6 @@ export class MenuService extends Eventable<IMenuServiceState> {
    */
   disableAll() {
     this._isDisabled = true;
-    const pluginKey = this._preferenceService.get("shortcutPlugin");
-    if (!pluginKey) {
-      return;
-    }
-    globalShortcut.unregister(pluginKey as string);
   }
 
   /**
@@ -286,6 +280,17 @@ export class MenuService extends Eventable<IMenuServiceState> {
    */
   click(key: keyof IMenuServiceState) {
     this.fire(key);
+  }
+
+  /**
+   * Disable all global shortcuts.
+   */
+  disableGlobalShortcuts() {
+    const pluginKey = this._preferenceService.get("shortcutPlugin");
+    if (!pluginKey) {
+      return;
+    }
+    globalShortcut.unregister(pluginKey as string);
   }
 
   /**
