@@ -1,3 +1,7 @@
+## v3.0.6 Mar 25 2024
+
+1. Fix the shortcut bug of the quick reference tool.
+
 ## v3.0.5 Mar 25 2024
 
 0. Fix some bugs.
