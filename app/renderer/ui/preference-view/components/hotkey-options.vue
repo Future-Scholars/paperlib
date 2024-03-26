@@ -67,12 +67,14 @@ const onKeyup = () => {
 
 const onFocus = () => {
   PLMainAPI.menuService.disableAll();
+  PLMainAPI.menuService.disableGlobalShortcuts();
   document.addEventListener("keydown", onKeydown);
   document.addEventListener("keyup", onKeyup);
 };
 
 const onBlur = () => {
   PLMainAPI.menuService.enableAll();
+  PLMainAPI.menuService.enableGlobalShortcuts();
   document.removeEventListener("keydown", onKeydown);
   document.removeEventListener("keyup", onKeyup);
 };
