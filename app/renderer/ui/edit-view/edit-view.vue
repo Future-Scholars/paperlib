@@ -83,12 +83,7 @@ disposable(
 );
 
 onMounted(() => {
-  PLMainAPI.menuService.disableAll();
   editingPaperEntityDraft.value.initialize(uiState.selectedPaperEntities[0]);
-});
-
-onUnmounted(() => {
-  PLMainAPI.menuService.enableAll();
 });
 </script>
 

@@ -41,12 +41,7 @@ disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 
 const darkMode = ref(false);
 onMounted(async () => {
-  PLMainAPI.menuService.disableAll();
   darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
-});
-
-onUnmounted(() => {
-  PLMainAPI.menuService.enableAll();
 });
 </script>
 

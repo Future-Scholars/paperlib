@@ -140,8 +140,6 @@ const onKeydown = (payload: KeyboardEvent) => {
 };
 
 const onFocus = async (payload: Event) => {
-  await PLMainAPI.menuService.disableAll();
-
   updateViewLevelDisposeHandler = shortcutService.updateViewLevel(
     shortcutService.viewLevel.LEVEL3
   );
@@ -225,8 +223,6 @@ const onBlur = async (payload: Event) => {
   backDisposeHandler?.();
   isFocused.value = false;
   isSelectingCommand.value = false;
-
-  await PLMainAPI.menuService.enableAll();
 };
 
 const isCommandPanelShown = computed(() => {

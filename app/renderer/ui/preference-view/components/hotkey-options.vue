@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { BIconX } from "bootstrap-icons-vue";
+import { disposable } from "@/base/dispose.ts";
 
 const PRIMARY_KEYS = ["Control", "Command", "Meta"];
 const SECONDARY_KEYS = ["Option", "Alt", "Shift"];
@@ -33,6 +34,8 @@ const getRecordingValue = () => {
 };
 
 const onKeydown = (event: KeyboardEvent) => {
+  event.preventDefault();
+  event.stopPropagation();
   let key = event.key.trim();
   if (event.code === "Space") {
     key = event.code.trim();
@@ -55,25 +58,28 @@ const onKeydown = (event: KeyboardEvent) => {
     });
     curValue.value = getRecordingValue();
   }
+
+  return false;
 };
 
-const onKeyup = () => {
+const onKeyup = (event: KeyboardEvent) => {
   if (recordKeys.value.length >= 1 && recordKeys.value.length <= 3) {
     emits("event:change", getRecordingValue());
   }
+  event.preventDefault();
+  event.stopPropagation();
   curValue.value = props.choosedKey;
   recordKeys.value = [];
+  return false;
 };
 
 const onFocus = () => {
-  PLMainAPI.menuService.disableAll();
   PLMainAPI.menuService.disableGlobalShortcuts();
   document.addEventListener("keydown", onKeydown);
   document.addEventListener("keyup", onKeyup);
 };
 
 const onBlur = () => {
-  PLMainAPI.menuService.enableAll();
   PLMainAPI.menuService.enableGlobalShortcuts();
   document.removeEventListener("keydown", onKeydown);
   document.removeEventListener("keyup", onKeyup);

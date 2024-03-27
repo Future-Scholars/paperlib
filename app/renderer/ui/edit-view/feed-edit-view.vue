@@ -28,12 +28,7 @@ disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL2));
 disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 
 onMounted(() => {
-  PLMainAPI.menuService.disableAll();
   editingFeedDraft.value.initialize(new Feed());
-});
-
-onUnmounted(() => {
-  PLMainAPI.menuService.enableAll();
 });
 </script>
 

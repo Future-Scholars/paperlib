@@ -52,13 +52,17 @@ const onEditSubmit = (e: Event) => {
   }
 };
 
+let updateViewLevelDisposeHandler: () => void;
+
 const onFocused = () => {
-  PLMainAPI.menuService.disableAll();
+  updateViewLevelDisposeHandler = shortcutService.updateViewLevel(
+    shortcutService.viewLevel.LEVEL2
+  );
 };
 
 const onBlured = () => {
-  PLMainAPI.menuService.enableAll();
   emits("event:blur-name-editing");
+  updateViewLevelDisposeHandler?.();
 };
 </script>
 
