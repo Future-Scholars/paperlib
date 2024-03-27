@@ -78,6 +78,7 @@ const onClearClicked = (payload: Event) => {
   onSearchTextChanged();
 };
 
+let updateViewLevelDisposeHandler: () => void;
 let arrowDownDisposeHandler: () => void;
 let arrowUpDisposeHandler: () => void;
 let enterDisposeHandler: () => void;
@@ -140,6 +141,10 @@ const onKeydown = (payload: KeyboardEvent) => {
 
 const onFocus = async (payload: Event) => {
   await PLMainAPI.menuService.disableAll();
+
+  updateViewLevelDisposeHandler = shortcutService.updateViewLevel(
+    shortcutService.viewLevel.LEVEL3
+  );
 
   arrowDownDisposeHandler = shortcutService.registerInInputField(
     "ArrowDown",
@@ -212,6 +217,7 @@ const onBlur = async (payload: Event) => {
     return;
   }
 
+  updateViewLevelDisposeHandler?.();
   arrowDownDisposeHandler?.();
   arrowUpDisposeHandler?.();
   enterDisposeHandler?.();
@@ -226,6 +232,8 @@ const onBlur = async (payload: Event) => {
 const isCommandPanelShown = computed(() => {
   return isFocused.value && isCommand.value && commands.value.length > 0;
 });
+
+disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL2));
 
 disposable(
   shortcutService.register("Backslash", () => {

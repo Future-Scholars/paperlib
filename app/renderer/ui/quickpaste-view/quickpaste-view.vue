@@ -197,6 +197,8 @@ const checkLinkedFolder = async () => {
   }
 };
 
+disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL2));
+
 disposable(
   shortcutService.registerInInputField("ArrowDown", () => {
     selectedIndex.value = Math.min(

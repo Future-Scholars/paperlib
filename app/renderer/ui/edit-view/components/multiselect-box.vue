@@ -106,6 +106,10 @@ const registerShortcut = () => {
   onInput();
 
   disposeCallbacks.push(
+    shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL3)
+  );
+
+  disposeCallbacks.push(
     shortcutService.registerInInputField("Enter", () => {
       if (selectedIndex.value >= 0) {
         inputValue.value = filteredOptions.value[selectedIndex.value];

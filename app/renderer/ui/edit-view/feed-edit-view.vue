@@ -23,6 +23,8 @@ const onSaveClicked = async () => {
   onCloseClicked();
 };
 
+disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL2));
+
 disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 
 onMounted(() => {

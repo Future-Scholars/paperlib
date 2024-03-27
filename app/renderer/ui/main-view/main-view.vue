@@ -453,6 +453,8 @@ disposable(
   })
 );
 
+disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL1));
+
 disposable(
   shortcutService.register(
     "Space",
