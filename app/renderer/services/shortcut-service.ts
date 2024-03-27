@@ -11,17 +11,6 @@ enum ShortcutViewLevel {
 }
 
 export class ShortcutService {
-  private readonly _localShortcuts: {
-    [code: string]: {
-      [id: string]: {
-        handler: (...args: any[]) => void;
-        preventDefault: boolean;
-        stopPropagation: boolean;
-        viewLevel: ShortcutViewLevel;
-      };
-    };
-  } = {};
-
   readonly viewLevel = ShortcutViewLevel;
 
   private curViewLevel = ShortcutViewLevel.LEVEL1;
@@ -54,17 +43,11 @@ export class ShortcutService {
       }
       shortcut += e.code;
 
-      let activeShortcuts = { ...this._registeredShortcuts };
-
-      if (this.curViewLevel === this.viewLevel.LEVEL1) {
-        activeShortcuts = { ...this._localShortcuts, ...activeShortcuts };
-      }
-
-      if (activeShortcuts[shortcut]) {
+      if (this._registeredShortcuts[shortcut]) {
         const handlerId = (
-          Object.keys(activeShortcuts[shortcut]).length - 1
+          Object.keys(this._registeredShortcuts[shortcut]).length - 1
         ).toString();
-        const eventAction = activeShortcuts[shortcut][handlerId];
+        const eventAction = this._registeredShortcuts[shortcut][handlerId];
         if (!eventAction || eventAction.viewLevel !== this.curViewLevel) {
           return;
         }
@@ -77,43 +60,6 @@ export class ShortcutService {
         }
       }
     });
-  }
-
-  /**
-   * Register a shortcut.
-   * @param code - Shortcut code.
-   * @param handler - Shortcut handler.
-   * @param preventDefault - Whether to prevent default behavior.
-   * @param stopPropagation - Whether to stop propagation.
-   * @returns Unregister function. */
-  registerLocalShortcuts(
-    code: string,
-    handler: (...args: any[]) => void,
-    preventDefault: boolean = true,
-    stopPropagation: boolean = true
-  ) {
-    if (!this._localShortcuts[code]) {
-      this._localShortcuts[code] = {};
-    }
-
-    const id = Object.keys(this._localShortcuts[code]).length.toString();
-    this._localShortcuts[code][id] = {
-      handler,
-      preventDefault,
-      stopPropagation,
-      viewLevel: this.viewLevel.LEVEL1,
-    };
-
-    // Auto dispose when vue component is destroyed
-    if (getCurrentScope()) {
-      onScopeDispose(() => {
-        delete this._localShortcuts[code][id];
-      });
-    }
-
-    return () => {
-      delete this._localShortcuts[code][id];
-    };
   }
 
   /**
