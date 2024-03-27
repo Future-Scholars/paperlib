@@ -229,7 +229,7 @@ const isCommandPanelShown = computed(() => {
   return isFocused.value && isCommand.value && commands.value.length > 0;
 });
 
-disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL2));
+disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL1));
 
 disposable(
   shortcutService.register("Backslash", () => {
