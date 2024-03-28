@@ -71,7 +71,7 @@ const constructFilter = () => {
   editingPaperSmartFilterDraft.value.filter = filter;
 };
 
-disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL2));
+disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.OVERLAY));
 
 disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 

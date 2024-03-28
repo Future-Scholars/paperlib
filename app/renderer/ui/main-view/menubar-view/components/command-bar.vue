@@ -141,7 +141,7 @@ const onKeydown = (payload: KeyboardEvent) => {
 
 const onFocus = async (payload: Event) => {
   updateViewLevelDisposeHandler = shortcutService.updateViewLevel(
-    shortcutService.viewLevel.LEVEL3
+    shortcutService.viewLevel.INPUT
   );
 
   arrowDownDisposeHandler = shortcutService.registerInInputField(
@@ -229,7 +229,7 @@ const isCommandPanelShown = computed(() => {
   return isFocused.value && isCommand.value && commands.value.length > 0;
 });
 
-disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL1));
+disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.MAIN));
 
 disposable(
   shortcutService.register("Backslash", () => {

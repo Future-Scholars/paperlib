@@ -106,7 +106,7 @@ const registerShortcut = () => {
   onInput();
 
   disposeCallbacks.push(
-    shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL3)
+    shortcutService.updateViewLevel(shortcutService.viewLevel.INPUT)
   );
 
   disposeCallbacks.push(

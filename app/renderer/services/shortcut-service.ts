@@ -5,16 +5,16 @@ import { formatShortcut } from "@/common/utils.ts";
 
 export const IShortcitService = createDecorator("shortcutService");
 
-enum ShortcutViewLevel {
-  LEVEL1 = 1,
-  LEVEL2 = 2,
-  LEVEL3 = 3,
+enum ShortcutViewScope {
+  MAIN = "main",
+  OVERLAY = "overlay",
+  INPUT = "input",
 }
 
 export class ShortcutService {
-  readonly viewLevel = ShortcutViewLevel;
+  readonly viewLevel = ShortcutViewScope;
 
-  private curViewLevel = ShortcutViewLevel.LEVEL1;
+  private curViewScope = ShortcutViewScope.MAIN;
 
   private readonly _registeredShortcuts: {
     [code: string]: {
@@ -22,7 +22,7 @@ export class ShortcutService {
         handler: (...args: any[]) => void;
         preventDefault: boolean;
         stopPropagation: boolean;
-        viewLevel: ShortcutViewLevel;
+        viewScope: ShortcutViewScope;
       };
     };
   } = {};
@@ -36,7 +36,7 @@ export class ShortcutService {
           Object.keys(this._registeredShortcuts[shortcut]).length - 1
         ).toString();
         const eventAction = this._registeredShortcuts[shortcut][handlerId];
-        if (!eventAction || eventAction.viewLevel !== this.curViewLevel) {
+        if (!eventAction || eventAction.viewScope !== this.curViewScope) {
           return;
         }
         if (eventAction.preventDefault) {
@@ -67,7 +67,7 @@ export class ShortcutService {
     if (code.trim().length === 0) {
       return;
     }
-    console.log("register shortcut, ", code, this.curViewLevel);
+    console.log("register shortcut, ", code, this.curViewScope);
     if (!this._registeredShortcuts[code]) {
       this._registeredShortcuts[code] = {};
     }
@@ -77,7 +77,7 @@ export class ShortcutService {
       handler,
       preventDefault,
       stopPropagation,
-      viewLevel: this.curViewLevel,
+      viewScope: this.curViewScope,
     };
 
     // Auto dispose when vue component is destroyed
@@ -97,14 +97,14 @@ export class ShortcutService {
    * @returns Unregister function. */
   registerInInputField = this.register;
 
-  updateViewLevel(level: ShortcutViewLevel) {
-    let oldLevel = this.curViewLevel;
+  updateViewLevel(level: ShortcutViewScope) {
+    let oldLevel = this.curViewScope;
 
-    this.curViewLevel = level;
-    console.log("set level", this.curViewLevel);
+    this.curViewScope = level;
+    console.log("set level", this.curViewScope);
 
     return () => {
-      this.curViewLevel = oldLevel;
+      this.curViewScope = oldLevel;
       console.log("restore level", oldLevel);
     };
   }

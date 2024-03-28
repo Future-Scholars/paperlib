@@ -56,7 +56,7 @@ let updateViewLevelDisposeHandler: () => void;
 
 const onFocused = () => {
   updateViewLevelDisposeHandler = shortcutService.updateViewLevel(
-    shortcutService.viewLevel.LEVEL2
+    shortcutService.viewLevel.OVERLAY
   );
 };
 
