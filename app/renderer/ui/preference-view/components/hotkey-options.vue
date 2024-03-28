@@ -2,9 +2,7 @@
 import { ref, watch } from "vue";
 import { BIconX } from "bootstrap-icons-vue";
 import { disposable } from "@/base/dispose.ts";
-
-const PRIMARY_KEYS = ["Control", "Command", "Meta"];
-const SECONDARY_KEYS = ["Option", "Alt", "Shift"];
+import { formatShortcut } from "@/common/utils.ts";
 
 const props = defineProps({
   title: {
@@ -36,29 +34,8 @@ const getRecordingValue = () => {
 const onKeydown = (event: KeyboardEvent) => {
   event.preventDefault();
   event.stopPropagation();
-  let key = event.key.trim();
-  if (event.code === "Space") {
-    key = event.code.trim();
-  }
-  if (!recordKeys.value.includes(key)) {
-    recordKeys.value = [...recordKeys.value, key].sort((a, b) => {
-      if (PRIMARY_KEYS.includes(a)) {
-        return -1;
-      }
-      if (PRIMARY_KEYS.includes(b)) {
-        return 1;
-      }
-      if (SECONDARY_KEYS.includes(a)) {
-        if (PRIMARY_KEYS.includes(b)) {
-          return 1;
-        }
-        return -1;
-      }
-      return 0;
-    });
-    curValue.value = getRecordingValue();
-  }
-
+  recordKeys.value = formatShortcut(event);
+  curValue.value = getRecordingValue();
   return false;
 };
 

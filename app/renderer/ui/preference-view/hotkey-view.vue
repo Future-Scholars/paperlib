@@ -9,6 +9,9 @@ import HotkeyOption from "./components/hotkey-options.vue";
 const i18n = useI18n();
 const prefState = preferenceService.useState();
 
+const PRIMARY_KEYS = ["Control", "Command"];
+const SECONDARY_KEYS = ["Alt", "Shift"];
+
 const info = ref("");
 
 const onUpdate = (key: keyof IPreferenceStore, value: string) => {
@@ -35,20 +38,16 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
       PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
       return;
     }
-  } else {
+  } else if (keysLength === 2) {
     const modifier1 = keyParts[0];
-    if (
-      !["Control", "Command", "Alt", "Option", "Shift", "Meta"].includes(
-        modifier1
-      )
-    ) {
+    const keyCode = keyParts[1];
+    if (!PRIMARY_KEYS.includes(modifier1) || SECONDARY_KEYS.includes(keyCode)) {
       const warningInfo = i18n.t("preference.hotkeysInvalidMultipleKeysInfo");
       info.value = warningInfo;
       PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
       return;
     }
   }
-
   let existingShortcuts = {
     shortcutPlugin: prefState.shortcutPlugin,
     shortcutPreview: prefState.shortcutPreview,

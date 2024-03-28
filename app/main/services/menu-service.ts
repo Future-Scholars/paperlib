@@ -57,11 +57,8 @@ export class MenuService extends Eventable<IMenuServiceState> {
 
     const deleteItem = {
       label: this._locales.t("menu.delete"),
-      accelerator: this._preferenceService.get("shortcutDelete"),
       click: () => {
-        if (!this._isDisabled) {
-          this.fire("File-delete");
-        }
+        this.fire("File-delete");
       },
     };
 
@@ -76,11 +73,8 @@ export class MenuService extends Eventable<IMenuServiceState> {
                 { role: "about" },
                 {
                   label: this._locales.t("menu.preference"),
-                  accelerator: "Cmd+,",
                   click: () => {
-                    if (!this._isDisabled) {
-                      this.fire("preference");
-                    }
+                    this.fire("preference");
                   },
                 },
                 {
@@ -106,35 +100,25 @@ export class MenuService extends Eventable<IMenuServiceState> {
         submenu: [
           {
             label: this._locales.t("menu.open"),
-            accelerator: this._preferenceService.get("shortcutOpen"),
             click: () => {
-              if (!this._isDisabled) {
-                this.fire("File-enter");
-              }
+              this.fire("File-enter");
             },
           },
           { type: "separator" },
           {
             label: this._locales.t("menu.copybibtext"),
-            accelerator: this._preferenceService.get("shortcutCopy"),
             click: () => {
-              if (!this._isDisabled) {
-                this.fire("File-copyBibTex");
-              }
+              this.fire("File-copyBibTex");
             },
           },
           {
             label: this._locales.t("menu.copybibtextkey"),
-            accelerator: this._preferenceService.get("shortcutCopyKey"),
             click: () => {
-              if (!this._isDisabled) {
-                this.fire("File-copyBibTexKey");
-              }
+              this.fire("File-copyBibTexKey");
             },
           },
           {
             label: this._locales.t("menu.close"),
-            accelerator: "CommandOrControl+W",
             click: () => {
               windowProcessManagementService.hide(Process.renderer, true);
             },
@@ -147,29 +131,20 @@ export class MenuService extends Eventable<IMenuServiceState> {
         submenu: [
           {
             label: this._locales.t("menu.rescrape"),
-            accelerator: this._preferenceService.get("shortcutScrape"),
             click: () => {
-              if (!this._isDisabled) {
-                this.fire("Edit-rescrape");
-              }
+              this.fire("Edit-rescrape");
             },
           },
           {
             label: this._locales.t("menu.edit"),
-            accelerator: this._preferenceService.get("shortcutEdit"),
             click: () => {
-              if (!this._isDisabled) {
-                this.fire("Edit-edit");
-              }
+              this.fire("Edit-edit");
             },
           },
           {
             label: this._locales.t("menu.flag"),
-            accelerator: this._preferenceService.get("shortcutFlag"),
             click: () => {
-              if (!this._isDisabled) {
-                this.fire("Edit-flag");
-              }
+              this.fire("Edit-flag");
             },
           },
           { type: "separator" },
@@ -190,29 +165,20 @@ export class MenuService extends Eventable<IMenuServiceState> {
         submenu: [
           {
             label: this._locales.t("menu.preview"),
-            accelerator: this._preferenceService.get("shortcutPreview"),
             click: () => {
-              if (!this._isDisabled) {
-                this.fire("View-preview");
-              }
+              this.fire("View-preview");
             },
           },
           {
             label: "Next",
-            accelerator: "Down",
             click: () => {
-              if (!this._isDisabled) {
-                this.fire("View-next");
-              }
+              this.fire("View-next");
             },
           },
           {
             label: "Previous",
-            accelerator: "Up",
             click: () => {
-              if (!this._isDisabled) {
-                this.fire("View-previous");
-              }
+              this.fire("View-previous");
             },
           },
           { type: "separator" },

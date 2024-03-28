@@ -1,6 +1,7 @@
 import { getCurrentScope, onScopeDispose } from "vue";
 
 import { createDecorator } from "@/base/injection/injection";
+import { formatShortcut } from "@/common/utils.ts";
 
 export const IShortcitService = createDecorator("shortcutService");
 
@@ -28,22 +29,9 @@ export class ShortcutService {
 
   constructor() {
     window.addEventListener("keydown", (e) => {
-      let shortcut = "";
-
-      if (e.ctrlKey || e.metaKey) {
-        shortcut += "ctrlmeta+";
-      } else if (e.ctrlKey) {
-        shortcut += "ctrl+";
-      }
-      if (e.altKey) {
-        shortcut += "alt+";
-      }
-      if (e.shiftKey) {
-        shortcut += "shift+";
-      }
-      shortcut += e.code;
-
+      let shortcut = formatShortcut(e).join("+");
       if (this._registeredShortcuts[shortcut]) {
+        console.log(shortcut);
         const handlerId = (
           Object.keys(this._registeredShortcuts[shortcut]).length - 1
         ).toString();
@@ -76,6 +64,9 @@ export class ShortcutService {
     preventDefault: boolean = true,
     stopPropagation: boolean = true
   ) {
+    if (code.trim().length === 0) {
+      return;
+    }
     console.log("register shortcut, ", code, this.curViewLevel);
     if (!this._registeredShortcuts[code]) {
       this._registeredShortcuts[code] = {};

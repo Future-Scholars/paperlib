@@ -17,6 +17,7 @@ import PaperDataView from "./data-view/paper-data-view.vue";
 import FeedDetailView from "./detail-view/feed-detail-view.vue";
 import PaperDetailView from "./detail-view/paper-detail-view.vue";
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
+import { Process } from "@/base/process-id.ts";
 
 // ================================
 // State
@@ -457,9 +458,130 @@ disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.LEVEL1));
 
 disposable(
   shortcutService.register(
-    "Space",
+    preferenceService.get("shortcutOpen") as string,
+    () => {
+      PLMainAPI.menuService.click("File-enter");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    preferenceService.get("shortcutDelete") as string,
+    () => {
+      PLMainAPI.menuService.click("File-delete");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    preferenceService.get("shortcutCopy") as string,
+    () => {
+      PLMainAPI.menuService.click("File-copyBibTex");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    preferenceService.get("shortcutCopyKey") as string,
+    () => {
+      PLMainAPI.menuService.click("File-copyBibTexKey");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    preferenceService.get("shortcutScrape") as string,
+    () => {
+      PLMainAPI.menuService.click("Edit-rescrape");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    preferenceService.get("shortcutEdit") as string,
+    () => {
+      PLMainAPI.menuService.click("Edit-edit");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    preferenceService.get("shortcutFlag") as string,
+    () => {
+      PLMainAPI.menuService.click("Edit-flag");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    preferenceService.get("shortcutPreview") as string,
     () => {
       PLMainAPI.menuService.click("View-preview");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    "Cmd+,",
+    () => {
+      PLMainAPI.menuService.click("preference");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    "CommandOrControl+W",
+    () => {
+      PLMainAPI.windowProcessManagementService.hide(Process.renderer, true);
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    "Down",
+    () => {
+      PLMainAPI.menuService.click("View-next");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    "Up",
+    () => {
+      PLMainAPI.menuService.click("View-previous");
     },
     true,
     true
