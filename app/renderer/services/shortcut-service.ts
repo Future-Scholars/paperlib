@@ -30,8 +30,8 @@ export class ShortcutService {
   constructor() {
     window.addEventListener("keydown", (e) => {
       let shortcut = formatShortcut(e).join("+");
+      console.log(shortcut);
       if (this._registeredShortcuts[shortcut]) {
-        console.log(shortcut);
         const handlerId = (
           Object.keys(this._registeredShortcuts[shortcut]).length - 1
         ).toString();
@@ -65,7 +65,7 @@ export class ShortcutService {
     stopPropagation: boolean = true
   ) {
     if (code.trim().length === 0) {
-      return;
+      return () => {};
     }
     console.log("register shortcut, ", code, this.curViewScope);
     if (!this._registeredShortcuts[code]) {

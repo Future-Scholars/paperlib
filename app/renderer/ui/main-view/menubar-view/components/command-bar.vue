@@ -211,16 +211,17 @@ const onFocus = async (payload: Event) => {
 };
 
 const onBlur = async (payload: Event) => {
-  if (isMouseOver.value) {
-    return;
-  }
-
   updateViewLevelDisposeHandler?.();
   arrowDownDisposeHandler?.();
   arrowUpDisposeHandler?.();
   enterDisposeHandler?.();
   escapeDisposeHandler?.();
   backDisposeHandler?.();
+
+  if (isMouseOver.value) {
+    return;
+  }
+
   isFocused.value = false;
   isSelectingCommand.value = false;
 };
@@ -232,7 +233,7 @@ const isCommandPanelShown = computed(() => {
 disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.MAIN));
 
 disposable(
-  shortcutService.register("Backslash", () => {
+  shortcutService.register("\\", () => {
     commandText.value = `\\`;
     commandInput.value?.focus();
   })
