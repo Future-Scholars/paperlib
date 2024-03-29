@@ -52,17 +52,8 @@ const onEditSubmit = (e: Event) => {
   }
 };
 
-let updateViewLevelDisposeHandler: () => void;
-
-const onFocused = () => {
-  updateViewLevelDisposeHandler = shortcutService.updateViewLevel(
-    shortcutService.viewLevel.INPUT
-  );
-};
-
 const onBlured = () => {
   emits("event:blur-name-editing");
-  updateViewLevelDisposeHandler?.();
 };
 </script>
 
@@ -94,7 +85,6 @@ const onBlured = () => {
       autofocus
       :value="selfName"
       v-else
-      @focus="onFocused"
       @blur="onBlured"
       @keydown.enter="onEditSubmit"
       @click.stop

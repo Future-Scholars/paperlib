@@ -78,7 +78,6 @@ const onClearClicked = (payload: Event) => {
   onSearchTextChanged();
 };
 
-let updateViewLevelDisposeHandler: () => void;
 let arrowDownDisposeHandler: () => void;
 let arrowUpDisposeHandler: () => void;
 let enterDisposeHandler: () => void;
@@ -140,10 +139,6 @@ const onKeydown = (payload: KeyboardEvent) => {
 };
 
 const onFocus = async (payload: Event) => {
-  updateViewLevelDisposeHandler = shortcutService.updateViewLevel(
-    shortcutService.viewLevel.INPUT
-  );
-
   arrowDownDisposeHandler = shortcutService.registerInInputField(
     "ArrowDown",
     () => {
@@ -156,7 +151,10 @@ const onFocus = async (payload: Event) => {
           commands.value[selectedCommandIndex.value].id
         } `;
       }
-    }
+    },
+    true,
+    true,
+    shortcutService.viewLevel.INPUT
   );
 
   arrowUpDisposeHandler = shortcutService.registerInInputField(
@@ -176,14 +174,20 @@ const onFocus = async (payload: Event) => {
           commands.value[selectedCommandIndex.value].id
         } `;
       }
-    }
+    },
+    true,
+    true,
+    shortcutService.viewLevel.INPUT
   );
 
   enterDisposeHandler = shortcutService.registerInInputField(
     "Enter",
     (e: Event) => {
       onRunCommand(e);
-    }
+    },
+    true,
+    true,
+    shortcutService.viewLevel.INPUT
   );
 
   escapeDisposeHandler = shortcutService.registerInInputField(
@@ -191,7 +195,10 @@ const onFocus = async (payload: Event) => {
     (e: Event) => {
       //@ts-ignore
       e.target?.blur();
-    }
+    },
+    true,
+    true,
+    shortcutService.viewLevel.INPUT
   );
 
   backDisposeHandler = shortcutService.registerInInputField(
@@ -204,14 +211,14 @@ const onFocus = async (payload: Event) => {
       }
     },
     false,
-    true
+    true,
+    shortcutService.viewLevel.INPUT
   );
 
   isFocused.value = true;
 };
 
 const onBlur = async (payload: Event) => {
-  updateViewLevelDisposeHandler?.();
   arrowDownDisposeHandler?.();
   arrowUpDisposeHandler?.();
   enterDisposeHandler?.();

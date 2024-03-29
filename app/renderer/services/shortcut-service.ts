@@ -35,8 +35,15 @@ export class ShortcutService {
         const handlerId = (
           Object.keys(this._registeredShortcuts[shortcut]).length - 1
         ).toString();
+        let targetViewScope = this.curViewScope;
+        if (
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement
+        ) {
+          targetViewScope = this.viewLevel.INPUT;
+        }
         const eventAction = this._registeredShortcuts[shortcut][handlerId];
-        if (!eventAction || eventAction.viewScope !== this.curViewScope) {
+        if (!eventAction || eventAction.viewScope !== targetViewScope) {
           return;
         }
         if (eventAction.preventDefault) {
@@ -56,13 +63,14 @@ export class ShortcutService {
    * @param handler - Shortcut handler.
    * @param preventDefault - Whether to prevent default behavior.
    * @param stopPropagation - Whether to stop propagation.
-   * @param viewLevel - Whether to stop propagation.
+   * @param viewScope - Whether to stop propagation.
    * @returns Unregister function. */
   register(
     code: string,
     handler: (...args: any[]) => void,
     preventDefault: boolean = true,
-    stopPropagation: boolean = true
+    stopPropagation: boolean = true,
+    viewScope: ShortcutViewScope | null = null
   ) {
     if (code.trim().length === 0) {
       return () => {};
@@ -77,7 +85,7 @@ export class ShortcutService {
       handler,
       preventDefault,
       stopPropagation,
-      viewScope: this.curViewScope,
+      viewScope: viewScope || this.curViewScope,
     };
 
     // Auto dispose when vue component is destroyed
