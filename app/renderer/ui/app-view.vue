@@ -10,9 +10,10 @@ import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 import { IPaperSmartFilterCollection } from "@/repositories/db-repository/smartfilter-repository";
 import { PaperEntity } from "@/models/paper-entity";
-
 import { Process } from "@/base/process-id";
 import { CategorizerType } from "@/models/categorizer";
+import { PaperSmartFilterType } from "@/models/smart-filter";
+
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
 import DevView from "./dev-view/dev-view.vue";
 import EditView from "./edit-view/edit-view.vue";
@@ -23,7 +24,7 @@ import PreferenceView from "./preference-view/preference-view.vue";
 import PresettingView from "./presetting-view/presetting-view.vue";
 import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 import WelcomeView from "./welcome-view/welcome-view.vue";
-import { PaperSmartFilterType } from "@/models/smart-filter";
+import OverlayNotificationView from "./overlay-notification-view/overlay-notification-view.vue";
 
 // ================================
 // State
@@ -485,6 +486,17 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <DeleteConfirmView v-if="uiState.deleteConfirmShown" />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <OverlayNotificationView v-if="uiState.overlayNoticationShown" />
     </Transition>
 
     <Transition
