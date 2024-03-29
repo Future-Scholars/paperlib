@@ -8,9 +8,8 @@ import HotkeyOption from "./components/hotkey-options.vue";
 
 const i18n = useI18n();
 const prefState = preferenceService.useState();
-
 const PRIMARY_KEYS = ["Control", "Command"];
-const SECONDARY_KEYS = ["Alt", "Shift"];
+const SECONDARY_KEYS = ["Alt", "Shift", "Command"];
 
 const info = ref("");
 

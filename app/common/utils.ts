@@ -1,10 +1,12 @@
 export const formatShortcut = (event: KeyboardEvent): string[] => {
   let shortcutKeys: string[] = [];
 
+  if (event.ctrlKey) {
+    shortcutKeys.push("Control");
+  }
+
   if (event.metaKey) {
     shortcutKeys.push("Command");
-  } else if (event.ctrlKey) {
-    shortcutKeys.push("Control");
   }
 
   if (event.altKey) {
