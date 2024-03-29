@@ -546,7 +546,7 @@ disposable(
 
 disposable(
   shortcutService.register(
-    "Cmd+,",
+    "Command+,",
     () => {
       PLMainAPI.menuService.click("preference");
     },
