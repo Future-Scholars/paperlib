@@ -557,12 +557,13 @@ disposable(
 
 disposable(
   shortcutService.register(
-    "CommandOrControl+W",
+    "Command+W",
     () => {
       PLMainAPI.windowProcessManagementService.hide(Process.renderer, true);
     },
     true,
-    true
+    true,
+    shortcutService.viewLevel.GLOBAL
   )
 );
 

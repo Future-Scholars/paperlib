@@ -78,7 +78,11 @@ const onSaveAndScrapeClicked = async () => {
 disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.OVERLAY));
 
 disposable(shortcutService.register("Escape", onCloseClicked));
-disposable(shortcutService.register("ctrlmeta+KeyS", onSaveClicked));
+if (uiState?.os === "darwin") {
+  disposable(shortcutService.register("Command+S", onSaveClicked));
+} else {
+  disposable(shortcutService.register("Control+S", onSaveClicked));
+}
 
 onMounted(() => {
   editingPaperEntityDraft.value.initialize(uiState.selectedPaperEntities[0]);

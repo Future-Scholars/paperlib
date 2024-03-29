@@ -9,6 +9,7 @@ enum ShortcutViewScope {
   MAIN = "main",
   OVERLAY = "overlay",
   INPUT = "input",
+  GLOBAL = "global",
 }
 
 export class ShortcutService {
@@ -43,8 +44,13 @@ export class ShortcutService {
           targetViewScope = this.viewLevel.INPUT;
         }
         const eventAction = this._registeredShortcuts[shortcut][handlerId];
-        if (!eventAction || eventAction.viewScope !== targetViewScope) {
+        if (!eventAction) {
           return;
+        }
+        if (eventAction.viewScope !== this.viewLevel.GLOBAL) {
+          if (eventAction.viewScope !== targetViewScope) {
+            return;
+          }
         }
         if (eventAction.preventDefault) {
           e.preventDefault();
