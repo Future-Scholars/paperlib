@@ -75,7 +75,7 @@ export class ShortcutService {
     if (code.trim().length === 0) {
       return () => {};
     }
-    console.log("register shortcut, ", code, this.curViewScope);
+    console.log("register shortcut, ", code, viewScope || this.curViewScope);
     if (!this._registeredShortcuts[code]) {
       this._registeredShortcuts[code] = {};
     }
