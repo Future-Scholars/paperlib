@@ -69,7 +69,7 @@ export class ShortcutService {
    * @param handler - Shortcut handler.
    * @param preventDefault - Whether to prevent default behavior.
    * @param stopPropagation - Whether to stop propagation.
-   * @param viewScope - Whether to stop propagation.
+   * @param viewScope - The scope of shortcuts to be registered.
    * @returns Unregister function. */
   register(
     code: string,
@@ -97,12 +97,16 @@ export class ShortcutService {
     // Auto dispose when vue component is destroyed
     if (getCurrentScope()) {
       onScopeDispose(() => {
-        delete this._registeredShortcuts[code][id];
+        if (this._registeredShortcuts[code]) {
+          delete this._registeredShortcuts[code][id];
+        }
       });
     }
 
     return () => {
-      delete this._registeredShortcuts[code][id];
+      if (this._registeredShortcuts[code]) {
+        delete this._registeredShortcuts[code][id];
+      }
     };
   }
 
@@ -110,11 +114,11 @@ export class ShortcutService {
     let oldLevel = this.curViewScope;
 
     this.curViewScope = level;
-    console.log("set level", this.curViewScope);
+    console.log("set shortcut-service scope", this.curViewScope);
 
     return () => {
       this.curViewScope = oldLevel;
-      console.log("restore level", oldLevel);
+      console.log("restore shortcut-service scope", oldLevel);
     };
   }
 }
