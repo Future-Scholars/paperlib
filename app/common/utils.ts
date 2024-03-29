@@ -1,3 +1,5 @@
+const isMac = process.platform === "darwin";
+
 export const formatShortcut = (event: KeyboardEvent): string[] => {
   let shortcutKeys: string[] = [];
 
@@ -6,7 +8,11 @@ export const formatShortcut = (event: KeyboardEvent): string[] => {
   }
 
   if (event.metaKey) {
-    shortcutKeys.push("Command");
+    if (isMac) {
+      shortcutKeys.push("Command");
+    } else {
+      shortcutKeys.push("Meta");
+    }
   }
 
   if (event.altKey) {
@@ -16,14 +22,17 @@ export const formatShortcut = (event: KeyboardEvent): string[] => {
     shortcutKeys.push("Shift");
   }
   let key = event.key.trim();
-  if (event.code === "Space") {
-    key = event.code.trim();
+  if (key !== "Meta") {
+    if (event.code === "Space") {
+      key = event.code.trim();
+    }
+    if (key.length === 1) {
+      key = key.toUpperCase();
+    }
+    if (!shortcutKeys.includes(key)) {
+      shortcutKeys.push(key);
+    }
   }
-  if (key.length === 1) {
-    key = key.toUpperCase();
-  }
-  if (!shortcutKeys.includes(key)) {
-    shortcutKeys.push(key);
-  }
+
   return shortcutKeys;
 };

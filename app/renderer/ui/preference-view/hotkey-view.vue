@@ -39,8 +39,11 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     }
   } else if (keysLength === 2) {
     const modifier1 = keyParts[0];
-    const keyCode = keyParts[1];
-    if (!PRIMARY_KEYS.includes(modifier1) || SECONDARY_KEYS.includes(keyCode)) {
+    const keyName = keyParts[1];
+    const isModifier1Valid = PRIMARY_KEYS.includes(modifier1);
+    const isKeyNameValid =
+      !SECONDARY_KEYS.includes(keyName) && keyName !== "Meta";
+    if (!isModifier1Valid || !isKeyNameValid) {
       const warningInfo = i18n.t("preference.hotkeysInvalidMultipleKeysInfo");
       info.value = warningInfo;
       PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
@@ -49,14 +52,14 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
   } else if (keysLength === 3) {
     const modifier1 = keyParts[0];
     const modifier2 = keyParts[1];
-    const keyCode = keyParts[2];
-    if (
-      !(
-        PRIMARY_KEYS.includes(modifier1) &&
-        SECONDARY_KEYS.includes(modifier2) &&
-        ![...PRIMARY_KEYS, ...SECONDARY_KEYS].includes(keyCode)
-      )
-    ) {
+    const keyName = keyParts[2];
+
+    const isModifier1Valid = PRIMARY_KEYS.includes(modifier1);
+    const isModifier2Valid = SECONDARY_KEYS.includes(modifier2);
+    const isKeyNameValid = ![...PRIMARY_KEYS, ...SECONDARY_KEYS].includes(
+      keyName
+    );
+    if (!isModifier1Valid || !isModifier2Valid || !isKeyNameValid) {
       const warningInfo = i18n.t("preference.hotkeysInvalidMultipleKeysInfo");
       info.value = warningInfo;
       PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
