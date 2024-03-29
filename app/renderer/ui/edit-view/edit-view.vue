@@ -77,10 +77,8 @@ const onSaveAndScrapeClicked = async () => {
 
 disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.OVERLAY));
 
-disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
-disposable(
-  shortcutService.registerInInputField("ctrlmeta+KeyS", onSaveClicked)
-);
+disposable(shortcutService.register("Escape", onCloseClicked));
+disposable(shortcutService.register("ctrlmeta+KeyS", onSaveClicked));
 
 onMounted(() => {
   editingPaperEntityDraft.value.initialize(uiState.selectedPaperEntities[0]);

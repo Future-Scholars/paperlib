@@ -107,7 +107,7 @@ const registerShortcut = () => {
   onInput();
 
   disposeCallbacks.push(
-    shortcutService.registerInInputField(
+    shortcutService.register(
       "Enter",
       () => {
         if (selectedIndex.value >= 0) {
@@ -123,7 +123,7 @@ const registerShortcut = () => {
     )
   );
   disposeCallbacks.push(
-    shortcutService.registerInInputField(
+    shortcutService.register(
       "ArrowUp",
       () => {
         if (selectedIndex.value > 0) {
@@ -141,7 +141,7 @@ const registerShortcut = () => {
     )
   );
   disposeCallbacks.push(
-    shortcutService.registerInInputField(
+    shortcutService.register(
       "ArrowDown",
       () => {
         if (selectedIndex.value < filteredOptions.value.length - 1) {

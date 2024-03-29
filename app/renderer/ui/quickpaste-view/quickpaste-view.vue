@@ -200,7 +200,7 @@ const checkLinkedFolder = async () => {
 disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.OVERLAY));
 
 disposable(
-  shortcutService.registerInInputField("ArrowDown", () => {
+  shortcutService.register("ArrowDown", () => {
     selectedIndex.value = Math.min(
       paperEntities.value.length - 1,
       selectedIndex.value + 1
@@ -211,7 +211,7 @@ disposable(
 );
 
 disposable(
-  shortcutService.registerInInputField("ArrowUp", () => {
+  shortcutService.register("ArrowUp", () => {
     selectedIndex.value = Math.max(0, selectedIndex.value - 1);
     // @ts-ignore
     searchInput.value.focus();
@@ -219,7 +219,7 @@ disposable(
 );
 
 disposable(
-  shortcutService.registerInInputField("ctrlmeta+Enter", async () => {
+  shortcutService.register("ctrlmeta+Enter", async () => {
     await exportSelectedCiteBodiesInFolder();
 
     // @ts-ignore
@@ -228,7 +228,7 @@ disposable(
 );
 
 disposable(
-  shortcutService.registerInInputField("Tab", () => {
+  shortcutService.register("Tab", () => {
     exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
     // @ts-ignore
     searchInput.value.focus();
@@ -236,7 +236,7 @@ disposable(
 );
 
 disposable(
-  shortcutService.registerInInputField("shift+Enter", async () => {
+  shortcutService.register("shift+Enter", async () => {
     await exportSelectedCiteKeys();
     // @ts-ignore
     searchInput.value.focus();
@@ -244,7 +244,7 @@ disposable(
 );
 
 disposable(
-  shortcutService.registerInInputField("Enter", async () => {
+  shortcutService.register("Enter", async () => {
     await exportSelectedCiteBodies();
     // @ts-ignore
     searchInput.value.focus();
@@ -252,7 +252,7 @@ disposable(
 );
 
 disposable(
-  shortcutService.registerInInputField("Escape", async () => {
+  shortcutService.register("Escape", async () => {
     searchText.value = "";
     paperEntities.value = [];
     await PLMainAPI.windowProcessManagementService.hide(

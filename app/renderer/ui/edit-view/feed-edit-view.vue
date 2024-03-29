@@ -25,7 +25,7 @@ const onSaveClicked = async () => {
 
 disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.OVERLAY));
 
-disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
+disposable(shortcutService.register("Escape", onCloseClicked));
 
 onMounted(() => {
   editingFeedDraft.value.initialize(new Feed());

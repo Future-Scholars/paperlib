@@ -100,11 +100,6 @@ export class ShortcutService {
     };
   }
 
-  /**
-   * Register a shortcut that is still working in input field.
-   * @returns Unregister function. */
-  registerInInputField = this.register;
-
   updateViewLevel(level: ShortcutViewScope) {
     let oldLevel = this.curViewScope;
 

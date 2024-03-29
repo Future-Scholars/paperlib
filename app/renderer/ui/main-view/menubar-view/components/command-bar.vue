@@ -139,7 +139,7 @@ const onKeydown = (payload: KeyboardEvent) => {
 };
 
 const onFocus = async (payload: Event) => {
-  arrowDownDisposeHandler = shortcutService.registerInInputField(
+  arrowDownDisposeHandler = shortcutService.register(
     "ArrowDown",
     () => {
       isSelectingCommand.value = true;
@@ -157,7 +157,7 @@ const onFocus = async (payload: Event) => {
     shortcutService.viewLevel.INPUT
   );
 
-  arrowUpDisposeHandler = shortcutService.registerInInputField(
+  arrowUpDisposeHandler = shortcutService.register(
     "ArrowUp",
     () => {
       isSelectingCommand.value = true;
@@ -180,7 +180,7 @@ const onFocus = async (payload: Event) => {
     shortcutService.viewLevel.INPUT
   );
 
-  enterDisposeHandler = shortcutService.registerInInputField(
+  enterDisposeHandler = shortcutService.register(
     "Enter",
     (e: Event) => {
       onRunCommand(e);
@@ -190,7 +190,7 @@ const onFocus = async (payload: Event) => {
     shortcutService.viewLevel.INPUT
   );
 
-  escapeDisposeHandler = shortcutService.registerInInputField(
+  escapeDisposeHandler = shortcutService.register(
     "Escape",
     (e: Event) => {
       //@ts-ignore
@@ -201,7 +201,7 @@ const onFocus = async (payload: Event) => {
     shortcutService.viewLevel.INPUT
   );
 
-  backDisposeHandler = shortcutService.registerInInputField(
+  backDisposeHandler = shortcutService.register(
     "Backspace",
     (e: Event) => {
       if (commandText.value === "") {
