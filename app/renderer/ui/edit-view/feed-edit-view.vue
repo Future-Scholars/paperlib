@@ -23,7 +23,9 @@ const onSaveClicked = async () => {
   onCloseClicked();
 };
 
-disposable(shortcutService.updateViewLevel(shortcutService.viewScope.OVERLAY));
+disposable(
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+);
 
 disposable(shortcutService.register("Escape", onCloseClicked));
 

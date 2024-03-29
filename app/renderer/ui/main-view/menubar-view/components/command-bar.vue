@@ -237,7 +237,9 @@ const isCommandPanelShown = computed(() => {
   return isFocused.value && isCommand.value && commands.value.length > 0;
 });
 
-disposable(shortcutService.updateViewLevel(shortcutService.viewScope.MAIN));
+disposable(
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
+);
 
 disposable(
   shortcutService.register("\\", () => {

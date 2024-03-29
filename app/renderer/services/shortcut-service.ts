@@ -15,7 +15,7 @@ enum ShortcutViewScope {
 export class ShortcutService {
   readonly viewScope = ShortcutViewScope;
 
-  private curViewScope = ShortcutViewScope.MAIN;
+  private workingViewScope = ShortcutViewScope.MAIN;
 
   private readonly _registeredShortcuts: {
     [code: string]: {
@@ -36,7 +36,7 @@ export class ShortcutService {
         const handlerId = (
           Object.keys(this._registeredShortcuts[shortcut]).length - 1
         ).toString();
-        let targetViewScope = this.curViewScope;
+        let targetViewScope = this.workingViewScope;
         if (
           e.target instanceof HTMLInputElement ||
           e.target instanceof HTMLTextAreaElement
@@ -81,7 +81,11 @@ export class ShortcutService {
     if (code.trim().length === 0) {
       return () => {};
     }
-    console.log("register shortcut, ", code, viewScope || this.curViewScope);
+    console.log(
+      "register shortcut, ",
+      code,
+      viewScope || this.workingViewScope
+    );
     if (!this._registeredShortcuts[code]) {
       this._registeredShortcuts[code] = {};
     }
@@ -91,7 +95,7 @@ export class ShortcutService {
       handler,
       preventDefault,
       stopPropagation,
-      viewScope: viewScope || this.curViewScope,
+      viewScope: viewScope || this.workingViewScope,
     };
 
     // Auto dispose when vue component is destroyed
@@ -110,15 +114,19 @@ export class ShortcutService {
     };
   }
 
-  updateViewLevel(level: ShortcutViewScope) {
-    let oldLevel = this.curViewScope;
+  /**
+   * Update working view scope.
+   * @param scope - The scope to be updated.
+   * @returns Restore function. */
+  updateWorkingViewScope(scope: ShortcutViewScope) {
+    let oldScope = this.workingViewScope;
 
-    this.curViewScope = level;
-    console.log("set shortcut-service scope", this.curViewScope);
+    this.workingViewScope = scope;
+    console.log("set shortcut-service scope", this.workingViewScope);
 
     return () => {
-      this.curViewScope = oldLevel;
-      console.log("restore shortcut-service scope", oldLevel);
+      this.workingViewScope = oldScope;
+      console.log("restore shortcut-service scope", oldScope);
     };
   }
 }
