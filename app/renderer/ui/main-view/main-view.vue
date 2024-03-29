@@ -454,7 +454,7 @@ disposable(
   })
 );
 
-disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.MAIN));
+disposable(shortcutService.updateViewLevel(shortcutService.viewScope.MAIN));
 
 disposable(
   shortcutService.register(
@@ -563,7 +563,7 @@ disposable(
     },
     true,
     true,
-    shortcutService.viewLevel.GLOBAL
+    shortcutService.viewScope.GLOBAL
   )
 );
 

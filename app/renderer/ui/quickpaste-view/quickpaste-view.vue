@@ -197,7 +197,7 @@ const checkLinkedFolder = async () => {
   }
 };
 
-disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.OVERLAY));
+disposable(shortcutService.updateViewLevel(shortcutService.viewScope.OVERLAY));
 
 disposable(
   shortcutService.register("ArrowDown", () => {

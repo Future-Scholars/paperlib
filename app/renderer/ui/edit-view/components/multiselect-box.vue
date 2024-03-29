@@ -119,7 +119,7 @@ const registerShortcut = () => {
       },
       true,
       true,
-      shortcutService.viewLevel.INPUT
+      shortcutService.viewScope.INPUT
     )
   );
   disposeCallbacks.push(
@@ -137,7 +137,7 @@ const registerShortcut = () => {
       },
       true,
       true,
-      shortcutService.viewLevel.INPUT
+      shortcutService.viewScope.INPUT
     )
   );
   disposeCallbacks.push(
@@ -155,7 +155,7 @@ const registerShortcut = () => {
       },
       true,
       true,
-      shortcutService.viewLevel.INPUT
+      shortcutService.viewScope.INPUT
     )
   );
 };

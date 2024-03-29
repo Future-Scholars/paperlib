@@ -36,7 +36,7 @@ const onCloseClicked = () => {
   uiState.preferenceViewShown = false;
 };
 
-disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.OVERLAY));
+disposable(shortcutService.updateViewLevel(shortcutService.viewScope.OVERLAY));
 disposable(shortcutService.register("Escape", onCloseClicked));
 
 const darkMode = ref(false);

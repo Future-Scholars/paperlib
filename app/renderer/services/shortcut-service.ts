@@ -13,7 +13,7 @@ enum ShortcutViewScope {
 }
 
 export class ShortcutService {
-  readonly viewLevel = ShortcutViewScope;
+  readonly viewScope = ShortcutViewScope;
 
   private curViewScope = ShortcutViewScope.MAIN;
 
@@ -41,13 +41,13 @@ export class ShortcutService {
           e.target instanceof HTMLInputElement ||
           e.target instanceof HTMLTextAreaElement
         ) {
-          targetViewScope = this.viewLevel.INPUT;
+          targetViewScope = this.viewScope.INPUT;
         }
         const eventAction = this._registeredShortcuts[shortcut][handlerId];
         if (!eventAction) {
           return;
         }
-        if (eventAction.viewScope !== this.viewLevel.GLOBAL) {
+        if (eventAction.viewScope !== this.viewScope.GLOBAL) {
           if (eventAction.viewScope !== targetViewScope) {
             return;
           }

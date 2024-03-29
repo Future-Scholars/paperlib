@@ -154,7 +154,7 @@ const onFocus = async (payload: Event) => {
     },
     true,
     true,
-    shortcutService.viewLevel.INPUT
+    shortcutService.viewScope.INPUT
   );
 
   arrowUpDisposeHandler = shortcutService.register(
@@ -177,7 +177,7 @@ const onFocus = async (payload: Event) => {
     },
     true,
     true,
-    shortcutService.viewLevel.INPUT
+    shortcutService.viewScope.INPUT
   );
 
   enterDisposeHandler = shortcutService.register(
@@ -187,7 +187,7 @@ const onFocus = async (payload: Event) => {
     },
     true,
     true,
-    shortcutService.viewLevel.INPUT
+    shortcutService.viewScope.INPUT
   );
 
   escapeDisposeHandler = shortcutService.register(
@@ -198,7 +198,7 @@ const onFocus = async (payload: Event) => {
     },
     true,
     true,
-    shortcutService.viewLevel.INPUT
+    shortcutService.viewScope.INPUT
   );
 
   backDisposeHandler = shortcutService.register(
@@ -212,7 +212,7 @@ const onFocus = async (payload: Event) => {
     },
     false,
     true,
-    shortcutService.viewLevel.INPUT
+    shortcutService.viewScope.INPUT
   );
 
   isFocused.value = true;
@@ -237,7 +237,7 @@ const isCommandPanelShown = computed(() => {
   return isFocused.value && isCommand.value && commands.value.length > 0;
 });
 
-disposable(shortcutService.updateViewLevel(shortcutService.viewLevel.MAIN));
+disposable(shortcutService.updateViewLevel(shortcutService.viewScope.MAIN));
 
 disposable(
   shortcutService.register("\\", () => {
