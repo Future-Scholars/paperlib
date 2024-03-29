@@ -87,7 +87,6 @@ export class WebDavFileBackend extends LocalFileBackend {
     this._watcher
       .on("add", async (filePath) => {
         if (this._isValidFilePath(filePath)) {
-          console.log("add", filePath);
           try {
             await this._local2serverMove(
               filePath,
@@ -106,7 +105,6 @@ export class WebDavFileBackend extends LocalFileBackend {
       })
       .on("change", async (filePath) => {
         if (this._isValidFilePath(filePath)) {
-          console.log("change", filePath);
           try {
             await this._local2serverMove(
               filePath,
@@ -125,7 +123,6 @@ export class WebDavFileBackend extends LocalFileBackend {
       })
       .on("unlink", async (filePath) => {
         if (this._isValidFilePath(filePath)) {
-          console.log("unlink", filePath);
           try {
             await this._serverRemove(
               constructFileURL(
@@ -143,7 +140,6 @@ export class WebDavFileBackend extends LocalFileBackend {
       })
       .on("addDir", async (dirPath) => {
         if (this._isValidFilePath(dirPath)) {
-          console.log("addDir", path.normalize(dirPath));
           try {
             await this._serverCreateDir(
               constructFileURL(
@@ -161,7 +157,6 @@ export class WebDavFileBackend extends LocalFileBackend {
       })
       .on("unlinkDir", async (dirPath) => {
         if (this._isValidFilePath(dirPath)) {
-          console.log("unlinkDir", dirPath);
           try {
             await this._serverRemoveDir(
               constructFileURL(
@@ -333,5 +328,26 @@ export class WebDavFileBackend extends LocalFileBackend {
     const _URL = url.replace("webdav://", "/paperlib/").replace(/\\/g, "/");
 
     await this._webdavClient?.deleteFile(_URL);
+  }
+
+  async _move(sourceURL: string, targetURL: string, outerFileOperation?: boolean): Promise<void> {
+    try {
+      return await super._move(sourceURL, targetURL, outerFileOperation)
+    } catch (error) {
+      if (!outerFileOperation) {
+        try {
+          const sourceRelativeURL = getRelativePath(sourceURL, this._appLibFolder);
+          const targetRelativeURL = getRelativePath(targetURL, this._appLibFolder);
+          await this._server2serverMove(
+            constructFileURL(sourceRelativeURL, false, true, "", "webdav://"),
+            constructFileURL(targetRelativeURL, false, true, "", "webdav://")
+          );
+        } catch (error) {
+          throw new Error("Cannot move file on webdav.");
+        }
+      } else {
+        throw error
+      }
+    }
   }
 }
