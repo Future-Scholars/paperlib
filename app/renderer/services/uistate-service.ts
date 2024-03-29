@@ -14,6 +14,7 @@ export interface IUIStateServiceState {
   paperSmartFilterEditViewShown: boolean;
   preferenceViewShown: boolean;
   deleteConfirmShown: boolean;
+  overlayNoticationShown: boolean;
   renderRequired: number;
   feedEntityAddingStatus: number;
 
@@ -70,6 +71,7 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       paperSmartFilterEditViewShown: false,
       preferenceViewShown: false,
       deleteConfirmShown: false,
+      overlayNoticationShown: false,
       renderRequired: -1,
       feedEntityAddingStatus: 0,
 

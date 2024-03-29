@@ -14,6 +14,9 @@ export interface IUISlotState {
   paperDetailsPanelSlot3: {
     [id: string]: { title: string; content: string };
   };
+  overlayNotifications: {
+    [id: string]: { title: string; content: string };
+  };
 }
 
 export class UISlotService extends Eventable<IUISlotState> {
@@ -22,6 +25,7 @@ export class UISlotService extends Eventable<IUISlotState> {
       paperDetailsPanelSlot1: {},
       paperDetailsPanelSlot2: {},
       paperDetailsPanelSlot3: {},
+      overlayNotifications: {},
     });
   }
 
