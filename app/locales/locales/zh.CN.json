@@ -209,7 +209,7 @@
     "mainviewshortauthor": "使用 et al. 替代长作者列表",
     "hotkeysInputTip": "按键以更改",
     "hotkeysInvalidSingleKeyInfo": "只有 Enter, Space, Delete 或 F1-F12 可以被用作单键",
-    "hotkeysInvalidMultipleKeysInfo": "快捷键必须 (Control 或 Command) 或 (Control 或 Command) + (Alt 或 Shift) 开始",
+    "hotkeysInvalidMultipleKeysInfo": "快捷键必须 (Control 或 Command) 或 (Control 或 Command) + (Alt 或 Shift 或 Command) 开始",
     "hotkeysDuplicateKeysInfo": "快捷键已经被占用",
     "hotkeysOpenPDFLabel": "打开 PDF",
     "hotkeysEditLabel": "编辑元数据",

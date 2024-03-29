@@ -209,7 +209,7 @@
     "mainviewshortauthor": "Use et al. for long author list.",
     "hotkeysInputTip": "Press keys to change.",
     "hotkeysInvalidSingleKeyInfo": "Only Enter, Space, Delete or F1-F12 can be used as a single key.",
-    "hotkeysInvalidMultipleKeysInfo": "Only shortcuts that start with (Ctrl or Cmd) or (Control or Command) + (Alt or Shift) are valid.",
+    "hotkeysInvalidMultipleKeysInfo": "Only shortcuts that start with (Ctrl or Cmd) or (Control or Command) + (Alt or Shift or Command) are valid.",
     "hotkeysDuplicateKeysInfo": "This shortcut is already used by another shortcut.",
     "hotkeysOpenPDFLabel": "Open PDF",
     "hotkeysEditLabel": "Edit Metadata",

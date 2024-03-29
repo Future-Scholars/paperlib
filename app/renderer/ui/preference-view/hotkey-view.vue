@@ -46,6 +46,22 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
       PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
       return;
     }
+  } else if (keysLength === 3) {
+    const modifier1 = keyParts[0];
+    const modifier2 = keyParts[1];
+    const keyCode = keyParts[2];
+    if (
+      !(
+        PRIMARY_KEYS.includes(modifier1) &&
+        SECONDARY_KEYS.includes(modifier2) &&
+        ![...PRIMARY_KEYS, ...SECONDARY_KEYS].includes(keyCode)
+      )
+    ) {
+      const warningInfo = i18n.t("preference.hotkeysInvalidMultipleKeysInfo");
+      info.value = warningInfo;
+      PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
+      return;
+    }
   }
   let existingShortcuts = {
     shortcutPlugin: prefState.shortcutPlugin,
