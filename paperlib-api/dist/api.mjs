@@ -14,7 +14,7 @@ class PLExtension {
       throw new Error("Preference must be a dict");
     }
     for (const key in preference) {
-      if (!preference[key].type || !["string", "boolean", "options", "pathpicker"].includes(
+      if (!preference[key].type || !["string", "boolean", "options", "pathpicker", "hidden"].includes(
         preference[key].type
       )) {
         throw new Error(
