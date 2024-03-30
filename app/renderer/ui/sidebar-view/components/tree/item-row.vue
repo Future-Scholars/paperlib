@@ -52,12 +52,7 @@ const onEditSubmit = (e: Event) => {
   }
 };
 
-const onFocused = () => {
-  PLMainAPI.menuService.disableAll();
-};
-
 const onBlured = () => {
-  PLMainAPI.menuService.enableAll();
   emits("event:blur-name-editing");
 };
 </script>
@@ -90,7 +85,6 @@ const onBlured = () => {
       autofocus
       :value="selfName"
       v-else
-      @focus="onFocused"
       @blur="onBlured"
       @keydown.enter="onEditSubmit"
       @click.stop

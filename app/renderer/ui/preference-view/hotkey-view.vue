@@ -8,6 +8,8 @@ import HotkeyOption from "./components/hotkey-options.vue";
 
 const i18n = useI18n();
 const prefState = preferenceService.useState();
+const PRIMARY_KEYS = ["Control", "Command"];
+const SECONDARY_KEYS = ["Alt", "Shift", "Command"];
 
 const info = ref("");
 
@@ -35,20 +37,35 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
       PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
       return;
     }
-  } else {
+  } else if (keysLength === 2) {
     const modifier1 = keyParts[0];
-    if (
-      !["Control", "Command", "Alt", "Option", "Shift", "Meta"].includes(
-        modifier1
-      )
-    ) {
+    const keyName = keyParts[1];
+    const isModifier1Valid = PRIMARY_KEYS.includes(modifier1);
+    const isKeyNameValid =
+      !SECONDARY_KEYS.includes(keyName) && keyName !== "Meta";
+    if (!isModifier1Valid || !isKeyNameValid) {
+      const warningInfo = i18n.t("preference.hotkeysInvalidMultipleKeysInfo");
+      info.value = warningInfo;
+      PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
+      return;
+    }
+  } else if (keysLength === 3) {
+    const modifier1 = keyParts[0];
+    const modifier2 = keyParts[1];
+    const keyName = keyParts[2];
+
+    const isModifier1Valid = PRIMARY_KEYS.includes(modifier1);
+    const isModifier2Valid = SECONDARY_KEYS.includes(modifier2);
+    const isKeyNameValid = ![...PRIMARY_KEYS, ...SECONDARY_KEYS].includes(
+      keyName
+    );
+    if (!isModifier1Valid || !isModifier2Valid || !isKeyNameValid) {
       const warningInfo = i18n.t("preference.hotkeysInvalidMultipleKeysInfo");
       info.value = warningInfo;
       PLAPI.logService.warn(warningInfo, "", true, "ShortcutUI");
       return;
     }
   }
-
   let existingShortcuts = {
     shortcutPlugin: prefState.shortcutPlugin,
     shortcutPreview: prefState.shortcutPreview,
@@ -83,9 +100,6 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
   >
     <div class="text-base font-semibold mb-2">
       {{ $t("preference.hotkeys") }}
-    </div>
-    <div class="text-xs underline text-neutral-600 dark:text-neutral-500 mb-5">
-      ⚠️ {{ $t("preference.pleaserestart") }}
     </div>
     <div class="flex flex-col space-y-2 mb-5">
       <HotkeyOption

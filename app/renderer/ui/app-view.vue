@@ -267,11 +267,9 @@ disposable(
       if (newValue.value === "blur") {
         uiState.mainViewFocused = false;
         databaseService.pauseSync();
-        PLMainAPI.menuService.disableAll();
       } else if (newValue.value === "focus") {
         uiState.mainViewFocused = true;
         databaseService.resumeSync();
-        PLMainAPI.menuService.enableAll();
       }
     }
   )

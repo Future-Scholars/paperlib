@@ -75,18 +75,44 @@ const onSaveAndScrapeClicked = async () => {
   paperService.scrape(savedPaperEntityDraft);
 };
 
-disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
 disposable(
-  shortcutService.registerInInputField("ctrlmeta+KeyS", onSaveClicked)
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
 );
 
-onMounted(() => {
-  PLMainAPI.menuService.disableAll();
-  editingPaperEntityDraft.value.initialize(uiState.selectedPaperEntities[0]);
-});
+disposable(
+  shortcutService.register(
+    "Escape",
+    onCloseClicked,
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
+);
+if (uiState?.os === "darwin") {
+  disposable(
+    shortcutService.register(
+      "Command+S",
+      onSaveClicked,
+      true,
+      true,
+      shortcutService.viewScope.GLOBAL
+    )
+  );
+} else {
+  disposable(
+    shortcutService.register(
+      "Control+S",
+      onSaveClicked,
+      true,
+      true,
 
-onUnmounted(() => {
-  PLMainAPI.menuService.enableAll();
+      shortcutService.viewScope.GLOBAL
+    )
+  );
+}
+
+onMounted(() => {
+  editingPaperEntityDraft.value.initialize(uiState.selectedPaperEntities[0]);
 });
 </script>
 

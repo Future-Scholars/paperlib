@@ -36,16 +36,14 @@ const onCloseClicked = () => {
   uiState.preferenceViewShown = false;
 };
 
-disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
+disposable(
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+);
+disposable(shortcutService.register("Escape", onCloseClicked));
 
 const darkMode = ref(false);
 onMounted(async () => {
-  PLMainAPI.menuService.disableAll();
   darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
-});
-
-onUnmounted(() => {
-  PLMainAPI.menuService.enableAll();
 });
 </script>
 

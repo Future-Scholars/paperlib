@@ -23,15 +23,22 @@ const onSaveClicked = async () => {
   onCloseClicked();
 };
 
-disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
+disposable(
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+);
+
+disposable(
+  shortcutService.register(
+    "Escape",
+    onCloseClicked,
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
+);
 
 onMounted(() => {
-  PLMainAPI.menuService.disableAll();
   editingFeedDraft.value.initialize(new Feed());
-});
-
-onUnmounted(() => {
-  PLMainAPI.menuService.enableAll();
 });
 </script>
 

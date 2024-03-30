@@ -139,9 +139,7 @@ const onKeydown = (payload: KeyboardEvent) => {
 };
 
 const onFocus = async (payload: Event) => {
-  await PLMainAPI.menuService.disableAll();
-
-  arrowDownDisposeHandler = shortcutService.registerInInputField(
+  arrowDownDisposeHandler = shortcutService.register(
     "ArrowDown",
     () => {
       isSelectingCommand.value = true;
@@ -153,10 +151,13 @@ const onFocus = async (payload: Event) => {
           commands.value[selectedCommandIndex.value].id
         } `;
       }
-    }
+    },
+    true,
+    true,
+    shortcutService.viewScope.INPUT
   );
 
-  arrowUpDisposeHandler = shortcutService.registerInInputField(
+  arrowUpDisposeHandler = shortcutService.register(
     "ArrowUp",
     () => {
       isSelectingCommand.value = true;
@@ -173,25 +174,37 @@ const onFocus = async (payload: Event) => {
           commands.value[selectedCommandIndex.value].id
         } `;
       }
-    }
+    },
+    true,
+    true,
+    shortcutService.viewScope.INPUT
   );
 
-  enterDisposeHandler = shortcutService.registerInInputField(
+  enterDisposeHandler = shortcutService.register(
     "Enter",
     (e: Event) => {
       onRunCommand(e);
-    }
+    },
+    true,
+    true,
+    shortcutService.viewScope.INPUT
   );
 
-  escapeDisposeHandler = shortcutService.registerInInputField(
+  escapeDisposeHandler = shortcutService.register(
     "Escape",
     (e: Event) => {
       //@ts-ignore
       e.target?.blur();
-    }
+      uiState.commandBarText = "";
+      uiState.commandBarSearchMode = "general";
+      uiState.querySentenceCommandbar = "";
+    },
+    true,
+    true,
+    shortcutService.viewScope.INPUT
   );
 
-  backDisposeHandler = shortcutService.registerInInputField(
+  backDisposeHandler = shortcutService.register(
     "Backspace",
     (e: Event) => {
       if (commandText.value === "") {
@@ -201,26 +214,26 @@ const onFocus = async (payload: Event) => {
       }
     },
     false,
-    true
+    true,
+    shortcutService.viewScope.INPUT
   );
 
   isFocused.value = true;
 };
 
 const onBlur = async (payload: Event) => {
-  if (isMouseOver.value) {
-    return;
-  }
-
   arrowDownDisposeHandler?.();
   arrowUpDisposeHandler?.();
   enterDisposeHandler?.();
   escapeDisposeHandler?.();
   backDisposeHandler?.();
+
+  if (isMouseOver.value) {
+    return;
+  }
+
   isFocused.value = false;
   isSelectingCommand.value = false;
-
-  await PLMainAPI.menuService.enableAll();
 };
 
 const isCommandPanelShown = computed(() => {
@@ -228,7 +241,11 @@ const isCommandPanelShown = computed(() => {
 });
 
 disposable(
-  shortcutService.register("Backslash", () => {
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
+);
+
+disposable(
+  shortcutService.register("\\", () => {
     commandText.value = `\\`;
     commandInput.value?.focus();
   })

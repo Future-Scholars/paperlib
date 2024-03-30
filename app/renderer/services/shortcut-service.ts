@@ -1,114 +1,68 @@
 import { getCurrentScope, onScopeDispose } from "vue";
 
 import { createDecorator } from "@/base/injection/injection";
+import { formatKeycode, formatShortcut } from "@/common/utils.ts";
 
 export const IShortcitService = createDecorator("shortcutService");
 
+enum ShortcutViewScope {
+  MAIN = "main",
+  OVERLAY = "overlay",
+  INPUT = "input",
+  //Don't use it unless you know what you are doing
+  GLOBAL = "global",
+}
+
 export class ShortcutService {
+  readonly viewScope = ShortcutViewScope;
+
+  private _workingViewScope = ShortcutViewScope.MAIN;
+
   private readonly _registeredShortcuts: {
     [code: string]: {
       [id: string]: {
         handler: (...args: any[]) => void;
         preventDefault: boolean;
         stopPropagation: boolean;
-      };
-    };
-  } = {};
-
-  private readonly _registeredShortcutsInInputField: {
-    [code: string]: {
-      [id: string]: {
-        handler: (...args: any[]) => void;
-        preventDefault: boolean;
-        stopPropagation: boolean;
+        viewScope: ShortcutViewScope;
       };
     };
   } = {};
 
   constructor() {
     window.addEventListener("keydown", (e) => {
-      let shortcut = "";
-
-      if (e.ctrlKey || e.metaKey) {
-        shortcut += "ctrlmeta+";
-      } else if (e.ctrlKey) {
-        shortcut += "ctrl+";
-      }
-      if (e.altKey) {
-        shortcut += "alt+";
-      }
-      if (e.shiftKey) {
-        shortcut += "shift+";
-      }
-      shortcut += e.code;
-
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        if (this._registeredShortcutsInInputField[shortcut]) {
-          const handlerId = (
-            Object.keys(this._registeredShortcutsInInputField[shortcut])
-              .length - 1
-          ).toString();
-
-          if (
-            this._registeredShortcutsInInputField[shortcut][handlerId]
-              ?.preventDefault
-          ) {
-            e.preventDefault();
-          }
-
-          this._registeredShortcutsInInputField[shortcut][handlerId]?.handler(
-            e
-          );
-
-          if (
-            this._registeredShortcutsInInputField[shortcut][handlerId]
-              ?.stopPropagation
-          ) {
-            e.stopPropagation();
-          }
+      let shortcut = formatShortcut(e).join("+");
+      if (this._registeredShortcuts[shortcut]) {
+        const eventActionLength = Object.keys(
+          this._registeredShortcuts[shortcut]
+        ).length;
+        let targetViewScope = this._workingViewScope;
+        if (
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement
+        ) {
+          targetViewScope = this.viewScope.INPUT;
         }
-      } else {
-        if (this._registeredShortcuts[shortcut]) {
-          const handlerId = (
-            Object.keys(this._registeredShortcuts[shortcut]).length - 1
-          ).toString();
 
-          if (this._registeredShortcuts[shortcut][handlerId]?.preventDefault) {
+        //Traverse all elements but execute a callback function at most
+        for (let i = eventActionLength - 1; i >= 0; i--) {
+          const handlerId = i.toString();
+
+          const eventAction = this._registeredShortcuts[shortcut][handlerId];
+          if (!eventAction) {
+            continue;
+          }
+          if (eventAction.viewScope !== this.viewScope.GLOBAL && eventAction.viewScope !== targetViewScope) {
+            continue;
+          }
+          if (eventAction.preventDefault) {
             e.preventDefault();
           }
-
-          this._registeredShortcuts[shortcut][handlerId]?.handler(e);
-
-          if (this._registeredShortcuts[shortcut][handlerId]?.stopPropagation) {
+          eventAction.handler(e);
+          if (eventAction.stopPropagation) {
             e.stopPropagation();
           }
-        }
-        if (this._registeredShortcutsInInputField[shortcut]) {
-          const handlerId = (
-            Object.keys(this._registeredShortcutsInInputField[shortcut])
-              .length - 1
-          ).toString();
-
-          if (
-            this._registeredShortcutsInInputField[shortcut][handlerId]
-              ?.preventDefault
-          ) {
-            e.preventDefault();
-          }
-
-          this._registeredShortcutsInInputField[shortcut][handlerId]?.handler(
-            e
-          );
-
-          if (
-            this._registeredShortcutsInInputField[shortcut][handlerId]
-              ?.stopPropagation
-          ) {
-            e.stopPropagation();
-          }
+          break;
         }
       }
     });
@@ -120,71 +74,76 @@ export class ShortcutService {
    * @param handler - Shortcut handler.
    * @param preventDefault - Whether to prevent default behavior.
    * @param stopPropagation - Whether to stop propagation.
+   * @param viewScope - The scope of shortcuts to be registered.
    * @returns Unregister function. */
   register(
     code: string,
     handler: (...args: any[]) => void,
     preventDefault: boolean = true,
-    stopPropagation: boolean = true
+    stopPropagation: boolean = true,
+    viewScope:
+      | ShortcutViewScope
+      | null = null
   ) {
-    if (!this._registeredShortcuts[code]) {
-      this._registeredShortcuts[code] = {};
+    if (code.trim().length === 0) {
+      return () => { };
+    }
+    const formattedCode = formatKeycode(code);
+
+    if (!this._registeredShortcuts[formattedCode]) {
+      this._registeredShortcuts[formattedCode] = {};
+    } else {
+      for (let id in this._registeredShortcuts[formattedCode]) {
+        if (
+          this._registeredShortcuts[formattedCode][id].viewScope ===
+          (viewScope || this._workingViewScope)
+        ) {
+          console.warn(
+            `Shortcut ${formattedCode} is already registered in the same view scope.`
+          );
+        }
+      }
     }
 
-    const id = Object.keys(this._registeredShortcuts[code]).length.toString();
-    this._registeredShortcuts[code][id] = {
+    const id = Object.keys(
+      this._registeredShortcuts[formattedCode]
+    ).length.toString();
+    this._registeredShortcuts[formattedCode][id] = {
       handler,
       preventDefault,
       stopPropagation,
+      viewScope: viewScope || this._workingViewScope,
     };
 
     // Auto dispose when vue component is destroyed
     if (getCurrentScope()) {
       onScopeDispose(() => {
-        delete this._registeredShortcuts[code][id];
+        if (this._registeredShortcuts[formattedCode]) {
+          delete this._registeredShortcuts[formattedCode][id];
+        }
       });
     }
 
     return () => {
-      delete this._registeredShortcuts[code][id];
+      if (this._registeredShortcuts[formattedCode]) {
+        delete this._registeredShortcuts[formattedCode][id];
+      }
     };
   }
 
   /**
-   * Register a shortcut that is still working in input field.
-   * @param code - Shortcut code.
-   * @param handler - Shortcut handler.
-   * @param preventDefault - Whether to prevent default behavior.
-   * @param stopPropagation - Whether to stop propagation.
-   * @returns Unregister function. */
-  registerInInputField(
-    code: string,
-    handler: (...args: any[]) => void,
-    preventDefault: boolean = true,
-    stopPropagation: boolean = true
+   * Update working view scope.
+   * @param scope - The scope to be updated.
+   * @returns Restore function. */
+  updateWorkingViewScope(
+    scope: ShortcutViewScope.OVERLAY | ShortcutViewScope.MAIN
   ) {
-    if (!this._registeredShortcutsInInputField[code]) {
-      this._registeredShortcutsInInputField[code] = {};
-    }
+    let oldScope = this._workingViewScope;
 
-    const id = Object.keys(
-      this._registeredShortcutsInInputField[code]
-    ).length.toString();
-    this._registeredShortcutsInInputField[code][id] = {
-      handler,
-      preventDefault,
-      stopPropagation,
-    };
-
-    // Auto dispose when vue component is destroyed
-    if (getCurrentScope()) {
-      onScopeDispose(() => {
-        delete this._registeredShortcutsInInputField[code][id];
-      });
-    }
+    this._workingViewScope = scope;
 
     return () => {
-      delete this._registeredShortcutsInInputField[code][id];
+      this._workingViewScope = oldScope;
     };
   }
 }

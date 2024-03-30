@@ -71,11 +71,21 @@ const constructFilter = () => {
   editingPaperSmartFilterDraft.value.filter = filter;
 };
 
-disposable(shortcutService.registerInInputField("Escape", onCloseClicked));
+disposable(
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+);
+
+disposable(
+  shortcutService.register(
+    "Escape",
+    onCloseClicked,
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
+);
 
 onMounted(() => {
-  PLMainAPI.menuService.disableAll();
-
   editingPaperSmartFilterDraft.value.initialize(
     uiState.editingPaperSmartFilter
   );
@@ -101,10 +111,6 @@ onMounted(() => {
 
   filterMatchType.value = "AND";
   infoText.value = "";
-});
-
-onUnmounted(() => {
-  PLMainAPI.menuService.enableAll();
 });
 </script>
 

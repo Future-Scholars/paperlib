@@ -12,6 +12,7 @@ import { debounce } from "@/base/misc";
 import { CategorizerType, PaperFolder } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperFilterOptions } from "@/renderer/services/paper-service";
+import { cmdOrCtrl } from "@/common/utils.ts";
 
 import TableItem from "./components/table-item.vue";
 
@@ -198,66 +199,112 @@ const checkLinkedFolder = async () => {
 };
 
 disposable(
-  shortcutService.registerInInputField("ArrowDown", () => {
-    selectedIndex.value = Math.min(
-      paperEntities.value.length - 1,
-      selectedIndex.value + 1
-    );
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
 );
 
 disposable(
-  shortcutService.registerInInputField("ArrowUp", () => {
-    selectedIndex.value = Math.max(0, selectedIndex.value - 1);
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    "ArrowDown",
+    () => {
+      selectedIndex.value = Math.min(
+        paperEntities.value.length - 1,
+        selectedIndex.value + 1
+      );
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.registerInInputField("ctrlmeta+Enter", async () => {
-    await exportSelectedCiteBodiesInFolder();
-
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    "ArrowUp",
+    () => {
+      selectedIndex.value = Math.max(0, selectedIndex.value - 1);
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.registerInInputField("Tab", () => {
-    exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    `${cmdOrCtrl}+Enter`,
+    async () => {
+      await exportSelectedCiteBodiesInFolder();
+
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.registerInInputField("shift+Enter", async () => {
-    await exportSelectedCiteKeys();
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    "Tab",
+    () => {
+      exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.registerInInputField("Enter", async () => {
-    await exportSelectedCiteBodies();
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    "Shift+Enter",
+    async () => {
+      await exportSelectedCiteKeys();
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.registerInInputField("Escape", async () => {
-    searchText.value = "";
-    paperEntities.value = [];
-    await PLMainAPI.windowProcessManagementService.hide(
-      "quickpasteProcess",
-      true
-    );
-  })
+  shortcutService.register(
+    "Enter",
+    async () => {
+      await exportSelectedCiteBodies();
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
+);
+
+disposable(
+  shortcutService.register(
+    "Escape",
+    async () => {
+      searchText.value = "";
+      paperEntities.value = [];
+      await PLMainAPI.windowProcessManagementService.hide(
+        "quickpasteProcess",
+        true
+      );
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(

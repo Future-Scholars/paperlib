@@ -8,6 +8,7 @@ import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { isRendererProcess } from "@/base/process";
+import { cmdOrCtrl } from "@/common/utils.ts";
 
 export interface IDataViewField {
   key: string;
@@ -183,14 +184,14 @@ const _defaultPreferences: IPreferenceStore = {
   lastVersion: "",
   lastDBVersion: -1,
 
-  shortcutPlugin: "CommandOrControl+Shift+I",
+  shortcutPlugin: `${cmdOrCtrl}+Shift+I`,
   shortcutPreview: "Space",
   shortcutOpen: "Enter",
-  shortcutCopy: "CommandOrControl+Shift+C",
-  shortcutScrape: "CommandOrControl+R",
-  shortcutEdit: "CommandOrControl+E",
-  shortcutFlag: "CommandOrControl+F",
-  shortcutCopyKey: "CommandOrControl+Shift+K",
+  shortcutCopy: `${cmdOrCtrl}+Shift+C`,
+  shortcutScrape: `${cmdOrCtrl}+R`,
+  shortcutEdit: `${cmdOrCtrl}+E`,
+  shortcutFlag: `${cmdOrCtrl}+F`,
+  shortcutCopyKey: `${cmdOrCtrl}+Shift+K`,
 
   shortcutDelete: "Delete",
 

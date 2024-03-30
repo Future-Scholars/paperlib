@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import "splitpanes/dist/splitpanes.css";
-import { Ref, inject, ref } from "vue";
+import { Ref, inject, ref, onMounted, onUnmounted } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
@@ -17,6 +17,7 @@ import PaperDataView from "./data-view/paper-data-view.vue";
 import FeedDetailView from "./detail-view/feed-detail-view.vue";
 import PaperDetailView from "./detail-view/paper-detail-view.vue";
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
+import { Process } from "@/base/process-id.ts";
 
 // ================================
 // State
@@ -37,6 +38,156 @@ const paperEntities = inject<Ref<IPaperEntityCollection>>("paperEntities");
 const feedEntities = inject<Ref<IFeedEntityCollection>>("feedEntities");
 
 const dataView: Ref<HTMLElement | null> = ref(null);
+
+let disposeCallbacks: (() => void)[] = [];
+
+//Prevent space bar from scrolling page
+disposable(
+  shortcutService.register(
+    "Space",
+    (e: KeyboardEvent) => {
+      if (
+        !(
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement
+        )
+      ) {
+        e.preventDefault();
+      }
+    },
+    false,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
+);
+
+const registerShortcutFromPreference = () => {
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutOpen") as string,
+      () => {
+        PLMainAPI.menuService.click("File-enter");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
+
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutDelete") as string,
+      () => {
+        PLMainAPI.menuService.click("File-delete");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
+
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutCopy") as string,
+      () => {
+        PLMainAPI.menuService.click("File-copyBibTex");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
+
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutCopyKey") as string,
+      () => {
+        PLMainAPI.menuService.click("File-copyBibTexKey");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
+
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutScrape") as string,
+      () => {
+        PLMainAPI.menuService.click("Edit-rescrape");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
+
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutEdit") as string,
+      () => {
+        PLMainAPI.menuService.click("Edit-edit");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
+
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutFlag") as string,
+      () => {
+        PLMainAPI.menuService.click("Edit-flag");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
+
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutPreview") as string,
+      () => {
+        PLMainAPI.menuService.click("View-preview");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
+};
+
+preferenceService.on(
+  [
+    "shortcutOpen",
+    "shortcutDelete",
+    "shortcutCopy",
+    "shortcutCopyKey",
+    "shortcutScrape",
+    "shortcutEdit",
+    "shortcutFlag",
+    "shortcutPreview",
+  ],
+  () => {
+    unregisterShortcutFromPreference();
+    registerShortcutFromPreference();
+  }
+);
+
+onMounted(() => {
+  registerShortcutFromPreference();
+});
+
+onUnmounted(() => {
+  unregisterShortcutFromPreference();
+});
+
+const unregisterShortcutFromPreference = () => {
+  disposeCallbacks.forEach((callback) => callback());
+  disposeCallbacks = [];
+};
 
 // ================================
 // Event Handlers
@@ -459,10 +610,48 @@ disposable(
 );
 
 disposable(
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
+);
+
+disposable(
   shortcutService.register(
-    "Space",
+    "Command+,",
     () => {
-      PLMainAPI.menuService.click("View-preview");
+      PLMainAPI.menuService.click("preference");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    "Command+W",
+    () => {
+      PLMainAPI.windowProcessManagementService.hide(Process.renderer, true);
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
+);
+
+disposable(
+  shortcutService.register(
+    "Down",
+    () => {
+      PLMainAPI.menuService.click("View-next");
+    },
+    true,
+    true
+  )
+);
+
+disposable(
+  shortcutService.register(
+    "Up",
+    () => {
+      PLMainAPI.menuService.click("View-previous");
     },
     true,
     true

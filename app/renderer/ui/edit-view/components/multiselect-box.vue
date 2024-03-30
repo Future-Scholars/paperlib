@@ -2,6 +2,7 @@
 import { BIconX } from "bootstrap-icons-vue";
 import { onUnmounted } from "vue";
 import { ref, computed, Ref } from "vue";
+import { ShortcutService } from "@/renderer/services/shortcut-service.ts";
 
 const props = defineProps({
   modelValue: {
@@ -106,38 +107,56 @@ const registerShortcut = () => {
   onInput();
 
   disposeCallbacks.push(
-    shortcutService.registerInInputField("Enter", () => {
-      if (selectedIndex.value >= 0) {
-        inputValue.value = filteredOptions.value[selectedIndex.value];
-        add();
-      } else if (inputValue.value !== "" && selectedIndex.value === -1) {
-        add();
-      }
-    })
+    shortcutService.register(
+      "Enter",
+      () => {
+        if (selectedIndex.value >= 0) {
+          inputValue.value = filteredOptions.value[selectedIndex.value];
+          add();
+        } else if (inputValue.value !== "" && selectedIndex.value === -1) {
+          add();
+        }
+      },
+      true,
+      true,
+      shortcutService.viewScope.INPUT
+    )
   );
   disposeCallbacks.push(
-    shortcutService.registerInInputField("ArrowUp", () => {
-      if (selectedIndex.value > 0) {
-        selectedIndex.value -= 1;
-      } else if (selectedIndex.value === 0) {
-        selectedIndex.value = filteredOptions.value.length - 1;
-      } else {
-        selectedIndex.value = -1;
-      }
-      fixScrolling();
-    })
+    shortcutService.register(
+      "ArrowUp",
+      () => {
+        if (selectedIndex.value > 0) {
+          selectedIndex.value -= 1;
+        } else if (selectedIndex.value === 0) {
+          selectedIndex.value = filteredOptions.value.length - 1;
+        } else {
+          selectedIndex.value = -1;
+        }
+        fixScrolling();
+      },
+      true,
+      true,
+      shortcutService.viewScope.INPUT
+    )
   );
   disposeCallbacks.push(
-    shortcutService.registerInInputField("ArrowDown", () => {
-      if (selectedIndex.value < filteredOptions.value.length - 1) {
-        selectedIndex.value += 1;
-      } else if (selectedIndex.value === filteredOptions.value.length - 1) {
-        selectedIndex.value = 0;
-      } else {
-        selectedIndex.value = -1;
-      }
-      fixScrolling();
-    })
+    shortcutService.register(
+      "ArrowDown",
+      () => {
+        if (selectedIndex.value < filteredOptions.value.length - 1) {
+          selectedIndex.value += 1;
+        } else if (selectedIndex.value === filteredOptions.value.length - 1) {
+          selectedIndex.value = 0;
+        } else {
+          selectedIndex.value = -1;
+        }
+        fixScrolling();
+      },
+      true,
+      true,
+      shortcutService.viewScope.INPUT
+    )
   );
 };
 

@@ -24,6 +24,10 @@ const onConfirm = () => {
   paperService.delete(deleteIds);
 };
 
+disposable(
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+);
+
 disposable(shortcutService.register("Escape", onCancel));
 disposable(shortcutService.register("Enter", onConfirm));
 </script>
