@@ -45,8 +45,17 @@ let disposeCallbacks: (() => void)[] = [];
 disposable(
   shortcutService.register(
     "Space",
-    () => {},
-    true,
+    (e: KeyboardEvent) => {
+      if (
+        !(
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement
+        )
+      ) {
+        e.preventDefault();
+      }
+    },
+    false,
     true,
     shortcutService.viewScope.GLOBAL
   )
