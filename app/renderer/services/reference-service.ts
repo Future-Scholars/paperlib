@@ -188,6 +188,100 @@ export class ReferenceService {
       );
     }
   }
+  /**
+   * Export BibItem.
+   * @param cite - The cite object.
+   * @returns The BibItem.
+   */
+  @errorcatching(
+    "Failed to convert cite object to BibItem.",
+    true,
+    "ReferenceService",
+    ""
+  )
+  exportBibItem(cite: Cite): string {
+    // Code based on https://github.com/asouqi/bibtex-converter/blob/master/src/utilities/bib_converter.js
+    const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+    let bibitem = "";
+    const bibTexKey = this.exportBibTexKey(cite);
+
+    const getAuthors = (authors) =>
+      authors.map((author) => {
+        const { family, given } = author;
+        if (family && given) {
+          return `${capitalize(family)}, ${given.charAt(0).toUpperCase()}.`;
+        }
+        return given ? capitalize(given) : (family && capitalize(family)) || "";
+      });
+
+    cite.data.map((bibtex: CSL) => {
+      const { title, author, issued } = bibtex;
+
+      bibitem += `\\bibitem{${bibTexKey}}`;
+
+      const authors = getAuthors(author);
+      if (authors.length === 1) {
+        bibitem += `${authors[0]} ${title}. `;
+      } else {
+        bibitem +=
+          authors.slice(0, -1).join(", ") +
+          " \\& " +
+          authors.slice(-1)[0] +
+          ` ${title}. `;
+      }
+
+      const journal = bibtex["container-title"];
+      if (journal) {
+        const { volume, page, issue } = bibtex;
+
+        bibitem += `{\\em ${journal
+          .split(" ")
+          .map((_) => capitalize(_))
+          .join(" ")}}.`;
+
+        if (volume) {
+          bibitem += ` \\textbf{${volume}}`;
+        }
+        if (page) {
+          bibitem += issue ? `, ${page}` : ` pp. ${page}`;
+        }
+        if (issued && issued["date-parts"] && issued["date-parts"].length > 0) {
+          bibitem += ` (${issued["date-parts"].toString()})`;
+        }
+      }
+
+      const publisher = bibtex["publisher"];
+      if (!journal && publisher) {
+        bibitem +=
+          (issued &&
+            issued["date-parts"] &&
+            `(${publisher},${issued["date-parts"].toString()})`) ||
+          `(${publisher})`;
+      }
+
+      if (
+        issued &&
+        issued["date-parts"] &&
+        issued["date-parts"].length > 0 &&
+        !publisher &&
+        !journal
+      ) {
+        bibitem += ` (${issued["date-parts"].toString()})`;
+      }
+
+      const url = bibtex["URL"];
+      if (url && url !== publisher) {
+        bibitem += `, ${url}`;
+      }
+
+      const note = bibtex["note"];
+      if (note) {
+        bibitem += `, ${note}`;
+      }
+      bibitem += "\n";
+    });
+    return bibitem;
+  }
 
   /**
    * Export BibTex key.
@@ -391,6 +485,9 @@ export class ReferenceService {
     switch (format) {
       case "BibTex":
         copyStr = this.exportBibTexBody(this.toCite(paperEntityDrafts));
+        break;
+      case "BibItem":
+        copyStr = this.exportBibItem(this.toCite(paperEntityDrafts));
         break;
       case "BibTex-Key":
         copyStr = this.exportBibTexKey(this.toCite(paperEntityDrafts));

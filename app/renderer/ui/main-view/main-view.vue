@@ -390,6 +390,11 @@ disposable(
     exportSelectedEntities("BibTex");
   })
 );
+disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuExportBibItemClicked", () => {
+    exportSelectedEntities("BibItem");
+  })
+);
 
 disposable(
   PLMainAPI.contextMenuService.on(
