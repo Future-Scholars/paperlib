@@ -198,70 +198,112 @@ const checkLinkedFolder = async () => {
 };
 
 disposable(
-  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+  shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
 );
 
 disposable(
-  shortcutService.register("ArrowDown", () => {
-    selectedIndex.value = Math.min(
-      paperEntities.value.length - 1,
-      selectedIndex.value + 1
-    );
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    "ArrowDown",
+    () => {
+      selectedIndex.value = Math.min(
+        paperEntities.value.length - 1,
+        selectedIndex.value + 1
+      );
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.register("ArrowUp", () => {
-    selectedIndex.value = Math.max(0, selectedIndex.value - 1);
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    "ArrowUp",
+    () => {
+      selectedIndex.value = Math.max(0, selectedIndex.value - 1);
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.register("ctrlmeta+Enter", async () => {
-    await exportSelectedCiteBodiesInFolder();
+  shortcutService.register(
+    "ctrlmeta+Enter",
+    async () => {
+      await exportSelectedCiteBodiesInFolder();
 
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.register("Tab", () => {
-    exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    "Tab",
+    () => {
+      exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.register("shift+Enter", async () => {
-    await exportSelectedCiteKeys();
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    "shift+Enter",
+    async () => {
+      await exportSelectedCiteKeys();
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.register("Enter", async () => {
-    await exportSelectedCiteBodies();
-    // @ts-ignore
-    searchInput.value.focus();
-  })
+  shortcutService.register(
+    "Enter",
+    async () => {
+      await exportSelectedCiteBodies();
+      // @ts-ignore
+      searchInput.value.focus();
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
-  shortcutService.register("Escape", async () => {
-    searchText.value = "";
-    paperEntities.value = [];
-    await PLMainAPI.windowProcessManagementService.hide(
-      "quickpasteProcess",
-      true
-    );
-  })
+  shortcutService.register(
+    "Escape",
+    async () => {
+      searchText.value = "";
+      paperEntities.value = [];
+      await PLMainAPI.windowProcessManagementService.hide(
+        "quickpasteProcess",
+        true
+      );
+    },
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
 );
 
 disposable(
