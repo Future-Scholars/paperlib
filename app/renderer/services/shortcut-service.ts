@@ -1,7 +1,7 @@
 import { getCurrentScope, onScopeDispose } from "vue";
 
 import { createDecorator } from "@/base/injection/injection";
-import { formatShortcut } from "@/common/utils.ts";
+import { formatKeycode, formatShortcut } from "@/common/utils.ts";
 
 export const IShortcitService = createDecorator("shortcutService");
 
@@ -91,17 +91,20 @@ export class ShortcutService {
     if (code.trim().length === 0) {
       return () => {};
     }
+    const formattedCode = formatKeycode(code);
     console.log(
       "register shortcut, ",
-      code,
+      formattedCode,
       viewScope || this.workingViewScope
     );
-    if (!this._registeredShortcuts[code]) {
-      this._registeredShortcuts[code] = {};
+    if (!this._registeredShortcuts[formattedCode]) {
+      this._registeredShortcuts[formattedCode] = {};
     }
 
-    const id = Object.keys(this._registeredShortcuts[code]).length.toString();
-    this._registeredShortcuts[code][id] = {
+    const id = Object.keys(
+      this._registeredShortcuts[formattedCode]
+    ).length.toString();
+    this._registeredShortcuts[formattedCode][id] = {
       handler,
       preventDefault,
       stopPropagation,
@@ -111,15 +114,15 @@ export class ShortcutService {
     // Auto dispose when vue component is destroyed
     if (getCurrentScope()) {
       onScopeDispose(() => {
-        if (this._registeredShortcuts[code]) {
-          delete this._registeredShortcuts[code][id];
+        if (this._registeredShortcuts[formattedCode]) {
+          delete this._registeredShortcuts[formattedCode][id];
         }
       });
     }
 
     return () => {
-      if (this._registeredShortcuts[code]) {
-        delete this._registeredShortcuts[code][id];
+      if (this._registeredShortcuts[formattedCode]) {
+        delete this._registeredShortcuts[formattedCode][id];
       }
     };
   }

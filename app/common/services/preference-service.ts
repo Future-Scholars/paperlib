@@ -8,10 +8,7 @@ import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { isRendererProcess } from "@/base/process";
-
-const isMac = process.platform === "darwin";
-
-const cmdOrCtrl = isMac ? "Command" : "Control";
+import { cmdOrCtrl } from "@/common/utils.ts";
 
 export interface IDataViewField {
   key: string;

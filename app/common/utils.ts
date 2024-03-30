@@ -1,5 +1,7 @@
 const isMac = process.platform === "darwin";
 
+export const cmdOrCtrl = isMac ? "Command" : "Control";
+
 export const formatShortcut = (event: KeyboardEvent): string[] => {
   let shortcutKeys: string[] = [];
 
@@ -35,4 +37,8 @@ export const formatShortcut = (event: KeyboardEvent): string[] => {
   }
 
   return shortcutKeys;
+};
+
+export const formatKeycode = (code: string): string => {
+  return code.replace("CommandOrControl", cmdOrCtrl);
 };
