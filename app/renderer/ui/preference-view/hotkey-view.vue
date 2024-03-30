@@ -101,9 +101,6 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     <div class="text-base font-semibold mb-2">
       {{ $t("preference.hotkeys") }}
     </div>
-    <div class="text-xs underline text-neutral-600 dark:text-neutral-500 mb-5">
-      ⚠️ {{ $t("preference.pleaserestart") }}
-    </div>
     <div class="flex flex-col space-y-2 mb-5">
       <HotkeyOption
         :title="$t('preference.hotkeysOpenPDFLabel')"
