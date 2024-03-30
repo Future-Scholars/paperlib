@@ -34,31 +34,36 @@ export class ShortcutService {
       let shortcut = formatShortcut(e).join("+");
       console.log(shortcut);
       if (this._registeredShortcuts[shortcut]) {
-        const handlerId = (
-          Object.keys(this._registeredShortcuts[shortcut]).length - 1
-        ).toString();
+        const eventActionLength = Object.keys(
+          this._registeredShortcuts[shortcut]
+        ).length;
         let targetViewScope = this.workingViewScope;
-        if (
-          e.target instanceof HTMLInputElement ||
-          e.target instanceof HTMLTextAreaElement
-        ) {
-          targetViewScope = this.viewScope.INPUT;
-        }
-        const eventAction = this._registeredShortcuts[shortcut][handlerId];
-        if (!eventAction) {
-          return;
-        }
-        if (eventAction.viewScope !== this.viewScope.GLOBAL) {
-          if (eventAction.viewScope !== targetViewScope) {
-            return;
+        //Traverse all elements but execute a callback function at most
+        for (let i = eventActionLength - 1; i >= 0; i--) {
+          const handlerId = i.toString();
+          if (
+            e.target instanceof HTMLInputElement ||
+            e.target instanceof HTMLTextAreaElement
+          ) {
+            targetViewScope = this.viewScope.INPUT;
           }
-        }
-        if (eventAction.preventDefault) {
-          e.preventDefault();
-        }
-        eventAction.handler(e);
-        if (eventAction.stopPropagation) {
-          e.stopPropagation();
+          const eventAction = this._registeredShortcuts[shortcut][handlerId];
+          if (!eventAction) {
+            continue;
+          }
+          if (eventAction.viewScope !== this.viewScope.GLOBAL) {
+            if (eventAction.viewScope !== targetViewScope) {
+              continue;
+            }
+          }
+          if (eventAction.preventDefault) {
+            e.preventDefault();
+          }
+          eventAction.handler(e);
+          if (eventAction.stopPropagation) {
+            e.stopPropagation();
+          }
+          break;
         }
       }
     });

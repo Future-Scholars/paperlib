@@ -41,6 +41,17 @@ const dataView: Ref<HTMLElement | null> = ref(null);
 
 let disposeCallbacks: (() => void)[] = [];
 
+//Prevent space bar from scrolling page
+disposable(
+  shortcutService.register(
+    "Space",
+    () => {},
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
+);
+
 const registerShortcutFromPreference = () => {
   disposeCallbacks.push(
     shortcutService.register(
