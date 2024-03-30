@@ -79,11 +79,36 @@ disposable(
   shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
 );
 
-disposable(shortcutService.register("Escape", onCloseClicked));
+disposable(
+  shortcutService.register(
+    "Escape",
+    onCloseClicked,
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
+);
 if (uiState?.os === "darwin") {
-  disposable(shortcutService.register("Command+S", onSaveClicked));
+  disposable(
+    shortcutService.register(
+      "Command+S",
+      onSaveClicked,
+      true,
+      true,
+      shortcutService.viewScope.GLOBAL
+    )
+  );
 } else {
-  disposable(shortcutService.register("Control+S", onSaveClicked));
+  disposable(
+    shortcutService.register(
+      "Control+S",
+      onSaveClicked,
+      true,
+      true,
+
+      shortcutService.viewScope.GLOBAL
+    )
+  );
 }
 
 onMounted(() => {
