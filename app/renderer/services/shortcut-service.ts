@@ -9,6 +9,7 @@ enum ShortcutViewScope {
   MAIN = "main",
   OVERLAY = "overlay",
   INPUT = "input",
+  //Don't use it unless you know what you are doing
   GLOBAL = "global",
 }
 
