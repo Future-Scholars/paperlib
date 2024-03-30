@@ -82,7 +82,11 @@ export class ShortcutService {
     handler: (...args: any[]) => void,
     preventDefault: boolean = true,
     stopPropagation: boolean = true,
-    viewScope: ShortcutViewScope | null = null
+    viewScope:
+      | ShortcutViewScope.MAIN
+      | ShortcutViewScope.GLOBAL
+      | ShortcutViewScope.OVERLAY
+      | null = null
   ) {
     if (code.trim().length === 0) {
       return () => {};
@@ -124,7 +128,9 @@ export class ShortcutService {
    * Update working view scope.
    * @param scope - The scope to be updated.
    * @returns Restore function. */
-  updateWorkingViewScope(scope: ShortcutViewScope) {
+  updateWorkingViewScope(
+    scope: ShortcutViewScope.OVERLAY | ShortcutViewScope.MAIN
+  ) {
     let oldScope = this.workingViewScope;
 
     this.workingViewScope = scope;

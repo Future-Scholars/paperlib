@@ -27,7 +27,15 @@ disposable(
   shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
 );
 
-disposable(shortcutService.register("Escape", onCloseClicked));
+disposable(
+  shortcutService.register(
+    "Escape",
+    onCloseClicked,
+    true,
+    true,
+    shortcutService.viewScope.GLOBAL
+  )
+);
 
 onMounted(() => {
   editingFeedDraft.value.initialize(new Feed());
