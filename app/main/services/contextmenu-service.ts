@@ -70,6 +70,7 @@ export interface IContextMenuServiceState {
   dataContextMenuDeleteClicked: number;
   dataContextMenuFlagClicked: number;
   dataContextMenuExportBibTexClicked: number;
+  dataContextMenuExportBibItemClicked: number;
   dataContextMenuExportCSVClicked: number;
   dataContextMenuExportBibTexKeyClicked: number;
   dataContextMenuExportPlainTextClicked: number;
@@ -115,6 +116,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       dataContextMenuDeleteClicked: 0,
       dataContextMenuFlagClicked: 0,
       dataContextMenuExportBibTexClicked: 0,
+      dataContextMenuExportBibItemClicked: 0,
       dataContextMenuExportCSVClicked: 0,
       dataContextMenuExportBibTexKeyClicked: 0,
       dataContextMenuExportPlainTextClicked: 0,
@@ -307,6 +309,12 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
             label: this._locales.t("menu.plaintext"),
             click: () => {
               this.fire("dataContextMenuExportPlainTextClicked");
+            },
+          },
+          {
+            label: "BibItem",
+            click: () => {
+              this.fire("dataContextMenuExportBibItemClicked");
             },
           },
         ],
