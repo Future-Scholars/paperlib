@@ -16,7 +16,7 @@ enum ShortcutViewScope {
 export class ShortcutService {
   readonly viewScope = ShortcutViewScope;
 
-  private workingViewScope = ShortcutViewScope.MAIN;
+  private _workingViewScope = ShortcutViewScope.MAIN;
 
   private readonly _registeredShortcuts: {
     [code: string]: {
@@ -32,29 +32,28 @@ export class ShortcutService {
   constructor() {
     window.addEventListener("keydown", (e) => {
       let shortcut = formatShortcut(e).join("+");
-      console.log(shortcut);
       if (this._registeredShortcuts[shortcut]) {
         const eventActionLength = Object.keys(
           this._registeredShortcuts[shortcut]
         ).length;
-        let targetViewScope = this.workingViewScope;
+        let targetViewScope = this._workingViewScope;
+        if (
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement
+        ) {
+          targetViewScope = this.viewScope.INPUT;
+        }
+
         //Traverse all elements but execute a callback function at most
         for (let i = eventActionLength - 1; i >= 0; i--) {
           const handlerId = i.toString();
-          if (
-            e.target instanceof HTMLInputElement ||
-            e.target instanceof HTMLTextAreaElement
-          ) {
-            targetViewScope = this.viewScope.INPUT;
-          }
+
           const eventAction = this._registeredShortcuts[shortcut][handlerId];
           if (!eventAction) {
             continue;
           }
-          if (eventAction.viewScope !== this.viewScope.GLOBAL) {
-            if (eventAction.viewScope !== targetViewScope) {
-              continue;
-            }
+          if (eventAction.viewScope !== this.viewScope.GLOBAL && eventAction.viewScope !== targetViewScope) {
+            continue;
           }
           if (eventAction.preventDefault) {
             e.preventDefault();
@@ -83,22 +82,27 @@ export class ShortcutService {
     preventDefault: boolean = true,
     stopPropagation: boolean = true,
     viewScope:
-      | ShortcutViewScope.MAIN
-      | ShortcutViewScope.GLOBAL
-      | ShortcutViewScope.OVERLAY
+      | ShortcutViewScope
       | null = null
   ) {
     if (code.trim().length === 0) {
-      return () => {};
+      return () => { };
     }
     const formattedCode = formatKeycode(code);
-    console.log(
-      "register shortcut, ",
-      formattedCode,
-      viewScope || this.workingViewScope
-    );
+
     if (!this._registeredShortcuts[formattedCode]) {
       this._registeredShortcuts[formattedCode] = {};
+    } else {
+      for (let id in this._registeredShortcuts[formattedCode]) {
+        if (
+          this._registeredShortcuts[formattedCode][id].viewScope ===
+          (viewScope || this._workingViewScope)
+        ) {
+          console.warn(
+            `Shortcut ${formattedCode} is already registered in the same view scope.`
+          );
+        }
+      }
     }
 
     const id = Object.keys(
@@ -108,7 +112,7 @@ export class ShortcutService {
       handler,
       preventDefault,
       stopPropagation,
-      viewScope: viewScope || this.workingViewScope,
+      viewScope: viewScope || this._workingViewScope,
     };
 
     // Auto dispose when vue component is destroyed
@@ -134,14 +138,12 @@ export class ShortcutService {
   updateWorkingViewScope(
     scope: ShortcutViewScope.OVERLAY | ShortcutViewScope.MAIN
   ) {
-    let oldScope = this.workingViewScope;
+    let oldScope = this._workingViewScope;
 
-    this.workingViewScope = scope;
-    console.log("set shortcut-service scope", this.workingViewScope);
+    this._workingViewScope = scope;
 
     return () => {
-      this.workingViewScope = oldScope;
-      console.log("restore shortcut-service scope", oldScope);
+      this._workingViewScope = oldScope;
     };
   }
 }

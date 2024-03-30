@@ -12,6 +12,7 @@ import { debounce } from "@/base/misc";
 import { CategorizerType, PaperFolder } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperFilterOptions } from "@/renderer/services/paper-service";
+import { cmdOrCtrl } from "@/common/utils.ts";
 
 import TableItem from "./components/table-item.vue";
 
@@ -234,7 +235,7 @@ disposable(
 
 disposable(
   shortcutService.register(
-    "ctrlmeta+Enter",
+    `${cmdOrCtrl}+Enter`,
     async () => {
       await exportSelectedCiteBodiesInFolder();
 
@@ -263,7 +264,7 @@ disposable(
 
 disposable(
   shortcutService.register(
-    "shift+Enter",
+    "Shift+Enter",
     async () => {
       await exportSelectedCiteKeys();
       // @ts-ignore

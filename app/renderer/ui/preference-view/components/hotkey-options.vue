@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { BIconX } from "bootstrap-icons-vue";
-import { disposable } from "@/base/dispose.ts";
+
 import { formatShortcut } from "@/common/utils.ts";
 
 const props = defineProps({

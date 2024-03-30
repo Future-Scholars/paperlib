@@ -195,6 +195,9 @@ const onFocus = async (payload: Event) => {
     (e: Event) => {
       //@ts-ignore
       e.target?.blur();
+      uiState.commandBarText = "";
+      uiState.commandBarSearchMode = "general";
+      uiState.querySentenceCommandbar = "";
     },
     true,
     true,
