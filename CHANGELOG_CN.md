@@ -1,3 +1,10 @@
+## v3.0.7 31/03 2024
+
+1. 新特性：导出 BibItem。by @omrihaber
+2. 新特性（插件开发）：添加了一个通知窗口。by @geoffreychen777
+3. 增强：重构快捷键管理。by @igoogolx
+4. 修复：修复了一个 webdav 文件移动的 bug。by @geoffreychen777
+
 ## v3.0.6 26/03 2024
 
 1. 修复快速引用工具的快捷键 Bug。
