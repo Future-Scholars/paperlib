@@ -1,5 +1,14 @@
 # Paperlib API Release Note
 
+## v0.1.6
+
+- add `dataContextMenuExportBibItemClicked` for `PLMainAPI.contextMenuService`.
+- add new slot `overlayNotifications` for `PLAPI.UISlotService`.
+- add `overlayNoticationShown` for `PLAPI.UIStateService`.
+- remove `PLMainAPI.menuService.enableAll()` and `PLMainAPI.menuService.disableAll()`.
+- add `PLMainAPI.menuService.disableGlobalShortcuts()`.
+- add `PLAPI.referenceService.exportBibItem()`.
+
 ## v0.1.5
 
 - update `PLAPI.fileService.move`: add two options `moveMain` and `moveSups`.
