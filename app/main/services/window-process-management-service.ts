@@ -203,46 +203,42 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   createQuickpasteRenderer() {
     const options: WindowOptions = {
-        entry: "app/index_quickpaste.html",
-        title: "Quickpaste",
-        width: 600,
-        height: 76,
-        minWidth: 600,
-        minHeight: 76,
-        maxWidth: 600,
-        maxHeight: 394,
-        useContentSize: true,
-        webPreferences: {
-          webSecurity: false,
-          nodeIntegration: true,
-          contextIsolation: false,
-        },
-        frame: false,
-        vibrancy: "sidebar",
-        visualEffectState: "active",
-        show: false,
-    }
+      entry: "app/index_quickpaste.html",
+      title: "Quickpaste",
+      width: 600,
+      height: 76,
+      minWidth: 600,
+      minHeight: 76,
+      maxWidth: 600,
+      maxHeight: 394,
+      useContentSize: true,
+      webPreferences: {
+        webSecurity: false,
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
+      frame: false,
+      vibrancy: "sidebar",
+      visualEffectState: "active",
+      show: false,
+    };
     if (os.platform() === "darwin") {
       options["type"] = "panel";
     }
-    
-    this.create(
-      "quickpasteProcess",
-      options,
-      {
-        blur: (win: BrowserWindow) => {
-          win.setSize(600, 76);
-          win.hide();
-        },
 
-        focus: (win: BrowserWindow) => {
-          win.setSize(600, 76);
-        },
-        show: (win: BrowserWindow) => {
-          win.setSize(600, 76);
-        },
-      }
-    );
+    this.create("quickpasteProcess", options, {
+      blur: (win: BrowserWindow) => {
+        win.setSize(600, 76);
+        win.hide();
+      },
+
+      focus: (win: BrowserWindow) => {
+        win.setSize(600, 76);
+      },
+      show: (win: BrowserWindow) => {
+        win.setSize(600, 76);
+      },
+    });
 
     if (os.platform() === "darwin") {
       this.browserWindows
@@ -526,5 +522,16 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     if (this.exist(windowId)) {
       this.browserWindows.get(windowId).blur();
     }
+  }
+
+  /**
+   * Whether the window is focused.
+   * @param windowId - The id of the window to be checked
+   */
+  isFocused(windowId: string): boolean {
+    if (this.exist(windowId)) {
+      return this.browserWindows.get(windowId).isFocused();
+    }
+    return false;
   }
 }

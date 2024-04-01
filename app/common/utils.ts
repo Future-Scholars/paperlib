@@ -2,7 +2,19 @@ const isMac = process.platform === "darwin";
 
 export const cmdOrCtrl = isMac ? "Command" : "Control";
 
-export const formatShortcut = (event: KeyboardEvent): string[] => {
+export interface ShortcutEvent {
+  ctrlKey: boolean;
+  metaKey: boolean;
+  altKey: boolean;
+  shiftKey: boolean;
+  key: string;
+  code: string;
+  preventDefault?: () => void;
+  stopPropagation?: () => void;
+  isInput?: boolean;
+}
+
+export const formatShortcut = (event: ShortcutEvent): string[] => {
   let shortcutKeys: string[] = [];
 
   if (event.ctrlKey) {
@@ -41,4 +53,24 @@ export const formatShortcut = (event: KeyboardEvent): string[] => {
 
 export const formatKeycode = (code: string): string => {
   return code.replace("CommandOrControl", cmdOrCtrl);
+};
+
+export const convertKeyboardEvent = (e: KeyboardEvent): ShortcutEvent => {
+  return {
+    ctrlKey: e.ctrlKey,
+    metaKey: e.metaKey,
+    altKey: e.altKey,
+    shiftKey: e.shiftKey,
+    key: e.key,
+    code: e.code,
+    preventDefault: () => {
+      e.preventDefault();
+    },
+    stopPropagation: () => {
+      e.stopPropagation();
+    },
+    isInput:
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement,
+  };
 };
