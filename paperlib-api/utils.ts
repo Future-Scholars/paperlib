@@ -15,7 +15,7 @@ import {
   isLocalPath,
   listAllFiles,
 } from "@/base/url";
-import { convertKeyboardEvent } from "@/common/utils.ts";
+import { convertKeyboardEvent, formatShortcut } from "@/common/utils.ts";
 
 const stringUtils = {
   formatString,
@@ -40,6 +40,7 @@ const metadataUtils = {
 export {
   chunkRun,
   convertKeyboardEvent,
+  formatShortcut,
   metadataUtils,
   processId,
   stringUtils,
