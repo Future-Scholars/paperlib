@@ -40,6 +40,10 @@ export class ShortcutService {
     });
   }
 
+  /**
+   * Handle shortcut event with registered shortcuts.
+   * @param e - The shortcut event to be handled.
+   * */
   handle(e: ShortcutEvent) {
     let shortcut = formatShortcut(e).join("+");
     if (this._registeredShortcuts[shortcut]) {
