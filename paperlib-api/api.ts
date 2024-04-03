@@ -20,6 +20,7 @@ import { PaperService } from "@/renderer/services/paper-service";
 import { ReferenceService } from "@/renderer/services/reference-service";
 import { RenderService } from "@/renderer/services/render-service";
 import { ScrapeService } from "@/renderer/services/scrape-service";
+import { ShortcutService } from "@/renderer/services/shortcut-service.ts";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
 import { UISlotService } from "@/renderer/services/uislot-service";
 import { UIStateService } from "@/renderer/services/uistate-service";
@@ -41,6 +42,7 @@ declare namespace PLAPI {
   const uiStateService: Proxied<UIStateService>;
   const preferenceService: Proxied<PreferenceService>;
   const uiSlotService: Proxied<UISlotService>;
+  const shortcutService: Proxied<ShortcutService>;
 }
 
 declare namespace PLMainAPI {

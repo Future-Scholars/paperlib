@@ -19,6 +19,8 @@ export declare const chunkRun: <S, T, Q>(argsList: Iterable<S>, process: (arg: S
 
 declare function constructFileURL(url: string, joined: boolean, withProtocol?: boolean, root?: string, protocol?: string): string;
 
+export declare const convertKeyboardEvent: (e: KeyboardEvent) => ShortcutEvent;
+
 /**
  * Erase the protocol of the URL.
  * @param url
@@ -102,6 +104,8 @@ declare class FeedEntity {
     initialize(object: IFeedEntityDraft): this;
     fromPaper(paperEntity: PaperEntity): void;
 }
+
+export declare const formatShortcut: (event: ShortcutEvent) => string[];
 
 declare interface formatStringParams {
     str: string | null;
@@ -329,6 +333,24 @@ declare class PaperTag extends Categorizer {
         };
     };
     constructor(object: ICategorizerDraft, initObjectId?: boolean);
+}
+
+export declare enum processId {
+    main = "mainProcess",
+    extension = "extensionProcess",
+    renderer = "rendererProcess"
+}
+
+declare interface ShortcutEvent {
+    ctrlKey: boolean;
+    metaKey: boolean;
+    altKey: boolean;
+    shiftKey: boolean;
+    key: string;
+    code: string;
+    preventDefault?: () => void;
+    stopPropagation?: () => void;
+    isInput?: boolean;
 }
 
 export declare const stringUtils: {

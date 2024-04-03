@@ -4,6 +4,7 @@ import {
   isPreprint,
   mergeMetadata,
 } from "@/base/metadata";
+import { Process as processId } from "@/base/process-id";
 import { formatString } from "@/base/string";
 import {
   constructFileURL,
@@ -14,6 +15,7 @@ import {
   isLocalPath,
   listAllFiles,
 } from "@/base/url";
+import { convertKeyboardEvent, formatShortcut } from "@/common/utils.ts";
 
 const stringUtils = {
   formatString,
@@ -35,4 +37,12 @@ const metadataUtils = {
   mergeMetadata,
 };
 
-export { chunkRun, metadataUtils, stringUtils, urlUtils };
+export {
+  chunkRun,
+  convertKeyboardEvent,
+  formatShortcut,
+  metadataUtils,
+  processId,
+  stringUtils,
+  urlUtils,
+};

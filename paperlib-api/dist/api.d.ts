@@ -2151,6 +2151,7 @@ declare namespace PLAPI_2 {
     const uiStateService: Proxied<UIStateService>;
     const preferenceService: Proxied<PreferenceService>;
     const uiSlotService: Proxied<UISlotService>;
+    const shortcutService: Proxied<ShortcutService>;
 }
 export { PLAPI_2 as PLAPI }
 
@@ -2457,6 +2458,51 @@ declare class ScrapeService extends Eventable<{}> {
      * @param force - force scraping metadata.
      * @returns List of paper entities. */
     scrapeMetadata(paperEntityDrafts: PaperEntity[], scrapers: string[], force?: boolean): Promise<PaperEntity[]>;
+}
+
+declare interface ShortcutEvent {
+    ctrlKey: boolean;
+    metaKey: boolean;
+    altKey: boolean;
+    shiftKey: boolean;
+    key: string;
+    code: string;
+    preventDefault?: () => void;
+    stopPropagation?: () => void;
+    isInput?: boolean;
+}
+
+declare class ShortcutService {
+    readonly viewScope: typeof ShortcutViewScope;
+    private _workingViewScope;
+    private readonly _registeredShortcuts;
+    constructor();
+    /**
+     * Handle shortcut event with registered shortcuts.
+     * @param e - The shortcut event to be handled.
+     * */
+    handle(e: ShortcutEvent): void;
+    /**
+     * Register a shortcut.
+     * @param code - Shortcut code.
+     * @param handler - Shortcut handler.
+     * @param preventDefault - Whether to prevent default behavior.
+     * @param stopPropagation - Whether to stop propagation.
+     * @param viewScope - The scope of shortcuts to be registered.
+     * @returns Unregister function. */
+    register(code: string, handler: (...args: any[]) => void, preventDefault?: boolean, stopPropagation?: boolean, viewScope?: ShortcutViewScope | null): () => void;
+    /**
+     * Update working view scope.
+     * @param scope - The scope to be updated.
+     * @returns Restore function. */
+    updateWorkingViewScope(scope: ShortcutViewScope.OVERLAY | ShortcutViewScope.MAIN): () => void;
+}
+
+declare enum ShortcutViewScope {
+    MAIN = "main",
+    OVERLAY = "overlay",
+    INPUT = "input",
+    GLOBAL = "global"
 }
 
 declare class SmartFilterService extends Eventable<ISmartFilterServiceState> {
@@ -4562,6 +4608,11 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
      * @param windowId - The id of the window to be blurred
      */
     blur(windowId: string): void;
+    /**
+     * Whether the window is focused.
+     * @param windowId - The id of the window to be checked
+     */
+    isFocused(windowId: string): boolean;
 }
 
 declare class WindowStorage {
