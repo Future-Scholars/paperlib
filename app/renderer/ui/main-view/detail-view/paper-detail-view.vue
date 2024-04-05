@@ -7,7 +7,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import { disposable } from "@/base/dispose";
 import Authors from "./components/authors.vue";
 import Categorizers from "./components/categorizers.vue";
-import Code from "./components/code.vue";
+import OnlineResources from "./components/online-resources.vue";
 import Markdown from "./components/markdown.vue";
 import PubDetails from "./components/pub-details.vue";
 import Rating from "./components/rating.vue";
@@ -222,8 +222,6 @@ onUpdated(() => {
         :pages="entity.pages"
         :number="entity.number"
         :publisher="entity.publisher"
-        :arxiv="entity.arxiv"
-        :doi="entity.doi"
       />
       <Section :title="$t('mainview.pubTime')">
         <div class="text-xxs">
@@ -308,8 +306,8 @@ onUpdated(() => {
         v-if="entity.note.length > 0 && entity.note.startsWith('<md>')"
         :content="entity.note"
       />
-      <Section :title="$t('mainview.codes')" v-if="entity.codes.length > 0">
-        <Code :codes="entity.codes" />
+      <Section :title="$t('mainview.onlineResource')" v-if="entity.codes.length > 0">
+        <OnlineResources :codes="entity.codes" :doi="entity.doi" :arxiv="entity.arxiv" />
       </Section>
       <Section
         :title="$t('mainview.supplementaries')"
