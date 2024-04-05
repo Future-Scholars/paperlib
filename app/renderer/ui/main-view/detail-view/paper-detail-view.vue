@@ -306,8 +306,17 @@ onUpdated(() => {
         v-if="entity.note.length > 0 && entity.note.startsWith('<md>')"
         :content="entity.note"
       />
-      <Section :title="$t('mainview.onlineResource')" v-if="entity.codes.length > 0">
-        <OnlineResources :codes="entity.codes" :doi="entity.doi" :arxiv="entity.arxiv" />
+      <Section
+        :title="$t('mainview.onlineResources')"
+        v-if="
+          entity.codes.length > 0 || entity.doi !== '' || entity.arxiv !== ''
+        "
+      >
+        <OnlineResources
+          :codes="entity.codes"
+          :doi="entity.doi"
+          :arxiv="entity.arxiv"
+        />
       </Section>
       <Section
         :title="$t('mainview.supplementaries')"

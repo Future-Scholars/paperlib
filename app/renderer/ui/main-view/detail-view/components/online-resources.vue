@@ -34,10 +34,10 @@ const onCodeClick = (codeJSONstr: string) => {
         <div 
           class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
           v-if="arxiv"
-          @click="onLinkClick(`https://arxiv.org/abs/${arxiv}`)"
+          @click="onLinkClick(`https://arxiv.org/abs/${arxiv.toLowerCase().replaceAll('arxiv:', '').trim()}`)"
         >
           <BIconLink class="text-xs my-auto" />
-          <div class="text-xxs my-auto">Arxiv</div>
+          <div class="text-xxs my-auto">arXiv</div>
         </div>
         <div 
           class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
