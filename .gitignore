@@ -30,3 +30,4 @@ mongodb-realm
 crypto
 
 !paperlib-api/dist
+package-lock.json
