@@ -222,6 +222,8 @@ onUpdated(() => {
         :pages="entity.pages"
         :number="entity.number"
         :publisher="entity.publisher"
+        :arxiv="entity.arxiv"
+        :doi="entity.doi"
       />
       <Section :title="$t('mainview.pubTime')">
         <div class="text-xxs">

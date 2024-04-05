@@ -7,6 +7,8 @@ const props = defineProps({
   pages: String,
   number: String,
   publisher: String,
+  arxiv: String,
+  doi: String,
 });
 
 const isExpanded = ref(false);
