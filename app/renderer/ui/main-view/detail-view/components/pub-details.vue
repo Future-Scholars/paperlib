@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { BIconLink } from "bootstrap-icons-vue";
 import { ref } from "vue";
+import { shell } from "electron";
 
 const props = defineProps({
   publication: String,
@@ -53,5 +55,23 @@ const isExpanded = ref(false);
       </span>
       <span class="invisible group-hover:visible">«</span>
     </div>
+    <div class="flex gap-1 my-1">
+        <div 
+          class="max-w-12 flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer text-md"
+          v-if="arxiv"
+          @click="() => shell.openExternal(`https://arxiv.org/abs/${arxiv}`)"
+        >
+          <BIconLink class="text-xs my-auto" />
+          <div class="text-xxs my-auto">Arxiv</div>
+        </div>
+        <div 
+          class="max-w-12 flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer text-md"
+          v-if="doi"
+          @click="() => shell.openExternal(`https://doi.org/${doi}`)"
+        >
+          <BIconLink class="text-xs my-auto" />
+          <div class="text-xxs my-auto">DOI</div>
+        </div>
+      </div>
   </div>
 </template>
