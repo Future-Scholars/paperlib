@@ -1,3 +1,11 @@
+## v3.0.8 06/04 2024
+
+1. 新功能：在详情面板中新增了一个“在线资源”章节。by @charlieJ107
+2. 新功能：添加选择所有论文的快捷键。by @igoogolx
+3. 增强：可以调整 RSS 视图的列顺序和宽度。by @geoffreychen777
+4. 增强：快捷键管理。by @igoogolx
+5. 新功能（面向扩展开发者）：为参考文献导出添加多个 Hook 点。by @geoffreychen777
+
 ## v3.0.7 31/03 2024
 
 1. 新特性：导出 BibItem。by @omrihaber
