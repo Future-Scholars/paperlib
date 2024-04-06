@@ -40,7 +40,10 @@
     "citationcount": "被引次数",
     "smartfilters": "Smart 过滤器",
     "whatsnew": "更新内容",
-    "historyreleasenote": "历史版本"
+    "historyreleasenote": "历史版本",
+    "feed": "订阅",
+    "feedTime": "更新时间",
+    "abstract": "摘要"
   },
   "smartfilter": {
     "startops": "起始运算符",

@@ -84,6 +84,10 @@ const fields = computed(() => {
         }
         break;
       }
+      case "feed": {
+        value = value.name;
+        break;
+      }
     }
 
     const field = {
