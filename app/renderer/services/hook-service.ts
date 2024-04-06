@@ -1,4 +1,5 @@
 import pTimeout, { ClearablePromise } from "p-timeout";
+import Cite from "citation-js";
 
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
@@ -279,7 +280,13 @@ export class HookService {
   recoverClass<T>(originalObj: T, obj: any): T {
     if (originalObj instanceof PaperEntity) {
       return new PaperEntity(obj, false) as T;
-    } else if (originalObj instanceof Array) {
+    }
+    else if (originalObj instanceof Cite) {
+      const citeObj = new Cite();
+      citeObj.data = obj.data;
+      return citeObj as T;
+    }
+    else if (originalObj instanceof Array) {
       if (obj instanceof Array) {
         return obj.map((o, i) => this.recoverClass(originalObj[i], o)) as any;
       } else {
