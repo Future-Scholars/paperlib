@@ -15,12 +15,14 @@ import {
 import { CSL } from "@/models/csl";
 import { PaperEntity } from "@/models/paper-entity";
 import { IPaperService, PaperService } from "@/renderer/services/paper-service";
+import { HookService, IHookService } from "@/renderer/services/hook-service";
 
 export const IReferenceService = createDecorator("referenceService");
 
 export class ReferenceService {
   constructor(
     @IPaperService private readonly _paperService: PaperService,
+    @IHookService private readonly _hookService: HookService,
     @IPreferenceService private readonly _preferenceService: PreferenceService,
     @ILogService private readonly _logService: LogService
   ) {
@@ -188,6 +190,7 @@ export class ReferenceService {
       );
     }
   }
+
   /**
    * Export BibItem.
    * @param cite - The cite object.
@@ -199,11 +202,31 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  exportBibItem(cite: Cite): string {
+  async exportBibItem(paperEntities: PaperEntity[]): Promise<string> {
+    if (this._hookService.hasHook("beforeExportBibItem")) {
+      [paperEntities] = await this._hookService.modifyHookPoint(
+        "beforeExportBibItem",
+        60000, // 1 min
+        paperEntities
+      );
+    }
+
+    let cite = this.toCite(paperEntities);
+
+    if (this._hookService.hasHook("citeObjCreatedInExportBibItem")) {
+      [cite, paperEntities] = await this._hookService.modifyHookPoint(
+        "citeObjCreatedInExportBibItem",
+        60000, // 1 min
+        cite,
+        paperEntities
+      );
+    }
+
     // Code based on https://github.com/asouqi/bibtex-converter/blob/master/src/utilities/bib_converter.js
     const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
     let bibitem = "";
-    const bibTexKey = this.exportBibTexKey(cite);
+    const bibTexKey = await this.exportBibTexKey(paperEntities);
+    const bibTexKeyList = bibTexKey.split(",").map((x) => x.trim());
 
     const getAuthors = (authors) =>
       authors.map((author) => {
@@ -214,10 +237,10 @@ export class ReferenceService {
         return given ? capitalize(given) : (family && capitalize(family)) || "";
       });
 
-    cite.data.map((bibtex: CSL) => {
+    cite.data.forEach((bibtex, index) => {
       const { title, author, issued } = bibtex;
 
-      bibitem += `\\bibitem{${bibTexKey}}`;
+      bibitem += `\\bibitem{${bibTexKeyList[index]}}`;
 
       const authors = getAuthors(author);
       if (authors.length === 1) {
@@ -280,6 +303,14 @@ export class ReferenceService {
       }
       bibitem += "\n";
     });
+
+    if (this._hookService.hasHook("afterExportBibItem")) {
+      [bibitem] = await this._hookService.modifyHookPoint(
+        "afterExportBibItem",
+        60000, // 1 min
+        bibitem
+      );
+    }
     return bibitem;
   }
 
@@ -294,8 +325,37 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  exportBibTexKey(cite: Cite): string {
-    return cite.format("bibtex-key");
+  async exportBibTexKey(paperEntities: PaperEntity[]): Promise<string> {
+    if (this._hookService.hasHook("beforeExportBibTexKey")) {
+      [paperEntities] = await this._hookService.modifyHookPoint(
+        "beforeExportBibTexKey",
+        60000, // 1 min
+        paperEntities
+      );
+    }
+
+    let cite = this.toCite(paperEntities);
+
+    if (this._hookService.hasHook("citeObjCreatedInExportBibTexKey")) {
+      [cite, paperEntities] = await this._hookService.modifyHookPoint(
+        "citeObjCreatedInExportBibTexKey",
+        60000, // 1 min
+        cite,
+        paperEntities
+      );
+    }
+
+    let bibKeyStr = cite.format("bibtex-key");
+
+    if (this._hookService.hasHook("afterExportBibTexKey")) {
+      [bibKeyStr] = await this._hookService.modifyHookPoint(
+        "afterExportBibTexKey",
+        60000, // 1 min
+        bibKeyStr
+      );
+    }
+
+    return bibKeyStr;
   }
 
   /**
@@ -309,7 +369,26 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  exportBibTexBody(cite: Cite): string {
+  async exportBibTexBody(paperEntities: PaperEntity[]): Promise<string> {
+    if (this._hookService.hasHook("beforeExportBibTexBody")) {
+      [paperEntities] = await this._hookService.modifyHookPoint(
+        "beforeExportBibTexBody",
+        60000, // 1 min
+        paperEntities
+      );
+    }
+
+    let cite = this.toCite(paperEntities);
+
+    if (this._hookService.hasHook("citeObjCreatedInExportBibTexBody")) {
+      [cite, paperEntities] = await this._hookService.modifyHookPoint(
+        "citeObjCreatedInExportBibTexBody",
+        60000, // 1 min
+        cite,
+        paperEntities
+      );
+    }
+
     const mathEnvStrs: string[] = [];
     let idx = 0;
     for (const i in cite.data) {
@@ -334,6 +413,14 @@ export class ReferenceService {
         .replace(`{MATHENVDOLLAR}{i}`, mathEnvStrs[i]);
     }
 
+    if (this._hookService.hasHook("afterExportBibTexBody")) {
+      [bibtexBody] = await this._hookService.modifyHookPoint(
+        "afterExportBibTexBody",
+        60000, // 1 min
+        bibtexBody
+      );
+    }
+
     return bibtexBody;
   }
 
@@ -352,8 +439,8 @@ export class ReferenceService {
       `folders.name == '${folderName}'`,
       "title",
       "asce"
-    );
-    return this.exportBibTexBody(this.toCite(paperEntities as PaperEntity[]));
+    ) as PaperEntity[];
+    return this.exportBibTexBody(paperEntities);
   }
 
   /**
@@ -367,11 +454,31 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  async exportPlainText(cite: Cite): Promise<string> {
+  async exportPlainText(paperEntities: PaperEntity[]): Promise<string> {
+    if (this._hookService.hasHook("beforeExportPlainText")) {
+      [paperEntities] = await this._hookService.modifyHookPoint(
+        "beforeExportPlainText",
+        60000, // 1 min
+        paperEntities
+      );
+    }
+
+    let cite = this.toCite(paperEntities);
+
+    if (this._hookService.hasHook("citeObjCreatedInExportPlainText")) {
+      [cite, paperEntities] = await this._hookService.modifyHookPoint(
+        "citeObjCreatedInExportPlainText",
+        60000, // 1 min
+        cite,
+        paperEntities
+      );
+    }
+
     const csl = this._preferenceService.get("selectedCSLStyle") as string;
 
+    let outStr = ""
     if (["apa", "vancouver", "harvard1"].includes(csl)) {
-      return cite.format("bibliography", { template: csl });
+      outStr = cite.format("bibliography", { template: csl });
     } else {
       let templatePath = path.join(
         this._preferenceService.get("importedCSLStylesPath") as string,
@@ -385,7 +492,7 @@ export class ReferenceService {
           config.templates.add(csl, template);
         }
 
-        return cite.format("bibliography", { template: csl });
+        outStr = cite.format("bibliography", { template: csl });
       } else {
         this._logService.error(
           `CSL template file: ${csl}.csl not found.`,
@@ -394,9 +501,19 @@ export class ReferenceService {
           "Reference"
         );
 
-        return cite.format("bibliography", { template: "apa" });
+        outStr = cite.format("bibliography", { template: "apa" });
       }
     }
+
+    if (this._hookService.hasHook("afterExportPlainText")) {
+      [outStr] = await this._hookService.modifyHookPoint(
+        "afterExportPlainText",
+        60000, // 1 min
+        outStr
+      );
+    }
+
+    return outStr;
   }
 
   /**
@@ -414,8 +531,8 @@ export class ReferenceService {
       `folders.name == '${folderName}'`,
       "title",
       "asce"
-    );
-    return this.exportPlainText(this.toCite(paperEntities as PaperEntity[]));
+    ) as PaperEntity[];
+    return this.exportPlainText(paperEntities);
   }
 
   /**
@@ -484,16 +601,16 @@ export class ReferenceService {
     let folderName = "";
     switch (format) {
       case "BibTex":
-        copyStr = this.exportBibTexBody(this.toCite(paperEntityDrafts));
+        copyStr = await this.exportBibTexBody(paperEntityDrafts);
         break;
       case "BibItem":
-        copyStr = this.exportBibItem(this.toCite(paperEntityDrafts));
+        copyStr = await this.exportBibItem(paperEntityDrafts);
         break;
       case "BibTex-Key":
-        copyStr = this.exportBibTexKey(this.toCite(paperEntityDrafts));
+        copyStr = await this.exportBibTexKey(paperEntityDrafts);
         break;
       case "PlainText":
-        copyStr = await this.exportPlainText(this.toCite(paperEntityDrafts));
+        copyStr = await this.exportPlainText(paperEntityDrafts);
         break;
       case "CSV":
         copyStr = await this.exportCSV(paperEntityDrafts);
