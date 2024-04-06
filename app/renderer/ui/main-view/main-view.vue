@@ -18,6 +18,7 @@ import FeedDetailView from "./detail-view/feed-detail-view.vue";
 import PaperDetailView from "./detail-view/paper-detail-view.vue";
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 import { Process } from "@/base/process-id.ts";
+import { cmdOrCtrl } from "@/common/utils.ts";
 
 // ================================
 // State
@@ -223,6 +224,20 @@ const previewSelectedEntities = () => {
   if (uiState.contentType === "library") {
     fileService.preview(uiState.selectedPaperEntities[0].mainURL);
   }
+};
+
+const selectAllEntities = () => {
+  let length = 0;
+  if (uiState.contentType === "library") {
+    if (paperEntities) {
+      length = paperEntities.value.length;
+    }
+  } else {
+    if (feedEntities) {
+      length = feedEntities.value.length;
+    }
+  }
+  uiState.selectedIndex = Array.from({ length }).map((_, index) => index);
 };
 
 const reloadSelectedEntities = () => {
@@ -611,6 +626,17 @@ disposable(
 
 disposable(
   shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
+);
+
+disposable(
+  shortcutService.register(
+    `${cmdOrCtrl}+A`,
+    () => {
+      selectAllEntities();
+    },
+    true,
+    true
+  )
 );
 
 disposable(
