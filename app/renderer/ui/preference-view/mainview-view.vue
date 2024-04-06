@@ -112,29 +112,44 @@ const computeFieldTemplates = () => {
   }
 };
 
-const toggleField = (index: number) => {
-  const mainFieldPrefs = prefState.mainTableFields;
+const toggleField = (index: number, isMain = true) => {
+  const mainFieldPrefs = isMain ? prefState.mainTableFields : prefState.feedFields;
   mainFieldPrefs[index].enable = !mainFieldPrefs[index].enable;
   mainFieldPrefs.forEach((fieldPref) => {
     fieldPref.width = -1;
   });
-  preferenceService.set({ mainTableFields: mainFieldPrefs });
+
+  if (isMain) {
+    preferenceService.set({ mainTableFields: mainFieldPrefs });
+  } else {
+    preferenceService.set({ feedFields: mainFieldPrefs });
+  }
 };
 
-const onMovePreClicked = (index: number) => {
-  const mainFieldPrefs = prefState.mainTableFields;
+const onMovePreClicked = (index: number, isMain = true) => {
+  const mainFieldPrefs = isMain ? prefState.mainTableFields : prefState.feedFields;
   const fieldPref = mainFieldPrefs[index];
   mainFieldPrefs.splice(index, 1);
   mainFieldPrefs.splice(index - 1, 0, fieldPref);
-  preferenceService.set({ mainTableFields: mainFieldPrefs });
+
+  if (isMain) {
+    preferenceService.set({ mainTableFields: mainFieldPrefs });
+  } else {
+    preferenceService.set({ feedFields: mainFieldPrefs });
+  }
 };
 
-const onMoveNextClicked = (index: number) => {
-  const mainFieldPrefs = prefState.mainTableFields;
+const onMoveNextClicked = (index: number, isMain = true) => {
+  const mainFieldPrefs = isMain ? prefState.mainTableFields : prefState.feedFields;
   const fieldPref = mainFieldPrefs[index];
   mainFieldPrefs.splice(index, 1);
   mainFieldPrefs.splice(index + 1, 0, fieldPref);
-  preferenceService.set({ mainTableFields: mainFieldPrefs });
+
+  if (isMain) {
+    preferenceService.set({ mainTableFields: mainFieldPrefs });
+  } else {
+    preferenceService.set({ feedFields: mainFieldPrefs });
+  }
 };
 
 disposable(
@@ -200,5 +215,23 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
       :enable="prefState.mainviewShortAuthor"
       @event:change="(value) => updatePref('mainviewShortAuthor', value)"
     />
+
+    <br />
+
+    <div class="text-base font-semibold mt-4">
+      {{ $t("mainview.feeds") }}
+    </div>
+
+    <div class="grid mt-2 lg:grid-cols-6 grid-cols-4 gap-1">
+      <MainField
+        v-for="(field, index) in prefState.feedFields"
+        :description="$t(`mainview.${field.key}`)"
+        :enable="field.enable"
+        @event:click="toggleField(index, false)"
+        @event:pre-click="onMovePreClicked(index, false)"
+        @event:next-click="onMoveNextClicked(index, false)"
+      />
+    </div>
+
   </div>
 </template>

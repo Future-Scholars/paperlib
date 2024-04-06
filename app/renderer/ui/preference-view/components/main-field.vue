@@ -41,7 +41,7 @@ const emit = defineEmits([
       class="flex rounded-md px-1 space-x-1 h-6 grow"
       @click="$emit('event:click')"
     >
-      <div class="text-xs m-auto">{{ description }}</div>
+      <div class="text-xs m-auto truncate">{{ description }}</div>
     </div>
     <div
       class="flex hover:bg-neutral-300 rounded-md group-hover:visible invisible flex-none"

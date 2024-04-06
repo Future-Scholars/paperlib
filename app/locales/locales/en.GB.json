@@ -40,7 +40,10 @@
     "citationcount": "Citation Count",
     "smartfilters": "Smart Filters",
     "whatsnew": "What's New in",
-    "historyreleasenote": "History Release Note"
+    "historyreleasenote": "History Release Note",
+    "feed": "Feed",
+    "feedTime": "Feed Time",
+    "abstract": "Abstract"
   },
   "smartfilter": {
     "startops": "Start Ops",
