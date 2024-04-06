@@ -193,7 +193,7 @@ export class ReferenceService {
 
   /**
    * Export BibItem.
-   * @param cite - The cite object.
+   * @param paperEntities - The paper entities.
    * @returns The BibItem.
    */
   @errorcatching(
@@ -316,7 +316,7 @@ export class ReferenceService {
 
   /**
    * Export BibTex key.
-   * @param cite - The cite object.
+   * @param paperEntities - The paper entities.
    * @returns The BibTex key.
    */
   @errorcatching(
@@ -360,7 +360,7 @@ export class ReferenceService {
 
   /**
    * Export BibTex body string.
-   * @param cite - The cite object.
+   * @param paperEntities - The paper entities.
    * @returns The BibTex body string.
    */
   @errorcatching(
@@ -445,7 +445,7 @@ export class ReferenceService {
 
   /**
    * Export plain text.
-   * @param cite - The cite object.
+   * @param paperEntities - The paper entities.
    * @returns The plain text.
    */
   @errorcatching(
@@ -537,7 +537,7 @@ export class ReferenceService {
 
   /**
    * Export papers as csv string.
-   * @param papers - The PaperEntity array.
+   * @param paperEntities - The paper entities.
    * @returns The CSV string.
    */
   @errorcatching(

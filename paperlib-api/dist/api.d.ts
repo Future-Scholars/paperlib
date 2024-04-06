@@ -2251,19 +2251,19 @@ declare class ReferenceService {
     toCite(source: PaperEntity | PaperEntity[] | string): any;
     /**
      * Export BibItem.
-     * @param cite - The cite object.
+     * @param paperEntities - The paper entities.
      * @returns The BibItem.
      */
     exportBibItem(paperEntities: PaperEntity[]): Promise<string>;
     /**
      * Export BibTex key.
-     * @param cite - The cite object.
+     * @param paperEntities - The paper entities.
      * @returns The BibTex key.
      */
     exportBibTexKey(paperEntities: PaperEntity[]): Promise<string>;
     /**
      * Export BibTex body string.
-     * @param cite - The cite object.
+     * @param paperEntities - The paper entities.
      * @returns The BibTex body string.
      */
     exportBibTexBody(paperEntities: PaperEntity[]): Promise<string>;
@@ -2274,7 +2274,7 @@ declare class ReferenceService {
     exportBibTexBodyInFolder(folderName: string): Promise<string>;
     /**
      * Export plain text.
-     * @param cite - The cite object.
+     * @param paperEntities - The paper entities.
      * @returns The plain text.
      */
     exportPlainText(paperEntities: PaperEntity[]): Promise<string>;
@@ -2285,7 +2285,7 @@ declare class ReferenceService {
     exportPlainTextInFolder(folderName: string): Promise<string>;
     /**
      * Export papers as csv string.
-     * @param papers - The PaperEntity array.
+     * @param paperEntities - The paper entities.
      * @returns The CSV string.
      */
     exportCSV(paperEntities: PaperEntity[]): string;
