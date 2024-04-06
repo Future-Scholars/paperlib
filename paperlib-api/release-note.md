@@ -1,5 +1,10 @@
 # Paperlib API Release Note
 
+## v0.1.7
+
+- all functions in `referenceService` now receive a `PaperEntity[]` rather than a citation.js object.
+- add `PLMainAPI.windowProcessManagementService.isFocused(...)` to check if a window is focused.
+
 ## v0.1.6
 
 - add `dataContextMenuExportBibItemClicked` for `PLMainAPI.contextMenuService`.

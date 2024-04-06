@@ -2,7 +2,6 @@
 
 import { BrowserWindow } from 'electron';
 import { BrowserWindowConstructorOptions } from 'electron';
-import Cite from 'citation-js';
 import { CookieJar } from 'tough-cookie';
 import { List } from 'realm';
 import { ObjectID } from 'bson';
@@ -2233,9 +2232,10 @@ declare type Proxied<T> = {
 
 declare class ReferenceService {
     private readonly _paperService;
+    private readonly _hookService;
     private readonly _preferenceService;
     private readonly _logService;
-    constructor(_paperService: PaperService, _preferenceService: PreferenceService, _logService: LogService);
+    constructor(_paperService: PaperService, _hookService: HookService, _preferenceService: PreferenceService, _logService: LogService);
     private _setupCitePlugin;
     /**
      * Abbreviate the publication name according to the abbreviation list set in the preference interface.
@@ -2254,19 +2254,19 @@ declare class ReferenceService {
      * @param cite - The cite object.
      * @returns The BibItem.
      */
-    exportBibItem(cite: Cite): string;
+    exportBibItem(paperEntities: PaperEntity[]): Promise<string>;
     /**
      * Export BibTex key.
      * @param cite - The cite object.
      * @returns The BibTex key.
      */
-    exportBibTexKey(cite: Cite): string;
+    exportBibTexKey(paperEntities: PaperEntity[]): Promise<string>;
     /**
      * Export BibTex body string.
      * @param cite - The cite object.
      * @returns The BibTex body string.
      */
-    exportBibTexBody(cite: Cite): string;
+    exportBibTexBody(paperEntities: PaperEntity[]): Promise<string>;
     /**
      * Export BibTex body string in folder.
      * @param folderName - The folder name.
@@ -2277,7 +2277,7 @@ declare class ReferenceService {
      * @param cite - The cite object.
      * @returns The plain text.
      */
-    exportPlainText(cite: Cite): Promise<string>;
+    exportPlainText(paperEntities: PaperEntity[]): Promise<string>;
     /**
      * Export plain text in folder.
      * @param folderName - The folder name.

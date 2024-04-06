@@ -66,6 +66,13 @@ function mergeMetadata(originPaperEntityDraft, paperEntityDraft, scrapedpaperEnt
   return { paperEntityDraft, mergePriorityLevel };
 }
 
+var Process = /* @__PURE__ */ ((Process2) => {
+  Process2["main"] = "mainProcess";
+  Process2["extension"] = "extensionProcess";
+  Process2["renderer"] = "rendererProcess";
+  return Process2;
+})(Process || {});
+
 const formatString = ({
   str,
   removeNewline = false,
@@ -186,6 +193,57 @@ function isLocalPath(string) {
   return /^\.{0,2}\//.test(string);
 }
 
+const isMac = process.platform === "darwin";
+const formatShortcut = (event) => {
+  let shortcutKeys = [];
+  if (event.ctrlKey) {
+    shortcutKeys.push("Control");
+  }
+  if (event.metaKey) {
+    if (isMac) {
+      shortcutKeys.push("Command");
+    } else {
+      shortcutKeys.push("Meta");
+    }
+  }
+  if (event.altKey) {
+    shortcutKeys.push("Alt");
+  }
+  if (event.shiftKey) {
+    shortcutKeys.push("Shift");
+  }
+  let key = event.key.trim();
+  if (key !== "Meta") {
+    if (event.code === "Space") {
+      key = event.code.trim();
+    }
+    if (key.length === 1) {
+      key = key.toUpperCase();
+    }
+    if (!shortcutKeys.includes(key)) {
+      shortcutKeys.push(key);
+    }
+  }
+  return shortcutKeys;
+};
+const convertKeyboardEvent = (e) => {
+  return {
+    ctrlKey: e.ctrlKey,
+    metaKey: e.metaKey,
+    altKey: e.altKey,
+    shiftKey: e.shiftKey,
+    key: e.key,
+    code: e.code,
+    preventDefault: () => {
+      e.preventDefault();
+    },
+    stopPropagation: () => {
+      e.stopPropagation();
+    },
+    isInput: e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
+  };
+};
+
 const stringUtils = {
   formatString
 };
@@ -204,4 +262,4 @@ const metadataUtils = {
   mergeMetadata
 };
 
-export { chunkRun, metadataUtils, stringUtils, urlUtils };
+export { chunkRun, convertKeyboardEvent, formatShortcut, metadataUtils, Process as processId, stringUtils, urlUtils };
