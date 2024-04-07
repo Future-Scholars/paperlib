@@ -13,7 +13,7 @@ export interface ShortcutEvent {
   stopPropagation?: () => void;
   isInput?: boolean;
   target?: {
-    blur: () => void;
+    blur?: () => void;
   };
 }
 
