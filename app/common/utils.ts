@@ -17,7 +17,12 @@ export interface ShortcutEvent {
   };
 }
 
-export const formatShortcut = (event: ShortcutEvent): string[] => {
+export const formatShortcut = (
+  event: Pick<
+    ShortcutEvent,
+    "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "key" | "code"
+  >
+): string[] => {
   let shortcutKeys: string[] = [];
 
   if (event.ctrlKey) {
