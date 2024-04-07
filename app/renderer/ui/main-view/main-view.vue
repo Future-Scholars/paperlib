@@ -18,7 +18,7 @@ import FeedDetailView from "./detail-view/feed-detail-view.vue";
 import PaperDetailView from "./detail-view/paper-detail-view.vue";
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 import { Process } from "@/base/process-id.ts";
-import { cmdOrCtrl } from "@/common/utils.ts";
+import { cmdOrCtrl, ShortcutEvent } from "@/common/utils.ts";
 
 // ================================
 // State
@@ -46,14 +46,9 @@ let disposeCallbacks: (() => void)[] = [];
 disposable(
   shortcutService.register(
     "Space",
-    (e: KeyboardEvent) => {
-      if (
-        !(
-          e.target instanceof HTMLInputElement ||
-          e.target instanceof HTMLTextAreaElement
-        )
-      ) {
-        e.preventDefault();
+    (e: ShortcutEvent) => {
+      if (!e.isInput) {
+        e.preventDefault?.();
       }
     },
     false,

@@ -91,7 +91,7 @@ export class ShortcutService {
    * @returns Unregister function. */
   register(
     code: string,
-    handler: (...args: any[]) => void,
+    handler: (e: ShortcutEvent) => void,
     preventDefault: boolean = true,
     stopPropagation: boolean = true,
     viewScope: ShortcutViewScope | null = null
