@@ -6,6 +6,7 @@ import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
 import { ICommand } from "@/renderer/services/command-service";
 import { PaperFilterOptions } from "@/renderer/services/paper-service";
+import { ShortcutEvent } from "@/common/utils.ts";
 
 // ================================
 // State
@@ -88,7 +89,7 @@ const isFocused = ref(false);
 const isMouseOver = ref(false);
 const isSelectingCommand = ref(false);
 
-const onRunCommand = (e: Event) => {
+const onRunCommand = () => {
   if (isCommandPanelShown.value && selectedCommandIndex.value >= 0) {
     const commandComponents = commandText.value.split(" ").filter((x) => x);
     const commandStr = commandComponents[0].trim();
@@ -182,8 +183,8 @@ const onFocus = async (payload: Event) => {
 
   enterDisposeHandler = shortcutService.register(
     "Enter",
-    (e: Event) => {
-      onRunCommand(e);
+    () => {
+      onRunCommand();
     },
     true,
     true,
@@ -192,8 +193,7 @@ const onFocus = async (payload: Event) => {
 
   escapeDisposeHandler = shortcutService.register(
     "Escape",
-    (e: Event) => {
-      //@ts-ignore
+    (e: ShortcutEvent) => {
       e.target?.blur();
       uiState.commandBarText = "";
       uiState.commandBarSearchMode = "general";
@@ -206,7 +206,7 @@ const onFocus = async (payload: Event) => {
 
   backDisposeHandler = shortcutService.register(
     "Backspace",
-    (e: Event) => {
+    () => {
       if (commandText.value === "") {
         uiState.commandBarText = "";
         uiState.commandBarSearchMode = "general";
