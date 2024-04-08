@@ -12,9 +12,17 @@ export interface ShortcutEvent {
   preventDefault?: () => void;
   stopPropagation?: () => void;
   isInput?: boolean;
+  target?: {
+    blur?: () => void;
+  };
 }
 
-export const formatShortcut = (event: ShortcutEvent): string[] => {
+export const formatShortcut = (
+  event: Pick<
+    ShortcutEvent,
+    "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "key" | "code"
+  >
+): string[] => {
   let shortcutKeys: string[] = [];
 
   if (event.ctrlKey) {
@@ -56,6 +64,9 @@ export const formatKeycode = (code: string): string => {
 };
 
 export const convertKeyboardEvent = (e: KeyboardEvent): ShortcutEvent => {
+  const isInput =
+    e.target instanceof HTMLInputElement ||
+    e.target instanceof HTMLTextAreaElement;
   return {
     ctrlKey: e.ctrlKey,
     metaKey: e.metaKey,
@@ -69,8 +80,13 @@ export const convertKeyboardEvent = (e: KeyboardEvent): ShortcutEvent => {
     stopPropagation: () => {
       e.stopPropagation();
     },
-    isInput:
-      e.target instanceof HTMLInputElement ||
-      e.target instanceof HTMLTextAreaElement,
+    isInput,
+    target: {
+      blur: () => {
+        if (isInput && e.target) {
+          (e.target as HTMLInputElement | HTMLTextAreaElement).blur();
+        }
+      },
+    },
   };
 };
