@@ -234,8 +234,7 @@ onUpdated(() => {
         v-for="[id, item] of Object.entries(slot1)"
         :title="item.title"
       >
-        <div class="text-xxs">
-          {{ item.content }}
+        <div class="text-xxs" v-html="item.content">
         </div>
       </Section>
 
@@ -281,8 +280,7 @@ onUpdated(() => {
         v-for="[id, item] of Object.entries(slot2)"
         :title="item.title"
       >
-        <div class="text-xxs">
-          {{ item.content }}
+        <div class="text-xxs" v-html="item.content">
         </div>
       </Section>
 
@@ -331,8 +329,7 @@ onUpdated(() => {
         v-for="[id, item] of Object.entries(slot3)"
         :title="item.title"
       >
-        <div class="text-xxs">
-          {{ item.content }}
+        <div class="text-xxs" v-html="item.content">
         </div>
       </Section>
     </div>
