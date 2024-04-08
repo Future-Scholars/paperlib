@@ -1,6 +1,6 @@
 ## v3.0.9 Apr 06 2024
 
-1. Important Bug: Fix space key not working in input. by @igoogolx
+1. Critical Bug: Fix space key not working in input. by @igoogolx
 2. Enhance: UI Slots support HTML now. by @geoffreychen777
 
 ## v3.0.8 Apr 06 2024
