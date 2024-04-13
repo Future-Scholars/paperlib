@@ -92,6 +92,11 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
   info.value = "";
   preferenceService.set({ [key]: newShortcut });
 };
+const onGlobalShortcutChange=(key:string)=>{
+  onUpdate('shortcutPlugin', key)
+  PLMainAPI.menuService.disableGlobalShortcuts();
+  PLMainAPI.menuService.enableGlobalShortcuts();
+}
 </script>
 
 <template>
@@ -125,7 +130,7 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
       <HotkeyOption
         :title="$t('preference.hotkeysPluginLabel')"
         :choosed-key="prefState.shortcutPlugin"
-        @event:change="(key) => onUpdate('shortcutPlugin', key)"
+        @event:change="onGlobalShortcutChange"
       />
       <HotkeyOption
         :title="$t('menu.copybibtext')"

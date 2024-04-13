@@ -238,11 +238,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
    * Disable all global shortcuts.
    */
   disableGlobalShortcuts() {
-    const pluginKey = this._preferenceService.get("shortcutPlugin");
-    if (!pluginKey) {
-      return;
-    }
-    globalShortcut.unregister(pluginKey as string);
+    globalShortcut.unregisterAll();
   }
 
   /**
