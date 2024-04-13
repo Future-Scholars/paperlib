@@ -252,10 +252,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * @param windowId - The id of the window to be destroyed
    */
   destroy(windowId: string) {
-    if (this.browserWindows.has(windowId)) {
-      this.browserWindows.destroy(windowId);
-      this.fire({ destroyed: windowId });
-    }
+    this.browserWindows.destroy(windowId);
+    this.fire({ destroyed: windowId });
   }
 
   /**
