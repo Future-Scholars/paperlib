@@ -194,7 +194,9 @@ const onFocus = async (payload: Event) => {
   escapeDisposeHandler = shortcutService.register(
     "Escape",
     (e: ShortcutEvent) => {
-      e.target?.blur?.();
+      if (e.isInput && e.target) {
+        (e.target as HTMLInputElement | HTMLTextAreaElement).blur();
+      }
       uiState.commandBarText = "";
       uiState.commandBarSearchMode = "general";
       uiState.querySentenceCommandbar = "";

@@ -12,9 +12,7 @@ export interface ShortcutEvent {
   preventDefault?: () => void;
   stopPropagation?: () => void;
   isInput?: boolean;
-  target?: {
-    blur?: () => void;
-  };
+  target?: EventTarget | null;
 }
 
 export const formatShortcut = (
@@ -81,12 +79,6 @@ export const convertKeyboardEvent = (e: KeyboardEvent): ShortcutEvent => {
       e.stopPropagation();
     },
     isInput,
-    target: {
-      blur: () => {
-        if (isInput && e.target) {
-          (e.target as HTMLInputElement | HTMLTextAreaElement).blur();
-        }
-      },
-    },
+    target: e.target,
   };
 };
