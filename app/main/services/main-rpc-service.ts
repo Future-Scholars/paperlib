@@ -76,6 +76,14 @@ export class MainRPCService extends RPCService<IMainRPCServiceState> {
                 .get(otherProcessID)
                 .webContents.postMessage("destroy-port", destroyedProcessID);
             }
+
+            if (
+              extensionProcessManagementService.extensionProcesses[otherProcessID]
+            ) {
+              extensionProcessManagementService.extensionProcesses[
+                otherProcessID
+              ].postMessage({ type: "destroy-port", value: destroyedProcessID });
+            }
           }
         }
 
