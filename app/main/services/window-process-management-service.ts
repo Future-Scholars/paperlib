@@ -1,6 +1,7 @@
 import {
   BrowserWindow,
   BrowserWindowConstructorOptions,
+  Rectangle,
   app,
   ipcMain,
   nativeTheme,
@@ -134,6 +135,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       "show",
       "unmaximize",
       "maximize",
+      "move",
+      "resize",
     ]) {
       this.browserWindows.get(id).on(eventName as any, (e) => {
         this.fire({ [id]: eventName });
@@ -531,5 +534,41 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       return this.browserWindows.get(windowId).isFocused();
     }
     return false;
+  }
+
+  /**
+   * Set parent as current window's parent window.
+   * @param parentId - The id of the parent window
+   * @param currentId - The id of the current window
+   */
+  setParentWindow(parentId: string, currentId: string) {
+    if (this.exist(parentId) && this.exist(currentId)) {
+      const parentWindow = this.browserWindows.get(parentId);
+      const currentWindow = this.browserWindows.get(currentId);
+      currentWindow.setParentWindow(parentWindow);
+    }
+  }
+
+  /**
+   * Return the window's current position.
+   * @param windowId - The id of the window to be checked
+   */
+  getBounds(windowId: string) {
+    if (this.exist(windowId)) {
+      const currentWindow = this.browserWindows.get(windowId);
+      return currentWindow.getBounds();
+    }
+  }
+
+  /**
+   * Set the window's current bounds.
+   * @param windowId - The id of the window to be checked
+   * @param bounds - The bounds of the window to be set
+   */
+  setBounds(windowId: string, bounds: Partial<Rectangle>) {
+    if (this.exist(windowId)) {
+      const currentWindow = this.browserWindows.get(windowId);
+      return currentWindow.setBounds(bounds);
+    }
   }
 }
