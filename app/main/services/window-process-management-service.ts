@@ -550,7 +550,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   }
 
   /**
-   * Return the window's current position.
+   * Return the window's current bounds.
    * @param windowId - The id of the window to be checked
    */
   getBounds(windowId: string) {
@@ -562,7 +562,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   /**
    * Set the window's current bounds.
-   * @param windowId - The id of the window to be checked
+   * @param windowId - The id of the window to be set
    * @param bounds - The bounds of the window to be set
    */
   setBounds(windowId: string, bounds: Partial<Rectangle>) {
