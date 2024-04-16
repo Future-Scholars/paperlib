@@ -69,15 +69,17 @@ export class WindowStorage {
       let window: BrowserWindow;
       if (typeof id === "string") {
         window = this._windows[id as string];
+        delete this._windows[id as string];
       } else {
         window = this._windows[this._wId2Id[id]];
+        if (window) {
+          const windowId = window.id;
+          delete this._wId2Id[windowId];
+        }
       }
-      const windowId = window.id;
       if (window && !window.isDestroyed()) {
         window.destroy();
       }
-      delete this._wId2Id[windowId];
-      delete this._windows[id as string];
     } catch (e) {
       console.error(e);
     }
