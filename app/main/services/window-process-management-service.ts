@@ -541,11 +541,16 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * @param parentId - The id of the parent window
    * @param currentId - The id of the current window
    */
-  setParentWindow(parentId: string, currentId: string) {
-    if (this.exist(parentId) && this.exist(currentId)) {
-      const parentWindow = this.browserWindows.get(parentId);
-      const currentWindow = this.browserWindows.get(currentId);
-      currentWindow.setParentWindow(parentWindow);
+  setParentWindow(parentId: string | null, currentId: string) {
+    if (this.exist(currentId)) {
+      if (parentId === null) {
+        const currentWindow = this.browserWindows.get(currentId);
+        currentWindow.setParentWindow(null);
+      } else if (this.exist(parentId)) {
+        const parentWindow = this.browserWindows.get(parentId);
+        const currentWindow = this.browserWindows.get(currentId);
+        currentWindow.setParentWindow(parentWindow);
+      }
     }
   }
 
@@ -569,6 +574,41 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     if (this.exist(windowId)) {
       const currentWindow = this.browserWindows.get(windowId);
       return currentWindow.setBounds(bounds);
+    }
+  }
+
+  /**
+   * Return whether the window has a parent.
+   * @param windowId - The id of the window to be checked
+   */
+  hasParentWindow(windowId: string) {
+    if (this.exist(windowId)) {
+      const currentWindow = this.browserWindows.get(windowId);
+      return !!currentWindow.getParentWindow();
+    }
+    return false;
+  }
+
+  /**
+   * Set whether the window should show always on top of other windows.
+   * @param windowId - The id of the window to be set
+   * @param flag - Whether the window should show always on top of other windows
+   */
+  setAlwaysOnTop(windowId: string, flag: boolean) {
+    if (this.exist(windowId)) {
+      const currentWindow = this.browserWindows.get(windowId);
+      currentWindow.setAlwaysOnTop(flag);
+    }
+  }
+
+  /**
+   * Move the window to the center of the screen.
+   * @param windowId - The id of the window to be set
+   */
+  center(windowId: string) {
+    if (this.exist(windowId)) {
+      const currentWindow = this.browserWindows.get(windowId);
+      currentWindow.center();
     }
   }
 }
