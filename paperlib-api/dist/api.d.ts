@@ -4620,7 +4620,7 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
      * @param parentId - The id of the parent window
      * @param currentId - The id of the current window
      */
-    setParentWindow(parentId: string, currentId: string): void;
+    setParentWindow(parentId: string | null, currentId: string): void;
     /**
      * Return the window's current bounds.
      * @param windowId - The id of the window to be checked
@@ -4632,6 +4632,22 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
      * @param bounds - The bounds of the window to be set
      */
     setBounds(windowId: string, bounds: Partial<Rectangle>): void;
+    /**
+     * Return whether the window has a parent.
+     * @param windowId - The id of the window to be checked
+     */
+    hasParentWindow(windowId: string): boolean;
+    /**
+     * Set whether the window should show always on top of other windows.
+     * @param windowId - The id of the window to be set
+     * @param flag - Whether the window should show always on top of other windows
+     */
+    setAlwaysOnTop(windowId: string, flag: boolean): void;
+    /**
+     * Move the window to the center of the screen.
+     * @param windowId - The id of the window to be set
+     */
+    center(windowId: string): void;
 }
 
 declare class WindowStorage {
