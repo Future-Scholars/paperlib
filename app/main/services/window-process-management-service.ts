@@ -343,11 +343,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * @param windowId - The id of the window to be unmaximized
    */
   unmaximize(windowId: string) {
-    if (windowId === Process.renderer) {
-      const win = this.browserWindows.get(windowId);
-      win.unmaximize();
-    } else {
-      const win = this.browserWindows.get(windowId);
+    const win = this.browserWindows.get(windowId);
+    if (win) {
       win.unmaximize();
     }
   }
@@ -357,11 +354,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * @param windowId - The id of the window to be maximized
    */
   maximize(windowId: string) {
-    if (windowId === Process.renderer) {
-      const win = this.browserWindows.get(windowId);
-      win.maximize();
-    } else {
-      const win = this.browserWindows.get(windowId);
+    const win = this.browserWindows.get(windowId);
+    if (win) {
       win.maximize();
     }
   }
