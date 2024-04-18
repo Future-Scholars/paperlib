@@ -105,7 +105,7 @@ declare class FeedEntity {
     fromPaper(paperEntity: PaperEntity): void;
 }
 
-export declare const formatShortcut: (event: ShortcutEvent) => string[];
+export declare const formatShortcut: (event: Pick<ShortcutEvent, "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "key" | "code">) => string[];
 
 declare interface formatStringParams {
     str: string | null;
@@ -351,6 +351,7 @@ declare interface ShortcutEvent {
     preventDefault?: () => void;
     stopPropagation?: () => void;
     isInput?: boolean;
+    target?: EventTarget | null;
 }
 
 export declare const stringUtils: {

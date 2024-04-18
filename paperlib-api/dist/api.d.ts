@@ -9,6 +9,7 @@ import { ObjectId } from 'bson';
 import { ObjectIdLike } from 'bson';
 import { OpenDialogReturnValue } from 'electron';
 import { default as Realm_2 } from 'realm';
+import { Rectangle } from 'electron';
 import { Results } from 'realm';
 import { Store } from 'pinia';
 import Watcher from 'watcher';
@@ -2470,6 +2471,7 @@ declare interface ShortcutEvent {
     preventDefault?: () => void;
     stopPropagation?: () => void;
     isInput?: boolean;
+    target?: EventTarget | null;
 }
 
 declare class ShortcutService {
@@ -2490,7 +2492,7 @@ declare class ShortcutService {
      * @param stopPropagation - Whether to stop propagation.
      * @param viewScope - The scope of shortcuts to be registered.
      * @returns Unregister function. */
-    register(code: string, handler: (...args: any[]) => void, preventDefault?: boolean, stopPropagation?: boolean, viewScope?: ShortcutViewScope | null): () => void;
+    register(code: string, handler: (e: ShortcutEvent) => void, preventDefault?: boolean, stopPropagation?: boolean, viewScope?: ShortcutViewScope | null): () => void;
     /**
      * Update working view scope.
      * @param scope - The scope to be updated.
@@ -4613,6 +4615,39 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
      * @param windowId - The id of the window to be checked
      */
     isFocused(windowId: string): boolean;
+    /**
+     * Set parent as current window's parent window.
+     * @param parentId - The id of the parent window
+     * @param currentId - The id of the current window
+     */
+    setParentWindow(parentId: string | null, currentId: string): void;
+    /**
+     * Return the window's current bounds.
+     * @param windowId - The id of the window to be checked
+     */
+    getBounds(windowId: string): Electron.Rectangle | undefined;
+    /**
+     * Set the window's current bounds.
+     * @param windowId - The id of the window to be set
+     * @param bounds - The bounds of the window to be set
+     */
+    setBounds(windowId: string, bounds: Partial<Rectangle>): void;
+    /**
+     * Return whether the window has a parent.
+     * @param windowId - The id of the window to be checked
+     */
+    hasParentWindow(windowId: string): boolean;
+    /**
+     * Set whether the window should show always on top of other windows.
+     * @param windowId - The id of the window to be set
+     * @param flag - Whether the window should show always on top of other windows
+     */
+    setAlwaysOnTop(windowId: string, flag: boolean): void;
+    /**
+     * Move the window to the center of the screen.
+     * @param windowId - The id of the window to be set
+     */
+    center(windowId: string): void;
 }
 
 declare class WindowStorage {
