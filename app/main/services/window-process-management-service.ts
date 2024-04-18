@@ -244,7 +244,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       options["type"] = "panel";
     }
 
-    this.create("quickpasteProcess", options, {
+    this.create(Process.quickpaste, options, {
       blur: (win: BrowserWindow) => {
         win.setSize(600, 76);
         win.hide();
@@ -260,7 +260,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
     if (os.platform() === "darwin") {
       this.browserWindows
-        .get("quickpasteProcess")
+        .get(Process.quickpaste)
         .setVisibleOnAllWorkspaces(true);
     }
   }
@@ -325,7 +325,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
       for (const [windowId, win] of Object.entries(this.browserWindows.all())) {
         if (windowId !== Process.renderer) {
-          if (os.platform() === "darwin") {
+          if (os.platform() === "darwin" || windowId === Process.quickpaste) {
             win.hide();
           } else {
             win.minimize();
