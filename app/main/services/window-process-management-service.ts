@@ -244,7 +244,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       options["type"] = "panel";
     }
 
-    this.create("quickpasteProcess", options, {
+    this.create(Process.quickpaste, options, {
       blur: (win: BrowserWindow) => {
         win.setSize(600, 76);
         win.hide();
@@ -260,7 +260,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
     if (os.platform() === "darwin") {
       this.browserWindows
-        .get("quickpasteProcess")
+        .get(Process.quickpaste)
         .setVisibleOnAllWorkspaces(true);
     }
   }
@@ -325,9 +325,16 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
       for (const [windowId, win] of Object.entries(this.browserWindows.all())) {
         if (windowId !== Process.renderer) {
-          win.hide();
+          if (os.platform() === "darwin" || windowId === Process.quickpaste) {
+            win.hide();
+          } else {
+            win.minimize();
+          }
         }
       }
+    } else {
+      const win = this.browserWindows.get(windowId);
+      win.minimize();
     }
   }
 
@@ -336,8 +343,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * @param windowId - The id of the window to be unmaximized
    */
   unmaximize(windowId: string) {
-    if (windowId === Process.renderer) {
-      const win = this.browserWindows.get(windowId);
+    const win = this.browserWindows.get(windowId);
+    if (win) {
       win.unmaximize();
     }
   }
@@ -347,8 +354,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * @param windowId - The id of the window to be maximized
    */
   maximize(windowId: string) {
-    if (windowId === Process.renderer) {
-      const win = this.browserWindows.get(windowId);
+    const win = this.browserWindows.get(windowId);
+    if (win) {
       win.maximize();
     }
   }
