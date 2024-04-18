@@ -68,12 +68,14 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
    * @param id - window id
    * @param options - window options
    * @param eventCallbacks - callbacks for events
+   * @param additionalHeaders - additional response headers for the window
    */
   @errorcatching("Failed to create window.", true, "WinProcessManagement")
   create(
     id: string,
     options: WindowOptions,
-    eventCallbacks?: Record<string, (win: BrowserWindow) => void>
+    eventCallbacks?: Record<string, (win: BrowserWindow) => void>,
+    additionalHeaders?: Record<string, string>
   ) {
     if (this.browserWindows.has(id)) {
       this.browserWindows.destroy(id);
@@ -82,6 +84,19 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     const { entry, ...windowOptions } = options;
 
     this.browserWindows.set(id, new BrowserWindow(windowOptions));
+
+    if (additionalHeaders) {
+      this.browserWindows.get(id).webContents.session.webRequest.onHeadersReceived(
+        (details, callback) => {
+          callback({
+            responseHeaders: {
+              ...details.responseHeaders,
+              ...additionalHeaders,
+            }
+          })
+        }
+      );
+    }
 
     const entryURL = this._constructEntryURL(entry);
     if (entryURL.startsWith("http")) {

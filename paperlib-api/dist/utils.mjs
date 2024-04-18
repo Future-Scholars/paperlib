@@ -227,6 +227,7 @@ const formatShortcut = (event) => {
   return shortcutKeys;
 };
 const convertKeyboardEvent = (e) => {
+  const isInput = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
   return {
     ctrlKey: e.ctrlKey,
     metaKey: e.metaKey,
@@ -240,7 +241,8 @@ const convertKeyboardEvent = (e) => {
     stopPropagation: () => {
       e.stopPropagation();
     },
-    isInput: e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
+    isInput,
+    target: e.target
   };
 };
 
