@@ -1,5 +1,3 @@
-/// <reference types="realm" />
-
 import { BrowserWindow } from 'electron';
 import { BrowserWindowConstructorOptions } from 'electron';
 import { CookieJar } from 'tough-cookie';
@@ -4518,8 +4516,9 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
      * @param id - window id
      * @param options - window options
      * @param eventCallbacks - callbacks for events
+     * @param additionalHeaders - additional response headers for the window
      */
-    create(id: string, options: WindowOptions, eventCallbacks?: Record<string, (win: BrowserWindow) => void>): void;
+    create(id: string, options: WindowOptions, eventCallbacks?: Record<string, (win: BrowserWindow) => void>, additionalHeaders?: Record<string, string>): void;
     createMainRenderer(): void;
     createQuickpasteRenderer(): void;
     /**
