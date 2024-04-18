@@ -325,7 +325,11 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
       for (const [windowId, win] of Object.entries(this.browserWindows.all())) {
         if (windowId !== Process.renderer) {
-          win.minimize();
+          if (os.platform() === "darwin") {
+            win.hide();
+          } else {
+            win.minimize();
+          }
         }
       }
     } else {
