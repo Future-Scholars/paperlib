@@ -70,6 +70,7 @@ var Process = /* @__PURE__ */ ((Process2) => {
   Process2["main"] = "mainProcess";
   Process2["extension"] = "extensionProcess";
   Process2["renderer"] = "rendererProcess";
+  Process2["quickpaste"] = "quickpasteProcess";
   return Process2;
 })(Process || {});
 

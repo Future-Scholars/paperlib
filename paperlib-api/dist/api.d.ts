@@ -1950,6 +1950,7 @@ declare class PaperService extends Eventable<IPaperServiceState> {
      * @param querySentence - Query sentence, string or PaperFilterOptions
      * @param sortBy - Sort by
      * @param sortOrder - Sort order
+     * @param fulltextQuerySentence - Fulltext query sentence
      * @returns Paper entities
      */
     load(querySentence: string, sortBy: string | undefined, sortOrder: "asce" | "desc", fulltextQuerySentence?: string): Promise<IPaperEntityCollection>;

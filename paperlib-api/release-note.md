@@ -1,5 +1,16 @@
 # Paperlib API Release Note
 
+## v0.1.8
+
+- `PLMainAPI.wndowProcessManagementService.create` has a new argument `additionalHeaders`.
+- `PLMainAPI.windowProcessManagementService.create` has some new methods:
+  - `setParentWindow`
+  - `getBounds`
+  - `setBounds`
+  - `hasParentWindow`
+  - `setAlwaysOnTop`
+  - `center`
+
 ## v0.1.7
 
 - all functions in `referenceService` now receive a `PaperEntity[]` rather than a citation.js object.

@@ -338,7 +338,8 @@ declare class PaperTag extends Categorizer {
 export declare enum processId {
     main = "mainProcess",
     extension = "extensionProcess",
-    renderer = "rendererProcess"
+    renderer = "rendererProcess",
+    quickpaste = "quickpasteProcess"
 }
 
 declare interface ShortcutEvent {
