@@ -17,7 +17,6 @@ const onClick = () => {
   <div
     id="overlay-notification-view"
     class="absolute w-full h-full top-0 left-0"
-    @click="onClick"
   >
     <div
       class="flex flex-col justify-center items-center w-full h-full bg-neutral-800 bg-opacity-50 dark:bg-neutral-900 dark:bg-opacity-80 dark:text-neutral-300"
