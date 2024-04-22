@@ -84,38 +84,7 @@ export class PaperFilterOptions implements IPaperFilterOptions {
           `(title LIKE[c] \"${fuzzyFormatedSearch}\" OR authors LIKE[c] \"${fuzzyFormatedSearch}\" OR publication LIKE[c] \"${fuzzyFormatedSearch}\" OR note LIKE[c] \"${fuzzyFormatedSearch}\")`
         );
       } else if (this.searchMode === "advanced") {
-        // Replace comparison operators for 'addTime'
-        const compareDateMatch = formatedSearch.match(
-          /(<|<=|>|>=)\s*\[\d+ DAYS\]/g
-        );
-        if (compareDateMatch) {
-          for (const match of compareDateMatch) {
-            if (formatedSearch.includes("<")) {
-              formatedSearch = formatedSearch.replaceAll(
-                match,
-                match.replaceAll("<", ">")
-              );
-            } else if (formatedSearch.includes(">")) {
-              formatedSearch = formatedSearch.replaceAll(
-                match,
-                match.replaceAll(">", "<")
-              );
-            }
-          }
-        }
-
-        // Replace Date string
-        const dateRegex = /\[\d+ DAYS\]/g;
-        const dateMatch = formatedSearch.match(dateRegex);
-        if (dateMatch) {
-          const date = new Date();
-          // replace with date like: 2021-02-20@17:30:15:00
-          date.setDate(date.getDate() - parseInt(dateMatch[0].slice(1, -6)));
-          formatedSearch = formatedSearch.replace(
-            dateRegex,
-            date.toISOString().slice(0, -5).replace("T", "@")
-          );
-        }
+        formatedSearch = PaperFilterOptions.parseDateFilter(formatedSearch);
         this.filters.push(formatedSearch);
       } else if (this.searchMode === "fulltext") {
         this.filters.push(`(fulltext contains[c] \"${formatedSearch}\")`);
@@ -131,6 +100,48 @@ export class PaperFilterOptions implements IPaperFilterOptions {
     if (this.folder) {
       this.filters.push(`(ANY folders.name == \"${this.folder}\")`);
     }
+  }
+
+  static checkIsDateFilter(dateFilter: string) {
+    return dateFilter.match(
+      /(<|<=|>|>=)\s*\[\d+ DAYS\]/g
+    );
+  }
+
+  static parseDateFilter(dateFilter: string) {
+    const compareDateMatch = dateFilter.match(
+      /(<|<=|>|>=)\s*\[\d+ DAYS\]/g
+    );
+    if (compareDateMatch) {
+      for (const match of compareDateMatch) {
+        if (dateFilter.includes("<")) {
+          dateFilter = dateFilter.replaceAll(
+            match,
+            match.replaceAll("<", ">")
+          );
+        } else if (dateFilter.includes(">")) {
+          dateFilter = dateFilter.replaceAll(
+            match,
+            match.replaceAll(">", "<")
+          );
+        }
+      }
+    }
+
+    // Replace Date string
+    const dateRegex = /\[\d+ DAYS\]/g;
+    const dateMatch = dateFilter.match(dateRegex);
+    if (dateMatch) {
+      const date = new Date();
+      // replace with date like: 2021-02-20@17:30:15:00
+      date.setDate(date.getDate() - parseInt(dateMatch[0].slice(1, -6)));
+      dateFilter = dateFilter.replace(
+        dateRegex,
+        date.toISOString().slice(0, -5).replace("T", "@")
+      );
+    }
+
+    return dateFilter;
   }
 
   toString() {
@@ -196,6 +207,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * @param querySentence - Query sentence, string or PaperFilterOptions
    * @param sortBy - Sort by
    * @param sortOrder - Sort order
+   * @param fulltextQuerySentence - Fulltext query sentence
    * @returns Paper entities
    */
   @processing(ProcessingKey.General)
@@ -223,6 +235,10 @@ export class PaperService extends Eventable<IPaperServiceState> {
         allPaperEntities
       );
     } else {
+      if (PaperFilterOptions.checkIsDateFilter(querySentence)) {
+        querySentence = PaperFilterOptions.parseDateFilter(querySentence);
+      }
+
       return this._paperEntityRepository.load(
         await this._databaseCore.realm(),
         querySentence,
@@ -694,7 +710,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     if (this._preferenceService.get("allowRoutineMatch") as boolean) {
       if (
         Math.round(Date.now() / 1000) -
-          (this._preferenceService.get("lastRematchTime") as number) <
+        (this._preferenceService.get("lastRematchTime") as number) <
         7 * 86400 - 10
       ) {
         return;
