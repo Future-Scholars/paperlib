@@ -1,3 +1,13 @@
+## v3.0.10 Apr 22 2024
+
+1. Translation: traditional Chinese. thanks @hazdzz
+2. Translation: Arabic. thanks @meel-hd
+3. Fix: date comparison bug in the smartfilter. by @geoffreychen777
+4. Fix: shortcut bug. by @igoogolx
+5. Fix: window management bug. by @igoogolx
+6. Fix: some UI bugs. by @geoffreychen777
+7. Feat(for developer): add some new API to the windows management service to prepare for the ai-chat-extension. by @igoogolx&geoffreychen777
+
 ## v3.0.9 Apr 06 2024
 
 1. Critical Bug: Fix space key not working in input. by @igoogolx

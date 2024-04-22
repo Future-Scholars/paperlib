@@ -1,3 +1,14 @@
+## v3.0.10 24/04 2024
+
+1. 翻译：繁体中文。感谢 @hazdzz
+2. 翻译：阿拉伯语。感谢 @meel-hd
+3. 修复：智能过滤器中的日期比较 Bug。by @geoffreychen777
+4. 修复：快捷键 Bug。by @igoogolx
+5. 修复：扩展进程 RPC Bug。by @geoffreychen777
+6. 修复：窗口管理 Bug。by @igoogolx
+7. 修复：一些 UI Bug。by @geoffreychen777
+8. 功能（针对开发者）：向窗口管理服务添加一些新的 API，为 AI 对话插件做准备。by @igoogolx & @geoffreychen777
+
 ## v3.0.9 08/04 2024
 
 1. 紧急修复：空格按键在输入框中失效的问题。by @igoogolx
