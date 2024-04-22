@@ -74,12 +74,6 @@ onMounted(async () => {
         <div class="underline cursor-pointer" @click="language = 'zh-CN'">
           简体中文
         </div>
-        <div class="underline cursor-pointer" @click="language = 'zh-TW'">
-          繁體中文
-        </div>
-        <div class="underline cursor-pointer" @click="language = 'ar'">
-          Arabic
-        </div>
       </div>
       <div class="flex flex-col" v-if="language === 'en-GB'">
         <div class="mx-auto mb-8 font-semibold">

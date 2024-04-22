@@ -16,7 +16,7 @@ const currentReleaseNoteHTML = ref("");
 const loadCurrent = async () => {
   const response = await fetch(
     `https://api.paperlib.app/release-notes/json?lang=${
-      preState.language === "zh-CN" || preState.language === "zh-TW"
+      (preState.language === "zh-CN" || preState.language === "zh-TW")
         ? "CN"
         : "EN"
     }&latest=1&branch=main`
@@ -38,7 +38,7 @@ const historyReleaseNoteHTML = ref("");
 const loadHistory = async () => {
   const response = await fetch(
     `https://api.paperlib.app/release-notes/html?lang=${
-      preState.language === "zh-CN" || preState.language === "zh-TW"
+      (preState.language === "zh-CN" || preState.language === "zh-TW")
         ? "CN"
         : "EN"
     }&latest=5&branch=main`
