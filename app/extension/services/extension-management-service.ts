@@ -693,7 +693,7 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
       undefined
     );
     const job = new SimpleIntervalJob(
-      { days: 1, runImmediately: true },
+      { days: 1, runImmediately: false },
       task,
       taskId
     );
