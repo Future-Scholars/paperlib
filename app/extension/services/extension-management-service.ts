@@ -13,6 +13,7 @@ import {
   ExtensionPreferenceService,
   IExtensionPreferenceService,
 } from "./extension-preference-service";
+import { SimpleIntervalJob, Task, ToadScheduler } from "toad-scheduler";
 
 export const IExtensionManagementService = createDecorator(
   "extensionManagementService"
@@ -54,6 +55,8 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
 
   private _npmRegistry = "https://registry.npmjs.org/";
 
+  private readonly _dailyUpdateScheduler: ToadScheduler;
+
   constructor(
     @IExtensionPreferenceService
     private readonly _extensionPreferenceService: ExtensionPreferenceService,
@@ -82,12 +85,15 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
 
     this._installedExtensions = {};
     this._installedExtensionInfos = {};
+
+    this._dailyUpdateScheduler = new ToadScheduler();
   }
 
   async initialize() {
     await this._chooseNPMRegistry();
     await this.loadInstalledExtensions();
     await this.checkUpdate();
+    await this.startUpdateCheckDaemon();
   }
 
   async _chooseNPMRegistry() {
@@ -666,6 +672,32 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
     } else {
       return "uninstalled";
     }
+  }
+
+  /**
+   * Create a scheduled task to check for updates daily.
+   */
+  async startUpdateCheckDaemon() {
+    const taskId = "ExtManagementServiceUpdate";
+    try {
+      const task = this._dailyUpdateScheduler.getById(taskId);
+      if (task) {
+        this._dailyUpdateScheduler.removeById(taskId);
+      }
+    } catch (e) {}
+    const task = new Task(
+      taskId,
+      async () => {
+        await this.checkUpdate();
+      },
+      undefined
+    );
+    const job = new SimpleIntervalJob(
+      { days: 1, runImmediately: true },
+      task,
+      taskId
+    );
+    this._dailyUpdateScheduler.addSimpleIntervalJob(job);
   }
 
   memoryUsage() {
