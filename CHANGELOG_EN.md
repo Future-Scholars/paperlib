@@ -1,3 +1,9 @@
+## v3.0.11 May 06 2024
+
+1. Fix: import papers into a tag/folder directly. by @geoffreychen777
+2. Enhance: notify when adding a duplicated paper. by @geoffreychen777
+3. Enhance: check extensions update every day. by @charlieJ107
+
 ## v3.0.10 Apr 22 2024
 
 1. Translation: traditional Chinese. thanks @hazdzz
