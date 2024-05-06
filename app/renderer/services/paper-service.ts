@@ -363,6 +363,15 @@ export class PaperService extends Eventable<IPaperServiceState> {
           this._databaseCore.getPartition(),
           isUpdate
         );
+
+        if (!success && !isUpdate) {
+          this._logService.warn(
+            "Faild to add the paper.",
+            `May be duplicated: ${paperEntity.title}`,
+            true,
+            "PaperService"
+          );
+        }
       } catch (error) {
         success = false;
         this._logService.error(
