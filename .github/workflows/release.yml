@@ -31,7 +31,7 @@ jobs:
 
       - name: "Import Certificates"
         run: |
-          echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode --output certificate.p12
+          echo -n ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }} | base64 --decode -o certificate.p12
           export KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
           security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
