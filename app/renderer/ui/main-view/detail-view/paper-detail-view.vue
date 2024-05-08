@@ -191,7 +191,7 @@ const reanderedTitle = ref("");
 
 const renderTitle = async () => {
   if (props.entity.title?.includes("$")) {
-    reanderedTitle.value = await renderService.renderMath(props.entity.title);
+    reanderedTitle.value = renderService.renderMath(props.entity.title);
   } else {
     reanderedTitle.value = props.entity.title;
   }

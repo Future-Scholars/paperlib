@@ -180,7 +180,7 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
     <PaperListItem
       class="bg-neutral-200 dark:bg-neutral-700 cursor-default mb-2"
       :item="item"
-      :field-enable="fieldEnable"
+      :field-enables="fieldEnable"
       :active="false"
       :categorizer-sort-by="prefState.sidebarSortBy"
       :categorizer-sort-order="prefState.sidebarSortOrder"

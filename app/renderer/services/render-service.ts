@@ -195,7 +195,7 @@ export class RenderService {
    * @returns Rendered HTML string
    */
   @errorcatching("Failed to render Math.", true, "RenderService", "")
-  async renderMath(content: string) {
+  renderMath(content: string) {
     return renderWithDelimitersToString(content);
   }
 }
