@@ -311,7 +311,7 @@ const onAddDummyClicked = async () => {
   ) {
     const dummyPaperEntity = new PaperEntity(
       {
-        title: `Dummy Paper <scp>D</scp>-${i}<sup>+T</sup>`,
+        title: `Dummy Paper <scp>D</scp>-${i}<sup>+T</sup> Test latex $^${i}_{a}$`,
         authors: "Dummy Author A, Dummy Author B, Dummy Author C",
         pubTime: `${Math.round(2021 + Math.random() * 10)}`,
         publication: `Publication ${Math.round(Math.random() * 10)}`,

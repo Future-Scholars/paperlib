@@ -88,6 +88,14 @@ const fields = computed(() => {
         value = value.name;
         break;
       }
+      case "title": {
+        if (value.includes("$")) {
+          value = renderService.renderMath(value)
+        } else {
+          value = value
+        }
+        break;
+      }
     }
 
     const field = {

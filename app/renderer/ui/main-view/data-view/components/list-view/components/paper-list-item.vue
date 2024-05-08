@@ -4,6 +4,9 @@ import {
   BIconFolder,
   BIconStarFill,
   BIconTag,
+  BIconFileEarmarkPdf,
+  BIconFileEarmark,
+  BIconGithub
 } from "bootstrap-icons-vue";
 import { PropType } from "vue";
 
@@ -27,6 +30,15 @@ const props = defineProps({
       folders: false,
       flag: true,
       note: false,
+      doi: false,
+      arxiv: false,
+      pages: false,
+      volume: false,
+      number: false,
+      publisher: false,
+      mainURL: false,
+      supURLs: false,
+      codes: false
     },
   },
   active: {
@@ -46,6 +58,10 @@ const props = defineProps({
     default: 64,
   },
 });
+
+const renderTitle = (title: string) => {
+  return renderService.renderMath(title)
+}
 </script>
 
 <style>
@@ -62,17 +78,11 @@ scp {
     :style="`height: ${height}px`"
   >
     <div class="flex space-x-2">
-      <!-- <div
-        class="my-auto h-1.5 w-1.5 rounded-md"
-        :class="active ? 'bg-red-400' : 'bg-red-500 '"
-        v-if="item.read === undefined ? false : item.read"
-      /> -->
       <div
         class="text-[0.84rem] leading-[1.1rem] font-semibold truncate overflow-hidden"
         :class="active ? 'text-white' : ''"
       >
-        <span v-html="item.title"></span>
-        <!-- {{ item.title }} -->
+        <span v-html="renderTitle(item.title)"></span>
       </div>
     </div>
     <div
@@ -165,6 +175,98 @@ scp {
           {{ item.note }}
         </div>
       </div>
+
+      <div
+        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
+        v-if="fieldEnables.doi && item.doi"
+      >
+        <div>|</div>
+        <div class="truncate">
+          DOI: {{ item.doi }}
+        </div>
+      </div>
+
+      <div
+        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
+        v-if="fieldEnables.arxiv && item.arxiv"
+      >
+        <div>|</div>
+        <div class="truncate">
+          ArXiv: {{ item.arxiv }}
+        </div>
+      </div>
+
+      <div
+        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
+        v-if="fieldEnables.pages && item.pages"
+      >
+        <div>|</div>
+        <div class="truncate">
+          pp. {{ item.pages }}
+        </div>
+      </div>
+
+      <div
+        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
+        v-if="fieldEnables.volume && item.volume"
+      >
+        <div>|</div>
+        <div class="truncate">
+          vol. {{ item.volume }}
+        </div>
+      </div>
+
+      <div
+        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
+        v-if="fieldEnables.number && item.number"
+      >
+        <div>|</div>
+        <div class="truncate">
+          num. {{ item.number }}
+        </div>
+      </div>
+
+      <div
+        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
+        v-if="fieldEnables.publisher && item.publisher"
+      >
+        <div>|</div>
+        <div class="truncate">
+          {{ item.publisher }}
+        </div>
+      </div>
+
+      <div
+        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
+        v-if="fieldEnables.mainURL && item.mainURL"
+      >
+        <div>|</div>
+        <BIconFileEarmarkPdf
+          class="my-auto text-xs"
+        />
+      </div>
+
+      <div
+        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
+        v-if="fieldEnables.supURLs && item.supURLs.length > 0"
+      >
+        <div>|</div>
+        <BIconFileEarmark
+          class="my-auto text-xs"
+        />
+      </div>
+
+      <div
+        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
+        v-if="fieldEnables.codes && item.codes"
+      >
+        <div>|</div>
+        <BIconGithub
+          class="my-auto text-xs"
+        />
+      </div>
+
+
     </div>
   </div>
 </template>
