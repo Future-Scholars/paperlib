@@ -2,7 +2,6 @@
 import { BIconX } from "bootstrap-icons-vue";
 import { onUnmounted } from "vue";
 import { ref, computed, Ref } from "vue";
-import { ShortcutService } from "@/renderer/services/shortcut-service.ts";
 
 const props = defineProps({
   modelValue: {
