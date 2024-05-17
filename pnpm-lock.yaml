@@ -175,6 +175,9 @@ devDependencies:
   vue-tsc:
     specifier: 1.8.27
     version: 1.8.27(typescript@5.1.3)
+  vue-word-highlighter:
+    specifier: ^1.2.4
+    version: 1.2.4(vue@3.4.4)
   vuedraggable:
     specifier: 4.1.0
     version: 4.1.0(vue@3.4.4)
@@ -2573,6 +2576,10 @@ packages:
 
   /dettle@1.0.1:
     resolution: {integrity: sha512-/oD3At60ZfhgzpofJtyClNTrIACyMdRe+ih0YiHzAniN0IZnLdLpEzgR6RtGs3kowxUkTnvV/4t1FBxXMUdusQ==}
+    dev: true
+
+  /diacritics@1.3.0:
+    resolution: {integrity: sha512-wlwEkqcsaxvPJML+rDh/2iS824jbREk6DUMUKkEaSlxdYHeS43cClJtsWglvw2RfeXGm6ohKDqsXteJ5sP5enA==}
     dev: true
 
   /didyoumean@1.2.2:
@@ -6155,6 +6162,20 @@ packages:
       '@vue/language-core': 1.8.27(typescript@5.1.3)
       semver: 7.5.4
       typescript: 5.1.3
+    dev: true
+
+  /vue-word-highlighter@1.2.4(vue@3.4.4):
+    resolution: {integrity: sha512-B+kTkkjXCdxc5cWklArxkwbmJq2lMA/RAdBCmJRG0SJYZJKFvKT6777QJv4jJa/b5saYo6OvGLJmjzUrEr8rNQ==}
+    peerDependencies:
+      '@vue/composition-api': ^1.0.0-rc.1
+      vue: ^2.0.0 || >=3.0.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      diacritics: 1.3.0
+      vue: 3.4.4(typescript@5.1.3)
+      vue-demi: 0.14.6(vue@3.4.4)
     dev: true
 
   /vue@2.7.16:

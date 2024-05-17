@@ -42,6 +42,7 @@ const props = defineProps({
 // State
 // ================
 const lastSelectedSingleIndex = ref<number>(-1);
+const uiState = uiStateService.useState();
 
 // =================
 // Event handlers
@@ -126,28 +127,30 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
 
 <template>
   <div>
-    <RecycleScroller
-      class="scroller max-h-[calc(100vh-3rem)]"
-      :items="entities"
-      :item-size="itemSize"
-      key-field="id"
-      v-slot="{ item, index }"
-      :buffer="500"
-    >
-      <PaperListItem
-        :id="`item-${index}`"
-        :height="itemSize"
-        :item="item"
-        :field-enables="fieldEnables"
-        :active="selectedIndex.indexOf(index) >= 0"
-        :categorizer-sort-by="categorizerSortBy"
-        :categorizer-sort-order="categorizerSortOrder"
-        @click="(e: MouseEvent) => {onItemClicked(e, index)}"
-        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
-        @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
-        draggable="true"
-        @dragstart="(e: DragEvent) => {onItemDraged(e, index, item.id)}"
-      />
-    </RecycleScroller>
+
+      <RecycleScroller
+        class="scroller max-h-[calc(100vh-3rem)]"
+        :items="entities"
+        :item-size="itemSize"
+        key-field="id"
+        v-slot="{ item, index }"
+        :buffer="500"
+      >
+        <PaperListItem
+          :id="`item-${index}`"
+          :height="itemSize"
+          :item="item"
+          :field-enables="fieldEnables"
+          :active="selectedIndex.indexOf(index) >= 0"
+          :categorizer-sort-by="categorizerSortBy"
+          :categorizer-sort-order="categorizerSortOrder"
+          :query-highlight="(uiState.commandBarSearchMode === 'general' && !uiState.commandBarText.startsWith('\\')) ? uiState.commandBarText : ''"
+          @click="(e: MouseEvent) => {onItemClicked(e, index)}"
+          @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
+          @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
+          draggable="true"
+          @dragstart="(e: DragEvent) => {onItemDraged(e, index, item.id)}"
+        />
+      </RecycleScroller>
   </div>
 </template>

@@ -6,9 +6,10 @@ import {
   BIconTag,
   BIconFileEarmarkPdf,
   BIconFileEarmark,
-  BIconGithub
+  BIconGithub,
 } from "bootstrap-icons-vue";
 import { PropType } from "vue";
+import WordHighlighter from "vue-word-highlighter";
 
 import { getCategorizerString, getPubTypeString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
@@ -38,7 +39,7 @@ const props = defineProps({
       publisher: false,
       mainURL: false,
       supURLs: false,
-      codes: false
+      codes: false,
     },
   },
   active: {
@@ -57,11 +58,15 @@ const props = defineProps({
     type: Number,
     default: 64,
   },
+  queryHighlight: {
+    type: String,
+    default: "",
+  },
 });
 
 const renderTitle = (title: string) => {
-  return renderService.renderMath(title)
-}
+  return renderService.renderMath(title);
+};
 </script>
 
 <style>
@@ -82,14 +87,26 @@ scp {
         class="text-[0.84rem] leading-[1.1rem] font-semibold truncate overflow-hidden"
         :class="active ? 'text-white' : ''"
       >
-        <span v-html="renderTitle(item.title)"></span>
+        <WordHighlighter
+          :query="queryHighlight"
+          highlight-class="bg-yellow-300 rounded-sm px-0.5"
+          :html-to-highlight="renderTitle(item.title)"
+          :split-by-space="true"
+        >
+        </WordHighlighter>
       </div>
     </div>
     <div
       class="text-[0.7rem] leading-[0.9rem] truncate overflow-hidden"
       :class="active ? 'text-white' : ''"
     >
-      {{ item.authors }}
+      <WordHighlighter
+        :query="queryHighlight"
+        highlight-class="bg-yellow-300 rounded-sm px-0.5"
+        :text-to-highlight="item.authors"
+        :split-by-space="true"
+      >
+      </WordHighlighter>
     </div>
     <div
       class="text-[0.7rem] leading-[0.9rem] text-neutral-400 flex space-x-2"
@@ -181,9 +198,7 @@ scp {
         v-if="fieldEnables.doi && item.doi"
       >
         <div>|</div>
-        <div class="truncate">
-          DOI: {{ item.doi }}
-        </div>
+        <div class="truncate">DOI: {{ item.doi }}</div>
       </div>
 
       <div
@@ -191,9 +206,7 @@ scp {
         v-if="fieldEnables.arxiv && item.arxiv"
       >
         <div>|</div>
-        <div class="truncate">
-          ArXiv: {{ item.arxiv }}
-        </div>
+        <div class="truncate">ArXiv: {{ item.arxiv }}</div>
       </div>
 
       <div
@@ -201,9 +214,7 @@ scp {
         v-if="fieldEnables.pages && item.pages"
       >
         <div>|</div>
-        <div class="truncate">
-          pp. {{ item.pages }}
-        </div>
+        <div class="truncate">pp. {{ item.pages }}</div>
       </div>
 
       <div
@@ -211,9 +222,7 @@ scp {
         v-if="fieldEnables.volume && item.volume"
       >
         <div>|</div>
-        <div class="truncate">
-          vol. {{ item.volume }}
-        </div>
+        <div class="truncate">vol. {{ item.volume }}</div>
       </div>
 
       <div
@@ -221,9 +230,7 @@ scp {
         v-if="fieldEnables.number && item.number"
       >
         <div>|</div>
-        <div class="truncate">
-          num. {{ item.number }}
-        </div>
+        <div class="truncate">num. {{ item.number }}</div>
       </div>
 
       <div
@@ -241,9 +248,7 @@ scp {
         v-if="fieldEnables.mainURL && item.mainURL"
       >
         <div>|</div>
-        <BIconFileEarmarkPdf
-          class="my-auto text-xs"
-        />
+        <BIconFileEarmarkPdf class="my-auto text-xs" />
       </div>
 
       <div
@@ -251,9 +256,7 @@ scp {
         v-if="fieldEnables.supURLs && item.supURLs.length > 0"
       >
         <div>|</div>
-        <BIconFileEarmark
-          class="my-auto text-xs"
-        />
+        <BIconFileEarmark class="my-auto text-xs" />
       </div>
 
       <div
@@ -261,12 +264,8 @@ scp {
         v-if="fieldEnables.codes && item.codes"
       >
         <div>|</div>
-        <BIconGithub
-          class="my-auto text-xs"
-        />
+        <BIconGithub class="my-auto text-xs" />
       </div>
-
-
     </div>
   </div>
 </template>

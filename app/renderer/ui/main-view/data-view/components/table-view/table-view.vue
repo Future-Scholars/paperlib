@@ -43,6 +43,7 @@ const props = defineProps({
 // ================
 // State
 const lastSelectedSingleIndex = ref<number>(-1);
+const uiState = uiStateService.useState();
 
 // =================
 // Event handlers
@@ -153,6 +154,7 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
         :active="selectedIndex.indexOf(index) >= 0"
         :striped="index % 2 === 0"
         :read="item.read !== undefined ? item.read : true"
+        :query-highlight="(uiState.commandBarSearchMode === 'general' && !uiState.commandBarText.startsWith('\\')) ? uiState.commandBarText : ''"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
