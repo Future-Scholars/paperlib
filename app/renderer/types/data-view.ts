@@ -10,7 +10,7 @@ export interface ItemField {
     | "html-read";
   value: any;
   width: number;
-  highlightable: boolean;
+  highlightable?: boolean;
 }
 
 export interface FieldTemplate extends ItemField {

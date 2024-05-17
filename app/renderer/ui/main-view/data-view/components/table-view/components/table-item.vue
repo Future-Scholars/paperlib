@@ -144,6 +144,7 @@ const fields = computed(() => {
         :query="queryHighlight"
         highlight-class="bg-yellow-300 rounded-sm px-0.5"
         :text-to-highlight="field.value"
+        :split-by-space="true"
       />
       <span
         class="my-auto truncate"
@@ -156,6 +157,7 @@ const fields = computed(() => {
         :query="queryHighlight"
         highlight-class="bg-yellow-300 rounded-sm px-0.5"
         :html-to-highlight="field.value"
+        :split-by-space="true"
       />
       <span class="my-auto" v-else-if="field.type === 'flag'">
         <BIconFlagFill
