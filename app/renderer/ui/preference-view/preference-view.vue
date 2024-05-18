@@ -51,6 +51,7 @@ onMounted(async () => {
   <div
     class="fixed top-0 right-0 left-0 z-40 w-screen h-screen bg-neutral-100 dark:bg-neutral-800"
   >
+    <div class="h-8 w-full absolute draggable-title"></div>
     <div class="flex h-full m-auto justify-center space-x-4 py-20">
       <div class="flex flex-col justify-between flex-none overflow-y-auto">
         <div
