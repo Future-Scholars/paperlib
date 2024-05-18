@@ -1,3 +1,12 @@
+
+## v3.1.0 May 18 2024
+
+1. Introduce A New Extension: paperlib-ai-chat-extension. It allows you to discuss a paper with LLMs!!! by @igoogolx, @geoffreychen777
+2. Feat: render LaTex in the title. by @geoffreychen777
+3. Feat: highlight the search keyword in the search result. by @geoffreychen777
+4. Others: prepare for the new browser extension. by @geoffreychen777
+5. Fix: preference window drag issue. by @geoffreychen777
+
 ## v3.0.11 May 06 2024
 
 1. Fix: import papers into a tag/folder directly. by @geoffreychen777

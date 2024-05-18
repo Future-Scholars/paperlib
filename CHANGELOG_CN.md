@@ -1,3 +1,11 @@
+## v3.1.0  18/05 2024
+
+1. 介绍新插件: paperlib-ai-chat-extension. 你可以和语言模型讨论你的论文了。by @igoogolx,@geoffreychen777
+2. 新功能：渲染标题中的 LaTex。by @geoffreychen777
+3. 新功能：在搜索结果中高亮搜索关键字。by @geoffreychen777
+4. 其他：为新浏览器插件做准备。by @geoffreychen777
+5. 修复：偏好设置窗口拖动问题。by @geoffreychen777
+
 ## v3.0.11 06/05 2024
 
 1. 修复：直接导入论文到标签/文件夹。by @geoffreychen777
