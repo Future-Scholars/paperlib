@@ -21,7 +21,7 @@ export class BrowserExtensionService {
   constructor(
     @IScrapeService private readonly _scrapeService: ScrapeService,
     @IPaperService private readonly _paperService: PaperService,
-    @ICategorizerService  private readonly _categorizerService: CategorizerService
+    @ICategorizerService private readonly _categorizerService: CategorizerService
   ) {
     this._socketServer = new WebSocket.WebSocketServer({ port: 21992 });
     this._socketServer.on("connection", (ws) => {
@@ -32,10 +32,16 @@ export class BrowserExtensionService {
 
   private async _messageHandler(message: string) {
     const parsedMessage = JSON.parse(message);
-    if (parsedMessage.type === "import") {
-      this._create(parsedMessage.value);
-    } else if (parsedMessage.type === "getCategorizers") {
-      this._getCategorizers(parsedMessage.value);
+
+    if (parsedMessage.hasOwnProperty("type")) {
+      if (parsedMessage.type === "import") {
+        this._create(parsedMessage.value);
+      } else if (parsedMessage.type === "getCategorizers") {
+        this._getCategorizers(parsedMessage.value);
+      }
+    } else {
+      // For backward compatibility
+      this._create(parsedMessage);
     }
   }
 
@@ -64,7 +70,7 @@ export class BrowserExtensionService {
         scrapedPaperEntities.forEach((paper) => {
           paper.tags.push(...browserExtMsg.options.tags)
         });
-      } 
+      }
       await this._paperService.update(scrapedPaperEntities, true, false);
       this._ws?.send(JSON.stringify({ response: "successful" }));
     }
