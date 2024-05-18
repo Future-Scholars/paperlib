@@ -35,25 +35,27 @@ export class BrowserExtensionService {
 
     if (parsedMessage.hasOwnProperty("type")) {
       if (parsedMessage.type === "import") {
-        this._create(parsedMessage.value);
+        this._create(parsedMessage.id, parsedMessage.value);
       } else if (parsedMessage.type === "getCategorizers") {
-        this._getCategorizers(parsedMessage.value);
+        this._getCategorizers(parsedMessage.id, parsedMessage.value);
       }
     } else {
       // For backward compatibility
-      this._create(parsedMessage);
+      this._create(undefined, parsedMessage);
     }
   }
 
-  private async _create(browserExtMsg: {
-    url: string;
-    document: string;
-    cookies: string;
-    options: {
-      downloadPDF: boolean;
-      tags: any[]
-    }
-  }) {
+  private async _create(
+    msgId: number | undefined,
+    browserExtMsg: {
+      url: string;
+      document: string;
+      cookies: string;
+      options: {
+        downloadPDF: boolean;
+        tags: any[]
+      }
+    }) {
     const payload = {
       type: "webcontent",
       value: browserExtMsg,
@@ -64,19 +66,27 @@ export class BrowserExtensionService {
       []
     );
     if (scrapedPaperEntities.length === 0) {
-      this._ws?.send(JSON.stringify({ response: "no-avaliable-importer" }));
+      if (msgId) {
+        this._ws?.send(JSON.stringify({ id: msgId, value: "no-avaliable-importer" }));
+      } else {
+        this._ws?.send(JSON.stringify({ response: "no-avaliable-importer" }));
+      }
     } else {
-      if (browserExtMsg.options.tags.length > 0) {
+      if (browserExtMsg.options && browserExtMsg.options.tags && browserExtMsg.options.tags.length > 0) {
         scrapedPaperEntities.forEach((paper) => {
           paper.tags.push(...browserExtMsg.options.tags)
         });
       }
       await this._paperService.update(scrapedPaperEntities, true, false);
-      this._ws?.send(JSON.stringify({ response: "successful" }));
+      if (msgId) {
+        this._ws?.send(JSON.stringify({ id: msgId, value: "successful" }));
+      } else {
+        this._ws?.send(JSON.stringify({ response: "successful" }));
+      }
     }
   }
 
-  private async _getCategorizers(type: string) {
+  private async _getCategorizers(msgId: number | undefined, type: string) {
     let results: ICategorizerCollection;
     if (type === 'tags') {
       results = await this._categorizerService.load(CategorizerType.PaperTag, "count", "desc")
@@ -84,8 +94,12 @@ export class BrowserExtensionService {
       results = await this._categorizerService.load(CategorizerType.PaperFolder, "count", "desc")
     }
 
-    this._ws?.send(JSON.stringify({
-      response: results,
-    }));
+    if (msgId) {
+      this._ws?.send(JSON.stringify({ id: msgId, value: results }));
+    } else {
+      this._ws?.send(JSON.stringify({
+        response: results,
+      }));
+    }
   }
 }
