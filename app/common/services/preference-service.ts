@@ -120,7 +120,7 @@ const _defaultPreferences: IPreferenceStore = {
     { key: "rating", enable: false, width: -1 },
     { key: "tags", enable: false, width: -1 },
     { key: "folders", enable: false, width: -1 },
-    { key: "flag", enable: false, width: -1 },
+    { key: "flag", enable: true, width: -1 },
     { key: "note", enable: false, width: -1 },
     { key: "codes", enable: false, width: -1 },
     { key: "pages", enable: false, width: -1 },
