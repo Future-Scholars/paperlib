@@ -1,3 +1,8 @@
+## v3.1.1 May 18 2024
+
+1. Introduce A New Extension: `paperlib ai chat extension`. It allows you to discuss a paper with LLMs!!! by @igoogolx, @geoffreychen777
+2. Fix: table view bug. by @geoffreychen777
+
 
 ## v3.1.0 May 18 2024
 

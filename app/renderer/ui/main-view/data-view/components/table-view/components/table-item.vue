@@ -140,7 +140,7 @@ const fields = computed(() => {
       >
       <WordHighlighter
         class="my-auto truncate"
-        v-if="field.type === 'string' && field.highlightable"
+        v-else-if="field.type === 'string' && field.highlightable"
         :query="queryHighlight"
         highlight-class="bg-yellow-300 rounded-sm px-0.5"
         :text-to-highlight="field.value"
@@ -153,7 +153,7 @@ const fields = computed(() => {
       ></span>
       <WordHighlighter
         class="my-auto truncate"
-        v-if="field.type === 'html' && field.highlightable"
+        v-else-if="field.type === 'html' && field.highlightable"
         :query="queryHighlight"
         highlight-class="bg-yellow-300 rounded-sm px-0.5"
         :html-to-highlight="field.value"

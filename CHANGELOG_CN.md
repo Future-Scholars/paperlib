@@ -1,4 +1,9 @@
-## v3.1.0  18/05 2024
+## v3.1.1 19/05 2024
+
+1. 介绍新插件: `paperlib ai chat extension`. 你可以和语言模型讨论你的论文了。by @igoogolx,@geoffreychen777
+2. 修复：表格视图 Bug。by @geoffreychen777
+
+## v3.1.0 18/05 2024
 
 1. 介绍新插件: `paperlib ai chat extension`. 你可以和语言模型讨论你的论文了。by @igoogolx,@geoffreychen777
 2. 新功能：渲染标题中的 LaTex。by @geoffreychen777
