@@ -14,9 +14,17 @@ export class RSSRepository {
   }
 
   async fetch(feed: Feed): Promise<FeedEntity[]> {
+
+    const header = {};
+
+    if (feed.url.includes("rss.sciencedirect.com")) {
+      // Since May 2024, ScienceDirect seems has blocked requests with robot user agents.
+      header["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0"
+    }
+
     const response = await PLExtAPI.networkTool.get(
       feed.url,
-      {},
+      header,
       1,
       10000,
       false,
