@@ -748,7 +748,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     const movedEntityDrafts = await Promise.all(
       paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
-        this._fileService.move(paperEntityDraft, false)
+        this._fileService.move(paperEntityDraft, true, true)
       )
     );
 
