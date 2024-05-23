@@ -143,6 +143,7 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
         {
           _id: id,
           name: object.name,
+          filter: object.filter,
           color,
         },
         false
