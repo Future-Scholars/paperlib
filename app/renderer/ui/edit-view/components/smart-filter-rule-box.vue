@@ -186,7 +186,7 @@ onMounted(() => {
       class="rounded-md bg-neutral-200 dark:bg-neutral-700 flex h-10 px-3 grow"
     >
       <input
-        class="text-xs bg-transparent focus:outline-none dark:text-neutral-300"
+        class="text-xs bg-transparent focus:outline-none dark:text-neutral-300 w-full"
         type="text"
         :placeholder="$t('smartfilter.value')"
         v-model="selectedValue"

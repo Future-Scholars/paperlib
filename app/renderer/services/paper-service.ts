@@ -569,10 +569,37 @@ export class PaperService extends Eventable<IPaperServiceState> {
       true,
       "Entity"
     );
-    await this._fileService.removeFile(url);
+    const realURL = url.split(":::").pop() as string;
+    await this._fileService.removeFile(realURL);
     paperEntity.supURLs = paperEntity.supURLs.filter(
       (supUrl) => !url.endsWith(supUrl)
     );
+
+    await this.update([paperEntity], false, true);
+  }
+
+  /**
+   * Set a custom display name of a supplementary file.
+   */
+  @processing(ProcessingKey.General)
+  @errorcatching(
+    "Failed to set custom display name of a supplementary file.",
+    true,
+    "PaperService"
+  )
+  async setSupDisplayName(paperEntity: PaperEntity, url: string, name: string) {
+    if (this._databaseCore.getState("dbInitializing")) {
+      return;
+    }
+
+    paperEntity.supURLs = paperEntity.supURLs.map((supURL) => {
+      if (supURL === url) {
+        const realSupURL = supURL.split(":::").pop();
+        return `${name}:::${realSupURL}`
+      } else {
+        return supURL;
+      }
+    });
 
     await this.update([paperEntity], false, true);
   }

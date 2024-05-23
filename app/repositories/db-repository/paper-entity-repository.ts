@@ -214,7 +214,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           );
         }
       });
-
+      
       if (object) {
         if (!allowUpdate) {
           return false;
@@ -231,11 +231,11 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         object.doi = paperEntity.doi;
         object.arxiv = paperEntity.arxiv;
         object.mainURL = paperEntity.mainURL;
-        object.supURLs = paperEntity.supURLs;
+        object.supURLs = Array.from(paperEntity.supURLs);
         object.rating = paperEntity.rating;
         object.flag = paperEntity.flag;
         object.note = paperEntity.note;
-        object.codes = paperEntity.codes;
+        object.codes = Array.from(paperEntity.codes);
         object.volume = paperEntity.volume;
         object.number = paperEntity.number;
         object.pages = paperEntity.pages;

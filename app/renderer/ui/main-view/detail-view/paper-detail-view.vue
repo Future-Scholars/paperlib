@@ -111,6 +111,24 @@ disposable(
   )
 );
 
+const renamingSup = ref("");
+const onRenameSupClicked = (url: string) => {
+  renamingSup.value = url;
+};
+disposable(
+  PLMainAPI.contextMenuService.on(
+    "supContextMenuRenameClicked",
+    (newValue: { value: string }) => {
+      onRenameSupClicked(newValue.value);
+    }
+  )
+);
+
+const onSupDisplayNameUpdated = (customName: string) => {
+  paperService.setSupDisplayName(props.entity, renamingSup.value, customName);
+  renamingSup.value = "";
+};
+
 const dragAreaOpacity = ref(0);
 const dragCount = ref(0);
 const mainFileDragAreaHovered = ref(false);
@@ -320,7 +338,7 @@ onUpdated(() => {
         :title="$t('mainview.supplementaries')"
         v-if="entity.supURLs.length > 0"
       >
-        <Supplementary :sups="entity.supURLs" />
+        <Supplementary :sups="entity.supURLs" :editingSup="renamingSup" @update:sup-display-name="onSupDisplayNameUpdated" />
       </Section>
       <Markdown :title="'Markdown'" :sups="entity.supURLs" />
 

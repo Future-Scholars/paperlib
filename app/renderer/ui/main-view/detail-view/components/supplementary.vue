@@ -1,23 +1,43 @@
 <script setup lang="ts">
 const props = defineProps({
   sups: Object as () => Array<string>,
+  editingSup: String,
 });
 
-const getExtension = (sup: string) => {
+const getDisplayName = (sup: string) => {
   if (sup.startsWith("http")) {
     return "HTTP";
   } else {
+    if (sup.split(":::").length > 1) {
+      return sup.split(":::")[0];
+    }
+
     const ext = sup.split(".").pop();
     return ext?.toUpperCase() ?? "SUP";
   }
 };
 
 const onClick = async (url: string) => {
-  fileService.open(await fileService.access(url, true));
+  const realURL = url.split(":::").pop() ?? url;
+  fileService.open(await fileService.access(realURL, true));
 };
 
 const onRightClicked = (event: MouseEvent, url: string) => {
   PLMainAPI.contextMenuService.showSupMenu(url);
+};
+
+
+const emits = defineEmits(["update:sup-display-name"]);
+const onSubmitDisplayName = (event: Event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  const customName = (event.target as HTMLInputElement).value;
+
+  if (customName === "") {
+    return;
+  }
+
+  emits("update:sup-display-name", customName);
 };
 </script>
 
@@ -29,9 +49,18 @@ const onRightClicked = (event: MouseEvent, url: string) => {
       @click="onClick(sup)"
       @contextmenu="(e: MouseEvent) => onRightClicked(e, sup)"
     >
-      <div class="text-xxs my-auto">
-        {{ getExtension(sup) }}
+      <div class="text-xxs my-auto" v-if="sup !== editingSup">
+        {{ getDisplayName(sup) }}
       </div>
+      <input
+        v-else
+        class="my-auto text-xxs bg-transparent grow whitespace-nowrap border-2 rounded-md px-1 border-accentlight dark:border-accentdark truncate"
+        type="text"
+        autofocus
+        :value="getDisplayName(editingSup)"
+        @click.stop
+        @keydown.enter="onSubmitDisplayName"
+      />
     </div>
   </div>
 </template>
