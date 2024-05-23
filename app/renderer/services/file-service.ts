@@ -241,11 +241,20 @@ export class FileService extends Eventable<IFileServiceState> {
       if (moveSups) {
         const movedSupURLs: string[] = [];
         for (let i = 0; i < paperEntity.supURLs.length; i++) {
+          
+          let customDisplayName = "";
+          let realSupURL = paperEntity.supURLs[i];
+          if (paperEntity.supURLs[i].split(":::").length > 1) {
+            // The URL contains custom display name
+            customDisplayName = paperEntity.supURLs[i].split(":::")[0] + ":::"
+            realSupURL = paperEntity.supURLs[i].split(":::").slice(1).join(":::");
+          } 
+
           const movedSupFileName = await backend.moveFile(
-            paperEntity.supURLs[i],
+            realSupURL,
             `${formatedFilename}_sup${i}${path.extname(paperEntity.supURLs[i])}`
           );
-          movedSupURLs.push(movedSupFileName);
+          movedSupURLs.push(`${customDisplayName}${movedSupFileName}`);
         }
         paperEntity.supURLs = movedSupURLs;
       }
@@ -313,7 +322,8 @@ export class FileService extends Eventable<IFileServiceState> {
   async removeFile(url: string): Promise<void> {
     const backend = await this.backend();
 
-    return await backend.removeFile(url);
+    const realURL = url.split(":::").pop() as string;
+    return await backend.removeFile(realURL);
   }
 
   /**

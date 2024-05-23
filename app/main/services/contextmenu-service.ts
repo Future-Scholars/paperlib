@@ -81,6 +81,7 @@ export interface IContextMenuServiceState {
   sidebarContextMenuColorClicked: { data: string; type: string; color: string };
   sidebarContextMenuDeleteClicked: { data: string; type: string };
   supContextMenuDeleteClicked: string;
+  supContextMenuRenameClicked: string;
   thumbnailContextMenuReplaceClicked: number;
   thumbnailContextMenuRefreshClicked: number;
   linkToFolderClicked: string;
@@ -127,6 +128,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       sidebarContextMenuColorClicked: { data: "", type: "", color: "" },
       sidebarContextMenuDeleteClicked: { data: "", type: "" },
       supContextMenuDeleteClicked: "",
+      supContextMenuRenameClicked: "",
       thumbnailContextMenuReplaceClicked: 0,
       thumbnailContextMenuRefreshClicked: 0,
       linkToFolderClicked: "",
@@ -548,6 +550,12 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
           this.fire({ supContextMenuDeleteClicked: fileURL });
         },
       },
+      {
+        label: this._locales.t("menu.edit"),
+        click: () => {
+          this.fire({ supContextMenuRenameClicked: fileURL });
+        },
+      }
     ];
     const menu = Menu.buildFromTemplate(template);
     menu.popup();
