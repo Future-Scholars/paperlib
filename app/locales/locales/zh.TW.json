@@ -243,6 +243,7 @@
     "scraperintrosub": "Paperlib 會在各個資料庫中為你的文獻匹配元數據。不同學科有不同的組合，請前往擴展功能設定選擇適當的搜尋器以提高匹配準確性。",
     "extensionintro": "我們推薦安裝以下擴展功能，以保證 Paperlib 的正常運行。2.0 版本中的所有元數據搜尋器，現以擴展功功能的形式存在。",
     "extensionscraper": "元數搜索器擴展",
+    "extensionscraperrequired": "请安裝元數搜索器擴展",
     "extensionrecommend": "推薦擴展"
   }
 }

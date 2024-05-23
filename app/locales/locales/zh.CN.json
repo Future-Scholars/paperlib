@@ -243,6 +243,7 @@
     "scraperintrosub": "Paperlib 会在各个数据库里为你的论文匹配元数据。不同学科有不同的组合，请前往插件设置选择适当的搜寻器可以提高匹配的准确性。",
     "extensionintro": "我们推荐安装以下插件，来保证 Paperlib 的正常运行。2.0 版本中的所有元数据搜刮器，现已全部以插件形式存在。",
     "extensionscraper": "元数据搜刮器插件",
+    "extensionscraperrequired": "请安装元数据搜刮器插件",
     "extensionrecommend": "推荐插件"
   }
 }
