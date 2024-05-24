@@ -189,7 +189,7 @@ scp {
       >
         <div>|</div>
         <div class="truncate underline">
-          {{ item.note }}
+          {{ item.note.substring(0, 4) === "<md>" ? item.note.replace("<md>", "") : item.note }}
         </div>
       </div>
 
