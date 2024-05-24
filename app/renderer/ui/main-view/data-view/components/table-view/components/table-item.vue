@@ -101,6 +101,10 @@ const fields = computed(() => {
         }
         break;
       }
+      case "note": {
+        value = value.substring(0, 4) === "<md>" ? value.replace("<md>", "") : value;
+        break;
+      }
     }
 
     const field = {
