@@ -93,6 +93,7 @@ export interface IPreferenceStore {
   importedCSLStylesPath: string;
 
   showPresetting: boolean;
+  showGuide: boolean;
   showWelcome: boolean;
   fontsize: "normal" | "large" | "larger";
 }
@@ -211,6 +212,7 @@ const _defaultPreferences: IPreferenceStore = {
   importedCSLStylesPath: "",
 
   showPresetting: true,
+  showGuide: true,
   showWelcome: true,
   fontsize: "normal",
 };
