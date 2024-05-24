@@ -25,6 +25,7 @@ import PresettingView from "./presetting-view/presetting-view.vue";
 import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 import WelcomeView from "./welcome-view/welcome-view.vue";
 import OverlayNotificationView from "./overlay-notification-view/overlay-notification-view.vue";
+import GuideView from "./guide-view/guide-view.vue";
 
 // ================================
 // State
@@ -495,6 +496,17 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <OverlayNotificationView v-if="uiState.overlayNoticationShown" />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition ease-out duration-75"
+      enter-from-class="transform opacity-0"
+      enter-to-class="transform opacity-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100"
+      leave-to-class="transform opacity-0"
+    >
+      <GuideView v-if="prefState.showGuide" />
     </Transition>
 
     <Transition

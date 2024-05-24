@@ -245,5 +245,27 @@
     "extensionscraper": "Scraper Extensions",
     "extensionscraperrequired": "Please install the scraper extensions",
     "extensionrecommend": "Recommened Extensions"
+  },
+  "guide": {
+    "import1title": "1. Import to the Library",
+    "import1info1": "Drag and drop your PDF files here to import them.",
+    "import1info2": "You can also download our browser extension to import PDFs directly from the web.",
+    "import2title": "2. Import to Tags/Folders",
+    "import2info1": "Drag and drop your PDF files to a tag/folder to import them directly to it.",
+    "supp1title": "Add supplementary files.",
+    "supp1info1": "Drag and drop your files here to add them as supplementary files.",
+    "supp1info2": "Right click on a file to delete or rename it.",
+    "search1title": "Search and Command Bar",
+    "search1info1": "You can search your library using the search bar.",
+    "search1info2": "By pressing '\\', you can open the command bar to do fulltext or advanced searching, and also perform various actions.",
+    "viewmode1title": "Three View Modes",
+    "viewmode1info1": "You can switch between list view, table view, and table reader view.",
+    "viewmode1info2": "In the preference view - mainview tab, you can choose which information to display in each view mode.",
+    "quickpaste1title": "Quick Copy-paste Window",
+    "quickpaste1info1": "By pressing `Ctrl/Cmd + Shift + I`, you can open the quick copy-paste window to copy and paste references.",
+    "quickpaste1info2": "It's a convenient way to copy BibTex, or plain text references to your clipboard when you are writing a paper.",
+    "more1title": "For More",
+    "more1info1": "Please visit our website for more guides and tutorials.",
+    "more1info2": "Click here."
   }
 }

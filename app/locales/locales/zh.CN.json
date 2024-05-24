@@ -245,5 +245,27 @@
     "extensionscraper": "元数据搜刮器插件",
     "extensionscraperrequired": "请安装元数据搜刮器插件",
     "extensionrecommend": "推荐插件"
+  },
+  "guide": {
+    "import1title": "1. 导入论文到库",
+    "import1info1": "拖动你的 PDF 文件到这里导入论文。",
+    "import1info2": "你也可以下载我们的浏览器插件，来从网页上直接导入论文。",
+    "import2title": "2. 导入到标签或组",
+    "import2info1": "直接拖动 PDF 到一个标签或者组可以将论文直接导入到这个标签或组。",
+    "supp1title": "添加附件",
+    "supp1info1": "拖动你的文件到这里导入为附件。",
+    "supp1info2": "右键附件以删除和重命名",
+    "search1title": "搜索和命令栏",
+    "search1info1": "使用搜索栏搜索你的论文库。",
+    "search1info2": "按下 '\\'， 你可以打开命令栏，进行全文或者高级搜索。或者运行各种命令。",
+    "viewmode1title": "三种视图",
+    "viewmode1info1": "你可以切换列表、表格、表格阅读三种视图。",
+    "viewmode1info2": "在设置界面的主视图设置，你可以选择在视图内显示哪些信息。",
+    "quickpaste1title": "快速引用窗口",
+    "quickpaste1info1": "按下 `Ctrl/Cmd + Shift + I`，你可以打开快速引用窗口来复制论文的引用。",
+    "quickpaste1info2": "这是一个十分便捷的方式，来帮你在写论文时，复制 BibTex，纯文本等引用。",
+    "more1title": "更多使用帮助",
+    "more1info1": "请访问官方网站，查看更多使用帮助。",
+    "more1info2": "点击这里。"
   }
 }
