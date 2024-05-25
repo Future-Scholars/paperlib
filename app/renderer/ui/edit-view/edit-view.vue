@@ -228,7 +228,7 @@ onMounted(() => {
               @event:change="(values: string[]) => onCategorizerUpdated(values, CategorizerType.PaperTag)"
             />
             <InputField
-              :placeholder="$t('mainview.note')"
+              :placeholder="$t('mainview.note') + ' (start with `<md> to use markdown`)'"
               class="h-28"
               :value="editingPaperEntityDraft.note"
               :is-expanded="wideMode"

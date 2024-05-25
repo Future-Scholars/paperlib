@@ -1,3 +1,11 @@
+## v3.1.2 25/05 2024
+
+1. 新功能：现在你可以自定义重命名附件了。by @ZephyrZhang3, @geoffreychen777
+2. 新功能：为首次使用者添加了引导。by @geoffreychen777
+3. 新功能：在显示 Markdown 笔记时隐藏 `<md>` 标签。by @geoffreychen777
+4. 修复：订阅 ScienceDirect 时的 RSS Bug。by @charlieJ107, @geoffreychen777
+5. 修复：修改智能过滤器颜色时的 Bug。by @geoffreychen777
+
 ## v3.1.1 19/05 2024
 
 1. 介绍新插件: `paperlib ai chat extension`. 你可以和语言模型讨论你的论文了。by @igoogolx,@geoffreychen777
