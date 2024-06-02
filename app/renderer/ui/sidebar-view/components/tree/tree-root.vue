@@ -32,8 +32,8 @@ const props = defineProps({
     default: "",
   },
   selectedItemId: {
-    type: String,
-    default: "",
+    type: Array<String>,
+    default: [],
   },
   itemDraggable: {
     type: Boolean,

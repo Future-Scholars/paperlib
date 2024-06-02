@@ -82,3 +82,28 @@ export const convertKeyboardEvent = (e: KeyboardEvent): ShortcutEvent => {
     target: e.target,
   };
 };
+
+export const formatMouseModifiers = (event: PointerEvent): string[] => {
+  let mouseModifiers: string[] = [];
+
+  if (event.ctrlKey) {
+    mouseModifiers.push("Control");
+  }
+
+  if (event.metaKey) {
+    if (isMac) {
+      mouseModifiers.push("Command");
+    } else {
+      mouseModifiers.push("Meta");
+    }
+  }
+
+  if (event.altKey) {
+    mouseModifiers.push("Alt");
+  }
+  if (event.shiftKey) {
+    mouseModifiers.push("Shift");
+  }
+
+  return mouseModifiers;
+};

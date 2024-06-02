@@ -747,7 +747,7 @@ disposable(
     [
       "contentType",
       "selectedFeed",
-      "querySentenceSidebar",
+      "querySentencesSidebar",
       "querySentenceCommandbar",
     ],
     clearSelected
