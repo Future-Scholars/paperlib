@@ -162,7 +162,7 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
       new Categorizer(
         {
           _id: id,
-          name: object.name,
+          name: object.name.split("/").pop(),
           color,
         },
         false
