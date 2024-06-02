@@ -64,12 +64,12 @@ const reloadPaperEntities = async () => {
   let querySentence: string;
   let fulltextQuerySetence: string | undefined = undefined;
   if (uiState.querySentenceCommandbar.includes("(fulltext contains")) {
-    querySentence = uiState.querySentenceSidebar;
+    querySentence = uiState.querySentencesSidebar.map((x) => `(${x})`).join(" AND ");
     fulltextQuerySetence = uiState.querySentenceCommandbar;
   } else {
     querySentence = [
       uiState.querySentenceCommandbar,
-      uiState.querySentenceSidebar,
+      ...uiState.querySentencesSidebar,
     ]
       .filter((x) => x)
       .map((x) => `(${x})`)
@@ -194,7 +194,7 @@ disposable(
     [
       "selectedFeed",
       "contentType",
-      "querySentenceSidebar",
+      "querySentencesSidebar",
       "querySentenceCommandbar",
     ],
     (value) => {
@@ -203,15 +203,6 @@ disposable(
       } else if (uiState.contentType === "feed") {
         reloadFeedEntities();
       }
-    }
-  )
-);
-
-disposable(
-  uiStateService.onChanged(
-    ["querySentenceSidebar", "querySentenceCommandbar"],
-    (value) => {
-      reloadPaperEntities();
     }
   )
 );

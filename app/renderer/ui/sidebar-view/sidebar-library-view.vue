@@ -66,11 +66,38 @@ const smartfiltersViewTree = computed(() => {
 // ================================
 // Event Functions
 // ================================
-const onSelect = (payload: { _id: string; query: string }) => {
-  uiState.selectedQuerySentenceId = payload._id;
-  uiState.querySentenceSidebar = payload.query;
+const onSelect = (payload: {
+  _id: string;
+  query: string;
+  modifiers?: string;
+}) => {
   if (payload._id === "lib-all") {
+    uiState.selectedQuerySentenceIds = ["lib-all"];
+    uiState.querySentencesSidebar = [];
     uiState.querySentenceCommandbar = "";
+    return;
+  }
+
+  if (payload.modifiers === "Control" || payload.modifiers === "Command") {
+    if (
+      uiState.selectedQuerySentenceIds.includes(payload._id) &&
+      uiState.selectedQuerySentenceIds.length > 1
+    ) {
+      uiState.selectedQuerySentenceIds = uiState.selectedQuerySentenceIds.filter(
+        (id) => id !== payload._id
+      );
+
+      uiState.querySentencesSidebar = Array.from(uiState.querySentencesSidebar.filter(
+        (query) => query !== payload.query
+      ));
+    } else {
+      uiState.selectedQuerySentenceIds.push(payload._id);
+      uiState.querySentencesSidebar = [...uiState.querySentencesSidebar, payload.query];
+    }
+  } else {
+    // Single selection
+    uiState.selectedQuerySentenceIds = [payload._id];
+    uiState.querySentencesSidebar = [payload.query];
   }
 };
 
@@ -100,7 +127,7 @@ const onDroped = async (
 
     categorizerService.update(type, sourceCategorizer, categorizer);
 
-    return
+    return;
   }
 
   // For others
@@ -192,7 +219,7 @@ disposable(
             newValue.value.data,
           ]);
         }
-        uiState.selectedQuerySentenceId = "lib-all";
+        uiState.selectedQuerySentenceIds = ["lib-all"];
       }
     }
   )
@@ -255,7 +282,7 @@ disposable(
         'h-6': prefState.isSidebarCompact,
         'h-7': !prefState.isSidebarCompact,
         'bg-neutral-400 bg-opacity-30':
-          uiState.selectedQuerySentenceId === 'lib-all',
+          uiState.selectedQuerySentenceIds.includes('lib-all'),
       }"
       @click="onSelect({ _id: 'lib-all', query: '' })"
     >
@@ -283,7 +310,7 @@ disposable(
         'h-6': prefState.isSidebarCompact,
         'h-7': !prefState.isSidebarCompact,
         'bg-neutral-400 bg-opacity-30':
-          uiState.selectedQuerySentenceId === 'lib-flag',
+          uiState.selectedQuerySentenceIds.includes('lib-flag'),
       }"
       @click="onSelect({ _id: 'lib-flag', query: 'flag == true' })"
     >
@@ -306,7 +333,7 @@ disposable(
       :compact="prefState.isSidebarCompact"
       :with-spinner="false"
       :editing-item-id="editingItemId"
-      :selected-item-id="uiState.selectedQuerySentenceId"
+      :selected-item-id="uiState.selectedQuerySentenceIds"
       @event:click="onSelect"
       @event:update="
         (value) => onUpdateSmartFilter(PaperSmartFilterType.smartfilter, value)
@@ -330,7 +357,7 @@ disposable(
       :compact="prefState.isSidebarCompact"
       :with-spinner="false"
       :editing-item-id="editingItemId"
-      :selected-item-id="uiState.selectedQuerySentenceId"
+      :selected-item-id="uiState.selectedQuerySentenceIds"
       @event:click="onSelect"
       @event:update="(value) => onUpdate(CategorizerType.PaperTag, value)"
       @event:contextmenu="
@@ -353,7 +380,7 @@ disposable(
       :compact="prefState.isSidebarCompact"
       :with-spinner="false"
       :editing-item-id="editingItemId"
-      :selected-item-id="uiState.selectedQuerySentenceId"
+      :selected-item-id="uiState.selectedQuerySentenceIds"
       :item-draggable="true"
       :root-dropable="true"
       @event:click="onSelect"

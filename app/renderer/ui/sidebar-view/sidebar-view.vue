@@ -13,7 +13,8 @@ const uiState = uiStateService.useState();
 const onViewContentSwitch = (view: number) => {
   if (view === 0) {
     uiState.selectedIndex = [];
-    uiState.selectedQuerySentenceId = "lib-all";
+    uiState.selectedQuerySentenceIds = ["lib-all"];
+    uiState.querySentencesSidebar = [];
   } else {
     uiState.selectedIndex = [];
     uiState.selectedFeed = "feed-all";

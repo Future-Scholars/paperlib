@@ -12,6 +12,7 @@ import {
 import { Ref, inject, ref } from "vue";
 import Counter from "../counter.vue";
 import TreeNode from "./tree-node.vue";
+import { formatMouseModifiers } from "@/common/utils";
 
 const props = defineProps({
   parent_id: {
@@ -96,7 +97,7 @@ const props = defineProps({
 const collopsed = ref(props.defaultCollopsed);
 
 const clickEvent = inject<Ref<{}>>("clickEvent");
-const onClicked = () => {
+const onClicked = (e: PointerEvent) => {
   if (props.isRoot) {
     collopsed.value = !collopsed.value;
     return;
@@ -104,9 +105,23 @@ const onClicked = () => {
   if (!props.isRoot) {
     collopsed.value = false;
     if (!clickEvent) return;
+
+    const modifiers = formatMouseModifiers(e).join("+");
+
+    let modifiersPayload: string | undefined = undefined;
+
+    if (
+      (modifiers === "Control" &&
+        (process.platform === "win32" || process.platform === "linux")) ||
+      (modifiers === "Command" && process.platform === "darwin")
+    ) {
+      modifiersPayload = modifiers;
+    }
+
     clickEvent.value = {
       _id: props.id,
       query: props.query,
+      modifiers: modifiersPayload,
     };
   }
 };
@@ -164,7 +179,7 @@ const onEditSubmit = (patch: {
 };
 
 const editingItemId = inject<Ref<string>>("editingItemId");
-const selectedItemId = inject<Ref<string>>("selectedItemId");
+const selectedItemId = inject<Ref<string[]>>("selectedItemId");
 
 const dropEvent =
   inject<Ref<{ type: string; value: any; dest: { _id: string } }>>("dropEvent");
@@ -314,7 +329,7 @@ const onDragged = (event: DragEvent) => {
       :indent="indent"
       :count="child.count"
       :with-spinner="withSpinner"
-      :activated="`${child._id}` === selectedItemId"
+      :activated="selectedItemId?.includes(`${child._id}`)"
       :item-draggable="itemDraggable"
     />
   </div>
