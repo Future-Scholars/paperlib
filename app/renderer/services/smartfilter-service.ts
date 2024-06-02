@@ -142,7 +142,7 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
       new PaperSmartFilter(
         {
           _id: id,
-          name: object.name,
+          name: object.name.split("/").pop(),
           filter: object.filter,
           color,
         },
