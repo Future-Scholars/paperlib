@@ -86,6 +86,24 @@ const onDroped = async (
     await categorizerService.loadByIds(type, [dropData.dest._id])
   )[0];
 
+  if (categorizer.name === "Folders") {
+    // For the root folder, we should only allow dropping of folders
+    if (dropData.type !== CategorizerType.PaperFolder && categorizer) {
+      return;
+    }
+
+    const sourceCategorizer = new (
+      type === CategorizerType.PaperTag ? PaperTag : PaperFolder
+    )((await categorizerService.loadByIds(type, [dropData.value]))[0], false);
+    sourceCategorizer.name =
+      sourceCategorizer.name.split("/").pop() || "untitled";
+
+    categorizerService.update(type, sourceCategorizer, categorizer);
+
+    return
+  }
+
+  // For others
   if (dropData.type === "PaperEntity" && categorizer) {
     let dragingIds: (string | ObjectID)[] = [];
     if (uiState.selectedIds.includes(uiState.dragingIds[0])) {
@@ -337,6 +355,7 @@ disposable(
       :editing-item-id="editingItemId"
       :selected-item-id="uiState.selectedQuerySentenceId"
       :item-draggable="true"
+      :root-dropable="true"
       @event:click="onSelect"
       @event:update="(value) => onUpdate(CategorizerType.PaperFolder, value)"
       @event:contextmenu="

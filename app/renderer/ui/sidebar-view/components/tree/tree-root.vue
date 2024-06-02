@@ -39,6 +39,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  rootDropable: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // ====================
@@ -156,6 +160,7 @@ watch(
     :count="viewTree.count"
     :with-spinner="withSpinner"
     :item-draggable="itemDraggable"
+    :root-dropable="rootDropable"
   >
   </TreeNode>
 </template>
