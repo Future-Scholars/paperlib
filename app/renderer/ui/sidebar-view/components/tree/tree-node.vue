@@ -87,6 +87,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  rootDropable: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const collopsed = ref(props.defaultCollopsed);
@@ -165,7 +169,7 @@ const selectedItemId = inject<Ref<string>>("selectedItemId");
 const dropEvent =
   inject<Ref<{ type: string; value: any; dest: { _id: string } }>>("dropEvent");
 const onDropped = (event: DragEvent) => {
-  if (!dropEvent || props.isRoot) return;
+  if (!dropEvent || (props.isRoot && !props.rootDropable)) return;
   event.preventDefault();
   event.stopPropagation();
 
