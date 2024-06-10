@@ -90,7 +90,7 @@ const isMouseOver = ref(false);
 const isSelectingCommand = ref(false);
 
 const onRunCommand = () => {
-  if (isCommandPanelShown.value && selectedCommandIndex.value >= 0) {
+  if (isCommandPanelShown.value) {
     const commandComponents = commandText.value.split(" ").filter((x) => x);
     const commandStr = commandComponents[0].trim();
     const commandID = commandStr.substring(1).trim();
