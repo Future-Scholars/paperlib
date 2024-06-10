@@ -1,4 +1,4 @@
-## v3.1.4 Jun 10 2024
+## v3.1.5 Jun 10 2024
 
 1. Fix: the linked folder icon bug. by @geoffreychen777
 2. Enhance: the command bar behavior when pressing the Enter key. by @geoffreychen777
