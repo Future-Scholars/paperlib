@@ -49,7 +49,8 @@ const foldersViewTree = computed(() => {
     folders?.value || [],
     CategorizerType.PaperFolder,
     prefState.sidebarSortBy,
-    prefState.sidebarSortOrder
+    prefState.sidebarSortOrder,
+    prefState.pluginLinkedFolder
   );
 });
 
