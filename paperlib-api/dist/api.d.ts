@@ -523,6 +523,7 @@ declare class ExtensionManagementService extends Eventable<IExtensionManagementS
     private readonly _installedExtensions;
     private readonly _installedExtensionInfos;
     private _npmRegistry;
+    private readonly _dailyUpdateScheduler;
     constructor(_extensionPreferenceService: ExtensionPreferenceService, _networkTool: NetworkTool);
     initialize(): Promise<void>;
     _chooseNPMRegistry(): Promise<void>;
@@ -593,6 +594,10 @@ declare class ExtensionManagementService extends Eventable<IExtensionManagementS
      * @returns "uninstalled" | "unloaded" | "loaded"
      */
     isOfficialScrapeExtensionInstalled(): "loaded" | "unloaded" | "uninstalled";
+    /**
+     * Create a scheduled task to check for updates daily.
+     */
+    startUpdateCheckDaemon(): Promise<void>;
     memoryUsage(): number;
 }
 
@@ -1221,6 +1226,7 @@ declare interface IContextMenuServiceState {
         type: string;
     };
     supContextMenuDeleteClicked: string;
+    supContextMenuRenameClicked: string;
     thumbnailContextMenuReplaceClicked: number;
     thumbnailContextMenuRefreshClicked: number;
     linkToFolderClicked: string;
@@ -1541,6 +1547,7 @@ declare interface IPreferenceStore {
     selectedCSLStyle: string;
     importedCSLStylesPath: string;
     showPresetting: boolean;
+    showGuide: boolean;
     showWelcome: boolean;
     fontsize: "normal" | "large" | "larger";
 }
@@ -1596,10 +1603,10 @@ declare interface IUIStateServiceState {
     selectedIds: Array<string>;
     selectedPaperEntities: Array<PaperEntity>;
     selectedFeedEntities: Array<FeedEntity>;
-    selectedQuerySentenceId: string;
+    selectedQuerySentenceIds: string[];
     selectedFeed: string;
     editingPaperSmartFilter: PaperSmartFilter;
-    querySentenceSidebar: string;
+    querySentencesSidebar: Array<string>;
     querySentenceCommandbar: string;
     dragingIds: Array<string>;
     commandBarText: string;
@@ -2001,6 +2008,10 @@ declare class PaperService extends Eventable<IPaperServiceState> {
      */
     deleteSup(paperEntity: PaperEntity, url: string): Promise<void>;
     /**
+     * Set a custom display name of a supplementary file.
+     */
+    setSupDisplayName(paperEntity: PaperEntity, url: string, name: string): Promise<void>;
+    /**
      * Create paper entity from file URLs.
      * @param urlList - The list of URLs.
      * @returns The list of paper entity drafts.
@@ -2355,7 +2366,7 @@ declare class RenderService {
      * @param content - Math content
      * @returns Rendered HTML string
      */
-    renderMath(content: string): Promise<string>;
+    renderMath(content: string): string;
 }
 
 declare interface RSSItem {
@@ -2386,6 +2397,7 @@ declare class RSSRepository {
     parse(rawResponse: string): FeedEntity[];
     parseRSSItems(items: RSSItem[]): FeedEntity[];
     parseAtomItems(items: AtomItem[]): FeedEntity[];
+    parseScienceDirectRSSItems(items: RSSItem[]): FeedEntity[];
 }
 
 declare class SchedulerService {
