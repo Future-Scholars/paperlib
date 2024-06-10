@@ -1,3 +1,8 @@
+## v3.1.4 Jun 10 2024
+
+1. Fix: the linked folder icon bug. by @geoffreychen777
+2. Enhance: the command bar behavior when pressing the Enter key. by @geoffreychen777
+
 ## v3.1.3 Jun 02 2024
 
 1. Feat: now you can combine multiple tags/folders/smartfilters by clicking on them while holding the Ctrl/CMD key. by @geoffreychen777

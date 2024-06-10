@@ -1,3 +1,2 @@
-1. Feat: now you can combine multiple tags/folders/smartfilters by clicking on them while holding the Ctrl/CMD key. by @geoffreychen777
-2. Feat: now you can drag a subfolder to the root folder. by @geoffreychen777
-3. Fix: a bug when colorizing subfolders. by @geoffreychen777
+1. Fix: the linked folder icon bug. by @geoffreychen777
+2. Enhance: the command bar behavior when pressing the Enter key. by @geoffreychen777
