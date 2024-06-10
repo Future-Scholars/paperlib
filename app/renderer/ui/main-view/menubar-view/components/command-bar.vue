@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconChevronRight, BIconSearch, BIconX } from "bootstrap-icons-vue";
-import { computed, ref } from "vue";
+import { Ref, computed, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
@@ -148,6 +148,8 @@ const onFocus = async (payload: Event) => {
         selectedCommandIndex.value =
           (selectedCommandIndex.value + 1) % commands.value.length;
 
+        fixScrolling(selectedCommandIndex.value);
+
         commandText.value = `\\${
           commands.value[selectedCommandIndex.value].id
         } `;
@@ -170,6 +172,8 @@ const onFocus = async (payload: Event) => {
             (selectedCommandIndex.value - 1 + commands.value.length) %
             commands.value.length;
         }
+
+        fixScrolling(selectedCommandIndex.value);
 
         commandText.value = `\\${
           commands.value[selectedCommandIndex.value].id
@@ -242,6 +246,17 @@ const isCommandPanelShown = computed(() => {
   return isFocused.value && isCommand.value && commands.value.length > 0;
 });
 
+const suggestionView: Ref<HTMLElement | null> = ref(null);
+const fixScrolling = (index: number) => {
+  const currentElement = suggestionView.value?.querySelector(
+    `#command-item-${index}`
+  ) as HTMLElement;
+  currentElement.scrollIntoView({
+    behavior: "smooth",
+    block: "end",
+  });
+};
+
 disposable(
   shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
 );
@@ -308,8 +323,9 @@ disposable(
       leave-to-class="transform opacity-0"
     >
       <div
-        class="w-full max-h-64 bg-neutral-100 dark:bg-neutral-700 absolute left-0 top-8 z-50 rounded-bl-md rounded-br-md p-1 border-b-[1px] border-l-[1px] border-r-[1px] shadow-md dark:border-neutral-700"
+        class="w-full max-h-64 bg-neutral-100 dark:bg-neutral-700 absolute left-0 top-8 z-50 rounded-bl-md rounded-br-md p-1 border-b-[1px] border-l-[1px] border-r-[1px] shadow-md dark:border-neutral-700 overflow-auto"
         v-show="isCommandPanelShown"
+        ref="suggestionView"
       >
         <RecycleScroller
           id="command-list-scroll"
@@ -322,6 +338,7 @@ disposable(
         >
           <div
             class="flex space-x-4 h-7 rounded-md px-2 justify-between"
+            :id="`command-item-${index}`"
             :class="
               selectedCommandIndex === index
                 ? 'bg-neutral-200 dark:bg-neutral-800'
