@@ -13,6 +13,10 @@ Join our <a href="https://discord.gg/4unrSRjcM9">Discord community</a>!
 </p>
 
 <p align='center'>
+<a href='https://github.com/Future-Scholars/paperlib'>English</a> | <a href='https://github.com/Future-Scholars/paperlib/README_zhCN.md'>中文</a>
+</p>
+
+<p align='center'>
 <a href='https://paperlib.app/en/'>Webpage</a> | <a href='https://paperlib.app/en/download.html'>Download</a> | <a href='https://paperlib.app/en/doc/getting-started.html'>Quick Start</a> | <a href='https://github.com/users/Future-Scholars/projects/1/views/1'>Roadmap</a>
 </p>
 
@@ -34,7 +38,7 @@ I'm a computer science PhD student. Conference papers are in major in my researc
 
 - A modern UI. No extra useless features.
 
-What we need may be to: import a paper, scrape the metadata of it as accurately as possible, simply organise the library, and export it to BibTex when we are writing our papers.
+What we need may be to: import a paper, scrape the metadata of it as accurately as possible, simply organise the library, and export it when we are writing our papers.
 
 That is Paperlib.
 
@@ -51,13 +55,22 @@ That is Paperlib.
 - Beautiful and clean UI.
 - Extensible. You can write your own extensions.
 
+### With Extensions, you have:
+
+- Show citation counts.
+- Summarize papers by LLMs.
+- Automatically tag papers by LLMs.
+- Semantically search your library with natural language, such as: 'papers written by Geoffrey in 2024'.
+- Chat with LLMs about your papers.
+- and more...
+
 ## Download and Install
 
 <a href="https://paperlib.app/en/download.html" style="font-size: 16px"> » Download Here « </a>
 
 ### Windows
 
-⚠️ You may notice that a warning shows when you install Paperlib on Windows. The reason is that there is no code signing in Paperlib because it is so expensive. The source code of Paperlib can be found in the electron branch. It won't hurt your PC and will never collect any personal information. Please make sure you are using HTTPS and our official webpage or Github to download the installer. When you install `latest.exe`, in the "Windows protected your PC" window, please click `More info` and `Run anyway`.
+⚠️ You may notice that a warning shows when you install Paperlib on Windows. The reason is that there is no code signing in Paperlib because it is so expensive. The source code of Paperlib can be found here. It won't hurt your PC and will never collect any personal information. Please make sure you are using HTTPS and our official webpage or Github to download the installer. When you install `latest.exe`, in the "Windows protected your PC" window, please click `More info` and `Run anyway`.
 
 ### macOS
 
