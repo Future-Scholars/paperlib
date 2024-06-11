@@ -640,6 +640,12 @@ export class ReferenceService {
     }
 
     clipboard.writeText(copyStr);
+    this._logService.info(
+      "Copied to clipboard.",
+      copyStr,
+      true,
+      "ReferenceService"
+    )
   }
 
   /**
