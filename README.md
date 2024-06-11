@@ -13,7 +13,7 @@ Join our <a href="https://discord.gg/4unrSRjcM9">Discord community</a>!
 </p>
 
 <p align='center'>
-<a href='https://github.com/Future-Scholars/paperlib'>English</a> | <a href='https://github.com/Future-Scholars/paperlib/README_zhCN.md'>中文</a>
+<a href='https://github.com/Future-Scholars/paperlib'>English</a> | <a href='https://github.com/Future-Scholars/paperlib/blob/main/README_zhCN.md'>中文</a>
 </p>
 
 <p align='center'>
