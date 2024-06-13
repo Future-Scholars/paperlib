@@ -633,4 +633,79 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       currentWindow.center();
     }
   }
+
+  download(windowId: string, url: string, options = {}, headers = {}): Promise<string> {
+    function registerListener(session, options, callback = (error?: Error, item?: any) => { }) {
+      const downloadItems = new Set();
+      let receivedBytes = 0;
+      let completedBytes = 0;
+      let totalBytes = 0;
+      const activeDownloadItems = () => downloadItems.size;
+
+      const listener = (event, item, webContents) => {
+        downloadItems.add(item);
+        totalBytes += item.getTotalBytes();
+
+        const window_ = BrowserWindow.fromWebContents(webContents);
+        if (!window_) {
+          throw new Error('Failed to get window from web contents.');
+        }
+
+        const filePath = options.targetPath;
+
+        item.setSavePath(filePath);
+
+        item.on('updated', () => {});
+
+        item.on('done', (event, state) => {
+          completedBytes += item.getTotalBytes();
+          downloadItems.delete(item);
+
+          if (!window_.isDestroyed() && !activeDownloadItems()) {
+            window_.setProgressBar(-1);
+            receivedBytes = 0;
+            completedBytes = 0;
+            totalBytes = 0;
+          }
+
+          if (options.unregisterWhenDone) {
+            session.removeListener('will-download', listener);
+          }
+
+          if (state === 'cancelled') {
+            if (typeof options.onCancel === 'function') {
+              options.onCancel(item);
+            }
+
+            callback(new Error("Download was cancelled."));
+          } else if (state === 'interrupted') {
+            callback(new Error("Download was interrupted."));
+          } else if (state === 'completed') {
+            const savePath = item.getSavePath();
+            callback(undefined, savePath);
+          }
+        });
+      };
+
+      session.on('will-download', listener);
+    }
+
+
+    return new Promise((resolve, reject) => {
+      if (this.exist(windowId)) {
+        const currentWindow = this.browserWindows.get(windowId);
+
+        registerListener(currentWindow.webContents.session, { unregisterWhenDone: true, ...options }, (error, item) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(item);
+          }
+        });
+        currentWindow.webContents.downloadURL(url, { headers });
+      } else {
+        resolve("");
+      }
+    });
+  }
 }
