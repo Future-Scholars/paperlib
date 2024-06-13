@@ -91,6 +91,7 @@
     "asc": "Ascending",
     "export": "Export",
     "open": "Open",
+    "importfrom": "Import from...",
     "showinfinder": "Show in Finder",
     "showinexplore": "Show in Explorer",
     "bibtexkey": "BibTeX Key",

@@ -406,6 +406,22 @@ const switchSortOrder = (order: "asce" | "desc") => {
   preferenceService.set({ mainviewSortOrder: order });
 };
 
+const importFilesFromPicker = async () => {
+  const pickedFiles = await PLMainAPI.fileSystemService.showFilePicker([
+    "multiSelections",
+  ]);
+  if (pickedFiles.canceled || !pickedFiles) {
+    console.log("Picking files canceled or no files picked.");
+    return;
+  }
+  const filePaths: string[] = [];
+  pickedFiles.filePaths.forEach((filePath) => {
+    filePaths.push(`file://${filePath}`);
+    console.log("Picked file path: ", filePath);
+  });
+  await paperService.create(filePaths);
+};
+
 const onMenuButtonClicked = (command: string) => {
   switch (command) {
     case "rescrape":
@@ -677,6 +693,12 @@ disposable(
     true,
     true
   )
+);
+
+disposable(
+  PLMainAPI.menuService.onClick("File-importFrom", () => {
+    importFilesFromPicker();
+  })
 );
 
 disposable(
