@@ -374,53 +374,70 @@ export class NetworkTool {
       headers["cookie"] = await cookieJarObj.getCookieString(url);
     }
 
-    const response = await ky.get(url, {
-      headers: headers,
-      onDownloadProgress: (progress) => {
-        if (
-          this._donwloadProgress[url] &&
-          progress.percent &&
-          (progress.percent - this._donwloadProgress[url] > 0.05 ||
-            progress.percent === 1)
-        ) {
-          PLAPI.logService.progress(
-            "Downloading...",
-            progress.percent * 100,
-            true,
-            "Network",
-            url
-          );
+    try {
+      const response = await ky.get(url, {
+        headers: headers,
+        onDownloadProgress: (progress) => {
+          if (
+            this._donwloadProgress[url] &&
+            progress.percent &&
+            (progress.percent - this._donwloadProgress[url] > 0.05 ||
+              progress.percent === 1)
+          ) {
+            PLAPI.logService.progress(
+              "Downloading...",
+              progress.percent * 100,
+              true,
+              "Network",
+              url
+            );
 
-          this._donwloadProgress[url] = progress.percent;
-        } else if (!this._donwloadProgress[url] && progress.percent) {
-          this._donwloadProgress[url] = progress.percent;
+            this._donwloadProgress[url] = progress.percent;
+          } else if (!this._donwloadProgress[url] && progress.percent) {
+            this._donwloadProgress[url] = progress.percent;
+          }
+
+          if (progress.percent === 1) {
+            delete this._donwloadProgress[url];
+          }
+        },
+        fetch: this._fetch.bind(this),
+      });
+
+      const fileStream = createWriteStream(
+        constructFileURL(targetPath, false, false)
+      );
+      if (response.status !== 200 || !response.body) {
+        PLAPI.logService.error(
+          "Failed to download file.",
+          `Status: ${response.status} | URL: ${url} | Target path: ${targetPath} | Body: ${response.body}`,
+          true,
+          "Network"
+        );
+
+        return "";
+      } else {
+        await finished(Readable.fromWeb(response.body as any).pipe(fileStream));
+        return targetPath;
+      }
+    } catch (e) {
+      if ((e as Error).message.includes("403")) {
+        // Try native download
+        console.log("Try native download")
+        const nativeDownloadedPath = await PLMainAPI.windowProcessManagementService.download("rendererProcess", url, { targetPath: targetPath }, headers)
+        if (nativeDownloadedPath) {
+          return nativeDownloadedPath;
         }
-
-        if (progress.percent === 1) {
-          delete this._donwloadProgress[url];
-        }
-      },
-      fetch: this._fetch.bind(this),
-    });
-
-    const fileStream = createWriteStream(
-      constructFileURL(targetPath, false, false)
-    );
-
-    if (response.status !== 200 || !response.body) {
+      }
       PLAPI.logService.error(
         "Failed to download file.",
-        `Status: ${response.status} | URL: ${url} | Target path: ${targetPath} | Body: ${response.body}`,
+        `Status: ${(e as Error).message} | URL: ${url} | Target path: ${targetPath}`,
         true,
         "Network"
       );
 
       return "";
     }
-
-    await finished(Readable.fromWeb(response.body as any).pipe(fileStream));
-
-    return targetPath;
   }
 
   /**
