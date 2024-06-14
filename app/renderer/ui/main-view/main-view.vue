@@ -153,6 +153,19 @@ const registerShortcutFromPreference = () => {
       shortcutService.viewScope.MAIN
     )
   );
+
+
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutImportFrom") as string,
+      () => {
+        PLMainAPI.menuService.click("File-importFrom");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
 };
 
 preferenceService.on(
@@ -411,13 +424,11 @@ const importFilesFromPicker = async () => {
     "multiSelections",
   ]);
   if (pickedFiles.canceled || !pickedFiles) {
-    console.log("Picking files canceled or no files picked.");
     return;
   }
   const filePaths: string[] = [];
   pickedFiles.filePaths.forEach((filePath) => {
     filePaths.push(`file://${filePath}`);
-    console.log("Picked file path: ", filePath);
   });
   await paperService.create(filePaths);
 };

@@ -109,7 +109,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           { type: "separator" },
           {
             label: this._locales.t("menu.importfrom"),
-            accelerator: isMac ? "Cmd+O" : "Ctrl+O",
+            // accelerator: isMac ? "Cmd+O" : "Ctrl+O",
             click: () => {
               this.fire("File-importFrom");
             },

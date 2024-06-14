@@ -77,6 +77,8 @@ export interface IPreferenceStore {
 
   shortcutDelete: string;
 
+  shortcutImportFrom: string;
+
   sidebarWidth: number;
   detailPanelWidth: number;
   mainviewSortBy: string;
@@ -195,6 +197,8 @@ const _defaultPreferences: IPreferenceStore = {
   shortcutCopyKey: `${cmdOrCtrl}+Shift+K`,
 
   shortcutDelete: "Delete",
+
+  shortcutImportFrom: `${cmdOrCtrl}+O`,
 
   sidebarWidth: 20,
   detailPanelWidth: 75,
