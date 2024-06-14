@@ -58,4 +58,28 @@ export class UISlotService extends Eventable<IUISlotState> {
 
     this.fire({ [slotID]: currentSlot });
   }
+
+  /**
+   * Delete an item from a slot
+   * @param slotID - The slot to delete from
+   * @param itemID - The item to delete
+   * @returns
+   */
+  deleteSlotItem(slotID: keyof IUISlotState, itemID: string) {
+    const currentSlot = JSON.parse(JSON.stringify(this.getState(slotID)));
+
+    if (!currentSlot) {
+      this._logService.error(
+        `Slot does not exist in UISlotService.`,
+        slotID,
+        true,
+        "UISlotService"
+      );
+      return;
+    }
+
+    delete currentSlot[itemID];
+
+    this.fire({ [slotID]: currentSlot });
+  }
 }
