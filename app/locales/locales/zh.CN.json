@@ -91,6 +91,7 @@
     "asc": "升序",
     "export": "导出",
     "open": "打开",
+    "importfrom": "从文件导入...",
     "showinfinder": "在访达中显示",
     "showinexplore": "在资源管理器中显示",
     "bibtexkey": "BibTeX 键",

@@ -91,6 +91,7 @@
     "asc": "陞序",
     "export": "匯出",
     "open": "打開",
+    "importfrom": "自文件匯入...",
     "showinfinder": "在 Finder 中顯示",
     "showinexplore": "在檔案總管中顯示",
     "bibtexkey": "BibTeX 鍵",

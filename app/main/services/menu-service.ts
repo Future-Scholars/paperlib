@@ -25,6 +25,7 @@ export interface IMenuServiceState {
   "View-next": number;
   "View-previous": number;
   "File-delete": number;
+  "File-importFrom": number;
 }
 
 export const IMenuService = createDecorator("menuService");
@@ -49,6 +50,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
       "View-next": 0,
       "View-previous": 0,
       "File-delete": 0,
+      "File-importFrom": 0,
     });
 
     this._locales = loadLocales(
@@ -67,33 +69,33 @@ export class MenuService extends Eventable<IMenuServiceState> {
     const template = [
       ...(isMac
         ? [
-            {
-              label: app.name,
-              submenu: [
-                { role: "about" },
-                {
-                  label: this._locales.t("menu.preference"),
-                  click: () => {
-                    this.fire("preference");
-                  },
+          {
+            label: app.name,
+            submenu: [
+              { role: "about" },
+              {
+                label: this._locales.t("menu.preference"),
+                click: () => {
+                  this.fire("preference");
                 },
-                {
-                  label: this._locales.t("menu.checkforupdate"),
-                  click: () => {
-                    this._upgradeService.checkForUpdates();
-                  },
+              },
+              {
+                label: this._locales.t("menu.checkforupdate"),
+                click: () => {
+                  this._upgradeService.checkForUpdates();
                 },
-                { type: "separator" },
-                { role: "services" },
-                { type: "separator" },
-                { role: "hide" },
-                { role: "hideOthers" },
-                { role: "unhide" },
-                { type: "separator" },
-                { role: "quit" },
-              ],
-            },
-          ]
+              },
+              { type: "separator" },
+              { role: "services" },
+              { type: "separator" },
+              { role: "hide" },
+              { role: "hideOthers" },
+              { role: "unhide" },
+              { type: "separator" },
+              { role: "quit" },
+            ],
+          },
+        ]
         : []),
       {
         label: this._locales.t("menu.file"),
@@ -102,6 +104,14 @@ export class MenuService extends Eventable<IMenuServiceState> {
             label: this._locales.t("menu.open"),
             click: () => {
               this.fire("File-enter");
+            },
+          },
+          { type: "separator" },
+          {
+            label: this._locales.t("menu.importfrom"),
+            // accelerator: isMac ? "Cmd+O" : "Ctrl+O",
+            click: () => {
+              this.fire("File-importFrom");
             },
           },
           { type: "separator" },
@@ -197,11 +207,11 @@ export class MenuService extends Eventable<IMenuServiceState> {
           { role: "zoom" },
           ...(isMac
             ? [
-                { type: "separator" },
-                { role: "front" },
-                { type: "separator" },
-                { role: "window" },
-              ]
+              { type: "separator" },
+              { role: "front" },
+              { type: "separator" },
+              { role: "window" },
+            ]
             : [{ role: "close" }]),
         ],
       },

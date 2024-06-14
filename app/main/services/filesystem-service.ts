@@ -78,9 +78,13 @@ export class FileSystemService {
    * @returns {Promise<OpenDialogReturnValue>} The result of the file picker.
    */
   @errorcatching("Failed to show file picker.", true, "FileSystemService")
-  showFilePicker(): Promise<OpenDialogReturnValue> {
+  showFilePicker(props?: Array<"openDirectory" | "multiSelections" | "showHiddenFiles" | "createDirectory" | "promptToCreate" | "noResolveAliases" | "treatPackageAsDirectory" | "dontAddToRecent">): Promise<OpenDialogReturnValue> {
+    const properties: Array<"openFile" | "openDirectory" | "multiSelections" | "showHiddenFiles" | "createDirectory" | "promptToCreate" | "noResolveAliases" | "treatPackageAsDirectory" | "dontAddToRecent"> = ["openFile"];
+    if (props) {
+      properties.push(...props);
+    }
     return dialog.showOpenDialog({
-      properties: ["openFile"],
+      properties,
     });
   }
 

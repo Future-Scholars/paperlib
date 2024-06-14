@@ -153,6 +153,19 @@ const registerShortcutFromPreference = () => {
       shortcutService.viewScope.MAIN
     )
   );
+
+
+  disposeCallbacks.push(
+    shortcutService.register(
+      preferenceService.get("shortcutImportFrom") as string,
+      () => {
+        PLMainAPI.menuService.click("File-importFrom");
+      },
+      true,
+      true,
+      shortcutService.viewScope.MAIN
+    )
+  );
 };
 
 preferenceService.on(
@@ -404,6 +417,20 @@ const switchSortBy = (key: string) => {
 
 const switchSortOrder = (order: "asce" | "desc") => {
   preferenceService.set({ mainviewSortOrder: order });
+};
+
+const importFilesFromPicker = async () => {
+  const pickedFiles = await PLMainAPI.fileSystemService.showFilePicker([
+    "multiSelections",
+  ]);
+  if (pickedFiles.canceled || !pickedFiles) {
+    return;
+  }
+  const filePaths: string[] = [];
+  pickedFiles.filePaths.forEach((filePath) => {
+    filePaths.push(`file://${filePath}`);
+  });
+  await paperService.create(filePaths);
 };
 
 const onMenuButtonClicked = (command: string) => {
@@ -677,6 +704,12 @@ disposable(
     true,
     true
   )
+);
+
+disposable(
+  PLMainAPI.menuService.onClick("File-importFrom", () => {
+    importFilesFromPicker();
+  })
 );
 
 disposable(
