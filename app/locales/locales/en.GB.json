@@ -43,7 +43,8 @@
     "historyreleasenote": "History Release Note",
     "feed": "Feed",
     "feedTime": "Feed Time",
-    "abstract": "Abstract"
+    "abstract": "Abstract",
+    "foundcandidates": "Found Candidates"
   },
   "smartfilter": {
     "startops": "Start Ops",
@@ -73,6 +74,7 @@
   "menu": {
     "rescrape": "Scrape",
     "rescrapefrom": "Scrape from",
+    "fuzzyscrape": "Fuzzily Scrape",
     "removefrom": "Remove from",
     "delete": "Delete",
     "edit": "Edit",

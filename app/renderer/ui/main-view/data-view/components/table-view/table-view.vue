@@ -8,10 +8,15 @@ import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableItem from "./components/table-item.vue";
 import TableHeader from "./components/table-header.vue";
+import { PaperEntity } from "@/models/paper-entity";
 
 const props = defineProps({
   entities: {
     type: Object as PropType<IPaperEntityCollection | IFeedEntityCollection>,
+    required: true,
+  },
+  candidates: {
+    type: Object as PropType<Record<string, PaperEntity[]>>,
     required: true,
   },
   fieldTemplates: {
@@ -55,6 +60,7 @@ const emits = defineEmits([
   "event:drag-file",
   "event:header-click",
   "event:header-width-change",
+  "event:click-candidate-btn",
 ]);
 
 const calSelectedIndex = (event: MouseEvent, index: number) => {
@@ -154,12 +160,19 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
         :active="selectedIndex.indexOf(index) >= 0"
         :striped="index % 2 === 0"
         :read="item.read !== undefined ? item.read : true"
-        :query-highlight="(uiState.commandBarSearchMode === 'general' && !uiState.commandBarText.startsWith('\\')) ? uiState.commandBarText : ''"
+        :query-highlight="
+          uiState.commandBarSearchMode === 'general' &&
+          !uiState.commandBarText.startsWith('\\')
+            ? uiState.commandBarText
+            : ''
+        "
+        :show-candidate-btn="candidates[item.id]?.length > 0"
         @click="(e: MouseEvent) => {onItemClicked(e, index)}"
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
         draggable="true"
         @dragstart="(event) => onItemDraged(event, index, item.id)"
+        @event:click-candidate-btn="emits('event:click-candidate-btn', item.id)"
       />
     </RecycleScroller>
   </div>

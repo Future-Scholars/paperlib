@@ -43,7 +43,8 @@
     "historyreleasenote": "历史版本",
     "feed": "订阅",
     "feedTime": "更新时间",
-    "abstract": "摘要"
+    "abstract": "摘要",
+    "foundcandidates": "找到候选匹配"
   },
   "smartfilter": {
     "startops": "起始运算符",
@@ -73,6 +74,7 @@
   "menu": {
     "rescrape": "搜寻元数据",
     "rescrapefrom": "从 ... 搜寻元数据",
+    "fuzzyscrape": "模糊搜寻元数据",
     "removefrom": "从 ... 移除",
     "delete": "删除",
     "edit": "编辑",

@@ -8,7 +8,7 @@ import {
   BIconFileEarmark,
   BIconGithub,
 } from "bootstrap-icons-vue";
-import { PropType } from "vue";
+import { PropType, ref } from "vue";
 import WordHighlighter from "vue-word-highlighter";
 
 import { getCategorizerString, getPubTypeString } from "@/base/string";
@@ -62,11 +62,18 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  showCandidateBtn: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const renderTitle = (title: string) => {
   return renderService.renderMath(title);
 };
+
+const emits = defineEmits(["event:click-candidate-btn"]);
+
 </script>
 
 <style>
@@ -82,10 +89,9 @@ scp {
     :class="active ? `bg-accentlight dark:bg-accentdark` : ''"
     :style="`height: ${height}px`"
   >
-    <div class="flex space-x-2">
+    <div class="flex space-x-2" :class="active ? 'text-white' : ''">
       <div
-        class="text-[0.84rem] leading-[1.1rem] font-semibold truncate overflow-hidden"
-        :class="active ? 'text-white' : ''"
+        class="text-[0.84rem] leading-[1.1rem] font-semibold truncate overflow-hidden grow"
       >
         <WordHighlighter
           :query="queryHighlight"
@@ -94,6 +100,14 @@ scp {
           :split-by-space="true"
         >
         </WordHighlighter>
+      </div>
+      <div 
+        class="flex flex-none justify-end text-xxs rounded-md px-1.5 shadow-md" 
+        :class="active ? 'bg-blue-500 hover:bg-blue-400' : 'bg-neutral-200 hover:bg-neutral-300'"
+        @click.stop="$emit('event:click-candidate-btn')"
+        v-if="showCandidateBtn"
+      >
+        <span class="m-auto">{{ $t("mainview.foundcandidates") }}</span>
       </div>
     </div>
     <div
@@ -189,7 +203,7 @@ scp {
       >
         <div>|</div>
         <div class="truncate underline">
-          {{ item.note.substring(0, 4) === "<md>" ? item.note.replace("<md>", "") : item.note }}
+          {{ item.note.substring(0, 4) === `<md>` ? item.note.replace(`<md>`, "") : item.note }}
         </div>
       </div>
 

@@ -43,7 +43,8 @@
     "historyreleasenote": "歷史版本說明",
     "feed": "訂閱",
     "feedTime": "更新時間",
-    "abstract": "摘要"
+    "abstract": "摘要",
+    "foundcandidates": "找到候選匹配"
   },
   "smartfilter": {
     "startops": "起始運算子",
@@ -73,6 +74,7 @@
   "menu": {
     "rescrape": "搜尋元數據",
     "rescrapefrom": "從 ... 搜尋元數據",
+    "fuzzyscrape": "模糊搜尋元數據",
     "removefrom": "從 ... 移除",
     "delete": "刪除",
     "edit": "編輯",

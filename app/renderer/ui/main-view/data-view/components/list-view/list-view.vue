@@ -12,6 +12,10 @@ const props = defineProps({
     type: Object as PropType<IPaperEntityCollection>,
     required: true,
   },
+  candidates: {
+    type: Object as PropType<Record<string, PaperEntity[]>>,
+    required: true,
+  },
   fieldEnables: {
     type: Object as PropType<Partial<Record<keyof PaperEntity, boolean>>>,
     required: true,
@@ -53,6 +57,7 @@ const emits = defineEmits([
   "event:contextmenu",
   "event:drag",
   "event:drag-file",
+  "event:click-candidate-btn",
 ]);
 
 const calSelectedIndex = (event: MouseEvent, index: number) => {
@@ -145,11 +150,13 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
           :categorizer-sort-by="categorizerSortBy"
           :categorizer-sort-order="categorizerSortOrder"
           :query-highlight="(uiState.commandBarSearchMode === 'general' && !uiState.commandBarText.startsWith('\\')) ? uiState.commandBarText : ''"
+          :show-candidate-btn="candidates[item.id]?.length > 0"
           @click="(e: MouseEvent) => {onItemClicked(e, index)}"
           @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
           @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
           draggable="true"
           @dragstart="(e: DragEvent) => {onItemDraged(e, index, item.id)}"
+          @event:click-candidate-btn="emits('event:click-candidate-btn', item.id)"
         />
       </RecycleScroller>
   </div>
