@@ -6,6 +6,7 @@ import { ILogService, LogService } from "@/common/services/log-service";
 import { PaperEntity } from "@/models/paper-entity";
 import { HookService, IHookService } from "@/renderer/services/hook-service";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
+import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 
 export const IScrapeService = createDecorator("scrapeService");
 
@@ -242,5 +243,113 @@ export class ScrapeService extends Eventable<{}> {
     }
 
     return scrapedPaperEntityDrafts;
+  }
+
+  /**
+   * Scrape a data source's metadata.
+   * @param payloads - data source payloads.
+   * @returns List of paper entities' candidates. */
+  @processing(ProcessingKey.General)
+  @errorcatching(
+    "Failed to fuzzily scrape data source.",
+    true,
+    "ScrapeService",
+    []
+  )
+  async fuzzyScrape(
+    paperEntities: IPaperEntityCollection
+  ): Promise<Record<string, PaperEntity[]>> {
+    // 0. Wait for scraper extension to be ready.
+    await this._scrapeExtensionReady();
+
+    // Do in chunks 10
+    const jobID = Math.random().toString(36).substring(7);
+    const results: Record<string, PaperEntity[]> = {};
+    for (let i = 0; i < paperEntities.length; i += 10) {
+      if (paperEntities.length >= 20) {
+        this._logService.progress(
+          `Processing ${i} / ${paperEntities.length}...`,
+          (i / paperEntities.length) * 100,
+          true,
+          "ScrapeService",
+          jobID
+        );
+      }
+      try {
+        let paperEntityChunk = paperEntities.slice(i, i + 10);
+
+        const paperEntityDraftCandidates = await this._fuzzyScrape(
+          paperEntityChunk
+        );
+
+        paperEntityChunk.forEach((p, index) => {
+          results[`${p._id}`] = paperEntityDraftCandidates[index];
+        });
+      } catch (e) {
+        this._logService.error(
+          "Failed to fuzzily scrape data source.",
+          `${(e as Error).message} ${(e as Error).stack}`,
+          true,
+          "ScrapeService"
+        );
+      }
+    }
+
+    if (paperEntities.length >= 20) {
+      this._logService.progress(`Done!`, 100, true, "ScrapeService", jobID);
+    }
+
+    return results;
+  }
+
+  /**
+   * Scrape all entry scrapers to transform data source payloads into a PaperEntity list.
+   * @param payloads - data source payloads.
+   * @returns List of paper entities. */
+  @processing(ProcessingKey.General)
+  @errorcatching("Failed to scrape entry.", true, "ScrapeService", [])
+  async _fuzzyScrape(
+    paperEntities: IPaperEntityCollection
+  ): Promise<PaperEntity[][]> {
+    if (this._hookService.hasHook("beforeFuzzyScrape")) {
+      [paperEntities] = await this._hookService.modifyHookPoint(
+        "beforeFuzzyScrape",
+        5000,
+        paperEntities
+      );
+    }
+
+    let paperEntityDraftCandidates: PaperEntity[][] = [];
+    if (this._hookService.hasHook("fuzzyScrapeMetadata")) {
+      paperEntityDraftCandidates = await this._hookService.transformhookPoint<
+        any[],
+        Object[]
+      >(
+        "fuzzyScrapeMetadata",
+        600000, // 10 min
+        paperEntities
+      );
+      paperEntityDraftCandidates.forEach((p) => {
+        return p.map((p) => {
+          return new PaperEntity(p);
+        });
+      });
+    }
+
+    if (this._hookService.hasHook("afterScrapeEntry")) {
+      [paperEntityDraftCandidates] = await this._hookService.modifyHookPoint(
+        "afterScrapeEntry",
+        5000,
+        paperEntityDraftCandidates
+      );
+
+      paperEntityDraftCandidates.forEach((p) => {
+        return p.map((p) => {
+          return new PaperEntity(p);
+        });
+      });
+    }
+
+    return paperEntityDraftCandidates;
   }
 }

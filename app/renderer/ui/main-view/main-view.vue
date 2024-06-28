@@ -19,6 +19,7 @@ import PaperDetailView from "./detail-view/paper-detail-view.vue";
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 import { Process } from "@/base/process-id.ts";
 import { cmdOrCtrl, ShortcutEvent } from "@/common/utils.ts";
+import CandidateView from "./candidate-view/candidate-view.vue";
 
 // ================================
 // State
@@ -153,7 +154,6 @@ const registerShortcutFromPreference = () => {
       shortcutService.viewScope.MAIN
     )
   );
-
 
   disposeCallbacks.push(
     shortcutService.register(
@@ -314,6 +314,22 @@ const scrapeSelectedEntitiesFrom = (scraperName: string) => {
       }
     );
     void paperService.scrape(paperEntityDrafts, [scraperName]);
+  }
+};
+
+const fuzzyScrapeSelectedEntities = async () => {
+  if (uiState.contentType === "library") {
+    const paperEntityDrafts = uiState.selectedPaperEntities.map(
+      (paperEntity) => {
+        return new PaperEntity(paperEntity);
+      }
+    );
+    const results = await scrapeService.fuzzyScrape(paperEntityDrafts);
+
+    const newMetadataCandidates = { ...uiState.metadataCandidates, ...results };
+    uiStateService.setState({
+      metadataCandidates: newMetadataCandidates,
+    });
   }
 };
 
@@ -550,6 +566,12 @@ disposable(
       );
     }
   )
+);
+
+disposable(
+  PLMainAPI.contextMenuService.on("dataContextMenuFuzzyScrapeClicked", () => {
+    fuzzyScrapeSelectedEntities();
+  })
 );
 
 disposable(
@@ -807,7 +829,8 @@ disposable(
               :key="1"
               :size="
                 uiState.selectedPaperEntities.length === 1 ||
-                uiState.selectedFeedEntities.length === 1
+                uiState.selectedFeedEntities.length === 1 ||
+                uiState.showingCandidatesId !== ''
                   ? prefState.detailPanelWidth
                   : 100
               "
@@ -825,7 +848,8 @@ disposable(
               :key="2"
               :size="
                 uiState.selectedPaperEntities.length === 1 ||
-                uiState.selectedFeedEntities.length === 1
+                uiState.selectedFeedEntities.length === 1 ||
+                uiState.showingCandidatesId !== ''
                   ? 100 - prefState.detailPanelWidth
                   : 0
               "
@@ -839,8 +863,20 @@ disposable(
                 :slot1="uiSlotState.paperDetailsPanelSlot1"
                 :slot2="uiSlotState.paperDetailsPanelSlot2"
                 :slot3="uiSlotState.paperDetailsPanelSlot3"
-                v-show="uiState.selectedPaperEntities.length === 1"
+                v-show="
+                  uiState.selectedPaperEntities.length === 1 &&
+                  !uiState.showingCandidatesId
+                "
                 v-if="uiState.contentType === 'library'"
+              />
+
+              <CandidateView
+                v-if="uiState.contentType === 'library'"
+                v-show="uiState.showingCandidatesId"
+                :id="uiState.showingCandidatesId"
+                :candidates="
+                  uiState.metadataCandidates[uiState.showingCandidatesId]
+                "
               />
 
               <FeedDetailView

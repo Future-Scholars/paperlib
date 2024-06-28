@@ -17,6 +17,7 @@ import { ShortcutService } from "@/renderer/services/shortcut-service";
 import { SmartFilterService } from "@/renderer/services/smartfilter-service";
 import { UISlotService } from "@/renderer/services/uislot-service";
 import { UIStateService } from "@/renderer/services/uistate-service";
+import { ScrapeService } from "@/renderer/services/scrape-service";
 
 declare global {
   var preferenceService: PreferenceService;
@@ -39,4 +40,5 @@ declare global {
   var uiStateService: UIStateService;
   var uiSlotService: UISlotService;
   var querySentenceService: QuerySentenceService;
+  var scrapeService: ScrapeService
 }

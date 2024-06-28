@@ -5,10 +5,15 @@ import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entit
 import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableView from "./table-view.vue";
+import { PaperEntity } from "@/models/paper-entity";
 
 const props = defineProps({
   entities: {
     type: Object as PropType<IPaperEntityCollection>,
+    required: true,
+  },
+  candidates: {
+    type: Object as PropType<Record<string, PaperEntity[]>>,
     required: true,
   },
   fieldTemplates: {
@@ -51,6 +56,7 @@ const emits = defineEmits([
   "event:drag-file",
   "event:header-click",
   "event:header-width-change",
+  "event:click-candidate-btn",
 ]);
 </script>
 
@@ -61,6 +67,7 @@ const emits = defineEmits([
         id="table-data-view"
         class="w-full max-h-[calc(100vh-4rem)]"
         :entities="entities"
+        :candidates="candidates"
         :field-templates="fieldTemplates"
         :selected-index="selectedIndex"
         :platform="platform"
@@ -75,6 +82,9 @@ const emits = defineEmits([
         @event:header-click="(args) => emits('event:header-click', args)"
         @event:header-width-change="
           (args) => emits('event:header-width-change', args)
+        "
+        @event:click-candidate-btn="
+          (args) => emits('event:click-candidate-btn', args)
         "
       />
     </pane>

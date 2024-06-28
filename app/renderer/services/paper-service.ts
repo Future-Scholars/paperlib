@@ -103,27 +103,17 @@ export class PaperFilterOptions implements IPaperFilterOptions {
   }
 
   static checkIsDateFilter(dateFilter: string) {
-    return dateFilter.match(
-      /(<|<=|>|>=)\s*\[\d+ DAYS\]/g
-    );
+    return dateFilter.match(/(<|<=|>|>=)\s*\[\d+ DAYS\]/g);
   }
 
   static parseDateFilter(dateFilter: string) {
-    const compareDateMatch = dateFilter.match(
-      /(<|<=|>|>=)\s*\[\d+ DAYS\]/g
-    );
+    const compareDateMatch = dateFilter.match(/(<|<=|>|>=)\s*\[\d+ DAYS\]/g);
     if (compareDateMatch) {
       for (const match of compareDateMatch) {
         if (dateFilter.includes("<")) {
-          dateFilter = dateFilter.replaceAll(
-            match,
-            match.replaceAll("<", ">")
-          );
+          dateFilter = dateFilter.replaceAll(match, match.replaceAll("<", ">"));
         } else if (dateFilter.includes(">")) {
-          dateFilter = dateFilter.replaceAll(
-            match,
-            match.replaceAll(">", "<")
-          );
+          dateFilter = dateFilter.replaceAll(match, match.replaceAll(">", "<"));
         }
       }
     }
@@ -595,7 +585,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     paperEntity.supURLs = paperEntity.supURLs.map((supURL) => {
       if (supURL === url) {
         const realSupURL = supURL.split(":::").pop();
-        return `${name}:::${realSupURL}`
+        return `${name}:::${realSupURL}`;
       } else {
         return supURL;
       }
@@ -746,7 +736,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     if (this._preferenceService.get("allowRoutineMatch") as boolean) {
       if (
         Math.round(Date.now() / 1000) -
-        (this._preferenceService.get("lastRematchTime") as number) <
+          (this._preferenceService.get("lastRematchTime") as number) <
         7 * 86400 - 10
       ) {
         return;

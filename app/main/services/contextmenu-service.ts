@@ -67,6 +67,7 @@ export interface IContextMenuServiceState {
   dataContextMenuShowInFinderClicked: number;
   dataContextMenuEditClicked: number;
   dataContextMenuScrapeClicked: number;
+  dataContextMenuFuzzyScrapeClicked: number;
   dataContextMenuDeleteClicked: number;
   dataContextMenuFlagClicked: number;
   dataContextMenuExportBibTexClicked: number;
@@ -114,6 +115,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       dataContextMenuShowInFinderClicked: 0,
       dataContextMenuEditClicked: 0,
       dataContextMenuScrapeClicked: 0,
+      dataContextMenuFuzzyScrapeClicked: 0,
       dataContextMenuDeleteClicked: 0,
       dataContextMenuFlagClicked: 0,
       dataContextMenuExportBibTexClicked: 0,
@@ -235,6 +237,24 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       },
       { type: "separator" },
       {
+        label: this._locales.t("menu.rescrape"),
+        accelerator: preferenceService.get("shortcutScrape") as string,
+        click: () => {
+          this.fire("dataContextMenuScrapeClicked");
+        },
+      },
+      {
+        label: this._locales.t("menu.rescrapefrom"),
+        submenu: scraperMenuTemplate,
+      },
+      {
+        label: this._locales.t("menu.fuzzyscrape"),
+        click: () => {
+          this.fire("dataContextMenuFuzzyScrapeClicked");
+        },
+      },
+      { type: "separator" },
+      {
         label: this._locales.t("menu.edit"),
         enabled: allowEdit,
         accelerator: preferenceService.get("shortcutEdit") as string,
@@ -242,32 +262,6 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
           this.fire("dataContextMenuEditClicked");
         },
       },
-      {
-        label: this._locales.t("menu.rescrape"),
-        accelerator: preferenceService.get("shortcutScrape") as string,
-        click: () => {
-          this.fire("dataContextMenuScrapeClicked");
-        },
-      },
-
-      {
-        label: this._locales.t("menu.rescrapefrom"),
-        submenu: scraperMenuTemplate,
-      },
-      {
-        label: this._locales.t("menu.removefrom"),
-        submenu: [
-          {
-            label: this._locales.t("mainview.folders"),
-            submenu: removeFolderMenuTemplate,
-          },
-          {
-            label: this._locales.t("mainview.tags"),
-            submenu: removeTagMenuTemplate,
-          },
-        ],
-      },
-
       {
         label: this._locales.t("menu.delete"),
         accelerator: preferenceService.get("shortcutDelete") as string,
@@ -281,6 +275,19 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         click: () => {
           this.fire("dataContextMenuFlagClicked");
         },
+      },
+      {
+        label: this._locales.t("menu.removefrom"),
+        submenu: [
+          {
+            label: this._locales.t("mainview.folders"),
+            submenu: removeFolderMenuTemplate,
+          },
+          {
+            label: this._locales.t("mainview.tags"),
+            submenu: removeTagMenuTemplate,
+          },
+        ],
       },
       { type: "separator" },
       {
@@ -555,7 +562,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
         click: () => {
           this.fire({ supContextMenuRenameClicked: fileURL });
         },
-      }
+      },
     ];
     const menu = Menu.buildFromTemplate(template);
     menu.popup();

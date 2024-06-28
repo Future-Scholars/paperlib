@@ -41,7 +41,11 @@ const props = defineProps({
   queryHighlight: {
     type: String,
     default: "",
-  }
+  },
+  showCandidateBtn: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const fields = computed(() => {
@@ -102,7 +106,8 @@ const fields = computed(() => {
         break;
       }
       case "note": {
-        value = value.substring(0, 4) === "<md>" ? value.replace("<md>", "") : value;
+        value =
+          value.substring(0, 4) === "<md>" ? value.replace("<md>", "") : value;
         break;
       }
     }
@@ -118,6 +123,8 @@ const fields = computed(() => {
 
   return fields;
 });
+
+const emits = defineEmits(["event:click-candidate-btn"]);
 </script>
 
 <template>
@@ -209,5 +216,18 @@ const fields = computed(() => {
         {{ field.value }}
       </span>
     </div>
+      <div
+        class="absolute mt-0.5 right-2 flex justify-end text-xxs rounded-md px-1.5 shadow-md"
+        :class="
+          active
+            ? 'bg-blue-500 hover:bg-blue-400'
+            : 'bg-neutral-200 hover:bg-neutral-300'
+        "
+        @click.stop="$emit('event:click-candidate-btn')"
+        v-if="showCandidateBtn"
+      >
+        <span class="m-auto">{{ $t("mainview.foundcandidates") }}</span>
+      </div>
+
   </div>
 </template>

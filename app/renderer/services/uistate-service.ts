@@ -33,6 +33,9 @@ export interface IUIStateServiceState {
   selectedQuerySentenceIds: string[];
   selectedFeed: string;
 
+  showingCandidatesId: string;
+  metadataCandidates: Record<string, PaperEntity[]>;
+
   editingPaperSmartFilter: PaperSmartFilter;
 
   querySentencesSidebar: Array<string>;
@@ -84,6 +87,9 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       selectedQuerySentenceIds: ["lib-all"],
       selectedFeed: "feed-all",
       dragingIds: [],
+
+      showingCandidatesId: "",
+      metadataCandidates: {},
 
       querySentencesSidebar: [],
       querySentenceCommandbar: "",
@@ -182,6 +188,8 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       feedEditViewShown: false,
       paperSmartFilterEditViewShown: false,
       deleteConfirmShown: false,
+      overlayNoticationShown: false,
+      candidatesViewShown: false,
       renderRequired: -1,
       feedEntityAddingStatus: 0,
       selectedIndex: [],
