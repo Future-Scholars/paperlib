@@ -132,12 +132,18 @@ export class PluginVm {
     //  `var app = exports = module.exports = {};` notation
     const iifeCode = `
 			(function(exports){
+        globalThis.AbortController = globalThis['_AC'];
+        globalThis.AbortSignal = globalThis['_AS'];
 				${code}
 			}(module.exports));`;
 
     const vmOptions = { displayErrors: true, filename: filePath };
     const script = new vm.Script(iifeCode, vmOptions);
 
+    moduleContext._AC = AbortController;
+    moduleContext.global._AC = AbortController;
+    moduleContext._AS = AbortSignal;
+    moduleContext.global._AS = AbortSignal;
     script.runInContext(moduleContext, vmOptions);
   }
 
