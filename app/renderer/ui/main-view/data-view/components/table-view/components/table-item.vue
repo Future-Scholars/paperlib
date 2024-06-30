@@ -221,7 +221,7 @@ const emits = defineEmits(["event:click-candidate-btn"]);
         :class="
           active
             ? 'bg-blue-500 hover:bg-blue-400'
-            : 'bg-neutral-200 hover:bg-neutral-300'
+            : 'bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600'
         "
         @click.stop="$emit('event:click-candidate-btn')"
         v-if="showCandidateBtn"

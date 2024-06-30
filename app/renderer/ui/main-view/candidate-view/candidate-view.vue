@@ -97,14 +97,14 @@ const onCancelClicked = () => {
     </div>
     <div class="flex space-x-2 py-2 justify-between select-none">
       <div
-        class="flex w-1/2 h-8 rounded-md bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm hover:bg-neutral-300 cursor-pointer transition-colors duration-75"
+        class="flex w-1/2 h-8 rounded-md bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm hover:bg-neutral-300 hover:dark:bg-neutral-500 cursor-pointer transition-colors duration-75"
         @click="onCancelClicked"
       >
         <span class="m-auto text-xs">{{ $t("menu.close") }}</span>
       </div>
       <div
         id="paper-edit-view-save-btn"
-        class="flex w-1/2 h-8 rounded-md bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm hover:bg-neutral-300 cursor-pointer transition-colors duration-75"
+        class="flex w-1/2 h-8 rounded-md bg-neutral-200 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm hover:bg-neutral-300 hover:dark:bg-neutral-500 cursor-pointer transition-colors duration-75"
         @click="onConfirmClicked()"
       >
         <span class="m-auto text-xs">{{ $t("menu.save") }}</span>

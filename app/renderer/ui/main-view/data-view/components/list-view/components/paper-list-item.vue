@@ -103,7 +103,7 @@ scp {
       </div>
       <div 
         class="flex flex-none justify-end text-xxs rounded-md px-1.5 shadow-md" 
-        :class="active ? 'bg-blue-500 hover:bg-blue-400' : 'bg-neutral-200 hover:bg-neutral-300'"
+        :class="active ? 'bg-blue-500 hover:bg-blue-400' : 'bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600'"
         @click.stop="$emit('event:click-candidate-btn')"
         v-if="showCandidateBtn"
       >
