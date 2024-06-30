@@ -1,3 +1,10 @@
+## v3.1.6 Jun 30 2024
+
+1. Feat: import files via a file picker. by @lcandy2
+2. Feat: fuzzy metadata scraping. by @geoffreychen777 ![](https://paperlib.app/assets/images/getting-started/fuzzyscrape.png)
+3. Enhance: PDF download via browser extension. by @geoffreychen777
+4. For Extension Developer: new API to delete UI slots. by @geoffreychen777
+
 ## v3.1.5 Jun 10 2024
 
 1. Fix: the linked folder icon bug. by @geoffreychen777

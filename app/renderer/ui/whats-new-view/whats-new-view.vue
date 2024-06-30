@@ -61,6 +61,21 @@ onMounted(async () => {
   list-style-type: disc;
 }
 
+#release-note img {
+  border-radius: 0.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+}
+
+#release-note code {
+  background-color: #00000074;
+  color: white;
+  padding: 0.1em 0.3em;
+  border-radius: 0.3em;
+  font-size: 0.8em;
+}
+
 #history-release-note h2 {
   font-size: 0.9rem;
   font-weight: 600;
@@ -70,6 +85,10 @@ onMounted(async () => {
 #history-release-note ol {
   margin-bottom: 2em;
   list-style-type: circle;
+}
+
+#history-release-note img {
+  display: none;
 }
 </style>
 

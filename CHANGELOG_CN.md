@@ -1,3 +1,11 @@
+## v3.1.6 30/06 2024
+
+1. 新功能：现在你可以通过文件选择器导入文件。by @lcandy2
+2. 新功能：模糊元数据搜刮。by @geoffreychen777 ![](https://paperlib.app/assets/images/getting-started/fuzzyscrape.png)
+3. 增强：通过浏览器插件下载 PDF。by @geoffreychen777
+4. 插件开发者：新的 API 用于删除 UI 插槽。by @geoffreychen777
+
+
 ## v3.1.5 10/06 2024
 
 1. 修复：链接文件夹图标的显示问题。by @geoffreychen777

@@ -1,2 +1,4 @@
-1. Fix: the linked folder icon bug. by @geoffreychen777
-2. Enhance: the command bar behavior when pressing the Enter key. by @geoffreychen777
+1. New Feature: import files via a file picker. by @lcandy2
+2. New Feature: fuzzy metadata scraping. by @geoffreychen777 ![](https://paperlib.app/assets/images/getting-started/fuzzyscrape.png)
+3. Enhance: PDF download via browser extension. by @geoffreychen777
+4. For Extension Developer: new API to delete UI slots. by @geoffreychen777
