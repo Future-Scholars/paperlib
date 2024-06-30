@@ -156,6 +156,7 @@ onMounted(() => {
       id="table-feed-view"
       class="w-full max-h-[calc(100vh-4rem)]"
       :entities="feedEntities"
+      :candidates="{}"
       :field-templates="fieldTemplates"
       :selected-index="uiState.selectedIndex"
       :platform="uiState.os"
