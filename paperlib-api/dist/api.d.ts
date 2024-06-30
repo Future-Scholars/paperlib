@@ -1070,7 +1070,7 @@ declare class FileSystemService {
      * Show a file picker.
      * @returns {Promise<OpenDialogReturnValue>} The result of the file picker.
      */
-    showFilePicker(): Promise<OpenDialogReturnValue>;
+    showFilePicker(props?: Array<"openDirectory" | "multiSelections" | "showHiddenFiles" | "createDirectory" | "promptToCreate" | "noResolveAliases" | "treatPackageAsDirectory" | "dontAddToRecent">): Promise<OpenDialogReturnValue>;
     /**
      * Show a folder picker.
      * @returns {Promise<OpenDialogReturnValue>} The result of the folder picker.
@@ -1199,6 +1199,7 @@ declare interface IContextMenuServiceState {
     dataContextMenuShowInFinderClicked: number;
     dataContextMenuEditClicked: number;
     dataContextMenuScrapeClicked: number;
+    dataContextMenuFuzzyScrapeClicked: number;
     dataContextMenuDeleteClicked: number;
     dataContextMenuFlagClicked: number;
     dataContextMenuExportBibTexClicked: number;
@@ -1425,6 +1426,7 @@ declare interface IMenuServiceState {
     "View-next": number;
     "View-previous": number;
     "File-delete": number;
+    "File-importFrom": number;
 }
 
 declare type IPaperEntityCollection = Results<IPaperEntityObject> | List<IPaperEntityObject> | Array<IPaperEntityObject>;
@@ -1535,6 +1537,7 @@ declare interface IPreferenceStore {
     shortcutFlag: string;
     shortcutCopyKey: string;
     shortcutDelete: string;
+    shortcutImportFrom: string;
     sidebarWidth: number;
     detailPanelWidth: number;
     mainviewSortBy: string;
@@ -1605,6 +1608,8 @@ declare interface IUIStateServiceState {
     selectedFeedEntities: Array<FeedEntity>;
     selectedQuerySentenceIds: string[];
     selectedFeed: string;
+    showingCandidatesId: string;
+    metadataCandidates: Record<string, PaperEntity[]>;
     editingPaperSmartFilter: PaperSmartFilter;
     querySentencesSidebar: Array<string>;
     querySentenceCommandbar: string;
@@ -2470,6 +2475,16 @@ declare class ScrapeService extends Eventable<{}> {
      * @param force - force scraping metadata.
      * @returns List of paper entities. */
     scrapeMetadata(paperEntityDrafts: PaperEntity[], scrapers: string[], force?: boolean): Promise<PaperEntity[]>;
+    /**
+     * Scrape a data source's metadata.
+     * @param payloads - data source payloads.
+     * @returns List of paper entities' candidates. */
+    fuzzyScrape(paperEntities: IPaperEntityCollection): Promise<Record<string, PaperEntity[]>>;
+    /**
+     * Scrape all entry scrapers to transform data source payloads into a PaperEntity list.
+     * @param payloads - data source payloads.
+     * @returns List of paper entities. */
+    _fuzzyScrape(paperEntities: IPaperEntityCollection): Promise<PaperEntity[][]>;
 }
 
 declare interface ShortcutEvent {
@@ -2597,6 +2612,13 @@ declare class UISlotService extends Eventable<IUISlotState> {
     updateSlot(slotID: keyof IUISlotState, patch: {
         [id: string]: any;
     }): void;
+    /**
+     * Delete an item from a slot
+     * @param slotID - The slot to delete from
+     * @param itemID - The item to delete
+     * @returns
+     */
+    deleteSlotItem(slotID: keyof IUISlotState, itemID: string): void;
 }
 
 /**
@@ -2614,7 +2636,7 @@ declare class UIStateService extends Eventable<IUIStateServiceState> {
      * @param stateKey - key of the state
      * @returns The state
      */
-    getState(stateKey: keyof IUIStateServiceState): string | number | boolean | string[] | number[] | {
+    getState(stateKey: keyof IUIStateServiceState): string | number | boolean | string[] | number[] | Record<string, PaperEntity[]> | {
         _id: string | {
             _bsontype: "ObjectID";
             id: {
@@ -4660,6 +4682,7 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
      * @param windowId - The id of the window to be set
      */
     center(windowId: string): void;
+    download(windowId: string, url: string, options?: {}, headers?: {}): Promise<string>;
 }
 
 declare class WindowStorage {

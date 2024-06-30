@@ -1,5 +1,9 @@
 # Paperlib API Release Note
 
+## v0.1.10
+
+- add `deleteSlotItem` for `PLAPI.uiSlotService`.
+
 ## v0.1.9
 
 - add `supContextMenuRenameClicked` for `PLMainAPI.contextMenuService`.
