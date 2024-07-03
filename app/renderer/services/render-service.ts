@@ -2,12 +2,7 @@ import { promises as fsPromise } from "fs";
 import katex from "katex";
 import MarkdownIt from "markdown-it";
 import tm from "markdown-it-texmath";
-import {
-  GlobalWorkerOptions,
-  PDFDocumentProxy,
-  PDFPageProxy,
-  getDocument,
-} from "pdfjs-dist";
+import * as mupdf from "mupdf";
 
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
@@ -21,15 +16,11 @@ export const IRenderService = createDecorator("renderService");
 
 export class RenderService {
   private _pdfWorker?: Worker;
-  private _renderingPage?: PDFPageProxy;
-  private _renderingPDF?: PDFDocumentProxy;
-
   private _markdownIt: MarkdownIt;
 
   constructor(
     @IPreferenceService private _preferenceService: PreferenceService
   ) {
-    this._createPDFWorker();
 
     this._markdownIt = new MarkdownIt({ html: true }).use(tm, {
       engine: require("katex"),
@@ -38,20 +29,6 @@ export class RenderService {
     });
   }
 
-  private async _createPDFWorker() {
-    if (this._pdfWorker) {
-      return;
-    }
-
-    this._pdfWorker = new Worker(
-      new URL(
-        "../../../node_modules/pdfjs-dist/build/pdf.worker.mjs",
-        import.meta.url
-      ),
-      { type: "module" }
-    );
-    GlobalWorkerOptions.workerPort = this._pdfWorker;
-  }
 
   /**
    * Render PDF file to canvas
@@ -60,56 +37,12 @@ export class RenderService {
    * @returns Renderer blob: {blob: ArrayBuffer | null, width: number, height: number}
    */
   async renderPDF(fileURL: string, canvasId: string) {
-    if (this._renderingPDF) {
-      this._renderingPDF.destroy();
-    }
-    const pdf = await getDocument({
-      url: fileURL,
-      useWorkerFetch: true,
-      cMapUrl: "../viewer/cmaps/",
-    }).promise;
-    this._renderingPDF = pdf;
+    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
 
-    const page = await pdf.getPage(1);
-    this._renderingPage = page;
-    var scale = 0.25;
-    var viewport = page.getViewport({ scale: scale });
-    var outputScale = window.devicePixelRatio || 1;
-    var canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    var context = canvas.getContext("2d") as CanvasRenderingContext2D;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    canvas.width = Math.floor(viewport.width * outputScale);
-    canvas.height = Math.floor(viewport.height * outputScale);
-    var transform =
-      outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined;
-    const renderContext = {
-      canvasContext: context,
-      transform: transform,
-      viewport: viewport,
-    };
-
-    await page.render(renderContext).promise;
-
-    const blob = (await new Promise((resolve) => {
-      canvas.toBlob(async (blob) => {
-        resolve((await blob?.arrayBuffer()) || null);
-      }, "image/png");
-    })) as ArrayBuffer | null;
-
-    if (
-      this._preferenceService.get("invertColor") &&
-      (await PLMainAPI.windowProcessManagementService.isDarkMode())
-    ) {
-      context.filter = "invert(0.9)";
-      context.drawImage(canvas, 0, 0);
-    }
-
-    this._renderingPDF?.destroy();
-    this._renderingPage?.cleanup();
-
-    this._renderingPDF = undefined;
-    this._renderingPage = undefined;
+    const doc = mupdf.Document.openDocument(await fsPromise.readFile(fileURL), "application/pdf");
+    const page = doc.loadPage(0);
+    const pix = page.toPixmap(mupdf.Matrix.identity, mupdf.ColorSpace.DeviceRGB);
+    const blob = pix.asPNG();
 
     return { blob: blob, width: canvas.width, height: canvas.height };
   }
