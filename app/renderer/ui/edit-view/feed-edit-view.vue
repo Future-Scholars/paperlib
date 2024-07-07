@@ -1,39 +1,41 @@
 <script setup lang="ts">
-import { Feed } from "@/models/feed";
+import { onMounted, ref } from "vue";
 
+import { Feed } from "@/models/feed";
 import { disposable } from "@/base/dispose";
-import { onMounted, onUnmounted, ref } from "vue";
+
 import InputBox from "./components/input-box.vue";
 
 // ==============================
 // State
 // ==============================
-const uiState = uiStateService.useState();
 const editingFeedDraft = ref<Feed>(new Feed());
 
 // ==============================
 // Event Handler
 // ==============================
 const onCloseClicked = () => {
-  uiState.feedEditViewShown = false;
+  PLUIAPI.uiStateService.setUIState({ feedEditViewShown: false });
 };
 
 const onSaveClicked = async () => {
-  feedService.create([new Feed(editingFeedDraft.value)]);
+  PLAPI.feedService.create([new Feed(editingFeedDraft.value)]);
   onCloseClicked();
 };
 
 disposable(
-  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+  PLUIAPI.shortcutService.updateWorkingViewScope(
+    PLUIAPI.shortcutService.viewScope.OVERLAY
+  )
 );
 
 disposable(
-  shortcutService.register(
+  PLUIAPI.shortcutService.register(
     "Escape",
     onCloseClicked,
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 

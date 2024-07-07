@@ -2,21 +2,19 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { IPreferenceStore } from "@/main/services/preference-service";
-
 import HotkeyOption from "./components/hotkey-options.vue";
 
 const i18n = useI18n();
-const prefState = preferenceService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 const PRIMARY_KEYS = ["Control", "Command"];
 const SECONDARY_KEYS = ["Alt", "Shift", "Command"];
 
 const info = ref("");
 
-const onUpdate = (key: keyof IPreferenceStore, value: string) => {
+const onUpdate = (key: string, value: string) => {
   const newShortcut = value.trim();
   if (value.trim().length === 0) {
-    preferenceService.set({ [key]: "" });
+    PLMainAPI.preferenceService.set({ [key]: "" });
     return;
   }
 
@@ -90,13 +88,13 @@ const onUpdate = (key: keyof IPreferenceStore, value: string) => {
     return;
   }
   info.value = "";
-  preferenceService.set({ [key]: newShortcut });
+  PLMainAPI.preferenceService.set({ [key]: newShortcut });
 };
-const onGlobalShortcutChange=(key:string)=>{
-  onUpdate('shortcutPlugin', key)
+const onGlobalShortcutChange = (key: string) => {
+  onUpdate("shortcutPlugin", key);
   PLMainAPI.menuService.disableGlobalShortcuts();
   PLMainAPI.menuService.enableGlobalShortcuts();
-}
+};
 </script>
 
 <template>

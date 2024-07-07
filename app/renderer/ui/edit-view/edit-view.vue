@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { BIconQuestionCircle } from "bootstrap-icons-vue";
-import { Ref, inject, onMounted, onUnmounted, ref } from "vue";
+import { Ref, inject, onMounted, ref } from "vue";
 
-import { CategorizerType, PaperFolder, PaperTag } from "@/models/categorizer";
+import { CategorizerType, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
 import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
-
 import { disposable } from "@/base/dispose";
+
 import CodesInput from "./components/codes-input.vue";
 import InputBox from "./components/input-box.vue";
 import MultiselectBox from "./components/multiselect-box.vue";
@@ -16,7 +16,6 @@ import InputField from "./components/text-field.vue";
 // ==============================
 // State
 // ==============================
-const uiState = uiStateService.useState();
 const wideMode = ref(false);
 const advancedMode = ref(false);
 const editingPaperEntityDraft = ref(new PaperEntity({}));
@@ -54,11 +53,11 @@ const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
 };
 
 const onCloseClicked = () => {
-  uiState.editViewShown = false;
+  PLUIAPI.uiStateService.setUIState({ editViewShown: false });
 };
 
 const onSaveClicked = async () => {
-  paperService.update(
+  PLAPI.paperService.update(
     [new PaperEntity(editingPaperEntityDraft.value)],
     false,
     true
@@ -67,52 +66,56 @@ const onSaveClicked = async () => {
 };
 
 const onSaveAndScrapeClicked = async () => {
-  const savedPaperEntityDraft = await paperService.update(
+  const savedPaperEntityDraft = await PLAPI.paperService.update(
     [new PaperEntity(editingPaperEntityDraft.value)],
     false,
     true
   );
-  paperService.scrape(savedPaperEntityDraft);
+  PLAPI.paperService.scrape(savedPaperEntityDraft);
 };
 
 disposable(
-  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+  PLUIAPI.shortcutService.updateWorkingViewScope(
+    PLUIAPI.shortcutService.viewScope.OVERLAY
+  )
 );
 
 disposable(
-  shortcutService.register(
+  PLUIAPI.shortcutService.register(
     "Escape",
     onCloseClicked,
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
-if (uiState?.os === "darwin") {
+if (PLUIAPI.uiStateService.getUIState("os") === "darwin") {
   disposable(
-    shortcutService.register(
+    PLUIAPI.shortcutService.register(
       "Command+S",
       onSaveClicked,
       true,
       true,
-      shortcutService.viewScope.GLOBAL
+      PLUIAPI.shortcutService.viewScope.GLOBAL
     )
   );
 } else {
   disposable(
-    shortcutService.register(
+    PLUIAPI.shortcutService.register(
       "Control+S",
       onSaveClicked,
       true,
       true,
 
-      shortcutService.viewScope.GLOBAL
+      PLUIAPI.shortcutService.viewScope.GLOBAL
     )
   );
 }
 
 onMounted(() => {
-  editingPaperEntityDraft.value.initialize(uiState.selectedPaperEntities[0]);
+  editingPaperEntityDraft.value.initialize(
+    PLUIAPI.uiStateService.getUIState("selectedPaperEntities")[0]
+  );
 });
 </script>
 
@@ -228,7 +231,9 @@ onMounted(() => {
               @event:change="(values: string[]) => onCategorizerUpdated(values, CategorizerType.PaperTag)"
             />
             <InputField
-              :placeholder="$t('mainview.note') + ' (start with `<md> to use markdown`)'"
+              :placeholder="
+                $t('mainview.note') + ' (start with `<md> to use markdown`)'
+              "
               class="h-28"
               :value="editingPaperEntityDraft.note"
               :is-expanded="wideMode"

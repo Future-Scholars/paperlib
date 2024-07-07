@@ -4,12 +4,12 @@ import { onMounted, ref } from "vue";
 
 import Toggle from "./components/toggle.vue";
 
-const uiState = uiStateService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 
 const version = ref("");
 
 const onLinkClicked = (url: string) => {
-  fileService.open(url);
+  PLAPI.fileService.open(url);
 };
 
 const darkMode = ref(false);

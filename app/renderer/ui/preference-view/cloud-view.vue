@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
 
-import { IPreferenceStore } from "@/main/services/preference-service";
-
 import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
 
-const prefState = preferenceService.useState();
-const filebackendState = fileService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
+const filebackendState = PLAPI.fileService.useState();
 
 const syncAPPID = ref(prefState.syncAPPID);
 const syncEmail = ref(prefState.syncEmail);
@@ -18,58 +16,63 @@ const webdavURL = ref(prefState.webdavURL);
 const webdavUsername = ref(prefState.webdavUsername);
 const webdavPassword = ref("");
 
-const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set({ [key]: value });
+const onUpdate = (key: string, value: unknown) => {
+  PLMainAPI.preferenceService.set({ [key]: value });
 };
 
 const onLoginClicked = async () => {
-  preferenceService.set({ syncAPPID: syncAPPID.value });
-  preferenceService.set({ syncEmail: syncEmail.value });
-  await preferenceService.setPassword("realmSync", syncPassword.value);
-  preferenceService.set({ useSync: true });
+  await PLMainAPI.preferenceService.set({ syncAPPID: syncAPPID.value });
+  await PLMainAPI.preferenceService.set({ syncEmail: syncEmail.value });
+  await PLMainAPI.preferenceService.setPassword(
+    "realmSync",
+    syncPassword.value
+  );
+  await PLMainAPI.preferenceService.set({ useSync: true });
 
-  await databaseService.initialize();
+  await PLAPI.databaseService.initialize();
 };
 
 const onLogoutClicked = async () => {
-  preferenceService.set({ useSync: false });
-
-  await databaseService.initialize();
-  await databaseService.deleteSyncCache();
+  // TODO: test async
+  await PLMainAPI.preferenceService.set({ useSync: false });
+  await PLAPI.databaseService.initialize();
+  await PLAPI.databaseService.deleteSyncCache();
 };
 
 const onClickGuide = () => {
-  fileService.open("https://paperlib.app/en/doc/cloud-sync/setup.html");
+  PLAPI.fileService.open("https://paperlib.app/en/doc/cloud-sync/setup.html");
 };
 
 const onMigrateClicked = async () => {
-  await categorizerService.migrateLocaltoCloud();
-  await paperService.migrateLocaltoCloud();
-  await feedService.migrateLocaltoCloud();
-  await smartFilterService.migrateLocaltoCloud();
+  await PLAPI.categorizerService.migrateLocaltoCloud();
+  await PLAPI.paperService.migrateLocaltoCloud();
+  await PLAPI.feedService.migrateLocaltoCloud();
+  await PLAPI.smartFilterService.migrateLocaltoCloud();
 };
 
 // =============================================================================
 // WebDAV
 const onWebdavConnectClicked = async () => {
-  preferenceService.set({ webdavURL: webdavURL.value });
-  preferenceService.set({ webdavUsername: webdavUsername.value });
-  await preferenceService.setPassword("webdav", webdavPassword.value);
-  preferenceService.set({ syncFileStorage: "webdav" });
+  await PLMainAPI.preferenceService.set({ webdavURL: webdavURL.value });
+  await PLMainAPI.preferenceService.set({
+    webdavUsername: webdavUsername.value,
+  });
+  await PLMainAPI.preferenceService.setPassword("webdav", webdavPassword.value);
+  await PLMainAPI.preferenceService.set({ syncFileStorage: "webdav" });
 
-  fileService.initialize();
+  PLAPI.fileService.initialize();
 };
 
-const onWebdavDisconnectClicked = () => {
-  preferenceService.set({ syncFileStorage: "local" });
-  fileService.initialize();
+const onWebdavDisconnectClicked = async () => {
+  await PLMainAPI.preferenceService.set({ syncFileStorage: "local" });
+  PLAPI.fileService.initialize();
   syncFileStorage.value = "local";
 };
 
 onMounted(() => {
   nextTick(async () => {
     syncPassword.value =
-      (await preferenceService.getPassword("realmSync")) || "";
+      (await PLMainAPI.preferenceService.getPassword("realmSync")) || "";
   });
 });
 </script>

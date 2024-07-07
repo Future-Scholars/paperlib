@@ -15,6 +15,7 @@ import { ProxyService } from "@/main/services/proxy-service";
 import { UpgradeService } from "@/main/services/upgrade-service";
 import { UtilityProcessManagementService } from "@/main/services/utility-process-management-service";
 import { WindowProcessManagementService } from "@/main/services/window-process-management-service";
+import { SystemService } from "@/main/services/system-service";
 
 import { CommandService } from "@/renderer/services/command-service";
 import { QuerySentenceService } from "@/renderer/services/querysentence-service";
@@ -45,6 +46,7 @@ export interface PLMainAPIShape {
   proxyService: ProxyService;
   preferenceService: PreferenceService;
   utilityProcessManagementService: UtilityProcessManagementService;
+  systemService: SystemService;
 }
 
 interface PLAPIShape {

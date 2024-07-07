@@ -235,7 +235,7 @@ export class PluginVm {
       loaded: false,
       require: moduleRequire,
       paths: [], // TODO I should I populate this
-      parent: module, // TODO I assign parent to the current module...it is correct?
+      parent: undefined, // TODO I assign parent to the current module...it is correct?
       children: [], // TODO I should populate correctly this list...
       path: moduleDirname,
       isPreloading: false,

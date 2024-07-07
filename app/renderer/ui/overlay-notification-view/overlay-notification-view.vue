@@ -2,14 +2,15 @@
 // ======================
 // State
 // ======================
-const uiState = uiStateService.useState();
-const uiSlotState = uiSlotService.useState();
+const uiSlotState = PLUIAPI.uiSlotService.useState();
 
 // ======================
 // Event Handler
 // ======================
 const onClick = () => {
-  uiState.overlayNoticationShown = false;
+  PLUIAPI.uiStateService.setUIState({
+    overlayNoticationShown: false,
+  });
 };
 </script>
 

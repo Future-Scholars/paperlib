@@ -24,13 +24,13 @@ const onCSVPickerClicked = async () => {
 
 const importFromFolderClicked = async () => {
   if (pickedFolderPath.value) {
-    paperService.create(listAllFiles(eraseProtocol(pickedFolderPath.value)));
+    PLAPI.paperService.create(listAllFiles(eraseProtocol(pickedFolderPath.value)));
   }
 };
 
 const importFromZoteroCSVClicked = async () => {
   if (zoteroCSVPath.value) {
-    paperService.create([zoteroCSVPath.value]);
+    PLAPI.paperService.create([zoteroCSVPath.value]);
   }
 };
 </script>

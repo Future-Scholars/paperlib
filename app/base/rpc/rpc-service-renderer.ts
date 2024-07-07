@@ -43,6 +43,7 @@ export class RendererProcessRPCService extends RPCService {
       }
     })
 
+    console.log('RendererProcessRPCService: initCommunication', this._processID)
     window["electron"].ipcRenderer.send('request-port', this._processID)
   }
 }

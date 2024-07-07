@@ -11,7 +11,7 @@ import {
   BIconPuzzle,
   BIconViewList,
 } from "bootstrap-icons-vue";
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import AboutView from "./about-view.vue";
@@ -29,17 +29,20 @@ import SidebarView from "./sidebar-view.vue";
 // ==============================
 // State
 // ==============================
-const uiState = uiStateService.useState();
 const preferenceTab = ref("general");
 
 const onCloseClicked = () => {
-  uiState.preferenceViewShown = false;
+  PLUIAPI.uiStateService.setUIState({
+    preferenceViewShown: false,
+  });
 };
 
 disposable(
-  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+  PLUIAPI.shortcutService.updateWorkingViewScope(
+    PLUIAPI.shortcutService.viewScope.OVERLAY
+  )
 );
-disposable(shortcutService.register("Escape", onCloseClicked));
+disposable(PLUIAPI.shortcutService.register("Escape", onCloseClicked));
 
 const darkMode = ref(false);
 onMounted(async () => {

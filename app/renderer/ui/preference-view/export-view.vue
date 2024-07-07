@@ -2,19 +2,16 @@
 import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
-import { IPreferenceStore } from "@/main/services/preference-service";
-
 import Replacement from "./components/replacement.vue";
 import Toggle from "./components/toggle.vue";
-import { PaperFilterOptions } from "@/renderer/services/paper-service";
 
 const newReplacementFrom = ref("");
 const newReplacementTo = ref("");
 
-const prefState = preferenceService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
-const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set({ [key]: value });
+const updatePref = (key: string, value: unknown) => {
+  PLMainAPI.preferenceService.set({ [key]: value });
 };
 
 const onReplacementAdd = () => {
@@ -28,7 +25,7 @@ const onReplacementAdd = () => {
     to: newReplacementTo.value,
   });
   // Update preference
-  preferenceService.set({ exportReplacement: replacements });
+  PLMainAPI.preferenceService.set({ exportReplacement: replacements });
 
   newReplacementFrom.value = "";
   newReplacementTo.value = "";
@@ -40,7 +37,7 @@ const onReplacementDelete = (replacement: { from: string; to: string }) => {
     (item) => item.from !== replacement.from && item.to !== replacement.to
   );
   // Update preference
-  preferenceService.set({ exportReplacement: replacements });
+  PLMainAPI.preferenceService.set({ exportReplacement: replacements });
 };
 
 const selectedCSLStyle = ref(prefState.selectedCSLStyle);
@@ -52,7 +49,7 @@ const onCSLStyleUpdate = async (CSLStyle: string) => {
       await PLMainAPI.fileSystemService.showFolderPicker()
     ).filePaths[0];
     if (pickedImportedCSLStylesPath) {
-      preferenceService.set({
+      PLMainAPI.preferenceService.set({
         importedCSLStylesPath: pickedImportedCSLStylesPath,
       });
       loadCSLStyles();
@@ -63,7 +60,7 @@ const onCSLStyleUpdate = async (CSLStyle: string) => {
 };
 
 const loadCSLStyles = async () => {
-  CSLStyles.value = await referenceService.loadCSLStyles();
+  CSLStyles.value = await PLAPI.referenceService.loadCSLStyles();
 };
 
 const csvExportPath = ref("");
@@ -76,8 +73,8 @@ const onExportPathPickerClick = async () => {
 };
 const exportCSVClicked = async () => {
   if (csvExportPath.value) {
-    const paperCollection = await paperService.load("", "title", "asce");
-    const csv = await referenceService.exportCSV(Array.from(paperCollection));
+    const paperCollection = await PLAPI.paperService.load("", "title", "asce");
+    const csv = await PLAPI.referenceService.exportCSV(Array.from(paperCollection));
     const filePath = csvExportPath.value + `/paperlib_CSV_${Date.now()}.csv`;
     PLMainAPI.fileSystemService.writeToFile(filePath, csv);
   }

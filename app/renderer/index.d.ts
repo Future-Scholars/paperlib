@@ -15,6 +15,7 @@ import { ProxyService } from "@/main/services/proxy-service";
 import { UpgradeService } from "@/main/services/upgrade-service";
 import { UtilityProcessManagementService } from "@/main/services/utility-process-management-service";
 import { WindowProcessManagementService } from "@/main/services/window-process-management-service";
+import { SystemService } from "@/main/services/system-service";
 
 import { CommandService } from "@/renderer/services/command-service";
 import { QuerySentenceService } from "@/renderer/services/querysentence-service";
@@ -45,6 +46,7 @@ export interface PLMainAPIShape {
   proxyService: Proxied<ProxyService>;
   preferenceService: Proxied<PreferenceService>;
   utilityProcessManagementService: Proxied<UtilityProcessManagementService>;
+  systemService: Proxied<SystemService>;
 }
 
 interface PLAPIShape {
@@ -74,6 +76,10 @@ interface PLUIAPIShape {
   querySentenceService: QuerySentenceService;
 }
 
+interface PLQPUIAPIShape {
+  shortcutService: ShortcutService;
+}
+
 export interface PLExtAPIShape {
   extensionManagementService: Proxied<ExtensionManagementService>;
   extensionPreferenceService: Proxied<ExtensionPreferenceService>;
@@ -85,6 +91,7 @@ declare global {
   var PLMainAPI: PLMainAPIShape;
   var PLExtAPI: PLExtAPIShape;
   var PLUIAPI: PLUIAPIShape;
+  var PLQPUIAPI: PLQPUIAPIShape;
 
   interface Window {
     electron: ElectronAPI

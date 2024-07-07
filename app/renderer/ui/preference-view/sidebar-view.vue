@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { IPreferenceStore } from "@/main/services/preference-service";
-
 import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
 
-const prefState = preferenceService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
-const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set({ [key]: value });
+const updatePref = (key: string, value: unknown) => {
+  PLMainAPI.preferenceService.set({ [key]: value });
 };
 </script>
 

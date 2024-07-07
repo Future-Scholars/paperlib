@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Process } from "@/base/process-id";
 import {
   BIconEmojiTear,
   BIconFire,
@@ -7,11 +6,13 @@ import {
   BIconPatchCheckFill,
   BIconSearch,
 } from "bootstrap-icons-vue";
-import { Ref, onMounted, onUnmounted, ref } from "vue";
+import { Ref, onMounted, onUnmounted, ref, nextTick } from "vue";
+
+import { Process } from "@/base/process-id";
+
 import Spinner from "../components/spinner.vue";
 import ExtensionCard from "./components/extension-card.vue";
 import ExtensionSetting from "./components/extension-setting.vue";
-import { nextTick } from "vue";
 
 const installedExtensions = ref<{
   [id: string]: {
@@ -105,14 +106,19 @@ const editingExtension = ref<{
 
 const listenCallbacks: (() => void)[] = [];
 const showSettingView = async (id: string) => {
-  const PLExtAPIExposed = await rendererRPCService.waitForAPI(
+  const PLExtAPIExposed = await PLUIAPI.rendererRPCService.waitForAPI(
     Process.extension,
     "PLExtAPI",
     5000
   );
 
   if (!PLExtAPIExposed) {
-    logService.warn("Extension process is not ready.", "", true, "UIPref");
+    PLAPI.logService.warn(
+      "Extension process is not ready.",
+      "",
+      true,
+      "UIPref"
+    );
     return;
   }
 
@@ -146,7 +152,7 @@ const updateExtensionPreference = async (key: string, value: any) => {
         patch
       );
     } catch (e) {
-      logService.error(
+      PLAPI.logService.error(
         "Failed to save extension preference",
         e as Error,
         true,
@@ -190,7 +196,7 @@ const installExtension = async (id: string) => {
   try {
     await PLExtAPI.extensionManagementService.install(id);
   } catch (e) {
-    logService.error(
+    PLAPI.logService.error(
       "Failed to install extension",
       e as Error,
       true,
@@ -201,7 +207,12 @@ const installExtension = async (id: string) => {
 };
 
 const onCheckForUpdateClicked = async () => {
-  logService.info("Checking for extension updates", "", true, "Extension");
+  PLAPI.logService.info(
+    "Checking for extension updates",
+    "",
+    true,
+    "Extension"
+  );
   await PLExtAPI.extensionManagementService.checkUpdate();
 };
 
@@ -213,14 +224,19 @@ const onOpenHomepageClicked = async (homepage?: string) => {
 
 onMounted(() => {
   nextTick(async () => {
-    const PLExtAPIExposed = await rendererRPCService.waitForAPI(
+    const PLExtAPIExposed = await PLUIAPI.rendererRPCService.waitForAPI(
       Process.extension,
       "PLExtAPI",
       5000
     );
 
     if (!PLExtAPIExposed) {
-      logService.warn("Extension process is not ready.", "", true, "UIPref");
+      PLAPI.logService.warn(
+        "Extension process is not ready.",
+        "",
+        true,
+        "UIPref"
+      );
       return;
     }
 

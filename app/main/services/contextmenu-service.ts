@@ -222,7 +222,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     const template: MenuItemConstructorOptions[] = [
       {
         label: this._locales.t("menu.open"),
-        accelerator: preferenceService.get("shortcutOpen") as string,
+        accelerator: PLMainAPI.preferenceService.get("shortcutOpen") as string,
         click: () => {
           this.fire("dataContextMenuOpenClicked");
         },
@@ -238,7 +238,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       { type: "separator" },
       {
         label: this._locales.t("menu.rescrape"),
-        accelerator: preferenceService.get("shortcutScrape") as string,
+        accelerator: PLMainAPI.preferenceService.get("shortcutScrape") as string,
         click: () => {
           this.fire("dataContextMenuScrapeClicked");
         },
@@ -257,21 +257,21 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
       {
         label: this._locales.t("menu.edit"),
         enabled: allowEdit,
-        accelerator: preferenceService.get("shortcutEdit") as string,
+        accelerator: PLMainAPI.preferenceService.get("shortcutEdit") as string,
         click: () => {
           this.fire("dataContextMenuEditClicked");
         },
       },
       {
         label: this._locales.t("menu.delete"),
-        accelerator: preferenceService.get("shortcutDelete") as string,
+        accelerator: PLMainAPI.preferenceService.get("shortcutDelete") as string,
         click: () => {
           this.fire("dataContextMenuDeleteClicked");
         },
       },
       {
         label: this._locales.t("menu.toggleflag"),
-        accelerator: preferenceService.get("shortcutFlag") as string,
+        accelerator: PLMainAPI.preferenceService.get("shortcutFlag") as string,
         click: () => {
           this.fire("dataContextMenuFlagClicked");
         },
@@ -368,7 +368,7 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     const template: MenuItemConstructorOptions[] = [
       {
         label: this._locales.t("menu.open"),
-        accelerator: preferenceService.get("shortcutOpen") as string,
+        accelerator: PLMainAPI.preferenceService.get("shortcutOpen") as string,
         click: () => {
           this.fire("dataContextMenuOpenClicked");
         },

@@ -1,21 +1,18 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { IPreferenceStore } from "@/main/services/preference-service";
-import { APPTheme } from "@/main/services/window-process-management-service";
-
 import Options from "./components/options.vue";
 import PathPicker from "./components/path-picker.vue";
 import Toggle from "./components/toggle.vue";
 
-const prefState = preferenceService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
-const updatePrefs = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set({ [key]: value });
+const updatePrefs = (key: string, value: unknown) => {
+  PLMainAPI.preferenceService.set({ [key]: value });
 };
 
-const onThemeUpdated = (value: APPTheme) => {
-  PLMainAPI.windowProcessManagementService.changeTheme(value);
+const onThemeUpdated = (value: "system" | "light" | "dark") => {
+  PLMainAPI.windowProcessManagementService.changeTheme(value as any);
   updatePrefs("preferedTheme", value);
 };
 
@@ -60,7 +57,7 @@ const onCustomRenamingFormatUpdate = (payload: Event) => {
 };
 
 const onRenameAllClicked = () => {
-  paperService.renameAll();
+  PLAPI.paperService.renameAll();
 };
 
 const onChangePDFViewer = async (pdfViewer: string) => {

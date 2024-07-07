@@ -6,6 +6,7 @@ import { MenuService } from "@/main/services/menu-service";
 import { ProxyService } from "@/main/services/proxy-service";
 import { UpgradeService } from "@/main/services/upgrade-service";
 import { WindowProcessManagementService } from "@/main/services/window-process-management-service";
+import { SystemService } from "./system-service";
 
 export type IInjectable =
   | PreferenceService
@@ -15,4 +16,5 @@ export type IInjectable =
   | MenuService
   | UpgradeService
   | ProxyService
-  | UtilityProcessManagementService;
+  | UtilityProcessManagementService
+  | SystemService;

@@ -11,9 +11,8 @@ import { FieldTemplate } from "@/renderer/types/data-view";
 
 import Toggle from "./components/toggle.vue";
 import MainField from "./components/main-field.vue";
-import { IPreferenceStore } from "@/main/services/preference-service";
 
-const prefState = preferenceService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
 const item = ref(new PaperEntity({}));
 // @ts-ignore
@@ -113,47 +112,53 @@ const computeFieldTemplates = () => {
 };
 
 const toggleField = (index: number, isMain = true) => {
-  const mainFieldPrefs = isMain ? prefState.mainTableFields : prefState.feedFields;
+  const mainFieldPrefs = isMain
+    ? prefState.mainTableFields
+    : prefState.feedFields;
   mainFieldPrefs[index].enable = !mainFieldPrefs[index].enable;
   mainFieldPrefs.forEach((fieldPref) => {
     fieldPref.width = -1;
   });
 
   if (isMain) {
-    preferenceService.set({ mainTableFields: mainFieldPrefs });
+    PLMainAPI.preferenceService.set({ mainTableFields: mainFieldPrefs });
   } else {
-    preferenceService.set({ feedFields: mainFieldPrefs });
+    PLMainAPI.preferenceService.set({ feedFields: mainFieldPrefs });
   }
 };
 
 const onMovePreClicked = (index: number, isMain = true) => {
-  const mainFieldPrefs = isMain ? prefState.mainTableFields : prefState.feedFields;
+  const mainFieldPrefs = isMain
+    ? prefState.mainTableFields
+    : prefState.feedFields;
   const fieldPref = mainFieldPrefs[index];
   mainFieldPrefs.splice(index, 1);
   mainFieldPrefs.splice(index - 1, 0, fieldPref);
 
   if (isMain) {
-    preferenceService.set({ mainTableFields: mainFieldPrefs });
+    PLMainAPI.preferenceService.set({ mainTableFields: mainFieldPrefs });
   } else {
-    preferenceService.set({ feedFields: mainFieldPrefs });
+    PLMainAPI.preferenceService.set({ feedFields: mainFieldPrefs });
   }
 };
 
 const onMoveNextClicked = (index: number, isMain = true) => {
-  const mainFieldPrefs = isMain ? prefState.mainTableFields : prefState.feedFields;
+  const mainFieldPrefs = isMain
+    ? prefState.mainTableFields
+    : prefState.feedFields;
   const fieldPref = mainFieldPrefs[index];
   mainFieldPrefs.splice(index, 1);
   mainFieldPrefs.splice(index + 1, 0, fieldPref);
 
   if (isMain) {
-    preferenceService.set({ mainTableFields: mainFieldPrefs });
+    PLMainAPI.preferenceService.set({ mainTableFields: mainFieldPrefs });
   } else {
-    preferenceService.set({ feedFields: mainFieldPrefs });
+    PLMainAPI.preferenceService.set({ feedFields: mainFieldPrefs });
   }
 };
 
 disposable(
-  preferenceService.onChanged(
+  PLMainAPI.preferenceService.onChanged(
     ["mainTableFields", "mainviewShortAuthor"],
     () => {
       computeFieldTemplates();
@@ -165,8 +170,8 @@ onMounted(() => {
   computeFieldTemplates();
 });
 
-const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set({ [key]: value });
+const updatePref = (key: string, value: unknown) => {
+  PLMainAPI.preferenceService.set({ [key]: value });
 };
 </script>
 
@@ -232,6 +237,5 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
         @event:next-click="onMoveNextClicked(index, false)"
       />
     </div>
-
   </div>
 </template>

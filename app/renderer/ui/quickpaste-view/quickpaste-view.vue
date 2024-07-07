@@ -11,8 +11,8 @@ import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
 import { CategorizerType, PaperFolder } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { PaperFilterOptions } from "@/renderer/services/paper-service";
-import { cmdOrCtrl } from "@/common/utils";
+import { PaperFilterOptions } from "@/base/filter";
+import { cmdOrCtrl } from "@/base/shortcut";
 
 import TableItem from "./components/table-item.vue";
 
@@ -175,7 +175,7 @@ const onLinkClicked = async () => {
 };
 
 const onUnlinkClicked = async () => {
-  await PLAPI.preferenceService.set({ pluginLinkedFolder: "" });
+  await PLMainAPI.preferenceService.set({ pluginLinkedFolder: "" });
   linkedFolder.value = "";
   // @ts-ignore
   searchInput.value.focus();
@@ -189,7 +189,7 @@ const checkLinkedFolder = async () => {
       "desc"
     )
   ).filter((f) => f.name !== "Folders") as PaperFolder[];
-  linkedFolder.value = (await PLAPI.preferenceService.get(
+  linkedFolder.value = (await PLMainAPI.preferenceService.get(
     "pluginLinkedFolder"
   )) as string;
 
@@ -199,11 +199,13 @@ const checkLinkedFolder = async () => {
 };
 
 disposable(
-  shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
+  PLQPUIAPI.shortcutService.updateWorkingViewScope(
+    PLQPUIAPI.shortcutService.viewScope.MAIN
+  )
 );
 
 disposable(
-  shortcutService.register(
+  PLQPUIAPI.shortcutService.register(
     "ArrowDown",
     () => {
       selectedIndex.value = Math.min(
@@ -215,12 +217,12 @@ disposable(
     },
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLQPUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  shortcutService.register(
+  PLQPUIAPI.shortcutService.register(
     "ArrowUp",
     () => {
       selectedIndex.value = Math.max(0, selectedIndex.value - 1);
@@ -229,12 +231,12 @@ disposable(
     },
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLQPUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  shortcutService.register(
+  PLQPUIAPI.shortcutService.register(
     `${cmdOrCtrl}+Enter`,
     async () => {
       await exportSelectedCiteBodiesInFolder();
@@ -244,12 +246,12 @@ disposable(
     },
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLQPUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  shortcutService.register(
+  PLQPUIAPI.shortcutService.register(
     "Tab",
     () => {
       exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
@@ -258,12 +260,12 @@ disposable(
     },
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLQPUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  shortcutService.register(
+  PLQPUIAPI.shortcutService.register(
     "Shift+Enter",
     async () => {
       await exportSelectedCiteKeys();
@@ -272,12 +274,12 @@ disposable(
     },
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLQPUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  shortcutService.register(
+  PLQPUIAPI.shortcutService.register(
     "Enter",
     async () => {
       await exportSelectedCiteBodies();
@@ -286,12 +288,12 @@ disposable(
     },
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLQPUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  shortcutService.register(
+  PLQPUIAPI.shortcutService.register(
     "Escape",
     async () => {
       searchText.value = "";
@@ -303,7 +305,7 @@ disposable(
     },
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLQPUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
@@ -323,14 +325,14 @@ disposable(
         );
       }
 
-      await PLAPI.preferenceService.set({ pluginLinkedFolder: folderName });
+      await PLMainAPI.preferenceService.set({ pluginLinkedFolder: folderName });
       linkedFolder.value = folderName;
     }
   )
 );
 
 disposable(
-  PLAPI.preferenceService.onChanged(
+  PLMainAPI.preferenceService.onChanged(
     "pluginLinkedFolder",
     (newValue: { value: string }) => {
       linkedFolder.value = newValue.value as string;

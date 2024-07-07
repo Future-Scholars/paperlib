@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { IPreferenceStore } from "@/main/services/preference-service";
-
 import Toggle from "./components/toggle.vue";
 
-const prefState = preferenceService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
 const httpproxy = ref(prefState.httpproxy);
 const httpsproxy = ref(prefState.httpsproxy);
 
-const onUpdate = (key: keyof IPreferenceStore, value: unknown) => {
-  preferenceService.set({ [key]: value });
+const onUpdate = (key: string, value: unknown) => {
+  PLMainAPI.preferenceService.set({ [key]: value });
 };
 </script>
 

@@ -96,6 +96,7 @@ async function initialize() {
   await PLMainAPI.preferenceService.bindState();
   await PLAPI.paperService.bindState();
   await PLAPI.feedService.bindState();
+  await PLAPI.fileService.bindState();
 
   // ============================================================
   // 6. Setup other things for the renderer process.

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { BIconPlus } from "bootstrap-icons-vue";
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
-
 import { disposable } from "@/base/dispose";
+
 import InputBox from "./components/input-box.vue";
 import SelectBox from "./components/select-box.vue";
 import SmartFilterRuleBox from "./components/smart-filter-rule-box.vue";
@@ -12,7 +12,6 @@ import SmartFilterRuleBox from "./components/smart-filter-rule-box.vue";
 // ==============================
 // State
 // ==============================
-const uiState = uiStateService.useState();
 const editingPaperSmartFilterDraft = ref<PaperSmartFilter>(
   new PaperSmartFilter()
 );
@@ -29,7 +28,7 @@ const infoText = ref<string>("");
 // Event Handler
 // ==============================
 const onCloseClicked = () => {
-  uiState.paperSmartFilterEditViewShown = false;
+  PLUIAPI.uiStateService.setUIState({ paperSmartFilterEditViewShown: false });
 };
 
 const onSaveClicked = async () => {
@@ -44,7 +43,7 @@ const onSaveClicked = async () => {
 
   editingPaperSmartFilterDraft.value.name = selfName.value;
 
-  smartFilterService.update(
+  PLAPI.smartFilterService.update(
     PaperSmartFilterType.smartfilter,
     editingPaperSmartFilterDraft.value
   );
@@ -72,22 +71,24 @@ const constructFilter = () => {
 };
 
 disposable(
-  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+  PLUIAPI.shortcutService.updateWorkingViewScope(
+    PLUIAPI.shortcutService.viewScope.OVERLAY
+  )
 );
 
 disposable(
-  shortcutService.register(
+  PLUIAPI.shortcutService.register(
     "Escape",
     onCloseClicked,
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
 onMounted(() => {
   editingPaperSmartFilterDraft.value.initialize(
-    uiState.editingPaperSmartFilter
+    PLUIAPI.uiStateService.getUIState("editingPaperSmartFilter")
   );
   selfName.value = editingPaperSmartFilterDraft.value.name.split("/").pop()!;
 

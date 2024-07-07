@@ -60,6 +60,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     this.browserWindows = new WindowStorage();
 
     ipcMain.on("request-port", (event, senderID) => {
+      console.log("request-port", senderID)
       this.fire({ requestPort: senderID });
     });
   }
@@ -172,7 +173,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     return this.create(
       Process.renderer,
       {
-        entry: "app/index.html",
+        entry: "index.html",
         title: "Paperlib",
         width: windowSize.width,
         height: windowSize.height,
@@ -223,7 +224,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   createQuickpasteRenderer() {
     const options: WindowOptions = {
-      entry: "app/index_quickpaste.html",
+      entry: "index_quickpaste.html",
       title: "Quickpaste",
       width: 600,
       height: 76,
@@ -233,9 +234,14 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       maxHeight: 394,
       useContentSize: true,
       webPreferences: {
+        preload: fileURLToPath(
+          new URL("../preload/preload_quickpaste.mjs", import.meta.url)
+        ),
         webSecurity: false,
-        nodeIntegration: true,
-        contextIsolation: false,
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: false,
+        enableBlinkFeatures: "CSSColorSchemeUARendering",
       },
       frame: false,
       vibrancy: "sidebar",
@@ -462,7 +468,11 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     } else if (process.env.NODE_ENV === "test") {
       return fileURLToPath(new URL(url, import.meta.url));
     } else {
-      return new URL(url, process.env.ELECTRON_RENDERER_URL).href;
+
+      console.log(url)
+      const href = new URL(url, process.env.ELECTRON_RENDERER_URL).href;
+      console.log(href)
+      return href;
     }
   }
 

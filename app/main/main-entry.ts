@@ -14,6 +14,7 @@ import { ProxyService } from "./services/proxy-service";
 import { UpgradeService } from "./services/upgrade-service";
 import { UtilityProcessManagementService } from "./services/utility-process-management-service";
 import { WindowProcessManagementService } from "./services/window-process-management-service";
+import { SystemService } from "./services/system-service";
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -47,6 +48,7 @@ async function initialize() {
     upgradeService: UpgradeService,
     proxyService: ProxyService,
     utilityProcessManagementService: UtilityProcessManagementService,
+    systemService: SystemService
   });
   // 3.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {

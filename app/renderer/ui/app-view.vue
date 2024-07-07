@@ -430,7 +430,6 @@ onMounted(async () => {
     />
     <MainView />
 
-    <!-- 
     <Transition
       enter-active-class="transition ease-out duration-75"
       enter-from-class="transform opacity-0"
@@ -495,7 +494,7 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <OverlayNotificationView v-if="uiState.overlayNoticationShown" />
-    </Transition> -->
+    </Transition> 
 
     <Transition
       enter-active-class="transition ease-out duration-75"
@@ -517,7 +516,7 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <PresettingView v-if="prefState.showPresetting" />
-    </Transition> -->
+    </Transition>  -->
 
     <Transition
       enter-active-class="transition ease-out duration-75"

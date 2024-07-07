@@ -5,11 +5,12 @@ import { createI18n } from "vue-i18n";
 
 import { InjectionContainer } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
+import { RendererProcessRPCService } from "@/base/rpc/rpc-service-renderer";
 import { loadLocales } from "@/locales/load";
-import { IInjectable } from "@/renderer/services/injectable";
-import { QuickpasteRPCService } from "@/renderer/services/quickpaste-rpc-service";
-import { ShortcutService } from "@/renderer/services/shortcut-service";
-import QuickpasteView from "@/renderer/ui/quickpaste-view/quickpaste-view.vue";
+
+import { IInjectable } from "./services/injectable";
+import { ShortcutService } from "./services/shortcut-service";
+import QuickpasteView from "./ui/quickpaste-view/quickpaste-view.vue";
 
 import "./css/index.css";
 
@@ -23,7 +24,9 @@ async function initialize() {
 
   // ============================================================
   // 1. Initilize the RPC service for current process
-  const quickpasteRPCService = new QuickpasteRPCService();
+  const quickpasteRPCService = new RendererProcessRPCService(
+    Process.quickpaste
+  );
   // ============================================================
   // 2. Start the port exchange process.
   await quickpasteRPCService.initCommunication();
@@ -35,11 +38,19 @@ async function initialize() {
     "PLMainAPI",
     5000
   );
-  const rendererAPIExposed = await quickpasteRPCService.waitForAPI(
-    Process.renderer,
+  if (!mainAPIExposed) {
+    console.error("Main process API is not exposed");
+    throw new Error("Main process API is not exposed");
+  }
+  const serviceAPIExposed = await quickpasteRPCService.waitForAPI(
+    Process.service,
     "PLAPI",
     5000
   );
+  if (!serviceAPIExposed) {
+    console.error("Service process API is not exposed");
+    throw new Error("Service process API is not exposed");
+  }
 
   // ============================================================
   // 4. Create the instances for all services, tools, etc. of the current process.
@@ -49,7 +60,11 @@ async function initialize() {
   });
   // 4.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
+    if (!globalThis["PLQPUIAPI"]) {
+      globalThis["PLQPUIAPI"] = {} as any;
+    }
     globalThis[key] = instance;
+    globalThis["PLQPUIAPI"][key] = instance;
   }
 
   // ============================================================
@@ -57,14 +72,14 @@ async function initialize() {
   const locales = loadLocales();
 
   const i18n = createI18n({
-    allowComposition: true,
-    locale: (await PLAPI.preferenceService.get("language")) as string,
+    locale: (await PLMainAPI.preferenceService.get("language")) as string,
     fallbackLocale: "en-GB",
     messages: locales,
+    globalInjection: true,
+    legacy: false,
   });
 
   app.use(i18n);
-
   app.mount("#quickpaste");
 }
 

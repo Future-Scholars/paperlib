@@ -1,5 +1,4 @@
 import Cite from "citation-js";
-import { clipboard } from "electron";
 import { XMLParser } from "fast-xml-parser";
 import { existsSync, readFileSync, readdirSync } from "fs";
 import path from "path";
@@ -643,7 +642,7 @@ export class ReferenceService {
         break;
     }
 
-    clipboard.writeText(copyStr);
+    PLMainAPI.systemService.writeClipboard(copyStr);
     this._logService.info(
       "Copied to clipboard.",
       copyStr,

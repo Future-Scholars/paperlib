@@ -2,15 +2,10 @@
 import { disposable } from "@/base/dispose";
 
 // ======================
-// State
-// ======================
-const uiState = uiStateService.useState();
-
-// ======================
 // Event Handler
 // ======================
 const onClick = () => {
-  uiState.deleteConfirmShown = false;
+  PLUIAPI.uiStateService.setUIState({ deleteConfirmShown: false });
 };
 
 const onCancel = () => {
@@ -18,18 +13,22 @@ const onCancel = () => {
 };
 
 const onConfirm = () => {
-  const deleteIds = JSON.parse(JSON.stringify(uiState.selectedIds));
-  uiState.selectedIndex = [];
+  const deleteIds = JSON.parse(
+    JSON.stringify(PLUIAPI.uiStateService.getUIState("selectedIds"))
+  );
+  PLUIAPI.uiStateService.setUIState({ selectedIndex: [] });
   onClick();
-  paperService.delete(deleteIds);
+  PLAPI.paperService.delete(deleteIds);
 };
 
 disposable(
-  shortcutService.updateWorkingViewScope(shortcutService.viewScope.OVERLAY)
+  PLUIAPI.shortcutService.updateWorkingViewScope(
+    PLUIAPI.shortcutService.viewScope.OVERLAY
+  )
 );
 
-disposable(shortcutService.register("Escape", onCancel));
-disposable(shortcutService.register("Enter", onConfirm));
+disposable(PLUIAPI.shortcutService.register("Escape", onCancel));
+disposable(PLUIAPI.shortcutService.register("Enter", onConfirm));
 </script>
 
 <template>

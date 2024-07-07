@@ -32,7 +32,8 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          preload: resolve(__dirname, 'app/preload/preload.ts')
+          preload: resolve(__dirname, 'app/preload/preload.ts'),
+          preload_quickpaste: resolve(__dirname, 'app/preload/preload_quickpaste.ts')
         },
         output: {
           format: 'es'
@@ -52,7 +53,8 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'app/renderer/index.html')
+          index: resolve(__dirname, 'app/renderer/index.html'),
+          index_quickpaste: resolve(__dirname, 'app/renderer/index_quickpaste.html')
         },
       },
       outDir: 'dist/renderer',
