@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineProps } from "vue";
 import { BIconCodeSlash, BIconGithub, BIconLink } from "bootstrap-icons-vue";
 const props = defineProps({
   codes: Object as () => Array<string>,
@@ -17,7 +16,7 @@ const isCodeOfficial = (codeJSONstr: string) => {
 };
 
 const onLinkClick = (url: string) => {
-  fileService.open(url);
+  PLAPI.fileService.open(url);
 };
 
 const onCodeClick = (codeJSONstr: string) => {
@@ -25,7 +24,7 @@ const onCodeClick = (codeJSONstr: string) => {
     url: string;
     isOfficial: boolean;
   };
-  fileService.open(code.url);
+  PLAPI.fileService.open(code.url);
 };
 </script>
 
@@ -34,7 +33,7 @@ const onCodeClick = (codeJSONstr: string) => {
         <div 
           class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
           v-if="arxiv"
-          @click="onLinkClick(`https://arxiv.org/abs/${arxiv.toLowerCase().replaceAll('arxiv:', '').trim()}`)"
+          @click="onLinkClick(`https://arxiv.org/abs/${arxiv!.toLowerCase().replaceAll('arxiv:', '').trim()}`)"
         >
           <BIconLink class="text-xs my-auto" />
           <div class="text-xxs my-auto">arXiv</div>

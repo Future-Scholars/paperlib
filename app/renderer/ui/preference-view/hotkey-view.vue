@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { IPreferenceStore } from "@/common/services/preference-service";
+import { IPreferenceStore } from "@/main/services/preference-service";
 
 import HotkeyOption from "./components/hotkey-options.vue";
 

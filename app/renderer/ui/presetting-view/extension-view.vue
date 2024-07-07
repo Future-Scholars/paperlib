@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Process } from "@/base/process-id";
-import { BIconCircle, BIconCheckCircleFill } from "bootstrap-icons-vue";
-import { Ref, nextTick, onMounted, onUnmounted, ref } from "vue";
+import { nextTick, onMounted, onUnmounted, ref } from "vue";
 import Spinner from "@/renderer/ui/components/spinner.vue";
 
 const defaultExtensions = ref({
@@ -80,7 +79,7 @@ const installExtension = async (id: string) => {
   try {
     await PLExtAPI.extensionManagementService.install(id);
   } catch (e) {
-    logService.error(
+    PLAPI.logService.error(
       "Failed to install extension",
       e as Error,
       true,
@@ -91,14 +90,19 @@ const installExtension = async (id: string) => {
 
 onMounted(() => {
   nextTick(async () => {
-    const PLExtAPIExposed = await rendererRPCService.waitForAPI(
+    const PLExtAPIExposed = await PLUIAPI.rendererRPCService.waitForAPI(
       Process.extension,
       "PLExtAPI",
       5000
     );
 
     if (!PLExtAPIExposed) {
-      logService.warn("Extension process is not ready.", "", true, "UIPref");
+      PLAPI.logService.warn(
+        "Extension process is not ready.",
+        "",
+        true,
+        "UIPref"
+      );
       return;
     }
 

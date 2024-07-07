@@ -20,6 +20,16 @@ function replacer(key: any, value: any) {
         stack: value.stack ? value.stack : "",
       },
     };
+  } else if (value instanceof Uint8Array) {
+    return {
+      _dataType: "Uint8Array",
+      value: Array.from(value),
+    };
+  } else if (value instanceof ArrayBuffer) {
+    return {
+      _dataType: "ArrayBuffer",
+      value: Array.from(new Uint8Array(value)),
+    };
   } else {
     return value;
   }
@@ -35,6 +45,10 @@ function reviver(key: any, value: any) {
       error.message = value.value.message;
       error.stack = value.value.stack;
       return error;
+    } else if (value._dataType === "Uint8Array") {
+      return new Uint8Array(value.value);
+    } else if (value._dataType === "ArrayBuffer") {
+      return new Uint8Array(value.value).buffer;
     }
   }
   return value;

@@ -6,7 +6,7 @@ import {
   formatKeycode,
   formatShortcut,
   ShortcutEvent,
-} from "@/common/utils.ts";
+} from "@/base/shortcut";
 
 export const IShortcitService = createDecorator("shortcutService");
 

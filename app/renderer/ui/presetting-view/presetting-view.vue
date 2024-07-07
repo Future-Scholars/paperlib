@@ -25,7 +25,7 @@ const hide = async () => {
     return;
   }
 
-  preferenceService.set({ showPresetting: false });
+  PLMainAPI.preferenceService.set({ showPresetting: false });
 };
 </script>
 
@@ -49,7 +49,9 @@ const hide = async () => {
 
         <ExtensionView id="presetting-extension-view" />
       </div>
-      <span class="m-auto text-red-500" v-if="!hidable">⚠️ {{ $t("presetting.extensionscraperrequired") }}</span>
+      <span class="m-auto text-red-500" v-if="!hidable"
+        >⚠️ {{ $t("presetting.extensionscraperrequired") }}</span
+      >
       <div
         id="whats-new-close-btn"
         class="mt-10 mx-auto flex w-60 h-10 bg-accentlight dark:bg-accentdark text-neutral-50 rounded-md shadow-md cursor-pointer"

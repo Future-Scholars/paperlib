@@ -23,25 +23,25 @@ export enum MessageType {
 /**
  * MessagePort based RPC Protocol*/
 export class MessagePortRPCProtocol {
-  private readonly _port: MessagePort | MessagePortMain;
-  private readonly _proxies: { [id: string]: Proxied<any> };
-  private readonly _locals: { [id: string]: any };
+  protected readonly _port: MessagePort | MessagePortMain;
+  protected readonly _proxies: { [id: string]: Proxied<any> };
+  protected readonly _locals: { [id: string]: any };
 
-  private _lastCallId: number;
-  private readonly _pendingRPCReplies: { [callId: string]: LazyPromise };
+  protected _lastCallId: number;
+  protected readonly _pendingRPCReplies: { [callId: string]: LazyPromise };
 
-  private readonly _callerId: string;
-  private readonly _callWithCallerId: boolean;
+  protected readonly _callerId: string;
+  protected readonly _callWithCallerId: boolean;
 
-  private readonly _eventListeners: Record<
+  protected readonly _eventListeners: Record<
     string,
     { [callbackId: string]: (value: any) => void }
   >;
-  private readonly _eventDisposeCallbacks: Record<string, () => void>;
+  protected readonly _eventDisposeCallbacks: Record<string, () => void>;
 
-  private readonly _hookDisposeCallbacks: Record<string, () => void>;
+  protected readonly _hookDisposeCallbacks: Record<string, () => void>;
 
-  private readonly _commandDisposeCallbacks: Record<string, () => void>;
+  protected readonly _commandDisposeCallbacks: Record<string, () => void>;
 
   public exposedAPIs: { [namespace: string]: string[] };
 
@@ -88,7 +88,7 @@ export class MessagePortRPCProtocol {
     return this._proxies[rpcId];
   }
 
-  private _createProxy<T>(rpcId: string): T {
+  protected _createProxy<T>(rpcId: string): T {
     const handler = {
       get: (target: any, name: PropertyKey) => {
         if (
@@ -125,7 +125,7 @@ export class MessagePortRPCProtocol {
     return new Proxy(Object.create(null), handler);
   }
 
-  private _remoteCall(
+  protected _remoteCall(
     rpcId: string,
     methodName: string,
     args: any[]
@@ -150,7 +150,7 @@ export class MessagePortRPCProtocol {
     return result;
   }
 
-  private _remoteEventListen(
+  protected _remoteEventListen(
     rpcId: string,
     eventNames: string[],
     callback: any
@@ -213,7 +213,7 @@ export class MessagePortRPCProtocol {
   }
 
   // TODO: merge the following 2 functions
-  private _remoteHookRegister(rpcId: string, methodName: string, args: any[]) {
+  protected _remoteHookRegister(rpcId: string, methodName: string, args: any[]) {
     const callId = String(++this._lastCallId);
 
     const callbackId = uid();
@@ -247,7 +247,7 @@ export class MessagePortRPCProtocol {
     };
   }
 
-  private _remoteCommandRegister(
+  protected _remoteCommandRegister(
     rpcId: string,
     methodName: string,
     args: any[]
@@ -285,7 +285,7 @@ export class MessagePortRPCProtocol {
     };
   }
 
-  private _receiveOneMessage(rawmsg: string): void {
+  protected _receiveOneMessage(rawmsg: string): void {
     const { callId, callerId, rpcId, type, value } = JSONparse(rawmsg);
 
     switch (type) {
@@ -345,7 +345,7 @@ export class MessagePortRPCProtocol {
     }
   }
 
-  private _receiveRequest(
+  protected _receiveRequest(
     callId: string,
     rpcId: string,
     callerId: string,
@@ -381,7 +381,7 @@ export class MessagePortRPCProtocol {
     );
   }
 
-  private _invokeHandler(
+  protected _invokeHandler(
     rpcId: string,
     callerId: string,
     methodName: string,
@@ -417,7 +417,7 @@ export class MessagePortRPCProtocol {
     }
   }
 
-  private _receiveReply(callId: string, value: any): void {
+  protected _receiveReply(callId: string, value: any): void {
     if (!this._pendingRPCReplies.hasOwnProperty(callId)) {
       return;
     }
@@ -428,7 +428,7 @@ export class MessagePortRPCProtocol {
     pendingReply.resolve(value);
   }
 
-  private _receiveError(callId: string, value: any): void {
+  protected _receiveError(callId: string, value: any): void {
     if (!this._pendingRPCReplies.hasOwnProperty(callId)) {
       return;
     }
@@ -443,7 +443,7 @@ export class MessagePortRPCProtocol {
     pendingReply.reject(error);
   }
 
-  private _receiveEventListen(callId: string, rpcId: string, value: any): void {
+  protected _receiveEventListen(callId: string, rpcId: string, value: any): void {
     const { eventName } = value;
 
     const actor = this._locals[rpcId];
@@ -467,7 +467,7 @@ export class MessagePortRPCProtocol {
     });
   }
 
-  private _receiveEventDispose(callId: string): void {
+  protected _receiveEventDispose(callId: string): void {
     const disposeCallback = this._eventDisposeCallbacks[callId];
     if (!disposeCallback) {
       return;
@@ -486,7 +486,7 @@ export class MessagePortRPCProtocol {
     delete this._eventDisposeCallbacks[callId];
   }
 
-  private _receiveEventFire(callId: string, rpcId: string, value: any): void {
+  protected _receiveEventFire(callId: string, rpcId: string, value: any): void {
     const { eventName, args } = value;
 
     const remoteEventName = `${rpcId}.${eventName}`;
@@ -537,7 +537,7 @@ export class MessagePortRPCProtocol {
     this._port.postMessage(msg);
   }
 
-  private _receiveExposedAPI(
+  protected _receiveExposedAPI(
     callId: string,
     value: { [namespace: string]: string[] }
   ): void {
@@ -562,7 +562,7 @@ export class MessagePortRPCProtocol {
   }
 
   // TODO: merge the following 4 functions
-  private async _receiveHookRegister(
+  protected async _receiveHookRegister(
     callId: string,
     rpcId: string,
     value: any
@@ -577,7 +577,7 @@ export class MessagePortRPCProtocol {
     this._hookDisposeCallbacks[callbackId] = await actor[methodName](...args);
   }
 
-  private _receiveHookDispose(callId: string, rpcId: string, value: any) {
+  protected _receiveHookDispose(callId: string, rpcId: string, value: any) {
     const { callbackId } = value;
 
     const disposeCallback = this._hookDisposeCallbacks[callbackId];
@@ -599,7 +599,7 @@ export class MessagePortRPCProtocol {
     delete this._hookDisposeCallbacks[callbackId];
   }
 
-  private async _receiveCommandRegister(
+  protected async _receiveCommandRegister(
     callId: string,
     rpcId: string,
     value: any
@@ -616,7 +616,7 @@ export class MessagePortRPCProtocol {
     );
   }
 
-  private _receiveCommandDispose(callId: string, rpcId: string, value: any) {
+  protected _receiveCommandDispose(callId: string, rpcId: string, value: any) {
     const { callbackId } = value;
 
     const disposeCallback = this._commandDisposeCallbacks[callbackId];

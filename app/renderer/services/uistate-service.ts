@@ -3,6 +3,7 @@ import { createDecorator } from "@/base/injection/injection";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
+import { PiniaEventable } from "./pinia-eventable";
 
 export interface IUIStateServiceState {
   // =========================================
@@ -62,7 +63,7 @@ export const IUIStateService = createDecorator("uiStateService");
 
 /**
  * UI service is responsible for managing the UI state.*/
-export class UIStateService extends Eventable<IUIStateServiceState> {
+export class UIStateService extends PiniaEventable<IUIStateServiceState> {
   public readonly processingState: SubStateGroup<IProcessingState>;
 
   constructor() {
@@ -100,7 +101,7 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       commandBarSearchMode: "general",
 
       isDevMode: false,
-      os: process.platform,
+      os: window.electron.process.platform,
 
       "processingState.general": 0,
     });
@@ -126,18 +127,19 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
 
     // =========================================
     // Theme Listener
-    window
-      .matchMedia("(prefers-color-scheme: dark)")
-      .addEventListener("change", (event) => {
-        this.setState({ renderRequired: Date.now() });
-      });
+    // TODO: we need to do it in the renderer process
+    // window
+    //   .matchMedia("(prefers-color-scheme: dark)")
+    //   .addEventListener("change", (event) => {
+    //     this.setState({ renderRequired: Date.now() });
+    //   });
   }
 
   /**
    * Set the state of the UI service. Many UI components are controlled by the UI states.
    * @param patch - patch to the state. It can be a single state, a partial state or a full state.
    */
-  setState(patch: Partial<IUIStateServiceState>) {
+  setUIState(patch: Partial<IUIStateServiceState>) {
     for (const [key, value] of Object.entries(patch)) {
       const keyParts = key.split(".");
 
@@ -165,22 +167,39 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
    * @param stateKey - key of the state
    * @returns The state
    */
-  getState(stateKey: keyof IUIStateServiceState) {
-    return this._state[stateKey];
+  getUIState(stateKey: keyof IUIStateServiceState) {
+    const keyParts = stateKey.split(".");
+
+    if (keyParts.length > 2) {
+      throw new Error(
+        "States key must be in the form of 'stateGroup.key' or 'key'!"
+      );
+    }
+
+    if (keyParts.length === 2) {
+      const [stateGroup, stateKey] = keyParts;
+      if (stateGroup === "processingState") {
+        return this.processingState.getUIState(stateKey as any);
+      } else {
+        throw new Error(`State group '${stateGroup}' is not supported!`);
+      }
+    } else {
+      return this._eventState[stateKey];
+    }
   }
 
   /**
    * Get all UI states.
    * @returns The state
    */
-  getStates() {
-    return this._state;
+  getUIStates() {
+    return this._eventState;
   }
 
   /**
    * Reset all UI states to default.
    */
-  resetStates() {
+  resetUIStates() {
     const patch = {
       contentType: "library",
       mainViewFocused: true,
@@ -201,9 +220,29 @@ export class UIStateService extends Eventable<IUIStateServiceState> {
       pluginLinkedFolder: "",
       commandBarText: "",
       commandBarSearchMode: "general",
-      os: process.platform,
+      os: window.electron.process.platform,
     };
     this.fire(patch);
+  }
+
+  /**
+   * Increase the processing state.
+   * @param key - key of the processing state
+   */
+  increaseProcessingState(key: ProcessingKey) {
+    this.processingState.setUIState({
+      [key]: this.processingState.getUIState(key) + 1,
+    });
+  }
+
+  /**
+   * Decrease the processing state.
+   * @param key - key of the processing state
+   */
+  decreaseProcessingState(key: ProcessingKey) {
+    this.processingState.setUIState({
+      [key]: this.processingState.getUIState(key) - 1,
+    });
   }
 }
 
@@ -212,12 +251,12 @@ class SubStateGroup<T extends IEventState> extends Eventable<T> {
     super(stateID, defaultState);
   }
 
-  setState(patch: Partial<T>) {
+  setUIState(patch: Partial<T>) {
     this.fire(patch);
   }
 
-  getState(stateKey: keyof T) {
-    return this._state[stateKey as string];
+  getUIState(stateKey: keyof T) {
+    return this._eventState[stateKey as string];
   }
 }
 
@@ -244,23 +283,18 @@ export function processing(key: ProcessingKey) {
     if (isAsync) {
       descriptor.value = async function (...args: any[]) {
         if (
-          globalThis["uiStateService"] &&
-          globalThis["uiStateService"].processingState
+          globalThis["PLUIAPI"] &&
+          globalThis["PLUIAPI"]["uiStateService"] &&
+          globalThis["PLUIAPI"]["uiStateService"].processingState
         ) {
-          uiStateService.processingState.setState({
-            [key]: uiStateService.processingState.getState(key) + 1,
-          });
+          PLUIAPI.uiStateService.increaseProcessingState(key);
 
           try {
             const results = await originalMethod.apply(this, args);
-            uiStateService.processingState.setState({
-              [key]: uiStateService.processingState.getState(key) - 1,
-            });
+            PLUIAPI.uiStateService.decreaseProcessingState(key);
             return results;
           } catch (error) {
-            uiStateService.processingState.setState({
-              [key]: uiStateService.processingState.getState(key) - 1,
-            });
+            PLUIAPI.uiStateService.decreaseProcessingState(key);
             throw error;
           }
         } else {
@@ -270,21 +304,20 @@ export function processing(key: ProcessingKey) {
     } else {
       descriptor.value = function (...args: any[]) {
         if (
-          globalThis["uiStateService"] &&
-          globalThis["uiStateService"].processingState
+          globalThis["PLUIAPI"] &&
+          globalThis["PLUIAPI"]["uiStateService"] &&
+          globalThis["PLUIAPI"]["uiStateService"].processingState
         ) {
-          uiStateService.processingState.setState({
-            [key]: uiStateService.processingState.getState(key) + 1,
-          });
+          PLUIAPI.uiStateService.processingState.increaseProcessingState(key);
           try {
             const results = originalMethod.apply(this, args);
-            uiStateService.processingState.setState({
-              [key]: uiStateService.processingState.getState(key) - 1,
+            PLUIAPI.uiStateService.processingState.setUIState({
+              [key]: PLUIAPI.uiStateService.decreaseProcessingState(key),
             });
             return results;
           } catch (error) {
-            uiStateService.processingState.setState({
-              [key]: uiStateService.processingState.getState(key) - 1,
+            PLUIAPI.uiStateService.processingState.setUIState({
+              [key]: PLUIAPI.uiStateService.decreaseProcessingState(key),
             });
             throw error;
           }

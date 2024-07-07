@@ -2,13 +2,14 @@ import fs from "fs";
 import path from "path";
 
 import { InjectionContainer } from "@/base/injection/injection";
-import { NetworkTool } from "@/base/network";
 import { Process } from "@/base/process-id";
+import { UtilityProcessRPCService } from "@/base/rpc/rpc-service-utility";
 import { LogService } from "@/common/services/log-service";
-import { ExtensionManagementService } from "@/extension/services/extension-management-service";
-import { ExtensionPreferenceService } from "@/extension/services/extension-preference-service";
-import { ExtensionRPCService } from "@/extension/services/extension-rpc-service";
-import { IInjectable } from "@/extension/services/injectable";
+
+import { ExtensionManagementService } from "./services/extension-management-service";
+import { ExtensionPreferenceService } from "./services/extension-preference-service";
+import { IInjectable } from "./services/injectable";
+import { NetworkTool } from "./base/network";
 
 async function initialize() {
   const extLogService = new LogService("extension.log");
@@ -19,7 +20,10 @@ async function initialize() {
 
   // ============================================================
   // 1. Initilize the RPC service for current process
-  const extensionRPCService = new ExtensionRPCService();
+  const extensionRPCService = new UtilityProcessRPCService(
+    Process.extension,
+    "PLExtAPI"
+  );
   // ============================================================
   // 2. Start the port exchange process.
   extensionRPCService.initCommunication();
@@ -30,18 +34,17 @@ async function initialize() {
     "PLMainAPI",
     5000
   );
-
   if (!mainAPIExposed) {
     console.error("Main process API is not exposed");
     throw new Error("Main process API is not exposed");
   }
-  const rendererAPIExposed = await extensionRPCService.waitForAPI(
-    Process.renderer,
+  const serviceAPIExposed = await extensionRPCService.waitForAPI(
+    Process.service,
     "PLAPI",
     5000
   );
-  if (!rendererAPIExposed) {
-    throw new Error("Renderer process API is not exposed");
+  if (!serviceAPIExposed) {
+    throw new Error("Service process API is not exposed");
   }
   // 3.1 Get extension working path
   const configDir = await PLMainAPI.fileSystemService.getSystemPath(
@@ -92,8 +95,9 @@ async function initialize() {
   // 5. Set actionors for RPC service with all initialized services.
   //    Expose the APIs of the current process to other processes
   extensionRPCService.setActionor(instances);
+  await PLExtAPI.extensionManagementService.initialize();
 
-  extensionManagementService.initialize();
+  process.parentPort.postMessage({ type: "service-ready", value: Process.extension });
 }
 
 initialize();

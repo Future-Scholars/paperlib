@@ -3,10 +3,11 @@ import { onMounted, ref } from "vue";
 
 import WhatsNewHeader from "./header.vue";
 
-const preState = preferenceService.useState();
+const preState = PLMainAPI.preferenceService.useState();
 
 const hide = async () => {
-  preferenceService.set({
+  console.log(await PLMainAPI.upgradeService.currentVersion());
+  PLMainAPI.preferenceService.set({
     lastVersion: await PLMainAPI.upgradeService.currentVersion(),
   });
 };
@@ -16,7 +17,7 @@ const currentReleaseNoteHTML = ref("");
 const loadCurrent = async () => {
   const response = await fetch(
     `https://api.paperlib.app/release-notes/json?lang=${
-      (preState.language === "zh-CN" || preState.language === "zh-TW")
+      preState.language === "zh-CN" || preState.language === "zh-TW"
         ? "CN"
         : "EN"
     }&latest=1&branch=main`
@@ -26,7 +27,7 @@ const loadCurrent = async () => {
   currentVersion.value = json[0].version;
 
   const html = (
-    await renderService.renderMarkdown(
+    await PLAPI.renderService.renderMarkdown(
       json[0].updates.map((update) => `- ${update}`).join("\n"),
       true
     )
@@ -38,7 +39,7 @@ const historyReleaseNoteHTML = ref("");
 const loadHistory = async () => {
   const response = await fetch(
     `https://api.paperlib.app/release-notes/html?lang=${
-      (preState.language === "zh-CN" || preState.language === "zh-TW")
+      preState.language === "zh-CN" || preState.language === "zh-TW"
         ? "CN"
         : "EN"
     }&latest=5&branch=main`
@@ -65,7 +66,8 @@ onMounted(async () => {
   border-radius: 0.5em;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25),
+    0 2px 4px -2px rgb(0 0 0 / 0.5);
 }
 
 #release-note code {

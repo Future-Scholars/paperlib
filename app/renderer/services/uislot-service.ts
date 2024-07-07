@@ -1,6 +1,5 @@
-import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { ILogService, LogService } from "@/common/services/log-service";
+import { PiniaEventable } from "./pinia-eventable";
 
 export const IUIStateService = createDecorator("uiStateService");
 
@@ -19,8 +18,8 @@ export interface IUISlotState {
   };
 }
 
-export class UISlotService extends Eventable<IUISlotState> {
-  constructor(@ILogService private readonly _logService: LogService) {
+export class UISlotService extends PiniaEventable<IUISlotState> {
+  constructor() {
     super("uiSlotService", {
       paperDetailsPanelSlot1: {},
       paperDetailsPanelSlot2: {},
@@ -39,7 +38,7 @@ export class UISlotService extends Eventable<IUISlotState> {
     const currentSlot = JSON.parse(JSON.stringify(this.getState(slotID)));
 
     if (!currentSlot) {
-      this._logService.error(
+      PLAPI.logService.error(
         `Slot does not exist in UISlotService.`,
         slotID,
         true,
@@ -69,7 +68,7 @@ export class UISlotService extends Eventable<IUISlotState> {
     const currentSlot = JSON.parse(JSON.stringify(this.getState(slotID)));
 
     if (!currentSlot) {
-      this._logService.error(
+      PLAPI.logService.error(
         `Slot does not exist in UISlotService.`,
         slotID,
         true,

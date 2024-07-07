@@ -1,8 +1,8 @@
 <script setup lang="ts">
-const prefState = preferenceService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
 const onChangeLanguage = (language: string) => {
-  preferenceService.set({ language: language });
+  PLMainAPI.preferenceService.set({ language: language });
 };
 </script>
 

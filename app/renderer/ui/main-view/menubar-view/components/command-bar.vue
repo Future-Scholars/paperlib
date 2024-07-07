@@ -4,14 +4,14 @@ import { Ref, computed, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
+import { PaperFilterOptions } from "@/base/filter";
+import { ShortcutEvent } from "@/base/shortcut";
 import { ICommand } from "@/renderer/services/command-service";
-import { PaperFilterOptions } from "@/renderer/services/paper-service";
-import { ShortcutEvent } from "@/common/utils.ts";
 
 // ================================
 // State
 // ================================
-const uiState = uiStateService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 
 // ================================
 // Data
@@ -31,7 +31,7 @@ const onSearchTextChanged = debounce(() => {
 }, 300);
 
 disposable(
-  uiStateService.onChanged("commandBarText", (newVal) => {
+  PLUIAPI.uiStateService.onChanged("commandBarText", (newVal) => {
     commandText.value = newVal.value;
   })
 );
@@ -62,7 +62,7 @@ const commands = computed(() => {
     return [];
   }
   if (!isSelectingCommand.value) {
-    commandsBuffer.value = commandService.getRegisteredCommands(
+    commandsBuffer.value = PLUIAPI.commandService.getRegisteredCommands(
       commandText.value.split(" ")[0].substring(1).trim()
     );
     return commandsBuffer.value;
@@ -103,7 +103,7 @@ const onRunCommand = () => {
       return;
     }
 
-    commandService.run(commandID, commandArgs);
+    PLUIAPI.commandService.run(commandID, commandArgs);
 
     if (["search", "search_fulltext", "search_advanced"].includes(commandID)) {
       commandText.value = commandArgs;
@@ -140,7 +140,7 @@ const onKeydown = (payload: KeyboardEvent) => {
 };
 
 const onFocus = async (payload: Event) => {
-  arrowDownDisposeHandler = shortcutService.register(
+  arrowDownDisposeHandler = PLUIAPI.shortcutService.register(
     "ArrowDown",
     () => {
       isSelectingCommand.value = true;
@@ -157,10 +157,10 @@ const onFocus = async (payload: Event) => {
     },
     true,
     true,
-    shortcutService.viewScope.INPUT
+    PLUIAPI.shortcutService.viewScope.INPUT
   );
 
-  arrowUpDisposeHandler = shortcutService.register(
+  arrowUpDisposeHandler = PLUIAPI.shortcutService.register(
     "ArrowUp",
     () => {
       isSelectingCommand.value = true;
@@ -182,20 +182,20 @@ const onFocus = async (payload: Event) => {
     },
     true,
     true,
-    shortcutService.viewScope.INPUT
+    PLUIAPI.shortcutService.viewScope.INPUT
   );
 
-  enterDisposeHandler = shortcutService.register(
+  enterDisposeHandler = PLUIAPI.shortcutService.register(
     "Enter",
     () => {
       onRunCommand();
     },
     true,
     true,
-    shortcutService.viewScope.INPUT
+    PLUIAPI.shortcutService.viewScope.INPUT
   );
 
-  escapeDisposeHandler = shortcutService.register(
+  escapeDisposeHandler = PLUIAPI.shortcutService.register(
     "Escape",
     (e: ShortcutEvent) => {
       if (e.isInput && e.target) {
@@ -207,10 +207,10 @@ const onFocus = async (payload: Event) => {
     },
     true,
     true,
-    shortcutService.viewScope.INPUT
+    PLUIAPI.shortcutService.viewScope.INPUT
   );
 
-  backDisposeHandler = shortcutService.register(
+  backDisposeHandler = PLUIAPI.shortcutService.register(
     "Backspace",
     () => {
       if (commandText.value === "") {
@@ -221,7 +221,7 @@ const onFocus = async (payload: Event) => {
     },
     false,
     true,
-    shortcutService.viewScope.INPUT
+    PLUIAPI.shortcutService.viewScope.INPUT
   );
 
   isFocused.value = true;
@@ -258,11 +258,11 @@ const fixScrolling = (index: number) => {
 };
 
 disposable(
-  shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
+  PLUIAPI.shortcutService.updateWorkingViewScope(PLUIAPI.shortcutService.viewScope.MAIN)
 );
 
 disposable(
-  shortcutService.register("\\", () => {
+  PLUIAPI.shortcutService.register("\\", () => {
     commandText.value = `\\`;
     commandInput.value?.focus();
   })

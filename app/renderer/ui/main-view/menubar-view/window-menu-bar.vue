@@ -18,12 +18,13 @@ import {
   BIconThreeDots,
   BIconX,
 } from "bootstrap-icons-vue";
+import { ref } from "vue";
 
 import { Process } from "@/base/process-id";
+import { disposable } from "@/base/dispose";
+
 import CommandBar from "./components/command-bar.vue";
 import MenuBarBtn from "./components/menu-bar-btn.vue";
-import { disposable } from "@/base/dispose.ts";
-import { ref } from "vue";
 
 const props = defineProps({
   disableSingleBtn: {
@@ -41,10 +42,10 @@ const emits = defineEmits(["event:click"]);
 // ================================
 // State
 // ================================
-const uiState = uiStateService.useState();
-const prefState = preferenceService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
-const isMaximized = ref(false)
+const isMaximized = ref(false);
 
 const onCloseClicked = () => {
   PLMainAPI.windowProcessManagementService.close(Process.renderer);
@@ -62,20 +63,18 @@ const onMaximizeClicked = () => {
   PLMainAPI.windowProcessManagementService.maximize(Process.renderer);
 };
 
-
 disposable(
   PLMainAPI.windowProcessManagementService.on(
     Process.renderer,
     (newValue: { value: string }) => {
       if (newValue.value === "unmaximize") {
-        isMaximized.value = false
+        isMaximized.value = false;
       } else if (newValue.value === "maximize") {
-        isMaximized.value = true
+        isMaximized.value = true;
       }
     }
   )
-)
-
+);
 </script>
 
 <template>
@@ -391,7 +390,10 @@ disposable(
       />
     </div>
 
-    <div class="flex nodraggable-item mx-1 my-auto" v-if="uiState.os === 'win32'">
+    <div
+      class="flex nodraggable-item mx-1 my-auto"
+      v-if="uiState.os === 'win32'"
+    >
       <div
         class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out justify-center items-center"
         @click="onMinimizeClicked"
@@ -404,7 +406,9 @@ disposable(
         @click="onUnmaximizeClicked"
       >
         <div class="h-[8px] w-[8px] border-[1px] border-neutral-500 rounded-sm">
-          <div class="relative right-[-2px] top-[-3px] h-[8px] w-[8px] rounded-sm border-r-[1px] border-t-[1px] border-neutral-500"></div>
+          <div
+            class="relative right-[-2px] top-[-3px] h-[8px] w-[8px] rounded-sm border-r-[1px] border-t-[1px] border-neutral-500"
+          ></div>
         </div>
       </div>
       <div
@@ -412,9 +416,7 @@ disposable(
         class="flex w-10 h-8 hover:bg-neutral-300 transition ease-in-out justify-center items-center"
         @click="onMaximizeClicked"
       >
-        <div
-          class="w-[10px] h-[10px] border-[1.5px] border-neutral-500"
-        ></div>
+        <div class="w-[10px] h-[10px] border-[1.5px] border-neutral-500"></div>
       </div>
       <div
         class="flex w-10 h-8 text-neutral-500 hover:bg-red-600 transition ease-in-out hover:text-neutral-200 justify-center items-center"

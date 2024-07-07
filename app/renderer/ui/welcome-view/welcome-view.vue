@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 
-const prefState = preferenceService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
 const hide = async () => {
-  preferenceService.set({
+  PLMainAPI.preferenceService.set({
     showWelcome: false,
   });
 };
@@ -109,9 +109,12 @@ onMounted(async () => {
               <span>helps you scrape the metadata for your papers.</span>
             </li>
             <li class="space-x-2">
-              <span class="font-semibold">ai-summary</span>
+              <span class="font-semibold">ai-summary / ai-chat</span>
               <span>-</span>
-              <span>uses LLM to summarise papers.</span>
+              <span
+                >uses LLM to summarise papers, tag a paper, filter your libray
+                with human language, or chat with LLM about a paper.</span
+              >
             </li>
             <li class="space-x-2">
               <span class="font-semibold">format-pubname</span>
@@ -186,9 +189,13 @@ onMounted(async () => {
               <span>帮助你搜索论文的元数据。</span>
             </li>
             <li class="space-x-2">
-              <span class="font-semibold">ai-summary</span>
+              <span class="font-semibold">ai-summary / ai-chat</span>
               <span>-</span>
-              <span>使用 LLM 总结论文。</span>
+              <span
+                >使用 LLM
+                总结论文，给论文自动打标签，用自然语言搜索你的论文库，和 LLM
+                讨论论文等。</span
+              >
             </li>
             <li class="space-x-2">
               <span class="font-semibold">format-pubname</span>

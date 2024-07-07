@@ -9,6 +9,7 @@ export function disposable(cancelHandler?: () => void) {
   if (cancelHandler) {
     if (getCurrentScope()) {
       onScopeDispose(cancelHandler);
+      return;
     } else {
       throw new Error("Please use decorator outside vue.");
     }

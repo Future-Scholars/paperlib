@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Ref, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { isEqual } from "lodash-es";
+import { isEqual } from "lodash";
 
 import { disposable } from "@/base/dispose";
 import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
@@ -12,8 +12,8 @@ import TableView from "./components/table-view/table-view.vue";
 // ================================
 // State
 // ================================
-const prefState = preferenceService.useState();
-const uiState = uiStateService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 
 const i18n = useI18n();
 
@@ -101,15 +101,15 @@ const onItemDoubleClicked = async (selectedIndex: number[]) => {
   onItemClicked(selectedIndex);
 
   const fileURL = feedEntities.value[selectedIndex[0]].mainURL;
-  fileService.open(fileURL);
+  PLAPI.fileService.open(fileURL);
 };
 
 const onTableHeaderClicked = (key: string) => {
   if (key === "tags" || key === "folders") {
     return;
   }
-  preferenceService.set({ mainviewSortBy: key });
-  preferenceService.set({
+  PLMainAPI.preferenceService.set({ mainviewSortBy: key });
+  PLMainAPI.preferenceService.set({
     mainviewSortOrder: prefState.mainviewSortOrder === "asce" ? "desc" : "asce",
   });
 };
@@ -121,7 +121,7 @@ const onTableHeaderWidthChanged = (changedWidths: Record<string, number>) => {
       feedFieldPref.width = changedWidths[feedFieldPref.key];
     }
   }
-  preferenceService.set({ feedFields: feedFieldPrefs });
+  PLMainAPI.preferenceService.set({ feedFields: feedFieldPrefs });
 };
 
 const onFontSizeChanged = (fontSize: "normal" | "large" | "larger") => {
@@ -129,13 +129,13 @@ const onFontSizeChanged = (fontSize: "normal" | "large" | "larger") => {
 };
 
 disposable(
-  preferenceService.onChanged("fontsize", (newValue) => {
+  PLMainAPI.preferenceService.onChanged("fontsize", (newValue) => {
     onFontSizeChanged(newValue.value);
   })
 );
 
 disposable(
-  preferenceService.onChanged(
+  PLMainAPI.preferenceService.onChanged(
     ["feedFields", "mainviewType", "mainviewShortAuthor"],
     () => {
       onFontSizeChanged(prefState.fontsize);

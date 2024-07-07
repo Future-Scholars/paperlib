@@ -1,17 +1,7 @@
-import { isEqual } from "lodash-es";
-import {
-  Store,
-  SubscriptionCallbackMutationPatchObject,
-  _DeepPartial,
-  createPinia,
-  defineStore,
-  getActivePinia,
-  setActivePinia,
-} from "pinia";
-import { UnwrapRef } from "vue";
+import { EventEmitter } from "eventemitter3";
+import { isEqual } from "lodash";
 
 import { IDisposable } from "@/base/dispose";
-import { uid } from "@/base/misc";
 
 export interface IEventState {
   [key: string]: any;
@@ -24,104 +14,46 @@ export interface IEventState {
  *   2. Directly modify the state by calling `useState().key = value`
  */
 export class Eventable<T extends IEventState> implements IDisposable {
-  private readonly _useStateFunc: () => Store<string, T>;
-  protected readonly _state: Store<string, T>;
-  private _stateProxy?: Store<string, T>;
-  protected readonly _listeners: Partial<
-    Record<keyof T, { [callbackId: string]: (value: any) => void }>
-  >;
   protected readonly _eventGroupId: string;
   protected readonly _eventDefaultState: T;
+  protected readonly _eventState: T;
+  protected _eventStateProxy?: T;
+
+  protected readonly _emitter: EventEmitter;
 
   constructor(eventGroupId: string, eventDefaultState?: T) {
     this._eventGroupId = eventGroupId;
     this._eventDefaultState = eventDefaultState || ({} as T);
+    this._eventState = eventDefaultState || ({} as T);
 
-    this._listeners = {};
-
-    if (!getActivePinia()) {
-      setActivePinia(createPinia());
-    }
-
-    this._useStateFunc = defineStore(this._eventGroupId, {
-      state: (): T => {
-        return this._eventDefaultState;
-      },
-    });
-
-    this._state = this.useState(false);
-
-    // Create a function for patching state if the new value is different from the old value
-    // @ts-ignore
-    this._state.$patchupdate = (patch: _DeepPartial<UnwrapRef<T>>) => {
-      const realPatch: _DeepPartial<UnwrapRef<T>> = {};
-      for (const key in patch) {
-        if (isEqual(patch[key], this._state[key])) {
-          continue;
-        } else {
-          realPatch[key] = patch[key];
-        }
-      }
-      if (Object.keys(realPatch).length > 0) {
-        this._state.$patch(realPatch);
-      }
-    };
-
-    this._state.$subscribe((mutation, state) => {
-      let payload: { [key: string]: any };
-      if (mutation.type === "direct") {
-        payload = { [mutation.events.key]: mutation.events.newValue };
-      } else {
-        payload = (
-          mutation as SubscriptionCallbackMutationPatchObject<IEventState>
-        ).payload;
-      }
-
-      for (const key in payload) {
-        if (key in this._listeners) {
-          const callbacks = this._listeners[key]!;
-          const callbacksPromise = Object.values(callbacks).map((callback) => {
-            // if callback is async
-            if (callback.constructor.name === "AsyncFunction") {
-              return callback({ key: key, value: payload[key] });
-            } else {
-              return new Promise((resolve) => {
-                resolve(callback({ key: key, value: payload[key] }));
-              });
-            }
-          });
-          Promise.all(callbacksPromise);
-        }
-      }
-    });
+    this._emitter = new EventEmitter();
   }
 
-  useState(proxied: boolean = true) {
-    const state = this._useStateFunc();
+  useState(): T {
+    if (this._eventStateProxy) {
+      return this._eventStateProxy;
+    } else {
+      this._eventStateProxy = new Proxy(this._eventState, {
+        get: (target, prop) => {
+          return target[prop as keyof T];
+        },
+        set: (_target, prop, value) => {
+          this.fire({ [prop as any]: value }, true);
+          return true;
+        },
+      });
 
-    if (!proxied) {
-      return state;
+      return this._eventStateProxy;
     }
+  }
 
-    if (this._stateProxy) {
-      return this._stateProxy;
-    }
-
-    this._stateProxy = new Proxy(state, {
-      get: (target, prop) => {
-        return target[prop as any];
-      },
-      set: (target, prop, value) => {
-        target.$patch({ [prop]: value } as _DeepPartial<UnwrapRef<T>>);
-        return true;
-      },
-    });
-
-    return this._stateProxy;
+  async bindState() {
+    // Handle in the messageport protocol
+    // This function is used to bind the remote state with the local pinia state in the renderer process
   }
 
   getState(key: keyof T) {
-    return this._state[key as string];
+    return this._eventState[key];
   }
 
   /**
@@ -133,18 +65,25 @@ export class Eventable<T extends IEventState> implements IDisposable {
     event: { [key in keyof T]?: any } | keyof T,
     onlyIfChanged: boolean = false
   ) {
-    let patch: _DeepPartial<UnwrapRef<T>> = {};
+    let patch: Partial<T> = {};
     if (typeof event === "string") {
-      patch = { [event]: this._state[event] + 1 } as _DeepPartial<UnwrapRef<T>>;
+      patch = { [event]: this._eventState[event] + 1 } as Partial<T>;
+    } else if (typeof event === "object") {
+      patch = event as Partial<T>;
     } else {
-      patch = event as _DeepPartial<UnwrapRef<T>>;
+      throw new Error("Invalid event type: " + typeof event);
     }
-    if (onlyIfChanged) {
-      this._state.$patchupdate(patch);
-    } else {
-      this._state.$patch(patch);
+
+    for (const [key, value] of Object.entries(patch)) {
+      if (isEqual(this._eventState[key], value) && onlyIfChanged) {
+        continue;
+      }
+      this._emitter.emit(key, value);
+      this._eventState[key as keyof T] = value;
     }
   }
+
+  setState = this.fire;
 
   /**
    * Add a listener
@@ -160,18 +99,17 @@ export class Eventable<T extends IEventState> implements IDisposable {
       key = [key];
     }
 
-    const keyAndCallbackId: [keyof T, string][] = [];
-    for (const k of key as (keyof T)[]) {
-      this._listeners[k] = this._listeners[k] || {};
-      const callbackId = uid();
-      const callbackList = this._listeners[k]!;
-      callbackList[callbackId] = callback;
-      keyAndCallbackId.push([k, callbackId]);
+    for (const k of key as Array<string>) {
+      this._emitter.on(k, (v) => {
+        callback({ key: k as keyof T, value: v });
+      });
     }
 
     return () => {
-      for (const [k, callbackId] of keyAndCallbackId) {
-        delete this._listeners[k]![callbackId];
+      for (const k of key as Array<string>) {
+        this._emitter.off(k as string, (v) => {
+          callback({ key: k as keyof T, value: v });
+        });
       }
     };
   }
@@ -193,9 +131,14 @@ export class Eventable<T extends IEventState> implements IDisposable {
     }
 
     const disposeCallbacks: (() => void)[] = [];
-    for (const k of key as string[]) {
-      if (this._state[k] !== this._eventDefaultState[k]) {
-        callback({ key: k, value: this._state[k] });
+    for (const k of key as Array<string>) {
+      if (
+        !isEqual(
+          this._eventState[k as keyof T],
+          this._eventDefaultState[k as keyof T]
+        )
+      ) {
+        callback({ key: k, value: this._eventState[k] });
       } else {
         disposeCallbacks.push(this.onChanged(k, callback));
       }
@@ -217,8 +160,7 @@ export class Eventable<T extends IEventState> implements IDisposable {
         (this[prop] as any).dispose();
       }
     }
-    for (var listener in this._listeners) {
-      delete this._listeners[listener];
-    }
+
+    this._emitter.removeAllListeners();
   }
 }

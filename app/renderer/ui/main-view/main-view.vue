@@ -10,6 +10,8 @@ import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
 import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
+import { Process } from "@/base/process-id";
+import { cmdOrCtrl, ShortcutEvent } from "@/base/shortcut";
 
 import SidebarView from "../sidebar-view/sidebar-view.vue";
 import FeedDataView from "./data-view/feed-data-view.vue";
@@ -17,18 +19,16 @@ import PaperDataView from "./data-view/paper-data-view.vue";
 import FeedDetailView from "./detail-view/feed-detail-view.vue";
 import PaperDetailView from "./detail-view/paper-detail-view.vue";
 import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
-import { Process } from "@/base/process-id.ts";
-import { cmdOrCtrl, ShortcutEvent } from "@/common/utils.ts";
 import CandidateView from "./candidate-view/candidate-view.vue";
 
 // ================================
 // State
 // ================================
-const uiState = uiStateService.useState();
-const uiSlotState = uiSlotService.useState();
-const prefState = preferenceService.useState();
-const paperState = paperService.useState();
-const feedState = feedService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
+const uiSlotState = PLUIAPI.uiSlotService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
+const paperState = PLAPI.paperService.useState();
+const feedState = PLAPI.feedService.useState();
 
 // ================================
 // Data
@@ -45,7 +45,7 @@ let disposeCallbacks: (() => void)[] = [];
 
 //Prevent space bar from scrolling page
 disposable(
-  shortcutService.register(
+  PLUIAPI.shortcutService.register(
     "Space",
     (e: ShortcutEvent) => {
       if (!e.isInput) {
@@ -54,121 +54,121 @@ disposable(
     },
     false,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
-const registerShortcutFromPreference = () => {
+const registerShortcutFromPreference = async () => {
   disposeCallbacks.push(
-    shortcutService.register(
-      preferenceService.get("shortcutOpen") as string,
+    PLUIAPI.shortcutService.register(
+      (await PLMainAPI.preferenceService.get("shortcutOpen")) as string,
       () => {
         PLMainAPI.menuService.click("File-enter");
       },
       true,
       true,
-      shortcutService.viewScope.MAIN
+      PLUIAPI.shortcutService.viewScope.MAIN
     )
   );
 
   disposeCallbacks.push(
-    shortcutService.register(
-      preferenceService.get("shortcutDelete") as string,
+    PLUIAPI.shortcutService.register(
+      (await PLMainAPI.preferenceService.get("shortcutDelete")) as string,
       () => {
         PLMainAPI.menuService.click("File-delete");
       },
       true,
       true,
-      shortcutService.viewScope.MAIN
+      PLUIAPI.shortcutService.viewScope.MAIN
     )
   );
 
   disposeCallbacks.push(
-    shortcutService.register(
-      preferenceService.get("shortcutCopy") as string,
+    PLUIAPI.shortcutService.register(
+      (await PLMainAPI.preferenceService.get("shortcutCopy")) as string,
       () => {
         PLMainAPI.menuService.click("File-copyBibTex");
       },
       true,
       true,
-      shortcutService.viewScope.MAIN
+      PLUIAPI.shortcutService.viewScope.MAIN
     )
   );
 
   disposeCallbacks.push(
-    shortcutService.register(
-      preferenceService.get("shortcutCopyKey") as string,
+    PLUIAPI.shortcutService.register(
+      (await PLMainAPI.preferenceService.get("shortcutCopyKey")) as string,
       () => {
         PLMainAPI.menuService.click("File-copyBibTexKey");
       },
       true,
       true,
-      shortcutService.viewScope.MAIN
+      PLUIAPI.shortcutService.viewScope.MAIN
     )
   );
 
   disposeCallbacks.push(
-    shortcutService.register(
-      preferenceService.get("shortcutScrape") as string,
+    PLUIAPI.shortcutService.register(
+      (await PLMainAPI.preferenceService.get("shortcutScrape")) as string,
       () => {
         PLMainAPI.menuService.click("Edit-rescrape");
       },
       true,
       true,
-      shortcutService.viewScope.MAIN
+      PLUIAPI.shortcutService.viewScope.MAIN
     )
   );
 
   disposeCallbacks.push(
-    shortcutService.register(
-      preferenceService.get("shortcutEdit") as string,
+    PLUIAPI.shortcutService.register(
+      (await PLMainAPI.preferenceService.get("shortcutEdit")) as string,
       () => {
         PLMainAPI.menuService.click("Edit-edit");
       },
       true,
       true,
-      shortcutService.viewScope.MAIN
+      PLUIAPI.shortcutService.viewScope.MAIN
     )
   );
 
   disposeCallbacks.push(
-    shortcutService.register(
-      preferenceService.get("shortcutFlag") as string,
+    PLUIAPI.shortcutService.register(
+      (await PLMainAPI.preferenceService.get("shortcutFlag")) as string,
       () => {
         PLMainAPI.menuService.click("Edit-flag");
       },
       true,
       true,
-      shortcutService.viewScope.MAIN
+      PLUIAPI.shortcutService.viewScope.MAIN
     )
   );
 
   disposeCallbacks.push(
-    shortcutService.register(
-      preferenceService.get("shortcutPreview") as string,
+    PLUIAPI.shortcutService.register(
+      (await PLMainAPI.preferenceService.get("shortcutPreview")) as string,
       () => {
         PLMainAPI.menuService.click("View-preview");
       },
       true,
       true,
-      shortcutService.viewScope.MAIN
+      PLUIAPI.shortcutService.viewScope.MAIN
     )
   );
 
   disposeCallbacks.push(
-    shortcutService.register(
-      preferenceService.get("shortcutImportFrom") as string,
+    PLUIAPI.shortcutService.register(
+      (await PLMainAPI.preferenceService.get("shortcutImportFrom")) as string,
       () => {
         PLMainAPI.menuService.click("File-importFrom");
       },
       true,
       true,
-      shortcutService.viewScope.MAIN
+      PLUIAPI.shortcutService.viewScope.MAIN
     )
   );
 };
 
-preferenceService.on(
+PLMainAPI.preferenceService.on(
   [
     "shortcutOpen",
     "shortcutDelete",
@@ -203,19 +203,19 @@ const unregisterShortcutFromPreference = () => {
 // ================================
 const onSidebarResized = (event: any) => {
   const width = event[0].size ? event[0].size : 20;
-  preferenceService.set({ sidebarWidth: width });
+  PLMainAPI.preferenceService.set({ sidebarWidth: width });
 };
 
 const openSelectedEntities = () => {
   if (uiState.contentType === "library") {
     uiState.selectedPaperEntities.forEach(async (paperEntity) => {
-      const fileURL = await fileService.access(paperEntity.mainURL, true);
+      const fileURL = await PLAPI.fileService.access(paperEntity.mainURL, true);
 
-      fileService.open(fileURL);
+      PLAPI.fileService.open(fileURL);
     });
   } else {
     uiState.selectedFeedEntities.forEach((entity) => {
-      fileService.open(entity.mainURL);
+      PLAPI.fileService.open(entity.mainURL);
     });
   }
 };
@@ -223,14 +223,14 @@ const openSelectedEntities = () => {
 const showInFinderSelectedEntities = () => {
   if (uiState.contentType === "library") {
     uiState.selectedPaperEntities.forEach((paperEentity) => {
-      fileService.showInFinder(paperEentity.mainURL);
+      PLAPI.fileService.showInFinder(paperEentity.mainURL);
     });
   }
 };
 
 const previewSelectedEntities = () => {
   if (uiState.contentType === "library") {
-    fileService.preview(uiState.selectedPaperEntities[0].mainURL);
+    PLAPI.fileService.preview(uiState.selectedPaperEntities[0].mainURL);
   }
 };
 
@@ -301,7 +301,7 @@ const scrapeSelectedEntities = () => {
         return new PaperEntity(paperEntity);
       }
     );
-    void paperService.scrape(paperEntityDrafts);
+    void PLAPI.paperService.scrape(paperEntityDrafts);
   }
 };
 
@@ -313,7 +313,7 @@ const scrapeSelectedEntitiesFrom = (scraperName: string) => {
         return paperEntityDraft;
       }
     );
-    void paperService.scrape(paperEntityDrafts, [scraperName]);
+    void PLAPI.paperService.scrape(paperEntityDrafts, [scraperName]);
   }
 };
 
@@ -324,10 +324,10 @@ const fuzzyScrapeSelectedEntities = async () => {
         return new PaperEntity(paperEntity);
       }
     );
-    const results = await scrapeService.fuzzyScrape(paperEntityDrafts);
+    const results = await PLAPI.scrapeService.fuzzyScrape(paperEntityDrafts);
 
     const newMetadataCandidates = { ...uiState.metadataCandidates, ...results };
-    uiStateService.setState({
+    PLUIAPI.uiStateService.setState({
       metadataCandidates: newMetadataCandidates,
     });
   }
@@ -354,7 +354,7 @@ const removeSelectedEntitiesFrom = (
         return paperEntityDraft;
       }
     );
-    void paperService.update(paperEntityDrafts, false, true);
+    PLAPI.paperService.update(paperEntityDrafts, false, true);
   }
 };
 
@@ -379,13 +379,13 @@ const flagSelectedEntities = () => {
         return paperEntityDraft;
       }
     );
-    paperService.update(paperEntityDrafts, false, true);
+    PLAPI.paperService.update(paperEntityDrafts, false, true);
   }
 };
 
 const exportSelectedEntities = (format: string) => {
   if (uiState.contentType === "library") {
-    referenceService.export(uiState.selectedPaperEntities, format);
+    PLAPI.referenceService.export(uiState.selectedPaperEntities, format);
   }
 };
 
@@ -395,7 +395,7 @@ const addSelectedFeedEntities = async () => {
     const feedEntityDrafts = uiState.selectedFeedEntities.map((entity) => {
       return new FeedEntity(entity);
     });
-    await feedService.addToLib(feedEntityDrafts);
+    await PLAPI.feedService.addToLib(feedEntityDrafts);
     uiState.feedEntityAddingStatus = 2;
     debounce(() => {
       uiState.feedEntityAddingStatus = 0;
@@ -419,20 +419,20 @@ const readSelectedFeedEntities = (read: boolean | null, clear = false) => {
     if (clear) {
       clearSelected();
     }
-    void feedService.updateEntities(feedEntityDrafts);
+    PLAPI.feedService.updateEntities(feedEntityDrafts);
   }
 };
 
 const switchViewType = (viewType: string) => {
-  preferenceService.set({ mainviewType: viewType });
+  PLMainAPI.preferenceService.set({ mainviewType: viewType });
 };
 
 const switchSortBy = (key: string) => {
-  preferenceService.set({ mainviewSortBy: key });
+  PLMainAPI.preferenceService.set({ mainviewSortBy: key });
 };
 
 const switchSortOrder = (order: "asce" | "desc") => {
-  preferenceService.set({ mainviewSortOrder: order });
+  PLMainAPI.preferenceService.set({ mainviewSortOrder: order });
 };
 
 const importFilesFromPicker = async () => {
@@ -446,7 +446,7 @@ const importFilesFromPicker = async () => {
   pickedFiles.filePaths.forEach((filePath) => {
     filePaths.push(`file://${filePath}`);
   });
-  await paperService.create(filePaths);
+  await PLAPI.paperService.create(filePaths);
 };
 
 const onMenuButtonClicked = (command: string) => {
@@ -527,7 +527,7 @@ const fixScrolling = (index: number) => {
 const onDetailPanelResized = (event: any) => {
   const width = Math.min(event[0].size ? event[0].size : 80, 95);
 
-  preferenceService.set({ detailPanelWidth: width });
+  PLMainAPI.preferenceService.set({ detailPanelWidth: width });
 };
 
 // ========================================================
@@ -669,11 +669,13 @@ disposable(
 );
 
 disposable(
-  shortcutService.updateWorkingViewScope(shortcutService.viewScope.MAIN)
+  PLUIAPI.shortcutService.updateWorkingViewScope(
+    PLUIAPI.shortcutService.viewScope.MAIN
+  )
 );
 
 disposable(
-  shortcutService.register(
+  PLUIAPI.shortcutService.register(
     `${cmdOrCtrl}+A`,
     () => {
       selectAllEntities();
@@ -684,7 +686,7 @@ disposable(
 );
 
 disposable(
-  shortcutService.register(
+  PLUIAPI.shortcutService.register(
     "Command+,",
     () => {
       PLMainAPI.menuService.click("preference");
@@ -695,19 +697,19 @@ disposable(
 );
 
 disposable(
-  shortcutService.register(
+  PLUIAPI.shortcutService.register(
     "Command+W",
     () => {
       PLMainAPI.windowProcessManagementService.hide(Process.renderer, true);
     },
     true,
     true,
-    shortcutService.viewScope.GLOBAL
+    PLUIAPI.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  shortcutService.register(
+  PLUIAPI.shortcutService.register(
     "Down",
     () => {
       PLMainAPI.menuService.click("View-next");
@@ -718,7 +720,7 @@ disposable(
 );
 
 disposable(
-  shortcutService.register(
+  PLUIAPI.shortcutService.register(
     "Up",
     () => {
       PLMainAPI.menuService.click("View-previous");
@@ -775,30 +777,32 @@ disposable(
 );
 
 disposable(PLMainAPI.menuService.onClick("View-previous", onArrowUpPressed));
-disposable(shortcutService.register("ArrowUp", onArrowUpPressed, true));
+disposable(PLUIAPI.shortcutService.register("ArrowUp", onArrowUpPressed, true));
 
 disposable(PLMainAPI.menuService.onClick("View-next", onArrowDownPressed));
-disposable(shortcutService.register("ArrowDown", onArrowDownPressed, true));
+disposable(
+  PLUIAPI.shortcutService.register("ArrowDown", onArrowDownPressed, true)
+);
 
 // =======================================
 // Register State Changes
 // =======================================
 disposable(
-  uiStateService.onChanged(
+  PLUIAPI.uiStateService.onChanged(
     ["selectedIndex", "entitiesReloaded"],
     reloadSelectedEntities
   )
 );
 
 disposable(
-  preferenceService.onChanged(
+  PLMainAPI.preferenceService.onChanged(
     ["mainviewSortBy", "mainviewSortOrder"],
     clearSelected
   )
 );
 
 disposable(
-  uiStateService.onChanged(
+  PLUIAPI.uiStateService.onChanged(
     [
       "contentType",
       "selectedFeed",

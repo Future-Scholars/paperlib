@@ -4,10 +4,11 @@ import path from "path";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { INetworkTool, NetworkTool } from "@/base/network";
 import { isLocalPath } from "@/base/url";
-import { PluginManager } from "@/extension/manager/manager";
-import { IPluginInfo } from "@/extension/manager/plugin-info";
+
+import { PluginManager } from "../manager/manager";
+import { IPluginInfo } from "../manager/plugin-info";
+import { INetworkTool, NetworkTool } from "../base/network";
 
 import {
   ExtensionPreferenceService,

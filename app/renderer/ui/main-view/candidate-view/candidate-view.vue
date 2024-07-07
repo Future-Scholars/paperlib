@@ -17,7 +17,7 @@ const props = defineProps({
 // ================================
 // State
 // ================================
-const uiState = uiStateService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 const selectIdx = ref<number>(0);
 
 // ================================
@@ -25,7 +25,7 @@ const selectIdx = ref<number>(0);
 // ================================
 const onConfirmClicked = async () => {
   const paperEntityDraft = new PaperEntity(props.candidates[selectIdx.value]);
-  const currentEntityDraft = (await paperService.loadByIds([props.id]))[0] as PaperEntity;
+  const currentEntityDraft = (await PLAPI.paperService.loadByIds([props.id]))[0] as PaperEntity;
 
   if (currentEntityDraft) {
     paperEntityDraft.id = currentEntityDraft.id;
@@ -40,7 +40,7 @@ const onConfirmClicked = async () => {
     paperEntityDraft.supURLs = currentEntityDraft.supURLs;
     paperEntityDraft.note = currentEntityDraft.note;
 
-    paperService.update([paperEntityDraft], false, true);
+    PLAPI.paperService.update([paperEntityDraft], false, true);
   }
   uiState.showingCandidatesId = "";
   delete uiState.metadataCandidates[props.id]

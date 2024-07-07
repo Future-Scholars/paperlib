@@ -4,10 +4,6 @@ import { Ref, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 
-// const processingState = uiStateService.processingState.useState();
-
-// const showingInfo = ref("");
-
 const historyMsgs = ref([]) as Ref<
   Array<{
     id: string;
@@ -42,12 +38,6 @@ const pushMsgToHistory = (
     progressId: logMessage.progressId || "",
     show: true,
   };
-
-  // if (level === "info") {
-  //   showingInfo.value =
-  //     (logMessage.id === "default" ? "" : `[${logMessage.id}] `) +
-  //     `${logMessage.msg}`;
-  // }
 
   if (level === "progress") {
     if (newMsg.value > 99) {
@@ -84,7 +74,7 @@ const pushMsgToHistory = (
 };
 
 disposable(
-  logService.on("infoLogMessage", (payload) => {
+  PLAPI.logService.on("infoLogMessage", (payload) => {
     pushMsgToHistory("info", payload.value);
     debounce(() => {
       historyMsgs.value = historyMsgs.value.map((msg) => {
@@ -96,7 +86,7 @@ disposable(
 );
 
 disposable(
-  logService.on("warnLogMessage", (payload) => {
+  PLAPI.logService.on("warnLogMessage", (payload) => {
     pushMsgToHistory("warn", payload.value);
     debounce(() => {
       historyMsgs.value = historyMsgs.value.map((msg) => {
@@ -108,7 +98,7 @@ disposable(
 );
 
 disposable(
-  logService.on("errorLogMessage", (payload) => {
+  PLAPI.logService.on("errorLogMessage", (payload) => {
     pushMsgToHistory("error", payload.value);
     debounce(() => {
       historyMsgs.value = historyMsgs.value.map((msg) => {
@@ -120,7 +110,7 @@ disposable(
 );
 
 disposable(
-  logService.on("progressLogMessage", (payload) => {
+  PLAPI.logService.on("progressLogMessage", (payload) => {
     pushMsgToHistory("progress", payload.value);
   })
 );

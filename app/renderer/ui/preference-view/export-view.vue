@@ -2,7 +2,7 @@
 import { BIconArrowRight, BIconPlus } from "bootstrap-icons-vue";
 import { Ref, onMounted, ref } from "vue";
 
-import { IPreferenceStore } from "@/common/services/preference-service";
+import { IPreferenceStore } from "@/main/services/preference-service";
 
 import Replacement from "./components/replacement.vue";
 import Toggle from "./components/toggle.vue";

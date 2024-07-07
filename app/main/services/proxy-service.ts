@@ -1,5 +1,6 @@
-import { createDecorator } from "@/base/injection/injection";
 import { session } from "electron";
+
+import { createDecorator } from "@/base/injection/injection";
 
 export const IProxyService = createDecorator("proxyService");
 

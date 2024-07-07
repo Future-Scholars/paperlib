@@ -18,6 +18,8 @@ export type Proxied<T> = {
         | "hookModify"
         | "registerExternel"
       ? (...args: A) => () => void
+      : K extends "useState"
+      ? (...args: A) => R
       : (...args: { [K in keyof A]: A[K] }) => Promise<Awaited<R>>
-    : never;
+    : any;
 };

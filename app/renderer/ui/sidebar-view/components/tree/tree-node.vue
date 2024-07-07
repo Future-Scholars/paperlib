@@ -12,7 +12,7 @@ import {
 import { Ref, inject, ref } from "vue";
 import Counter from "../counter.vue";
 import TreeNode from "./tree-node.vue";
-import { formatMouseModifiers } from "@/common/utils";
+import { formatMouseModifiers } from "@/base/shortcut";
 
 const props = defineProps({
   parent_id: {

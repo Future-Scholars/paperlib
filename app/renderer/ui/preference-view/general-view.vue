@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { IPreferenceStore } from "@/common/services/preference-service";
+import { IPreferenceStore } from "@/main/services/preference-service";
 import { APPTheme } from "@/main/services/window-process-management-service";
 
 import Options from "./components/options.vue";

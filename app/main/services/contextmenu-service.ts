@@ -1,11 +1,11 @@
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { loadLocales } from "@/locales/load";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/common/services/preference-service";
-import { loadLocales } from "@/locales/load";
+} from "@/main/services/preference-service";
 import {
   CategorizerMenuItem,
   CategorizerType,

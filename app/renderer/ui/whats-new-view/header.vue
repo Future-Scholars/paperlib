@@ -11,7 +11,7 @@ defineProps({
 });
 
 const openURL = (url: string) => {
-  fileService.open(url);
+  PLAPI.fileService.open(url);
 };
 </script>
 

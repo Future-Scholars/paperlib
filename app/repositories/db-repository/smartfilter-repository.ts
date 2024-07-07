@@ -5,13 +5,16 @@ import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
-import { ISmartFilterServiceState } from "@/renderer/services/smartfilter-service";
 
 export const IPaperSmartFilterRepository = createDecorator(
   "paperSmartFilterRepository"
 );
 
-export class PaperSmartFilterRepository extends Eventable<ISmartFilterServiceState> {
+interface ISmartFilterRepositoryState {
+  updated: number;
+}
+
+export class PaperSmartFilterRepository extends Eventable<ISmartFilterRepositoryState> {
   constructor() {
     super("paperSmartFilterRepository", {
       updated: 0,

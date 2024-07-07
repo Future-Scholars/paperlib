@@ -1,8 +1,8 @@
 import { MessageBoxOptions, dialog } from "electron";
+import updater from "electron-updater";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { autoUpdater } from "electron-updater";
 
 export interface IUpgradeServiceState {
   checking: number;
@@ -28,11 +28,11 @@ export class UpgradeService extends Eventable<IUpgradeServiceState> {
       downloading: 0,
     });
 
-    autoUpdater.on("checking-for-update", () => {
+    updater.autoUpdater.on("checking-for-update", () => {
       this.fire("checking");
     });
 
-    autoUpdater.on("update-available", async () => {
+    updater.autoUpdater.on("update-available", async () => {
       this.fire("available");
       const dialogOpts = {
         type: "info",
@@ -44,54 +44,54 @@ export class UpgradeService extends Eventable<IUpgradeServiceState> {
       await dialog.showMessageBox(dialogOpts);
     });
 
-    autoUpdater.on("update-not-available", () => {
+    updater.autoUpdater.on("update-not-available", () => {
       this.fire("notAvailable");
     });
 
-    autoUpdater.on("error", (error) => {
+    updater.autoUpdater.on("error", (error) => {
       this.fire({ error: error });
     });
 
-    autoUpdater.on("update-downloaded", async (info) => {
+    updater.autoUpdater.on("update-downloaded", async (info) => {
       this.fire({ downloading: 100 });
       this.fire("downloaded");
       if (!info.releaseNotes) {
         info.releaseNotes = "";
       }
 
-      if (!info.version) {
-        info.version = "";
-      }
-
       const dialogOpts = {
         type: "info",
         buttons: ["Update Now", "Cancel"],
-        title: `A new version ${info.version} of Paperlib is automatically downloaded.`,
-        message: `A new version ${info.version} of Paperlib is automatically downloaded.`,
+        title: `A new version ${
+          info.version || ""
+        } of Paperlib is automatically downloaded.`,
+        message: `A new version ${
+          info.version || ""
+        } of Paperlib is automatically downloaded.`,
         detail: `${info.releaseNotes}`,
       } as MessageBoxOptions;
 
       const response = await dialog.showMessageBox(dialogOpts);
       if (response.response === 0) {
-        autoUpdater.quitAndInstall();
+        updater.autoUpdater.quitAndInstall();
       }
     });
 
-    autoUpdater.on("download-progress", (progressObj) => {
+    updater.autoUpdater.on("download-progress", (progressObj) => {
       if (progressObj.percent - this._downloadingProgress > 5) {
         this.fire({ downloading: progressObj.percent });
       }
       this._downloadingProgress = progressObj.percent;
     });
 
-    autoUpdater.checkForUpdates();
+    updater.autoUpdater.checkForUpdates();
   }
 
   public checkForUpdates(): void {
-    autoUpdater.checkForUpdates();
+    updater.autoUpdater.checkForUpdates();
   }
 
   public currentVersion(): string {
-    return autoUpdater.currentVersion.version;
+    return updater.autoUpdater.currentVersion.version;
   }
 }

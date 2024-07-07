@@ -25,7 +25,7 @@ const fileExistingStatus = ref(1);
 
 const renderFromFile = async () => {
   isRendering.value = true;
-  const fileURL = await fileService.access(props.entity.mainURL, false);
+  const fileURL = await PLAPI.fileService.access(props.entity.mainURL, false);
   if (fileURL.length === 0) {
     isRendering.value = false;
     fileExistingStatus.value = 1;
@@ -37,18 +37,65 @@ const renderFromFile = async () => {
   } else {
     fileExistingStatus.value = 0;
   }
-  const thumbnailCache = await renderService.renderPDF(
-    fileURL,
-    "preview-canvas"
-  );
-  isRendering.value = false;
+  const thumbnailBuffer = await PLAPI.renderService.renderPDF(fileURL);
 
-  if (thumbnailCache.blob) {
-    cacheService.updateThumbnailCache(
-      props.entity,
-      thumbnailCache as ThumbnailCache
-    );
+  if (thumbnailBuffer) {
+    const canvas = document.getElementById(
+      "preview-canvas"
+    ) as HTMLCanvasElement;
+    PLAPI.cacheService.updateThumbnailCache(props.entity, {
+      blob: thumbnailBuffer.buffer,
+      width: canvas.width,
+      height: canvas.height,
+    });
+
+    console.log(thumbnailBuffer.buffer);
+
+    await renderCanvas(thumbnailBuffer, canvas.width, canvas.height);
   }
+
+  isRendering.value = false;
+};
+
+const renderCanvas = async (
+  buffer: ArrayBuffer,
+  width: number,
+  height: number
+) => {
+  const revertColor =
+    ((await PLMainAPI.windowProcessManagementService.isDarkMode()) &&
+      (await PLMainAPI.preferenceService.get("invertColor"))) as boolean;
+
+  return new Promise<void>((resolve) => {
+    var canvas = document.getElementById("preview-canvas") as HTMLCanvasElement;
+    canvas.width = width;
+    canvas.height = height;
+    var context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    const img = new Image();
+    img.onload = async () => {
+      if (revertColor) {
+        context.filter = "invert(0.9)";
+        context.drawImage(img, 0, 0, width, height);
+      } else {
+        context.drawImage(img, 0, 0, width, height);
+      }
+      resolve();
+    };
+
+    if (buffer instanceof ArrayBuffer) {
+      const url = URL.createObjectURL(
+        new Blob([new Uint8Array(buffer)], { type: "image/png" })
+      );
+      img.src = url;
+    } else {
+      const url = URL.createObjectURL(
+        new Blob([buffer], { type: "image/png" })
+      );
+      img.src = url;
+    }
+  });
 };
 
 const render = async () => {
@@ -61,19 +108,22 @@ const render = async () => {
     return;
   }
 
-  const fileURL = await fileService.access(props.entity.mainURL, false);
+  const fileURL = await PLAPI.fileService.access(props.entity.mainURL, false);
   if (
     props.entity.mainURL &&
     fileURL &&
     !fileURL.startsWith("downloadRequired://")
   ) {
     fileExistingStatus.value = 0;
-    const cachedThumbnail = await cacheService.loadThumbnail(props.entity);
+    const cachedThumbnail = await PLAPI.cacheService.loadThumbnail(
+      props.entity
+    );
     if (cachedThumbnail?.blob && cachedThumbnail?.blob.byteLength > 0) {
       try {
-        renderService.renderPDFCache(
-          cachedThumbnail as ThumbnailCache,
-          "preview-canvas"
+        await renderCanvas(
+          cachedThumbnail.blob,
+          cachedThumbnail.width,
+          cachedThumbnail.height
         );
       } catch (e) {
         console.error(e);
@@ -97,8 +147,8 @@ const onClick = async (e: MouseEvent) => {
   e.preventDefault();
   e.stopPropagation();
 
-  const fileURL = await fileService.access(props.entity.mainURL, false);
-  fileService.open(fileURL);
+  const fileURL = await PLAPI.fileService.access(props.entity.mainURL, false);
+  PLAPI.fileService.open(fileURL);
 };
 
 const showFilePicker = async () => {
@@ -115,7 +165,7 @@ const locatePDF = async () => {
 
 const onWebdavDownloadClicked = async () => {
   isRendering.value = true;
-  const fileURL = await fileService.access(props.entity.mainURL, true);
+  const fileURL = await PLAPI.fileService.access(props.entity.mainURL, true);
   isRendering.value = false;
   if (fileURL === "") {
     return;
@@ -141,7 +191,7 @@ disposable(
 );
 
 disposable(
-  uiStateService.on("renderRequired", () => {
+  PLUIAPI.uiStateService.on("renderRequired", () => {
     render();
   })
 );

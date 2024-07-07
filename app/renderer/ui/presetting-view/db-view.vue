@@ -1,12 +1,12 @@
 <script setup lang="ts">
-const prefState = preferenceService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
 const onPickerClicked = async () => {
   const pickedFolder = (await PLMainAPI.fileSystemService.showFolderPicker())
     .filePaths[0];
   if (pickedFolder) {
-    preferenceService.set({ appLibFolder: pickedFolder });
-    databaseService.initialize();
+    PLMainAPI.preferenceService.set({ appLibFolder: pickedFolder });
+    PLAPI.databaseService.initialize();
   }
 };
 </script>

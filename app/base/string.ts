@@ -75,6 +75,8 @@ export const getCategorizerString = (
         .sort((a, b) => (a.color || "").localeCompare(b.color || ""))
         .map((c) => c.name)
         .join(" / ");
+    } else {
+      return categorizer.map((c) => c.name).join(" / ");
     }
   } else {
     if (sortBy === "name") {
@@ -92,6 +94,8 @@ export const getCategorizerString = (
         .sort((a, b) => (b.color || "").localeCompare(a.color || ""))
         .map((c) => c.name)
         .join(" / ");
+    } else {
+      return categorizer.map((c) => c.name).join(" / ");
     }
   }
 };

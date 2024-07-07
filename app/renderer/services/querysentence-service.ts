@@ -2,10 +2,6 @@ import { DirectedGraph } from "graphology";
 
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
-import {
-  IPreferenceService,
-  PreferenceService,
-} from "@/common/services/preference-service";
 import { CategorizerType } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperSmartFilterType } from "@/models/smart-filter";
@@ -18,9 +14,7 @@ import {
 export const IQuerySentenceService = createDecorator("querySentenceService");
 
 export class QuerySentenceService {
-  constructor(
-    @IPreferenceService private readonly _preferenceService: PreferenceService
-  ) {}
+  constructor() {}
 
   /**
    * Create a DAG from a list of Categorizers or PaperSmartFilters.

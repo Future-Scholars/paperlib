@@ -68,8 +68,14 @@ const props = defineProps({
   },
 });
 
+
+const renderedTitle = ref<string>("");
 const renderTitle = (title: string) => {
-  return renderService.renderMath(title);
+  PLAPI.renderService.renderMath(title).then((html) => {
+    renderedTitle.value = html;
+  });
+
+  return title;
 };
 
 const emits = defineEmits(["event:click-candidate-btn"]);
@@ -96,7 +102,7 @@ scp {
         <WordHighlighter
           :query="queryHighlight"
           highlight-class="bg-yellow-300 rounded-sm px-0.5"
-          :html-to-highlight="renderTitle(item.title)"
+          :html-to-highlight="renderedTitle || renderTitle(item.title)"
           :split-by-space="true"
         >
         </WordHighlighter>

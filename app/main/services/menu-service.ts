@@ -2,13 +2,13 @@ import { Menu, app, globalShortcut } from "electron";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
+import { loadLocales } from "@/locales/load";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/common/services/preference-service";
-import { loadLocales } from "@/locales/load";
+} from "@/main/services/preference-service";
 
-import { Process } from "@/base/process-id";
 import { IUpgradeService, UpgradeService } from "./upgrade-service";
 
 const isMac = process.platform === "darwin";
@@ -32,7 +32,6 @@ export const IMenuService = createDecorator("menuService");
 
 export class MenuService extends Eventable<IMenuServiceState> {
   private readonly _locales: { t: (key: string) => string };
-  private _isDisabled: boolean = false;
 
   constructor(
     @IPreferenceService private readonly _preferenceService: PreferenceService,
@@ -69,33 +68,33 @@ export class MenuService extends Eventable<IMenuServiceState> {
     const template = [
       ...(isMac
         ? [
-          {
-            label: app.name,
-            submenu: [
-              { role: "about" },
-              {
-                label: this._locales.t("menu.preference"),
-                click: () => {
-                  this.fire("preference");
+            {
+              label: app.name,
+              submenu: [
+                { role: "about" },
+                {
+                  label: this._locales.t("menu.preference"),
+                  click: () => {
+                    this.fire("preference");
+                  },
                 },
-              },
-              {
-                label: this._locales.t("menu.checkforupdate"),
-                click: () => {
-                  this._upgradeService.checkForUpdates();
+                {
+                  label: this._locales.t("menu.checkforupdate"),
+                  click: () => {
+                    this._upgradeService.checkForUpdates();
+                  },
                 },
-              },
-              { type: "separator" },
-              { role: "services" },
-              { type: "separator" },
-              { role: "hide" },
-              { role: "hideOthers" },
-              { role: "unhide" },
-              { type: "separator" },
-              { role: "quit" },
-            ],
-          },
-        ]
+                { type: "separator" },
+                { role: "services" },
+                { type: "separator" },
+                { role: "hide" },
+                { role: "hideOthers" },
+                { role: "unhide" },
+                { type: "separator" },
+                { role: "quit" },
+              ],
+            },
+          ]
         : []),
       {
         label: this._locales.t("menu.file"),
@@ -197,7 +196,6 @@ export class MenuService extends Eventable<IMenuServiceState> {
           { role: "zoomOut" },
           { type: "separator" },
           { role: "togglefullscreen" },
-          { role: "toggleDevTools" },
         ],
       },
       {
@@ -207,11 +205,11 @@ export class MenuService extends Eventable<IMenuServiceState> {
           { role: "zoom" },
           ...(isMac
             ? [
-              { type: "separator" },
-              { role: "front" },
-              { type: "separator" },
-              { role: "window" },
-            ]
+                { type: "separator" },
+                { role: "front" },
+                { type: "separator" },
+                { role: "window" },
+              ]
             : [{ role: "close" }]),
         ],
       },

@@ -22,7 +22,7 @@ const emits = defineEmits([
   "event:read-timeout-in-unread",
 ]);
 
-const uiState = uiStateService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 
 const onAddClicked = () => {
   if (uiState.feedEntityAddingStatus === 0) {
@@ -60,13 +60,13 @@ const reanderedAbstract = ref("");
 
 const render = async () => {
   if (props.entity.title?.includes("$")) {
-    reanderedTitle.value = renderService.renderMath(props.entity.title);
+    reanderedTitle.value = await PLAPI.renderService.renderMath(props.entity.title);
   } else {
     reanderedTitle.value = props.entity.title || "";
   }
 
   if (props.entity.abstract?.includes("$")) {
-    reanderedAbstract.value = renderService.renderMath(
+    reanderedAbstract.value = await PLAPI.renderService.renderMath(
       props.entity.abstract
     );
   } else {

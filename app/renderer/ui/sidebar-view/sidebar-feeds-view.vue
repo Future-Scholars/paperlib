@@ -33,16 +33,18 @@ const colorClass = (color?: string) => {
       return "text-orange-500";
     case "cyan":
       return "text-cyan-500";
+    default:
+      return "text-blue-500";
   }
 };
 
 // ================================
 // State
 // ================================
-const prefState = preferenceService.useState();
-const uiState = uiStateService.useState();
-const feedState = feedService.useState();
-const processingState = uiStateService.processingState.useState();
+const prefState = PLMainAPI.preferenceService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
+const feedState = PLAPI.feedService.useState();
+const processingState = PLUIAPI.uiStateService.processingState.useState();
 
 // ================================
 // Data
@@ -72,7 +74,7 @@ disposable(
     "sidebarContextMenuDeleteClicked",
     (newValue: { value: { data: string; type: string } }) => {
       if (uiState.contentType === "feed") {
-        feedService.delete([newValue.value.data]);
+        PLAPI.feedService.delete([newValue.value.data]);
         uiState.selectedFeed = "feed-all";
       }
     }
@@ -84,7 +86,7 @@ disposable(
     "sidebarContextMenuFeedRefreshClicked",
     (newValue: { value: { data: string; type: string } }) => {
       if (uiState.contentType === "feed") {
-        feedService.refresh([newValue.value.data]);
+        PLAPI.feedService.refresh([newValue.value.data]);
       }
     }
   )
@@ -95,7 +97,7 @@ disposable(
     "sidebarContextMenuColorClicked",
     (newValue: { value: { data: string; color: string } }) => {
       if (uiState.contentType === "feed") {
-        feedService.colorize(newValue.value.color as any, newValue.value.data);
+        PLAPI.feedService.colorize(newValue.value.color as any, newValue.value.data);
       }
     }
   )

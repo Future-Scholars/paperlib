@@ -48,7 +48,7 @@ const props = defineProps({
 // ================
 // State
 const lastSelectedSingleIndex = ref<number>(-1);
-const uiState = uiStateService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 
 // =================
 // Event handlers

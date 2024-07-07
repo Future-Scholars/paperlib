@@ -1,11 +1,8 @@
 import { errorcatching } from "@/base/error";
-import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { ILogService, LogService } from "@/common/services/log-service";
-import {
-  IUIStateService,
-  UIStateService,
-} from "@/renderer/services/uistate-service";
+
+import { PiniaEventable } from "./pinia-eventable";
+import { IUIStateService, UIStateService } from "./uistate-service";
 
 export const ICommandService = createDecorator("commandService");
 
@@ -23,12 +20,11 @@ export interface IExternelCommand {
   event?: string;
 }
 
-export class CommandService extends Eventable<{}> {
+export class CommandService extends PiniaEventable<{}> {
   private readonly _registeredCommands: { [id: string]: ICommand } = {};
 
   constructor(
-    @IUIStateService private readonly _uiStateService: UIStateService,
-    @ILogService private readonly _logService: LogService
+    @IUIStateService private readonly _uiStateService: UIStateService
   ) {
     super("commandService", {});
     this._registerInnerCommands();
@@ -98,7 +94,7 @@ export class CommandService extends Eventable<{}> {
       description: "Scrape metadata for all preprint papers in the library.",
       priority: 99996,
       handler: () => {
-        paperService.scrapePreprint();
+        PLAPI.paperService.scrapePreprint();
       },
     });
   }
@@ -117,7 +113,7 @@ export class CommandService extends Eventable<{}> {
   run(id: string, ...args: any[]): void {
     const command = this._registeredCommands[id];
     if (command) {
-      this._logService.info(
+      PLAPI.logService.info(
         `Run command.`,
         `${command.id} with args: ${args}`,
         false,
@@ -142,7 +138,7 @@ export class CommandService extends Eventable<{}> {
    */
   @errorcatching("Failed to register externel command.", true, "CommandService")
   registerExternel(command: IExternelCommand) {
-    this._logService.info(
+    PLAPI.logService.info(
       `Register externel command.`,
       `ID - ${command.id} | Event - ${command.event} | Description - ${command.description}`,
       false,
@@ -150,7 +146,7 @@ export class CommandService extends Eventable<{}> {
     );
 
     if (this._registeredCommands[command.id]) {
-      this._logService.warn(
+      PLAPI.logService.warn(
         "Already registered.",
         `Externel command ID ${command.id}`,
         true

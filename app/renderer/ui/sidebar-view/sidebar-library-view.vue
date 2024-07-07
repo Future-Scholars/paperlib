@@ -24,10 +24,10 @@ import Spinner from "@/renderer/ui/components/spinner.vue";
 // ================================
 // State
 // ================================
-const processingState = uiStateService.processingState.useState();
-const prefState = preferenceService.useState();
-const uiState = uiStateService.useState();
-const paperState = paperService.useState();
+const processingState = PLUIAPI.uiStateService.processingState.useState();
+const prefState = PLMainAPI.preferenceService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
+const paperState = PLAPI.paperService.useState();
 const editingItemId = ref("");
 
 // ================================
@@ -35,7 +35,7 @@ const editingItemId = ref("");
 // ================================
 const tags = inject<Ref<ICategorizerCollection>>("tags");
 const tagsViewTree = computed(() => {
-  return querySentenceService.parseViewTree(
+  return PLUIAPI.querySentenceService.parseViewTree(
     tags?.value || [],
     CategorizerType.PaperTag,
     prefState.sidebarSortBy,
@@ -45,7 +45,7 @@ const tagsViewTree = computed(() => {
 
 const folders = inject<Ref<ICategorizerCollection>>("folders");
 const foldersViewTree = computed(() => {
-  return querySentenceService.parseViewTree(
+  return PLUIAPI.querySentenceService.parseViewTree(
     folders?.value || [],
     CategorizerType.PaperFolder,
     prefState.sidebarSortBy,
@@ -56,7 +56,7 @@ const foldersViewTree = computed(() => {
 
 const smartfilters = inject<Ref<IPaperSmartFilterCollection>>("smartfilters");
 const smartfiltersViewTree = computed(() => {
-  return querySentenceService.parseViewTree(
+  return PLUIAPI.querySentenceService.parseViewTree(
     smartfilters?.value || [],
     PaperSmartFilterType.smartfilter,
     prefState.sidebarSortBy,
@@ -84,16 +84,18 @@ const onSelect = (payload: {
       uiState.selectedQuerySentenceIds.includes(payload._id) &&
       uiState.selectedQuerySentenceIds.length > 1
     ) {
-      uiState.selectedQuerySentenceIds = uiState.selectedQuerySentenceIds.filter(
-        (id) => id !== payload._id
-      );
+      uiState.selectedQuerySentenceIds =
+        uiState.selectedQuerySentenceIds.filter((id) => id !== payload._id);
 
-      uiState.querySentencesSidebar = Array.from(uiState.querySentencesSidebar.filter(
-        (query) => query !== payload.query
-      ));
+      uiState.querySentencesSidebar = Array.from(
+        uiState.querySentencesSidebar.filter((query) => query !== payload.query)
+      );
     } else {
       uiState.selectedQuerySentenceIds.push(payload._id);
-      uiState.querySentencesSidebar = [...uiState.querySentencesSidebar, payload.query];
+      uiState.querySentencesSidebar = [
+        ...uiState.querySentencesSidebar,
+        payload.query,
+      ];
     }
   } else {
     // Single selection
@@ -111,7 +113,7 @@ const onDroped = async (
   type: CategorizerType
 ) => {
   const categorizer = (
-    await categorizerService.loadByIds(type, [dropData.dest._id])
+    await PLAPI.categorizerService.loadByIds(type, [dropData.dest._id])
   )[0];
 
   if (categorizer.name === "Folders") {
@@ -122,11 +124,14 @@ const onDroped = async (
 
     const sourceCategorizer = new (
       type === CategorizerType.PaperTag ? PaperTag : PaperFolder
-    )((await categorizerService.loadByIds(type, [dropData.value]))[0], false);
+    )(
+      (await PLAPI.categorizerService.loadByIds(type, [dropData.value]))[0],
+      false
+    );
     sourceCategorizer.name =
       sourceCategorizer.name.split("/").pop() || "untitled";
 
-    categorizerService.update(type, sourceCategorizer, categorizer);
+    PLAPI.categorizerService.update(type, sourceCategorizer, categorizer);
 
     return;
   }
@@ -140,17 +145,20 @@ const onDroped = async (
     } else {
       dragingIds = uiState.dragingIds;
     }
-    paperService.updateWithCategorizer(dragingIds, categorizer, type);
+    PLAPI.paperService.updateWithCategorizer(dragingIds, categorizer, type);
   } else if (dropData.type === "files" && categorizer) {
-    paperService.createIntoCategorizer(dropData.value, categorizer, type);
+    PLAPI.paperService.createIntoCategorizer(dropData.value, categorizer, type);
   } else if (dropData.type === CategorizerType.PaperFolder && categorizer) {
     const sourceCategorizer = new (
       type === CategorizerType.PaperTag ? PaperTag : PaperFolder
-    )((await categorizerService.loadByIds(type, [dropData.value]))[0], false);
+    )(
+      (await PLAPI.categorizerService.loadByIds(type, [dropData.value]))[0],
+      false
+    );
     sourceCategorizer.name =
       sourceCategorizer.name.split("/").pop() || "untitled";
 
-    categorizerService.update(type, sourceCategorizer, categorizer);
+    PLAPI.categorizerService.update(type, sourceCategorizer, categorizer);
   }
 };
 
@@ -162,13 +170,13 @@ const onUpdate = (
   if (type === PaperSmartFilterType.smartfilter) {
   } else {
     if (patch.parent_id) {
-      categorizerService.update(
+      PLAPI.categorizerService.update(
         type,
         new Categorizer(patch, false),
         new Categorizer({ _id: patch.parent_id }, false)
       );
     } else {
-      categorizerService.update(type, new Categorizer(patch, false));
+      PLAPI.categorizerService.update(type, new Categorizer(patch, false));
     }
   }
 };
@@ -181,13 +189,13 @@ const onUpdateSmartFilter = async (
   if (type === PaperSmartFilterType.smartfilter) {
     let updatedSmartfilter: IPaperSmartFilterObject;
     if (patch.parent_id) {
-      updatedSmartfilter = await smartFilterService.update(
+      updatedSmartfilter = await PLAPI.smartFilterService.update(
         type,
         new PaperSmartFilter(patch, false),
         new PaperSmartFilter({ _id: patch.parent_id }, false)
       );
     } else {
-      updatedSmartfilter = await smartFilterService.update(
+      updatedSmartfilter = await PLAPI.smartFilterService.update(
         type,
         new PaperSmartFilter(patch, false)
       );
@@ -214,9 +222,9 @@ disposable(
     (newValue: { value: { data: string; type: PaperSmartFilterType } }) => {
       if (uiState.contentType === "library") {
         if (newValue.value.type === PaperSmartFilter.schema.name) {
-          smartFilterService.delete(newValue.value.type, [newValue.value.data]);
+          PLAPI.smartFilterService.delete(newValue.value.type, [newValue.value.data]);
         } else {
-          categorizerService.delete(newValue.value.type as any, [
+          PLAPI.categorizerService.delete(newValue.value.type as any, [
             newValue.value.data,
           ]);
         }
@@ -238,13 +246,13 @@ disposable(
     }) => {
       if (uiState.contentType === "library") {
         if (newValue.value.type === PaperSmartFilterType.smartfilter) {
-          smartFilterService.colorize(
+          PLAPI.smartFilterService.colorize(
             newValue.value.data,
             newValue.value.color as any,
             newValue.value.type
           );
         } else {
-          categorizerService.colorize(
+          PLAPI.categorizerService.colorize(
             newValue.value.data,
             newValue.value.color as any,
             newValue.value.type
@@ -261,7 +269,7 @@ disposable(
     async (newValue: { value: { data: string; type: string } }) => {
       if (newValue.value.type === PaperSmartFilterType.smartfilter) {
         const smartfilter = (
-          await smartFilterService.loadByIds([newValue.value.data])
+          await PLAPI.smartFilterService.loadByIds([newValue.value.data])
         )[0];
         if (smartfilter) {
           uiState.editingPaperSmartFilter = smartfilter;

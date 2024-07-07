@@ -19,7 +19,7 @@ const getDisplayName = (sup: string) => {
 
 const onClick = async (url: string) => {
   const realURL = url.split(":::").pop() ?? url;
-  fileService.open(await fileService.access(realURL, true));
+  PLAPI.fileService.open(await PLAPI.fileService.access(realURL, true));
 };
 
 const onRightClicked = (event: MouseEvent, url: string) => {

@@ -2,7 +2,7 @@
 import { ref, watch } from "vue";
 import { BIconX } from "bootstrap-icons-vue";
 
-import { formatShortcut } from "@/common/utils.ts";
+import { formatShortcut } from "@/base/shortcut";
 
 const props = defineProps({
   title: {

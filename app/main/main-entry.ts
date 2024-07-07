@@ -1,29 +1,19 @@
 import { app } from "electron";
-import Store from "electron-store";
-import { release } from "os";
 import path from "path";
 
-import { InjectionContainer } from "@/base/injection/injection.ts";
-import { PreferenceService } from "@/common/services/preference-service.ts";
-import { IInjectable } from "@/main/services/injectable.ts";
+import { InjectionContainer } from "@/base/injection/injection";
+import { Process } from "@/base/process-id";
+import { MainProcessRPCService } from "@/base/rpc/rpc-service-main";
+import { IInjectable } from "@/main/services/injectable";
+import { PreferenceService } from "@/main/services/preference-service";
 
-import { Process } from "@/base/process-id.ts";
-import { ContextMenuService } from "./services/contextmenu-service.ts";
-import { ExtensionProcessManagementService } from "./services/extension-process-management-service.ts";
-import { FileSystemService } from "./services/filesystem-service.ts";
-import { MainRPCService } from "./services/main-rpc-service.ts";
-import { MenuService } from "./services/menu-service.ts";
-import { ProxyService } from "./services/proxy-service.ts";
-import { UpgradeService } from "./services/upgrade-service.ts";
-import { WindowProcessManagementService } from "./services/window-process-management-service.ts";
-
-Store.initRenderer();
-
-// Disable GPU Acceleration for Windows 7
-if (release().startsWith("6.1")) app.disableHardwareAcceleration();
-
-// Set application name for Windows 10+ notifications
-if (process.platform === "win32") app.setAppUserModelId(app.getName());
+import { ContextMenuService } from "./services/contextmenu-service";
+import { FileSystemService } from "./services/filesystem-service";
+import { MenuService } from "./services/menu-service";
+import { ProxyService } from "./services/proxy-service";
+import { UpgradeService } from "./services/upgrade-service";
+import { UtilityProcessManagementService } from "./services/utility-process-management-service";
+import { WindowProcessManagementService } from "./services/window-process-management-service";
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -43,7 +33,7 @@ if (process.defaultApp) {
 async function initialize() {
   // ============================================================
   // 1. Initilize the RPC service for current process
-  const mainRPCService = new MainRPCService();
+  const mainRPCService = new MainProcessRPCService(Process.main, "PLMainAPI");
 
   // ============================================================
   // 2. Create the instances for all services, tools, etc. of the current process.
@@ -56,44 +46,41 @@ async function initialize() {
     menuService: MenuService,
     upgradeService: UpgradeService,
     proxyService: ProxyService,
-    extensionProcessManagementService: ExtensionProcessManagementService,
+    utilityProcessManagementService: UtilityProcessManagementService,
   });
   // 3.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
+    if (!globalThis["PLMainAPI"]) {
+      globalThis["PLMainAPI"] = {} as any;
+    }
     globalThis[key] = instance;
+    globalThis["PLMainAPI"][key] = instance;
   }
 
   // ============================================================
   // 4. Set actionors for RPC service with all initialized services.
   //    Expose the APIs of the current process to other processes
-  mainRPCService.setActionor({
-    windowProcessManagementService,
-    fileSystemService,
-    contextMenuService,
-    menuService,
-    upgradeService,
-    proxyService,
-  });
+  mainRPCService.setActionor(instances);
 
   // ============================================================
   // 5. Setup other things for the main process.
   app.on("window-all-closed", () => {
-    extensionProcessManagementService.close();
+    PLMainAPI.utilityProcessManagementService.close();
 
     if (process.platform !== "darwin") app.quit();
   });
 
   app.on("second-instance", () => {
-    if (windowProcessManagementService.browserWindows.has(Process.renderer)) {
+    if (PLMainAPI.windowProcessManagementService.browserWindows.has(Process.renderer)) {
       if (
-        windowProcessManagementService.browserWindows
+        PLMainAPI.windowProcessManagementService.browserWindows
           .get(Process.renderer)
           .isMinimized()
       ) {
-        windowProcessManagementService.browserWindows
+        PLMainAPI.windowProcessManagementService.browserWindows
           .get(Process.renderer)
           .restore();
-        windowProcessManagementService.browserWindows
+          PLMainAPI.windowProcessManagementService.browserWindows
           .get(Process.renderer)
           .focus();
       }
@@ -101,51 +88,78 @@ async function initialize() {
   });
 
   app.on("activate", () => {
-    if (windowProcessManagementService.browserWindows.has(Process.renderer)) {
-      windowProcessManagementService.browserWindows
+    if (PLMainAPI.windowProcessManagementService.browserWindows.has(Process.renderer)) {
+      PLMainAPI.windowProcessManagementService.browserWindows
         .get(Process.renderer)
         .show();
-      windowProcessManagementService.browserWindows
+        PLMainAPI.windowProcessManagementService.browserWindows
         .get(Process.renderer)
         .focus();
     } else {
-      windowProcessManagementService.createMainRenderer();
+      PLMainAPI.windowProcessManagementService.createMainRenderer();
     }
   });
 
   // ============================================================
   // 6. Start the port exchange process.
-  mainRPCService.initCommunication(
-    windowProcessManagementService,
-    extensionProcessManagementService
-  );
+  PLMainAPI.windowProcessManagementService.on("requestPort", (v) => {
+    mainRPCService.initCommunication(
+      v.value,
+      PLMainAPI.windowProcessManagementService.browserWindows,
+      PLMainAPI.utilityProcessManagementService.utlityProcesses
+    );
+  });
+
+  PLMainAPI.utilityProcessManagementService.on("requestPort", (v) => {
+    mainRPCService.initCommunication(
+      v.value,
+      PLMainAPI.windowProcessManagementService.browserWindows,
+      PLMainAPI.utilityProcessManagementService.utlityProcesses
+    );
+  });
 
   // ============================================================
-  // 7. Once the main renderer process is ready, create the extension process and the quickpaste renderer process.
-  windowProcessManagementService.on(
-    "serviceReady",
-    (newValue: { value: string }) => {
-      if (newValue.value === Process.renderer) {
-        // windowProcessManagementService.createQuickpasteRenderer();
-
-        if (
-          !extensionProcessManagementService.extensionProcesses[
-            Process.extension
-          ]
-        ) {
-          extensionProcessManagementService.createExtensionProcess();
-        }
-        menuService.enableGlobalShortcuts();
-      }
+  // 7. Once the main renderer process is ready, create the extension process.
+  PLMainAPI.utilityProcessManagementService.on("serviceReady", (v) => {
+    if (v.value === Process.service) {
+      PLMainAPI.utilityProcessManagementService.createExtensionProcess();
+      // ============================================================
+      // 8. Create the main renderer process.
+      PLMainAPI.windowProcessManagementService.createMainRenderer();
     }
-  );
+  });
+  PLMainAPI.windowProcessManagementService.on("serviceReady", (v) => {
+    if (v.value === Process.renderer) {
+      PLMainAPI.menuService.enableGlobalShortcuts();
+    }
+  });
 
-  // ============================================================
-  // 8. Create the main renderer process.
-  windowProcessManagementService.createMainRenderer();
+  PLMainAPI.utilityProcessManagementService.createServiceProcess();
 }
 
-app.whenReady().then(initialize);
+app.whenReady().then(() => {
+  // Set application name for Windows 10+ notifications
+  if (process.platform === "win32") app.setAppUserModelId(app.getName());
+
+  app.on("browser-window-created", (_, window) => {
+    if (!window) return;
+    const { webContents } = window;
+    webContents.on("before-input-event", (event, input) => {
+      if (input.type === "keyDown") {
+        // Toggle devtool(F12)
+        if (input.code === "F12") {
+          if (webContents.isDevToolsOpened()) {
+            webContents.closeDevTools();
+          } else {
+            webContents.openDevTools({ mode: "undocked" });
+          }
+        }
+      }
+    });
+  });
+
+  initialize();
+});
 
 app.on("open-url", (event, urlStr) => {
   try {

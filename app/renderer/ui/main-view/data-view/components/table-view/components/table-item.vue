@@ -6,7 +6,8 @@ import {
   BIconFileEarmarkPdf,
   BIconGithub,
 } from "bootstrap-icons-vue";
-import { computed, PropType } from "vue";
+import { PropType } from "vue";
+import { computedAsync } from "@vueuse/core";
 import WordHighlighter from "vue-word-highlighter";
 
 import {
@@ -48,7 +49,7 @@ const props = defineProps({
   },
 });
 
-const fields = computed(() => {
+const fields = computedAsync(async () => {
   const fields: ItemField[] = [];
 
   for (const [fieldKey, fieldTemplate] of props.fieldTemplates.entries()) {
@@ -99,7 +100,7 @@ const fields = computed(() => {
       }
       case "title": {
         if (value.includes("$")) {
-          value = renderService.renderMath(value);
+          value = await PLAPI.renderService.renderMath(value);
         } else {
           value = value;
         }
@@ -122,7 +123,7 @@ const fields = computed(() => {
   }
 
   return fields;
-});
+}, []);
 
 const emits = defineEmits(["event:click-candidate-btn"]);
 </script>
@@ -216,18 +217,17 @@ const emits = defineEmits(["event:click-candidate-btn"]);
         {{ field.value }}
       </span>
     </div>
-      <div
-        class="absolute mt-0.5 right-2 flex justify-end text-xxs rounded-md px-1.5 shadow-md"
-        :class="
-          active
-            ? 'bg-blue-500 hover:bg-blue-400'
-            : 'bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600'
-        "
-        @click.stop="$emit('event:click-candidate-btn')"
-        v-if="showCandidateBtn"
-      >
-        <span class="m-auto">{{ $t("mainview.foundcandidates") }}</span>
-      </div>
-
+    <div
+      class="absolute mt-0.5 right-2 flex justify-end text-xxs rounded-md px-1.5 shadow-md"
+      :class="
+        active
+          ? 'bg-blue-500 hover:bg-blue-400'
+          : 'bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600'
+      "
+      @click.stop="$emit('event:click-candidate-btn')"
+      v-if="showCandidateBtn"
+    >
+      <span class="m-auto">{{ $t("mainview.foundcandidates") }}</span>
+    </div>
   </div>
 </template>

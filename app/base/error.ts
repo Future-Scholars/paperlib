@@ -9,7 +9,7 @@ export function errorcatching(
   msg: string,
   notify: boolean,
   id: string,
-  fallbackReturn?: any
+  fallbackReturn?: any,
 ) {
   return function (
     target: any,

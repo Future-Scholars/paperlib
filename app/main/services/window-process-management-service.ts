@@ -9,17 +9,18 @@ import {
   shell,
 } from "electron";
 import os from "os";
-import path, { join, posix } from "path";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
+import { WindowStorage } from "@/base/window-storage";
 import {
   IPreferenceService,
   PreferenceService,
-} from "@/common/services/preference-service";
-import { WindowStorage } from "@/main/window-storage";
+} from "@/main/services/preference-service";
 
 interface WindowOptions extends BrowserWindowConstructorOptions {
   entry: string;
@@ -86,16 +87,18 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     this.browserWindows.set(id, new BrowserWindow(windowOptions));
 
     if (additionalHeaders) {
-      this.browserWindows.get(id).webContents.session.webRequest.onHeadersReceived(
-        (details, callback) => {
-          callback({
-            responseHeaders: {
-              ...details.responseHeaders,
-              ...additionalHeaders,
-            }
-          })
-        }
-      );
+      this.browserWindows
+        .get(id)
+        .webContents.session.webRequest.onHeadersReceived(
+          (details, callback) => {
+            callback({
+              responseHeaders: {
+                ...details.responseHeaders,
+                ...additionalHeaders,
+              },
+            });
+          }
+        );
     }
 
     const entryURL = this._constructEntryURL(entry);
@@ -103,10 +106,6 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       this.browserWindows.get(id).loadURL(entryURL);
     } else {
       this.browserWindows.get(id).loadFile(entryURL);
-    }
-    if (app.isPackaged || process.env.NODE_ENV === "test") {
-    } else {
-      this.browserWindows.get(id).webContents.openDevTools();
     }
 
     // Make all links open with the browser, not with the application
@@ -181,10 +180,13 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
         minHeight: 400,
         useContentSize: true,
         webPreferences: {
-          preload: join(__dirname, "preload.js"),
+          preload: fileURLToPath(
+            new URL("../preload/preload.mjs", import.meta.url)
+          ),
           webSecurity: false,
-          nodeIntegration: true,
-          contextIsolation: false,
+          nodeIntegration: false,
+          contextIsolation: true,
+          sandbox: false,
           enableBlinkFeatures: "CSSColorSchemeUARendering",
         },
         frame: false,
@@ -456,11 +458,11 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     }
 
     if (app.isPackaged) {
-      return join(__dirname, url);
+      return fileURLToPath(new URL(url, import.meta.url));
     } else if (process.env.NODE_ENV === "test") {
-      return join(__dirname, url);
+      return fileURLToPath(new URL(url, import.meta.url));
     } else {
-      return posix.join(process.env.VITE_DEV_SERVER_URL as string, url);
+      return new URL(url, process.env.ELECTRON_RENDERER_URL).href;
     }
   }
 
@@ -584,6 +586,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     if (this.exist(windowId)) {
       const currentWindow = this.browserWindows.get(windowId);
       return currentWindow.getBounds();
+    } else {
+      return null;
     }
   }
 
@@ -634,8 +638,17 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     }
   }
 
-  download(windowId: string, url: string, options = {}, headers = {}): Promise<string> {
-    function registerListener(session, options, callback = (error?: Error, item?: any) => { }) {
+  download(
+    windowId: string,
+    url: string,
+    options = {},
+    headers = {}
+  ): Promise<string> {
+    function registerListener(
+      session,
+      options,
+      callback = (error?: Error, item?: any) => {}
+    ) {
       const downloadItems = new Set();
       let receivedBytes = 0;
       let completedBytes = 0;
@@ -648,16 +661,16 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
         const window_ = BrowserWindow.fromWebContents(webContents);
         if (!window_) {
-          throw new Error('Failed to get window from web contents.');
+          throw new Error("Failed to get window from web contents.");
         }
 
         const filePath = options.targetPath;
 
         item.setSavePath(filePath);
 
-        item.on('updated', () => {});
+        item.on("updated", () => {});
 
-        item.on('done', (event, state) => {
+        item.on("done", (event, state) => {
           completedBytes += item.getTotalBytes();
           downloadItems.delete(item);
 
@@ -669,39 +682,42 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           }
 
           if (options.unregisterWhenDone) {
-            session.removeListener('will-download', listener);
+            session.removeListener("will-download", listener);
           }
 
-          if (state === 'cancelled') {
-            if (typeof options.onCancel === 'function') {
+          if (state === "cancelled") {
+            if (typeof options.onCancel === "function") {
               options.onCancel(item);
             }
 
             callback(new Error("Download was cancelled."));
-          } else if (state === 'interrupted') {
+          } else if (state === "interrupted") {
             callback(new Error("Download was interrupted."));
-          } else if (state === 'completed') {
+          } else if (state === "completed") {
             const savePath = item.getSavePath();
             callback(undefined, savePath);
           }
         });
       };
 
-      session.on('will-download', listener);
+      session.on("will-download", listener);
     }
-
 
     return new Promise((resolve, reject) => {
       if (this.exist(windowId)) {
         const currentWindow = this.browserWindows.get(windowId);
 
-        registerListener(currentWindow.webContents.session, { unregisterWhenDone: true, ...options }, (error, item) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(item);
+        registerListener(
+          currentWindow.webContents.session,
+          { unregisterWhenDone: true, ...options },
+          (error, item) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(item);
+            }
           }
-        });
+        );
         currentWindow.webContents.downloadURL(url, { headers });
       } else {
         resolve("");

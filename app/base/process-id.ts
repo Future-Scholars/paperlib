@@ -2,5 +2,6 @@ export enum Process {
   main = "mainProcess",
   extension = "extensionProcess",
   renderer = "rendererProcess",
-  quickpaste = "quickpasteProcess"
+  quickpaste = "quickpasteProcess",
+  service = "serviceProcess"
 }

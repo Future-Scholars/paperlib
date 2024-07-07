@@ -1,34 +1,28 @@
-import { Eventable } from "../event";
 import { MessagePortRPCProtocol } from "./messageport-rpc-protocol";
-
-interface IRPCServiceState {
-  initialized: string;
-}
 
 export type RPCProtocol = MessagePortRPCProtocol;
 
-export abstract class RPCService<
-  T extends IRPCServiceState
-> extends Eventable<T> {
+export abstract class RPCService {
   protected _protocols: { [id: string]: RPCProtocol } = {};
   protected _remoteAPIs: { [id: string]: { [key: string]: any } } = {};
   protected _actionors: { [id: string]: { [key: string]: any } } = {};
 
-  constructor(eventId: string, initialState: T) {
-    super(eventId, initialState);
-  }
+  constructor(
+    protected readonly _processID: string,
+    protected readonly _exposeAPIGroup?: string
+  ) {}
 
   async waitForAPI(
     processID: string,
-    namespace: string,
+    group: string,
     timeout: number
   ): Promise<boolean> {
     return new Promise(async (resolve) => {
       for (let i = 0; i < timeout / 100; i++) {
         if (
           this._protocols[processID] &&
-          this._protocols[processID].exposedAPIs[namespace] &&
-          this._protocols[processID].exposedAPIs[namespace].length > 0
+          this._protocols[processID].exposedAPIs[group] &&
+          this._protocols[processID].exposedAPIs[group].length > 0
         ) {
           resolve(true);
           break;
@@ -39,8 +33,8 @@ export abstract class RPCService<
 
       if (
         this._protocols[processID] &&
-        this._protocols[processID].exposedAPIs[namespace] &&
-        this._protocols[processID].exposedAPIs[namespace].length > 0
+        this._protocols[processID].exposedAPIs[group] &&
+        this._protocols[processID].exposedAPIs[group].length > 0
       ) {
         resolve(true);
       } else {
@@ -51,6 +45,13 @@ export abstract class RPCService<
 
   setActionor(actionors: { [key: string]: any }): void {
     this._actionors = actionors;
+
+    for (const [_processID, protocol] of Object.entries(this._protocols)) {
+      this.initActionor(protocol);
+      if (this._exposeAPIGroup) {
+        protocol.sendExposedAPI(this._exposeAPIGroup);
+      }
+    }
   }
 
   initActionor(protocol: RPCProtocol): void {
@@ -58,4 +59,6 @@ export abstract class RPCService<
       protocol.set(key, value);
     }
   }
+
+  abstract initCommunication(processId?: string): Promise<void>;
 }

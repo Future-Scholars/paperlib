@@ -80,7 +80,7 @@ export class LogService extends Eventable<ILogEventState> {
       loglib.transports.file.resolvePath = () => `${folder}/${name}`;
     }
 
-    if (process.env.NODE_ENV === "test") {
+    if (process && process.env.NODE_ENV === "test") {
       // disable console output for tests
       loglib.transports.console.level = false;
     }

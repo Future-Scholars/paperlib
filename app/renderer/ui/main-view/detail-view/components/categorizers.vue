@@ -16,7 +16,7 @@ const emits = defineEmits(["event:delete"]);
 // ==============================
 // State
 // ==============================
-const uiState = uiStateService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 
 const onClick = (e: MouseEvent, categorizerName: string) => {
   e.preventDefault();
@@ -55,6 +55,8 @@ const colorClass = (color?: string) => {
       return "bg-orange-500";
     case "cyan":
       return "bg-cyan-500";
+    default:
+      return "bg-blue-500";
   }
 };
 </script>

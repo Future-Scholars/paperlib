@@ -15,7 +15,7 @@ import {
   isLocalPath,
   listAllFiles,
 } from "@/base/url";
-import { convertKeyboardEvent, formatShortcut } from "@/common/utils.ts";
+import { convertKeyboardEvent, formatShortcut } from "@/base/shortcut.ts";
 
 const stringUtils = {
   formatString,

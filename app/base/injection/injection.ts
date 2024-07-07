@@ -39,10 +39,17 @@ export class InjectionContainer {
   private readonly _instances: Map<string, any>;
   private readonly _constructors: Map<string, InjectableConstructor<any>>;
 
-  constructor() {
+  constructor(
+    initialInstances: { [key: string]: any } = {},
+  ) {
     this._graph = Graph();
     this._instances = new Map<string, any>();
     this._constructors = new Map<string, InjectableConstructor<any>>();
+
+    for (const id in initialInstances) {
+      this._instances.set(id, initialInstances[id]);
+      this._graph.addNode(id);
+    };
   }
 
   public createInstance<T>(constructorsCollection: {
@@ -64,6 +71,9 @@ export class InjectionContainer {
     const creatSequence = this._graph.topologicalSort();
     console.log(creatSequence.join(" -> "));
     for (const id of creatSequence) {
+      if (this._instances.has(id)) {
+        continue;
+      }
       const _constructor = this._constructors.get(id);
       if (!_constructor) {
         throw new Error(`No constructor found for ${id}`);

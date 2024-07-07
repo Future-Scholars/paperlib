@@ -2,8 +2,8 @@
 import { Ref, computed, nextTick, onMounted, provide, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
-import { removeLoading } from "@/preload/loading";
-import { FeedEntityFilterOptions } from "@/renderer/services/feed-service";
+import { removeLoading } from "@/base/loading";
+import { FeedEntityFilterOptions } from "@/base/filter";
 import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
 import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
 import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
@@ -31,8 +31,8 @@ import GuideView from "./guide-view/guide-view.vue";
 // State
 // ================================
 
-const uiState = uiStateService.useState();
-const prefState = preferenceService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
 
 // ================================
 // Data
@@ -64,7 +64,9 @@ const reloadPaperEntities = async () => {
   let querySentence: string;
   let fulltextQuerySetence: string | undefined = undefined;
   if (uiState.querySentenceCommandbar.includes("(fulltext contains")) {
-    querySentence = uiState.querySentencesSidebar.map((x) => `(${x})`).join(" AND ");
+    querySentence = uiState.querySentencesSidebar
+      .map((x) => `(${x})`)
+      .join(" AND ");
     fulltextQuerySetence = uiState.querySentenceCommandbar;
   } else {
     querySentence = [
@@ -76,56 +78,60 @@ const reloadPaperEntities = async () => {
       .join(" AND ");
   }
 
-  paperEntities.value = await paperService.load(
+  paperEntities.value = await PLAPI.paperService.load(
     querySentence,
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder,
     fulltextQuerySetence
   );
 
-  uiStateService.fire({ entitiesReloaded: Date.now() });
+  PLUIAPI.uiStateService.fire({ entitiesReloaded: Date.now() });
 };
 disposable(
-  paperService.on("updated", () => {
+  PLAPI.paperService.on("updated", () => {
     reloadPaperEntities();
   })
 );
 
 const reloadTags = async () => {
-  tags.value = await categorizerService.load(
+  tags.value = await PLAPI.categorizerService.load(
     CategorizerType.PaperTag,
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
-disposable(categorizerService.on("tagsUpdated", () => reloadTags()));
+disposable(PLAPI.categorizerService.on("tagsUpdated", () => reloadTags()));
 
 const reloadFolders = async () => {
-  folders.value = await categorizerService.load(
+  folders.value = await PLAPI.categorizerService.load(
     CategorizerType.PaperFolder,
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
-disposable(categorizerService.on("foldersUpdated", () => reloadFolders()));
+disposable(
+  PLAPI.categorizerService.on("foldersUpdated", () => reloadFolders())
+);
 
 const reloadPaperSmartFilters = async () => {
-  smartfilters.value = await smartFilterService.load(
+  smartfilters.value = await PLAPI.smartFilterService.load(
     PaperSmartFilterType.smartfilter,
     prefState.sidebarSortBy === "count" ? "name" : prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
 };
-disposable(smartFilterService.on("updated", () => reloadPaperSmartFilters()));
+disposable(
+  PLAPI.smartFilterService.on("updated", () => reloadPaperSmartFilters())
+);
 
 const reloadFeeds = async () => {
-  const results = await feedService.load(
+  const results = await PLAPI.feedService.load(
     prefState.sidebarSortBy,
     prefState.sidebarSortOrder
   );
   feeds.value = results;
 };
-disposable(feedService.on("updated", () => reloadFeeds()));
+disposable(PLAPI.feedService.on("updated", () => reloadFeeds()));
 
 const reloadFeedEntities = async () => {
   let feedName = "";
@@ -140,7 +146,7 @@ const reloadFeedEntities = async () => {
     feedName = uiState.selectedFeed.replace("feed-", "");
   }
 
-  feedEntities.value = await feedService.loadEntities(
+  feedEntities.value = await PLAPI.feedService.loadEntities(
     new FeedEntityFilterOptions({
       search: uiState.commandBarText,
       searchMode: uiState.commandBarSearchMode as any,
@@ -150,9 +156,9 @@ const reloadFeedEntities = async () => {
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
-  uiStateService.fire({ entitiesReloaded: Date.now() });
+  PLUIAPI.uiStateService.fire({ entitiesReloaded: Date.now() });
 };
-disposable(feedService.on("entitiesUpdated", () => reloadFeedEntities()));
+disposable(PLAPI.feedService.on("entitiesUpdated", () => reloadFeedEntities()));
 
 const changeFontsize = (fontsize: string) => {
   const html = document.querySelector("html");
@@ -166,7 +172,7 @@ const changeFontsize = (fontsize: string) => {
 // Register State
 // ================================
 disposable(
-  preferenceService.onChanged(
+  PLMainAPI.preferenceService.onChanged(
     ["mainviewSortBy", "mainviewSortOrder"],
     (value) => {
       if (uiState.contentType === "library") {
@@ -179,7 +185,7 @@ disposable(
 );
 
 disposable(
-  preferenceService.onChanged(
+  PLMainAPI.preferenceService.onChanged(
     ["sidebarSortBy", "sidebarSortOrder"],
     (value) => {
       reloadTags();
@@ -190,7 +196,7 @@ disposable(
 );
 
 disposable(
-  uiStateService.onChanged(
+  PLUIAPI.uiStateService.onChanged(
     [
       "selectedFeed",
       "contentType",
@@ -208,17 +214,17 @@ disposable(
 );
 
 disposable(
-  preferenceService.onChanged("appLibFolder", async (value) => {
-    await databaseService.initialize();
+  PLMainAPI.preferenceService.onChanged("appLibFolder", async (value) => {
+    await PLAPI.databaseService.initialize();
   })
 );
 
 var initStartTime = Date.now();
 disposable(
-  databaseService.on("dbInitializing", async () => {
+  PLAPI.databaseService.on("dbInitializing", async () => {
     initStartTime = Date.now();
 
-    uiStateService.resetStates();
+    PLUIAPI.uiStateService.resetUIStates();
 
     paperEntities.value = [];
     tags.value = [];
@@ -229,8 +235,8 @@ disposable(
 );
 
 disposable(
-  databaseService.on("dbInitialized", async () => {
-    fileService.initialize();
+  PLAPI.databaseService.on("dbInitialized", async () => {
+    await PLAPI.fileService.initialize();
     await reloadPaperEntities();
     await reloadTags();
     await reloadFolders();
@@ -239,7 +245,7 @@ disposable(
     reloadFeedEntities();
     reloadFeeds();
     var endTime = Date.now();
-    logService.info(
+    PLAPI.logService.info(
       `Database initialized in ${endTime - initStartTime}ms`,
       "",
       false,
@@ -258,10 +264,10 @@ disposable(
     (newValue: { value: string }) => {
       if (newValue.value === "blur") {
         uiState.mainViewFocused = false;
-        databaseService.pauseSync();
+        PLAPI.databaseService.pauseSync();
       } else if (newValue.value === "focus") {
         uiState.mainViewFocused = true;
-        databaseService.resumeSync();
+        PLAPI.databaseService.resumeSync();
       }
     }
   )
@@ -269,7 +275,7 @@ disposable(
 
 disposable(
   PLMainAPI.upgradeService.on("downloading", (newValue: { value: number }) => {
-    logService.progress(
+    PLAPI.logService.progress(
       "Downloading Update...",
       newValue.value,
       true,
@@ -279,14 +285,14 @@ disposable(
 );
 
 disposable(
-  preferenceService.onChanged("fontsize", (newValue) => {
+  PLMainAPI.preferenceService.onChanged("fontsize", (newValue) => {
     changeFontsize(newValue.value);
   })
 );
 
 disposable(
-  preferenceService.onChanged("sourceFileOperation", (newValue) => {
-    fileService.initialize();
+  PLMainAPI.preferenceService.onChanged("sourceFileOperation", (newValue) => {
+    PLAPI.fileService.initialize();
   })
 );
 
@@ -313,13 +319,13 @@ const onAddDummyClicked = async () => {
     dummpyPaperEntities.push(dummyPaperEntity);
   }
 
-  await paperService.update(dummpyPaperEntities);
+  await PLAPI.paperService.update(dummpyPaperEntities);
 };
 const onAddFromFileClicked = async () => {
-  await paperService.create([`${process.cwd()}/tests/pdfs/cs/1.pdf`]);
+  await PLAPI.paperService.create([`${process.cwd()}/tests/pdfs/cs/1.pdf`]);
 };
 const onAddFromFilesClicked = async () => {
-  await paperService.create([
+  await PLAPI.paperService.create([
     `${process.cwd()}/tests/pdfs/cs/1.pdf`,
     `${process.cwd()}/tests/pdfs/cs/2.pdf`,
   ]);
@@ -340,7 +346,7 @@ const onRemoveAllClicked = async () => {
 
     return;
   } else {
-    paperService.delete(paperEntities.value.map((x) => x.id));
+    PLAPI.paperService.delete(paperEntities.value.map((x) => x.id));
     clickTimes = 0;
   }
 };
@@ -364,25 +370,25 @@ const onPrintClicked = () => {
 };
 const onNotifyInfoClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
-  logService.info(randomString, "additional info", true, "DEVLOG");
+  PLAPI.logService.info(randomString, "additional info", true, "DEVLOG");
 };
 const onNotifyWarnClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
-  logService.warn(randomString, "additional info", true, "DEVLOG");
+  PLAPI.logService.warn(randomString, "additional info", true, "DEVLOG");
 };
 const onNotifyErrorClicked = () => {
   const randomString = Math.random().toString(36).slice(-8);
-  logService.error(randomString, "additional info", true, "DEVLOG");
+  PLAPI.logService.error(randomString, "additional info", true, "DEVLOG");
 };
 const onNotifyProgressClicked = () => {
   const randomNumber = Math.floor(Math.random() * 100);
-  logService.progress("Progress...", randomNumber, true, "DEVLOG");
+  PLAPI.logService.progress("Progress...", randomNumber, true, "DEVLOG");
 };
 
 const isWhatsNewShown = ref(false);
 
 disposable(
-  preferenceService.onChanged(["lastVersion"], async () => {
+  PLMainAPI.preferenceService.onChanged(["lastVersion"], async () => {
     isWhatsNewShown.value =
       prefState.lastVersion !==
       (await PLMainAPI.upgradeService.currentVersion());
@@ -394,13 +400,15 @@ disposable(
 // ================================
 onMounted(async () => {
   nextTick(async () => {
-    changeFontsize(prefState.fontsize);
+    changeFontsize(
+      (await PLMainAPI.preferenceService.get("fontsize")) as string
+    );
 
     isWhatsNewShown.value =
-      prefState.lastVersion !==
+      (await PLMainAPI.preferenceService.get("lastVersion")) !==
       (await PLMainAPI.upgradeService.currentVersion());
 
-    await databaseService.initialize(true);
+    await PLAPI.databaseService.initialize(true);
   });
 });
 </script>
@@ -420,9 +428,9 @@ onMounted(async () => {
       @event:notify-progress="onNotifyProgressClicked"
       v-if="uiState.isDevMode"
     />
-
     <MainView />
 
+    <!-- 
     <Transition
       enter-active-class="transition ease-out duration-75"
       enter-from-class="transform opacity-0"
@@ -487,7 +495,7 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <OverlayNotificationView v-if="uiState.overlayNoticationShown" />
-    </Transition>
+    </Transition> -->
 
     <Transition
       enter-active-class="transition ease-out duration-75"
@@ -500,7 +508,7 @@ onMounted(async () => {
       <GuideView v-if="prefState.showGuide" />
     </Transition>
 
-    <Transition
+    <!-- <Transition
       enter-active-class="transition ease-out duration-75"
       enter-from-class="transform opacity-0"
       enter-to-class="transform opacity-100"
@@ -509,7 +517,7 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <PresettingView v-if="prefState.showPresetting" />
-    </Transition>
+    </Transition> -->
 
     <Transition
       enter-active-class="transition ease-out duration-75"

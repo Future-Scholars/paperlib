@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Ref, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { isEqual } from "lodash-es";
+import { isEqual } from "lodash";
 
 import { disposable } from "@/base/dispose";
 import { eraseProtocol } from "@/base/url";
@@ -16,8 +16,8 @@ import TableView from "./components/table-view/table-view.vue";
 // ================================
 // State
 // ================================
-const prefState = preferenceService.useState();
-const uiState = uiStateService.useState();
+const prefState = PLMainAPI.preferenceService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 
 const i18n = useI18n();
 
@@ -119,7 +119,7 @@ const onItemClicked = async (selectedIndex: number[]) => {
 };
 
 disposable(
-  uiStateService.onChanged(
+  PLUIAPI.uiStateService.onChanged(
     "selectedIndex",
     async (newValue: { value: number[] }) => {
       const selectedIndex = newValue.value;
@@ -127,7 +127,7 @@ disposable(
         selectedIndex.length === 1 &&
         prefState.mainviewType === "tableandpreview"
       ) {
-        const fileURL = await fileService.access(
+        const fileURL = await PLAPI.fileService.access(
           paperEntities.value[selectedIndex[0]].mainURL,
           true
         );
@@ -192,11 +192,11 @@ const onItemRightClicked = (selectedIndex: number[]) => {
 const onItemDoubleClicked = async (selectedIndex: number[]) => {
   onItemClicked(selectedIndex);
 
-  const fileURL = await fileService.access(
+  const fileURL = await PLAPI.fileService.access(
     paperEntities.value[selectedIndex[0]].mainURL,
     true
   );
-  fileService.open(fileURL);
+  PLAPI.fileService.open(fileURL);
 };
 
 const onItemDraged = async (selectedIndex: number[]) => {
@@ -213,7 +213,7 @@ const onItemFileDraged = async (selectedIndex: number[]) => {
   const fileURLs = await Promise.all(
     selectedIndex.map(async (index) => {
       return eraseProtocol(
-        await fileService.access(paperEntities.value[index].mainURL, true)
+        await PLAPI.fileService.access(paperEntities.value[index].mainURL, true)
       );
     })
   );
@@ -229,8 +229,8 @@ const onTableHeaderClicked = (key: string) => {
   if (key === "tags" || key === "folders" || key == "codes") {
     return;
   }
-  preferenceService.set({ mainviewSortBy: key });
-  preferenceService.set({
+  PLMainAPI.preferenceService.set({ mainviewSortBy: key });
+  PLMainAPI.preferenceService.set({
     mainviewSortOrder: prefState.mainviewSortOrder === "asce" ? "desc" : "asce",
   });
 };
@@ -242,7 +242,7 @@ const onTableHeaderWidthChanged = (changedWidths: Record<string, number>) => {
       mainFieldPref.width = changedWidths[mainFieldPref.key];
     }
   }
-  preferenceService.set({ mainTableFields: mainFieldPrefs });
+  PLMainAPI.preferenceService.set({ mainTableFields: mainFieldPrefs });
 };
 
 const onDropped = async (e: DragEvent) => {
@@ -259,7 +259,7 @@ const onDropped = async (e: DragEvent) => {
     filePaths.push(`file://${files[i].path}`);
   }
 
-  await paperService.create(filePaths);
+  await PLAPI.paperService.create(filePaths);
 };
 
 const onFontSizeChanged = (fontSize: "normal" | "large" | "larger") => {
@@ -271,13 +271,13 @@ const onFontSizeChanged = (fontSize: "normal" | "large" | "larger") => {
 };
 
 disposable(
-  preferenceService.onChanged("fontsize", (newValue) => {
+  PLMainAPI.preferenceService.onChanged("fontsize", (newValue) => {
     onFontSizeChanged(newValue.value);
   })
 );
 
 disposable(
-  preferenceService.onChanged(
+  PLMainAPI.preferenceService.onChanged(
     ["mainTableFields", "mainviewType", "mainviewShortAuthor"],
     () => {
       onFontSizeChanged(prefState.fontsize);

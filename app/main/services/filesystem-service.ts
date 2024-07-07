@@ -12,6 +12,7 @@ import {
 } from "electron";
 import { writeFileSync } from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 export const IFileSystemService = createDecorator("fileSystemService");
 
@@ -78,8 +79,29 @@ export class FileSystemService {
    * @returns {Promise<OpenDialogReturnValue>} The result of the file picker.
    */
   @errorcatching("Failed to show file picker.", true, "FileSystemService")
-  showFilePicker(props?: Array<"openDirectory" | "multiSelections" | "showHiddenFiles" | "createDirectory" | "promptToCreate" | "noResolveAliases" | "treatPackageAsDirectory" | "dontAddToRecent">): Promise<OpenDialogReturnValue> {
-    const properties: Array<"openFile" | "openDirectory" | "multiSelections" | "showHiddenFiles" | "createDirectory" | "promptToCreate" | "noResolveAliases" | "treatPackageAsDirectory" | "dontAddToRecent"> = ["openFile"];
+  showFilePicker(
+    props?: Array<
+      | "openDirectory"
+      | "multiSelections"
+      | "showHiddenFiles"
+      | "createDirectory"
+      | "promptToCreate"
+      | "noResolveAliases"
+      | "treatPackageAsDirectory"
+      | "dontAddToRecent"
+    >
+  ): Promise<OpenDialogReturnValue> {
+    const properties: Array<
+      | "openFile"
+      | "openDirectory"
+      | "multiSelections"
+      | "showHiddenFiles"
+      | "createDirectory"
+      | "promptToCreate"
+      | "noResolveAliases"
+      | "treatPackageAsDirectory"
+      | "dontAddToRecent"
+    > = ["openFile"];
     if (props) {
       properties.push(...props);
     }
@@ -127,8 +149,10 @@ export class FileSystemService {
       files: filePaths,
       icon:
         process.env.NODE_ENV === "development"
-          ? path.resolve(__dirname, "../public/pdf.png")
-          : path.resolve(__dirname, "pdf.png"),
+          ? path.resolve(
+              fileURLToPath(new URL("../public/pdf.png", import.meta.url))
+            )
+          : path.resolve(fileURLToPath(new URL("pdf.png", import.meta.url))),
     });
   }
 
@@ -139,5 +163,21 @@ export class FileSystemService {
   @errorcatching("Failed to show the URL in Finder.", true, "FileService")
   async showInFinder(url: string) {
     shell.showItemInFolder(path.normalize(url));
+  }
+
+  /**
+   * Open the URL in the default browser.
+   * @param url - URL to open
+   */
+  openExternal(url: string) {
+    shell.openExternal(url);
+  }
+
+  /**
+   * Open the path in the default file manager.
+   * @param url - Path to open
+   */
+  openPath(url: string) {
+    shell.openPath(url);
   }
 }

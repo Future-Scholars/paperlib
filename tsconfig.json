@@ -1,36 +1,13 @@
 {
+  "files": [],
+  "references": [
+    { "path": "./app/tsconfig.json" },
+    { "path": "./app/main/tsconfig.json" },
+    { "path": "./app/renderer/tsconfig.json" },
+    { "path": "./app/service/tsconfig.json" },
+    { "path": "./app/preload/tsconfig.json" }
+  ],
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ES2022",
-    "composite": true,
-    "moduleResolution": "Bundler",
-    "isolatedModules": true,
-    "importHelpers": true,
-    "jsx": "preserve",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "experimentalDecorators": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-    "noImplicitAny": false,
-    "sourceMap": true,
-    "baseUrl": "./",
-    "strict": true,
-    "paths": {
-      "@/*": ["app/*"]
-    },
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "types": ["vite/client"]
-  },
-  "include": [
-    "app/**/*.ts",
-    "app/**/*.tsx",
-    "app/**/*.d.ts",
-    "app/**/*.vue",
-    "tests/**/*.ts",
-    "paperlib-api/**/*.d.ts",
-    "paperlib-api/**/*.ts",
-    "package.json"
-  ]
+    "experimentalDecorators": true
+  }
 }

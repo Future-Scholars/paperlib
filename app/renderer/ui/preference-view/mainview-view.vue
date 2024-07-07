@@ -11,7 +11,7 @@ import { FieldTemplate } from "@/renderer/types/data-view";
 
 import Toggle from "./components/toggle.vue";
 import MainField from "./components/main-field.vue";
-import { IPreferenceStore } from "@/common/services/preference-service";
+import { IPreferenceStore } from "@/main/services/preference-service";
 
 const prefState = preferenceService.useState();
 

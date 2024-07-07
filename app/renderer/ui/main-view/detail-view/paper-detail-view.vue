@@ -41,7 +41,7 @@ const props = defineProps({
 // ======================
 // State
 // ======================
-const uiState = uiStateService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 
 // ==============================
 // Event Handler
@@ -49,7 +49,7 @@ const uiState = uiStateService.useState();
 const onRatingChanged = (value: number) => {
   const paperEntityDraft = new PaperEntity(props.entity);
   paperEntityDraft.rating = value;
-  paperService.update([paperEntityDraft], false, true);
+  PLAPI.paperService.update([paperEntityDraft], false, true);
 };
 
 const onDeleteCategorizer = (
@@ -66,12 +66,12 @@ const onDeleteCategorizer = (
       return folder.name !== categorizer.name;
     });
   }
-  paperService.update([paperEntityDraft], false, true);
+  PLAPI.paperService.update([paperEntityDraft], false, true);
 };
 
 const modifyMainFile = async (url: string) => {
   const paperEntityDraft = new PaperEntity(props.entity);
-  await paperService.updateMainURL(paperEntityDraft, url);
+  await PLAPI.paperService.updateMainURL(paperEntityDraft, url);
   setTimeout(() => {
     uiState.renderRequired = Date.now();
   }, 1000);
@@ -79,11 +79,11 @@ const modifyMainFile = async (url: string) => {
 
 const locateMainFile = async () => {
   const paperEntityDraft = new PaperEntity(props.entity);
-  const locatedPaperEntities = await fileService.locateFileOnWeb([
+  const locatedPaperEntities = await PLAPI.fileService.locateFileOnWeb([
     paperEntityDraft,
   ]);
   paperEntityDraft.mainURL = "";
-  await paperService.updateMainURL(
+  await PLAPI.paperService.updateMainURL(
     paperEntityDraft,
     locatedPaperEntities[0].mainURL
   );
@@ -94,12 +94,12 @@ const locateMainFile = async () => {
 
 const addSups = (urls: string[]) => {
   const paperEntityDraft = new PaperEntity(props.entity);
-  paperService.updateSupURLs(paperEntityDraft, urls);
+  PLAPI.paperService.updateSupURLs(paperEntityDraft, urls);
 };
 
 const onDeleteSup = (url: string) => {
   const paperEntityDraft = new PaperEntity(props.entity);
-  paperService.deleteSup(paperEntityDraft, url);
+  PLAPI.paperService.deleteSup(paperEntityDraft, url);
 };
 
 disposable(
@@ -125,7 +125,7 @@ disposable(
 );
 
 const onSupDisplayNameUpdated = (customName: string) => {
-  paperService.setSupDisplayName(props.entity, renamingSup.value, customName);
+  PLAPI.paperService.setSupDisplayName(props.entity, renamingSup.value, customName);
   renamingSup.value = "";
 };
 
@@ -209,7 +209,7 @@ const reanderedTitle = ref("");
 
 const renderTitle = async () => {
   if (props.entity.title?.includes("$")) {
-    reanderedTitle.value = renderService.renderMath(props.entity.title);
+    reanderedTitle.value = await PLAPI.renderService.renderMath(props.entity.title);
   } else {
     reanderedTitle.value = props.entity.title;
   }

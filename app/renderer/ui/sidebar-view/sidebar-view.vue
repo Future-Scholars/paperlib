@@ -1,14 +1,15 @@
 <script setup lang="ts">
+import { onMounted, ref } from "vue";
+import darkLogo from "@/renderer/assets/logo-dark.png?asset";
+import lightLogo from "@/renderer/assets/logo-light.png?asset";
+
 import NotificationBar from "./components/notification-bar.vue";
 import SwitcherTitle from "./components/switcher-title.vue";
 import WindowControlBar from "./components/window-control-bar.vue";
 import SidebarFeedsView from "./sidebar-feeds-view.vue";
 import SidebarLibraryView from "./sidebar-library-view.vue";
-import { onMounted, ref, watch } from "vue";
-import darkLogo from "@/renderer/assets/logo-dark.png";
-import lightLogo from "@/renderer/assets/logo-light.png";
 
-const uiState = uiStateService.useState();
+const uiState = PLUIAPI.uiStateService.useState();
 
 const onViewContentSwitch = (view: number) => {
   if (view === 0) {
@@ -26,7 +27,7 @@ const darkMode = ref(false);
 onMounted(async () => {
   darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
 });
-preferenceService.on("preferedTheme", async () => {
+PLMainAPI.preferenceService.on("preferedTheme", async () => {
   darkMode.value = await PLMainAPI.windowProcessManagementService.isDarkMode();
 });
 </script>
