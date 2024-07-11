@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BIconDashCircle, BIconPlusLg } from "bootstrap-icons-vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps({
   codes: {
@@ -9,7 +9,7 @@ const props = defineProps({
   },
 });
 
-const codes = ref(props.codes.map((code) => JSON.parse(code)));
+const parsedCodes = computed(() => props.codes.map((code) => JSON.parse(code)));
 const emits = defineEmits(["event:change"]);
 
 // ======================
@@ -23,25 +23,26 @@ const onInput = (payload: Event, index: number, key: string) => {
   } else {
     value = (payload.target as HTMLInputElement).checked;
   }
-  codes.value[index][key] = value;
+  parsedCodes.value[index][key] = value;
   emits(
     "event:change",
-    codes.value.map((code) => JSON.stringify(code))
+    parsedCodes.value.map((code) => JSON.stringify(code))
   );
 };
 
 const onAddClicked = () => {
-  codes.value.unshift({
-    code: "",
-    name: "",
-  });
+  const newCodes = [...parsedCodes.value, { url: "", isOfficial: false }];
+  emits(
+    "event:change",
+    newCodes.map((code) => JSON.stringify(code))
+  );
 };
 
 const onDeleteClicked = (index: number) => {
-  codes.value.splice(index, 1);
+  const newCodes = parsedCodes.value.filter((_, i) => i !== index);
   emits(
     "event:change",
-    codes.value.map((code) => JSON.stringify(code))
+    newCodes.map((code) => JSON.stringify(code))
   );
 };
 </script>
@@ -62,7 +63,7 @@ const onDeleteClicked = (index: number) => {
     </div>
     <div class="overflow-scroll">
       <div
-        v-for="(code, index) in codes"
+        v-for="(code, index) in parsedCodes"
         :key="index"
         class="flex space-x-2 bg-neutral-300 dark:bg-neutral-600 rounded-md px-2 py-1 my-1"
       >
