@@ -1,3 +1,7 @@
+## v3.1.7 July 11 2024
+
+1. Fix: a bug when editing the code repository metadata. by @geoffreychen777
+
 ## v3.1.6 Jun 30 2024
 
 1. Feat: import files via a file picker. by @lcandy2
