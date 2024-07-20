@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { disposable } from "@/base/dispose";
-import { useCreateConfirmView } from "./useConfirmView.ts";
+import { useCreateDeleteConfirmView } from "./useDeleteConfirmView.ts";
 
-const { onResolve, onReject } = useCreateConfirmView();
+const { onResolve, onReject } = useCreateDeleteConfirmView();
 
 // ======================
 // Event Handler

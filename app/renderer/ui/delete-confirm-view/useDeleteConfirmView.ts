@@ -4,7 +4,7 @@ const REJECT_EVENT = "reject_delete_confirm_view";
 
 const RESOLVE_EVENT = "resolve_delete_confirm_view";
 
-export function useCreateConfirmView() {
+export function useCreateDeleteConfirmView() {
   const eventBus = useEventBus();
 
   function onReject() {
@@ -18,7 +18,7 @@ export function useCreateConfirmView() {
   return { onReject, onResolve };
 }
 
-export function useConfirmView() {
+export function useDeleteConfirmView() {
   const uiState = uiStateService.useState();
   const eventBus = useEventBus();
   function confirm() {
