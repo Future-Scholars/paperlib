@@ -12,6 +12,9 @@ import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
 import { disposable } from "@/base/dispose";
 import CollopseGroup from "./components/collopse-group.vue";
 import SectionItem from "./components/section-item.vue";
+import { useDeleteConfirmView } from "@/renderer/ui/delete-confirm-view/useDeleteConfirmView.ts";
+
+const { confirm: openDeleteConfirmView } = useDeleteConfirmView();
 
 const colorClass = (color?: string) => {
   switch (color) {
@@ -70,9 +73,11 @@ const onAddNewFeedClicked = () => {
 disposable(
   PLMainAPI.contextMenuService.on(
     "sidebarContextMenuDeleteClicked",
-    (newValue: { value: { data: string; type: string } }) => {
+    async (newValue: { value: { data: string; type: string } }) => {
+      const isConfirmed = await openDeleteConfirmView();
+      if (!isConfirmed) return;
       if (uiState.contentType === "feed") {
-        feedService.delete([newValue.value.data]);
+        await feedService.delete([newValue.value.data]);
         uiState.selectedFeed = "feed-all";
       }
     }

@@ -1,27 +1,19 @@
 <script setup lang="ts">
 import { disposable } from "@/base/dispose";
+import { useCreateDeleteConfirmView } from "./useDeleteConfirmView.ts";
 
-// ======================
-// State
-// ======================
-const uiState = uiStateService.useState();
+const { onResolve, onReject } = useCreateDeleteConfirmView();
 
 // ======================
 // Event Handler
 // ======================
-const onClick = () => {
-  uiState.deleteConfirmShown = false;
-};
 
 const onCancel = () => {
-  onClick();
+  onReject();
 };
 
 const onConfirm = () => {
-  const deleteIds = JSON.parse(JSON.stringify(uiState.selectedIds));
-  uiState.selectedIndex = [];
-  onClick();
-  paperService.delete(deleteIds);
+  onResolve();
 };
 
 disposable(
@@ -36,7 +28,7 @@ disposable(shortcutService.register("Enter", onConfirm));
   <div
     id="modal-view"
     class="absolute w-full h-full top-0 left-0"
-    @click="onClick"
+    @click="onCancel"
   >
     <div
       class="fixed top-0 right-0 left-0 z-50 w-screen h-screen bg-neutral-800 bg-opacity-50 dark:bg-neutral-900 dark:bg-opacity-80 dark:text-neutral-300"

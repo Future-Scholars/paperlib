@@ -54,6 +54,7 @@
     "markdown-it-texmath": "1.0.0",
     "mathml-to-latex": "1.2.0",
     "md5-file": "5.0.0",
+    "mitt": "^3.0.1",
     "p-timeout": "6.1.2",
     "pdfjs-dist": "4.0.269",
     "pinia": "2.1.7",
