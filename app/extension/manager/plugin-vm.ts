@@ -40,7 +40,13 @@ export class PluginVm {
 
     const filePathExtension = path.extname(filePath).toLowerCase();
     if (filePathExtension === ".js" || filePathExtension === ".cjs") {
-      const code = fs.readFileSync(filePath, "utf8");
+      let code = fs.readFileSync(filePath, "utf8");
+
+      // For backward compatibility
+      code = code.replaceAll("PLAPI.commandService", "PLUIAPI.commandService")
+      code = code.replaceAll("PLAPI.uiSlotService", "PLUIAPI.uiSlotService")
+      code = code.replaceAll("PLAPI.uiStateService", "PLUIAPI.uiStateService")
+
       // note: I first put the object (before executing the script) in cache to support circular require
       this.setCache(pluginContext, filePath, moduleInstance);
 
