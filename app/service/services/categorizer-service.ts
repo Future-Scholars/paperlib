@@ -6,6 +6,8 @@ import {
   Categorizer,
   CategorizerType,
   Colors,
+  ICategorizerCollection,
+  ICategorizerRealmObject,
   PaperFolder,
   PaperTag,
 } from "@/models/categorizer";
@@ -15,8 +17,6 @@ import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
 import {
   CategorizerRepository,
-  ICategorizerCollection,
-  ICategorizerRealmObject,
   ICategorizerRepository,
 } from "../repositories/db-repository/categorizer-repository";
 

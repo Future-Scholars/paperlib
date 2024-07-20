@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { PropType, ref } from "vue";
 
-import { PaperEntity } from "@/models/paper-entity";
-import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
+import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
 
 import PaperListItem from "./components/paper-list-item.vue";
 import { OID } from "@/models/id";
@@ -132,32 +131,36 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
 
 <template>
   <div>
-
-      <RecycleScroller
-        class="scroller max-h-[calc(100vh-3rem)]"
-        :items="entities"
-        :item-size="itemSize"
-        key-field="id"
-        v-slot="{ item, index }"
-        :buffer="500"
-      >
-        <PaperListItem
-          :id="`item-${index}`"
-          :height="itemSize"
-          :item="item"
-          :field-enables="fieldEnables"
-          :active="selectedIndex.indexOf(index) >= 0"
-          :categorizer-sort-by="categorizerSortBy"
-          :categorizer-sort-order="categorizerSortOrder"
-          :query-highlight="(uiState.commandBarSearchMode === 'general' && !uiState.commandBarText.startsWith('\\')) ? uiState.commandBarText : ''"
-          :show-candidate-btn="candidates[item.id]?.length > 0"
-          @click="(e: MouseEvent) => {onItemClicked(e, index)}"
-          @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
-          @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
-          draggable="true"
-          @dragstart="(e: DragEvent) => {onItemDraged(e, index, item.id)}"
-          @event:click-candidate-btn="emits('event:click-candidate-btn', item.id)"
-        />
-      </RecycleScroller>
+    <RecycleScroller
+      class="scroller max-h-[calc(100vh-3rem)]"
+      :items="entities"
+      :item-size="itemSize"
+      key-field="id"
+      v-slot="{ item, index }"
+      :buffer="500"
+    >
+      <PaperListItem
+        :id="`item-${index}`"
+        :height="itemSize"
+        :item="item"
+        :field-enables="fieldEnables"
+        :active="selectedIndex.indexOf(index) >= 0"
+        :categorizer-sort-by="categorizerSortBy"
+        :categorizer-sort-order="categorizerSortOrder"
+        :query-highlight="
+          uiState.commandBarSearchMode === 'general' &&
+          !uiState.commandBarText.startsWith('\\')
+            ? uiState.commandBarText
+            : ''
+        "
+        :show-candidate-btn="candidates[item.id]?.length > 0"
+        @click="(e: MouseEvent) => {onItemClicked(e, index)}"
+        @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
+        @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
+        draggable="true"
+        @dragstart="(e: DragEvent) => {onItemDraged(e, index, item.id)}"
+        @event:click-candidate-btn="emits('event:click-candidate-btn', item.id)"
+      />
+    </RecycleScroller>
   </div>
 </template>

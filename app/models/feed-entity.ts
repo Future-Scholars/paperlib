@@ -1,4 +1,5 @@
 import { ObjectId } from "bson";
+import Realm, { List, Results } from "realm";
 
 import { Feed } from "./feed";
 import { OID } from "./id";
@@ -165,3 +166,33 @@ export class FeedEntity {
     this.publisher = paperEntity.publisher;
   }
 }
+
+export type IFeedEntityRealmObject = FeedEntity &
+  Realm.Object<
+    FeedEntity,
+    | "_id"
+    | "addTime"
+    | "feed"
+    | "feedTime"
+    | "title"
+    | "abstract"
+    | "authors"
+    | "publication"
+    | "pubTime"
+    | "pubType"
+    | "doi"
+    | "arxiv"
+    | "mainURL"
+    | "pages"
+    | "volume"
+    | "number"
+    | "publisher"
+    | "read"
+  >;
+
+export type IFeedEntityObject = FeedEntity | IFeedEntityRealmObject;
+
+export type IFeedEntityCollection =
+  | Results<IFeedEntityObject>
+  | List<IFeedEntityObject>
+  | Array<IFeedEntityObject>;

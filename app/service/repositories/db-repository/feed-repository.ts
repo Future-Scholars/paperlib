@@ -3,7 +3,7 @@ import Realm, { List, Results } from "realm";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
-import { Feed } from "@/models/feed";
+import { Feed, IFeedCollection, IFeedObject, IFeedRealmObject } from "@/models/feed";
 import { OID } from "@/models/id";
 import { ObjectId } from "bson";
 
@@ -219,13 +219,3 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
     });
   }
 }
-
-export type IFeedRealmObject = Feed &
-  Realm.Object<Feed, "_id" | "name" | "count" | "url">;
-
-export type IFeedObject = Feed | IFeedRealmObject;
-
-export type IFeedCollection =
-  | Results<IFeedObject>
-  | List<IFeedObject>
-  | Array<IFeedObject>;

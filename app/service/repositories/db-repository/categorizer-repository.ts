@@ -6,6 +6,9 @@ import {
   Categorizer,
   CategorizerType,
   Colors,
+  ICategorizerCollection,
+  ICategorizerObject,
+  ICategorizerRealmObject,
   PaperTag,
 } from "@/models/categorizer";
 import { OID } from "@/models/id";
@@ -421,13 +424,3 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     });
   }
 }
-
-export type ICategorizerRealmObject = Categorizer &
-  Realm.Object<Categorizer, "_id" | "name" | "color" | "children">;
-
-export type ICategorizerObject = Categorizer | ICategorizerRealmObject;
-
-export type ICategorizerCollection =
-  | Results<ICategorizerObject>
-  | List<ICategorizerObject>
-  | Array<ICategorizerObject>;

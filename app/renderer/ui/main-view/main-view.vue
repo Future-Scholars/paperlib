@@ -5,11 +5,9 @@ import { Ref, inject, ref, onMounted, onUnmounted } from "vue";
 import { disposable } from "@/base/dispose";
 import { debounce } from "@/base/misc";
 import { CategorizerType } from "@/models/categorizer";
-import { FeedEntity } from "@/models/feed-entity";
+import { FeedEntity, IFeedEntityCollection } from "@/models/feed-entity";
 import { OID } from "@/models/id";
-import { PaperEntity } from "@/models/paper-entity";
-import { IFeedEntityCollection } from "@/service/repositories/db-repository/feed-entity-repository";
-import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
+import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
 import { Process } from "@/base/process-id";
 import { cmdOrCtrl, ShortcutEvent } from "@/base/shortcut";
 
@@ -777,7 +775,9 @@ disposable(
 );
 
 disposable(PLMainAPI.menuService.onClick("View-previous", onArrowUpPressed));
-disposable(PLUIAPILocal.shortcutService.register("ArrowUp", onArrowUpPressed, true));
+disposable(
+  PLUIAPILocal.shortcutService.register("ArrowUp", onArrowUpPressed, true)
+);
 
 disposable(PLMainAPI.menuService.onClick("View-next", onArrowDownPressed));
 disposable(

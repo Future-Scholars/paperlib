@@ -2,13 +2,12 @@
 import { PropType, ref } from "vue";
 
 import { OID } from "@/models/id";
-import { IFeedEntityCollection } from "@/service/repositories/db-repository/feed-entity-repository";
-import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
+import { IFeedEntityCollection } from "@/models/feed-entity";
+import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
 import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableItem from "./components/table-item.vue";
 import TableHeader from "./components/table-header.vue";
-import { PaperEntity } from "@/models/paper-entity";
 
 const props = defineProps({
   entities: {

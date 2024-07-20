@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { PropType } from "vue";
 
-import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
+import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
 import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableView from "./table-view.vue";
-import { PaperEntity } from "@/models/paper-entity";
 
 const props = defineProps({
   entities: {
@@ -95,8 +94,10 @@ const emits = defineEmits([
       v-if="displayingURL"
     >
       <div class="w-full h-full flex">
-        <div class="m-auto bg-neutral-200 py-1 px-2 dark:bg-neutral-600 rounded-md text-sm">
-        A better PDF Viewer will be here soon.
+        <div
+          class="m-auto bg-neutral-200 py-1 px-2 dark:bg-neutral-600 rounded-md text-sm"
+        >
+          A better PDF Viewer will be here soon.
         </div>
       </div>
     </pane>

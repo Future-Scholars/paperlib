@@ -9,7 +9,11 @@ import { createDecorator } from "@/base/injection/injection";
 import { constructFileURL, eraseProtocol } from "@/base/url";
 import { ILogService, LogService } from "@/common/services/log-service";
 import { OID } from "@/models/id";
-import { PaperEntity } from "@/models/paper-entity";
+import {
+  IPaperEntityCollection,
+  IPaperEntityObject,
+  PaperEntity,
+} from "@/models/paper-entity";
 import { PaperEntityCache, ThumbnailCache } from "@/models/paper-entity-cache";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
@@ -17,10 +21,6 @@ import {
   ICacheDatabaseCore,
 } from "@/service/services/database/cache-core";
 
-import {
-  IPaperEntityCollection,
-  IPaperEntityObject,
-} from "../repositories/db-repository/paper-entity-repository";
 import { FileService, IFileService } from "./file-service";
 
 export const ICacheService = createDecorator("cacheService");

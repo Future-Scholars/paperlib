@@ -1,4 +1,6 @@
 import { ObjectId } from "bson";
+import Realm, { List, Results } from "realm";
+
 import { OID } from "./id";
 
 export interface IFeedDraft {
@@ -67,3 +69,14 @@ export class Feed {
     return this;
   }
 }
+
+
+export type IFeedRealmObject = Feed &
+  Realm.Object<Feed, "_id" | "name" | "count" | "url">;
+
+export type IFeedObject = Feed | IFeedRealmObject;
+
+export type IFeedCollection =
+  | Results<IFeedObject>
+  | List<IFeedObject>
+  | Array<IFeedObject>;

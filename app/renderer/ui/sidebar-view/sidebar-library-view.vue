@@ -7,15 +7,16 @@ import {
   CategorizerType,
   PaperFolder,
   PaperTag,
+  ICategorizerCollection,
 } from "@/models/categorizer";
-import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
-import { ICategorizerCollection } from "@/service/repositories/db-repository/categorizer-repository";
-
-import { disposable } from "@/base/dispose";
 import {
+  PaperSmartFilter,
+  PaperSmartFilterType,
   IPaperSmartFilterCollection,
   IPaperSmartFilterObject,
-} from "@/service/repositories/db-repository/smartfilter-repository";
+} from "@/models/smart-filter";
+
+import { disposable } from "@/base/dispose";
 import TreeRoot from "./components/tree/tree-root.vue";
 import ItemRow from "./components/tree/item-row.vue";
 import Counter from "./components/counter.vue";
@@ -222,7 +223,9 @@ disposable(
     (newValue: { value: { data: string; type: PaperSmartFilterType } }) => {
       if (uiState.contentType === "library") {
         if (newValue.value.type === PaperSmartFilter.schema.name) {
-          PLAPI.smartFilterService.delete(newValue.value.type, [newValue.value.data]);
+          PLAPI.smartFilterService.delete(newValue.value.type, [
+            newValue.value.data,
+          ]);
         } else {
           PLAPI.categorizerService.delete(newValue.value.type as any, [
             newValue.value.data,

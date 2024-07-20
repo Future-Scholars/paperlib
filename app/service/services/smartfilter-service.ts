@@ -4,13 +4,16 @@ import { createDecorator } from "@/base/injection/injection";
 import { ILogService, LogService } from "@/common/services/log-service";
 import { Colors } from "@/models/categorizer";
 import { OID } from "@/models/id";
-import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
+import {
+  IPaperSmartFilterCollection,
+  IPaperSmartFilterRealmObject,
+  PaperSmartFilter,
+  PaperSmartFilterType,
+} from "@/models/smart-filter";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
 import {
-  IPaperSmartFilterCollection,
-  IPaperSmartFilterRealmObject,
   IPaperSmartFilterRepository,
   PaperSmartFilterRepository,
 } from "../repositories/db-repository/smartfilter-repository";

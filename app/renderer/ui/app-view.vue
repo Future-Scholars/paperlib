@@ -4,15 +4,15 @@ import { Ref, computed, nextTick, onMounted, provide, ref } from "vue";
 import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/base/loading";
 import { FeedEntityFilterOptions } from "@/base/filter";
-import { ICategorizerCollection } from "@/service/repositories/db-repository/categorizer-repository";
-import { IFeedEntityCollection } from "@/service/repositories/db-repository/feed-entity-repository";
-import { IFeedCollection } from "@/service/repositories/db-repository/feed-repository";
-import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
-import { IPaperSmartFilterCollection } from "@/service/repositories/db-repository/smartfilter-repository";
-import { PaperEntity } from "@/models/paper-entity";
+import { IFeedEntityCollection } from "@/models/feed-entity";
+import { IFeedCollection } from "@/models/feed";
+import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
 import { Process } from "@/base/process-id";
-import { CategorizerType } from "@/models/categorizer";
-import { PaperSmartFilterType } from "@/models/smart-filter";
+import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
+import {
+  PaperSmartFilterType,
+  IPaperSmartFilterCollection,
+} from "@/models/smart-filter";
 
 import DeleteConfirmView from "./delete-confirm-view/delete-confirm-view.vue";
 import DevView from "./dev-view/dev-view.vue";
@@ -78,6 +78,7 @@ const reloadPaperEntities = async () => {
       .join(" AND ");
   }
 
+  console.log(querySentence, fulltextQuerySetence);
   paperEntities.value = await PLAPI.paperService.load(
     querySentence,
     prefState.mainviewSortBy,
@@ -494,7 +495,7 @@ onMounted(async () => {
       leave-to-class="transform opacity-0"
     >
       <OverlayNotificationView v-if="uiState.overlayNoticationShown" />
-    </Transition> 
+    </Transition>
 
     <Transition
       enter-active-class="transition ease-out duration-75"

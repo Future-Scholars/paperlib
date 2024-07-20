@@ -13,13 +13,15 @@ import {
   PaperTag,
 } from "@/models/categorizer";
 import { OID } from "@/models/id";
-import { PaperEntity } from "@/models/paper-entity";
+import {
+  IPaperEntityCollection,
+  IPaperEntityObject,
+  PaperEntity,
+} from "@/models/paper-entity";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
 import {
-  IPaperEntityCollection,
-  IPaperEntityObject,
   IPaperEntityRepository,
   PaperEntityRepository,
 } from "../repositories/db-repository/paper-entity-repository";

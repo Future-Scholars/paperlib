@@ -1,4 +1,6 @@
 import { ObjectId } from "bson";
+import Realm, { List, Results } from "realm";
+
 import { OID } from "./id";
 
 export interface ICategorizerDraft {
@@ -116,3 +118,13 @@ export type CategorizerMenuItem = {
   name: string;
   id: OID;
 };
+
+export type ICategorizerRealmObject = Categorizer &
+  Realm.Object<Categorizer, "_id" | "name" | "color" | "children">;
+
+export type ICategorizerObject = Categorizer | ICategorizerRealmObject;
+
+export type ICategorizerCollection =
+  | Results<ICategorizerObject>
+  | List<ICategorizerObject>
+  | Array<ICategorizerObject>;

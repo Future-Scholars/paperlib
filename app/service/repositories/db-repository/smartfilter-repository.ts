@@ -1,10 +1,16 @@
-import Realm, { List, Results } from "realm";
+import Realm from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Colors } from "@/models/categorizer";
 import { OID } from "@/models/id";
-import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
+import {
+  IPaperSmartFilterCollection,
+  IPaperSmartFilterObject,
+  IPaperSmartFilterRealmObject,
+  PaperSmartFilter,
+  PaperSmartFilterType,
+} from "@/models/smart-filter";
 
 export const IPaperSmartFilterRepository = createDecorator(
   "paperSmartFilterRepository"
@@ -314,18 +320,3 @@ export class PaperSmartFilterRepository extends Eventable<ISmartFilterRepository
     }
   }
 }
-
-export type IPaperSmartFilterRealmObject = PaperSmartFilter &
-  Realm.Object<
-    PaperSmartFilter,
-    "_id" | "name" | "filter" | "color" | "children"
-  >;
-
-export type IPaperSmartFilterObject =
-  | PaperSmartFilter
-  | IPaperSmartFilterRealmObject;
-
-export type IPaperSmartFilterCollection =
-  | Results<IPaperSmartFilterObject>
-  | List<IPaperSmartFilterObject>
-  | Array<IPaperSmartFilterObject>;

@@ -5,8 +5,12 @@ import { FeedEntityFilterOptions } from "@/base/filter";
 import { createDecorator } from "@/base/injection/injection";
 import { ILogService, LogService } from "@/common/services/log-service";
 import { Colors } from "@/models/categorizer";
-import { Feed } from "@/models/feed";
-import { FeedEntity } from "@/models/feed-entity";
+import { Feed, IFeedCollection, IFeedObject } from "@/models/feed";
+import {
+  FeedEntity,
+  IFeedEntityCollection,
+  IFeedEntityObject,
+} from "@/models/feed-entity";
 import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
@@ -14,14 +18,10 @@ import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
 import {
   FeedEntityRepository,
-  IFeedEntityCollection,
-  IFeedEntityObject,
   IFeedEntityRepository,
 } from "../repositories/db-repository/feed-entity-repository";
 import {
   FeedRepository,
-  IFeedCollection,
-  IFeedObject,
   IFeedRepository,
 } from "../repositories/db-repository/feed-repository";
 import {
@@ -264,7 +264,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
       IFeedEntityCollection,
       IFeedEntityCollection
     >(
-      feeds,
+      feeds!,
       async (feed: IFeedObject) => {
         const feedEntityDrafts = await this._rssRepository.fetch(feed);
         return feedEntityDrafts;
@@ -278,7 +278,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     for (const i in feedEntityDraftListAndErrors.errors) {
       const error = feedEntityDraftListAndErrors.errors[i];
       this._logService.error(
-        `Failed to refresh feeds: ${feeds[i].name}`,
+        `Failed to refresh feeds: ${feeds![i].name}`,
         error as Error,
         true,
         "Feed"
@@ -354,7 +354,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     }
 
     const filter = new FeedEntityFilterOptions({
-      feedIds: feeds.map((feed: IFeedObject) => feed._id),
+      feedIds: feeds!.map((feed: IFeedObject) => feed._id),
     });
     const toBeDeletedEntities = this._feedEntityRepository.load(
       realm,

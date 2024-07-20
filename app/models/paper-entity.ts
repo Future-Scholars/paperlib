@@ -1,5 +1,6 @@
 import { ObjectId } from "bson";
 import Mathml2latex from "mathml-to-latex";
+import Realm, { List, Results } from "realm";
 
 import { ICategorizerDraft, PaperFolder, PaperTag } from "./categorizer";
 import { FeedEntity } from "./feed-entity";
@@ -220,3 +221,35 @@ export class PaperEntity {
     return this;
   }
 }
+
+export type IPaperEntityRealmObject = PaperEntity &
+  Realm.Object<
+    PaperEntity,
+    | "_id"
+    | "title"
+    | "authors"
+    | "publication"
+    | "pubTime"
+    | "pubType"
+    | "doi"
+    | "arxiv"
+    | "mainURL"
+    | "supURLs"
+    | "rating"
+    | "flag"
+    | "note"
+    | "codes"
+    | "volume"
+    | "number"
+    | "pages"
+    | "publisher"
+    | "tags"
+    | "folders"
+  >;
+
+export type IPaperEntityObject = PaperEntity | IPaperEntityRealmObject;
+
+export type IPaperEntityCollection =
+  | Results<IPaperEntityObject>
+  | List<IPaperEntityObject>
+  | Array<IPaperEntityObject>;

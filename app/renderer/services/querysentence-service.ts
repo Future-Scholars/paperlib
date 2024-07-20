@@ -2,14 +2,13 @@ import { DirectedGraph } from "graphology";
 
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
-import { CategorizerType } from "@/models/categorizer";
+import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
 import { OID } from "@/models/id";
-import { PaperSmartFilterType } from "@/models/smart-filter";
-import { ICategorizerCollection } from "@/service/repositories/db-repository/categorizer-repository";
 import {
   IPaperSmartFilterCollection,
   IPaperSmartFilterObject,
-} from "@/service/repositories/db-repository/smartfilter-repository";
+  PaperSmartFilterType,
+} from "@/models/smart-filter";
 
 export const IQuerySentenceService = createDecorator("querySentenceService");
 

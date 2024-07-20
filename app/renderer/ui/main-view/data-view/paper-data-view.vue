@@ -7,7 +7,7 @@ import { disposable } from "@/base/dispose";
 import { eraseProtocol } from "@/base/url";
 import { CategorizerMenuItem, CategorizerType } from "@/models/categorizer";
 import { FieldTemplate } from "@/renderer/types/data-view";
-import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityCollection } from "@/models/paper-entity";
 
 import ListView from "./components/list-view/list-view.vue";
 import TablePreviewView from "./components/table-view/table-preview-view.vue";

@@ -1,16 +1,17 @@
 import { ObjectId } from "bson";
-import Realm, { List, Results } from "realm";
+import Realm from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { FeedEntity } from "@/models/feed-entity";
-import { OID } from "@/models/id";
+import { IFeedCollection, IFeedRealmObject } from "@/models/feed";
 import {
-  FeedRepository,
-  IFeedCollection,
-  IFeedRealmObject,
-  IFeedRepository,
-} from "./feed-repository";
+  FeedEntity,
+  IFeedEntityCollection,
+  IFeedEntityObject,
+  IFeedEntityRealmObject,
+} from "@/models/feed-entity";
+import { OID } from "@/models/id";
+import { FeedRepository, IFeedRepository } from "./feed-repository";
 
 export interface IFeedEntityRepositoryState {
   count: number;
@@ -213,7 +214,7 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
           object._partition = partition;
         }
 
-        this._feedRepository.updateCount(realm, [feed]);
+        this._feedRepository.updateCount(realm, [feed!]);
 
         return object;
       } else {
@@ -221,10 +222,10 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
         if (partition) {
           feedEntity._partition = partition;
         }
-        feedEntity.feed = feed;
+        feedEntity.feed = feed!;
         const newObject = realm.create<FeedEntity>("FeedEntity", feedEntity);
 
-        this._feedRepository.updateCount(realm, [feed]);
+        this._feedRepository.updateCount(realm, [feed!]);
 
         return newObject;
       }
@@ -324,33 +325,3 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
     });
   }
 }
-
-export type IFeedEntityRealmObject = FeedEntity &
-  Realm.Object<
-    FeedEntity,
-    | "_id"
-    | "addTime"
-    | "feed"
-    | "feedTime"
-    | "title"
-    | "abstract"
-    | "authors"
-    | "publication"
-    | "pubTime"
-    | "pubType"
-    | "doi"
-    | "arxiv"
-    | "mainURL"
-    | "pages"
-    | "volume"
-    | "number"
-    | "publisher"
-    | "read"
-  >;
-
-export type IFeedEntityObject = FeedEntity | IFeedEntityRealmObject;
-
-export type IFeedEntityCollection =
-  | Results<IFeedEntityObject>
-  | List<IFeedEntityObject>
-  | Array<IFeedEntityObject>;

@@ -1,4 +1,5 @@
 import { ObjectId } from "bson";
+import Realm, { List, Results } from "realm";
 import { OID } from "./id";
 
 export interface IPaperSmartFilterDraft {
@@ -75,3 +76,18 @@ export class PaperSmartFilter {
 export enum PaperSmartFilterType {
   smartfilter = "PaperSmartFilter",
 }
+
+export type IPaperSmartFilterRealmObject = PaperSmartFilter &
+  Realm.Object<
+    PaperSmartFilter,
+    "_id" | "name" | "filter" | "color" | "children"
+  >;
+
+export type IPaperSmartFilterObject =
+  | PaperSmartFilter
+  | IPaperSmartFilterRealmObject;
+
+export type IPaperSmartFilterCollection =
+  | Results<IPaperSmartFilterObject>
+  | List<IPaperSmartFilterObject>
+  | Array<IPaperSmartFilterObject>;

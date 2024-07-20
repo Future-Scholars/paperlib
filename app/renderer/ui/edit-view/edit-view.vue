@@ -2,9 +2,8 @@
 import { BIconQuestionCircle } from "bootstrap-icons-vue";
 import { Ref, inject, onMounted, ref } from "vue";
 
-import { CategorizerType, PaperTag } from "@/models/categorizer";
+import { CategorizerType, PaperTag, ICategorizerCollection } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { ICategorizerCollection } from "@/service/repositories/db-repository/categorizer-repository";
 import { disposable } from "@/base/dispose";
 
 import CodesInput from "./components/codes-input.vue";

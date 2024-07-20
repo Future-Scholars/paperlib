@@ -7,7 +7,7 @@ import {
 import { Ref, inject } from "vue";
 
 import { Feed } from "@/models/feed";
-import { IFeedCollection } from "@/service/repositories/db-repository/feed-repository";
+import { IFeedCollection } from "@/models/feed";
 
 import { disposable } from "@/base/dispose";
 import CollopseGroup from "./components/collopse-group.vue";
@@ -97,7 +97,10 @@ disposable(
     "sidebarContextMenuColorClicked",
     (newValue: { value: { data: string; color: string } }) => {
       if (uiState.contentType === "feed") {
-        PLAPI.feedService.colorize(newValue.value.color as any, newValue.value.data);
+        PLAPI.feedService.colorize(
+          newValue.value.color as any,
+          newValue.value.data
+        );
       }
     }
   )

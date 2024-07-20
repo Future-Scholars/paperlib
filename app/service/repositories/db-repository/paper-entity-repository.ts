@@ -1,14 +1,13 @@
 import { ObjectId } from "bson";
-import Realm, { List, Results } from "realm";
+import Realm from "realm";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import { CategorizerType } from "@/models/categorizer";
+import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
 import { OID } from "@/models/id";
-import { PaperEntity } from "@/models/paper-entity";
+import { IPaperEntityCollection, IPaperEntityObject, IPaperEntityRealmObject, PaperEntity } from "@/models/paper-entity";
 import {
   CategorizerRepository,
-  ICategorizerCollection,
   ICategorizerRepository,
 } from "./categorizer-repository";
 
@@ -214,7 +213,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           );
         }
       });
-      
+
       if (object) {
         if (!allowUpdate) {
           return false;
@@ -367,35 +366,3 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     });
   }
 }
-
-export type IPaperEntityRealmObject = PaperEntity &
-  Realm.Object<
-    PaperEntity,
-    | "_id"
-    | "title"
-    | "authors"
-    | "publication"
-    | "pubTime"
-    | "pubType"
-    | "doi"
-    | "arxiv"
-    | "mainURL"
-    | "supURLs"
-    | "rating"
-    | "flag"
-    | "note"
-    | "codes"
-    | "volume"
-    | "number"
-    | "pages"
-    | "publisher"
-    | "tags"
-    | "folders"
-  >;
-
-export type IPaperEntityObject = PaperEntity | IPaperEntityRealmObject;
-
-export type IPaperEntityCollection =
-  | Results<IPaperEntityObject>
-  | List<IPaperEntityObject>
-  | Array<IPaperEntityObject>;
