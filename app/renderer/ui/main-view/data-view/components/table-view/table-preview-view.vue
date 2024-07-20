@@ -94,8 +94,10 @@ const emits = defineEmits([
       min-size="12"
       v-if="displayingURL"
     >
-      <div class="w-full h-full">
-        <iframe class="w-full h-full rounded-lg" :src="displayingURL" />
+      <div class="w-full h-full flex">
+        <div class="m-auto bg-neutral-200 py-1 px-2 dark:bg-neutral-600 rounded-md text-sm">
+        A better PDF Viewer will be here soon.
+        </div>
       </div>
     </pane>
   </splitpanes>

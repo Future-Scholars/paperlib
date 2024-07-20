@@ -65,7 +65,6 @@
     "mathml-to-latex": "1.2.0",
     "md5-file": "5.0.0",
     "p-timeout": "6.1.2",
-    "pdfjs-dist": "4.0.269",
     "pinia": "2.1.7",
     "playwright": "1.40.0",
     "postcss": "8.4.33",
