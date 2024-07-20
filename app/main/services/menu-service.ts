@@ -129,7 +129,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           {
             label: this._locales.t("menu.close"),
             click: () => {
-              PLMainAPI.windowProcessManagementService.hide(Process.renderer, true);
+              PLMainAPILocal.windowProcessManagementService.hide(Process.renderer, true);
             },
           },
         ],
@@ -260,14 +260,14 @@ export class MenuService extends Eventable<IMenuServiceState> {
     if (!globalShortcut.isRegistered(pluginKey as string)) {
       globalShortcut.register(pluginKey as string, async () => {
         if (
-          !PLMainAPI.windowProcessManagementService.browserWindows.has(
+          !PLMainAPILocal.windowProcessManagementService.browserWindows.has(
             "quickpasteProcess"
           )
         ) {
-          PLMainAPI.windowProcessManagementService.createQuickpasteRenderer();
+          PLMainAPILocal.windowProcessManagementService.createQuickpasteRenderer();
         }
 
-        PLMainAPI.windowProcessManagementService.browserWindows
+        PLMainAPILocal.windowProcessManagementService.browserWindows
           .get("quickpasteProcess")
           .show();
       });

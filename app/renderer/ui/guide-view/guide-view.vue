@@ -2,7 +2,7 @@
 import { PaperEntity } from "@/models/paper-entity";
 import { ref } from "vue";
 
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 const currentGuide = ref(0);
 
 const onClicked = (e: MouseEvent) => {

@@ -32,17 +32,17 @@ import SidebarView from "./sidebar-view.vue";
 const preferenceTab = ref("general");
 
 const onCloseClicked = () => {
-  PLUIAPI.uiStateService.setUIState({
+  PLUIAPILocal.uiStateService.setUIState({
     preferenceViewShown: false,
   });
 };
 
 disposable(
-  PLUIAPI.shortcutService.updateWorkingViewScope(
-    PLUIAPI.shortcutService.viewScope.OVERLAY
+  PLUIAPILocal.shortcutService.updateWorkingViewScope(
+    PLUIAPILocal.shortcutService.viewScope.OVERLAY
   )
 );
-disposable(PLUIAPI.shortcutService.register("Escape", onCloseClicked));
+disposable(PLUIAPILocal.shortcutService.register("Escape", onCloseClicked));
 
 const darkMode = ref(false);
 onMounted(async () => {

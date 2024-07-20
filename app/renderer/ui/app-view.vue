@@ -4,11 +4,11 @@ import { Ref, computed, nextTick, onMounted, provide, ref } from "vue";
 import { disposable } from "@/base/dispose";
 import { removeLoading } from "@/base/loading";
 import { FeedEntityFilterOptions } from "@/base/filter";
-import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
-import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
-import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
-import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
-import { IPaperSmartFilterCollection } from "@/repositories/db-repository/smartfilter-repository";
+import { ICategorizerCollection } from "@/service/repositories/db-repository/categorizer-repository";
+import { IFeedEntityCollection } from "@/service/repositories/db-repository/feed-entity-repository";
+import { IFeedCollection } from "@/service/repositories/db-repository/feed-repository";
+import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
+import { IPaperSmartFilterCollection } from "@/service/repositories/db-repository/smartfilter-repository";
 import { PaperEntity } from "@/models/paper-entity";
 import { Process } from "@/base/process-id";
 import { CategorizerType } from "@/models/categorizer";
@@ -31,7 +31,7 @@ import GuideView from "./guide-view/guide-view.vue";
 // State
 // ================================
 
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 const prefState = PLMainAPI.preferenceService.useState();
 
 // ================================
@@ -85,7 +85,7 @@ const reloadPaperEntities = async () => {
     fulltextQuerySetence
   );
 
-  PLUIAPI.uiStateService.fire({ entitiesReloaded: Date.now() });
+  PLUIAPILocal.uiStateService.fire({ entitiesReloaded: Date.now() });
 };
 disposable(
   PLAPI.paperService.on("updated", () => {
@@ -156,7 +156,7 @@ const reloadFeedEntities = async () => {
     prefState.mainviewSortBy,
     prefState.mainviewSortOrder
   );
-  PLUIAPI.uiStateService.fire({ entitiesReloaded: Date.now() });
+  PLUIAPILocal.uiStateService.fire({ entitiesReloaded: Date.now() });
 };
 disposable(PLAPI.feedService.on("entitiesUpdated", () => reloadFeedEntities()));
 
@@ -196,7 +196,7 @@ disposable(
 );
 
 disposable(
-  PLUIAPI.uiStateService.onChanged(
+  PLUIAPILocal.uiStateService.onChanged(
     [
       "selectedFeed",
       "contentType",
@@ -224,7 +224,7 @@ disposable(
   PLAPI.databaseService.on("dbInitializing", async () => {
     initStartTime = Date.now();
 
-    PLUIAPI.uiStateService.resetUIStates();
+    PLUIAPILocal.uiStateService.resetUIStates();
 
     paperEntities.value = [];
     tags.value = [];

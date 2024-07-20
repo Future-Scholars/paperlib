@@ -57,7 +57,7 @@ export class HookService {
     ...args: T
   ) {
     if (this._modifyHookPoints[hookName]) {
-      const extensionAPIExposed = await PLAPI.serviceRPCService.waitForAPI(
+      const extensionAPIExposed = await PLAPILocal.serviceRPCService.waitForAPI(
         Process.extension,
         "PLExtAPI",
         5000
@@ -75,7 +75,7 @@ export class HookService {
         processedArgs = await pTimeout(runHook(processedArgs), {
           milliseconds: timeout,
           fallback: () => {
-            PLAPI.logService.warn(
+            PLAPILocal.logService.warn(
               `Modify hook ${hookName} of extension ${hookID} timed out.`,
               "",
               true,
@@ -107,7 +107,7 @@ export class HookService {
     ...args: T
   ) {
     if (this._transformHookPoints[hookName]) {
-      const extensionAPIExposed = await PLAPI.serviceRPCService.waitForAPI(
+      const extensionAPIExposed = await PLAPILocal.serviceRPCService.waitForAPI(
         Process.extension,
         "PLExtAPI",
         5000
@@ -126,7 +126,7 @@ export class HookService {
         const promise = pTimeout(runHook(args), {
           milliseconds: timeout,
           fallback: () => {
-            PLAPI.logService.warn(
+            PLAPILocal.logService.warn(
               `Transform hook ${hookName} of extension ${hookID} timed out.`,
               "",
               true,
@@ -167,7 +167,7 @@ export class HookService {
 
     const runHook = async (args: any[]) => {
       try {
-        const extensionAPIExposed = await PLAPI.serviceRPCService.waitForAPI(
+        const extensionAPIExposed = await PLAPILocal.serviceRPCService.waitForAPI(
           Process.extension,
           "PLExtAPI",
           5000
@@ -228,7 +228,7 @@ export class HookService {
 
     const runHook = async (args: any[]) => {
       try {
-        const extensionAPIExposed = await PLAPI.serviceRPCService.waitForAPI(
+        const extensionAPIExposed = await PLAPILocal.serviceRPCService.waitForAPI(
           Process.extension,
           "PLExtAPI",
           5000

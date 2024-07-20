@@ -28,7 +28,7 @@ const infoText = ref<string>("");
 // Event Handler
 // ==============================
 const onCloseClicked = () => {
-  PLUIAPI.uiStateService.setUIState({ paperSmartFilterEditViewShown: false });
+  PLUIAPILocal.uiStateService.setUIState({ paperSmartFilterEditViewShown: false });
 };
 
 const onSaveClicked = async () => {
@@ -71,24 +71,24 @@ const constructFilter = () => {
 };
 
 disposable(
-  PLUIAPI.shortcutService.updateWorkingViewScope(
-    PLUIAPI.shortcutService.viewScope.OVERLAY
+  PLUIAPILocal.shortcutService.updateWorkingViewScope(
+    PLUIAPILocal.shortcutService.viewScope.OVERLAY
   )
 );
 
 disposable(
-  PLUIAPI.shortcutService.register(
+  PLUIAPILocal.shortcutService.register(
     "Escape",
     onCloseClicked,
     true,
     true,
-    PLUIAPI.shortcutService.viewScope.GLOBAL
+    PLUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
 
 onMounted(() => {
   editingPaperSmartFilterDraft.value.initialize(
-    PLUIAPI.uiStateService.getUIState("editingPaperSmartFilter")
+    PLUIAPILocal.uiStateService.getUIState("editingPaperSmartFilter")
   );
   selfName.value = editingPaperSmartFilterDraft.value.name.split("/").pop()!;
 

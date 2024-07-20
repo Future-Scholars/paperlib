@@ -22,7 +22,7 @@ const emits = defineEmits([
   "event:read-timeout-in-unread",
 ]);
 
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 const onAddClicked = () => {
   if (uiState.feedEntityAddingStatus === 0) {

@@ -101,7 +101,7 @@ export class UIStateService extends PiniaEventable<IUIStateServiceState> {
       commandBarSearchMode: "general",
 
       isDevMode: false,
-      os: window.electron.process.platform,
+      os: globalThis["window"]["electron"].process.platform,
 
       "processingState.general": 0,
     });
@@ -220,7 +220,7 @@ export class UIStateService extends PiniaEventable<IUIStateServiceState> {
       pluginLinkedFolder: "",
       commandBarText: "",
       commandBarSearchMode: "general",
-      os: window.electron.process.platform,
+      os: globalThis["window"]["electron"].process.platform,
     };
     this.fire(patch);
   }

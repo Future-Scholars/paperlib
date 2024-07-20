@@ -16,7 +16,7 @@ const emits = defineEmits(["event:delete"]);
 // ==============================
 // State
 // ==============================
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 const onClick = (e: MouseEvent, categorizerName: string) => {
   e.preventDefault();

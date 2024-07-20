@@ -4,17 +4,16 @@
     "./**/*",
     "../base/**/*",
     "../common/**/*",
-    "../extension/**/*",
     "../locales/**/*",
-    "../models/**/*",
-    "../repositories/**/*"
+    "../models/**/*"
   ],
   "compilerOptions": {
     "composite": true,
+    "types": ["../index.d.ts"],
+    "baseUrl": "../",
     "rootDir": "../",
-    "baseUrl": "../../",
     "paths": {
-      "@/*": ["app/*"]
+      "@/*": ["./*"]
     },
     "noUnusedParameters": false,
     "noUnusedLocals": false,

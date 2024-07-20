@@ -106,7 +106,7 @@ const editingExtension = ref<{
 
 const listenCallbacks: (() => void)[] = [];
 const showSettingView = async (id: string) => {
-  const PLExtAPIExposed = await PLUIAPI.rendererRPCService.waitForAPI(
+  const PLExtAPIExposed = await PLUIAPILocal.rendererRPCService.waitForAPI(
     Process.extension,
     "PLExtAPI",
     5000
@@ -224,7 +224,7 @@ const onOpenHomepageClicked = async (homepage?: string) => {
 
 onMounted(() => {
   nextTick(async () => {
-    const PLExtAPIExposed = await PLUIAPI.rendererRPCService.waitForAPI(
+    const PLExtAPIExposed = await PLUIAPILocal.rendererRPCService.waitForAPI(
       Process.extension,
       "PLExtAPI",
       5000

@@ -51,7 +51,7 @@ export class BrowserExtensionService {
         }
       } else if (parsedMessage.type === "version") {
         if (parsedMessage.value < "1.0.3") {
-          PLAPI.logService.warn(
+          PLAPILocal.logService.warn(
             `Browser extension requires an update.`,
             "",
             true,
@@ -148,7 +148,7 @@ export class BrowserExtensionService {
     ""
   )
   async askBrowserExtensionDownload(url: string) {
-    PLAPI.logService.info(
+    PLAPILocal.logService.info(
       `Ask browser extension ${this._browserExtensionVersion} to download.`,
       url,
       false,

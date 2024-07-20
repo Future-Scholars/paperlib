@@ -180,7 +180,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
           !(await this._fileService.access(paperEntityDraft.mainURL, false)) &&
           paperEntityDraft.mainURL
         ) {
-          PLAPI.logService.warn(
+          PLAPILocal.logService.warn(
             `File doesn't exist anymore.`,
             `${paperEntityDraft.mainURL}`,
             true,

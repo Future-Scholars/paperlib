@@ -39,7 +39,7 @@ export class ScrapeService extends Eventable<{}> {
   }
 
   private async _scrapeExtensionReady() {
-    const extensionAPIExposed = await PLAPI.serviceRPCService.waitForAPI(
+    const extensionAPIExposed = await PLAPILocal.serviceRPCService.waitForAPI(
       Process.extension,
       "PLExtAPI",
       5000

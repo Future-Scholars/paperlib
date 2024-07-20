@@ -15,7 +15,7 @@ const editingFeedDraft = ref<Feed>(new Feed());
 // Event Handler
 // ==============================
 const onCloseClicked = () => {
-  PLUIAPI.uiStateService.setUIState({ feedEditViewShown: false });
+  PLUIAPILocal.uiStateService.setUIState({ feedEditViewShown: false });
 };
 
 const onSaveClicked = async () => {
@@ -24,18 +24,18 @@ const onSaveClicked = async () => {
 };
 
 disposable(
-  PLUIAPI.shortcutService.updateWorkingViewScope(
-    PLUIAPI.shortcutService.viewScope.OVERLAY
+  PLUIAPILocal.shortcutService.updateWorkingViewScope(
+    PLUIAPILocal.shortcutService.viewScope.OVERLAY
   )
 );
 
 disposable(
-  PLUIAPI.shortcutService.register(
+  PLUIAPILocal.shortcutService.register(
     "Escape",
     onCloseClicked,
     true,
     true,
-    PLUIAPI.shortcutService.viewScope.GLOBAL
+    PLUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
 

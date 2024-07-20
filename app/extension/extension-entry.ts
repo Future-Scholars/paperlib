@@ -84,11 +84,11 @@ async function initialize() {
   });
   // 4.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
-    if (!globalThis["PLExtAPI"]) {
-      globalThis["PLExtAPI"] = {} as any;
+    if (!globalThis["PLExtAPILocal"]) {
+      globalThis["PLExtAPILocal"] = {} as any;
     }
     globalThis[key] = instance;
-    globalThis["PLExtAPI"][key] = instance;
+    globalThis["PLExtAPILocal"][key] = instance;
   }
 
   // ============================================================

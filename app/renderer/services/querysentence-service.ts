@@ -5,11 +5,11 @@ import { createDecorator } from "@/base/injection/injection";
 import { CategorizerType } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperSmartFilterType } from "@/models/smart-filter";
-import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
+import { ICategorizerCollection } from "@/service/repositories/db-repository/categorizer-repository";
 import {
   IPaperSmartFilterCollection,
   IPaperSmartFilterObject,
-} from "@/repositories/db-repository/smartfilter-repository";
+} from "@/service/repositories/db-repository/smartfilter-repository";
 
 export const IQuerySentenceService = createDecorator("querySentenceService");
 

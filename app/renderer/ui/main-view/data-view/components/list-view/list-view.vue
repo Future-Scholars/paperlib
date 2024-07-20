@@ -2,7 +2,7 @@
 import { PropType, ref } from "vue";
 
 import { PaperEntity } from "@/models/paper-entity";
-import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
 
 import PaperListItem from "./components/paper-list-item.vue";
 import { OID } from "@/models/id";
@@ -46,7 +46,7 @@ const props = defineProps({
 // State
 // ================
 const lastSelectedSingleIndex = ref<number>(-1);
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 // =================
 // Event handlers

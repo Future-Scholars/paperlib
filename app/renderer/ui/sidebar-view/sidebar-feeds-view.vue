@@ -7,7 +7,7 @@ import {
 import { Ref, inject } from "vue";
 
 import { Feed } from "@/models/feed";
-import { IFeedCollection } from "@/repositories/db-repository/feed-repository";
+import { IFeedCollection } from "@/service/repositories/db-repository/feed-repository";
 
 import { disposable } from "@/base/dispose";
 import CollopseGroup from "./components/collopse-group.vue";
@@ -42,9 +42,9 @@ const colorClass = (color?: string) => {
 // State
 // ================================
 const prefState = PLMainAPI.preferenceService.useState();
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 const feedState = PLAPI.feedService.useState();
-const processingState = PLUIAPI.uiStateService.processingState.useState();
+const processingState = PLUIAPILocal.uiStateService.processingState.useState();
 
 // ================================
 // Data

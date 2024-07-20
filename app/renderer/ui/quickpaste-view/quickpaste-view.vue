@@ -199,13 +199,13 @@ const checkLinkedFolder = async () => {
 };
 
 disposable(
-  PLQPUIAPI.shortcutService.updateWorkingViewScope(
-    PLQPUIAPI.shortcutService.viewScope.MAIN
+  PLQPUIAPILocal.shortcutService.updateWorkingViewScope(
+    PLQPUIAPILocal.shortcutService.viewScope.MAIN
   )
 );
 
 disposable(
-  PLQPUIAPI.shortcutService.register(
+  PLQPUIAPILocal.shortcutService.register(
     "ArrowDown",
     () => {
       selectedIndex.value = Math.min(
@@ -217,12 +217,12 @@ disposable(
     },
     true,
     true,
-    PLQPUIAPI.shortcutService.viewScope.GLOBAL
+    PLQPUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  PLQPUIAPI.shortcutService.register(
+  PLQPUIAPILocal.shortcutService.register(
     "ArrowUp",
     () => {
       selectedIndex.value = Math.max(0, selectedIndex.value - 1);
@@ -231,12 +231,12 @@ disposable(
     },
     true,
     true,
-    PLQPUIAPI.shortcutService.viewScope.GLOBAL
+    PLQPUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  PLQPUIAPI.shortcutService.register(
+  PLQPUIAPILocal.shortcutService.register(
     `${cmdOrCtrl}+Enter`,
     async () => {
       await exportSelectedCiteBodiesInFolder();
@@ -246,12 +246,12 @@ disposable(
     },
     true,
     true,
-    PLQPUIAPI.shortcutService.viewScope.GLOBAL
+    PLQPUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  PLQPUIAPI.shortcutService.register(
+  PLQPUIAPILocal.shortcutService.register(
     "Tab",
     () => {
       exportMode.value = exportMode.value === "BibTex" ? "PlainText" : "BibTex";
@@ -260,12 +260,12 @@ disposable(
     },
     true,
     true,
-    PLQPUIAPI.shortcutService.viewScope.GLOBAL
+    PLQPUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  PLQPUIAPI.shortcutService.register(
+  PLQPUIAPILocal.shortcutService.register(
     "Shift+Enter",
     async () => {
       await exportSelectedCiteKeys();
@@ -274,12 +274,12 @@ disposable(
     },
     true,
     true,
-    PLQPUIAPI.shortcutService.viewScope.GLOBAL
+    PLQPUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  PLQPUIAPI.shortcutService.register(
+  PLQPUIAPILocal.shortcutService.register(
     "Enter",
     async () => {
       await exportSelectedCiteBodies();
@@ -288,12 +288,12 @@ disposable(
     },
     true,
     true,
-    PLQPUIAPI.shortcutService.viewScope.GLOBAL
+    PLQPUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
 
 disposable(
-  PLQPUIAPI.shortcutService.register(
+  PLQPUIAPILocal.shortcutService.register(
     "Escape",
     async () => {
       searchText.value = "";
@@ -305,7 +305,7 @@ disposable(
     },
     true,
     true,
-    PLQPUIAPI.shortcutService.viewScope.GLOBAL
+    PLQPUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
 

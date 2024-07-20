@@ -88,11 +88,11 @@ async function initialize() {
   });
   // 4.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
-    if (!globalThis["PLAPI"]) {
-      globalThis["PLAPI"] = {} as any;
+    if (!globalThis["PLAPILocal"]) {
+      globalThis["PLAPILocal"] = {} as any;
     }
     globalThis[key] = instance;
-    globalThis["PLAPI"][key] = instance;
+    globalThis["PLAPILocal"][key] = instance;
   }
 
   // ============================================================

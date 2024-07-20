@@ -41,7 +41,7 @@ const props = defineProps({
 // ======================
 // State
 // ======================
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 // ==============================
 // Event Handler

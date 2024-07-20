@@ -9,13 +9,13 @@ import {
   PaperTag,
 } from "@/models/categorizer";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
-import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
+import { ICategorizerCollection } from "@/service/repositories/db-repository/categorizer-repository";
 
 import { disposable } from "@/base/dispose";
 import {
   IPaperSmartFilterCollection,
   IPaperSmartFilterObject,
-} from "@/repositories/db-repository/smartfilter-repository";
+} from "@/service/repositories/db-repository/smartfilter-repository";
 import TreeRoot from "./components/tree/tree-root.vue";
 import ItemRow from "./components/tree/item-row.vue";
 import Counter from "./components/counter.vue";
@@ -24,9 +24,9 @@ import Spinner from "@/renderer/ui/components/spinner.vue";
 // ================================
 // State
 // ================================
-const processingState = PLUIAPI.uiStateService.processingState.useState();
+const processingState = PLUIAPILocal.uiStateService.processingState.useState();
 const prefState = PLMainAPI.preferenceService.useState();
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 const paperState = PLAPI.paperService.useState();
 const editingItemId = ref("");
 
@@ -35,7 +35,7 @@ const editingItemId = ref("");
 // ================================
 const tags = inject<Ref<ICategorizerCollection>>("tags");
 const tagsViewTree = computed(() => {
-  return PLUIAPI.querySentenceService.parseViewTree(
+  return PLUIAPILocal.querySentenceService.parseViewTree(
     tags?.value || [],
     CategorizerType.PaperTag,
     prefState.sidebarSortBy,
@@ -45,7 +45,7 @@ const tagsViewTree = computed(() => {
 
 const folders = inject<Ref<ICategorizerCollection>>("folders");
 const foldersViewTree = computed(() => {
-  return PLUIAPI.querySentenceService.parseViewTree(
+  return PLUIAPILocal.querySentenceService.parseViewTree(
     folders?.value || [],
     CategorizerType.PaperFolder,
     prefState.sidebarSortBy,
@@ -56,7 +56,7 @@ const foldersViewTree = computed(() => {
 
 const smartfilters = inject<Ref<IPaperSmartFilterCollection>>("smartfilters");
 const smartfiltersViewTree = computed(() => {
-  return PLUIAPI.querySentenceService.parseViewTree(
+  return PLUIAPILocal.querySentenceService.parseViewTree(
     smartfilters?.value || [],
     PaperSmartFilterType.smartfilter,
     prefState.sidebarSortBy,

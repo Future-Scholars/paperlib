@@ -42,7 +42,7 @@ const emits = defineEmits(["event:click"]);
 // ================================
 // State
 // ================================
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 const prefState = PLMainAPI.preferenceService.useState();
 
 const isMaximized = ref(false);

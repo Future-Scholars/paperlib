@@ -52,11 +52,11 @@ async function initialize() {
   });
   // 3.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
-    if (!globalThis["PLMainAPI"]) {
-      globalThis["PLMainAPI"] = {} as any;
+    if (!globalThis["PLMainAPILocal"]) {
+      globalThis["PLMainAPILocal"] = {} as any;
     }
     globalThis[key] = instance;
-    globalThis["PLMainAPI"][key] = instance;
+    globalThis["PLMainAPILocal"][key] = instance;
   }
 
   // ============================================================
@@ -67,26 +67,26 @@ async function initialize() {
   // ============================================================
   // 5. Setup other things for the main process.
   app.on("window-all-closed", () => {
-    PLMainAPI.utilityProcessManagementService.close();
+    PLMainAPILocal.utilityProcessManagementService.close();
 
     if (process.platform !== "darwin") app.quit();
   });
 
   app.on("second-instance", () => {
     if (
-      PLMainAPI.windowProcessManagementService.browserWindows.has(
+      PLMainAPILocal.windowProcessManagementService.browserWindows.has(
         Process.renderer
       )
     ) {
       if (
-        PLMainAPI.windowProcessManagementService.browserWindows
+        PLMainAPILocal.windowProcessManagementService.browserWindows
           .get(Process.renderer)
           .isMinimized()
       ) {
-        PLMainAPI.windowProcessManagementService.browserWindows
+        PLMainAPILocal.windowProcessManagementService.browserWindows
           .get(Process.renderer)
           .restore();
-        PLMainAPI.windowProcessManagementService.browserWindows
+        PLMainAPILocal.windowProcessManagementService.browserWindows
           .get(Process.renderer)
           .focus();
       }
@@ -95,56 +95,56 @@ async function initialize() {
 
   app.on("activate", () => {
     if (
-      PLMainAPI.windowProcessManagementService.browserWindows.has(
+      PLMainAPILocal.windowProcessManagementService.browserWindows.has(
         Process.renderer
       )
     ) {
-      PLMainAPI.windowProcessManagementService.browserWindows
+      PLMainAPILocal.windowProcessManagementService.browserWindows
         .get(Process.renderer)
         .show();
-      PLMainAPI.windowProcessManagementService.browserWindows
+      PLMainAPILocal.windowProcessManagementService.browserWindows
         .get(Process.renderer)
         .focus();
     } else {
-      PLMainAPI.windowProcessManagementService.createMainRenderer();
+      PLMainAPILocal.windowProcessManagementService.createMainRenderer();
     }
   });
 
   // ============================================================
   // 6. Start the port exchange process.
-  PLMainAPI.windowProcessManagementService.on("requestPort", (v) => {
+  PLMainAPILocal.windowProcessManagementService.on("requestPort", (v) => {
     mainRPCService.initCommunication(
       v.value,
-      PLMainAPI.windowProcessManagementService.browserWindows,
-      PLMainAPI.utilityProcessManagementService.utlityProcesses
+      PLMainAPILocal.windowProcessManagementService.browserWindows,
+      PLMainAPILocal.utilityProcessManagementService.utlityProcesses
     );
   });
 
-  PLMainAPI.utilityProcessManagementService.on("requestPort", (v) => {
+  PLMainAPILocal.utilityProcessManagementService.on("requestPort", (v) => {
     mainRPCService.initCommunication(
       v.value,
-      PLMainAPI.windowProcessManagementService.browserWindows,
-      PLMainAPI.utilityProcessManagementService.utlityProcesses
+      PLMainAPILocal.windowProcessManagementService.browserWindows,
+      PLMainAPILocal.utilityProcessManagementService.utlityProcesses
     );
   });
 
   // ============================================================
   // 7. Once the main renderer process is ready, create the extension process.
-  PLMainAPI.utilityProcessManagementService.on("serviceReady", (v) => {
+  PLMainAPILocal.utilityProcessManagementService.on("serviceReady", (v) => {
     if (v.value === Process.service) {
-      PLMainAPI.utilityProcessManagementService.createExtensionProcess();
+      PLMainAPILocal.utilityProcessManagementService.createExtensionProcess();
       // ============================================================
       // 8. Create the main renderer process.
-      PLMainAPI.windowProcessManagementService.createMainRenderer();
+      PLMainAPILocal.windowProcessManagementService.createMainRenderer();
     }
   });
-  PLMainAPI.windowProcessManagementService.on("serviceReady", (v) => {
+  PLMainAPILocal.windowProcessManagementService.on("serviceReady", (v) => {
     if (v.value === Process.renderer) {
-      PLMainAPI.menuService.enableGlobalShortcuts();
+      PLMainAPILocal.menuService.enableGlobalShortcuts();
     }
   });
 
-  PLMainAPI.utilityProcessManagementService.createServiceProcess();
+  PLMainAPILocal.utilityProcessManagementService.createServiceProcess();
 }
 
 app.whenReady().then(() => {

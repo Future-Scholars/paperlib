@@ -191,7 +191,7 @@ disposable(
 );
 
 disposable(
-  PLUIAPI.uiStateService.on("renderRequired", () => {
+  PLUIAPILocal.uiStateService.on("renderRequired", () => {
     render();
   })
 );

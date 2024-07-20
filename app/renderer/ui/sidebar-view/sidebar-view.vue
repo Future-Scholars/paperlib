@@ -9,7 +9,7 @@ import WindowControlBar from "./components/window-control-bar.vue";
 import SidebarFeedsView from "./sidebar-feeds-view.vue";
 import SidebarLibraryView from "./sidebar-library-view.vue";
 
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 const onViewContentSwitch = (view: number) => {
   if (view === 0) {

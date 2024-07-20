@@ -5,7 +5,7 @@ import { disposable } from "@/base/dispose";
 // Event Handler
 // ======================
 const onClick = () => {
-  PLUIAPI.uiStateService.setUIState({ deleteConfirmShown: false });
+  PLUIAPILocal.uiStateService.setUIState({ deleteConfirmShown: false });
 };
 
 const onCancel = () => {
@@ -14,21 +14,21 @@ const onCancel = () => {
 
 const onConfirm = () => {
   const deleteIds = JSON.parse(
-    JSON.stringify(PLUIAPI.uiStateService.getUIState("selectedIds"))
+    JSON.stringify(PLUIAPILocal.uiStateService.getUIState("selectedIds"))
   );
-  PLUIAPI.uiStateService.setUIState({ selectedIndex: [] });
+  PLUIAPILocal.uiStateService.setUIState({ selectedIndex: [] });
   onClick();
   PLAPI.paperService.delete(deleteIds);
 };
 
 disposable(
-  PLUIAPI.shortcutService.updateWorkingViewScope(
-    PLUIAPI.shortcutService.viewScope.OVERLAY
+  PLUIAPILocal.shortcutService.updateWorkingViewScope(
+    PLUIAPILocal.shortcutService.viewScope.OVERLAY
   )
 );
 
-disposable(PLUIAPI.shortcutService.register("Escape", onCancel));
-disposable(PLUIAPI.shortcutService.register("Enter", onConfirm));
+disposable(PLUIAPILocal.shortcutService.register("Escape", onCancel));
+disposable(PLUIAPILocal.shortcutService.register("Enter", onConfirm));
 </script>
 
 <template>

@@ -79,11 +79,11 @@ async function initialize() {
   });
   // 4.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
-    if (!globalThis["PLUIAPI"]) {
-      globalThis["PLUIAPI"] = {} as any;
+    if (!globalThis["PLUIAPILocal"]) {
+      globalThis["PLUIAPILocal"] = {} as any;
     }
     globalThis[key] = instance;
-    globalThis["PLUIAPI"][key] = instance;
+    globalThis["PLUIAPILocal"][key] = instance;
   }
 
   // ============================================================

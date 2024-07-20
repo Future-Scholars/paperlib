@@ -9,7 +9,7 @@
   ],
   "compilerOptions": {
     "composite": true,
-    "types": ["electron-vite/node"],
+    "types": ["electron-vite/node", "../index.d.ts"],
     "baseUrl": "../",
     "rootDir": "../",
     "paths": {

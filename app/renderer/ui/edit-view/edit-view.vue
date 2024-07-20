@@ -4,7 +4,7 @@ import { Ref, inject, onMounted, ref } from "vue";
 
 import { CategorizerType, PaperTag } from "@/models/categorizer";
 import { PaperEntity } from "@/models/paper-entity";
-import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
+import { ICategorizerCollection } from "@/service/repositories/db-repository/categorizer-repository";
 import { disposable } from "@/base/dispose";
 
 import CodesInput from "./components/codes-input.vue";
@@ -53,7 +53,7 @@ const onCategorizerUpdated = (names: string[], type: CategorizerType) => {
 };
 
 const onCloseClicked = () => {
-  PLUIAPI.uiStateService.setUIState({ editViewShown: false });
+  PLUIAPILocal.uiStateService.setUIState({ editViewShown: false });
 };
 
 const onSaveClicked = async () => {
@@ -75,46 +75,46 @@ const onSaveAndScrapeClicked = async () => {
 };
 
 disposable(
-  PLUIAPI.shortcutService.updateWorkingViewScope(
-    PLUIAPI.shortcutService.viewScope.OVERLAY
+  PLUIAPILocal.shortcutService.updateWorkingViewScope(
+    PLUIAPILocal.shortcutService.viewScope.OVERLAY
   )
 );
 
 disposable(
-  PLUIAPI.shortcutService.register(
+  PLUIAPILocal.shortcutService.register(
     "Escape",
     onCloseClicked,
     true,
     true,
-    PLUIAPI.shortcutService.viewScope.GLOBAL
+    PLUIAPILocal.shortcutService.viewScope.GLOBAL
   )
 );
-if (PLUIAPI.uiStateService.getUIState("os") === "darwin") {
+if (PLUIAPILocal.uiStateService.getUIState("os") === "darwin") {
   disposable(
-    PLUIAPI.shortcutService.register(
+    PLUIAPILocal.shortcutService.register(
       "Command+S",
       onSaveClicked,
       true,
       true,
-      PLUIAPI.shortcutService.viewScope.GLOBAL
+      PLUIAPILocal.shortcutService.viewScope.GLOBAL
     )
   );
 } else {
   disposable(
-    PLUIAPI.shortcutService.register(
+    PLUIAPILocal.shortcutService.register(
       "Control+S",
       onSaveClicked,
       true,
       true,
 
-      PLUIAPI.shortcutService.viewScope.GLOBAL
+      PLUIAPILocal.shortcutService.viewScope.GLOBAL
     )
   );
 }
 
 onMounted(() => {
   editingPaperEntityDraft.value.initialize(
-    PLUIAPI.uiStateService.getUIState("selectedPaperEntities")[0]
+    PLUIAPILocal.uiStateService.getUIState("selectedPaperEntities")[0]
   );
 });
 </script>

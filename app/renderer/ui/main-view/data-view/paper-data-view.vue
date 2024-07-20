@@ -7,7 +7,7 @@ import { disposable } from "@/base/dispose";
 import { eraseProtocol } from "@/base/url";
 import { CategorizerMenuItem, CategorizerType } from "@/models/categorizer";
 import { FieldTemplate } from "@/renderer/types/data-view";
-import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
 
 import ListView from "./components/list-view/list-view.vue";
 import TablePreviewView from "./components/table-view/table-preview-view.vue";
@@ -17,7 +17,7 @@ import TableView from "./components/table-view/table-view.vue";
 // State
 // ================================
 const prefState = PLMainAPI.preferenceService.useState();
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 const i18n = useI18n();
 
@@ -119,7 +119,7 @@ const onItemClicked = async (selectedIndex: number[]) => {
 };
 
 disposable(
-  PLUIAPI.uiStateService.onChanged(
+  PLUIAPILocal.uiStateService.onChanged(
     "selectedIndex",
     async (newValue: { value: number[] }) => {
       const selectedIndex = newValue.value;

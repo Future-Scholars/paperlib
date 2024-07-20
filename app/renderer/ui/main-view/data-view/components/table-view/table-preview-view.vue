@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PropType } from "vue";
 
-import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
+import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
 import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableView from "./table-view.vue";

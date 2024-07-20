@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { isEqual } from "lodash";
 
 import { disposable } from "@/base/dispose";
-import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
+import { IFeedEntityCollection } from "@/service/repositories/db-repository/feed-entity-repository";
 import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableView from "./components/table-view/table-view.vue";
@@ -13,7 +13,7 @@ import TableView from "./components/table-view/table-view.vue";
 // State
 // ================================
 const prefState = PLMainAPI.preferenceService.useState();
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 const i18n = useI18n();
 

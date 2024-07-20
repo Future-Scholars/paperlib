@@ -90,7 +90,7 @@ const installExtension = async (id: string) => {
 
 onMounted(() => {
   nextTick(async () => {
-    const PLExtAPIExposed = await PLUIAPI.rendererRPCService.waitForAPI(
+    const PLExtAPIExposed = await PLUIAPILocal.rendererRPCService.waitForAPI(
       Process.extension,
       "PLExtAPI",
       5000

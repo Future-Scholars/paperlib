@@ -4,7 +4,7 @@ import { onMounted, ref } from "vue";
 
 import Toggle from "./components/toggle.vue";
 
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 const version = ref("");
 

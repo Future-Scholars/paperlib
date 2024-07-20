@@ -2,8 +2,8 @@
 import { PropType, ref } from "vue";
 
 import { OID } from "@/models/id";
-import { IFeedEntityCollection } from "@/repositories/db-repository/feed-entity-repository";
-import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
+import { IFeedEntityCollection } from "@/service/repositories/db-repository/feed-entity-repository";
+import { IPaperEntityCollection } from "@/service/repositories/db-repository/paper-entity-repository";
 import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableItem from "./components/table-item.vue";
@@ -48,7 +48,7 @@ const props = defineProps({
 // ================
 // State
 const lastSelectedSingleIndex = ref<number>(-1);
-const uiState = PLUIAPI.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 // =================
 // Event handlers
