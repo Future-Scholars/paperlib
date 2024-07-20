@@ -49,8 +49,6 @@ const renderFromFile = async () => {
       height: canvas.height,
     });
 
-    console.log(thumbnailBuffer.buffer);
-
     await renderCanvas(thumbnailBuffer, canvas.width, canvas.height);
   }
 

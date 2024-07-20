@@ -60,7 +60,6 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     this.browserWindows = new WindowStorage();
 
     ipcMain.on("request-port", (event, senderID) => {
-      console.log("request-port", senderID)
       this.fire({ requestPort: senderID });
     });
   }
@@ -459,7 +458,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
   private _constructEntryURL(url: string) {
     // Is absolute path
-    if (path.isAbsolute(url)) {
+    if (path.isAbsolute(url) || url.startsWith("http")) {
       return url;
     }
 
@@ -468,10 +467,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
     } else if (process.env.NODE_ENV === "test") {
       return fileURLToPath(new URL(url, import.meta.url));
     } else {
-
-      console.log(url)
       const href = new URL(url, process.env.ELECTRON_RENDERER_URL).href;
-      console.log(href)
       return href;
     }
   }

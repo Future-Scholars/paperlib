@@ -75,7 +75,9 @@ async function initialize() {
 
   // ============================================================
   // 4. Create the instances for all services, tools, etc. of the current process.
-  const injectionContainer = new InjectionContainer();
+  const injectionContainer = new InjectionContainer({
+    extensionRPCService,
+  });
 
   const instances = injectionContainer.createInstance<IInjectable>({
     extensionManagementService: ExtensionManagementService,
@@ -87,15 +89,20 @@ async function initialize() {
     if (!globalThis["PLExtAPILocal"]) {
       globalThis["PLExtAPILocal"] = {} as any;
     }
+    if (!globalThis["PLExtAPI"]) {
+      globalThis["PLExtAPI"] = {} as any;
+    }
+
     globalThis[key] = instance;
     globalThis["PLExtAPILocal"][key] = instance;
+    globalThis["PLExtAPI"][key] = instance;
   }
 
   // ============================================================
   // 5. Set actionors for RPC service with all initialized services.
   //    Expose the APIs of the current process to other processes
-  extensionRPCService.setActionor(instances);
-  await PLExtAPI.extensionManagementService.initialize();
+  PLExtAPILocal.extensionRPCService.setActionor(instances);
+  await PLExtAPILocal.extensionManagementService.initialize();
 
   process.parentPort.postMessage({
     type: "service-ready",

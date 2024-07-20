@@ -6,7 +6,6 @@ import WhatsNewHeader from "./header.vue";
 const preState = PLMainAPI.preferenceService.useState();
 
 const hide = async () => {
-  console.log(await PLMainAPI.upgradeService.currentVersion());
   PLMainAPI.preferenceService.set({
     lastVersion: await PLMainAPI.upgradeService.currentVersion(),
   });

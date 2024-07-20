@@ -106,7 +106,7 @@ const registerShortcut = () => {
   onInput();
 
   disposeCallbacks.push(
-    shortcutService.register(
+    PLUIAPILocal.shortcutService.register(
       "Enter",
       () => {
         if (selectedIndex.value >= 0) {
@@ -118,11 +118,11 @@ const registerShortcut = () => {
       },
       true,
       true,
-      shortcutService.viewScope.INPUT
+      PLUIAPILocal.shortcutService.viewScope.INPUT
     )
   );
   disposeCallbacks.push(
-    shortcutService.register(
+    PLUIAPILocal.shortcutService.register(
       "ArrowUp",
       () => {
         if (selectedIndex.value > 0) {
@@ -136,11 +136,11 @@ const registerShortcut = () => {
       },
       true,
       true,
-      shortcutService.viewScope.INPUT
+      PLUIAPILocal.shortcutService.viewScope.INPUT
     )
   );
   disposeCallbacks.push(
-    shortcutService.register(
+    PLUIAPILocal.shortcutService.register(
       "ArrowDown",
       () => {
         if (selectedIndex.value < filteredOptions.value.length - 1) {
@@ -154,7 +154,7 @@ const registerShortcut = () => {
       },
       true,
       true,
-      shortcutService.viewScope.INPUT
+      PLUIAPILocal.shortcutService.viewScope.INPUT
     )
   );
 };

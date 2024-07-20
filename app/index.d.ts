@@ -79,6 +79,7 @@ interface PLUIAPIShape {
 export interface PLExtAPIShape {
   extensionManagementService: Proxied<ExtensionManagementService>;
   extensionPreferenceService: Proxied<ExtensionPreferenceService>;
+  extensionRPCService: Proxied<UtilityProcessRPCService>;
   networkTool: Proxied<NetworkTool>;
 }
 
@@ -125,6 +126,7 @@ export interface PLUIAPILocalShape {
 export interface PLExtAPILocalShape {
   extensionManagementService: ExtensionManagementService;
   extensionPreferenceService: ExtensionPreferenceService;
+  extensionRPCService: UtilityProcessRPCService;
   networkTool: NetworkTool;
 }
 

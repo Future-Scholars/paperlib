@@ -13,7 +13,7 @@
     "typecheck:service": "tsc --noEmit -p ./app/service/tsconfig.json --composite false",
     "typecheck:extension": "tsc --noEmit -p ./app/extension/tsconfig.json --composite false",
     "typecheck:renderer": "vue-tsc --noEmit -p ./app/renderer/tsconfig.json --composite false",
-    "typecheck": "vue-tsc --noEmit -p ./app/renderer/tsconfig.json --composite false && tsc --noEmit -p ./app/service/tsconfig.json --composite false && tsc --noEmit -p ./app/main/tsconfig.json --composite false  && tsc --noEmit -p ./app/preload/tsconfig.json --composite false",
+    "typecheck": "pnpm run typecheck:app && pnpm run typecheck:main && pnpm run typecheck:service && pnpm run typecheck:extension && pnpm run typecheck:renderer",
     "build-mac-arm": "vue-tsc --noEmit && vite build && electron-builder --config ./build_configs/electron-builder.mac.arm.json5",
     "build-mac-x86": "vue-tsc --noEmit && vite build && electron-builder --config ./build_configs/electron-builder.mac.json5",
     "build-win": "vue-tsc --noEmit && vite build && electron-builder --config ./build_configs/electron-builder.win.json5",
@@ -25,7 +25,6 @@
     "dev-build": "vite build && electron-builder --config ./build_configs/electron-builder.mac.arm.json5",
     "test:e2e": "vue-tsc --noEmit && vite build && vitest run",
     "test:e2e-dev": "vite build && vitest run",
-    "generate:api-types": "vite build --config ./app/api/vite.config.ts",
     "generate:public-api-types": "vite build --config ./paperlib-api/vite.config.ts"
   },
   "engines": {

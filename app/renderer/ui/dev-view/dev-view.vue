@@ -4,11 +4,6 @@ import { nextTick, onMounted, ref } from "vue";
 import { Process } from "@/base/process-id";
 
 // ================================
-// State
-// ================================
-const uiState = uiStateService.useState();
-
-// ================================
 // Data
 // ================================
 const installedExtensions = ref<{
@@ -55,7 +50,7 @@ const emits = defineEmits([
 
 onMounted(async () => {
   nextTick(async () => {
-    const extAPIExposed = await rendererRPCService.waitForAPI(
+    const extAPIExposed = await PLUIAPILocal.rendererRPCService.waitForAPI(
       Process.extension,
       "PLExtAPI",
       5000

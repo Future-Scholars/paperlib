@@ -266,6 +266,8 @@ export enum ProcessingKey {
   General = "general",
 }
 
+
+// TODO: move this to common
 /**
  * Processing decorator for a method. It will increment the processing count and decrement it when the method is done
  * to trigger something such as a spinner.

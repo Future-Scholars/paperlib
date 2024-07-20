@@ -1,6 +1,4 @@
 declare global {
-  var PLUIAPI: undefined;
-
   interface Window {
     electron: ElectronAPI;
   }
@@ -9,4 +7,9 @@ declare global {
 declare module "*.png?asset" {
   const src: string;
   export default src;
+}
+
+declare module "*?modulePath" {
+  const path: string;
+  export default path;
 }

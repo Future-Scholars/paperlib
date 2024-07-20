@@ -4,7 +4,7 @@ const props = defineProps({
 });
 
 // TODO: check if we really need uiState. can we get/set state with api
-const uiState = PLUIAPILocalLocal.uiStateService.useState();
+const uiState = PLUIAPILocal.uiStateService.useState();
 
 const onClick = (e: MouseEvent, author: string) => {
   e.preventDefault();
