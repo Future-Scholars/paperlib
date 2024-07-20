@@ -20,6 +20,7 @@ import TreeRoot from "./components/tree/tree-root.vue";
 import ItemRow from "./components/tree/item-row.vue";
 import Counter from "./components/counter.vue";
 import Spinner from "@/renderer/ui/components/spinner.vue";
+import { useDeleteConfirmView } from "@/renderer/ui/delete-confirm-view/useDeleteConfirmView.ts";
 
 // ================================
 // State
@@ -29,6 +30,8 @@ const prefState = preferenceService.useState();
 const uiState = uiStateService.useState();
 const paperState = paperService.useState();
 const editingItemId = ref("");
+
+const { confirm: openDeleteConfirmView } = useDeleteConfirmView();
 
 // ================================
 // Data
@@ -84,16 +87,18 @@ const onSelect = (payload: {
       uiState.selectedQuerySentenceIds.includes(payload._id) &&
       uiState.selectedQuerySentenceIds.length > 1
     ) {
-      uiState.selectedQuerySentenceIds = uiState.selectedQuerySentenceIds.filter(
-        (id) => id !== payload._id
-      );
+      uiState.selectedQuerySentenceIds =
+        uiState.selectedQuerySentenceIds.filter((id) => id !== payload._id);
 
-      uiState.querySentencesSidebar = Array.from(uiState.querySentencesSidebar.filter(
-        (query) => query !== payload.query
-      ));
+      uiState.querySentencesSidebar = Array.from(
+        uiState.querySentencesSidebar.filter((query) => query !== payload.query)
+      );
     } else {
       uiState.selectedQuerySentenceIds.push(payload._id);
-      uiState.querySentencesSidebar = [...uiState.querySentencesSidebar, payload.query];
+      uiState.querySentencesSidebar = [
+        ...uiState.querySentencesSidebar,
+        payload.query,
+      ];
     }
   } else {
     // Single selection
@@ -211,12 +216,18 @@ const onContextMenu = (
 disposable(
   PLMainAPI.contextMenuService.on(
     "sidebarContextMenuDeleteClicked",
-    (newValue: { value: { data: string; type: PaperSmartFilterType } }) => {
+    async (newValue: {
+      value: { data: string; type: PaperSmartFilterType };
+    }) => {
+      const isConfirmed = await openDeleteConfirmView();
+      if (!isConfirmed) return;
       if (uiState.contentType === "library") {
         if (newValue.value.type === PaperSmartFilter.schema.name) {
-          smartFilterService.delete(newValue.value.type, [newValue.value.data]);
+          await smartFilterService.delete(newValue.value.type, [
+            newValue.value.data,
+          ]);
         } else {
-          categorizerService.delete(newValue.value.type as any, [
+          await categorizerService.delete(newValue.value.type as any, [
             newValue.value.data,
           ]);
         }

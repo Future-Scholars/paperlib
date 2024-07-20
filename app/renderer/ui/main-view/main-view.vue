@@ -44,7 +44,7 @@ const dataView: Ref<HTMLElement | null> = ref(null);
 
 let disposeCallbacks: (() => void)[] = [];
 
-const { confirm: openDeleteConfirmModal } = useDeleteConfirmView();
+const { confirm: openDeleteConfirmView } = useDeleteConfirmView();
 
 //Prevent space bar from scrolling page
 disposable(
@@ -362,7 +362,8 @@ const removeSelectedEntitiesFrom = (
 };
 
 const deleteSelectedLibrary = async () => {
-  await openDeleteConfirmModal();
+  const isConfirmed = await openDeleteConfirmView();
+  if (!isConfirmed) return;
   const deleteIds = JSON.parse(JSON.stringify(uiState.selectedIds));
   uiState.selectedIndex = [];
   await paperService.delete(deleteIds);

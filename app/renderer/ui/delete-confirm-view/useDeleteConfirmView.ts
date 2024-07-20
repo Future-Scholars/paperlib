@@ -23,13 +23,13 @@ export function useDeleteConfirmView() {
   const eventBus = useEventBus();
   function confirm() {
     uiState.deleteConfirmShown = true;
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       eventBus.on(RESOLVE_EVENT, () => {
-        resolve("confirm delete confirm view");
+        resolve(true);
         uiState.deleteConfirmShown = false;
       });
       eventBus.on(REJECT_EVENT, () => {
-        reject("cancel delete confirm view");
+        resolve(false);
         uiState.deleteConfirmShown = false;
       });
     }).finally(() => {
