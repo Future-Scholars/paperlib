@@ -127,12 +127,11 @@ export class UIStateService extends PiniaEventable<IUIStateServiceState> {
 
     // =========================================
     // Theme Listener
-    // TODO: we need to do it in the renderer process
-    // window
-    //   .matchMedia("(prefers-color-scheme: dark)")
-    //   .addEventListener("change", (event) => {
-    //     this.setState({ renderRequired: Date.now() });
-    //   });
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (event) => {
+        this.setState({ renderRequired: Date.now() });
+      });
   }
 
   /**

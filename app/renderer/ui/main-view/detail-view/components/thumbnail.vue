@@ -9,7 +9,6 @@ import { ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { PaperEntity } from "@/models/paper-entity";
-import { ThumbnailCache } from "@/models/paper-entity-cache";
 
 const props = defineProps({
   entity: {
