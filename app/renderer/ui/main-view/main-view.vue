@@ -20,6 +20,7 @@ import WindowMenuBar from "./menubar-view/window-menu-bar.vue";
 import { Process } from "@/base/process-id.ts";
 import { cmdOrCtrl, ShortcutEvent } from "@/common/utils.ts";
 import CandidateView from "./candidate-view/candidate-view.vue";
+import { useConfirmView } from "../delete-confirm-view/useConfirmView.ts";
 
 // ================================
 // State
@@ -42,6 +43,8 @@ const feedEntities = inject<Ref<IFeedEntityCollection>>("feedEntities");
 const dataView: Ref<HTMLElement | null> = ref(null);
 
 let disposeCallbacks: (() => void)[] = [];
+
+const { confirm: openConfirmModal } = useConfirmView();
 
 //Prevent space bar from scrolling page
 disposable(
@@ -358,9 +361,16 @@ const removeSelectedEntitiesFrom = (
   }
 };
 
+const deleteSelectedLibrary = async () => {
+  await openConfirmModal();
+  const deleteIds = JSON.parse(JSON.stringify(uiState.selectedIds));
+  uiState.selectedIndex = [];
+  await paperService.delete(deleteIds);
+};
+
 const deleteSelectedEntities = () => {
   if (uiState.contentType === "library") {
-    uiState.deleteConfirmShown = true;
+    deleteSelectedLibrary();
   }
 };
 
