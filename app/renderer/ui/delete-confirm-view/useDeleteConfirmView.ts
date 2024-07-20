@@ -33,7 +33,8 @@ export function useDeleteConfirmView() {
         uiState.deleteConfirmShown = false;
       });
     }).finally(() => {
-      eventBus.all.clear();
+      eventBus.off(RESOLVE_EVENT);
+      eventBus.off(REJECT_EVENT);
     });
   }
   return { confirm };
