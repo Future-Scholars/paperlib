@@ -230,6 +230,7 @@ export class UIStateService extends PiniaEventable<IUIStateServiceState> {
    * @param key - key of the processing state
    */
   increaseProcessingState(key: ProcessingKey) {
+    console.log("increaseProcessingState", key);
     this.processingState.setUIState({
       [key]: this.processingState.getUIState(key) + 1,
     });
@@ -240,13 +241,14 @@ export class UIStateService extends PiniaEventable<IUIStateServiceState> {
    * @param key - key of the processing state
    */
   decreaseProcessingState(key: ProcessingKey) {
+    console.log("decreaseProcessingState", key);
     this.processingState.setUIState({
       [key]: this.processingState.getUIState(key) - 1,
     });
   }
 }
 
-class SubStateGroup<T extends IEventState> extends Eventable<T> {
+class SubStateGroup<T extends IEventState> extends PiniaEventable<T> {
   constructor(stateID: string, defaultState: T) {
     super(stateID, defaultState);
   }
@@ -265,7 +267,6 @@ class SubStateGroup<T extends IEventState> extends Eventable<T> {
 export enum ProcessingKey {
   General = "general",
 }
-
 
 // TODO: move this to common
 /**
@@ -313,14 +314,10 @@ export function processing(key: ProcessingKey) {
           PLUIAPI.uiStateService.processingState.increaseProcessingState(key);
           try {
             const results = originalMethod.apply(this, args);
-            PLUIAPI.uiStateService.processingState.setUIState({
-              [key]: PLUIAPI.uiStateService.decreaseProcessingState(key),
-            });
+            PLUIAPI.uiStateService.decreaseProcessingState(key);
             return results;
           } catch (error) {
-            PLUIAPI.uiStateService.processingState.setUIState({
-              [key]: PLUIAPI.uiStateService.decreaseProcessingState(key),
-            });
+            PLUIAPI.uiStateService.decreaseProcessingState(key);
             throw error;
           }
         } else {
