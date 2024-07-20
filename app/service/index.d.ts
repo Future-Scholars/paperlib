@@ -1,9 +1,9 @@
-import { NetworkTool } from "@/base/network";
 import { Proxied } from "@/base/rpc/proxied";
 import { RendererProcessRPCService } from "@/base/rpc/rpc-service-renderer";
 import { UtilityProcessRPCService } from "@/base/rpc/rpc-service-utility";
 import { LogService } from "@/common/services/log-service";
 
+import { NetworkTool } from "@/extension/base/network";
 import { ExtensionManagementService } from "@/extension/services/extension-management-service";
 import { ExtensionPreferenceService } from "@/extension/services/extension-preference-service";
 
@@ -12,10 +12,10 @@ import { FileSystemService } from "@/main/services/filesystem-service";
 import { MenuService } from "@/main/services/menu-service";
 import { PreferenceService } from "@/main/services/preference-service";
 import { ProxyService } from "@/main/services/proxy-service";
+import { SystemService } from "@/main/services/system-service";
 import { UpgradeService } from "@/main/services/upgrade-service";
 import { UtilityProcessManagementService } from "@/main/services/utility-process-management-service";
 import { WindowProcessManagementService } from "@/main/services/window-process-management-service";
-import { SystemService } from "@/main/services/system-service";
 
 import { CommandService } from "@/renderer/services/command-service";
 import { QuerySentenceService } from "@/renderer/services/querysentence-service";
@@ -87,15 +87,4 @@ declare global {
   var PLMainAPI: PLMainAPIShape;
   var PLExtAPI: PLExtAPIShape;
   var PLUIAPI: PLUIAPIShape;
-
-  interface Realm {
-    safeWrite: <T>(callback: () => T) => T;
-    paperEntityListened: boolean;
-    tagsListened: boolean;
-    foldersListened: boolean;
-    smartfilterListened: boolean;
-    querySentenceListened: { [key: string]: boolean };
-    feedEntityListened: boolean;
-    feedListened: boolean;
-  }
 }

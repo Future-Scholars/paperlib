@@ -10,7 +10,7 @@ import {
   IFeedCollection,
   IFeedRealmObject,
   IFeedRepository,
-} from "@/repositories/db-repository/feed-repository";
+} from "./feed-repository";
 
 export interface IFeedEntityRepositoryState {
   count: number;

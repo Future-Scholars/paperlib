@@ -5,8 +5,7 @@ import * as semVer from "semver";
 import * as tar from "tar";
 import urlJoin from "url-join";
 
-import { NetworkTool } from "@/base/network";
-
+import { NetworkTool } from "../base/network";
 import * as fs from "./fs-ops";
 import { PackageInfo } from "./package-info";
 
@@ -57,7 +56,7 @@ export class NpmRegistryClient {
     }
 
     // find correct version
-    let pInfo = data.versions[version];
+    let pInfo = data.versions[version!];
     if (!pInfo) {
       // find compatible version
       for (const pVersion in data.versions) {

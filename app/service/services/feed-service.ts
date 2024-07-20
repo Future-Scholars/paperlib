@@ -1,5 +1,4 @@
 import { chunkRun } from "@/base/chunk";
-import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { FeedEntityFilterOptions } from "@/base/filter";
@@ -11,22 +10,24 @@ import { FeedEntity } from "@/models/feed-entity";
 import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
+import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
+
 import {
   FeedEntityRepository,
   IFeedEntityCollection,
   IFeedEntityObject,
   IFeedEntityRepository,
-} from "@/repositories/db-repository/feed-entity-repository";
+} from "../repositories/db-repository/feed-entity-repository";
 import {
   FeedRepository,
   IFeedCollection,
   IFeedObject,
   IFeedRepository,
-} from "@/repositories/db-repository/feed-repository";
+} from "../repositories/db-repository/feed-repository";
 import {
   IRSSRepository,
   RSSRepository,
-} from "@/repositories/rss-repository/rss-repository";
+} from "../repositories/rss-repository/rss-repository";
 import { IPaperService, PaperService } from "./paper-service";
 import { ISchedulerService, SchedulerService } from "./scheduler-service";
 import { IScrapeService, ScrapeService } from "./scrape-service";

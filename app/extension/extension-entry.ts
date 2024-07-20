@@ -6,10 +6,10 @@ import { Process } from "@/base/process-id";
 import { UtilityProcessRPCService } from "@/base/rpc/rpc-service-utility";
 import { LogService } from "@/common/services/log-service";
 
+import { NetworkTool } from "./base/network";
 import { ExtensionManagementService } from "./services/extension-management-service";
 import { ExtensionPreferenceService } from "./services/extension-preference-service";
 import { IInjectable } from "./services/injectable";
-import { NetworkTool } from "./base/network";
 
 async function initialize() {
   const extLogService = new LogService("extension.log");
@@ -97,7 +97,10 @@ async function initialize() {
   extensionRPCService.setActionor(instances);
   await PLExtAPI.extensionManagementService.initialize();
 
-  process.parentPort.postMessage({ type: "service-ready", value: Process.extension });
+  process.parentPort.postMessage({
+    type: "service-ready",
+    value: Process.extension,
+  });
 }
 
 initialize();

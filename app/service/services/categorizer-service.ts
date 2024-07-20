@@ -11,13 +11,14 @@ import {
 } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
+import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
+
 import {
   CategorizerRepository,
   ICategorizerCollection,
   ICategorizerRealmObject,
   ICategorizerRepository,
-} from "@/repositories/db-repository/categorizer-repository";
-import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
+} from "../repositories/db-repository/categorizer-repository";
 
 export interface ICategorizerServiceState {
   tagsUpdated: number;

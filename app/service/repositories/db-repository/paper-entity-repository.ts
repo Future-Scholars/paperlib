@@ -10,7 +10,7 @@ import {
   CategorizerRepository,
   ICategorizerCollection,
   ICategorizerRepository,
-} from "@/repositories/db-repository/categorizer-repository";
+} from "./categorizer-repository";
 
 export interface IPaperEntityRepositoryState {
   count: number;

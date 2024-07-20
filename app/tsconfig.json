@@ -1,20 +1,18 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
   "include": [
+    "./index.d.ts",
     "./base/**/*",
     "./common/**/*",
-    "./extension/**/*",
-    "./locales/**/*",
     "./models/**/*",
-    "./repositories/**/*",
-    "./index.d.ts"
+    "./locales/**/*"
   ],
   "compilerOptions": {
     "composite": true,
     "types": ["electron-vite/node"],
-    "baseUrl": "../",
+    "baseUrl": "./",
     "paths": {
-      "@/*": ["app/*"]
+      "@/*": ["./*"]
     },
     "noUnusedParameters": false,
     "noUnusedLocals": false,

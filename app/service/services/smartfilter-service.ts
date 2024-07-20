@@ -1,4 +1,3 @@
-import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -7,12 +6,14 @@ import { Colors } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { PaperSmartFilter, PaperSmartFilterType } from "@/models/smart-filter";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
+import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
+
 import {
   IPaperSmartFilterCollection,
   IPaperSmartFilterRealmObject,
   IPaperSmartFilterRepository,
   PaperSmartFilterRepository,
-} from "@/repositories/db-repository/smartfilter-repository";
+} from "../repositories/db-repository/smartfilter-repository";
 
 export interface ISmartFilterServiceState {
   updated: number;

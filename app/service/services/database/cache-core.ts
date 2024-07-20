@@ -6,10 +6,6 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
 import { ILogService, LogService } from "@/common/services/log-service";
-import {
-  IPreferenceService,
-  PreferenceService,
-} from "@/main/services/preference-service";
 import { PaperEntityCache } from "@/models/paper-entity-cache";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 
@@ -30,9 +26,7 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
   private _realm?: Realm;
   private _app?: Realm.App;
 
-  constructor(
-    @ILogService private readonly _logService: LogService
-  ) {
+  constructor(@ILogService private readonly _logService: LogService) {
     super("cacheDatabaseCore", {
       dbInitializing: 0,
       dbInitialized: 0,
@@ -128,7 +122,7 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
     if (
       existsSync(
         path.join(
-          await PLMainAPI.preferenceService.get("appLibFolder") as string,
+          (await PLMainAPI.preferenceService.get("appLibFolder")) as string,
           "cache.realm"
         )
       )
@@ -160,7 +154,7 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
       try {
         await promises.rename(
           path.join(
-            await PLMainAPI.preferenceService.get("appLibFolder") as string,
+            (await PLMainAPI.preferenceService.get("appLibFolder")) as string,
             "cache.realm"
           ),
           path.join(userDataPath, "cache.realm")
@@ -177,7 +171,7 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
       try {
         await promises.rename(
           path.join(
-            await PLMainAPI.preferenceService.get("appLibFolder") as string,
+            (await PLMainAPI.preferenceService.get("appLibFolder")) as string,
             "cache.realm.lock"
           ),
           path.join(userDataPath, "cache.realm.lock")
@@ -189,7 +183,7 @@ export class CacheDatabaseCore extends Eventable<ICacheDatabaseCoreState> {
       try {
         await promises.rename(
           path.join(
-            await PLMainAPI.preferenceService.get("appLibFolder") as string,
+            (await PLMainAPI.preferenceService.get("appLibFolder")) as string,
             "cache.realm.management"
           ),
           path.join(userDataPath, "cache.realm.management")

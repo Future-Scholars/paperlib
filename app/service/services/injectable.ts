@@ -1,10 +1,4 @@
 import { LogService } from "@/common/services/log-service";
-import { CategorizerRepository } from "@/repositories/db-repository/categorizer-repository";
-import { FeedEntityRepository } from "@/repositories/db-repository/feed-entity-repository";
-import { FeedRepository } from "@/repositories/db-repository/feed-repository";
-import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity-repository";
-import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
-import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
 import { CacheDatabaseCore } from "@/service/services/database/cache-core";
 import { DatabaseCore } from "@/service/services/database/core";
 import { PreferenceService } from "@/service/services/preference-service";
@@ -21,6 +15,13 @@ import { RenderService } from "./render-service";
 import { SchedulerService } from "./scheduler-service";
 import { ScrapeService } from "./scrape-service";
 import { SmartFilterService } from "./smartfilter-service";
+
+import { CategorizerRepository } from "../repositories/db-repository/categorizer-repository";
+import { FeedEntityRepository } from "../repositories/db-repository/feed-entity-repository";
+import { FeedRepository } from "../repositories/db-repository/feed-repository";
+import { PaperEntityRepository } from "../repositories/db-repository/paper-entity-repository";
+import { PaperSmartFilterRepository } from "../repositories/db-repository/smartfilter-repository";
+import { RSSRepository } from "../repositories/rss-repository/rss-repository";
 
 export type IInjectable =
   | PreferenceService

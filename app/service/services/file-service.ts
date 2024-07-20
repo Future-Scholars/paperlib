@@ -15,9 +15,10 @@ import {
 } from "@/base/url";
 import { ILogService, LogService } from "@/common/services/log-service";
 import { PaperEntity } from "@/models/paper-entity";
-import { IFileBackend } from "@/repositories/file-repository/backend";
-import { LocalFileBackend } from "@/repositories/file-repository/local-backend";
-import { WebDavFileBackend } from "@/repositories/file-repository/webdav-backend";
+
+import { IFileBackend } from "../repositories/file-repository/backend";
+import { LocalFileBackend } from "../repositories/file-repository/local-backend";
+import { WebDavFileBackend } from "../repositories/file-repository/webdav-backend";
 
 import { HookService, IHookService } from "./hook-service";
 

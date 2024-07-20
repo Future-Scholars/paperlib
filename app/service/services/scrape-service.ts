@@ -5,8 +5,9 @@ import { Process } from "@/base/process-id";
 import { ILogService, LogService } from "@/common/services/log-service";
 import { PaperEntity } from "@/models/paper-entity";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
-import { IPaperEntityCollection } from "@/repositories/db-repository/paper-entity-repository";
 import { HookService, IHookService } from "./hook-service";
+
+import { IPaperEntityCollection } from "../repositories/db-repository/paper-entity-repository";
 
 export const IScrapeService = createDecorator("scrapeService");
 

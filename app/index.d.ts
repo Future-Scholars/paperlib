@@ -1,8 +1,7 @@
-import { Proxied } from "@/base/rpc/proxied";
-import { LogService } from "@/common/services/log-service";
+export {};
 
 interface PLAPIShape {
-  logService: Proxied<LogService>;
+  logService: LogService;
 }
 
 declare global {

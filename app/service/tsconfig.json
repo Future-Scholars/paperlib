@@ -1,15 +1,23 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
   "include": [
     "./**/*",
     "../base/**/*",
     "../common/**/*",
-    "../extension/**/*",
     "../locales/**/*",
     "../models/**/*",
-    "../repositories/**/*"
   ],
   "compilerOptions": {
-    "rootDir": "../"
+    "composite": true,
+    "types": ["electron-vite/node"],
+    "baseUrl": "../",
+    "rootDir": "../",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "noUnusedParameters": false,
+    "noUnusedLocals": false,
+    "experimentalDecorators": true,
+    "moduleResolution": "Bundler"
   }
 }

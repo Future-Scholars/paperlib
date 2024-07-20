@@ -13,13 +13,14 @@ import { PaperEntity } from "@/models/paper-entity";
 import { PaperEntityCache, ThumbnailCache } from "@/models/paper-entity-cache";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
 import {
-  IPaperEntityCollection,
-  IPaperEntityObject,
-} from "@/repositories/db-repository/paper-entity-repository";
-import {
   CacheDatabaseCore,
   ICacheDatabaseCore,
 } from "@/service/services/database/cache-core";
+
+import {
+  IPaperEntityCollection,
+  IPaperEntityObject,
+} from "../repositories/db-repository/paper-entity-repository";
 import { FileService, IFileService } from "./file-service";
 
 export const ICacheService = createDecorator("cacheService");

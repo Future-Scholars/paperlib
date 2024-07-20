@@ -11,10 +11,10 @@ import { ContextMenuService } from "./services/contextmenu-service";
 import { FileSystemService } from "./services/filesystem-service";
 import { MenuService } from "./services/menu-service";
 import { ProxyService } from "./services/proxy-service";
+import { SystemService } from "./services/system-service";
 import { UpgradeService } from "./services/upgrade-service";
 import { UtilityProcessManagementService } from "./services/utility-process-management-service";
 import { WindowProcessManagementService } from "./services/window-process-management-service";
-import { SystemService } from "./services/system-service";
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -48,7 +48,7 @@ async function initialize() {
     upgradeService: UpgradeService,
     proxyService: ProxyService,
     utilityProcessManagementService: UtilityProcessManagementService,
-    systemService: SystemService
+    systemService: SystemService,
   });
   // 3.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {
@@ -73,7 +73,11 @@ async function initialize() {
   });
 
   app.on("second-instance", () => {
-    if (PLMainAPI.windowProcessManagementService.browserWindows.has(Process.renderer)) {
+    if (
+      PLMainAPI.windowProcessManagementService.browserWindows.has(
+        Process.renderer
+      )
+    ) {
       if (
         PLMainAPI.windowProcessManagementService.browserWindows
           .get(Process.renderer)
@@ -82,7 +86,7 @@ async function initialize() {
         PLMainAPI.windowProcessManagementService.browserWindows
           .get(Process.renderer)
           .restore();
-          PLMainAPI.windowProcessManagementService.browserWindows
+        PLMainAPI.windowProcessManagementService.browserWindows
           .get(Process.renderer)
           .focus();
       }
@@ -90,11 +94,15 @@ async function initialize() {
   });
 
   app.on("activate", () => {
-    if (PLMainAPI.windowProcessManagementService.browserWindows.has(Process.renderer)) {
+    if (
+      PLMainAPI.windowProcessManagementService.browserWindows.has(
+        Process.renderer
+      )
+    ) {
       PLMainAPI.windowProcessManagementService.browserWindows
         .get(Process.renderer)
         .show();
-        PLMainAPI.windowProcessManagementService.browserWindows
+      PLMainAPI.windowProcessManagementService.browserWindows
         .get(Process.renderer)
         .focus();
     } else {

@@ -4,16 +4,11 @@ import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
 import { LazyPromise } from "@/base/rpc/lazy-promise";
 import { CategorizerType } from "@/models/categorizer";
-import {
-  CategorizerService,
-  ICategorizerService,
-} from "./categorizer-service";
+
+import { ICategorizerCollection } from "../repositories/db-repository/categorizer-repository";
+import { CategorizerService, ICategorizerService } from "./categorizer-service";
 import { IPaperService, PaperService } from "./paper-service";
-import {
-  IScrapeService,
-  ScrapeService,
-} from "./scrape-service";
-import { ICategorizerCollection } from "@/repositories/db-repository/categorizer-repository";
+import { IScrapeService, ScrapeService } from "./scrape-service";
 
 export const IBrowserExtensionService = createDecorator(
   "browserExtensionService"

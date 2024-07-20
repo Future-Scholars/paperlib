@@ -2,7 +2,6 @@ import { existsSync, promises, rmSync, unlinkSync } from "fs";
 import path from "path";
 import Realm, { ConfigurationWithSync } from "realm";
 
-import { migrate, syncMigrate } from "@/service/services/database/migration";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
@@ -13,6 +12,8 @@ import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
+import { migrate, syncMigrate } from "@/service/services/database/migration";
+
 import { FileService, IFileService } from "../file-service";
 
 export const DATABASE_SCHEMA_VERSION = 10;

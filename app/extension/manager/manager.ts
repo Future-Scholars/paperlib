@@ -1,13 +1,15 @@
-import { NetworkTool } from "@/base/network";
 import Debug from "debug";
 import * as lockFile from "lockfile";
 import * as path from "path";
 import * as semver from "semver";
+
+import { NetworkTool } from "../base/network";
 import * as fs from "./fs-ops";
 import { NpmRegistryClient, NpmRegistryConfig } from "./npm-repository-client";
 import { PackageInfo, PackageJsonInfo } from "./package-info";
 import { IPluginInfo } from "./plugin-info";
 import { PluginVm } from "./plugin-vm";
+
 const debug = Debug("live-plugin-manager");
 
 const BASE_NPM_URL = "https://registry.npmjs.org";

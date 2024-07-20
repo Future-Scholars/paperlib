@@ -2,10 +2,6 @@
   "files": [],
   "references": [
     { "path": "./app/tsconfig.json" },
-    { "path": "./app/main/tsconfig.json" },
-    { "path": "./app/renderer/tsconfig.json" },
-    { "path": "./app/service/tsconfig.json" },
-    { "path": "./app/preload/tsconfig.json" }
   ],
   "compilerOptions": {
     "experimentalDecorators": true

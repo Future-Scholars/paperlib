@@ -97,8 +97,12 @@ export class NetworkTool {
       let httpProxy = "";
       let httpsProxy = "";
 
-      httpProxy = (await PLMainAPI.preferenceService.get("httpproxy")) as string;
-      httpsProxy = (await PLMainAPI.preferenceService.get("httpsproxy")) as string;
+      httpProxy = (await PLMainAPI.preferenceService.get(
+        "httpproxy"
+      )) as string;
+      httpsProxy = (await PLMainAPI.preferenceService.get(
+        "httpsproxy"
+      )) as string;
 
       const proxy = await PLMainAPI.proxyService.getSystemProxy();
 
@@ -423,15 +427,23 @@ export class NetworkTool {
     } catch (e) {
       if ((e as Error).message.includes("403")) {
         // Try native download
-        console.log("Try native download")
-        const nativeDownloadedPath = await PLMainAPI.windowProcessManagementService.download("rendererProcess", url, { targetPath: targetPath }, headers)
+        console.log("Try native download");
+        const nativeDownloadedPath =
+          await PLMainAPI.windowProcessManagementService.download(
+            "rendererProcess",
+            url,
+            { targetPath: targetPath },
+            headers
+          );
         if (nativeDownloadedPath) {
           return nativeDownloadedPath;
         }
       }
       PLAPI.logService.error(
         "Failed to download file.",
-        `Status: ${(e as Error).message} | URL: ${url} | Target path: ${targetPath}`,
+        `Status: ${
+          (e as Error).message
+        } | URL: ${url} | Target path: ${targetPath}`,
         true,
         "Network"
       );
