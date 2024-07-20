@@ -106,6 +106,9 @@ devDependencies:
   md5-file:
     specifier: 5.0.0
     version: 5.0.0
+  mitt:
+    specifier: ^3.0.1
+    version: 3.0.1
   p-timeout:
     specifier: 6.1.2
     version: 6.1.2
@@ -4062,6 +4065,10 @@ packages:
 
   /mitt@2.1.0:
     resolution: {integrity: sha512-ILj2TpLiysu2wkBbWjAmww7TkZb65aiQO+DkVdUTBpBXq+MHYiETENkKFMtsJZX1Lf4pe4QOrTSjIfUwN5lRdg==}
+    dev: true
+
+  /mitt@3.0.1:
+    resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
     dev: true
 
   /mkdirp-classic@0.5.3:
