@@ -229,7 +229,6 @@ export class UIStateService extends PiniaEventable<IUIStateServiceState> {
    * @param key - key of the processing state
    */
   increaseProcessingState(key: ProcessingKey) {
-    console.log("increaseProcessingState", key);
     this.processingState.setUIState({
       [key]: this.processingState.getUIState(key) + 1,
     });
@@ -240,7 +239,6 @@ export class UIStateService extends PiniaEventable<IUIStateServiceState> {
    * @param key - key of the processing state
    */
   decreaseProcessingState(key: ProcessingKey) {
-    console.log("decreaseProcessingState", key);
     this.processingState.setUIState({
       [key]: this.processingState.getUIState(key) - 1,
     });

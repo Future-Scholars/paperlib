@@ -118,7 +118,6 @@ export class CacheService {
     const existObjIds = existObjs.map((e) => e._id);
 
     let noCachePaperEntities: IPaperEntityCollection = [];
-
     if (paperEntities instanceof Realm.Results) {
       noCachePaperEntities = paperEntities.filtered(
         `NOT (_id IN $0)`,
@@ -174,7 +173,7 @@ export class CacheService {
           constructFileURL(
             url,
             true,
-            true,
+            false,
             (await PLMainAPI.preferenceService.get("appLibFolder")) as string
           )
         ),
@@ -218,44 +217,53 @@ export class CacheService {
     const realm = await this._cacheDatabaseCore.realm();
 
     const updatePromise = async (paperEntity: PaperEntity) => {
-      const filePath = eraseProtocol(
-        await this._fileService.access(paperEntity.mainURL, false)
-      );
+      try {
+        const filePath = eraseProtocol(
+          await this._fileService.access(paperEntity.mainURL, false)
+        );
 
-      if (!filePath) {
-        return;
-      }
-
-      let md5String = "";
-      if (filePath && (await promises.lstat(filePath)).isFile()) {
-        md5String = await md5(filePath);
-      }
-
-      const fulltext = await this._getPDFText(paperEntity.mainURL);
-      return realm.safeWrite(() => {
-        const objects = realm
-          .objects<PaperEntityCache>("PaperEntityCache")
-          .filtered("_id == $0", new ObjectId(paperEntity._id));
-        const object = objects[0] || null;
-
-        if (object && object.md5 === md5String) {
+        if (!filePath) {
           return;
-        } else if (object) {
-          object.fulltext = fulltext;
-          object.md5 = md5String;
-        } else {
-          realm.create<PaperEntityCache>(
-            "PaperEntityCache",
-            {
-              _id: new ObjectId(paperEntity._id),
-              _partition: "",
-              fulltext: fulltext,
-              md5: md5String,
-            },
-            Realm.UpdateMode.Modified
-          );
         }
-      });
+
+        let md5String = "";
+        if (filePath && (await promises.lstat(filePath)).isFile()) {
+          md5String = await md5(filePath);
+        }
+
+        const fulltext = await this._getPDFText(paperEntity.mainURL);
+        return realm.safeWrite(() => {
+          const objects = realm
+            .objects<PaperEntityCache>("PaperEntityCache")
+            .filtered("_id == $0", new ObjectId(paperEntity._id));
+          const object = objects[0] || null;
+
+          if (object && object.md5 === md5String) {
+            return;
+          } else if (object) {
+            object.fulltext = fulltext;
+            object.md5 = md5String;
+          } else {
+            realm.create<PaperEntityCache>(
+              "PaperEntityCache",
+              {
+                _id: new ObjectId(paperEntity._id),
+                _partition: "",
+                fulltext: fulltext,
+                md5: md5String,
+              },
+              Realm.UpdateMode.Modified
+            );
+          }
+        });
+      } catch (err) {
+        this._logService.error(
+          "Failed to update fulltext cache",
+          err as Error,
+          false,
+          "CacheService"
+        );
+      }
     };
 
     await Promise.all(paperEntities.map((p: PaperEntity) => updatePromise(p)));
