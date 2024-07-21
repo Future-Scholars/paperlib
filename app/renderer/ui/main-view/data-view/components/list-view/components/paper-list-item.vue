@@ -8,8 +8,9 @@ import {
   BIconFileEarmark,
   BIconGithub,
 } from "bootstrap-icons-vue";
-import { PropType, ref } from "vue";
+import { PropType } from "vue";
 import WordHighlighter from "vue-word-highlighter";
+import { computedAsync } from "@vueuse/core";
 
 import { getCategorizerString, getPubTypeString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
@@ -69,14 +70,16 @@ const props = defineProps({
 });
 
 
-const renderedTitle = ref<string>("");
-const renderTitle = (title: string) => {
-  PLAPI.renderService.renderMath(title).then((html) => {
-    renderedTitle.value = html;
-  });
-
-  return title;
-};
+const renderedTitle = computedAsync(
+  async () => {
+    if (props.item.title.includes("$")) {
+      return await PLAPI.renderService.renderMath(props.item.title)
+    } else {
+      return props.item.title
+    }
+  },
+  props.item.title
+)
 
 const emits = defineEmits(["event:click-candidate-btn"]);
 
@@ -102,7 +105,7 @@ scp {
         <WordHighlighter
           :query="queryHighlight"
           highlight-class="bg-yellow-300 rounded-sm px-0.5"
-          :html-to-highlight="renderedTitle || renderTitle(item.title)"
+          :html-to-highlight="renderedTitle"
           :split-by-space="true"
         >
         </WordHighlighter>

@@ -78,7 +78,6 @@ const reloadPaperEntities = async () => {
       .join(" AND ");
   }
 
-  console.log(querySentence, fulltextQuerySetence);
   paperEntities.value = await PLAPI.paperService.load(
     querySentence,
     prefState.mainviewSortBy,
