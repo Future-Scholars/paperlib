@@ -162,6 +162,21 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       });
     }
 
+     // Adding custom css
+     const insertedKeys = this._preferenceService.get("_insertedCustomCssKey") as { windowId: string, key: string }[]
+
+     if (insertedKeys.filter((i)=>i.windowId===id).length > 0) {
+       insertedKeys.filter((i)=>i.windowId===id).forEach(async (i) => {
+         await this.browserWindows.get(id).webContents.removeInsertedCSS(i.key);
+       });
+     }
+     const customCss = this._preferenceService.get("customCss") as string;
+     this.browserWindows.get(id).webContents.on("did-finish-load", async ()=>{
+         const key = await this.browserWindows.get(id).webContents.insertCSS(customCss);
+         insertedKeys.push({windowId: id, key: key});
+         this._preferenceService.set({_insertedCustomCssKey: insertedKeys});
+       });
+
     this.fire({ [id]: "created" });
   }
 

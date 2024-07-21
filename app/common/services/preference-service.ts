@@ -98,6 +98,10 @@ export interface IPreferenceStore {
   showGuide: boolean;
   showWelcome: boolean;
   fontsize: "normal" | "large" | "larger";
+
+  // Custom CSS related
+  customCss: string;
+  _insertedCustomCssKey: { windowId: string, key: string }[];
 }
 
 const _defaultPreferences: IPreferenceStore = {
@@ -219,6 +223,10 @@ const _defaultPreferences: IPreferenceStore = {
   showGuide: true,
   showWelcome: true,
   fontsize: "normal",
+
+  // Custom CSS related
+  customCss: "",
+  _insertedCustomCssKey: []
 };
 
 function _migrate(
