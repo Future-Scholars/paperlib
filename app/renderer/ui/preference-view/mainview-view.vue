@@ -233,5 +233,15 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
       />
     </div>
 
+    <div class="text-base font-semibold mt-4">
+        {{ $t("preference.custom") + " CSS" }}
+    </div>
+
+    <textarea
+      class="w-full h-32 p-2 mt-2 bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-300"
+      v-model="prefState.customCss"
+    ></textarea>
+
+
   </div>
 </template>
