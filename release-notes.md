@@ -1,1 +1,2 @@
-1. Fix: a bug when editing the code repository metadata. by @geoffreychen777
+1. Fix: a bug when move file cross disk device. by @geoffreychen777
+2. Enhance: add a delete confirmation dialog when delete tags/folders. by @igoogolx

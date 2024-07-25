@@ -1,3 +1,8 @@
+## v3.1.8 July 25 2024
+
+1. Fix: a bug when move file cross disk device. by @geoffreychen777
+2. Enhance: add a delete confirmation dialog when delete tags/folders. by @igoogolx
+
 ## v3.1.7 July 11 2024
 
 1. Fix: a bug when editing the code repository metadata. by @geoffreychen777
