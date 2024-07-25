@@ -91,7 +91,9 @@ export class LocalFileBackend implements IFileBackend {
       } else if (fileOperation === "copy") {
         await fsPromise.copyFile(_sourceURL, _targetURL);
       } else if (fileOperation === "cut") {
-        await fsPromise.rename(_sourceURL, _targetURL);
+        // await fsPromise.rename(_sourceURL, _targetURL);
+        await fsPromise.copyFile(_sourceURL, _targetURL);
+        await fsPromise.unlink(_sourceURL);
       }
     }
   }
