@@ -99,9 +99,8 @@ export interface IPreferenceStore {
   showWelcome: boolean;
   fontsize: "normal" | "large" | "larger";
 
-  // Custom CSS related
-  customCss: string;
-  _insertedCustomCssKey: { windowId: string, key: string }[];
+  // Custom CSS
+  customCSS: { main: string; [window: string]: string };
 }
 
 const _defaultPreferences: IPreferenceStore = {
@@ -134,7 +133,7 @@ const _defaultPreferences: IPreferenceStore = {
     { key: "volume", enable: false, width: -1 },
     { key: "number", enable: false, width: -1 },
     { key: "publisher", enable: false, width: -1 },
-    { key: "addTime", enable: true, width: -1 },
+    { key: "addTime", enable: true, width: -1 }
   ],
 
   feedFields: [
@@ -152,7 +151,7 @@ const _defaultPreferences: IPreferenceStore = {
     { key: "volume", enable: false, width: -1 },
     { key: "number", enable: false, width: -1 },
     { key: "publisher", enable: false, width: -1 },
-    { key: "addTime", enable: true, width: -1 },
+    { key: "addTime", enable: true, width: -1 }
   ],
 
   preferedTheme: "light",
@@ -225,8 +224,7 @@ const _defaultPreferences: IPreferenceStore = {
   fontsize: "normal",
 
   // Custom CSS related
-  customCss: "",
-  _insertedCustomCssKey: []
+  customCSS: { main: "" }
 };
 
 function _migrate(
@@ -254,7 +252,8 @@ function _migrate(
       if (!_defaultPreferences.hasOwnProperty(key)) {
         try {
           store.delete(key as keyof IPreferenceStore);
-        } catch (e) {}
+        } catch (e) {
+        }
       }
     }
   }
@@ -268,7 +267,7 @@ function _migrate(
       publication: [
         "showMainPublication",
         "mainPublicationWidth",
-        "feedPublicationWidth",
+        "feedPublicationWidth"
       ],
       pubType: ["showMainPubType", "mainPubTypeWidth", "feedPubTypeWidth"],
       rating: ["showMainRating", "mainRatingWidth", "feedRatingWidth"],
@@ -276,7 +275,7 @@ function _migrate(
       tags: ["showMainTag", "mainTagWidth", null],
       folders: ["showMainFolder", "mainFolderWidth", null],
       note: ["showMainNote", "mainNoteWidth", null],
-      addTime: ["showMainAddTime", "mainAddTimeWidth", "feedAddTimeWidth"],
+      addTime: ["showMainAddTime", "mainAddTimeWidth", "feedAddTimeWidth"]
     };
 
     const mainTableFields: IDataViewField[] = [];
@@ -288,7 +287,7 @@ function _migrate(
       const [preShowKey, preMainWidthKey, preFeedWidthKey] = keyMap[key] || [
         null,
         null,
-        null,
+        null
       ];
 
       const enable =
@@ -311,7 +310,7 @@ function _migrate(
       const [preShowKey, preMainWidthKey, preFeedWidthKey] = keyMap[key] || [
         null,
         null,
-        null,
+        null
       ];
 
       const enable =
@@ -358,7 +357,7 @@ export class PreferenceService extends Eventable<IPreferenceStore> {
     if (isRendererProcess()) {
       const userDataPath = ipcRenderer.sendSync("getSystemPath", "userData");
       _store = new ElectronStore<IPreferenceStore>({
-        cwd: userDataPath,
+        cwd: userDataPath
       });
     } else {
       _store = new ElectronStore<IPreferenceStore>({});

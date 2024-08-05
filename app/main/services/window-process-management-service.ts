@@ -162,22 +162,31 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       });
     }
 
-     // Adding custom css
-     const insertedKeys = this._preferenceService.get("_insertedCustomCssKey") as { windowId: string, key: string }[]
-
-     if (insertedKeys.filter((i)=>i.windowId===id).length > 0) {
-       insertedKeys.filter((i)=>i.windowId===id).forEach(async (i) => {
-         await this.browserWindows.get(id).webContents.removeInsertedCSS(i.key);
-       });
-     }
-     const customCss = this._preferenceService.get("customCss") as string;
-     this.browserWindows.get(id).webContents.on("did-finish-load", async ()=>{
-         const key = await this.browserWindows.get(id).webContents.insertCSS(customCss);
-         insertedKeys.push({windowId: id, key: key});
-         this._preferenceService.set({_insertedCustomCssKey: insertedKeys});
-       });
-
     this.fire({ [id]: "created" });
+  }
+
+  // Map to store the inserted custom css keys, key is the windowId and value is the key
+  private insertedKeys = new Map<string, string>();
+
+  insertCustomCSS(windowId: string, css: string) {
+    const insertedKeys = this.insertedKeys.get(windowId);
+    if (insertedKeys) {
+      this.browserWindows.get(windowId).webContents.removeInsertedCSS(insertedKeys).then();
+    }
+    this.browserWindows.get(windowId).webContents.insertCSS(css).then(
+      key => {
+        this.insertedKeys.set(windowId, key);
+      }
+    );
+  }
+
+  removeCustomCSS(windowId: string) {
+    const key = this.insertedKeys.get(windowId);
+    if (key) {
+      this.browserWindows.get(windowId).webContents.removeInsertedCSS(key).then(() => {
+        this.insertedKeys.delete(windowId);
+      });
+    }
   }
 
   createMainRenderer() {
@@ -200,11 +209,11 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           webSecurity: false,
           nodeIntegration: true,
           contextIsolation: false,
-          enableBlinkFeatures: "CSSColorSchemeUARendering",
+          enableBlinkFeatures: "CSSColorSchemeUARendering"
         },
         frame: false,
         vibrancy: "sidebar",
-        visualEffectState: "active",
+        visualEffectState: "active"
       },
       {
         close: (win: BrowserWindow) => {
@@ -213,8 +222,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
             this._preferenceService.set({
               windowSize: {
                 width: winSize.width,
-                height: winSize.height,
-              },
+                height: winSize.height
+              }
             });
           }
 
@@ -229,7 +238,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           this.browserWindows.get(Process.renderer).destroy();
 
           if (process.platform !== "darwin") app.quit();
-        },
+        }
       }
     );
   }
@@ -248,12 +257,12 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       webPreferences: {
         webSecurity: false,
         nodeIntegration: true,
-        contextIsolation: false,
+        contextIsolation: false
       },
       frame: false,
       vibrancy: "sidebar",
       visualEffectState: "active",
-      show: false,
+      show: false
     };
     if (os.platform() === "darwin") {
       options["type"] = "panel";
@@ -270,7 +279,7 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
       },
       show: (win: BrowserWindow) => {
         win.setSize(600, 76);
-      },
+      }
     });
 
     if (os.platform() === "darwin") {
@@ -650,7 +659,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   }
 
   download(windowId: string, url: string, options = {}, headers = {}): Promise<string> {
-    function registerListener(session, options, callback = (error?: Error, item?: any) => { }) {
+    function registerListener(session, options, callback = (error?: Error, item?: any) => {
+    }) {
       const downloadItems = new Set();
       let receivedBytes = 0;
       let completedBytes = 0;
@@ -663,16 +673,17 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
 
         const window_ = BrowserWindow.fromWebContents(webContents);
         if (!window_) {
-          throw new Error('Failed to get window from web contents.');
+          throw new Error("Failed to get window from web contents.");
         }
 
         const filePath = options.targetPath;
 
         item.setSavePath(filePath);
 
-        item.on('updated', () => {});
+        item.on("updated", () => {
+        });
 
-        item.on('done', (event, state) => {
+        item.on("done", (event, state) => {
           completedBytes += item.getTotalBytes();
           downloadItems.delete(item);
 
@@ -684,25 +695,25 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           }
 
           if (options.unregisterWhenDone) {
-            session.removeListener('will-download', listener);
+            session.removeListener("will-download", listener);
           }
 
-          if (state === 'cancelled') {
-            if (typeof options.onCancel === 'function') {
+          if (state === "cancelled") {
+            if (typeof options.onCancel === "function") {
               options.onCancel(item);
             }
 
             callback(new Error("Download was cancelled."));
-          } else if (state === 'interrupted') {
+          } else if (state === "interrupted") {
             callback(new Error("Download was interrupted."));
-          } else if (state === 'completed') {
+          } else if (state === "completed") {
             const savePath = item.getSavePath();
             callback(undefined, savePath);
           }
         });
       };
 
-      session.on('will-download', listener);
+      session.on("will-download", listener);
     }
 
 

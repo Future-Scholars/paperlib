@@ -239,8 +239,14 @@ const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
 
     <textarea
       class="w-full h-32 p-2 mt-2 bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-300"
-      v-model="prefState.customCss"
+      v-model="prefState.customCSS.main"
     ></textarea>
+    <button
+      class="w-full mt-2 p-2 bg-primary-500 text-white rounded-md"
+      @click="() => PLMainAPI.insertCustomCSS(prefState.customCSS.main)"
+    >
+      {{ $t("preference.save") }}
+    </button>
 
 
   </div>
