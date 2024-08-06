@@ -40,6 +40,7 @@ import { FeedRepository } from "@/repositories/db-repository/feed-repository";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity-repository";
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
+import { NetworkTool } from "./services/network";
 
 // import { QuerySentenceRepository } from "@/repositories/db-repository/querysentence-repository";
 import "./css/index.css";
@@ -109,6 +110,7 @@ async function initialize() {
     hookService: HookService,
     uiStateService: UIStateService,
     uiSlotService: UISlotService,
+    networkTool: NetworkTool
   });
   // 4.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {

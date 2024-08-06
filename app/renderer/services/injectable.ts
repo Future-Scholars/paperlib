@@ -1,6 +1,5 @@
 import { CacheDatabaseCore } from "@/base/database/cache-core";
 import { DatabaseCore } from "@/base/database/core";
-import { NetworkTool } from "@/base/network";
 import { LogService } from "@/common/services/log-service";
 import { PreferenceService } from "@/common/services/preference-service";
 import { BrowserExtensionService } from "@/renderer/services/browser-extension-service";
@@ -28,6 +27,7 @@ import { FeedRepository } from "@/repositories/db-repository/feed-repository";
 import { PaperEntityRepository } from "@/repositories/db-repository/paper-entity-repository";
 import { PaperSmartFilterRepository } from "@/repositories/db-repository/smartfilter-repository";
 import { RSSRepository } from "@/repositories/rss-repository/rss-repository";
+import { NetworkTool } from "@/renderer/services/network";
 
 export type IInjectable =
   | PreferenceService
@@ -59,4 +59,5 @@ export type IInjectable =
   | HookService
   | UIStateService
   | UISlotService
-  | QuerySentenceService;
+  | QuerySentenceService
+  | NetworkTool;

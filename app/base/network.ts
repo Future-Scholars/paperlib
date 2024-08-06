@@ -242,7 +242,8 @@ export class NetworkTool {
       fetch: this._fetch.bind(this),
     };
 
-    const response = await ky.get(url, options);
+    // @ts-ignore
+    const response = await PLAPI.networkTool.get(url, options);
     return await this._parseResponse(response, parse);
   }
 
