@@ -1,11 +1,8 @@
-import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
-import {
-  ProcessingKey,
-  processing,
-} from "@/renderer/services//uistate-service";
+import { ProcessingKey, processing } from "@/common/utils/processing";
+import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
 export interface IDatabaseServiceState {
   dbInitializing: number;

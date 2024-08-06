@@ -37,6 +37,9 @@ import type { SchedulerService } from "@/service/services/scheduler-service";
 import type { ScrapeService } from "@/service/services/scrape-service";
 import type { SmartFilterService } from "@/service/services/smartfilter-service";
 
+
+// ==============================
+// API Shapes: for cross-process API calls
 export interface PLMainAPIShape {
   windowProcessManagementService: Proxied<WindowProcessManagementService>;
   fileSystemService: Proxied<FileSystemService>;
@@ -83,7 +86,12 @@ export interface PLExtAPIShape {
   networkTool: Proxied<NetworkTool>;
 }
 
+export interface PLQPUIAPIShape {
+  shortcutService: Proxied<ShortcutService>;
+}
 
+// ==============================
+// Local API Shapes: for local API calls
 export interface PLMainAPILocalShape {
   windowProcessManagementService: WindowProcessManagementService;
   fileSystemService: FileSystemService;
@@ -128,10 +136,6 @@ export interface PLExtAPILocalShape {
   extensionPreferenceService: ExtensionPreferenceService;
   extensionRPCService: UtilityProcessRPCService;
   networkTool: NetworkTool;
-}
-
-export interface PLQPUIAPIShape {
-  shortcutService: Proxied<ShortcutService>;
 }
 
 export interface PLQPUIAPILocalShape {

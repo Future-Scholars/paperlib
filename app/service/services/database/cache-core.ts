@@ -7,7 +7,7 @@ import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
 import { ILogService, LogService } from "@/common/services/log-service";
 import { PaperEntityCache } from "@/models/paper-entity-cache";
-import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
+import { ProcessingKey, processing } from "@/common/utils/processing";
 
 export const DATABASE_SCHEMA_VERSION = 2;
 

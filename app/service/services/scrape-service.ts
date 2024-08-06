@@ -4,7 +4,7 @@ import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
 import { ILogService, LogService } from "@/common/services/log-service";
 import { IPaperEntityCollection, PaperEntity } from "@/models/paper-entity";
-import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
+import { ProcessingKey, processing } from "@/common/utils/processing";
 import { HookService, IHookService } from "./hook-service";
 
 export const IScrapeService = createDecorator("scrapeService");

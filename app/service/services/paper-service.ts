@@ -18,7 +18,7 @@ import {
   IPaperEntityObject,
   PaperEntity,
 } from "@/models/paper-entity";
-import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
+import { ProcessingKey, processing } from "@/common/utils/processing";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
 import {

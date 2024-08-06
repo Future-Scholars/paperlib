@@ -11,7 +11,7 @@ import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
-import { ProcessingKey, processing } from "@/renderer/services/uistate-service";
+import { ProcessingKey, processing } from "@/common/utils/processing";
 import { migrate, syncMigrate } from "@/service/services/database/migration";
 
 import { FileService, IFileService } from "../file-service";
