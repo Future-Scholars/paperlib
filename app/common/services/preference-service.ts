@@ -100,7 +100,8 @@ export interface IPreferenceStore {
   fontsize: "normal" | "large" | "larger";
 
   // Custom CSS
-  customCSS: { main: string; [window: string]: string };
+  customMainWindowCSS: string;
+  customQuickPasteCSS: string;
 }
 
 const _defaultPreferences: IPreferenceStore = {
@@ -224,7 +225,8 @@ const _defaultPreferences: IPreferenceStore = {
   fontsize: "normal",
 
   // Custom CSS related
-  customCSS: { main: "" }
+  customMainWindowCSS: "",
+  customQuickPasteCSS: ""
 };
 
 function _migrate(
