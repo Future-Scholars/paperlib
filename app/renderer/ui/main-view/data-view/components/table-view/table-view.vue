@@ -136,7 +136,7 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col h-full">
     <TableHeader
       class="mb-1"
       :sort-by="entitySortBy"
