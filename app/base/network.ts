@@ -26,6 +26,10 @@ export class NetworkTool {
     http?: ProxyAgent;
     https?: ProxyAgent;
   };
+  private _proxyConfig: {
+    httpproxy: string;
+    httpsproxy: string;
+  };
 
   private _donwloadProgress: {
     [key: string]: number;
@@ -52,7 +56,21 @@ export class NetworkTool {
     this._donwloadProgress = {};
 
     this._agent = {};
+    this._proxyConfig = {
+      httpproxy: "",
+      httpsproxy: "",
+    };
     this.checkProxy();
+  }
+
+  getProxyConfig() {
+    return {
+      httpproxy: this._proxyConfig.httpproxy,
+      httpsproxy: this._proxyConfig.httpsproxy,
+      caCert: this._caCert,
+      caClientKey: this._caClientKey,
+      caClinetCert: this._caClinetCert,
+    }
   }
 
   /**
@@ -61,6 +79,9 @@ export class NetworkTool {
    * @param httpsproxy - HTTPS proxy
    */
   setProxyAgent(httpproxy: string = "", httpsproxy: string = "") {
+    this._proxyConfig.httpproxy = httpproxy;
+    this._proxyConfig.httpsproxy = httpsproxy;
+
     const opt = {}
 
     if (this._caCert || this._caClientKey || this._caClinetCert) {

@@ -3,10 +3,12 @@ import Watcher from "watcher";
 import { existsSync, promises as fsPromise, readFileSync } from "fs";
 import path from "path";
 import { WebDAVClient, createClient } from "webdav";
+import { Agent, ProxyAgent } from "undici";
 
 import { constructFileURL, eraseProtocol, getRelativePath } from "@/base/url";
 
 import { LocalFileBackend } from "./local-backend";
+import { Process } from "@/base/process-id";
 
 export class WebDavFileBackend extends LocalFileBackend {
   private _webdavClient: WebDAVClient | null;
@@ -47,10 +49,69 @@ export class WebDavFileBackend extends LocalFileBackend {
     if (!this._webdavURL || !this._webdavUsername || !this._webdavPassword) {
       return false;
     }
-    this._webdavClient = createClient(this._webdavURL, {
+
+    const opt = {
       username: this._webdavUsername,
       password: this._webdavPassword,
-    });
+    }
+
+    try {
+      await rendererRPCService.waitForAPI(Process.extension, "PLExtAPI", 5000);
+      const proxyConfig = await PLExtAPI.networkTool.getProxyConfig();
+      if (proxyConfig.httpproxy) {
+        const httpproxyOpt = {
+          uri: proxyConfig.httpproxy,
+        }
+        if (proxyConfig.caCert || proxyConfig.caClientKey || proxyConfig.caClinetCert) {
+          httpproxyOpt["ca"] = proxyConfig.caCert;
+          httpproxyOpt["connect"] = {
+              ca: proxyConfig.caCert,
+              key: proxyConfig.caClientKey,
+              cert: proxyConfig.caClinetCert,
+          };
+          httpproxyOpt["proxyTls"] = {
+            ca: proxyConfig.caCert,
+            key: proxyConfig.caClientKey,
+            cert: proxyConfig.caClinetCert,
+          }
+          httpproxyOpt["requestTls"] = {
+            ca: proxyConfig.caCert,
+            key: proxyConfig.caClientKey,
+            cert: proxyConfig.caClinetCert
+          }
+        }
+        opt["httpAgent"] = new ProxyAgent(httpproxyOpt);
+      }
+      
+      if (proxyConfig.httpsproxy) {
+        const httpsproxyOpt = {
+          uri: proxyConfig.httpsproxy,
+        }
+        if (proxyConfig.caCert || proxyConfig.caClientKey || proxyConfig.caClinetCert) {
+          httpsproxyOpt["ca"] = proxyConfig.caCert;
+          httpsproxyOpt["connect"] = {
+              ca: proxyConfig.caCert,
+              key: proxyConfig.caClientKey,
+              cert: proxyConfig.caClinetCert,
+          };
+          httpsproxyOpt["proxyTls"] = {
+            ca: proxyConfig.caCert,
+            key: proxyConfig.caClientKey,
+            cert: proxyConfig.caClinetCert,
+          }
+          httpsproxyOpt["requestTls"] = {
+            ca: proxyConfig.caCert,
+            key: proxyConfig.caClientKey,
+            cert: proxyConfig.caClinetCert
+          }
+        }
+        opt["httpsAgent"] = new ProxyAgent(httpsproxyOpt);
+      }
+    } catch (error) {
+      PLAPI.logService.error("Cannot get the proxy configuration.", error as Error, false, "WebDAVBackend");
+    }
+
+    this._webdavClient = createClient(this._webdavURL, opt);
 
     try {
       await this._webdavClient.getDirectoryContents("/");
