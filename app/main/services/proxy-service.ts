@@ -1,8 +1,10 @@
 import { createDecorator } from "@/base/injection/injection";
-import { session } from "electron";
+import { session, net } from "electron";
 
 export const IProxyService = createDecorator("proxyService");
 
+
+// TODO: Rename this to NetService
 export class ProxyService {
   constructor() {}
 
@@ -11,5 +13,9 @@ export class ProxyService {
       "https://www.google.com"
     );
     return proxyUrl;
+  }
+
+  isOnline() {
+    return net.isOnline()
   }
 }

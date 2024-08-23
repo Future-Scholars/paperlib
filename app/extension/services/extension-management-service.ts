@@ -159,6 +159,17 @@ export class ExtensionManagementService extends Eventable<IExtensionManagementSe
   }
 
   async checkUpdate() {
+    if (!(await PLMainAPI.proxyService.isOnline())) {
+      PLAPI.logService.warn(
+        "Cannot check extension updates without network connection!",
+        "",
+        true,
+        "ExtManagementService"
+      )
+      return;
+    }
+
+
     for (const [id, info] of Object.entries(this._installedExtensionInfos)) {
       try {
         const latestVersion = (
