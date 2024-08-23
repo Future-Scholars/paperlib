@@ -1,3 +1,9 @@
+## v3.1.9 Aug 23 2024
+
+1. Fix: a view bug of the table reader view. by @geoffreychen777
+2. Fix: a network proxy and custom CA bug. by @geoffreychen777
+3. Enhance: using online sync database when offline. by @geoffreychen777
+
 ## v3.1.8 July 25 2024
 
 1. Fix: a bug when move file cross disk device. by @geoffreychen777

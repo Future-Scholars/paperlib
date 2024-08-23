@@ -1,3 +1,9 @@
+## v3.1.9 Aug 23 2024
+
+1. 修复：表格预览时图中的滚动 bug。 by @geoffreychen777
+2. 修复：网络请求代理和自定义 CA 的 bug. by @geoffreychen777
+3. 增强：在无网络时使用同步数据库。 by @geoffreychen777
+
 ## v3.1.8 25/07 2024
 
 1. 修复：移动文件到不同磁盘设备时的 bug。by @geoffreychen777

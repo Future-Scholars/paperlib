@@ -1,2 +1,3 @@
-1. Fix: a bug when move file cross disk device. by @geoffreychen777
-2. Enhance: add a delete confirmation dialog when delete tags/folders. by @igoogolx
+1. Fix: a view bug of the table reader view. by @geoffreychen777
+2. Fix: a network proxy and custom CA bug. by @geoffreychen777
+3. Enhance: using online sync database when offline. by @geoffreychen777
