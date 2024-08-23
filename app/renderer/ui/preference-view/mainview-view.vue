@@ -169,14 +169,6 @@ onMounted(() => {
 const updatePref = (key: keyof IPreferenceStore, value: unknown) => {
   preferenceService.set({ [key]: value });
 };
-
-const onInsertMainCssCliecked = async () => {
-  await PLMainAPI.windowProcessManagementService.insertCustomCSS(Process.renderer, prefState.customMainWindowCSS);
-};
-
-const onInsertQuickPasteCssCliecked = async () => {
-  await PLMainAPI.windowProcessManagementService.insertCustomCSS(Process.quickpaste, prefState.customQuickPasteCSS);
-};
 </script>
 
 <template>
@@ -241,37 +233,5 @@ const onInsertQuickPasteCssCliecked = async () => {
         @event:next-click="onMoveNextClicked(index, false)"
       />
     </div>
-
-    <div class="text-base font-semibold mt-4">
-        {{ $t("preference.custom") + " Main CSS" }}
-    </div>
-    <div class="flex justify-between flex-col gap-3">
-      <textarea
-        class="w-full h-32 p-2 mt-2 bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-300"
-        v-model="prefState.customMainWindowCSS"
-      ></textarea>
-      <button
-        class="flex h-8 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-600"
-        @click="onInsertMainCssCliecked"
-      >
-        {{ $t("menu.save") }}
-      </button>
-    </div>
-
-    <div class="text-base font-semibold mt-4">
-        {{ $t("preference.custom") + $t("preference.mainview") + " Quick Paste CSS" }}
-        </div>
-        <div class="flex justify-between flex-col gap-3">
-          <textarea
-            class="w-full h-32 p-2 mt-2 bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-300"
-            v-model="prefState.customQuickPasteCSS"
-          ></textarea>
-          <button
-            class="flex h-8 w-[5.5rem] text-center rounded-md bg-neutral-200 dark:bg-neutral-600 hover:bg-neutral-300 hover:dark:bg-neutral-600"
-            @click="onInsertQuickPasteCssCliecked"
-          >
-            {{ $t("menu.save") }}
-          </button>
-      </div>
   </div>
 </template>
