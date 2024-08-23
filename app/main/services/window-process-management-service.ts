@@ -10,6 +10,7 @@ import {
 } from "electron";
 import os from "os";
 import path, { join, posix } from "path";
+import fs from "fs";
 
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
@@ -20,6 +21,7 @@ import {
   PreferenceService,
 } from "@/common/services/preference-service";
 import { WindowStorage } from "@/main/window-storage";
+import { FileSystemService, IFileSystemService } from "./filesystem-service";
 
 interface WindowOptions extends BrowserWindowConstructorOptions {
   entry: string;
@@ -47,7 +49,8 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
   public browserWindows: WindowStorage;
 
   constructor(
-    @IPreferenceService private readonly _preferenceService: PreferenceService
+    @IPreferenceService private readonly _preferenceService: PreferenceService,
+    @IFileSystemService private readonly _fileSystemService: FileSystemService
   ) {
     super("windowProcessManagementService", {
       serviceReady: "",
@@ -160,6 +163,16 @@ export class WindowProcessManagementService extends Eventable<IWindowProcessMana
           eventCallbacks[eventName](this.browserWindows.get(id));
         }
       });
+    }
+
+    // Insert custom CSS
+    const configDir = this._fileSystemService.getSystemPath(
+      "userData",
+      Process.main
+    );
+    if (fs.existsSync(path.join(configDir, `${id}.css`))) {
+      const css = fs.readFileSync(path.join(configDir, `${id}.css`), "utf-8");
+      this.insertCustomCSS(id, css);
     }
 
     this.fire({ [id]: "created" });
