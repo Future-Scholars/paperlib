@@ -3,6 +3,7 @@ import Input from "./Input.vue";
 import PathPicker from "./path-picker.vue";
 import Select from "./select.vue";
 import Toggle from "./toggle.vue";
+import Button from "./button.vue";
 
 const props = defineProps({
   pref: {
@@ -15,9 +16,19 @@ const props = defineProps({
     },
     required: true,
   },
+  name: { type: String, required: true },
 });
 
 const emits = defineEmits(["event:change"]);
+
+const onButtonClick = () => {
+  PLAPI.logService.info(
+    props.name,
+    `${props.pref?.name} and will take effect the next time you open AiChat.`,
+    true
+  );
+  emits("event:change", true);
+};
 </script>
 
 <template>
@@ -77,6 +88,12 @@ const emits = defineEmits(["event:change"]);
           emits('event:change', value);
         }
       "
+    />
+    <Button
+      :title="pref.name"
+      :info="pref.description"
+      v-if="pref.type === 'button'"
+      @event:change="onButtonClick"
     />
   </div>
 </template>

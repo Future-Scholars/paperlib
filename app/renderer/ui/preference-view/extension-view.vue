@@ -430,6 +430,7 @@ onUnmounted(async () => {
           >
             <ExtensionSetting
               :pref="keypref[1]"
+              :name="editingExtension?.name || ''"
               @event:change="
                 (value) => {
                   updateExtensionPreference(keypref[0], value);
