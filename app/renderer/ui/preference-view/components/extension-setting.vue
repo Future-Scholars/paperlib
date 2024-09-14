@@ -12,21 +12,16 @@ const props = defineProps({
       description: string;
       type: string;
       value: any;
+      btnLabel?: string;
       options?: Record<string, string>;
     },
     required: true,
   },
-  name: { type: String, required: true },
 });
 
 const emits = defineEmits(["event:change"]);
 
 const onButtonClick = () => {
-  PLAPI.logService.info(
-    props.name,
-    `${props.pref?.name} and will take effect the next time you open AiChat.`,
-    true
-  );
   emits("event:change", true);
 };
 </script>
@@ -90,6 +85,7 @@ const onButtonClick = () => {
       "
     />
     <Button
+      :label="pref.btnLabel"
       :title="pref.name"
       :info="pref.description"
       v-if="pref.type === 'button'"

@@ -8,6 +8,9 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  label: {
+    type: String,
+  },
 });
 
 const emits = defineEmits(["event:change"]);
@@ -28,7 +31,7 @@ const emits = defineEmits(["event:change"]);
       class="flex w-20 h-6 rounded-md bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-300 hover:shadow-sm cursor-pointer"
       @click="emits('event:change')"
     >
-      <span class="m-auto text-xs">{{ $t("menu.ok") }}</span>
+      <span class="m-auto text-xs">{{ label || $t("menu.ok") }}</span>
     </div>
   </div>
 </template>
