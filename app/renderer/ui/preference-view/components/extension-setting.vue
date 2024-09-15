@@ -3,6 +3,7 @@ import Input from "./Input.vue";
 import PathPicker from "./path-picker.vue";
 import Select from "./select.vue";
 import Toggle from "./toggle.vue";
+import Button from "./button.vue";
 
 const props = defineProps({
   pref: {
@@ -11,6 +12,7 @@ const props = defineProps({
       description: string;
       type: string;
       value: any;
+      btnLabel?: string;
       options?: Record<string, string>;
     },
     required: true,
@@ -18,6 +20,10 @@ const props = defineProps({
 });
 
 const emits = defineEmits(["event:change"]);
+
+const onButtonClick = () => {
+  emits("event:change", true);
+};
 </script>
 
 <template>
@@ -77,6 +83,13 @@ const emits = defineEmits(["event:change"]);
           emits('event:change', value);
         }
       "
+    />
+    <Button
+      :label="pref.btnLabel"
+      :title="pref.name"
+      :info="pref.description"
+      v-if="pref.type === 'button'"
+      @event:change="onButtonClick"
     />
   </div>
 </template>

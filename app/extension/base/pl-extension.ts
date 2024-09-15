@@ -26,9 +26,14 @@ export abstract class PLExtension {
     for (const key in preference) {
       if (
         !preference[key].type ||
-        !["string", "boolean", "options", "pathpicker", "hidden"].includes(
-          preference[key].type
-        )
+        ![
+          "string",
+          "boolean",
+          "options",
+          "pathpicker",
+          "hidden",
+          "button",
+        ].includes(preference[key].type)
       ) {
         throw new Error(
           `Preference ${key} has wrong type ${preference[key].type}`
