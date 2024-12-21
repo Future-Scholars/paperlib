@@ -290,6 +290,14 @@ disposable(
   )
 );
 
+const resetSortBy = () => {
+  if ([...fieldTemplates.value.keys()].includes(prefState.mainviewSortBy)) {
+    return;
+  } else {
+    preferenceService.set({ mainviewSortBy: "addTime" });
+  }
+};
+
 onMounted(() => {
   onFontSizeChanged(prefState.fontsize);
   if (prefState.mainviewType === "list") {
@@ -297,6 +305,7 @@ onMounted(() => {
   } else {
     computeFieldTemplates();
   }
+  resetSortBy();
 });
 </script>
 

@@ -105,7 +105,7 @@ const onItemDoubleClicked = async (selectedIndex: number[]) => {
 };
 
 const onTableHeaderClicked = (key: string) => {
-  if (key === "tags" || key === "folders") {
+  if (key === "tags" || key === "folders" || key === "feed") {
     return;
   }
   preferenceService.set({ mainviewSortBy: key });
@@ -144,9 +144,18 @@ disposable(
   )
 );
 
+const resetSortBy = () => {
+  if ([...fieldTemplates.value.keys()].includes(prefState.mainviewSortBy)) {
+    return;
+  } else {
+    preferenceService.set({ mainviewSortBy: "addTime" });
+  }
+};
+
 onMounted(() => {
   onFontSizeChanged(prefState.fontsize);
   computeFieldTemplates();
+  resetSortBy();
 });
 </script>
 
