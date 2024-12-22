@@ -110,13 +110,15 @@ export class QuerySentenceService {
 
     const graph = this.parseDAG(data, type, linkedFolderName);
 
-    let rootID: string | undefined;
+    let rootIDs: [string, number][] = [];
 
     graph.forEachNode((node) => {
       if (graph.inDegree(node) === 0) {
-        rootID = node;
+        rootIDs.push([node, graph.outDegree(node)]);
       }
     });
+
+    const rootID = rootIDs.sort((a, b) => b[1] - a[1])[0][0];
 
     if (rootID === undefined) {
       throw new Error("Invalid query graph, no root node found.");

@@ -64,6 +64,17 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
    */
   @processing(ProcessingKey.General)
   async initRealm(reinit = false): Promise<Realm> {
+    if (this._state.dbInitializing) {
+      return new Promise((resolve) => {
+        const interval = setInterval(() => {
+          if (this._state.dbInitialized) {
+            clearInterval(interval);
+            resolve(this._realm!);
+          }
+        }, 100);
+      });
+    }
+
     this._logService.info("Initializing database...", "", false, "Database");
     await this._fileService.stopWatch();
 
@@ -89,7 +100,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       try {
         this._realm = await Realm.open(config);
 
-        
+
 
         this._syncSession = this._realm.syncSession;
 

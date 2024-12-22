@@ -164,11 +164,12 @@ export class MessagePortRPCProtocol {
     const remoteEventNameAndCallbackId: [string, string][] = [];
     for (const eventName of eventNames) {
       const remoteEventName = `${rpcId}.${eventName}`;
+      const callbackId = uid();
 
-      const firstTimeRegister = !this._eventListeners[remoteEventName];
+      const firstTimeRegister = !this._eventListeners[remoteEventName] || !Object.keys(this._eventListeners[remoteEventName]).length;
+
       this._eventListeners[remoteEventName] =
         this._eventListeners[remoteEventName] || {};
-      const callbackId = uid();
       this._eventListeners[remoteEventName]![callbackId] = callback;
       remoteEventNameAndCallbackId.push([remoteEventName, callbackId]);
 
@@ -197,17 +198,20 @@ export class MessagePortRPCProtocol {
 
           if (Object.keys(this._eventListeners[remoteEventName]).length === 0) {
             delete this._eventListeners[remoteEventName];
+
+            this._port.postMessage(
+              JSONstringify({
+                callId,
+                callerId: this._callerId,
+                rpcId,
+                type: MessageType.disposeEvent,
+                value: {
+                  remoteEventName,
+                },
+              })
+            );
           }
         }
-
-        this._port.postMessage(
-          JSONstringify({
-            callId,
-            callerId: this._callerId,
-            rpcId,
-            type: MessageType.disposeEvent,
-          })
-        );
       }
     };
   }
@@ -316,7 +320,7 @@ export class MessagePortRPCProtocol {
         break;
       }
       case MessageType.disposeEvent: {
-        this._receiveEventDispose(callId);
+        this._receiveEventDispose(callId, rpcId, value);
         break;
       }
       case MessageType.exposeAPI: {
@@ -445,13 +449,14 @@ export class MessagePortRPCProtocol {
 
   private _receiveEventListen(callId: string, rpcId: string, value: any): void {
     const { eventName } = value;
+    const remoteEventName = `${rpcId}.${eventName}`;
 
     const actor = this._locals[rpcId];
     if (!actor) {
       throw new Error("Unknown actor " + rpcId);
     }
 
-    this._eventDisposeCallbacks[callId] = actor.on(eventName, (args: any[]) => {
+    this._eventDisposeCallbacks[remoteEventName] = actor.on(eventName, (args: any[]) => {
       const msg = JSONstringify({
         callId,
         callerId: this._callerId,
@@ -467,8 +472,10 @@ export class MessagePortRPCProtocol {
     });
   }
 
-  private _receiveEventDispose(callId: string): void {
-    const disposeCallback = this._eventDisposeCallbacks[callId];
+  private _receiveEventDispose(callId: string, rpcId: string, value: any): void {
+    const { remoteEventName } = value;
+
+    const disposeCallback = this._eventDisposeCallbacks[remoteEventName];
     if (!disposeCallback) {
       return;
     }
@@ -477,13 +484,13 @@ export class MessagePortRPCProtocol {
       disposeCallback();
     } catch (e) {
       PLAPI.logService.error(
-        `Failed to dispose event ${callId}`,
+        `Failed to dispose event ${remoteEventName}`,
         createError(e),
         false,
         "RPC"
       );
     }
-    delete this._eventDisposeCallbacks[callId];
+    delete this._eventDisposeCallbacks[remoteEventName];
   }
 
   private _receiveEventFire(callId: string, rpcId: string, value: any): void {
