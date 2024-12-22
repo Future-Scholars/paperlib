@@ -1,3 +1,10 @@
+## v3.1.10 Dec 22 2024
+
+1. 修复：右侧面板中的标签链接不起作用。by @geoffreychen777
+2. 修复：文件夹上下文菜单失效。by @geoffreychen777
+3. 修复：排序 bug。by @geoffreychen777
+4. 修复：标签消失 bug。by @geoffreychen777
+
 ## v3.1.9 Aug 23 2024
 
 1. 修复：表格预览时图中的滚动 bug。 by @geoffreychen777
