@@ -1553,6 +1553,8 @@ declare interface IPreferenceStore {
     showGuide: boolean;
     showWelcome: boolean;
     fontsize: "normal" | "large" | "larger";
+    customMainWindowCSS: string;
+    customQuickPasteCSS: string;
 }
 
 declare interface IProcessingState {
@@ -1715,11 +1717,19 @@ declare class MenuService extends Eventable<IMenuServiceState> {
 
 declare class NetworkTool {
     private _agent;
+    private _proxyConfig;
     private _donwloadProgress;
     private _caCert;
     private _caClientKey;
     private _caClinetCert;
     constructor();
+    getProxyConfig(): {
+        httpproxy: string;
+        httpsproxy: string;
+        caCert: string | undefined;
+        caClientKey: string | undefined;
+        caClinetCert: string | undefined;
+    };
     /**
      * Set proxy agent
      * @param httpproxy - HTTP proxy
@@ -4544,8 +4554,9 @@ declare interface WindowOptions extends BrowserWindowConstructorOptions {
 
 declare class WindowProcessManagementService extends Eventable<IWindowProcessManagementServiceState> {
     private readonly _preferenceService;
+    private readonly _fileSystemService;
     browserWindows: WindowStorage;
-    constructor(_preferenceService: PreferenceService);
+    constructor(_preferenceService: PreferenceService, _fileSystemService: FileSystemService);
     /**
      * Create Process with a BrowserWindow
      * @param id - window id
@@ -4554,6 +4565,9 @@ declare class WindowProcessManagementService extends Eventable<IWindowProcessMan
      * @param additionalHeaders - additional response headers for the window
      */
     create(id: string, options: WindowOptions, eventCallbacks?: Record<string, (win: BrowserWindow) => void>, additionalHeaders?: Record<string, string>): void;
+    private insertedKeys;
+    insertCustomCSS(windowId: string, css: string): void;
+    removeCustomCSS(windowId: string): void;
     createMainRenderer(): void;
     createQuickpasteRenderer(): void;
     /**
