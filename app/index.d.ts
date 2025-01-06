@@ -36,6 +36,7 @@ import type { RenderService } from "@/service/services/render-service";
 import type { SchedulerService } from "@/service/services/scheduler-service";
 import type { ScrapeService } from "@/service/services/scrape-service";
 import type { SmartFilterService } from "@/service/services/smartfilter-service";
+import type { SyncService } from "@/service/services/sync-service";
 
 
 // ==============================
@@ -68,6 +69,7 @@ interface PLAPIShape {
   browserExtensionService: Proxied<BrowserExtensionService>;
   feedService: Proxied<FeedService>;
   referenceService: Proxied<ReferenceService>;
+  syncService: Proxied<SyncService>;
 }
 
 interface PLUIAPIShape {

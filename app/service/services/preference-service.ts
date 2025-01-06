@@ -34,12 +34,13 @@ export interface IPreferenceStore {
   enableExportReplacement: boolean;
   exportReplacement: Array<{ from: string; to: string }>;
 
-  useSync: boolean;
+  useSync: "none" | "official" | "realm" | "self-host";
   syncCloudBackend: string;
   isFlexibleSync: boolean;
   syncAPPID: "";
   syncAPIKey: string;
   syncEmail: string;
+
 
   syncFileStorage: string;
   webdavURL: string;

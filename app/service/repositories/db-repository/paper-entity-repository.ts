@@ -89,8 +89,13 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
           this.fire("updated");
         }
+        // Sync with official sync service API
+      //   changes.deletions.forEach((index) => {
+      //     fetch("https://paperlib-sync-canary-x6ybf.ondigitalocean.app/")
+      //   }
       });
       realm.paperEntityListened = true;
+
     }
 
     if (filter) {

@@ -40,7 +40,7 @@ export interface IPreferenceStore {
   enableExportReplacement: boolean;
   exportReplacement: Array<{ from: string; to: string }>;
 
-  useSync: boolean;
+  useSync: "none" | "official" | "realm" | "self-host";
   syncCloudBackend: string;
   isFlexibleSync: boolean;
   syncAPPID: "";
@@ -161,8 +161,8 @@ const _defaultPreferences: IPreferenceStore = {
   enableExportReplacement: true,
   exportReplacement: [],
 
-  useSync: false,
-  syncCloudBackend: "official",
+  useSync: "none",
+  syncCloudBackend: "",
   isFlexibleSync: false,
   syncAPPID: "",
   syncAPIKey: "",

@@ -398,7 +398,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
         true,
         "Database"
       );
-      await PLMainAPI.preferenceService.set({ useSync: false });
+      await PLMainAPI.preferenceService.set({ useSync: "none" });
       return this.getLocalConfig();
     }
   }
@@ -458,7 +458,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       this._partition = this._app.currentUser?.id || "";
       return this._app.currentUser;
     } catch (error) {
-      await PLMainAPI.preferenceService.set({ useSync: false });
+      await PLMainAPI.preferenceService.set({ useSync: "none" });
       this._logService.error(
         "Failed to login to cloud database",
         error as Error,
