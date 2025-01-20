@@ -12,6 +12,7 @@ export interface ISyncServiceState {
   refreshToken?: string;
   idToken?: string;
   sub?: string;
+  userInfo?: string;
 }
 
 /**
@@ -70,7 +71,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       code_challenge,
       nonce,
       scope: "openid profile email sync:read sync:write offline_access",
-      client_id: "JzGo9xzn3zbHM4He86JeHOCOu9FVAdim",
+      client_id: "ZYiqvQp2dbO4eiowGir6avJdIeP6hAOG",
       // TODO: Allow self hosted sync service (get url from preference)
       redirect_uri: "paperlib://auth0.paperlib.app/app/callback",
       code_challenge_method: "S256",
@@ -79,7 +80,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       this._openidClientConfig!,
       params
     );
-    PLMainAPI.fileSystemService.openExternal(authorizationUrl.href);
+    PLMainAPI.fileSystemService.openExternal(authorizationUrl.href).then();
   }
 
   async handleLoginOfficialCallback(callbackUrl: string) {
@@ -108,7 +109,15 @@ export class SyncService extends Eventable<ISyncServiceState> {
       this._store.get("accessToken")!,
       this._store.get("sub")!
     );
-    this._store.set("userInfo", userInfo);
+    this._store.set("userInfo", JSON.stringify(userInfo));
+  }
+
+  async getUserInfo() {
+    return JSON.parse(this._store.get("userInfo")!);
+  }
+
+  async getAccessToken() {
+    return this._store.get("accessToken");
   }
 
   @processing(ProcessingKey.General)
@@ -123,8 +132,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
   }
 
   async logoutOfficial() {
-    // TODO: Logout from the official sync service.
-    openidClient.buildEndSessionUrl(
+    let logoutUrl = openidClient.buildEndSessionUrl(
       this._openidClientConfig!,
       {
         // TODO: hint should be device ID, allow user to logout from specific device
@@ -132,7 +140,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
         post_logout_redirect_uri: "paperlib://auth0.paperlib.app/app/logout/callback",
       }
     );
-
+    PLMainAPI.fileSystemService.openExternal(logoutUrl.href).then();
   }
 
   async handleLogoutOfficialCallback(callbackUrl: string) {
@@ -140,5 +148,6 @@ export class SyncService extends Eventable<ISyncServiceState> {
     this._store.delete("refreshToken");
     this._store.delete("idToken");
     this._store.delete("sub");
+    this._store.delete("userInfo");
   }
 }

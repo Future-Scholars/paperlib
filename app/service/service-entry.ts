@@ -26,6 +26,7 @@ import { RenderService } from "./services/render-service";
 import { SchedulerService } from "./services/scheduler-service";
 import { ScrapeService } from "./services/scrape-service";
 import { SmartFilterService } from "./services/smartfilter-service";
+import { SyncService } from "@/service/services/sync-service";
 
 async function initialize() {
   const logService = new LogService("service.log");
@@ -85,6 +86,7 @@ async function initialize() {
     feedRepository: FeedRepository,
     rssRepository: RSSRepository,
     referenceService: ReferenceService,
+    syncService: SyncService,
   });
   // 4.1 Expose the instances to the global scope for convenience.
   for (const [key, instance] of Object.entries(instances)) {

@@ -22,6 +22,7 @@ import { FeedRepository } from "../repositories/db-repository/feed-repository";
 import { PaperEntityRepository } from "../repositories/db-repository/paper-entity-repository";
 import { PaperSmartFilterRepository } from "../repositories/db-repository/smartfilter-repository";
 import { RSSRepository } from "../repositories/rss-repository/rss-repository";
+import { SyncService } from "@/service/services/sync-service";
 
 export type IInjectable =
   | PreferenceService
@@ -46,4 +47,6 @@ export type IInjectable =
   | FeedRepository
   | FeedEntityRepository
   | RSSRepository
-  | ReferenceService;
+  | ReferenceService
+  | SyncService
+  ;
