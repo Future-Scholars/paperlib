@@ -24,12 +24,12 @@ const onUpdate = (key: string, value: unknown) => {
 // =============================================================================
 // Offical RESTful API Sync
 const onOfficialLoginClicked = async () => {
-  await PLMainAPI.preferenceService.set({ syncCloudBackend: syncCloudBackend.value });
-  await PLMainAPI.preferenceService.set({ syncEmail: syncEmail.value });
-  await PLMainAPI.preferenceService.setPassword(
-    "offcialApiSync",
-    syncPassword.value
-  );
+  // await PLMainAPI.preferenceService.set({ syncCloudBackend: syncCloudBackend.value });
+  // await PLMainAPI.preferenceService.set({ syncEmail: syncEmail.value });
+  // await PLMainAPI.preferenceService.setPassword(
+  //   "offcialApiSync",
+  //   syncPassword.value
+  // );
   await PLMainAPI.preferenceService.set({ useSync: "official" });
 
   await PLAPI.syncService.invokeLoginOfficial();
@@ -49,14 +49,14 @@ const onRealmLoginClicked = async () => {
     "realmSync",
     syncPassword.value
   );
-  await PLMainAPI.preferenceService.set({ useSync: true });
+  await PLMainAPI.preferenceService.set({ useSync: 'realm' });
 
   await PLAPI.databaseService.initialize();
 };
 
 const onRealmLogouClicked = async () => {
   // TODO: test async
-  await PLMainAPI.preferenceService.set({ useSync: false });
+  await PLMainAPI.preferenceService.set({ useSync: 'none' });
   await PLAPI.databaseService.initialize();
   await PLAPI.databaseService.deleteSyncCache();
 };
@@ -113,12 +113,6 @@ onMounted(() => {
         <!-- TODO: Translation -->
       </span>
     </div>
-    <input
-      class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none mb-2"
-      type="text"
-      placeholder="Realm APP ID of the custom MongoDB Atlas"
-      v-model="syncAPPID"
-    />
 
     <div class="flex space-x-2 justify-between mb-5">
       <div class="flex justify-between text-xs flex-none">
@@ -126,20 +120,12 @@ onMounted(() => {
           class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
           v-if="prefState.useSync!='official'"
           @click="onOfficialLoginClicked"
-          :disabled="
-            syncAPPID.length === 0
-          "
-          :class="
-            syncAPPID.length !== 0
-              ? 'hover:bg-neutral-300 hover:dark:bg-neutral-500'
-              : 'text-neutral-400 '
-          "
         >
           <span class="m-auto">{{ $t("preference.login") }}</span>
         </button>
         <button
           class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
-          v-if="prefState.useSync"
+          v-if="prefState.useSync=='official'"
           @click="onRealmLogouClicked"
         >
           <span class="m-auto">{{ $t("preference.logout") }}</span>

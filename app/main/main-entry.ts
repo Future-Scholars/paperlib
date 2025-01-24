@@ -16,9 +16,63 @@ import { UpgradeService } from "./services/upgrade-service";
 import { UtilityProcessManagementService } from "./services/utility-process-management-service";
 import { WindowProcessManagementService } from "./services/window-process-management-service";
 
+function handleDeeplink(urlStr: string) {
+  console.log("handleDeeplink", urlStr);
+  try {
+    const { protocol, hostname, pathname, search } = new URL(urlStr);
+    console.log(protocol, hostname, pathname, search);
+    if (protocol === "paperlib:") {
+      const [apiGroup, serviceName, methodName] = hostname.split(".");
+
+      if (["PLAPI", "PLMainAPI", "PLExtAPI"].includes(apiGroup)) {
+        const args = JSON.parse(
+          decodeURIComponent(search.slice(1)).split("=")[1]
+        );
+        console.log(apiGroup, serviceName, methodName, args);
+        globalThis[apiGroup][serviceName][methodName](...args);
+      } else {
+        throw new Error("Invalid URL");
+      }
+    }
+  } catch (e) {
+    try {
+      PLAPI.logService.error(
+        "SchemeURL error",
+        `${(e as Error).message}\n${(e as Error).stack}`,
+        true,
+        "SchemeURL"
+      );
+    } catch (err) {}
+  }
+}
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
   process.exit(0);
+} else {
+  app.on("second-instance", (event, commandLine, workingDirectory) => {
+    if (
+      PLMainAPILocal.windowProcessManagementService.browserWindows.has(
+        Process.renderer
+      )
+    ) {
+      PLMainAPILocal.windowProcessManagementService.browserWindows
+        .get(Process.renderer)
+        .show();
+      PLMainAPILocal.windowProcessManagementService.browserWindows
+        .get(Process.renderer)
+        .focus();
+
+      if (commandLine.length > 1) {
+        const deepLink = commandLine.pop();
+        if (deepLink) {
+          handleDeeplink(deepLink);
+        }
+      }
+    } else {
+      PLMainAPILocal.windowProcessManagementService.createMainRenderer();
+    }
+  });
 }
 
 if (process.defaultApp) {
@@ -172,29 +226,5 @@ app.whenReady().then(() => {
 });
 
 app.on("open-url", (event, urlStr) => {
-  try {
-    const { protocol, hostname, pathname, search } = new URL(urlStr);
-
-    if (protocol === "paperlib:") {
-      const [apiGroup, serviceName, methodName] = hostname.split(".");
-
-      if (["PLAPI", "PLMainAPI", "PLExtAPI"].includes(apiGroup)) {
-        const args = JSON.parse(
-          decodeURIComponent(search.slice(1)).split("=")[1]
-        );
-        globalThis[apiGroup][serviceName][methodName](...args);
-      } else {
-        throw new Error("Invalid URL");
-      }
-    }
-  } catch (e) {
-    try {
-      PLAPI.logService.error(
-        "SchemeURL error",
-        `${(e as Error).message}\n${(e as Error).stack}`,
-        true,
-        "SchemeURL"
-      );
-    } catch (err) {}
-  }
+  handleDeeplink(urlStr);
 });

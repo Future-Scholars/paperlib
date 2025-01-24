@@ -48,7 +48,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
         "JzGo9xzn3zbHM4He86JeHOCOu9FVAdim"
       );
     }
-    if(!this._openidClientConfig.serverMetadata().supportsPKCE()) {
+    if (!this._openidClientConfig.serverMetadata().supportsPKCE()) {
       throw new Error("PKCE is not supported by the server");
     }
   }
@@ -73,7 +73,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       scope: "openid profile email sync:read sync:write offline_access",
       client_id: "ZYiqvQp2dbO4eiowGir6avJdIeP6hAOG",
       // TODO: Allow self hosted sync service (get url from preference)
-      redirect_uri: "paperlib://auth0.paperlib.app/app/callback",
+      redirect_uri: "paperlib://PLAPI.syncService.handleLoginOfficialCallback/auth",
       code_challenge_method: "S256",
     };
     const authorizationUrl = openidClient.buildAuthorizationUrl(
@@ -83,14 +83,15 @@ export class SyncService extends Eventable<ISyncServiceState> {
     PLMainAPI.fileSystemService.openExternal(authorizationUrl.href).then();
   }
 
-  async handleLoginOfficialCallback(callbackUrl: string) {
+  async handleLoginOfficialCallback({code} : {code: string}) {
+    console.log("Handling callback", code);
     if (!this._openidClientConfig) {
       await this.initialize();
     }
     // Handle the callback from the official sync service.
     const tokens = await openidClient.authorizationCodeGrant(
       this._openidClientConfig!,
-      new URL(callbackUrl),
+      new URL(`paperlib://PLAPI.syncService.handleLoginOfficialCallback/auth?code=${code}`),
       {
         pkceCodeVerifier: this._store.get("pkceCodeVerifier"),
         expectedNonce: this._store.get("nonce"),
@@ -121,7 +122,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
   }
 
   @processing(ProcessingKey.General)
-  async refresh(){
+  async refresh() {
     const tokens = await openidClient.refreshTokenGrant(
       this._openidClientConfig!,
       this._store.get("refreshToken")!
@@ -132,14 +133,12 @@ export class SyncService extends Eventable<ISyncServiceState> {
   }
 
   async logoutOfficial() {
-    let logoutUrl = openidClient.buildEndSessionUrl(
-      this._openidClientConfig!,
-      {
-        // TODO: hint should be device ID, allow user to logout from specific device
-        id_token_hint: this._store.get("sub")!,
-        post_logout_redirect_uri: "paperlib://auth0.paperlib.app/app/logout/callback",
-      }
-    );
+    let logoutUrl = openidClient.buildEndSessionUrl(this._openidClientConfig!, {
+      // TODO: hint should be device ID, allow user to logout from specific device
+      id_token_hint: this._store.get("sub")!,
+      post_logout_redirect_uri:
+        "paperlib://auth0.paperlib.app/app/logout/callback",
+    });
     PLMainAPI.fileSystemService.openExternal(logoutUrl.href).then();
   }
 
