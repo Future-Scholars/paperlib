@@ -95,6 +95,12 @@ onMounted(() => {
   nextTick(async () => {
     syncPassword.value =
       (await PLMainAPI.preferenceService.getPassword("realmSync")) || "";
+    if (prefState.useSync === 'official') {
+      const userinfo = await PLAPI.syncService.getUserInfo();
+      if (userinfo.email){
+        syncEmail.value = userinfo.email;
+      }
+    }
   });
 });
 </script>
@@ -126,24 +132,16 @@ onMounted(() => {
         <button
           class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
           v-if="prefState.useSync=='official'"
-          @click="onRealmLogouClicked"
+          @click="onOfficialLogouClicked"
         >
           <span class="m-auto">{{ $t("preference.logout") }}</span>
         </button>
+        <p v-if="prefState.syncEmail">
+          You are now logged in as <span class="font-semibold">{{ syncEmail }}</span>
+        </p>
       </div>
-    </div>
 
-    <Toggle
-      class="mb-5"
-      :title="$t('preference.flexibleSyncTitle')"
-      :info="$t('preference.flexibleSyncIntro')"
-      :enable="prefState.isFlexibleSync"
-      @event:change="
-        (value) => {
-          onUpdate('isFlexibleSync', value);
-        }
-      "
-    />
+    </div>
 
     <div class="flex justify-between mb-5" v-if="prefState.useSync">
       <div class="flex flex-col">

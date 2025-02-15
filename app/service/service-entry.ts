@@ -102,6 +102,10 @@ async function initialize() {
   //    Expose the APIs of the current process to other processes
   serviceRPCService.setActionor(instances);
 
+  // ============================================================
+  // 6. Initialize the services
+  (instances.syncService as SyncService).initialize();
+
   process.parentPort.postMessage({
     type: "service-ready",
     value: Process.service,

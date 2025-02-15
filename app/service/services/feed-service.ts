@@ -4,6 +4,7 @@ import { Eventable } from "@/base/event";
 import { FeedEntityFilterOptions } from "@/base/filter";
 import { createDecorator } from "@/base/injection/injection";
 import { ILogService, LogService } from "@/common/services/log-service";
+import { ProcessingKey, processing } from "@/common/utils/processing";
 import { Colors } from "@/models/categorizer";
 import { Feed, IFeedCollection, IFeedObject } from "@/models/feed";
 import {
@@ -13,9 +14,11 @@ import {
 } from "@/models/feed-entity";
 import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
-import { ProcessingKey, processing } from "@/common/utils/processing";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
+import { SyncLog } from "@/service/services/sync-service";
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 import {
   FeedEntityRepository,
   IFeedEntityRepository,
@@ -139,11 +142,12 @@ export class FeedService extends Eventable<IFeedServiceState> {
   /**
    * Update feeds.
    * @param feeds - Feeds.
+   * @param fromSync - True if from sync. Default: false.
    * @returns Updated feeds.
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update feeds.", true, "FeedService", [])
-  async update(feeds: IFeedCollection) {
+  async update(feeds: IFeedCollection, fromSync: boolean = false) {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
@@ -155,6 +159,21 @@ export class FeedService extends Eventable<IFeedServiceState> {
     );
 
     const realm = await this._databaseCore.realm();
+    if (!fromSync) {
+      const syncLogDatetime = new Date().toUTCString();
+      const syncLog: z.infer<typeof SyncLog> = {
+        log_id: uuidv4(),
+        entity_type: "feed",
+        operation: "update",
+        value: JSON.stringify({
+          feeds,
+        }),
+        timestamp: syncLogDatetime,
+        created_at: syncLogDatetime,
+        updated_at: syncLogDatetime,
+      };
+      PLAPI.syncService.addSyncLog(syncLog).then();
+    }
 
     const updatedFeeds: IFeedCollection = [];
 
@@ -211,13 +230,30 @@ export class FeedService extends Eventable<IFeedServiceState> {
   /**
    * Create feeds.
    * @param feeds - Feeds
+   * @param fromSync - True if from sync. Default: false.
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to create feeds.", true, "FeedService", [])
-  async create(feeds: Feed[]) {
+  async create(feeds: Feed[], fromSync: boolean = false) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
+    if (!fromSync) {
+      const syncLogDatetime = new Date().toUTCString();
+      const syncLog: z.infer<typeof SyncLog> = {
+        log_id: uuidv4(),
+        entity_type: "feed",
+        operation: "create",
+        value: JSON.stringify({
+          feeds,
+        }),
+        timestamp: syncLogDatetime,
+        created_at: syncLogDatetime,
+        updated_at: syncLogDatetime,
+      };
+      PLAPI.syncService.addSyncLog(syncLog).then();
+    }
+
     feeds.forEach((feed) => {
       feed.name = feed.name.replace(/"/g, "'");
     });
@@ -320,12 +356,30 @@ export class FeedService extends Eventable<IFeedServiceState> {
    * Delete a feed.
    * @param ids - Feed IDs
    * @param feeds - Feeds
+   * @param fromSync - True if from sync. Default: false.
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete feeds.", true, "FeedService", [])
-  async delete(ids?: OID[], feeds?: IFeedCollection) {
+  async delete(ids?: OID[], feeds?: IFeedCollection, fromSync = false) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
+    }
+
+    if (!fromSync) {
+      const syncLogDatetime = new Date().toUTCString();
+      const syncLog: z.infer<typeof SyncLog> = {
+        log_id: uuidv4(),
+        entity_type: "feed",
+        operation: "delete",
+        value: JSON.stringify({
+          ids,
+          feeds,
+        }),
+        timestamp: syncLogDatetime,
+        created_at: syncLogDatetime,
+        updated_at: syncLogDatetime,
+      };
+      PLAPI.syncService.addSyncLog(syncLog).then();
     }
 
     if (!ids && !feeds) {

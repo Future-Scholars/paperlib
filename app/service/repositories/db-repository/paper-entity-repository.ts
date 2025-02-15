@@ -89,99 +89,8 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         if (deletionCount > 0 || insertionCount > 0 || modificationCount > 0) {
           this.fire("updated");
         }
-        // Sync with official sync service API
-        changes.deletions.forEach((index) => {
-          const paper = objs[index];
-          const result = fetch("https://paperlib-sync-canary-x6ybf.ondigitalocean.app/", {
-            method: "DELETE",
-            body: JSON.stringify({
-              paperId:paper._id,
-              addTime: paper.addTime,
-              title: paper.title,
-              authors: paper.authors.split(",").map((author) => {
-                return {name: author};
-              }),
-              publication: paper.publication,
-              pubTime: paper.pubTime,
-              pubType: paper.pubType,
-              doi: paper.doi,
-              arxiv: paper.arxiv,
-              rating: paper.rating,
-              flag: paper.flag,
-              note: paper.note,
-              pages: paper.pages,
-              volume: paper.volume,
-              number: paper.number,
-              publisher: paper.publisher
-            }),
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + PLAPI.syncService.getAccessToken()
-            },
-          });
-          // TODO: Handle the result
-        });
-        changes.insertions.forEach((index) => {
-          const paper = objs[index];
-          const result = fetch("https://paperlib-sync-canary-x6ybf.ondigitalocean.app/", {
-            method: "POST",
-            body: JSON.stringify({
-              paperId: paper._id,
-              addTime: paper.addTime,
-              title: paper.title,
-              authors: paper.authors.split(",").map((author) => {
-                return { name: author };
-              }),
-              publication: paper.publication,
-              pubTime: paper.pubTime,
-              pubType: paper.pubType,
-              doi: paper.doi,
-              arxiv: paper.arxiv,
-              rating: paper.rating,
-              flag: paper.flag,
-              note: paper.note,
-              pages: paper.pages,
-              volume: paper.volume,
-              number: paper.number,
-              publisher: paper.publisher
-            }),
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + PLAPI.syncService.getAccessToken()
-            },
-          });
-        });
-        changes.newModifications.forEach((index) => {
-          const paper = objs[index];
-          const result = fetch("https://paperlib-sync-canary-x6ybf.ondigitalocean.app/", {
-            method: "PUT",
-            body: JSON.stringify({
-              paperId: paper._id,
-              addTime: paper.addTime,
-              title: paper.title,
-              authors: paper.authors.split(",").map((author) => {
-                return { name: author };
-              }),
-              publication: paper.publication,
-              pubTime: paper.pubTime,
-              pubType: paper.pubType,
-              doi: paper.doi,
-              arxiv: paper.arxiv,
-              rating: paper.rating,
-              flag: paper.flag,
-              note: paper.note,
-              pages: paper.pages,
-              volume: paper.volume,
-              number: paper.number,
-              publisher: paper.publisher
-            }),
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + PLAPI.syncService.getAccessToken()
-            },
-          });
-        });
-      });
+      })
+
       realm.paperEntityListened = true;
 
     }
@@ -451,6 +360,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           CategorizerType.PaperFolder,
           toBeUpdatedFolders
         );
+        const syncLogDatetime = new Date().toUTCString();
 
         return toBeDeletedFiles;
       } else {

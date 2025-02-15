@@ -98,7 +98,9 @@
     "mupdf": "^0.2.2",
     "openid-client": "^6.1.7",
     "realm": "11.10.2",
-    "ws": "8.6.0"
+    "uuid": "^11.0.5",
+    "ws": "8.6.0",
+    "zod": "^3.24.1"
   },
   "keywords": [
     "academic",

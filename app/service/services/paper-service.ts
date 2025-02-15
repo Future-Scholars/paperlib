@@ -21,6 +21,9 @@ import {
 import { ProcessingKey, processing } from "@/common/utils/processing";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
+import { SyncLog } from "@/service/services/sync-service";
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 import {
   IPaperEntityRepository,
   PaperEntityRepository,
@@ -150,6 +153,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * @param paperEntityDrafts - paper entity drafts
    * @param updateCache - Update cache, default is true
    * @param isUpdate - Is update, default is false, if false, it is insert. This is for preventing insert duplicated papers.
+   * @param fromSync - Is from sync, default is false
    * @returns Updated paper entities
    */
   @processing(ProcessingKey.General)
@@ -157,7 +161,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
   async update(
     paperEntityDrafts: IPaperEntityCollection,
     updateCache: boolean = true,
-    isUpdate = false
+    isUpdate = false,
+    fromSync: boolean = false
   ): Promise<IPaperEntityCollection> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
@@ -168,6 +173,27 @@ export class PaperService extends Eventable<IPaperServiceState> {
       false,
       "PaperService"
     );
+    // ========================================================
+    // #region 0. Add sync logs
+    if (!fromSync) {
+      const syncLogDatetime = new Date().toUTCString();
+      const syncLog: z.infer<typeof SyncLog> = {
+        log_id: uuidv4(),
+        entity_type: "paper",
+        operation: "update",
+        value: JSON.stringify({
+          paperEntityDrafts,
+          updateCache,
+          isUpdate,
+        }),
+        timestamp: syncLogDatetime,
+        created_at: syncLogDatetime,
+        updated_at: syncLogDatetime,
+      };
+      PLAPILocal.syncService.addSyncLog(syncLog).then();
+    }
+
+    // #endregion =================================================
 
     // ========================================================
     // #region 1. Move files to the app lib folder
@@ -399,10 +425,11 @@ export class PaperService extends Eventable<IPaperServiceState> {
    * Delete paper entities.
    * @param ids - Paper entity ids
    * @param paperEntity - Paper entities
+   * @param fromSync - Is from sync, default is false
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete paper entities.", true, "PaperService")
-  async delete(ids?: OID[], paperEntities?: PaperEntity[]) {
+  async delete(ids?: OID[], paperEntities?: PaperEntity[], fromSync: boolean =false) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
@@ -412,6 +439,24 @@ export class PaperService extends Eventable<IPaperServiceState> {
       false,
       "Entity"
     );
+
+    if (!fromSync) {
+      const syncLogDatetime = new Date().toUTCString();
+      const syncLog: z.infer<typeof SyncLog> = {
+        log_id: uuidv4(),
+        entity_type: "paper",
+        operation: "delete",
+        value: JSON.stringify({
+          ids,
+          paperEntities,
+        }),
+        timestamp: syncLogDatetime,
+        created_at: syncLogDatetime,
+        updated_at: syncLogDatetime,
+      };
+      PLAPI.syncService.addSyncLog(syncLog).then();
+    }
+
     const toBeDeletedFiles = this._paperEntityRepository.delete(
       await this._databaseCore.realm(),
       ids,

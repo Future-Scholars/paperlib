@@ -17,19 +17,17 @@ import { UtilityProcessManagementService } from "./services/utility-process-mana
 import { WindowProcessManagementService } from "./services/window-process-management-service";
 
 function handleDeeplink(urlStr: string) {
-  console.log("handleDeeplink", urlStr);
   try {
     const { protocol, hostname, pathname, search } = new URL(urlStr);
-    console.log(protocol, hostname, pathname, search);
     if (protocol === "paperlib:") {
-      const [apiGroup, serviceName, methodName] = hostname.split(".");
-
+      const [_, apiGroup, serviceName, methodName] = pathname.split("/");
       if (["PLAPI", "PLMainAPI", "PLExtAPI"].includes(apiGroup)) {
-        const args = JSON.parse(
-          decodeURIComponent(search.slice(1)).split("=")[1]
+        // Remove the leading "?" and parse the query string as JSON
+        const args = Object.fromEntries(
+          new URLSearchParams(decodeURIComponent(search.slice(1)))
         );
         console.log(apiGroup, serviceName, methodName, args);
-        globalThis[apiGroup][serviceName][methodName](...args);
+        globalThis[apiGroup][serviceName][methodName](args);
       } else {
         throw new Error("Invalid URL");
       }

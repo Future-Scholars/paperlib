@@ -122,6 +122,7 @@ export interface PLAPILocalShape {
   browserExtensionService: BrowserExtensionService;
   feedService: FeedService;
   referenceService: ReferenceService;
+  syncService: SyncService;
 }
 
 export interface PLUIAPILocalShape {
