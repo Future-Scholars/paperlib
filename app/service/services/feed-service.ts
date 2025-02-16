@@ -16,9 +16,6 @@ import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
-import { SyncLog } from "@/service/services/sync-service";
-import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 import {
   FeedEntityRepository,
   IFeedEntityRepository,
@@ -160,19 +157,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
 
     const realm = await this._databaseCore.realm();
     if (!fromSync) {
-      const syncLogDatetime = new Date().toUTCString();
-      const syncLog: z.infer<typeof SyncLog> = {
-        log_id: uuidv4(),
-        entity_type: "feed",
-        operation: "update",
-        value: JSON.stringify({
-          feeds,
-        }),
-        timestamp: syncLogDatetime,
-        created_at: syncLogDatetime,
-        updated_at: syncLogDatetime,
-      };
-      PLAPI.syncService.addSyncLog(syncLog).then();
+      await PLAPI.syncService.addSyncLog("feed", "update", { feeds });
     }
 
     const updatedFeeds: IFeedCollection = [];
@@ -239,19 +224,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
       return;
     }
     if (!fromSync) {
-      const syncLogDatetime = new Date().toUTCString();
-      const syncLog: z.infer<typeof SyncLog> = {
-        log_id: uuidv4(),
-        entity_type: "feed",
-        operation: "create",
-        value: JSON.stringify({
-          feeds,
-        }),
-        timestamp: syncLogDatetime,
-        created_at: syncLogDatetime,
-        updated_at: syncLogDatetime,
-      };
-      PLAPI.syncService.addSyncLog(syncLog).then();
+      await PLAPI.syncService.addSyncLog("feed", "create", { feeds });
     }
 
     feeds.forEach((feed) => {
@@ -366,20 +339,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     }
 
     if (!fromSync) {
-      const syncLogDatetime = new Date().toUTCString();
-      const syncLog: z.infer<typeof SyncLog> = {
-        log_id: uuidv4(),
-        entity_type: "feed",
-        operation: "delete",
-        value: JSON.stringify({
-          ids,
-          feeds,
-        }),
-        timestamp: syncLogDatetime,
-        created_at: syncLogDatetime,
-        updated_at: syncLogDatetime,
-      };
-      PLAPI.syncService.addSyncLog(syncLog).then();
+      await PLAPI.syncService.addSyncLog("feed", "delete", { ids, feeds });
     }
 
     if (!ids && !feeds) {

@@ -21,9 +21,6 @@ import {
 import { ProcessingKey, processing } from "@/common/utils/processing";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
-import { SyncLog } from "@/service/services/sync-service";
-import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 import {
   IPaperEntityRepository,
   PaperEntityRepository,
@@ -176,21 +173,11 @@ export class PaperService extends Eventable<IPaperServiceState> {
     // ========================================================
     // #region 0. Add sync logs
     if (!fromSync) {
-      const syncLogDatetime = new Date().toUTCString();
-      const syncLog: z.infer<typeof SyncLog> = {
-        log_id: uuidv4(),
-        entity_type: "paper",
-        operation: "update",
-        value: JSON.stringify({
-          paperEntityDrafts,
-          updateCache,
-          isUpdate,
-        }),
-        timestamp: syncLogDatetime,
-        created_at: syncLogDatetime,
-        updated_at: syncLogDatetime,
-      };
-      PLAPILocal.syncService.addSyncLog(syncLog).then();
+      await PLAPILocal.syncService.addSyncLog("paper", "update", {
+        paperEntityDrafts,
+        updateCache,
+        isUpdate,
+      });
     }
 
     // #endregion =================================================
@@ -424,7 +411,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
   /**
    * Delete paper entities.
    * @param ids - Paper entity ids
-   * @param paperEntity - Paper entities
+   * @param paperEntities - Paper entities
    * @param fromSync - Is from sync, default is false
    */
   @processing(ProcessingKey.General)
@@ -441,20 +428,10 @@ export class PaperService extends Eventable<IPaperServiceState> {
     );
 
     if (!fromSync) {
-      const syncLogDatetime = new Date().toUTCString();
-      const syncLog: z.infer<typeof SyncLog> = {
-        log_id: uuidv4(),
-        entity_type: "paper",
-        operation: "delete",
-        value: JSON.stringify({
-          ids,
-          paperEntities,
-        }),
-        timestamp: syncLogDatetime,
-        created_at: syncLogDatetime,
-        updated_at: syncLogDatetime,
-      };
-      PLAPI.syncService.addSyncLog(syncLog).then();
+      await PLAPILocal.syncService.addSyncLog("paper", "delete", {
+        ids,
+        paperEntities,
+      });
     }
 
     const toBeDeletedFiles = this._paperEntityRepository.delete(

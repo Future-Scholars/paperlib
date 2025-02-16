@@ -30,14 +30,12 @@ const onOfficialLoginClicked = async () => {
   //   "offcialApiSync",
   //   syncPassword.value
   // );
-  await PLMainAPI.preferenceService.set({ useSync: "official" });
 
   await PLAPI.syncService.invokeLoginOfficial();
 };
 
 const onOfficialLogouClicked = async () => {
   await PLAPI.syncService.logoutOfficial();
-  await PLMainAPI.preferenceService.set({ useSync: "none" });
 }
 
 // =============================================================================
