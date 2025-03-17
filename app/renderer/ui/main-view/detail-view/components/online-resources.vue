@@ -41,6 +41,22 @@ const onCodeClick = (codeJSONstr: string) => {
         </div>
         <div 
           class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
+          v-if="arxiv"
+          @click="onLinkClick(`https://arxiv.org/html/${arxiv.toLowerCase().replaceAll('arxiv:', '').trim()}`)"
+        >
+          <BIconLink class="text-xs my-auto" />
+          <div class="text-xxs my-auto">arXiv HTML</div>
+        </div>
+        <div 
+          class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
+          v-if="arxiv"
+          @click="onLinkClick(`https://arxiv.org/html/${arxiv.toLowerCase().replaceAll('arxiv:', '').trim()}?_immersive_translate_auto_translate=1`)"
+        >
+          <BIconLink class="text-xs my-auto" />
+          <div class="text-xxs my-auto">arXiv翻译</div>
+        </div>
+        <div 
+          class="flex space-x-1 bg-neutral-200 dark:bg-neutral-700 rounded-md p-1 hover:bg-neutral-300 hover:dark:bg-neutral-600 hover:shadow-sm select-none cursor-pointer mb-1 mr-1"
           v-if="doi"
           @click="onLinkClick(`https://doi.org/${doi}`)"
         >
