@@ -33,23 +33,16 @@ const barRef = ref<HTMLElement | null>(null);
 
 /**
  * State object to store the current zoom factor.
- * This is updated periodically to reflect the current zoom level of the renderer.
+ * This is updated when the zoom level changes in the renderer.
  */
 const state = reactive({
   zoomFactor: 1,
 });
 
-/**
- * Interval ID for the zoom factor polling timer.
- * Used to clear the interval when the component is unmounted.
- */
-let intervalId: number | null = null;
-
 onMounted(() => {
   let webFrame: any = null;
   try {
-    // Try to get Electron's webFrame module from the renderer process.
-    // This is used to read the current zoom factor.
+    // Try to get Electron's webFrame module from the renderer process
     // @ts-ignore
     webFrame = window.require ? window.require("electron").webFrame : null;
   } catch (e) {
@@ -57,36 +50,35 @@ onMounted(() => {
   }
   if (!webFrame) return;
 
-  /**
-   * Updates the zoom factor and applies a reverse scale transform
-   * to the window control bar so that its size remains constant
-   * regardless of the page zoom level.
-   */
-  const updateZoom = () => {
-    // Get the current zoom factor from Electron's webFrame.
-    const factor = webFrame.getZoomFactor ? webFrame.getZoomFactor() : 1;
-    state.zoomFactor = factor;
+  // Function to update the scale based on current zoom factor
+  const updateScale = () => {
+    const zoomFactor = webFrame.getZoomFactor ? webFrame.getZoomFactor() : 1;
+    state.zoomFactor = zoomFactor;
     if (barRef.value) {
-      // Apply a reverse scale transform to counteract the page zoom.
-      barRef.value.style.transform = `scale(${1 / factor})`;
-      // Set the transform origin to the top left so the bar stays in place.
+      const scaleValue = 1 / zoomFactor;
+      barRef.value.style.transform = `scale(${scaleValue})`;
       barRef.value.style.transformOrigin = "top left";
     }
   };
 
-  // Initialize the zoom factor and apply the transform immediately.
-  updateZoom();
+  // Get initial zoom factor and apply scale
+  updateScale();
 
-  // Set up a polling interval to check for zoom changes every 200ms.
-  // Electron does not provide a zoom change event, so polling is necessary.
-  intervalId = window.setInterval(updateZoom, 200);
+  // Listen for zoom change notifications from the main process
+  // @ts-ignore
+  window.require("electron").ipcRenderer.on("zoom-did-change", () => {
+    // When notified, get the current zoom factor directly and update scale
+    updateScale();
+  });
 });
 
 onBeforeUnmount(() => {
-  // Clean up the polling interval when the component is destroyed.
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
+  // Clean up the zoom-did-change event listener
+  try {
+    // @ts-ignore
+    window.require("electron").ipcRenderer.removeAllListeners("zoom-did-change");
+  } catch (e) {
+    // Ignore errors if electron is not available
   }
 });
 </script>
