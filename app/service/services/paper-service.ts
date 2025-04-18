@@ -428,6 +428,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     );
 
     if (!fromSync) {
+      // FIXME: write log only if using sync.
       await PLAPILocal.syncService.addSyncLog("paper", "delete", {
         ids,
         paperEntities,

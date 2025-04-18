@@ -50,7 +50,7 @@ const _DEFAULTSTATE = {
     refreshToken: "",
     idToken: "",
     sub: "",
-    userInfo: "",
+    userInfo: "{}",
     expiredAt: 0,
     syncLogs: [],
     lastSyncAt: "",
@@ -196,7 +196,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
       nonce,
-      scope: "openid profile email sync:read sync:write offline_access",
+      scope: "offline_access openid profile email sync:read sync:write",
       client_id: "JzGo9xzn3zbHM4He86JeHOCOu9FVAdim",
       redirect_uri:
         "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback",
@@ -373,6 +373,8 @@ export class SyncService extends Eventable<ISyncServiceState> {
  // 7. Clear local `syncLogs` after confirming successful push
   // ---------------------------
   public async invokeSync() {
+    // TODO: check if network is available.
+
     // 1) Get a valid accessToken
     const accessToken = await this._getValidAccessToken();
     if (!accessToken) {
@@ -418,7 +420,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
         (!lastSyncAt || new Date(r.timestamp) > new Date(lastSyncAt))
     );
 
-
+    let synced = false;
     // 4) Push local logs to the server
     if (localLogs.length > 0) {
       const postResponse = await fetch(syncUrl, {
@@ -444,7 +446,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       }
       // If push is successful, update lastSyncAt
       this._deleteStoreValue("syncLogs");
-      this._setStoreValue("lastSyncAt", new Date().toISOString());
+      synced = true;
     }
     console.log(filteredLogs);
     // 5) Execute merge logic
@@ -496,6 +498,11 @@ export class SyncService extends Eventable<ISyncServiceState> {
         default:
           throw new Error("Unsupported entity type: " + log.entity_type);
       }
+      synced = true;
+    }
+
+    if (synced) {
+      this._setStoreValue("lastSyncAt", new Date().toISOString());
     }
   }
 
