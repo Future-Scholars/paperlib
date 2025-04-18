@@ -119,7 +119,7 @@ onMounted(() => {
     </div>
 
     <div class="flex space-x-2 justify-between mb-5">
-      <div class="flex justify-between text-xs flex-none">
+      <div class="flex justify-between text-xs flex-none h-7">
         <button
           class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
           v-if="prefState.useSync!='official'"
@@ -134,7 +134,7 @@ onMounted(() => {
         >
           <span class="m-auto">{{ $t("preference.logout") }}</span>
         </button>
-        <p v-if="prefState.syncEmail">
+        <p class="my-auto px-2" v-if="prefState.syncEmail && prefState.useSync=='official'">
           You are now logged in as <span class="font-semibold">{{ syncEmail }}</span>
         </p>
       </div>

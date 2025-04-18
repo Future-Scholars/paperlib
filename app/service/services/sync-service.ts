@@ -268,7 +268,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       this.invokeSync.bind(this),
       // 10, // Try to sync after 10 seconds
       // For testing convenience, change to 1 second
-      1,
+      10,
       undefined,
       false,
       false
@@ -349,6 +349,8 @@ export class SyncService extends Eventable<ISyncServiceState> {
     if (lastSyncAt) {
       syncUrl.searchParams.set("since", lastSyncAt);
     }
+
+    // FIXME: replace fetch with a network service for proxy?
     const getResponse: { code: number; data: z.infer<typeof SyncLog>[] } =
       await fetch(syncUrl, {
         method: "GET",
