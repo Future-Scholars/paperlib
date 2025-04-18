@@ -196,6 +196,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
           { role: "zoomOut" },
           { type: "separator" },
           { role: "togglefullscreen" },
+          { role: "toggleDevTools" },
         ],
       },
       {

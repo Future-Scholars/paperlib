@@ -1511,7 +1511,6 @@ declare interface IPreferenceStore {
         to: string;
     }>;
     useSync: boolean;
-    syncCloudBackend: string;
     isFlexibleSync: boolean;
     syncAPPID: "";
     syncAPIKey: string;

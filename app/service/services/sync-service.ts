@@ -12,16 +12,17 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 export interface ISyncServiceState {
-  pkceCodeVerifier?: string;
-  nonce?: string;
-  accessToken?: string;
-  refreshToken?: string;
-  idToken?: string;
-  sub?: string;
-  userInfo?: string;
-  expiredAt?: number;
-  syncLogs?: z.infer<typeof SyncLog>[];
-  lastSyncAt?: string;
+  connected: boolean;
+  pkceCodeVerifier: string;
+  nonce: string;
+  accessToken: string;
+  refreshToken: string;
+  idToken: string;
+  sub: string;
+  userInfo: string;
+  expiredAt: number;
+  syncLogs: z.infer<typeof SyncLog>[];
+  lastSyncAt: string;
 }
 
 export const SyncLog = z.object({
@@ -41,6 +42,21 @@ export const SyncLog = z.object({
   updated_at: z.string().datetime(), // Updated time on local database
 });
 
+const _DEFAULTSTATE = {
+    connected: false,
+    pkceCodeVerifier: "",
+    nonce: "",
+    accessToken: "",
+    refreshToken: "",
+    idToken: "",
+    sub: "",
+    userInfo: "",
+    expiredAt: 0,
+    syncLogs: [],
+    lastSyncAt: "",
+  }
+
+
 /**
  * Service for synchronization maintenance.
  * 1. Maintain the synchronization authentication.
@@ -56,10 +72,23 @@ export class SyncService extends Eventable<ISyncServiceState> {
   private readonly _store: ElectronStore<ISyncServiceState>;
 
   constructor() {
-    super("syncService", {});
-    this._store = new ElectronStore<ISyncServiceState>({
+    const _store = new ElectronStore<ISyncServiceState>({
       name: "sync",
     });
+
+    const defaultState = JSON.parse(
+      JSON.stringify(_DEFAULTSTATE)
+    ) as ISyncServiceState;
+    for (const key in _DEFAULTSTATE) {
+      if (!_store.has(key)) {
+        _store.set(key, _DEFAULTSTATE[key as keyof ISyncServiceState]);
+      } else {
+        defaultState[key] = _store.get(key);
+      }
+    }
+    super("syncService", defaultState);
+
+    this._store = _store;
   }
 
   private syncBaseUrl = new URL("https://coral-app-uijy2.ondigitalocean.app/");
@@ -71,6 +100,11 @@ export class SyncService extends Eventable<ISyncServiceState> {
     // Delete first and then set to avoid merge issues in some ElectronStore implementations
     this._store.delete(key);
     this._store.set(key, value);
+
+    // Emit event
+    this.fire({
+      [key]: value,
+    }, false);
   }
 
   private _getStoreValue<K extends keyof ISyncServiceState>(
@@ -80,7 +114,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
   }
 
   private _deleteStoreValue<K extends keyof ISyncServiceState>(key: K) {
-    this._store.delete(key);
+    this._setStoreValue(key, _DEFAULTSTATE[key]);
   }
 
   /**
@@ -212,6 +246,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
         accessToken,
         sub
       );
+
       this._setStoreValue("userInfo", JSON.stringify(userInfo));
     }
   }
@@ -226,6 +261,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
     const pkceCodeVerifier = this._getStoreValue("pkceCodeVerifier");
     const nonce = this._getStoreValue("nonce");
     if (!pkceCodeVerifier || !nonce) {
+      this._setStoreValue("connected", false);
       throw new Error("Missing PKCE code verifier or nonce in store");
     }
 
@@ -258,6 +294,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // 5) Save token and other information
     await this._storeTokensAndUserInfo(tokens);
+    this._setStoreValue("connected", true);
 
     // 6) Update user preferences
     await PLMainAPI.preferenceService.set({ useSync: "official" });
@@ -286,6 +323,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
     if (expiredAt && now > expiredAt) {
       const tokens = await this.refreshAuth();
       if (!tokens) {
+        this._setStoreValue("connected", false);
         return null;
       }
     }
@@ -408,12 +446,12 @@ export class SyncService extends Eventable<ISyncServiceState> {
       this._deleteStoreValue("syncLogs");
       this._setStoreValue("lastSyncAt", new Date().toISOString());
     }
-
+    console.log(filteredLogs);
     // 5) Execute merge logic
     for (const log of filteredLogs) {
       if (!log.value) continue;
 
-      const logValue = JSON.parse(log.value);
+      const logValue = typeof log.value === "string" ? JSON.parse(log.value) : log.value;
       switch (log.entity_type) {
         case "paper":
           switch (log.operation) {
@@ -512,6 +550,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       this._setStoreValue("userInfo", JSON.stringify(userInfo));
       return userInfo;
     }
+    this.handleLogoutOfficialCallback("");
     throw new Error("Unable to get valid user info");
   }
 
@@ -548,6 +587,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
   //   - Keep or clear syncLogs based on business needs
   // ---------------------------
   public async handleLogoutOfficialCallback(_callbackUrl: string) {
+    this._setStoreValue("connected", false);
     this._deleteStoreValue("accessToken");
     this._deleteStoreValue("refreshToken");
     this._deleteStoreValue("idToken");
@@ -564,5 +604,23 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // Update user preferences
     await PLMainAPI.preferenceService.set({ useSync: "none" });
+  }
+
+  useState(): ISyncServiceState {
+    if (this._eventStateProxy) {
+      return this._eventStateProxy;
+    } else {
+      this._eventStateProxy = new Proxy(this._eventState, {
+        get: (target, prop) => {
+          return target[prop as keyof ISyncServiceState];
+        },
+        set: (_target, prop, value) => {
+          this.fire({ [prop as any]: value }, true);
+          return true;
+        },
+      });
+
+      return this._eventStateProxy;
+    }
   }
 }

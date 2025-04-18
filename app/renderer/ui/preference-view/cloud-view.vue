@@ -5,12 +5,15 @@ import Options from "./components/options.vue";
 import Toggle from "./components/toggle.vue";
 
 const prefState = PLMainAPI.preferenceService.useState();
+const syncState = PLAPI.syncService.useState();
 const filebackendState = PLAPI.fileService.useState();
 
-const syncAPPID = ref(prefState.syncAPPID);
-const syncCloudBackend = ref(prefState.syncCloudBackend);
-const syncEmail = ref(prefState.syncEmail);
-const syncPassword = ref("");
+const syncUserInfo = ref(JSON.parse(syncState.userInfo)["email"]);
+
+const deprecatedSyncAPPID = ref(prefState.syncAPPID);
+const deprecatedSyncEmail = ref(prefState.syncEmail);
+const deprecatedSyncPassword = ref("");
+
 const syncFileStorage = ref(prefState.syncFileStorage);
 
 const webdavURL = ref(prefState.webdavURL);
@@ -24,13 +27,6 @@ const onUpdate = (key: string, value: unknown) => {
 // =============================================================================
 // Offical RESTful API Sync
 const onOfficialLoginClicked = async () => {
-  // await PLMainAPI.preferenceService.set({ syncCloudBackend: syncCloudBackend.value });
-  // await PLMainAPI.preferenceService.set({ syncEmail: syncEmail.value });
-  // await PLMainAPI.preferenceService.setPassword(
-  //   "offcialApiSync",
-  //   syncPassword.value
-  // );
-
   await PLAPI.syncService.invokeLoginOfficial();
 };
 
@@ -41,11 +37,11 @@ const onOfficialLogouClicked = async () => {
 // =============================================================================
 // Legacy Realm Sync
 const onRealmLoginClicked = async () => {
-  await PLMainAPI.preferenceService.set({ syncAPPID: syncAPPID.value });
-  await PLMainAPI.preferenceService.set({ syncEmail: syncEmail.value });
+  await PLMainAPI.preferenceService.set({ syncAPPID: deprecatedSyncAPPID.value });
+  await PLMainAPI.preferenceService.set({ syncEmail: deprecatedSyncEmail.value });
   await PLMainAPI.preferenceService.setPassword(
     "realmSync",
-    syncPassword.value
+    deprecatedSyncPassword.value
   );
   await PLMainAPI.preferenceService.set({ useSync: 'realm' });
 
@@ -91,13 +87,9 @@ const onWebdavDisconnectClicked = async () => {
 
 onMounted(() => {
   nextTick(async () => {
-    syncPassword.value =
-      (await PLMainAPI.preferenceService.getPassword("realmSync")) || "";
-    if (prefState.useSync === 'official') {
-      const userinfo = await PLAPI.syncService.getUserInfo();
-      if (userinfo.email){
-        syncEmail.value = userinfo.email;
-      }
+    if (prefState.useSync === 'realm') {
+      deprecatedSyncPassword.value =
+        (await PLMainAPI.preferenceService.getPassword("realmSync")) || "";
     }
   });
 });
@@ -122,20 +114,20 @@ onMounted(() => {
       <div class="flex justify-between text-xs flex-none h-7">
         <button
           class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
-          v-if="prefState.useSync!='official'"
+          v-if="!syncState.connected"
           @click="onOfficialLoginClicked"
         >
           <span class="m-auto">{{ $t("preference.login") }}</span>
         </button>
         <button
           class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
-          v-if="prefState.useSync=='official'"
+          v-else
           @click="onOfficialLogouClicked"
         >
           <span class="m-auto">{{ $t("preference.logout") }}</span>
         </button>
-        <p class="my-auto px-2" v-if="prefState.syncEmail && prefState.useSync=='official'">
-          You are now logged in as <span class="font-semibold">{{ syncEmail }}</span>
+        <p class="my-auto px-2">
+          You are now logged in as <span class="font-semibold">{{ syncUserInfo }}</span>
         </p>
       </div>
 
@@ -175,7 +167,7 @@ onMounted(() => {
       class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none mb-2"
       type="text"
       placeholder="Realm APP ID of the custom MongoDB Atlas"
-      v-model="syncAPPID"
+      v-model="deprecatedSyncAPPID"
     />
 
     <div class="flex space-x-2 justify-between mb-5">
@@ -183,7 +175,7 @@ onMounted(() => {
         class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
         type="text"
         placeholder="Username"
-        v-model="syncEmail"
+        v-model="deprecatedSyncEmail"
         :disabled="prefState.useSync!='realm'"
         :class="prefState.useSync=='realm' ? 'text-neutral-400' : ''"
       />
@@ -191,7 +183,7 @@ onMounted(() => {
         class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
         type="password"
         placeholder="Password"
-        v-model="syncPassword"
+        v-model="deprecatedSyncPassword"
         :disabled="prefState.useSync!='realm'"
         :class="prefState.useSync=='realm' ? 'text-neutral-400' : ''"
       />
@@ -201,14 +193,14 @@ onMounted(() => {
           v-if="prefState.useSync!='realm'"
           @click="onRealmLoginClicked"
           :disabled="
-            syncAPPID.length === 0 &&
-            syncEmail.length === 0 &&
-            syncPassword.length === 0
+            deprecatedSyncAPPID.length === 0 &&
+            deprecatedSyncEmail.length === 0 &&
+            deprecatedSyncPassword.length === 0
           "
           :class="
-            syncAPPID.length !== 0 &&
-            syncEmail.length !== 0 &&
-            syncPassword.length !== 0
+          deprecatedSyncAPPID.length !== 0 &&
+          deprecatedSyncEmail.length !== 0 &&
+            deprecatedSyncPassword.length !== 0
               ? 'hover:bg-neutral-300 hover:dark:bg-neutral-500'
               : 'text-neutral-400 '
           "
