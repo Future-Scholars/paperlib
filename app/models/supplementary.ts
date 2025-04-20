@@ -1,42 +1,36 @@
 import { ObjectId } from "bson";
 import Realm, { List, Results } from "realm";
 
-import { OID } from "./id";
+import { getFileType } from "@/base/url";
 
-export interface ISupplementaryDraft {
-  _id?: OID;
-  url?: string;
-  name?: string;
+export interface ISupplementary {
+  _id: string;
+  url: string;
+  name: string;
 }
 
-export class Supplementary {
+export class Supplementary implements ISupplementary {
   static schema = {
     name: "Supplementary",
-    primaryKey: "_id",
+    embedded: true,
     properties: {
-      _id: "objectId",
+      _id: "string",
       url: "string",
       name: "string",
     },
   };
 
-  _id: OID;
-  url: string;
-  name: string;
+  _id!: string;
+  url!: string;
+  name!: string;
 
-  constructor(object?: ISupplementaryDraft, initObjectId = false) {
-    this._id = object?._id ? new ObjectId(object._id) : "";
-    this.url = object?.url || "";
-    this.name = object?.name || "";
-
-    if (initObjectId) {
-      this._id = new ObjectId();
-    }
+  constructor(object?: Partial<ISupplementary>) {
+    this.initialize(object || {});
 
     return new Proxy(this, {
       set: (target, prop, value) => {
         if ((prop === "_id") && value) {
-          this._id = new ObjectId(value);
+            this._id = Date.now().toString(36);
         } else {
           target[prop] = value;
         }
@@ -46,10 +40,10 @@ export class Supplementary {
     });
   }
 
-  initialize(object: ISupplementaryDraft) {
-    this._id = object._id ? new ObjectId(object._id) : "";
+  initialize(object: Partial<ISupplementary>) {
+    this._id = object._id || new ObjectId().toString();
     this.url = object.url || "";
-    this.name = object.name || "";
+    this.name = object.name || getFileType(this.url);
 
     return this;
   }

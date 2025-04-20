@@ -5,7 +5,7 @@ import Realm, { List, Results } from "realm";
 import { ICategorizerDraft, PaperFolder, PaperTag } from "./categorizer";
 import { Feed, IFeedDraft } from "./feed";
 import { OID } from "./id";
-import { ISupplementaryDraft, Supplementary } from "./supplementary";
+import { ISupplementary, Supplementary } from "./supplementary";
 
 export type EntityType =
   | "article"
@@ -21,15 +21,16 @@ export type EntityType =
   | "proceedings"
   | "techreport";
 
-export interface IEntityDraft {
+export interface IEntity {
   // General
   _id?: OID;
+  _partition?: string; // deprecated, for old realm cloud only, will be removed in the future
   addTime?: Date;
   library?: string;
   type?: EntityType;
   abstract?: string;
-  defaultSup?: OID;
-  supplementarys?: ISupplementaryDraft[];
+  defaultSup?: string;
+  supplementarys?: Record<string, ISupplementary>;
 
   // Identifiers
   doi?: string;
@@ -68,21 +69,19 @@ export interface IEntityDraft {
   feed?: IFeedDraft;
 }
 
-export class Entity {
+export class Entity implements IEntity {
   static schema = {
     name: "Entity",
     primaryKey: "_id",
     properties: {
       _id: "objectId",
+      _partition: "string?", // deprecated, for old realm cloud only, will be removed in the future
       addTime: "date",
       library: "string",
       type: "string",
       abstract: "string?",
       defaultSup: "objectId?",
-      supplementarys: {
-        type: "list",
-        objectType: "Supplementary",
-      },
+      supplementarys: "Supplementary{}",
       doi: "string?",
       arxiv: "string?",
       issn: "string?",
@@ -124,12 +123,13 @@ export class Entity {
   };
 
   _id!: OID;
+  _partition?: string; // deprecated, for old realm cloud only, will be removed in the future
   addTime!: Date;
   library!: string;
   type!: EntityType;
   abstract?: string;
-  defaultSup?: OID;
-  supplementarys!: Supplementary[];
+  defaultSup?: string;
+  supplementarys!: Record<string, Supplementary>;
   doi?: string;
   arxiv?: string;
   issn?: string;
@@ -159,7 +159,7 @@ export class Entity {
   read?: boolean;
   feed?: Feed;
 
-  constructor(object?: IEntityDraft, initObjectId = false) {
+  constructor(object?: IEntity, initObjectId = false) {
     this.initialize(object || {}, initObjectId);
 
     return new Proxy(this, {
@@ -200,19 +200,24 @@ export class Entity {
     this[key as any] = value;
   }
 
-  initialize(object: IEntityDraft, initObjectId = true) {
+  initialize(object: IEntity, initObjectId = true) {
     this._id = object?._id ? new ObjectId(object._id) : "";
+    this._partition = object?._partition; // deprecated, for old realm cloud only, will be removed in the future
     this.addTime = object?.addTime || new Date();
     this.library = object?.library || "main";
     this.type = object?.type || "article";
     this.abstract = object?.abstract;
     this.defaultSup = object?.defaultSup
-      ? new ObjectId(object.defaultSup)
+      ? String(new ObjectId(object.defaultSup))
       : undefined;
-    this.supplementarys =
-      object?.supplementarys?.map(
-        (sup) => new Supplementary(sup, false)
-      ) || [];
+    this.supplementarys = object?.supplementarys
+      ? Object.entries(object.supplementarys).reduce(
+          (acc, [key, value]) => {
+            acc[key] = new Supplementary(value);
+            return acc;
+          },
+          {} as Record<string, Supplementary>
+        ) : {};
 
     this.doi = object?.doi;
     this.arxiv = object?.arxiv;
@@ -259,6 +264,7 @@ export type IEntityRealmObject = Entity &
   Realm.Object<
     Entity,
     | "_id"
+    | "_partition"
     | "addTime"
     | "library"
     | "type"

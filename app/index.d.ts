@@ -159,6 +159,7 @@ declare global {
 
   interface Realm {
     safeWrite: <T>(callback: () => T) => T;
+    entityListened: boolean;
     paperEntityListened: boolean;
     tagsListened: boolean;
     foldersListened: boolean;

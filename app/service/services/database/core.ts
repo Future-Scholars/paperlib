@@ -11,10 +11,12 @@ import { Feed } from "@/models/feed";
 import { FeedEntity } from "@/models/feed-entity";
 import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
+import { Entity } from "@/models/entity";
 import { ProcessingKey, processing } from "@/common/utils/processing";
 import { migrate, syncMigrate } from "@/service/services/database/migration";
 
 import { FileService, IFileService } from "../file-service";
+import { Supplementary } from "@/models/supplementary";
 
 export const DATABASE_SCHEMA_VERSION = 10;
 
@@ -143,6 +145,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       }
     };
 
+    this._realm!.entityListened = false;
     this._realm!.paperEntityListened = false;
     this._realm!.tagsListened = false;
     this._realm!.foldersListened = false;
@@ -232,6 +235,8 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
 
     const config = {
       schema: [
+        Entity.schema,
+        Supplementary.schema,
         PaperEntity.schema,
         PaperTag.schema,
         PaperFolder.schema,
@@ -260,6 +265,8 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       if (await PLMainAPI.preferenceService.get("isFlexibleSync")) {
         const config: ConfigurationWithSync = {
           schema: [
+            Entity.schema,
+            Supplementary.schema,
             PaperEntity.schema,
             PaperTag.schema,
             PaperFolder.schema,
@@ -285,6 +292,14 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
             flexible: true,
             initialSubscriptions: {
               update: (subs, realm) => {
+                subs.add(
+                  realm
+                    .objects<Entity>("Entity")
+                    .filtered(`_partition == '${cloudUser.id}'`),
+                  {
+                    name: "Entity",
+                  }
+                );
                 subs.add(
                   realm
                     .objects<PaperEntity>("PaperEntity")
@@ -357,6 +372,8 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
       } else {
         const config = {
           schema: [
+            Entity.schema,
+            Supplementary.schema,
             PaperEntity.schema,
             PaperTag.schema,
             PaperFolder.schema,

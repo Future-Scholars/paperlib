@@ -6,6 +6,7 @@ import { ILogService, LogService } from "@/common/services/log-service";
 import { IPaperEntityCollection, PaperEntity } from "@/models/paper-entity";
 import { ProcessingKey, processing } from "@/common/utils/processing";
 import { HookService, IHookService } from "./hook-service";
+import { Entity } from "@/models/entity";
 
 export const IScrapeService = createDecorator("scrapeService");
 
@@ -96,13 +97,13 @@ export class ScrapeService extends Eventable<{}> {
     payloads: any[],
     specificScrapers: string[],
     force: boolean = false
-  ): Promise<PaperEntity[]> {
+  ): Promise<Entity[]> {
     // 0. Wait for scraper extension to be ready.
     await this._scrapeExtensionReady();
 
     // Do in chunks 10
     const jobID = Math.random().toString(36).substring(7);
-    const results: PaperEntity[] = [];
+    const results: Entity[] = [];
     for (let i = 0; i < payloads.length; i += 10) {
       if (payloads.length >= 20) {
         this._logService.progress(
@@ -172,7 +173,7 @@ export class ScrapeService extends Eventable<{}> {
       );
     }
 
-    let paperEntityDrafts: PaperEntity[] = [];
+    let paperEntityDrafts: Entity[] = [];
     if (this._hookService.hasHook("scrapeEntry")) {
       paperEntityDrafts = (
         await this._hookService.transformhookPoint<any[], Object[]>(
@@ -181,7 +182,7 @@ export class ScrapeService extends Eventable<{}> {
           payloads
         )
       ).map((p) => {
-        return new PaperEntity(p);
+        return new Entity(p);
       });
     }
 
@@ -192,7 +193,7 @@ export class ScrapeService extends Eventable<{}> {
         paperEntityDrafts
       );
       paperEntityDrafts = paperEntityDrafts.map((p) => {
-        return new PaperEntity(p);
+        return new Entity(p);
       });
     }
 
@@ -208,7 +209,7 @@ export class ScrapeService extends Eventable<{}> {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape metadata.", true, "ScrapeService", [])
   async scrapeMetadata(
-    paperEntityDrafts: PaperEntity[],
+    paperEntityDrafts: Entity[],
     scrapers: string[],
     force: boolean = false
   ) {

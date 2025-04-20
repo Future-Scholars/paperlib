@@ -45,9 +45,12 @@ export function eraseProtocol(url: string): string {
  * @description
  */
 export function getFileType(url: string): string {
+  if (getProtocol(url) === "http" || getProtocol(url) === "https") {
+    return "WEB";
+  }
   const components = url.split(".");
   if (components.length === 1) {
-    return "";
+    return "N/A";
   } else {
     return components[components.length - 1];
   }
