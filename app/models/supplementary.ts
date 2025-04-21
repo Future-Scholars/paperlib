@@ -2,6 +2,7 @@ import { ObjectId } from "bson";
 import Realm, { List, Results } from "realm";
 
 import { getFileType } from "@/base/url";
+import { uid } from "@/base/misc";
 
 export interface ISupplementary {
   _id: string;
@@ -30,7 +31,7 @@ export class Supplementary implements ISupplementary {
     return new Proxy(this, {
       set: (target, prop, value) => {
         if ((prop === "_id") && value) {
-            this._id = Date.now().toString(36);
+            this._id = uid();
         } else {
           target[prop] = value;
         }
@@ -43,7 +44,7 @@ export class Supplementary implements ISupplementary {
   initialize(object: Partial<ISupplementary>) {
     this._id = object._id || new ObjectId().toString();
     this.url = object.url || "";
-    this.name = object.name || getFileType(this.url);
+    this.name = object.name || getFileType(this.url).toUpperCase();
 
     return this;
   }

@@ -3,19 +3,19 @@ import { PropType, ref } from "vue";
 
 import { OID } from "@/models/id";
 import { IFeedEntityCollection } from "@/models/feed-entity";
-import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
 import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableItem from "./components/table-item.vue";
 import TableHeader from "./components/table-header.vue";
+import { Entity, IEntityCollection } from "@/models/entity";
 
 const props = defineProps({
   entities: {
-    type: Object as PropType<IPaperEntityCollection | IFeedEntityCollection>,
+    type: Object as PropType<IEntityCollection | IFeedEntityCollection>,
     required: true,
   },
   candidates: {
-    type: Object as PropType<Record<string, PaperEntity[]>>,
+    type: Object as PropType<Record<string, Entity[]>>,
     required: true,
   },
   fieldTemplates: {
@@ -132,6 +132,8 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
   event.dataTransfer?.setDragImage(el, 0, 0);
   emits("event:drag", selectedIndex);
 };
+
+// TODO: check all xxx.id
 </script>
 
 <template>
@@ -148,7 +150,7 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
       class="scroller h-full table-body"
       :items="entities"
       :item-size="itemSize"
-      key-field="id"
+      key-field="_id"
       v-slot="{ item, index }"
       :buffer="300"
     >
@@ -170,8 +172,8 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
         @contextmenu="(e: MouseEvent) => {onItemRightClicked(e, index)}"
         @dblclick="(e: MouseEvent) => {onItemDoubleClicked(e, index)}"
         draggable="true"
-        @dragstart="(event) => onItemDraged(event, index, item.id)"
-        @event:click-candidate-btn="emits('event:click-candidate-btn', item.id)"
+        @dragstart="(event) => onItemDraged(event, index, item._id)"
+        @event:click-candidate-btn="emits('event:click-candidate-btn', item._id)"
       />
     </RecycleScroller>
   </div>

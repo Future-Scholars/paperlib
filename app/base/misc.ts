@@ -34,5 +34,7 @@ export function sleep(ms: number) {
 }
 
 export function uid() {
-  return Math.random().toString(36).substring(2);
+  const randomPart = Math.random().toString(36);
+  const timestampPart = Date.now().toString(36);
+  return randomPart.slice(randomPart.length - 4) + timestampPart.slice(timestampPart.length - 4);
 }

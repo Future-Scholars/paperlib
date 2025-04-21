@@ -26,6 +26,7 @@ import { FileService, IFileService } from "./file-service";
 import { ISchedulerService, SchedulerService } from "./scheduler-service";
 import { IScrapeService, ScrapeService } from "./scrape-service";
 import { getProtocol } from "@/base/url";
+import { uid } from "@/base/misc";
 
 export interface IPaperServiceState {
   count: number;
@@ -375,7 +376,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       if (sup._id === defaultSup) {
         paperEntity.defaultSup = sup._id;
       }
-      paperEntity.supplementarys[sup._id] = sup as Supplementary;
+      paperEntity.supplementaries[sup._id] = sup as Supplementary;
     }
     paperEntity = await this._fileService.move(paperEntity);
 
@@ -454,7 +455,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     );
 
     const toBeDeletedFiles = supIds.map((supId) => {
-      const sup = paperEntity.supplementarys[supId];
+      const sup = paperEntity.supplementaries[supId];
       if (sup && getProtocol(sup.url) === "file") {
         return sup.url;
       } else {
@@ -463,15 +464,15 @@ export class PaperService extends Eventable<IPaperServiceState> {
     }).filter((url) => url !== null);
 
     await Promise.all(toBeDeletedFiles.map(url => this._fileService.removeFile(url)));
-    paperEntity.supplementarys = Object.fromEntries(
-      Object.entries(paperEntity.supplementarys).filter(
+    paperEntity.supplementaries = Object.fromEntries(
+      Object.entries(paperEntity.supplementaries).filter(
         ([key]) => !supIds.includes(key)
       )
     );
 
     if (paperEntity.defaultSup && supIds.includes(paperEntity.defaultSup)) {
-      if (Object.keys(paperEntity.supplementarys).length > 0) {
-        paperEntity.defaultSup = Object.keys(paperEntity.supplementarys)[0];
+      if (Object.keys(paperEntity.supplementaries).length > 0) {
+        paperEntity.defaultSup = Object.keys(paperEntity.supplementaries)[0];
       } else {
         paperEntity.defaultSup = undefined;
       }
@@ -519,11 +520,30 @@ export class PaperService extends Eventable<IPaperServiceState> {
     const payloads = urlList.map((url) => {
       return { type: "file", value: url };
     });
-    const scrapedPaperEntityDrafts = await this._scrapeService.scrape(
-      payloads,
-      [],
-      false
-    );
+    // FIXME: fix this bypass for debug
+    // const scrapedPaperEntityDrafts = await this._scrapeService.scrape(
+    //   payloads,
+    //   [],
+    //   false
+    // );
+    
+    const scrapedPaperEntityDrafts = urlList.map((url) => {
+      const paperEntityDraft = new Entity({
+        title: `Paper from file ${url}`,
+        year: "2025",
+        booktitle: "Test booktitle",
+        type: "inproceedings",
+      });
+      const supId = uid();
+      paperEntityDraft.supplementaries = {
+        [supId]: new Supplementary({
+          _id: supId,
+          url: url,
+        }),
+      };
+      paperEntityDraft.defaultSup = supId;
+      return paperEntityDraft;
+    });
 
     // 2. Update.
     return await this.update(scrapedPaperEntityDrafts, true, false);
@@ -574,7 +594,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape metadata.", true, "PaperService")
   async scrape(
-    paperEntities: IPaperEntityCollection,
+    paperEntities: IEntityCollection,
     specificScrapers?: string[]
   ) {
     if (this._databaseCore.getState("dbInitializing")) {
@@ -628,7 +648,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     );
     await this.scrape(
       preprintPaperEntities.map((paperEntity) => {
-        return new PaperEntity(paperEntity);
+        return new Entity(paperEntity);
       })
     );
   }

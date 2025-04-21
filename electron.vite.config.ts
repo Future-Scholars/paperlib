@@ -45,7 +45,8 @@ export default defineConfig({
   renderer: {
     resolve: {
       alias: {
-        '@': resolve('app/')
+        '@': resolve('app/'),
+        'path': "path-browserify",
       }
     },
     plugins: [vue()],
@@ -58,6 +59,9 @@ export default defineConfig({
         },
       },
       outDir: 'dist/renderer',
+    },
+    optimizeDeps: {
+      include: ['path-browserify']
     }
   }
 })

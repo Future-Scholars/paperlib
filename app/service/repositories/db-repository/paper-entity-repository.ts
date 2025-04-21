@@ -137,7 +137,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     paperEntity.addTime = paperEntity.addTime || new Date();
     paperEntity.library = "main";
     paperEntity.type = paperEntity.type || "article";
-    paperEntity.supplementarys = paperEntity.supplementarys || [];
+    paperEntity.supplementaries = paperEntity.supplementaries || [];
     paperEntity.title = `${paperEntity.title}` || "";
     paperEntity.authors = paperEntity.authors || "";
     paperEntity.year = paperEntity.year || "";
@@ -218,7 +218,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         object.type = paperEntity.type;
         object.abstract = paperEntity.abstract;
         object.defaultSup = paperEntity.defaultSup;
-        object.supplementarys = paperEntity.supplementarys;
+        object.supplementaries = paperEntity.supplementaries;
         object.doi = paperEntity.doi;
         object.arxiv = paperEntity.arxiv;
         object.issn = paperEntity.issn;
@@ -319,7 +319,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
 
         const toBeDeletedFiles = toBeDeleted
           .map((paperEntity) => {
-            return Object.values(paperEntity.supplementarys).map(sup => sup.url).filter((url) => url?.startsWith("file://")) as string[];
+            return Object.values(paperEntity.supplementaries).map(sup => sup.url).filter((url) => url?.startsWith("file://")) as string[];
           })
           .flat();
 

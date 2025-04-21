@@ -5,6 +5,7 @@ import {
   BIconCheck2,
   BIconFileEarmarkPdf,
   BIconGithub,
+  BIconFileEarmarkPost
 } from "bootstrap-icons-vue";
 import { PropType } from "vue";
 import { computedAsync } from "@vueuse/core";
@@ -12,15 +13,16 @@ import WordHighlighter from "vue-word-highlighter";
 
 import {
   getCategorizerString,
+  getPublicationString,
   getPubTypeString,
   getShortAuthorString,
 } from "@/base/string";
-import { PaperEntity } from "@/models/paper-entity";
 import { FieldTemplate, ItemField } from "@/renderer/types/data-view";
+import { Entity } from "@/models/entity";
 
 const props = defineProps({
   item: {
-    type: Object as PropType<PaperEntity>,
+    type: Object as PropType<Entity>,
     required: true,
   },
   fieldTemplates: {
@@ -53,7 +55,12 @@ const fields = computedAsync(async () => {
   const fields: ItemField[] = [];
 
   for (const [fieldKey, fieldTemplate] of props.fieldTemplates.entries()) {
-    let value = props.item[fieldKey];
+    let value: any;
+    if (fieldKey === "publication") {
+      value = getPublicationString(props.item);
+    } else {
+      value = props.item[fieldKey];
+    }
     if (value === undefined) {
       continue;
     }
@@ -72,20 +79,8 @@ const fields = computedAsync(async () => {
         );
         break;
       }
-      case "pubType": {
+      case "type": {
         value = getPubTypeString(value);
-        break;
-      }
-      case "mainURL": {
-        value = value !== "" && value !== undefined;
-        break;
-      }
-      case "codes": {
-        value = value.length > 0;
-        break;
-      }
-      case "supURLs": {
-        value = value.length > 0;
         break;
       }
       case "authors": {
@@ -189,7 +184,7 @@ const emits = defineEmits(["event:click-candidate-btn"]);
         />
       </span>
       <span class="my-auto" v-else-if="field.type === 'file'">
-        <BIconFileEarmarkPdf
+        <BIconFileEarmarkPost
           class="my-auto text-sm"
           :calss="active ? 'text-white' : ''"
           v-if="field.value"

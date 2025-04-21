@@ -22,6 +22,7 @@ import {
 } from "@/service/services/database/cache-core";
 
 import { FileService, IFileService } from "./file-service";
+import { Entity, IEntityCollection } from "@/models/entity";
 
 export const ICacheService = createDecorator("cacheService");
 
@@ -49,7 +50,7 @@ export class CacheService {
    * @returns The filtered paper entities. */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to filter fulltext cache.", true, "CacheService", [])
-  async fullTextFilter(query: string, paperEntities: IPaperEntityCollection) {
+  async fullTextFilter(query: string, paperEntities: IEntityCollection) {
     // First check if all the paper entities are already cached.
     try {
       await this._createFullText(paperEntities);
@@ -70,7 +71,7 @@ export class CacheService {
       .map((p) => p._id);
 
     const filteredPaperEntities = (
-      paperEntities as Results<IPaperEntityObject>
+      paperEntities as Results<IEntityObject>
     ).filtered(`_id IN $0`, ids);
 
     return filteredPaperEntities;
@@ -83,13 +84,13 @@ export class CacheService {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to get thumbnail.", true, "CacheService", null)
   async loadThumbnail(
-    paperEntity: PaperEntity
+    paperEntity: Entity
   ): Promise<ThumbnailCache | null> {
     const realm = await this._cacheDatabaseCore.realm();
 
     const cache = realm.objectForPrimaryKey<PaperEntityCache>(
       "PaperEntityCache",
-      new ObjectId(paperEntity.id) as unknown as PrimaryKey
+      new ObjectId(paperEntity._id) as unknown as PrimaryKey
     );
 
     if (cache && cache.thumbnail) {
@@ -106,18 +107,18 @@ export class CacheService {
   // ========================
   // Create and Update
   // ========================
-  private async _createFullText(paperEntities: IPaperEntityCollection) {
+  private async _createFullText(paperEntities: IEntityCollection) {
     const realm = await this._cacheDatabaseCore.realm();
 
     // 1. Pick out the entities that are not in the cache
-    const ids = paperEntities.map((p: PaperEntity) => p._id);
+    const ids = paperEntities.map((p: Entity) => p._id);
 
     const existObjs = realm
       .objects<PaperEntityCache>("PaperEntityCache")
       .filtered("_id IN $0", ids);
     const existObjIds = existObjs.map((e) => e._id);
 
-    let noCachePaperEntities: IPaperEntityCollection = [];
+    let noCachePaperEntities: IEntityCollection = [];
     if (paperEntities instanceof Realm.Results) {
       noCachePaperEntities = paperEntities.filtered(
         `NOT (_id IN $0)`,
@@ -130,7 +131,7 @@ export class CacheService {
       );
     }
     // 2. Update the cache
-    const createPromise = async (paperEntity: PaperEntity) => {
+    const createPromise = async (paperEntity: Entity) => {
       try {
         if (!paperEntity.mainURL) {
           return;
@@ -159,7 +160,7 @@ export class CacheService {
       }
     };
     await Promise.all(
-      noCachePaperEntities.map((p: PaperEntity) => createPromise(p))
+      noCachePaperEntities.map((p: Entity) => createPromise(p))
     );
   }
 
@@ -277,19 +278,15 @@ export class CacheService {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update thumbnail cache.", true, "CacheService")
   async updateThumbnailCache(
-    paperEntity: PaperEntity,
+    paperEntity: Entity,
     thumbnailCache: ThumbnailCache
   ) {
     const realm = await this._cacheDatabaseCore.realm();
 
-    const filePath = eraseProtocol(
-      await this._fileService.access(paperEntity.mainURL, false)
-    );
-
     realm.safeWrite(() => {
       const objects = realm
         .objects<PaperEntityCache>("PaperEntityCache")
-        .filtered("_id == $0", new ObjectId(paperEntity.id));
+        .filtered("_id == $0", new ObjectId(paperEntity._id));
       const object = objects[0] || null;
 
       if (object) {
@@ -298,7 +295,7 @@ export class CacheService {
         object.thumbnailHeight = thumbnailCache.height;
       } else {
         realm.create<PaperEntityCache>("PaperEntityCache", {
-          _id: new ObjectId(paperEntity.id),
+          _id: new ObjectId(paperEntity._id),
           _partition: "",
           fulltext: "",
           thumbnail: thumbnailCache.blob,
@@ -317,7 +314,7 @@ export class CacheService {
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update cache.", true, "CacheService")
-  async updateCache(paperEntities: IPaperEntityCollection) {
+  async updateCache(paperEntities: IEntityCollection) {
     await this.updateFullTextCache(paperEntities);
     for (const paperEntity of paperEntities) {
       await this.updateThumbnailCache(paperEntity, {

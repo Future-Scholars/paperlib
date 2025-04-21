@@ -5,6 +5,7 @@ import { PaperEntity } from "@/models/paper-entity";
 import { PaperSmartFilter } from "@/models/smart-filter";
 import { PiniaEventable } from "./pinia-eventable";
 import { IProcessingState, ProcessingKey } from "@/common/utils/processing";
+import { Entity } from "@/models/entity";
 
 export interface IUIStateServiceState {
   // =========================================
@@ -30,13 +31,13 @@ export interface IUIStateServiceState {
   selectedIds: Array<string>;
   // selectedPaperEntities/selectedFeedEntities: contains the selected paper/feed entities in the current dataview.
   // It can be accessed in any component. But it is read-only. It can be only changed by the event listener of selectedIndex in the dataview.
-  selectedPaperEntities: Array<PaperEntity>;
+  selectedPaperEntities: Array<Entity>;
   selectedFeedEntities: Array<FeedEntity>;
   selectedQuerySentenceIds: string[];
   selectedFeed: string;
 
   showingCandidatesId: string;
-  metadataCandidates: Record<string, PaperEntity[]>;
+  metadataCandidates: Record<string, Entity[]>;
 
   editingPaperSmartFilter: PaperSmartFilter;
 

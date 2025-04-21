@@ -237,7 +237,7 @@ export class FileService extends Eventable<IFileServiceState> {
     try {
       const formatedFilename = await this.inferRelativeFileName(paperEntity);
       
-      for (const [id, sup] of Object.entries(paperEntity.supplementarys)) {
+      for (const [id, sup] of Object.entries(paperEntity.supplementaries)) {
         if (getProtocol(sup.url) !== "file") {
           continue;
         }
@@ -253,7 +253,7 @@ export class FileService extends Eventable<IFileServiceState> {
           "",
           "file://",
         );
-        paperEntity.supplementarys[id] = sup;
+        paperEntity.supplementaries[id] = sup;
       }
 
       return paperEntity;
@@ -293,7 +293,7 @@ export class FileService extends Eventable<IFileServiceState> {
   async remove(paperEntity: Entity): Promise<void> {
     const backend = await this.backend();
 
-    const files = Object.values(paperEntity.supplementarys).map((sup) => {
+    const files = Object.values(paperEntity.supplementaries).map((sup) => {
       if (getProtocol(sup.url) !== "file") {
         return null;
       } else {
@@ -355,7 +355,7 @@ export class FileService extends Eventable<IFileServiceState> {
 
       let updatedPaperEntityDrafts = paperEntities.map((paperEntity) => {
         if (paperEntity.defaultSup) {
-          delete paperEntity.supplementarys[paperEntity.defaultSup];
+          delete paperEntity.supplementaries[paperEntity.defaultSup];
         }
         paperEntity.defaultSup = undefined;
       });

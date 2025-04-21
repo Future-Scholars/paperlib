@@ -23,14 +23,14 @@ export type EntityType =
 
 export interface IEntity {
   // General
-  _id?: OID;
+  _id: OID;
   _partition?: string; // deprecated, for old realm cloud only, will be removed in the future
-  addTime?: Date;
-  library?: string;
-  type?: EntityType;
+  addTime: Date;
+  library: string;
+  type: EntityType;
   abstract?: string;
   defaultSup?: string;
-  supplementarys?: Record<string, ISupplementary>;
+  supplementaries: Record<string, ISupplementary>;
 
   // Identifiers
   doi?: string;
@@ -39,11 +39,11 @@ export interface IEntity {
   isbn?: string;
 
   // Bibtex
-  title?: string;
-  authors?: string;
+  title: string;
+  authors: string;
   journal?: string;
   booktitle?: string;
-  year?: string;
+  year: string;
   month?: string;
   volume?: string;
   number?: string;
@@ -56,11 +56,12 @@ export interface IEntity {
   organization?: string;
   school?: string;
   institution?: string;
+  address?: string;
 
   // For papers
   rating?: number;
-  tags?: ICategorizerDraft[];
-  folders?: ICategorizerDraft[];
+  tags: ICategorizerDraft[];
+  folders: ICategorizerDraft[];
   flag?: boolean;
   note?: string;
 
@@ -80,8 +81,8 @@ export class Entity implements IEntity {
       library: "string",
       type: "string",
       abstract: "string?",
-      defaultSup: "objectId?",
-      supplementarys: "Supplementary{}",
+      defaultSup: "string?",
+      supplementaries: "Supplementary{}",
       doi: "string?",
       arxiv: "string?",
       issn: "string?",
@@ -104,6 +105,7 @@ export class Entity implements IEntity {
       organization: "string?",
       school: "string?",
       institution: "string?",
+      address: "string?",
 
       rating: "int?",
       tags: {
@@ -129,7 +131,7 @@ export class Entity implements IEntity {
   type!: EntityType;
   abstract?: string;
   defaultSup?: string;
-  supplementarys!: Record<string, Supplementary>;
+  supplementaries!: Record<string, Supplementary>;
   doi?: string;
   arxiv?: string;
   issn?: string;
@@ -151,6 +153,7 @@ export class Entity implements IEntity {
   organization?: string;
   school?: string;
   institution?: string;
+  address?: string;
   rating?: number;
   tags!: PaperTag[];
   folders!: PaperFolder[];
@@ -159,7 +162,7 @@ export class Entity implements IEntity {
   read?: boolean;
   feed?: Feed;
 
-  constructor(object?: IEntity, initObjectId = false) {
+  constructor(object?: Partial<IEntity>, initObjectId = false) {
     this.initialize(object || {}, initObjectId);
 
     return new Proxy(this, {
@@ -200,7 +203,7 @@ export class Entity implements IEntity {
     this[key as any] = value;
   }
 
-  initialize(object: IEntity, initObjectId = true) {
+  initialize(object: Partial<IEntity>, initObjectId = true) {
     this._id = object?._id ? new ObjectId(object._id) : "";
     this._partition = object?._partition; // deprecated, for old realm cloud only, will be removed in the future
     this.addTime = object?.addTime || new Date();
@@ -208,10 +211,10 @@ export class Entity implements IEntity {
     this.type = object?.type || "article";
     this.abstract = object?.abstract;
     this.defaultSup = object?.defaultSup
-      ? String(new ObjectId(object.defaultSup))
+      ? object.defaultSup
       : undefined;
-    this.supplementarys = object?.supplementarys
-      ? Object.entries(object.supplementarys).reduce(
+    this.supplementaries = object?.supplementaries
+      ? Object.entries(object.supplementaries).reduce(
           (acc, [key, value]) => {
             acc[key] = new Supplementary(value);
             return acc;
@@ -241,6 +244,7 @@ export class Entity implements IEntity {
     this.organization = object?.organization;
     this.school = object?.school;
     this.institution = object?.institution;
+    this.address = object?.address;
 
     this.rating = object?.rating;
     this.tags = object?.tags?.map((tag) => new PaperTag(tag, false)) || [];
@@ -270,7 +274,7 @@ export type IEntityRealmObject = Entity &
     | "type"
     | "abstract"
     | "defaultSup"
-    | "supplementarys"
+    | "supplementaries"
     | "doi"
     | "arxiv"
     | "issn"
@@ -292,6 +296,7 @@ export type IEntityRealmObject = Entity &
     | "organization"
     | "school"
     | "institution"
+    | "address"
     | "rating"
     | "tags"
     | "folders"

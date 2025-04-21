@@ -4,7 +4,7 @@ import { existsSync, promises as fsPromise, readFileSync } from "fs";
 import path from "path";
 import { WebDAVClient, createClient } from "webdav";
 
-import { constructFileURL, eraseProtocol, getRelativePath } from "@/base/url";
+import { constructFileURL, eraseProtocol, getProtocol, getRelativePath } from "@/base/url";
 
 import { LocalFileBackend } from "./local-backend";
 
@@ -215,6 +215,10 @@ export class WebDavFileBackend extends LocalFileBackend {
   }
 
   async access(url: string, download = true): Promise<string> {
+    if (["http", "https"].includes(getProtocol(url))) {
+      return Promise.resolve(url);
+    }
+
     if (path.isAbsolute(eraseProtocol(url))) {
       return Promise.resolve(existsSync(eraseProtocol(url)) ? url : "");
     }

@@ -549,18 +549,18 @@ export class ContextMenuService extends Eventable<IContextMenuServiceState> {
     false,
     "ContextMenu"
   )
-  showSupMenu(fileURL: string) {
+  showSupMenu(supId: string) {
     const template = [
       {
         label: this._locales.t("menu.delete"),
         click: () => {
-          this.fire({ supContextMenuDeleteClicked: fileURL });
+          this.fire({ supContextMenuDeleteClicked: supId });
         },
       },
       {
         label: this._locales.t("menu.edit"),
         click: () => {
-          this.fire({ supContextMenuRenameClicked: fileURL });
+          this.fire({ supContextMenuRenameClicked: supId });
         },
       },
     ];

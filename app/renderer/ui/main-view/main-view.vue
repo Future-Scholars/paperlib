@@ -8,6 +8,7 @@ import { CategorizerType } from "@/models/categorizer";
 import { FeedEntity, IFeedEntityCollection } from "@/models/feed-entity";
 import { OID } from "@/models/id";
 import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
+import { Entity, IEntityCollection } from "@/models/entity";
 import { Process } from "@/base/process-id";
 import { cmdOrCtrl, ShortcutEvent } from "@/base/shortcut";
 
@@ -31,10 +32,10 @@ const feedState = PLAPI.feedService.useState();
 // ================================
 // Data
 // ================================
-const selectedEntityPlaceHolder = ref(new PaperEntity());
+const selectedEntityPlaceHolder = ref(new Entity());
 const selectedFeedEntityPlaceHolder = ref(new FeedEntity());
 
-const paperEntities = inject<Ref<IPaperEntityCollection>>("paperEntities");
+const paperEntities = inject<Ref<IEntityCollection>>("paperEntities");
 const feedEntities = inject<Ref<IFeedEntityCollection>>("feedEntities");
 
 const dataView: Ref<HTMLElement | null> = ref(null);
@@ -226,9 +227,18 @@ const showInFinderSelectedEntities = () => {
   }
 };
 
-const previewSelectedEntities = () => {
+const previewSelectedEntities = async () => {
   if (uiState.contentType === "library") {
-    PLAPI.fileService.preview(uiState.selectedPaperEntities[0].mainURL);
+
+    const targetPaperEntity = uiState.selectedPaperEntities[0]
+    if (targetPaperEntity.defaultSup) {
+      const fileURL = await PLAPI.fileService.access(
+        targetPaperEntity.supplementaries[targetPaperEntity.defaultSup].url,
+        true
+      );
+      PLAPI.fileService.preview(fileURL);
+    }
+
   }
 };
 
@@ -248,15 +258,15 @@ const selectAllEntities = () => {
 
 const reloadSelectedEntities = () => {
   if (uiState.contentType === "library") {
-    const selectedPaperEntities: PaperEntity[] = [];
+    const selectedPaperEntities: Entity[] = [];
     let selectedIds: string[] = [];
     if (paperEntities) {
       for (const index of uiState.selectedIndex) {
         if (paperEntities.value.length > index) {
           selectedPaperEntities.push(
-            new PaperEntity(paperEntities.value[index])
+            new Entity(paperEntities.value[index])
           );
-          selectedIds.push(`${paperEntities.value[index].id}`);
+          selectedIds.push(`${paperEntities.value[index]._id}`);
         } else if (uiState.selectedIndex.length === 1) {
           uiState.selectedIndex = [];
           break;

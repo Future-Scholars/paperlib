@@ -2,22 +2,24 @@
 import { onUpdated, ref } from "vue";
 
 import { Categorizer, CategorizerType } from "@/models/categorizer";
-import { PaperEntity } from "@/models/paper-entity";
+import { Entity } from "@/models/entity";
 
-import { disposable } from "@/base/dispose";
 import Authors from "./components/authors.vue";
 import Categorizers from "./components/categorizers.vue";
-import OnlineResources from "./components/online-resources.vue";
 import Markdown from "./components/markdown.vue";
 import PubDetails from "./components/pub-details.vue";
 import Rating from "./components/rating.vue";
 import Section from "./components/section.vue";
-import Supplementary from "./components/supplementary.vue";
+import Supplementaries from "./components/supplementary.vue";
 import Thumbnail from "./components/thumbnail.vue";
+import { Supplementary } from "@/models/supplementary";
+import { uid } from "@/base/misc";
+import { constructFileURL } from "@/base/url";
+import { getPublicationString } from "@/base/string";
 
 const props = defineProps({
   entity: {
-    type: Object as () => PaperEntity,
+    type: Object as () => Entity,
     required: true,
   },
 
@@ -47,7 +49,7 @@ const uiState = PLUIAPILocal.uiStateService.useState();
 // Event Handler
 // ==============================
 const onRatingChanged = (value: number) => {
-  const paperEntityDraft = new PaperEntity(props.entity);
+  const paperEntityDraft = new Entity(props.entity);
   paperEntityDraft.rating = value;
   PLAPI.paperService.update([paperEntityDraft], false, true);
 };
@@ -56,7 +58,7 @@ const onDeleteCategorizer = (
   categorizer: Categorizer,
   type: CategorizerType
 ) => {
-  const paperEntityDraft = new PaperEntity(props.entity);
+  const paperEntityDraft = new Entity(props.entity);
   if (type === CategorizerType.PaperTag) {
     paperEntityDraft.tags = paperEntityDraft.tags.filter((tag) => {
       return tag.name !== categorizer.name;
@@ -70,63 +72,67 @@ const onDeleteCategorizer = (
 };
 
 const modifyMainFile = async (url: string) => {
-  const paperEntityDraft = new PaperEntity(props.entity);
-  await PLAPI.paperService.updateMainURL(paperEntityDraft, url);
-  setTimeout(() => {
-    uiState.renderRequired = Date.now();
-  }, 1000);
+  if (props.entity.defaultSup) {
+    const mainSup = new Supplementary(props.entity.supplementaries[props.entity.defaultSup]);
+    mainSup.url = constructFileURL(url, false, true, "", "file://");
+    const paperEntityDraft = new Entity(props.entity);
+    await PLAPI.paperService.updateSups(paperEntityDraft, [mainSup]);
+    setTimeout(async () => {
+      await PLAPI.cacheService.updateThumbnailCache(paperEntityDraft, {
+        blob: new ArrayBuffer(0),
+        width: 0,
+        height: 0,
+      });
+
+      uiState.renderRequired = Date.now();
+    }, 1000);
+  } else {
+    const mainSup = new Supplementary({
+      _id: uid(),
+      url: constructFileURL(url, false, true, "", "file://"),
+    });
+    const paperEntityDraft = new Entity(props.entity);
+    paperEntityDraft.supplementaries[mainSup._id] = mainSup;
+    await PLAPI.paperService.updateSups(paperEntityDraft, [mainSup], mainSup._id);
+    setTimeout(async () => {
+      await PLAPI.cacheService.updateThumbnailCache(paperEntityDraft, {
+        blob: new ArrayBuffer(0),
+        width: 0,
+        height: 0,
+      });
+
+      uiState.renderRequired = Date.now();
+    }, 1000);
+  }
 };
 
 const locateMainFile = async () => {
-  const paperEntityDraft = new PaperEntity(props.entity);
-  const locatedPaperEntities = await PLAPI.fileService.locateFileOnWeb([
-    paperEntityDraft,
-  ]);
-  paperEntityDraft.mainURL = "";
-  await PLAPI.paperService.updateMainURL(
-    paperEntityDraft,
-    locatedPaperEntities[0].mainURL
-  );
-  setTimeout(() => {
-    uiState.renderRequired = Date.now();
-  }, 1000);
+  // TODO: implement this.
+  // const paperEntityDraft = new PaperEntity(props.entity);
+  // const locatedPaperEntities = await PLAPI.fileService.locateFileOnWeb([
+  //   paperEntityDraft,
+  // ]);
+  // paperEntityDraft.mainURL = "";
+  // await PLAPI.paperService.updateMainURL(
+  //   paperEntityDraft,
+  //   locatedPaperEntities[0].mainURL
+  // );
+  // setTimeout(() => {
+  //   uiState.renderRequired = Date.now();
+  // }, 1000);
 };
 
 const addSups = (urls: string[]) => {
-  const paperEntityDraft = new PaperEntity(props.entity);
-  PLAPI.paperService.updateSupURLs(paperEntityDraft, urls);
-};
+  const paperEntityDraft = new Entity(props.entity);
+  const newSups = urls.map((url) => {
+    const sup = new Supplementary({
+      _id: uid(),
+      url: url,
+    });
+    return sup;
+  });
 
-const onDeleteSup = (url: string) => {
-  const paperEntityDraft = new PaperEntity(props.entity);
-  PLAPI.paperService.deleteSup(paperEntityDraft, url);
-};
-
-disposable(
-  PLMainAPI.contextMenuService.on(
-    "supContextMenuDeleteClicked",
-    (newValue: { value: string }) => {
-      onDeleteSup(newValue.value);
-    }
-  )
-);
-
-const renamingSup = ref("");
-const onRenameSupClicked = (url: string) => {
-  renamingSup.value = url;
-};
-disposable(
-  PLMainAPI.contextMenuService.on(
-    "supContextMenuRenameClicked",
-    (newValue: { value: string }) => {
-      onRenameSupClicked(newValue.value);
-    }
-  )
-);
-
-const onSupDisplayNameUpdated = (customName: string) => {
-  PLAPI.paperService.setSupDisplayName(props.entity, renamingSup.value, customName);
-  renamingSup.value = "";
+  PLAPI.paperService.updateSups(paperEntityDraft, newSups);
 };
 
 const dragAreaOpacity = ref(0);
@@ -190,13 +196,24 @@ const onDroppedToSup = (e: DragEvent) => {
   e.stopPropagation();
 
   const files = e.dataTransfer?.files;
-  if (!files) {
+  if (!files || files.length === 0) {
+    const text = e.dataTransfer?.getData("text/plain");
+
+    if (text && text.startsWith("http")) {
+      addSups([text]);
+      dragAreaOpacity.value = 0;
+      dragCount.value = 0;
+      mainFileDragAreaHovered.value = false;
+      supFileDragAreaHovered.value = false;
+    }
     return;
   }
 
   const filePaths: string[] = [];
   for (let i = 0; i < files.length; i++) {
-    filePaths.push(files[i].path);
+    filePaths.push(
+      constructFileURL(files[i].path, false, true, "", "file://")
+    );
   }
   addSups(filePaths);
   dragAreaOpacity.value = 0;
@@ -235,15 +252,15 @@ onUpdated(() => {
         <Authors :authors="entity.authors" />
       </Section>
       <PubDetails
-        :publication="entity.publication"
+        :publication="getPublicationString(entity)"
         :volume="entity.volume"
         :pages="entity.pages"
         :number="entity.number"
         :publisher="entity.publisher"
       />
-      <Section :title="$t('mainview.pubTime')">
+      <Section :title="$t('mainview.year')">
         <div class="text-xxs">
-          {{ entity.pubTime }}
+          {{ entity.year }}
         </div>
       </Section>
 
@@ -290,7 +307,7 @@ onUpdated(() => {
         </div>
       </Section>
       <Section :title="$t('mainview.rating')">
-        <Rating :rating="entity.rating" @event:change="onRatingChanged" />
+        <Rating :rating="entity.rating || 0" @event:change="onRatingChanged" />
       </Section>
 
       <Section
@@ -311,7 +328,7 @@ onUpdated(() => {
       </Section>
       <Section
         :title="$t('mainview.note')"
-        v-if="entity.note.length > 0 && !entity.note.startsWith('<md>')"
+        v-if="entity.note && entity.note.length > 0 && !entity.note.startsWith('<md>')"
       >
         <div class="text-xxs break-words">
           {{ entity.note }}
@@ -319,28 +336,14 @@ onUpdated(() => {
       </Section>
       <Markdown
         :title="$t('mainview.note')"
-        v-if="entity.note.length > 0 && entity.note.startsWith('<md>')"
+        v-if="entity.note && entity.note.length > 0 && entity.note.startsWith('<md>')"
         :content="entity.note"
       />
-      <Section
-        :title="$t('mainview.onlineResources')"
-        v-if="
-          entity.codes.length > 0 || entity.doi !== '' || entity.arxiv !== ''
-        "
-      >
-        <OnlineResources
-          :codes="entity.codes"
-          :doi="entity.doi"
-          :arxiv="entity.arxiv"
-        />
-      </Section>
-      <Section
-        :title="$t('mainview.supplementaries')"
-        v-if="entity.supURLs.length > 0"
-      >
-        <Supplementary :sups="entity.supURLs" :editingSup="renamingSup" @update:sup-display-name="onSupDisplayNameUpdated" />
-      </Section>
-      <Markdown :title="'Markdown'" :sups="entity.supURLs" />
+      <Supplementaries :entity="entity"
+        v-if="Object.keys(entity.supplementaries).length > 0 || entity.doi || entity.arxiv"
+      />
+      <!-- TODO: move this to a hover window -->
+      <!-- <Markdown :title="'Markdown'" :sups="entity.supURLs" /> -->
 
       <Section
         :id="`detailspanel-slot3-${id}`"

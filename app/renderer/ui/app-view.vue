@@ -6,8 +6,7 @@ import { removeLoading } from "@/base/loading";
 import { FeedEntityFilterOptions } from "@/base/filter";
 import { IFeedEntityCollection } from "@/models/feed-entity";
 import { IFeedCollection } from "@/models/feed";
-import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
-import { Entity } from "@/models/entity";
+import { Entity, IEntityCollection } from "@/models/entity";
 import { Process } from "@/base/process-id";
 import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
 import {
@@ -28,6 +27,7 @@ import WelcomeView from "./welcome-view/welcome-view.vue";
 import OverlayNotificationView from "./overlay-notification-view/overlay-notification-view.vue";
 import GuideView from "./guide-view/guide-view.vue";
 import { Supplementary } from "@/models/supplementary";
+import { uid } from "@/base/misc";
 
 // ================================
 // State
@@ -39,10 +39,10 @@ const prefState = PLMainAPI.preferenceService.useState();
 // ================================
 // Data
 // ================================
-const paperEntities: Ref<IPaperEntityCollection> = ref([]);
+const paperEntities: Ref<IEntityCollection> = ref([]);
 provide(
   "paperEntities",
-  computed(() => paperEntities.value) as Ref<IPaperEntityCollection>
+  computed(() => paperEntities.value) as Ref<IEntityCollection>
 );
 const tags: Ref<ICategorizerCollection> = ref([]);
 provide("tags", tags);
@@ -309,13 +309,20 @@ const onAddDummyClicked = async () => {
     i < 100 + paperEntities.value.length;
     i++
   ) {
-    const supId = Date.now().toString(36);
+    const supId = uid();
     const sup = new Supplementary({
       _id: supId,
       name: `DUM - ${i}`,
       url: "https://www.google.com",
     });
     if (i % 2 === 0) {
+      const codeSupId = uid();
+      const codeSup = new Supplementary({
+        _id: codeSupId,
+        name: `Official`,
+        url: "https://github.com/Future-Scholars/paperlib",
+      });
+
       const dummyPaperEntity = new Entity(
         {
           title: `Dummy Paper <scp>D</scp>-${i}<sup>+T</sup> Test latex $^${i}_{a}$`,
@@ -323,8 +330,10 @@ const onAddDummyClicked = async () => {
           year: `${Math.round(2021 + Math.random() * 10)}`,
           journal: `Publication ${Math.round(Math.random() * 10)}`,
           type: "article",
-          supplementarys: {
-            [supId]: sup
+          arxiv: "arXiv:2301.00001",
+          supplementaries: {
+            [supId]: sup,
+            [codeSupId]: codeSup,
           }
         },
         true
@@ -337,8 +346,9 @@ const onAddDummyClicked = async () => {
           authors: "Dummy Author A, Dummy Author B, Dummy Author C",
           year: `${Math.round(2021 + Math.random() * 10)}`,
           booktitle: `Publication ${Math.round(Math.random() * 10)}`,
+          doi: "10.1000/xyz123",
           type: "inproceedings",
-          supplementarys: {
+          supplementaries: {
             [supId]: sup
           }
         },

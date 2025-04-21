@@ -116,7 +116,7 @@ onMounted(() => {
     [i18n.t("mainview.title")]: "title",
     [i18n.t("mainview.authors")]: "authors",
     [i18n.t("mainview.publication")]: "publication",
-    [i18n.t("mainview.pubTime")]: "pubTime",
+    [i18n.t("mainview.year")]: "pubTime",
     [i18n.t("mainview.pubType")]: "pubType",
     [i18n.t("mainview.rating")]: "rating",
     [i18n.t("mainview.note")]: "note",

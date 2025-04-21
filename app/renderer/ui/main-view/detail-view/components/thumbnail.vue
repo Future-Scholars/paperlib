@@ -8,11 +8,12 @@ import {
 import { ref, watch } from "vue";
 
 import { disposable } from "@/base/dispose";
-import { PaperEntity } from "@/models/paper-entity";
+import { Entity } from "@/models/entity";
+import { constructFileURL, getProtocol } from "@/base/url";
 
 const props = defineProps({
   entity: {
-    type: Object as () => PaperEntity,
+    type: Object as () => Entity,
     required: true,
   },
 });
@@ -23,8 +24,12 @@ const isRendering = ref(true);
 const fileExistingStatus = ref(1);
 
 const renderFromFile = async () => {
+  if (!props.entity.defaultSup || !["file", "downloadRequired"].includes(getProtocol(props.entity.supplementaries[props.entity.defaultSup].url))) {
+    return
+  }
+
   isRendering.value = true;
-  const fileURL = await PLAPI.fileService.access(props.entity.mainURL, false);
+  const fileURL = await PLAPI.fileService.access(props.entity.supplementaries[props.entity.defaultSup].url, false);
   if (fileURL.length === 0) {
     isRendering.value = false;
     fileExistingStatus.value = 1;
@@ -43,7 +48,7 @@ const renderFromFile = async () => {
       "preview-canvas"
     ) as HTMLCanvasElement;
     PLAPI.cacheService.updateThumbnailCache(props.entity, {
-      blob: thumbnailBuffer.buffer,
+      blob: thumbnailBuffer.buffer as ArrayBuffer,
       width: canvas.width,
       height: canvas.height,
     });
@@ -55,7 +60,7 @@ const renderFromFile = async () => {
 };
 
 const renderCanvas = async (
-  buffer: ArrayBuffer,
+  buffer: ArrayBuffer | Uint8Array,
   width: number,
   height: number
 ) => {
@@ -99,15 +104,14 @@ const render = async () => {
   isRendering.value = true;
   fileExistingStatus.value = -1;
 
-  if (props.entity.mainURL === "") {
+  if (!props.entity.defaultSup || !["file", "downloadRequired"].includes(getProtocol(props.entity.supplementaries[props.entity.defaultSup].url))) {
     isRendering.value = false;
     fileExistingStatus.value = 1;
     return;
   }
 
-  const fileURL = await PLAPI.fileService.access(props.entity.mainURL, false);
+  const fileURL = await PLAPI.fileService.access(props.entity.supplementaries[props.entity.defaultSup].url, false);
   if (
-    props.entity.mainURL &&
     fileURL &&
     !fileURL.startsWith("downloadRequired://")
   ) {
@@ -144,7 +148,7 @@ const onClick = async (e: MouseEvent) => {
   e.preventDefault();
   e.stopPropagation();
 
-  const fileURL = await PLAPI.fileService.access(props.entity.mainURL, false);
+  const fileURL = await PLAPI.fileService.access(props.entity.supplementaries[props.entity.defaultSup!].url, false);
   PLAPI.fileService.open(fileURL);
 };
 
@@ -162,7 +166,7 @@ const locatePDF = async () => {
 
 const onWebdavDownloadClicked = async () => {
   isRendering.value = true;
-  const fileURL = await PLAPI.fileService.access(props.entity.mainURL, true);
+  const fileURL = await PLAPI.fileService.access(props.entity.supplementaries[props.entity.defaultSup!].url, true);
   isRendering.value = false;
   if (fileURL === "") {
     return;
@@ -172,7 +176,7 @@ const onWebdavDownloadClicked = async () => {
 };
 
 const onRightClicked = (event: MouseEvent) => {
-  PLMainAPI.contextMenuService.showThumbnailMenu(props.entity.mainURL);
+  PLMainAPI.contextMenuService.showThumbnailMenu(props.entity.supplementaries[props.entity.defaultSup!].url);
 };
 
 disposable(
@@ -194,9 +198,12 @@ disposable(
 );
 
 watch(
-  () => props.entity.mainURL,
+  () => props.entity.supplementaries,
   () => {
     render();
+  },
+  {
+    deep: true,
   }
 );
 </script>

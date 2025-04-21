@@ -4,9 +4,7 @@ import {
   BIconFolder,
   BIconStarFill,
   BIconTag,
-  BIconFileEarmarkPdf,
-  BIconFileEarmark,
-  BIconGithub,
+  BIconFileEarmarkPost,
 } from "bootstrap-icons-vue";
 import { PropType } from "vue";
 import WordHighlighter from "vue-word-highlighter";
@@ -14,10 +12,12 @@ import { computedAsync } from "@vueuse/core";
 
 import { getCategorizerString, getPubTypeString } from "@/base/string";
 import { PaperEntity } from "@/models/paper-entity";
+import { Entity } from "@/models/entity";
+import { getPublicationString } from "@/base/string";
 
 const props = defineProps({
   item: {
-    type: Object as PropType<PaperEntity>,
+    type: Object as PropType<Entity>,
     required: true,
   },
   fieldEnables: {
@@ -135,20 +135,20 @@ scp {
       class="text-[0.7rem] leading-[0.9rem] text-neutral-400 flex space-x-2"
       :class="active ? 'text-neutral-300' : ''"
     >
-      <div v-if="fieldEnables.pubTime">{{ item.pubTime }}</div>
+      <div v-if="fieldEnables.pubTime">{{ item.year }}</div>
       <div
         class="flex space-x-2 text-ellipsis overflow-hidden shrink"
         v-if="fieldEnables.publication"
       >
         <div>|</div>
         <div class="italic truncate">
-          {{ item.publication }}
+          {{ getPublicationString(item) }}
         </div>
       </div>
       <div class="flex space-x-2" v-if="fieldEnables.pubType">
         <div>|</div>
         <div class="">
-          {{ getPubTypeString(item.pubType) }}
+          {{ getPubTypeString(item.type) }}
         </div>
       </div>
 
@@ -192,7 +192,7 @@ scp {
         </div>
       </div>
 
-      <div class="flex space-x-2" v-if="fieldEnables.rating && item.rating > 0">
+      <div class="flex space-x-2" v-if="fieldEnables.rating && (item.rating || 0) > 0">
         <div>|</div>
         <div class="flex text-xxxs">
           <BIconStarFill v-for="_ in item.rating" class="my-auto mr-[1px]" />
@@ -268,27 +268,20 @@ scp {
 
       <div
         class="flex space-x-2 shrink text-ellipsis overflow-hidden"
-        v-if="fieldEnables.mainURL && item.mainURL"
+        v-if="fieldEnables.mainURL && item.defaultSup"
       >
         <div>|</div>
-        <BIconFileEarmarkPdf class="my-auto text-xs" />
+        <BIconFileEarmarkPost class="my-auto text-xs" />
       </div>
 
-      <div
-        class="flex space-x-2 shrink text-ellipsis overflow-hidden"
-        v-if="fieldEnables.supURLs && item.supURLs.length > 0"
-      >
-        <div>|</div>
-        <BIconFileEarmark class="my-auto text-xs" />
-      </div>
-
-      <div
+      <!-- TODO: implement this -->
+      <!-- <div
         class="flex space-x-2 shrink text-ellipsis overflow-hidden"
         v-if="fieldEnables.codes && item.codes"
       >
         <div>|</div>
         <BIconGithub class="my-auto text-xs" />
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

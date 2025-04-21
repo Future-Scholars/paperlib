@@ -7,7 +7,7 @@ import { disposable } from "@/base/dispose";
 import { eraseProtocol } from "@/base/url";
 import { CategorizerMenuItem, CategorizerType } from "@/models/categorizer";
 import { FieldTemplate } from "@/renderer/types/data-view";
-import { IPaperEntityCollection } from "@/models/paper-entity";
+import { IEntityCollection } from "@/models/entity";
 
 import ListView from "./components/list-view/list-view.vue";
 import TablePreviewView from "./components/table-view/table-preview-view.vue";
@@ -26,7 +26,7 @@ const itemSize = ref(28);
 // ================================
 // Data
 // ================================
-const paperEntities = inject<Ref<IPaperEntityCollection>>("paperEntities")!;
+const paperEntities = inject<Ref<IEntityCollection>>("paperEntities")!;
 const displayingURL = ref("");
 
 // For List View
@@ -67,9 +67,7 @@ const computeFieldTemplates = () => {
     title: "html",
     rating: "rating",
     flag: "flag",
-    mainURL: "file",
-    codes: "code",
-    supURLs: "file",
+    defaultSup: "file",
   };
 
   // 3. Add rest width to the first field.
@@ -127,8 +125,13 @@ disposable(
         selectedIndex.length === 1 &&
         prefState.mainviewType === "tableandpreview"
       ) {
+        const target = paperEntities.value[selectedIndex[0]]
+        if (!target.defaultSup) {
+          displayingURL.value = "";
+          return;
+        }
         const fileURL = await PLAPI.fileService.access(
-          paperEntities.value[selectedIndex[0]].mainURL,
+          target.supplementaries[target.defaultSup].url,
           true
         );
         if (
@@ -192,18 +195,21 @@ const onItemRightClicked = (selectedIndex: number[]) => {
 const onItemDoubleClicked = async (selectedIndex: number[]) => {
   onItemClicked(selectedIndex);
 
-  const fileURL = await PLAPI.fileService.access(
-    paperEntities.value[selectedIndex[0]].mainURL,
-    true
-  );
-  PLAPI.fileService.open(fileURL);
+  const targetPaperEntity = paperEntities.value[selectedIndex[0]];
+  if (targetPaperEntity.defaultSup) {
+    const fileURL = await PLAPI.fileService.access(
+      targetPaperEntity.supplementaries[targetPaperEntity.defaultSup].url,
+      true
+    );
+    PLAPI.fileService.open(fileURL);
+  }
 };
 
 const onItemDraged = async (selectedIndex: number[]) => {
   uiState.selectedIndex = selectedIndex;
   const draggingIds: string[] = [];
   for (const index of selectedIndex) {
-    draggingIds.push(`${paperEntities.value[index].id}`);
+    draggingIds.push(`${paperEntities.value[index]._id}`);
   }
   uiState.dragingIds = draggingIds;
 };
@@ -211,11 +217,19 @@ const onItemDraged = async (selectedIndex: number[]) => {
 const onItemFileDraged = async (selectedIndex: number[]) => {
   uiState.selectedIndex = selectedIndex;
   const fileURLs = await Promise.all(
-    selectedIndex.map(async (index) => {
-      return eraseProtocol(
-        await PLAPI.fileService.access(paperEntities.value[index].mainURL, true)
-      );
-    })
+    selectedIndex
+      .map(async (index) => {
+        if (paperEntities.value[index].defaultSup) {
+          const url =
+            paperEntities.value[index].supplementaries[
+              paperEntities.value[index].defaultSup
+            ].url;
+          return eraseProtocol(await PLAPI.fileService.access(url, true));
+        } else {
+          return null;
+        }
+      })
+      .filter((url) => url !== null) as Promise<string>[]
   );
 
   PLMainAPI.fileSystemService.startDrag(fileURLs);
