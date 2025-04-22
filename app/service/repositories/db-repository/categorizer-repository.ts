@@ -12,7 +12,7 @@ import {
   PaperTag,
 } from "@/models/categorizer";
 import { OID } from "@/models/id";
-import { PaperEntity } from "@/models/paper-entity";
+import { Entity } from "@/models/entity";
 
 export interface ICategorizerRepositoryState {
   tagsUpdated: number;
@@ -416,8 +416,8 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
       ) as ICategorizerRealmObject[];
 
       categorizerRealmObjects.forEach((categorizer) => {
-        categorizer.count = categorizer.linkingObjects<PaperEntity>(
-          PaperEntity.schema.name,
+        categorizer.count = categorizer.linkingObjects<Entity>(
+          Entity.schema.name,
           type === CategorizerType.PaperTag ? "tags" : "folders"
         ).length;
       });

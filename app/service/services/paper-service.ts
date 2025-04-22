@@ -13,9 +13,10 @@ import {
 } from "@/models/categorizer";
 import { Entity, IEntityCollection, IEntityObject } from "@/models/entity";
 import { OID } from "@/models/id";
-import { IPaperEntityCollection, PaperEntity } from "@/models/paper-entity";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
+import { uid } from "@/base/misc";
+import { getDefaultSupplementaryFileURL, getProtocol } from "@/base/url";
 import { ISupplementary, Supplementary } from "@/models/supplementary";
 import {
   IPaperEntityRepository,
@@ -25,8 +26,6 @@ import { CacheService, ICacheService } from "./cache-service";
 import { FileService, IFileService } from "./file-service";
 import { ISchedulerService, SchedulerService } from "./scheduler-service";
 import { IScrapeService, ScrapeService } from "./scrape-service";
-import { getProtocol } from "@/base/url";
-import { uid } from "@/base/misc";
 
 export interface IPaperServiceState {
   count: number;
@@ -96,18 +95,17 @@ export class PaperService extends Eventable<IPaperServiceState> {
     }
 
     if (fulltextQuerySentence) {
-      // const allPaperEntities = this._paperEntityRepository.load(
-      //   await this._databaseCore.realm(),
-      //   querySentence,
-      //   sortBy,
-      //   sortOrder
-      // );
+      const allPaperEntities = this._paperEntityRepository.load(
+        await this._databaseCore.realm(),
+        querySentence,
+        sortBy,
+        sortOrder
+      );
 
-      // return this._cacheService.fullTextFilter(
-      //   fulltextQuerySentence,
-      //   allPaperEntities
-      // );
-      // TODO: implement fulltext search
+      return this._cacheService.fullTextFilter(
+        fulltextQuerySentence,
+        allPaperEntities
+      );
       return [];
     } else {
       if (PaperFilterOptions.checkIsDateFilter(querySentence)) {
@@ -206,23 +204,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
       );
     });
 
-    // filter paper entities with files that are not moved (still absolute path)
-    // TODO: move this to the fileService
-    // fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.map(
-    //   (paperEntityDraft) => {
-    //     if (
-    //       paperEntityDraft.mainURL &&
-    //       path.isAbsolute(paperEntityDraft.mainURL)
-    //     ) {
-    //       paperEntityDraft.mainURL = "";
-    //     }
-
-    //     paperEntityDraft.supURLs = paperEntityDraft.supURLs.filter((url) => {
-    //       return path && !path.isAbsolute(url);
-    //     });
-    //     return paperEntityDraft;
-    //   }
-    // );
     // #endregion ========================================================
 
     // ========================================================
@@ -268,16 +249,15 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
       if (updatedPaperEntityDraft === null) {
         this._fileService.remove(fileMovedPaperEntityDraft);
+      } else if (
+        getDefaultSupplementaryFileURL(fileMovedPaperEntityDraft) !==
+        getDefaultSupplementaryFileURL(updatedPaperEntityDraft)
+      ) {
+        this._fileService.moveFile(
+          getDefaultSupplementaryFileURL(fileMovedPaperEntityDraft)!,
+          getDefaultSupplementaryFileURL(updatedPaperEntityDraft)!
+        );
       }
-      // TODO: move this to the fileService
-      // } else if (
-      //   fileMovedPaperEntityDraft.mainURL !== updatedPaperEntityDraft.mainURL
-      // ) {
-      //   this._fileService.moveFile(
-      //     fileMovedPaperEntityDraft.mainURL,
-      //     updatedPaperEntityDraft.mainURL
-      //   );
-      // }
     }
     // #endregion ========================================================
 
@@ -289,11 +269,10 @@ export class PaperService extends Eventable<IPaperServiceState> {
       }
     ) as IEntityCollection;
 
-    // TODO: implement fulltext caching
-    // // Don't wait this
-    // if (updateCache) {
-    //   this._cacheService.updateFullTextCache(successfulEntityDrafts);
-    // }
+    // Don't wait this
+    if (updateCache) {
+      this._cacheService.updateFullTextCache(successfulEntityDrafts);
+    }
 
     return successfulEntityDrafts;
   }
@@ -381,8 +360,12 @@ export class PaperService extends Eventable<IPaperServiceState> {
     paperEntity = await this._fileService.move(paperEntity);
 
     const updatedPaperEntities = await this.update([paperEntity], false, true);
-    // TODO: implement fulltext caching
-    // await this._cacheService.updateCache([paperEntity]);
+    if (
+      defaultSup &&
+      getProtocol(paperEntity.supplementaries[defaultSup].url) === "file"
+    ) {
+      await this._cacheService.updateCache([paperEntity]);
+    }
 
     return updatedPaperEntities;
   }
@@ -424,7 +407,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
       paperEntities
     );
 
-    // TODO: move tobedeleted logic to here rather than in the repository.
     await Promise.all(
       toBeDeletedFiles.map((url) => {
         if (url) {
@@ -447,23 +429,22 @@ export class PaperService extends Eventable<IPaperServiceState> {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete supplementary file.", true, "PaperService")
   async deleteSups(paperEntity: Entity, supIds: string[]) {
-    this._logService.info(
-      `Removing supplementaries...`,
-      "",
-      true,
-      "Entity"
+    this._logService.info(`Removing supplementaries...`, "", true, "Entity");
+
+    const toBeDeletedFiles = supIds
+      .map((supId) => {
+        const sup = paperEntity.supplementaries[supId];
+        if (sup && getProtocol(sup.url) === "file") {
+          return sup.url;
+        } else {
+          return null;
+        }
+      })
+      .filter((url) => url !== null);
+
+    await Promise.all(
+      toBeDeletedFiles.map((url) => this._fileService.removeFile(url))
     );
-
-    const toBeDeletedFiles = supIds.map((supId) => {
-      const sup = paperEntity.supplementaries[supId];
-      if (sup && getProtocol(sup.url) === "file") {
-        return sup.url;
-      } else {
-        return null;
-      }
-    }).filter((url) => url !== null);
-
-    await Promise.all(toBeDeletedFiles.map(url => this._fileService.removeFile(url)));
     paperEntity.supplementaries = Object.fromEntries(
       Object.entries(paperEntity.supplementaries).filter(
         ([key]) => !supIds.includes(key)
@@ -479,33 +460,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
     }
 
     await this.update([paperEntity], false, true);
-  }
-
-  /**
-   * Set a custom display name of a supplementary file.
-   */
-  @processing(ProcessingKey.General)
-  @errorcatching(
-    "Failed to set custom display name of a supplementary file.",
-    true,
-    "PaperService"
-  )
-  async setSupDisplayName(paperEntity: PaperEntity, url: string, name: string) {
-    // TODO: check this for export and migration logic
-    // if (this._databaseCore.getState("dbInitializing")) {
-    //   return;
-    // }
-
-    // paperEntity.supURLs = paperEntity.supURLs.map((supURL) => {
-    //   if (supURL === url) {
-    //     const realSupURL = supURL.split(":::").pop();
-    //     return `${name}:::${realSupURL}`;
-    //   } else {
-    //     return supURL;
-    //   }
-    // });
-
-    // await this.update([paperEntity], false, true);
   }
 
   /**
@@ -526,7 +480,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     //   [],
     //   false
     // );
-    
+
     const scrapedPaperEntityDrafts = urlList.map((url) => {
       const paperEntityDraft = new Entity({
         title: `Paper from file ${url}`,
@@ -593,10 +547,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape metadata.", true, "PaperService")
-  async scrape(
-    paperEntities: IEntityCollection,
-    specificScrapers?: string[]
-  ) {
+  async scrape(paperEntities: IEntityCollection, specificScrapers?: string[]) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
@@ -726,22 +677,18 @@ export class PaperService extends Eventable<IPaperServiceState> {
     // TODO: implement this
     // const localConfig = await this._databaseCore.getLocalConfig(false);
     // const localRealm = new Realm(localConfig);
-
     // const entities = localRealm.objects<PaperEntity>("PaperEntity");
-
     // await this.update(
     //   entities.map((entity) => new PaperEntity(entity)),
     //   false,
     //   true
     // );
-
     // this._logService.info(
     //   `Migrated ${entities.length} paper(s) to cloud database.`,
     //   "",
     //   true,
     //   "PaperService"
     // );
-
     // localRealm.close();
   }
 }

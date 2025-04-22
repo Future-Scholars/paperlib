@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+import { a as getProtocol, h as hasProtocol, e as eraseProtocol, g as getFileType, c as constructFileURL, l as listAllFiles, i as isLocalPath } from './url-PcxgGzYe.mjs';
 
 const chunkRun = async (argsList, process, errorProcess, chunkSize = 10) => {
   let results = [];
@@ -71,6 +70,7 @@ var Process = /* @__PURE__ */ ((Process2) => {
   Process2["extension"] = "extensionProcess";
   Process2["renderer"] = "rendererProcess";
   Process2["quickpaste"] = "quickpasteProcess";
+  Process2["service"] = "serviceProcess";
   return Process2;
 })(Process || {});
 
@@ -116,85 +116,15 @@ const formatString = ({
   }
 };
 
-function getProtocol(url) {
-  const components = url.split("://");
-  if (components.length === 1) {
-    return "";
+const isMac = (() => {
+  if (globalThis["process"] && process.platform) {
+    return process.platform === "darwin";
+  } else if (globalThis["window"] && window && window["electron"]) {
+    return window["electron"].process.platform === "darwin";
   } else {
-    return components[0];
+    return false;
   }
-}
-function hasProtocol(url) {
-  return url.includes("://");
-}
-function eraseProtocol(url) {
-  const components = url.split("://");
-  if (components.length === 1) {
-    return url;
-  } else {
-    return components[1];
-  }
-}
-function getFileType(url) {
-  const components = url.split(".");
-  if (components.length === 1) {
-    return "";
-  } else {
-    return components[components.length - 1];
-  }
-}
-function constructFileURL(url, joined, withProtocol = true, root = "", protocol = "file://") {
-  let outURL;
-  url = url.replace(protocol, "");
-  if (path.isAbsolute(url)) {
-    outURL = url;
-  } else {
-    if (joined) {
-      if (root) {
-        outURL = path.join(root, url);
-      } else {
-        throw new Error("Root is required when 'joined' is true");
-      }
-    } else {
-      outURL = url;
-    }
-  }
-  if (withProtocol) {
-    if (outURL.startsWith(protocol)) {
-      return outURL.replace(/\\/g, "/");
-    } else {
-      return (protocol + outURL).replace(/\\/g, "/");
-    }
-  } else {
-    return outURL.replace(protocol, "").replace(/\\/g, "/");
-  }
-}
-function listAllFiles(folderURL, arrayOfFiles = null) {
-  if (!fs.existsSync(folderURL)) {
-    return [];
-  }
-  let files = fs.readdirSync(folderURL);
-  arrayOfFiles = arrayOfFiles || [];
-  files.forEach(function(file) {
-    if (fs.statSync(folderURL + "/" + file).isDirectory()) {
-      arrayOfFiles = listAllFiles(folderURL + "/" + file, arrayOfFiles);
-    } else {
-      arrayOfFiles = arrayOfFiles;
-      arrayOfFiles.push(path.join(folderURL, "/", file));
-    }
-  });
-  return arrayOfFiles;
-}
-function isLocalPath(string) {
-  const normalizedPath = path.normalize(string);
-  const isAbsolutePath = path.isAbsolute(normalizedPath);
-  if (isAbsolutePath) {
-    return true;
-  }
-  return /^\.{0,2}\//.test(string);
-}
-
-const isMac = process.platform === "darwin";
+})();
 const formatShortcut = (event) => {
   let shortcutKeys = [];
   if (event.ctrlKey) {

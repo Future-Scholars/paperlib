@@ -1,13 +1,7 @@
-import { Entity } from "@/models/entity";
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
 
-/**
- * Get the protocol of the URL.
- * @param url
- * @returns
- */
-export function getProtocol(url: string): string {
+function getProtocol(url) {
   const components = url.split("://");
   if (components.length === 1) {
     return "";
@@ -15,22 +9,10 @@ export function getProtocol(url: string): string {
     return components[0];
   }
 }
-
-/**
- * Check if the URL has a protocol.
- * @param url
- * @returns
- */
-export function hasProtocol(url: string): boolean {
+function hasProtocol(url) {
   return url.includes("://");
 }
-
-/**
- * Erase the protocol of the URL.
- * @param url
- * @returns
- */
-export function eraseProtocol(url: string): string {
+function eraseProtocol(url) {
   const components = url.split("://");
   if (components.length === 1) {
     return url;
@@ -38,14 +20,7 @@ export function eraseProtocol(url: string): string {
     return components[1];
   }
 }
-
-/**
- * Get the file type of the URL.
- * @param url
- * @returns
- * @description
- */
-export function getFileType(url: string): string {
+function getFileType(url) {
   if (getProtocol(url) === "http" || getProtocol(url) === "https") {
     return "WEB";
   }
@@ -56,18 +31,9 @@ export function getFileType(url: string): string {
     return components[components.length - 1];
   }
 }
-
-export function constructFileURL(
-  url: string,
-  joined: boolean,
-  withProtocol = true,
-  root = "",
-  protocol = "file://"
-): string {
-  let outURL: string;
-
+function constructFileURL(url, joined, withProtocol = true, root = "", protocol = "file://") {
+  let outURL;
   url = url.replace(protocol, "");
-
   if (path.isAbsolute(url)) {
     outURL = url;
   } else {
@@ -81,7 +47,6 @@ export function constructFileURL(
       outURL = url;
     }
   }
-
   if (withProtocol) {
     if (outURL.startsWith(protocol)) {
       return outURL.replace(/\\/g, "/");
@@ -92,54 +57,29 @@ export function constructFileURL(
     return outURL.replace(protocol, "").replace(/\\/g, "/");
   }
 }
-
-export function listAllFiles(
-  folderURL: string,
-  arrayOfFiles: string[] | null = null
-): string[] {
+function listAllFiles(folderURL, arrayOfFiles = null) {
   if (!fs.existsSync(folderURL)) {
     return [];
   }
   let files = fs.readdirSync(folderURL);
-
-  arrayOfFiles = (arrayOfFiles || []) as string[];
-
-  files.forEach(function (file) {
+  arrayOfFiles = arrayOfFiles || [];
+  files.forEach(function(file) {
     if (fs.statSync(folderURL + "/" + file).isDirectory()) {
       arrayOfFiles = listAllFiles(folderURL + "/" + file, arrayOfFiles);
     } else {
-      arrayOfFiles = arrayOfFiles as string[];
+      arrayOfFiles = arrayOfFiles;
       arrayOfFiles.push(path.join(folderURL, "/", file));
     }
   });
-
   return arrayOfFiles;
 }
-
-export function isLocalPath(string: string) {
+function isLocalPath(string) {
   const normalizedPath = path.normalize(string);
   const isAbsolutePath = path.isAbsolute(normalizedPath);
-
   if (isAbsolutePath) {
     return true;
   }
-
   return /^\.{0,2}\//.test(string);
 }
 
-export function getRelativePath(filePath: string, basePath: string): string {
-  const relativePath = path.relative(basePath, filePath);
-  return relativePath.replace(/\\/g, "/");
-}
-
-export function getDefaultSupplementaryFileURL(entity: Entity) {
-  if (
-    entity.defaultSup &&
-    entity.supplementaries[entity.defaultSup].url &&
-    getProtocol(entity.supplementaries[entity.defaultSup].url) === "file"
-  ) {
-    return entity.supplementaries[entity.defaultSup].url;
-  } else {
-    return undefined;
-  }
-}
+export { getProtocol as a, constructFileURL as c, eraseProtocol as e, getFileType as g, hasProtocol as h, isLocalPath as i, listAllFiles as l };

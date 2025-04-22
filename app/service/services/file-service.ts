@@ -1,7 +1,7 @@
 import { SpawnOptions, spawn } from "child_process";
 import { existsSync } from "fs";
 import os from "os";
-import path from "path";
+import path, { isAbsolute } from "path";
 
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
@@ -254,6 +254,17 @@ export class FileService extends Eventable<IFileServiceState> {
           "file://",
         );
         paperEntity.supplementaries[id] = sup;
+      }
+
+      for (const id of Object.keys(paperEntity.supplementaries)) {
+        if (getProtocol(paperEntity.supplementaries[id].url) === "file" && path.isAbsolute(paperEntity.supplementaries[id].url)) {
+          this._logService.warn(
+            `The file ${paperEntity.supplementaries[id].url} cannot be moved to the library folder.`,
+            "",
+            true,
+          )
+          delete paperEntity.supplementaries[id];
+        }
       }
 
       return paperEntity;

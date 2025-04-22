@@ -7,7 +7,7 @@ import { debounce } from "@/base/misc";
 import { CategorizerType } from "@/models/categorizer";
 import { FeedEntity, IFeedEntityCollection } from "@/models/feed-entity";
 import { OID } from "@/models/id";
-import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
+import { PaperEntity } from "@/models/paper-entity";
 import { Entity, IEntityCollection } from "@/models/entity";
 import { Process } from "@/base/process-id";
 import { cmdOrCtrl, ShortcutEvent } from "@/base/shortcut";
@@ -208,7 +208,10 @@ const onSidebarResized = (event: any) => {
 const openSelectedEntities = () => {
   if (uiState.contentType === "library") {
     uiState.selectedPaperEntities.forEach(async (paperEntity) => {
-      const fileURL = await PLAPI.fileService.access(paperEntity.mainURL, true);
+      if (!paperEntity.defaultSup) {
+        return;
+      }
+      const fileURL = await PLAPI.fileService.access(paperEntity.supplementaries[paperEntity.defaultSup].url, true);
 
       PLAPI.fileService.open(fileURL);
     });
@@ -222,7 +225,10 @@ const openSelectedEntities = () => {
 const showInFinderSelectedEntities = () => {
   if (uiState.contentType === "library") {
     uiState.selectedPaperEntities.forEach((paperEentity) => {
-      PLAPI.fileService.showInFinder(paperEentity.mainURL);
+      if (!paperEentity.defaultSup) {
+        return;
+      }
+      PLAPI.fileService.showInFinder(paperEentity.supplementaries[paperEentity.defaultSup].url);
     });
   }
 };
@@ -306,7 +312,7 @@ const scrapeSelectedEntities = () => {
   if (uiState.contentType === "library") {
     const paperEntityDrafts = uiState.selectedPaperEntities.map(
       (paperEntity) => {
-        return new PaperEntity(paperEntity);
+        return new Entity(paperEntity);
       }
     );
     void PLAPI.paperService.scrape(paperEntityDrafts);
@@ -317,7 +323,7 @@ const scrapeSelectedEntitiesFrom = (scraperName: string) => {
   if (uiState.contentType === "library") {
     const paperEntityDrafts = uiState.selectedPaperEntities.map(
       (paperEntity) => {
-        const paperEntityDraft = new PaperEntity(paperEntity);
+        const paperEntityDraft = new Entity(paperEntity);
         return paperEntityDraft;
       }
     );
@@ -329,7 +335,7 @@ const fuzzyScrapeSelectedEntities = async () => {
   if (uiState.contentType === "library") {
     const paperEntityDrafts = uiState.selectedPaperEntities.map(
       (paperEntity) => {
-        return new PaperEntity(paperEntity);
+        return new Entity(paperEntity);
       }
     );
     const results = await PLAPI.scrapeService.fuzzyScrape(paperEntityDrafts);
@@ -348,7 +354,7 @@ const removeSelectedEntitiesFrom = (
   if (uiState.contentType === "library") {
     const paperEntityDrafts = uiState.selectedPaperEntities.map(
       (paperEntity) => {
-        const paperEntityDraft = new PaperEntity(paperEntity);
+        const paperEntityDraft = new Entity(paperEntity);
         if (categorizeType === CategorizerType.PaperFolder) {
           paperEntityDraft.folders = paperEntityDraft.folders.filter(
             (folder) => `${folder._id}` !== categorizeId
@@ -362,6 +368,7 @@ const removeSelectedEntitiesFrom = (
         return paperEntityDraft;
       }
     );
+    console.log(paperEntityDrafts)
     PLAPI.paperService.update(paperEntityDrafts, false, true);
   }
 };
@@ -382,7 +389,7 @@ const flagSelectedEntities = () => {
   if (uiState.contentType === "library") {
     const paperEntityDrafts = uiState.selectedPaperEntities.map(
       (paperEntity) => {
-        const paperEntityDraft = new PaperEntity(paperEntity);
+        const paperEntityDraft = new Entity(paperEntity);
         paperEntityDraft.flag = !paperEntityDraft.flag;
         return paperEntityDraft;
       }

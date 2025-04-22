@@ -6,23 +6,19 @@ import { PrimaryKey, Results } from "realm";
 
 import { errorcatching } from "@/base/error";
 import { createDecorator } from "@/base/injection/injection";
-import { constructFileURL, eraseProtocol } from "@/base/url";
+import { constructFileURL, eraseProtocol, getProtocol } from "@/base/url";
 import { ILogService, LogService } from "@/common/services/log-service";
 import { ProcessingKey, processing } from "@/common/utils/processing";
 import { OID } from "@/models/id";
-import {
-  IPaperEntityCollection,
-  IPaperEntityObject,
-  PaperEntity,
-} from "@/models/paper-entity";
+import { IPaperEntityCollection, PaperEntity } from "@/models/paper-entity";
 import { PaperEntityCache, ThumbnailCache } from "@/models/paper-entity-cache";
 import {
   CacheDatabaseCore,
   ICacheDatabaseCore,
 } from "@/service/services/database/cache-core";
 
+import { Entity, IEntityCollection, IEntityObject } from "@/models/entity";
 import { FileService, IFileService } from "./file-service";
-import { Entity, IEntityCollection } from "@/models/entity";
 
 export const ICacheService = createDecorator("cacheService");
 
@@ -83,9 +79,7 @@ export class CacheService {
    * @returns The thumbnail of the paper entity. */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to get thumbnail.", true, "CacheService", null)
-  async loadThumbnail(
-    paperEntity: Entity
-  ): Promise<ThumbnailCache | null> {
+  async loadThumbnail(paperEntity: Entity): Promise<ThumbnailCache | null> {
     const realm = await this._cacheDatabaseCore.realm();
 
     const cache = realm.objectForPrimaryKey<PaperEntityCache>(
@@ -133,14 +127,19 @@ export class CacheService {
     // 2. Update the cache
     const createPromise = async (paperEntity: Entity) => {
       try {
-        if (!paperEntity.mainURL) {
+        if (
+          !paperEntity.defaultSup ||
+          getProtocol(
+            paperEntity.supplementaries[paperEntity.defaultSup].url
+          ) !== "file"
+        ) {
           return;
         }
-        const fulltext = await this._getPDFText(paperEntity.mainURL);
+
+        const url = paperEntity.supplementaries[paperEntity.defaultSup].url;
+        const fulltext = await this._getPDFText(url);
         const md5String = await md5(
-          eraseProtocol(
-            await this._fileService.access(paperEntity.mainURL, false)
-          )
+          eraseProtocol(await this._fileService.access(url, false))
         );
         realm.safeWrite(() => {
           realm.create<PaperEntityCache>("PaperEntityCache", {
@@ -169,17 +168,16 @@ export class CacheService {
       if (!url) {
         return "";
       }
-      const pdf = mupdf.Document.openDocument(
-        await promises.readFile(
-          constructFileURL(
-            url,
-            true,
-            false,
-            (await PLMainAPI.preferenceService.get("appLibFolder")) as string
-          )
-        ),
-        "application/pdf"
+
+      const pdfBuffer = await promises.readFile(
+        constructFileURL(
+          url,
+          true,
+          false,
+          (await PLMainAPI.preferenceService.get("appLibFolder")) as string
+        )
       );
+      const pdf = mupdf.Document.openDocument(pdfBuffer as any, "application/pdf");
 
       let text = "";
 
@@ -214,13 +212,23 @@ export class CacheService {
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update fulltext cache.", true, "CacheService")
-  async updateFullTextCache(paperEntities: IPaperEntityCollection) {
+  async updateFullTextCache(paperEntities: IEntityCollection) {
     const realm = await this._cacheDatabaseCore.realm();
 
-    const updatePromise = async (paperEntity: PaperEntity) => {
+    const updatePromise = async (paperEntity: Entity) => {
       try {
+        if (
+          !paperEntity.defaultSup ||
+          getProtocol(
+            paperEntity.supplementaries[paperEntity.defaultSup].url
+          ) !== "file"
+        ) {
+          return;
+        }
+        const url = paperEntity.supplementaries[paperEntity.defaultSup].url;
+
         const filePath = eraseProtocol(
-          await this._fileService.access(paperEntity.mainURL, false)
+          await this._fileService.access(url, false)
         );
 
         if (!filePath) {
@@ -232,7 +240,7 @@ export class CacheService {
           md5String = await md5(filePath);
         }
 
-        const fulltext = await this._getPDFText(paperEntity.mainURL);
+        const fulltext = await this._getPDFText(url);
         return realm.safeWrite(() => {
           const objects = realm
             .objects<PaperEntityCache>("PaperEntityCache")
@@ -267,7 +275,7 @@ export class CacheService {
       }
     };
 
-    await Promise.all(paperEntities.map((p: PaperEntity) => updatePromise(p)));
+    await Promise.all(paperEntities.map((p: Entity) => updatePromise(p)));
   }
 
   /**

@@ -1,3 +1,3 @@
-import { RendererRPCService } from "@/renderer/services/renderer-rpc-service";
+import { RendererProcessRPCService } from "@/base/rpc/rpc-service-renderer.ts";
 
-export { RendererRPCService };
+export { RendererProcessRPCService };
