@@ -1,4 +1,5 @@
 import { Categorizer } from "@/models/categorizer";
+import { EntityType, IEntity } from "@/models/entity";
 
 export interface formatStringParams {
   str: string | null;
@@ -100,16 +101,32 @@ export const getCategorizerString = (
   }
 };
 
-export const getPubTypeString = (pubType: number) => {
+export const getPubTypeString = (pubType: EntityType) => {
   switch (pubType) {
-    case 0:
+    case "article":
       return "Article";
-    case 1:
-      return "Conference";
-    case 2:
-      return "Others";
-    case 3:
+    case "book":
       return "Book";
+    case "booklet":
+      return "Booklet";
+    case "inbook":
+      return "InBook";
+    case "incollection":
+      return "InCollection";
+    case "inproceedings":
+      return "Conference";
+    case "manual":
+      return "Manual";
+    case "mastersthesis":
+      return "Master Thesis";
+    case "misc":
+      return "Misc";
+    case "phdthesis":
+      return "PhD Thesis";
+    case "proceedings":
+      return "Proceedings";
+    case "techreport":
+      return "Tech Report";
     default:
       return "Others";
   }
@@ -123,6 +140,52 @@ export const getShortAuthorString = (authors: string) => {
     return authors;
   }
 };
+
+export const getPublicationString = (entity: IEntity) => {
+  const mapping = {
+    article: "journal",
+    book: "publisher",
+    booklet: "howpublished",
+    inbook: "booktitle",
+    incollection: "booktitle",
+    inproceedings: "booktitle",
+    mastersthesis: "school",
+    phdthesis: "school",
+    techreport: "institution",
+    misc: "howpublished",
+  };
+  if (mapping[entity.type]) {
+    const publication = entity[mapping[entity.type]];
+    if (publication) {
+      return publication;
+    } 
+  } 
+  return (
+    entity["journal"] ||
+    entity["booktitle"] ||
+    entity["publisher"] ||
+    entity["school"] ||
+    entity["institution"] ||
+    entity["howpublished"] ||
+    ""
+  );
+};
+
+export const getPublicationKey = (entity: IEntity) => {
+  const mapping = {
+    article: "journal",
+    book: "publisher",
+    booklet: "howpublished",
+    inbook: "booktitle",
+    incollection: "booktitle",
+    inproceedings: "booktitle",
+    mastersthesis: "school",
+    phdthesis: "school",
+    techreport: "institution",
+    misc: "howpublished",
+  };
+  return mapping[entity.type];
+}
 
 export const compressString = async (
   str: string,

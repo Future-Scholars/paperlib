@@ -1,12 +1,13 @@
 import { SpawnOptions, spawn } from "child_process";
 import { existsSync } from "fs";
 import os from "os";
-import path from "path";
+import path, { isAbsolute } from "path";
 
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import {
+  constructFileURL,
   eraseProtocol,
   getFileType,
   getProtocol,
@@ -14,12 +15,12 @@ import {
   listAllFiles,
 } from "@/base/url";
 import { ILogService, LogService } from "@/common/services/log-service";
-import { PaperEntity } from "@/models/paper-entity";
 
 import { IFileBackend } from "../repositories/file-repository/backend";
 import { LocalFileBackend } from "../repositories/file-repository/local-backend";
 import { WebDavFileBackend } from "../repositories/file-repository/webdav-backend";
 
+import { Entity } from "@/models/entity";
 import { HookService, IHookService } from "./hook-service";
 
 export interface IFileServiceState {
@@ -145,7 +146,7 @@ export class FileService extends Eventable<IFileServiceState> {
    * Infer the relative path of a paper entity.
    * @param paperEntity - Paper entity to infer the relative path
    */
-  async inferRelativeFileName(paperEntity: PaperEntity): Promise<string> {
+  async inferRelativeFileName(paperEntity: Entity): Promise<string> {
     // Prepare ingredients
     let titleStr =
       paperEntity.title.replace(/[^\p{L}\s\d]/gu, "").replace(/\s/g, "_") ||
@@ -167,9 +168,15 @@ export class FileService extends Eventable<IFileServiceState> {
       "anonymous";
     const firstNameStr = authorStr.split(" ").shift() || "anonymous";
     const lastNameStr = authorStr.split(" ").pop() || "anonymous";
-    const yearStr = paperEntity.pubTime || "0000";
-    const publicationStr =
-      paperEntity.publication.replace(/[^\p{L}\s\d]/gu, "") || "unknown";
+    const yearStr = paperEntity.year || "0000";
+    let publicationStr =
+      paperEntity.journal ||
+      paperEntity.booktitle ||
+      paperEntity.publisher ||
+      paperEntity.school ||
+      paperEntity.institution ||
+      "unknown";
+    publicationStr = publicationStr.replace(/[^\p{L}\s\d]/gu, "");
     let idStr = paperEntity._id.toString();
 
     // =============================
@@ -223,48 +230,41 @@ export class FileService extends Eventable<IFileServiceState> {
    * @returns
    */
   async move(
-    paperEntity: PaperEntity,
-    moveMain: boolean = true,
-    moveSups: boolean = true
-  ): Promise<PaperEntity> {
+    paperEntity: Entity,
+  ): Promise<Entity> {
     const backend = await this.backend();
 
     try {
       const formatedFilename = await this.inferRelativeFileName(paperEntity);
-
-      if (moveMain) {
-        if (!paperEntity.mainURL) {
-          return paperEntity;
+      
+      for (const [id, sup] of Object.entries(paperEntity.supplementaries)) {
+        if (getProtocol(sup.url) !== "file") {
+          continue;
         }
 
-        const movedMainFilename = await backend.moveFile(
-          paperEntity.mainURL,
-          `${formatedFilename}_main${path.extname(paperEntity.mainURL)}`
+        const movedFilename = await backend.moveFile(
+          sup.url,
+          `${formatedFilename}_${sup._id}${path.extname(sup.url)}`
         );
-        paperEntity.mainURL = movedMainFilename;
+        sup.url = constructFileURL(
+          movedFilename,
+          false,
+          true,
+          "",
+          "file://",
+        );
+        paperEntity.supplementaries[id] = sup;
       }
 
-      if (moveSups) {
-        const movedSupURLs: string[] = [];
-        for (let i = 0; i < paperEntity.supURLs.length; i++) {
-          let customDisplayName = "";
-          let realSupURL = paperEntity.supURLs[i];
-          if (paperEntity.supURLs[i].split(":::").length > 1) {
-            // The URL contains custom display name
-            customDisplayName = paperEntity.supURLs[i].split(":::")[0] + ":::";
-            realSupURL = paperEntity.supURLs[i]
-              .split(":::")
-              .slice(1)
-              .join(":::");
-          }
-
-          const movedSupFileName = await backend.moveFile(
-            realSupURL,
-            `${formatedFilename}_sup${i}${path.extname(paperEntity.supURLs[i])}`
-          );
-          movedSupURLs.push(`${customDisplayName}${movedSupFileName}`);
+      for (const id of Object.keys(paperEntity.supplementaries)) {
+        if (getProtocol(paperEntity.supplementaries[id].url) === "file" && path.isAbsolute(paperEntity.supplementaries[id].url)) {
+          this._logService.warn(
+            `The file ${paperEntity.supplementaries[id].url} cannot be moved to the library folder.`,
+            "",
+            true,
+          )
+          delete paperEntity.supplementaries[id];
         }
-        paperEntity.supURLs = movedSupURLs;
       }
 
       return paperEntity;
@@ -301,10 +301,16 @@ export class FileService extends Eventable<IFileServiceState> {
     true,
     "FileService"
   )
-  async remove(paperEntity: PaperEntity): Promise<void> {
+  async remove(paperEntity: Entity): Promise<void> {
     const backend = await this.backend();
 
-    const files = [paperEntity.mainURL, ...paperEntity.supURLs];
+    const files = Object.values(paperEntity.supplementaries).map((sup) => {
+      if (getProtocol(sup.url) !== "file") {
+        return null;
+      } else {
+        return sup.url;
+      }
+    }).filter((file) => file !== null) as string[];
 
     const results = await Promise.allSettled(
       files.map((file) => backend.removeFile(file))
@@ -349,7 +355,7 @@ export class FileService extends Eventable<IFileServiceState> {
    * @param paperEntities - The paper entities.
    * @returns The paper entities with the located file URLs.
    */
-  async locateFileOnWeb(paperEntities: PaperEntity[]) {
+  async locateFileOnWeb(paperEntities: Entity[]) {
     try {
       this._logService.info(
         `Locating files for ${paperEntities.length} paper(s)...`,
@@ -359,8 +365,10 @@ export class FileService extends Eventable<IFileServiceState> {
       );
 
       let updatedPaperEntityDrafts = paperEntities.map((paperEntity) => {
-        paperEntity.mainURL = "";
-        return paperEntity;
+        if (paperEntity.defaultSup) {
+          delete paperEntity.supplementaries[paperEntity.defaultSup];
+        }
+        paperEntity.defaultSup = undefined;
       });
       if (this._hookService.hasHook("locateFile")) {
         [updatedPaperEntityDrafts] = await this._hookService.modifyHookPoint(

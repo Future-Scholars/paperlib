@@ -2,17 +2,18 @@
 import { PropType, ref } from "vue";
 
 import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
+import { OID } from "@/models/id";
+import { Entity, IEntityCollection } from "@/models/entity";
 
 import PaperListItem from "./components/paper-list-item.vue";
-import { OID } from "@/models/id";
 
 const props = defineProps({
   entities: {
-    type: Object as PropType<IPaperEntityCollection>,
+    type: Object as PropType<IEntityCollection>,
     required: true,
   },
   candidates: {
-    type: Object as PropType<Record<string, PaperEntity[]>>,
+    type: Object as PropType<Record<string, Entity[]>>,
     required: true,
   },
   fieldEnables: {
@@ -135,10 +136,10 @@ const onItemDraged = (event: DragEvent, index: number, id: OID) => {
       class="scroller max-h-[calc(100vh-3rem)]"
       :items="entities"
       :item-size="itemSize"
-      key-field="id"
+      key-field="_id"
       v-slot="{ item, index }"
       :buffer="500"
-    >
+    > 
       <PaperListItem
         :id="`item-${index}`"
         :height="itemSize"

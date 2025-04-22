@@ -5,7 +5,7 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
 import { OID } from "@/models/id";
-import { IPaperEntityCollection, IPaperEntityObject, IPaperEntityRealmObject, PaperEntity } from "@/models/paper-entity";
+import { IEntityCollection, IEntityObject, IEntityRealmObject, Entity } from "@/models/entity";
 import {
   CategorizerRepository,
   ICategorizerRepository,
@@ -35,26 +35,26 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param paperEntity - Paper entity
    * @returns Realm object
    */
-  toRealmObject(realm: Realm, paperEntity: IPaperEntityObject) {
+  toRealmObject(realm: Realm, paperEntity: IEntityObject) {
     if (paperEntity instanceof Realm.Object) {
-      return paperEntity as IPaperEntityRealmObject;
+      return paperEntity as IEntityRealmObject;
     } else {
       const objects = realm
-        .objects<PaperEntity>("PaperEntity")
+        .objects<Entity>("Entity")
         .filtered(`_id == oid(${paperEntity._id})`);
 
       if (objects.length > 0) {
-        return objects[0] as IPaperEntityRealmObject;
+        return objects[0] as IEntityRealmObject;
       } else {
         const reduplicatedObjects = realm
-          .objects<PaperEntity>("PaperEntity")
+          .objects<Entity>("Entity")
           .filtered(
             "title == $0 and authors == $1",
             paperEntity.title,
             paperEntity.authors
           );
         if (reduplicatedObjects.length > 0) {
-          return reduplicatedObjects[0] as IPaperEntityRealmObject;
+          return reduplicatedObjects[0] as IEntityRealmObject;
         } else {
           return undefined;
         }
@@ -76,11 +76,12 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     sortBy: string,
     sortOrder: "asce" | "desc"
   ) {
-    let objects = realm.objects<PaperEntity>("PaperEntity");
+    let objects = realm.objects<Entity>("Entity");
     this.fire({ count: objects.length });
 
-    if (!realm.paperEntityListened) {
+    if (!realm.entityListened) {
       objects.addListener((objs, changes) => {
+        // TODO: shall we check the library of objects?
         const deletionCount = changes.deletions.length;
         const insertionCount = changes.insertions.length;
         const modificationCount =
@@ -91,18 +92,17 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         }
       })
 
-      realm.paperEntityListened = true;
-
+      realm.entityListened = true;
     }
 
     if (filter) {
       try {
-        return objects.filtered(filter).sorted(sortBy, sortOrder === "desc");
+        return objects.filtered(`library == 'main' AND (${filter})`).sorted(sortBy, sortOrder === "desc");
       } catch (error) {
         throw new Error(`Invalid filter: ${filter}`);
       }
     } else {
-      return objects.sorted(sortBy, sortOrder === "desc");
+      return objects.filtered("library == 'main'").sorted(sortBy, sortOrder === "desc");
     }
   }
 
@@ -116,7 +116,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     const idsQuery = ids.map((id) => `oid(${id})`).join(", ");
 
     let objects = realm
-      .objects<PaperEntity>("PaperEntity")
+      .objects<Entity>("Entity")
       .filtered(`_id IN { ${idsQuery} }`);
 
     return objects;
@@ -127,34 +127,24 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param paperEntity - Paper entity.
    * @returns - Paper entity.
    */
-  makeSureProperties(paperEntity: IPaperEntityObject) {
-    if (!paperEntity._id && !paperEntity.id) {
+  makeSureProperties(paperEntity: IEntityObject) {
+    if (!paperEntity._id) {
       paperEntity._id = new ObjectId();
-      paperEntity.id = paperEntity._id;
     } else {
-      paperEntity._id = new ObjectId(paperEntity._id || paperEntity.id);
-      paperEntity.id = new ObjectId(paperEntity.id || paperEntity._id);
+      paperEntity._id = new ObjectId(paperEntity._id);
     }
 
-    paperEntity._partition = paperEntity._partition || "";
     paperEntity.addTime = paperEntity.addTime || new Date();
+    paperEntity.library = "main";
+    paperEntity.type = paperEntity.type || "article";
+    paperEntity.supplementaries = paperEntity.supplementaries || [];
     paperEntity.title = `${paperEntity.title}` || "";
     paperEntity.authors = paperEntity.authors || "";
-    paperEntity.publication = paperEntity.publication || "";
-    paperEntity.pubTime = paperEntity.pubTime || "";
-    paperEntity.pubType = paperEntity.pubType || 0;
-    paperEntity.doi = paperEntity.doi || "";
-    paperEntity.arxiv = paperEntity.arxiv || "";
-    paperEntity.mainURL = paperEntity.mainURL || "";
-    paperEntity.supURLs = paperEntity.supURLs?.map((url) => `${url}`) || [];
+    paperEntity.year = paperEntity.year || "";
     paperEntity.rating = paperEntity.rating || 0;
+    paperEntity.tags = paperEntity.tags || [];
+    paperEntity.folders = paperEntity.folders || [];
     paperEntity.flag = paperEntity.flag || false;
-    paperEntity.note = paperEntity.note || "";
-    paperEntity.codes = paperEntity.codes?.map((code) => `${code}`) || [];
-    paperEntity.pages = paperEntity.pages || "";
-    paperEntity.volume = paperEntity.volume || "";
-    paperEntity.number = paperEntity.number || "";
-    paperEntity.publisher = paperEntity.publisher || "";
 
     return paperEntity;
   }
@@ -169,7 +159,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    */
   update(
     realm: Realm,
-    paperEntity: IPaperEntityObject,
+    paperEntity: IEntityObject,
     partition: string,
     allowUpdate: boolean = true
   ) {
@@ -224,25 +214,39 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         const shouldBeUpdatedTags = [...tags, ...object.tags];
         const shouldBeUpdatedFolders = [...folders, ...object.folders];
 
-        object.title = paperEntity.title;
-        object.authors = paperEntity.authors;
-        object.publication = paperEntity.publication;
-        object.pubTime = paperEntity.pubTime;
-        object.pubType = paperEntity.pubType;
+        object.library = paperEntity.library;
+        object.type = paperEntity.type;
+        object.abstract = paperEntity.abstract;
+        object.defaultSup = paperEntity.defaultSup;
+        object.supplementaries = paperEntity.supplementaries;
         object.doi = paperEntity.doi;
         object.arxiv = paperEntity.arxiv;
-        object.mainURL = paperEntity.mainURL;
-        object.supURLs = Array.from(paperEntity.supURLs);
-        object.rating = paperEntity.rating;
-        object.flag = paperEntity.flag;
-        object.note = paperEntity.note;
-        object.codes = Array.from(paperEntity.codes);
+        object.issn = paperEntity.issn;
+        object.isbn = paperEntity.isbn;
+
+        object.title = paperEntity.title;
+        object.authors = paperEntity.authors;
+        object.journal = paperEntity.journal;
+        object.booktitle = paperEntity.booktitle;
+        object.year = paperEntity.year;
+        object.month = paperEntity.month;
         object.volume = paperEntity.volume;
         object.number = paperEntity.number;
         object.pages = paperEntity.pages;
         object.publisher = paperEntity.publisher;
+        object.series = paperEntity.series;
+        object.edition = paperEntity.edition;
+        object.editor = paperEntity.editor;
+        object.howpublished = paperEntity.howpublished;
+        object.organization = paperEntity.organization;
+        object.school = paperEntity.school;
+        object.institution = paperEntity.institution;
+
+        object.rating = paperEntity.rating;
         object.tags = tags;
         object.folders = folders;
+        object.flag = paperEntity.flag;
+        object.note = paperEntity.note;
 
         if (partition) {
           object._partition = partition;
@@ -268,13 +272,10 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         if (partition) {
           paperEntity._partition = partition;
         }
-        const object = realm.create<PaperEntity>("PaperEntity", paperEntity);
+        const object = realm.create<Entity>("Entity", paperEntity);
         if (object) {
           object.tags = tags;
           object.folders = folders;
-        }
-        if (partition) {
-          object._partition = partition;
         }
 
         this._categorizerRepository.updateCount(
@@ -300,11 +301,11 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param paperEntity - Paper entity.
    * @returns - Deleted boolean flags.
    */
-  delete(realm: Realm, ids?: OID[], paperEntitys?: IPaperEntityCollection) {
+  delete(realm: Realm, ids?: OID[], paperEntitys?: IEntityCollection) {
     return realm.safeWrite(() => {
       if (paperEntitys) {
         ids = paperEntitys.map(
-          (paperEntity: IPaperEntityObject) => paperEntity._id
+          (paperEntity: IEntityObject) => paperEntity._id
         );
       }
       if (ids) {
@@ -313,12 +314,12 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           .join(" OR ");
 
         const toBeDeleted = realm
-          .objects<PaperEntity>("PaperEntity")
+          .objects<Entity>("Entity")
           .filtered(`(${idsQuery})`);
 
         const toBeDeletedFiles = toBeDeleted
           .map((paperEntity) => {
-            return [paperEntity.mainURL, ...paperEntity.supURLs];
+            return Object.values(paperEntity.supplementaries).map(sup => sup.url).filter((url) => url?.startsWith("file://")) as string[];
           })
           .flat();
 
@@ -360,7 +361,6 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           CategorizerType.PaperFolder,
           toBeUpdatedFolders
         );
-        const syncLogDatetime = new Date().toUTCString();
 
         return toBeDeletedFiles;
       } else {

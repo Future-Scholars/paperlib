@@ -108,25 +108,26 @@ const _defaultPreferences: IPreferenceStore = {
   isSidebarCompact: false,
 
   mainTableFields: [
-    { key: "title", enable: true, width: -1 },
-    { key: "authors", enable: true, width: -1 },
-    { key: "publication", enable: true, width: -1 },
-    { key: "pubTime", enable: true, width: -1 },
-    { key: "pubType", enable: false, width: -1 },
+    { key: "type", enable: false, width: -1 },
+    { key: "abstract", enable: false, width: -1 },
+    { key: "defaultSup", enable: false, width: -1 },
     { key: "doi", enable: false, width: -1 },
     { key: "arxiv", enable: false, width: -1 },
-    { key: "mainURL", enable: false, width: -1 },
-    { key: "supURLs", enable: false, width: -1 },
+    { key: "issn", enable: false, width: -1 },
+    { key: "isbn", enable: false, width: -1 },
+    { key: "title", enable: true, width: -1 },
+    { key: "authors", enable: true, width: -1 },
+    { key: "year", enable: true, width: -1 },
+    { key: "month", enable: false, width: -1 },
+    { key: "publication", enable: true, width: -1 },
     { key: "rating", enable: false, width: -1 },
     { key: "tags", enable: false, width: -1 },
     { key: "folders", enable: false, width: -1 },
     { key: "flag", enable: true, width: -1 },
     { key: "note", enable: false, width: -1 },
-    { key: "codes", enable: false, width: -1 },
     { key: "pages", enable: false, width: -1 },
     { key: "volume", enable: false, width: -1 },
     { key: "number", enable: false, width: -1 },
-    { key: "publisher", enable: false, width: -1 },
     { key: "addTime", enable: true, width: -1 },
   ],
 
@@ -324,6 +325,7 @@ function _migrate(
     store.set("mainTableFields", mainTableFields);
     store.set("feedFields", feedFields);
   }
+  // TODO: migrate from 1 to 2
 
   store.set("preferenceVersion", preferenceVersion);
 

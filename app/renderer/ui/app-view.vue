@@ -6,7 +6,7 @@ import { removeLoading } from "@/base/loading";
 import { FeedEntityFilterOptions } from "@/base/filter";
 import { IFeedEntityCollection } from "@/models/feed-entity";
 import { IFeedCollection } from "@/models/feed";
-import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
+import { Entity, IEntityCollection } from "@/models/entity";
 import { Process } from "@/base/process-id";
 import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
 import {
@@ -26,6 +26,8 @@ import WhatsNewView from "./whats-new-view/whats-new-view.vue";
 import WelcomeView from "./welcome-view/welcome-view.vue";
 import OverlayNotificationView from "./overlay-notification-view/overlay-notification-view.vue";
 import GuideView from "./guide-view/guide-view.vue";
+import { Supplementary } from "@/models/supplementary";
+import { uid } from "@/base/misc";
 
 // ================================
 // State
@@ -37,10 +39,10 @@ const prefState = PLMainAPI.preferenceService.useState();
 // ================================
 // Data
 // ================================
-const paperEntities: Ref<IPaperEntityCollection> = ref([]);
+const paperEntities: Ref<IEntityCollection> = ref([]);
 provide(
   "paperEntities",
-  computed(() => paperEntities.value) as Ref<IPaperEntityCollection>
+  computed(() => paperEntities.value) as Ref<IEntityCollection>
 );
 const tags: Ref<ICategorizerCollection> = ref([]);
 provide("tags", tags);
@@ -300,23 +302,60 @@ disposable(
 // Dev Functions
 // ================================
 const onAddDummyClicked = async () => {
-  const dummpyPaperEntities: PaperEntity[] = [];
+  const dummpyPaperEntities: Entity[] = [];
 
   for (
     let i = paperEntities.value.length;
     i < 100 + paperEntities.value.length;
     i++
   ) {
-    const dummyPaperEntity = new PaperEntity(
-      {
-        title: `Dummy Paper <scp>D</scp>-${i}<sup>+T</sup> Test latex $^${i}_{a}$`,
-        authors: "Dummy Author A, Dummy Author B, Dummy Author C",
-        pubTime: `${Math.round(2021 + Math.random() * 10)}`,
-        publication: `Publication ${Math.round(Math.random() * 10)}`,
-      },
-      true
-    );
-    dummpyPaperEntities.push(dummyPaperEntity);
+    const supId = uid();
+    const sup = new Supplementary({
+      _id: supId,
+      name: `DUM - ${i}`,
+      url: "https://www.google.com",
+    });
+    if (i % 2 === 0) {
+      const codeSupId = uid();
+      const codeSup = new Supplementary({
+        _id: codeSupId,
+        name: `Official`,
+        url: "https://github.com/Future-Scholars/paperlib",
+      });
+
+      const dummyPaperEntity = new Entity(
+        {
+          title: `Dummy Paper <scp>D</scp>-${i}<sup>+T</sup> Test latex $^${i}_{a}$`,
+          authors: "Dummy Author A, Dummy Author B, Dummy Author C",
+          year: `${Math.round(2021 + Math.random() * 10)}`,
+          journal: `Publication ${Math.round(Math.random() * 10)}`,
+          type: "article",
+          arxiv: "arXiv:2301.00001",
+          supplementaries: {
+            [supId]: sup,
+            [codeSupId]: codeSup,
+          }
+        },
+        true
+      );
+      dummpyPaperEntities.push(dummyPaperEntity);
+    } else {
+      const dummyPaperEntity = new Entity(
+        {
+          title: `Dummy Paper <scp>D</scp>-${i}<sup>+T</sup> Test latex $^${i}_{a}$`,
+          authors: "Dummy Author A, Dummy Author B, Dummy Author C",
+          year: `${Math.round(2021 + Math.random() * 10)}`,
+          booktitle: `Publication ${Math.round(Math.random() * 10)}`,
+          doi: "10.1000/xyz123",
+          type: "inproceedings",
+          supplementaries: {
+            [supId]: sup
+          }
+        },
+        true
+      );
+      dummpyPaperEntities.push(dummyPaperEntity);
+    }
   }
 
   await PLAPI.paperService.update(dummpyPaperEntities);
@@ -346,7 +385,7 @@ const onRemoveAllClicked = async () => {
 
     return;
   } else {
-    PLAPI.paperService.delete(paperEntities.value.map((x) => x.id));
+    PLAPI.paperService.delete(paperEntities.value.map((x) => x._id));
     clickTimes = 0;
   }
 };

@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { PropType } from "vue";
 
-import { PaperEntity, IPaperEntityCollection } from "@/models/paper-entity";
 import { FieldTemplate } from "@/renderer/types/data-view";
 
 import TableView from "./table-view.vue";
+import { Entity, IEntityCollection } from "@/models/entity";
 
 const props = defineProps({
   entities: {
-    type: Object as PropType<IPaperEntityCollection>,
+    type: Object as PropType<IEntityCollection>,
     required: true,
   },
   candidates: {
-    type: Object as PropType<Record<string, PaperEntity[]>>,
+    type: Object as PropType<Record<string, Entity[]>>,
     required: true,
   },
   fieldTemplates: {

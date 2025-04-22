@@ -1,9 +1,10 @@
 import { existsSync, promises as fsPromise } from "fs";
 import path from "path";
 
-import { constructFileURL, eraseProtocol, getRelativePath } from "@/base/url";
+import { constructFileURL, eraseProtocol, getProtocol, getRelativePath } from "@/base/url";
 
 import { IFileBackend } from "./backend";
+import { get } from "lodash";
 
 export class LocalFileBackend implements IFileBackend {
   protected readonly _appLibFolder: string;
@@ -21,6 +22,10 @@ export class LocalFileBackend implements IFileBackend {
   }
 
   async access(url: string, download = false): Promise<string> {
+    if (["http", "https"].includes(getProtocol(url))) {
+      return Promise.resolve(url);
+    }
+
     if (path.isAbsolute(eraseProtocol(url))) {
       return Promise.resolve(existsSync(eraseProtocol(url)) ? url : "");
     }

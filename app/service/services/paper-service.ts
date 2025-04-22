@@ -1,26 +1,23 @@
-import path from "path";
-
 import { chunkRun } from "@/base/chunk";
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { PaperFilterOptions } from "@/base/filter";
 import { createDecorator } from "@/base/injection/injection";
 import { ILogService, LogService } from "@/common/services/log-service";
+import { ProcessingKey, processing } from "@/common/utils/processing";
 import {
   Categorizer,
   CategorizerType,
   PaperFolder,
   PaperTag,
 } from "@/models/categorizer";
+import { Entity, IEntityCollection, IEntityObject } from "@/models/entity";
 import { OID } from "@/models/id";
-import {
-  IPaperEntityCollection,
-  IPaperEntityObject,
-  PaperEntity,
-} from "@/models/paper-entity";
-import { ProcessingKey, processing } from "@/common/utils/processing";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
 
+import { uid } from "@/base/misc";
+import { getDefaultSupplementaryFileURL, getProtocol } from "@/base/url";
+import { ISupplementary, Supplementary } from "@/models/supplementary";
 import {
   IPaperEntityRepository,
   PaperEntityRepository,
@@ -92,7 +89,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     sortBy: string = "addTime",
     sortOrder: "asce" | "desc",
     fulltextQuerySentence?: string
-  ): Promise<IPaperEntityCollection> {
+  ): Promise<IEntityCollection> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
@@ -109,6 +106,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
         fulltextQuerySentence,
         allPaperEntities
       );
+      return [];
     } else {
       if (PaperFilterOptions.checkIsDateFilter(querySentence)) {
         querySentence = PaperFilterOptions.parseDateFilter(querySentence);
@@ -156,11 +154,11 @@ export class PaperService extends Eventable<IPaperServiceState> {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to update paper entities.", true, "PaperService", [])
   async update(
-    paperEntityDrafts: IPaperEntityCollection,
+    paperEntityDrafts: IEntityCollection,
     updateCache: boolean = true,
     isUpdate = false,
     fromSync: boolean = false
-  ): Promise<IPaperEntityCollection> {
+  ): Promise<IEntityCollection> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
@@ -185,25 +183,12 @@ export class PaperService extends Eventable<IPaperServiceState> {
     // ========================================================
     // #region 1. Move files to the app lib folder
     let { results: fileMovedPaperEntityDrafts, errors } = await chunkRun<
-      IPaperEntityObject,
-      IPaperEntityObject,
-      IPaperEntityObject
+      IEntityObject,
+      IEntityObject,
+      IEntityObject
     >(
       paperEntityDrafts,
       async (paperEntityDraft) => {
-        if (
-          !(await this._fileService.access(paperEntityDraft.mainURL, false)) &&
-          paperEntityDraft.mainURL
-        ) {
-          PLAPILocal.logService.warn(
-            `File doesn't exist anymore.`,
-            `${paperEntityDraft.mainURL}`,
-            true,
-            "PaperService"
-          );
-          paperEntityDraft.mainURL = "";
-        }
-
         return await this._fileService.move(paperEntityDraft);
       },
       async (paperEntityDraft) => {
@@ -219,28 +204,12 @@ export class PaperService extends Eventable<IPaperServiceState> {
       );
     });
 
-    // filter paper entities with files that are not moved (still absolute path)
-    fileMovedPaperEntityDrafts = fileMovedPaperEntityDrafts.map(
-      (paperEntityDraft) => {
-        if (
-          paperEntityDraft.mainURL &&
-          path.isAbsolute(paperEntityDraft.mainURL)
-        ) {
-          paperEntityDraft.mainURL = "";
-        }
-
-        paperEntityDraft.supURLs = paperEntityDraft.supURLs.filter((url) => {
-          return path && !path.isAbsolute(url);
-        });
-        return paperEntityDraft;
-      }
-    );
     // #endregion ========================================================
 
     // ========================================================
     // #region 2. Update database
     const realm = await this._databaseCore.realm();
-    const updatedPaperEntityDrafts: (PaperEntity | null)[] = [];
+    const updatedPaperEntityDrafts: (Entity | null)[] = [];
 
     for (const paperEntity of fileMovedPaperEntityDrafts) {
       let success: boolean;
@@ -254,7 +223,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
         if (!success && !isUpdate) {
           this._logService.warn(
-            "Faild to add the paper.",
+            "Failed to add the paper.",
             `May be duplicated: ${paperEntity.title}`,
             true,
             "PaperService"
@@ -263,7 +232,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       } catch (error) {
         success = false;
         this._logService.error(
-          "Faild to update paper entity.",
+          "Failed to update paper entity.",
           error as Error,
           true,
           "PaperService"
@@ -281,11 +250,12 @@ export class PaperService extends Eventable<IPaperServiceState> {
       if (updatedPaperEntityDraft === null) {
         this._fileService.remove(fileMovedPaperEntityDraft);
       } else if (
-        fileMovedPaperEntityDraft.mainURL !== updatedPaperEntityDraft.mainURL
+        getDefaultSupplementaryFileURL(fileMovedPaperEntityDraft) !==
+        getDefaultSupplementaryFileURL(updatedPaperEntityDraft)
       ) {
         this._fileService.moveFile(
-          fileMovedPaperEntityDraft.mainURL,
-          updatedPaperEntityDraft.mainURL
+          getDefaultSupplementaryFileURL(fileMovedPaperEntityDraft)!,
+          getDefaultSupplementaryFileURL(updatedPaperEntityDraft)!
         );
       }
     }
@@ -297,7 +267,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       (paperEntityDraft) => {
         return paperEntityDraft !== null;
       }
-    ) as IPaperEntityCollection;
+    ) as IEntityCollection;
 
     // Don't wait this
     if (updateCache) {
@@ -331,8 +301,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
     // 1. Get Entities by IDs.
     const paperEntities = await this.loadByIds(ids);
 
-    let paperEntityDrafts = paperEntities.map((paperEntity: PaperEntity) => {
-      return new PaperEntity(paperEntity);
+    let paperEntityDrafts = paperEntities.map((paperEntity: Entity) => {
+      return new Entity(paperEntity);
     });
 
     paperEntityDrafts = paperEntityDrafts.map((paperEntityDraft) => {
@@ -359,8 +329,9 @@ export class PaperService extends Eventable<IPaperServiceState> {
   /**
    * Update the main file of a paper entity.
    * @param paperEntity - The paper entity.
-   * @param url - The URL of the main file.
-   * @returns The updated paper entity.
+   * @param sups - The supplementary objects.
+   * @param defaultSup - The default supplementary file ID.
+   * @returns The updated paper entities.
    */
   @processing(ProcessingKey.General)
   @errorcatching(
@@ -369,43 +340,34 @@ export class PaperService extends Eventable<IPaperServiceState> {
     "PaperService",
     []
   )
-  async updateMainURL(paperEntity: PaperEntity, url: string) {
+  async updateSups(
+    paperEntity: Entity,
+    sups: ISupplementary[],
+    defaultSup?: string
+  ) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
 
-    if (paperEntity.mainURL) {
-      await this._fileService.removeFile(paperEntity.mainURL);
+    for (let sup of sups) {
+      sup = new Supplementary(sup);
+
+      if (sup._id === defaultSup) {
+        paperEntity.defaultSup = sup._id;
+      }
+      paperEntity.supplementaries[sup._id] = sup as Supplementary;
     }
-    paperEntity.mainURL = url;
-    paperEntity = await this._fileService.move(paperEntity, true, false);
+    paperEntity = await this._fileService.move(paperEntity);
 
     const updatedPaperEntities = await this.update([paperEntity], false, true);
-    await this._cacheService.updateCache([paperEntity]);
-
-    return updatedPaperEntities[0];
-  }
-
-  /**
-   * Update the supplementary files of a paper entity.
-   * @param paperEntity - The paper entity.
-   * @param urls - The URLs of the supplementary files.
-   */
-  @processing(ProcessingKey.General)
-  @errorcatching(
-    "Failed to update paper entity's supplementary files.",
-    true,
-    "PaperService"
-  )
-  async updateSupURLs(paperEntity: PaperEntity, urls: string[]) {
-    if (this._databaseCore.getState("dbInitializing")) {
-      return;
+    if (
+      defaultSup &&
+      getProtocol(paperEntity.supplementaries[defaultSup].url) === "file"
+    ) {
+      await this._cacheService.updateCache([paperEntity]);
     }
 
-    paperEntity.supURLs.push(...urls);
-    paperEntity = await this._fileService.move(paperEntity, false, true);
-
-    await this.update([paperEntity], false, true);
+    return updatedPaperEntities;
   }
 
   /**
@@ -416,7 +378,11 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete paper entities.", true, "PaperService")
-  async delete(ids?: OID[], paperEntities?: PaperEntity[], fromSync: boolean =false) {
+  async delete(
+    ids?: OID[],
+    paperEntities?: Entity[],
+    fromSync: boolean = false
+  ) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
@@ -456,50 +422,42 @@ export class PaperService extends Eventable<IPaperServiceState> {
   }
 
   /**
-   * Delete a suplementary file.
+   * Delete suplementaries.
    * @param paperEntity - The paper entity.
-   * @param url - The URL of the supplementary file.
+   * @param sups - The list of supplementary objects.
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to delete supplementary file.", true, "PaperService")
-  async deleteSup(paperEntity: PaperEntity, url: string) {
-    this._logService.info(
-      `Removing supplementary file...`,
-      `${url}`,
-      true,
-      "Entity"
+  async deleteSups(paperEntity: Entity, supIds: string[]) {
+    this._logService.info(`Removing supplementaries...`, "", true, "Entity");
+
+    const toBeDeletedFiles = supIds
+      .map((supId) => {
+        const sup = paperEntity.supplementaries[supId];
+        if (sup && getProtocol(sup.url) === "file") {
+          return sup.url;
+        } else {
+          return null;
+        }
+      })
+      .filter((url) => url !== null);
+
+    await Promise.all(
+      toBeDeletedFiles.map((url) => this._fileService.removeFile(url))
     );
-    const realURL = url.split(":::").pop() as string;
-    await this._fileService.removeFile(realURL);
-    paperEntity.supURLs = paperEntity.supURLs.filter(
-      (supUrl) => !url.endsWith(supUrl)
+    paperEntity.supplementaries = Object.fromEntries(
+      Object.entries(paperEntity.supplementaries).filter(
+        ([key]) => !supIds.includes(key)
+      )
     );
 
-    await this.update([paperEntity], false, true);
-  }
-
-  /**
-   * Set a custom display name of a supplementary file.
-   */
-  @processing(ProcessingKey.General)
-  @errorcatching(
-    "Failed to set custom display name of a supplementary file.",
-    true,
-    "PaperService"
-  )
-  async setSupDisplayName(paperEntity: PaperEntity, url: string, name: string) {
-    if (this._databaseCore.getState("dbInitializing")) {
-      return;
-    }
-
-    paperEntity.supURLs = paperEntity.supURLs.map((supURL) => {
-      if (supURL === url) {
-        const realSupURL = supURL.split(":::").pop();
-        return `${name}:::${realSupURL}`;
+    if (paperEntity.defaultSup && supIds.includes(paperEntity.defaultSup)) {
+      if (Object.keys(paperEntity.supplementaries).length > 0) {
+        paperEntity.defaultSup = Object.keys(paperEntity.supplementaries)[0];
       } else {
-        return supURL;
+        paperEntity.defaultSup = undefined;
       }
-    });
+    }
 
     await this.update([paperEntity], false, true);
   }
@@ -516,11 +474,30 @@ export class PaperService extends Eventable<IPaperServiceState> {
     const payloads = urlList.map((url) => {
       return { type: "file", value: url };
     });
-    const scrapedPaperEntityDrafts = await this._scrapeService.scrape(
-      payloads,
-      [],
-      false
-    );
+    // FIXME: fix this bypass for debug
+    // const scrapedPaperEntityDrafts = await this._scrapeService.scrape(
+    //   payloads,
+    //   [],
+    //   false
+    // );
+
+    const scrapedPaperEntityDrafts = urlList.map((url) => {
+      const paperEntityDraft = new Entity({
+        title: `Paper from file ${url}`,
+        year: "2025",
+        booktitle: "Test booktitle",
+        type: "inproceedings",
+      });
+      const supId = uid();
+      paperEntityDraft.supplementaries = {
+        [supId]: new Supplementary({
+          _id: supId,
+          url: url,
+        }),
+      };
+      paperEntityDraft.defaultSup = supId;
+      return paperEntityDraft;
+    });
 
     // 2. Update.
     return await this.update(scrapedPaperEntityDrafts, true, false);
@@ -570,10 +547,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
    */
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape metadata.", true, "PaperService")
-  async scrape(
-    paperEntities: IPaperEntityCollection,
-    specificScrapers?: string[]
-  ) {
+  async scrape(paperEntities: IEntityCollection, specificScrapers?: string[]) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
@@ -625,7 +599,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     );
     await this.scrape(
       preprintPaperEntities.map((paperEntity) => {
-        return new PaperEntity(paperEntity);
+        return new Entity(paperEntity);
       })
     );
   }
@@ -673,13 +647,13 @@ export class PaperService extends Eventable<IPaperServiceState> {
     }
     this._logService.info(`Renaming all paper(s)...`, "", true, "PaperService");
     let paperEntities = await this.load("", "title", "desc");
-    const paperEntityDrafts = paperEntities.map((paperEntity: PaperEntity) => {
-      return new PaperEntity(paperEntity);
+    const paperEntityDrafts = paperEntities.map((paperEntity: Entity) => {
+      return new Entity(paperEntity);
     });
 
     const movedEntityDrafts = await Promise.all(
-      paperEntityDrafts.map((paperEntityDraft: PaperEntity) =>
-        this._fileService.move(paperEntityDraft, true, true)
+      paperEntityDrafts.map((paperEntityDraft: Entity) =>
+        this._fileService.move(paperEntityDraft)
       )
     );
 
@@ -700,24 +674,21 @@ export class PaperService extends Eventable<IPaperServiceState> {
     "DatabaseService"
   )
   async migrateLocaltoCloud() {
-    const localConfig = await this._databaseCore.getLocalConfig(false);
-    const localRealm = new Realm(localConfig);
-
-    const entities = localRealm.objects<PaperEntity>("PaperEntity");
-
-    await this.update(
-      entities.map((entity) => new PaperEntity(entity)),
-      false,
-      true
-    );
-
-    this._logService.info(
-      `Migrated ${entities.length} paper(s) to cloud database.`,
-      "",
-      true,
-      "PaperService"
-    );
-
-    localRealm.close();
+    // TODO: implement this
+    // const localConfig = await this._databaseCore.getLocalConfig(false);
+    // const localRealm = new Realm(localConfig);
+    // const entities = localRealm.objects<PaperEntity>("PaperEntity");
+    // await this.update(
+    //   entities.map((entity) => new PaperEntity(entity)),
+    //   false,
+    //   true
+    // );
+    // this._logService.info(
+    //   `Migrated ${entities.length} paper(s) to cloud database.`,
+    //   "",
+    //   true,
+    //   "PaperService"
+    // );
+    // localRealm.close();
   }
 }

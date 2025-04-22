@@ -1,3 +1,6 @@
+import { c as commonjsGlobal, g as getDefaultExportFromCjs, u as uid } from './misc-BJM5zfKg.mjs';
+import { g as getFileType } from './url-PcxgGzYe.mjs';
+
 function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
@@ -5737,12 +5740,6 @@ class FeedEntity {
   }
 }
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
-
 var dist = {exports: {}};
 
 var main = {};
@@ -11191,9 +11188,9 @@ function Notation() {
 }Notation.prototype.nodeType = NOTATION_NODE;
 _extends(Notation,Node);
 
-function Entity() {
-}Entity.prototype.nodeType = ENTITY_NODE;
-_extends(Entity,Node);
+function Entity$1() {
+}Entity$1.prototype.nodeType = ENTITY_NODE;
+_extends(Entity$1,Node);
 
 function EntityReference() {
 }EntityReference.prototype.nodeType = ENTITY_REFERENCE_NODE;
@@ -12176,6 +12173,214 @@ class PaperEntity {
   }
 }
 
+class Supplementary {
+  static schema = {
+    name: "Supplementary",
+    embedded: true,
+    properties: {
+      _id: "string",
+      url: "string",
+      name: "string"
+    }
+  };
+  _id;
+  url;
+  name;
+  constructor(object) {
+    this.initialize(object || {});
+    return new Proxy(this, {
+      set: (target, prop, value) => {
+        if (prop === "_id" && value) {
+          this._id = uid();
+        } else {
+          target[prop] = value;
+        }
+        return true;
+      }
+    });
+  }
+  initialize(object) {
+    this._id = object._id || new ObjectId().toString();
+    this.url = object.url || "";
+    this.name = object.name || getFileType(this.url).toUpperCase();
+    return this;
+  }
+}
+
+class Entity {
+  static schema = {
+    name: "Entity",
+    primaryKey: "_id",
+    properties: {
+      _id: "objectId",
+      _partition: "string?",
+      // deprecated, for old realm cloud only, will be removed in the future
+      addTime: "date",
+      library: "string",
+      type: "string",
+      abstract: "string?",
+      defaultSup: "string?",
+      supplementaries: "Supplementary{}",
+      doi: "string?",
+      arxiv: "string?",
+      issn: "string?",
+      isbn: "string?",
+      title: "string",
+      authors: "string",
+      journal: "string?",
+      booktitle: "string?",
+      year: "string",
+      month: "string?",
+      volume: "string?",
+      number: "string?",
+      pages: "string?",
+      publisher: "string?",
+      series: "string?",
+      edition: "string?",
+      editor: "string?",
+      howpublished: "string?",
+      organization: "string?",
+      school: "string?",
+      institution: "string?",
+      address: "string?",
+      rating: "int?",
+      tags: {
+        type: "list",
+        objectType: "PaperTag"
+      },
+      folders: {
+        type: "list",
+        objectType: "PaperFolder"
+      },
+      flag: "bool?",
+      note: "string?",
+      read: "bool?",
+      feed: "Feed?"
+    }
+  };
+  _id;
+  _partition;
+  // deprecated, for old realm cloud only, will be removed in the future
+  addTime;
+  library;
+  type;
+  abstract;
+  defaultSup;
+  supplementaries;
+  doi;
+  arxiv;
+  issn;
+  isbn;
+  title;
+  authors;
+  journal;
+  booktitle;
+  year;
+  month;
+  volume;
+  number;
+  pages;
+  publisher;
+  series;
+  edition;
+  editor;
+  howpublished;
+  organization;
+  school;
+  institution;
+  address;
+  rating;
+  tags;
+  folders;
+  flag;
+  note;
+  read;
+  feed;
+  constructor(object, initObjectId = false) {
+    this.initialize(object || {}, initObjectId);
+    return new Proxy(this, {
+      set: (target, prop, value) => {
+        if (prop === "title") {
+          target.setValue("title", value, true);
+        } else if (prop === "_id" && value) {
+          this._id = new ObjectId(value);
+        } else {
+          target[prop] = value;
+        }
+        return true;
+      }
+    });
+  }
+  setValue(key, value, format = false) {
+    if (format && value) {
+      const mathmlRegex1 = /<math\b[^>]*>([\s\S]*?)<\/math>/gm;
+      const mathmlRegex2 = /<mml:math\b[^>]*>([\s\S]*?)<\/mml:math>/gm;
+      const mathmlRegex3 = /<mrow\b[^>]*>([\s\S]*?)<\/mrow>/gm;
+      for (const regex of [mathmlRegex1, mathmlRegex2, mathmlRegex3]) {
+        if (regex.test(value)) {
+          const mathmls = value.match(regex);
+          if (mathmls) {
+            for (const mathml of mathmls) {
+              const latex = Mathml2latex.convert(mathml.replaceAll("mml:", ""));
+              value = value.replace(mathml, "$" + latex + "$");
+            }
+          }
+        }
+      }
+    }
+    this[key] = value;
+  }
+  initialize(object, initObjectId = true) {
+    this._id = object?._id ? new ObjectId(object._id) : "";
+    this._partition = object?._partition;
+    this.addTime = object?.addTime || /* @__PURE__ */ new Date();
+    this.library = object?.library || "main";
+    this.type = object?.type || "article";
+    this.abstract = object?.abstract;
+    this.defaultSup = object?.defaultSup ? object.defaultSup : void 0;
+    this.supplementaries = object?.supplementaries ? Object.entries(object.supplementaries).reduce(
+      (acc, [key, value]) => {
+        acc[key] = new Supplementary(value);
+        return acc;
+      },
+      {}
+    ) : {};
+    this.doi = object?.doi;
+    this.arxiv = object?.arxiv;
+    this.issn = object?.issn;
+    this.isbn = object?.isbn;
+    this.title = object?.title || "";
+    this.authors = object?.authors || "";
+    this.journal = object?.journal;
+    this.booktitle = object?.booktitle;
+    this.year = object?.year || "";
+    this.month = object?.month;
+    this.volume = object?.volume;
+    this.number = object?.number;
+    this.pages = object?.pages;
+    this.publisher = object?.publisher;
+    this.series = object?.series;
+    this.edition = object?.edition;
+    this.editor = object?.editor;
+    this.howpublished = object?.howpublished;
+    this.organization = object?.organization;
+    this.school = object?.school;
+    this.institution = object?.institution;
+    this.address = object?.address;
+    this.rating = object?.rating;
+    this.tags = object?.tags?.map((tag) => new PaperTag(tag, false)) || [];
+    this.folders = object?.folders?.map((folder) => new PaperFolder(folder, false)) || [];
+    this.flag = object?.flag;
+    this.note = object?.note;
+    this.read = object?.read;
+    this.feed = object?.feed ? new Feed(object.feed, false) : void 0;
+    if (initObjectId) {
+      this._id = new ObjectId();
+    }
+    return this;
+  }
+}
+
 class PaperSmartFilter {
   static schema = {
     name: "PaperSmartFilter",
@@ -12229,4 +12434,4 @@ class PaperSmartFilter {
   }
 }
 
-export { Feed, FeedEntity, PaperEntity, PaperFolder, PaperSmartFilter, PaperTag };
+export { Entity, Feed, FeedEntity, PaperEntity, PaperFolder, PaperSmartFilter, PaperTag };
