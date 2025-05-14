@@ -28,6 +28,7 @@ const onChangeLanguage = (language: string) => {
         <option value="zh-CN">zh-CN</option>
         <option value="zh-TW">zh-TW</option>
         <option value="ar">ar</option>
+        <option value="de-DE">de-DE</option>
       </select>
     </div>
   </div>
