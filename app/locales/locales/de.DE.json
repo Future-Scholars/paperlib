@@ -25,7 +25,7 @@
     "arxiv": "arXiv",
     "mainURL": "Datei",
     "supURLs": "Weitere Dateien",
-    "addTime": "Hinzufügen am",
+    "addTime": "Hinzugefügt am",
     "rating": "Bewertung",
     "preview": "Vorschau",
     "note": "Notizen",
@@ -45,7 +45,26 @@
     "feed": "Feed",
     "feedTime": "Feed Zeit",
     "abstract": "Abstract",
-    "foundcandidates": "Gefundene Kandidaten"
+    "foundcandidates": "Gefundene Kandidaten",
+    "journal":"Journal",
+    "issn":"ISSN",
+    "month":"Monat",
+    "edition":"Edition",
+    "howpublished":"Wie Publiziert",
+    "institution":"Institution",
+    "booktitle":"Buchtitel",
+    "isbn":"ISBN",
+    "series":"Serie",
+    "editor":"Editor",
+    "organization":"Organisation",
+    "address":"Adresse",
+    "editHelpButton":"Versuche einen fehlenden Titel, DOI oder arXiv ID auszufüllen um die Daten neu zu scrapen wenn Paperlib daran vorher felgeschlagen ist.",
+    "editUseMarkdown":"Mit `<md>` anfangen um Markdown zu nutzen",
+    "multiselectPlaceholder":"Tippen und Enter drücken zum hinzufügen",
+    "commandbarSearchKeyword":"Durchsuche die Biblothek nach Schlüsselwörtern",
+    "commandbarSearchFulltext":"Durchsuche die Biblothek mit Volltextsuche",
+    "commandbarSearchAdvanced":"Durchsuche die Biblothek mit erweiterer Abfrage",
+    "commandbarScrape":"Scrape Metadaten für alle preprint Papers in der Bibliothek"
   },
   "smartfilter": {
     "startops": "Start Ops",
@@ -71,8 +90,7 @@
     "tagcount": "Anzahl Paper mit Schlagwort",
     "foldername": "Ordner Name",
     "foldercount": "Anzahl Paper im Ordner"
-  }
-  ,
+  },
   "menu": {
     "rescrape": "Scrape",
     "rescrapefrom": "Daten Scrapen von",
@@ -117,7 +135,9 @@
     "save": "Speichern",
     "advanced": "Erweitert",
     "choose": "Auswählen",
-    "locate": "Hervorheben"
+    "locate": "Hervorheben",
+    "feedName":"Feed Name",
+    "feedUrl":"Feed URL"
   },
   "preference": {
     "general": "Generell",
@@ -222,7 +242,27 @@
     "hotkeysDuplicateKeysInfo": "Dieses Tastenkürzel wird woanders schon verwendet.",
     "hotkeysOpenPDFLabel": "PDF öffnen",
     "hotkeysEditLabel": "Metadaten bearbeiten",
-    "hotkeysPluginLabel": "Quick Reference Plugin öffnen"
+    "hotkeysPluginLabel": "Quick Reference Plugin öffnen",
+    "cut":"Ausschneiden",
+    "copy":"Kopieren",
+    "symlink":"Symlink",
+    "cloudSyncService":"Paperlibs Offizieller Cloud Sync Service",
+    "cloudSyncLogin":"Angemeldet als ",
+    "metadata":"Metadaten",
+    "deprecated":"Überholt",
+    "cloudSyncAppID":"Realm APP ID der benutzerdefierten MongoDB Atlas Instanz",
+    "cloudLearnUse":"Anleitung - Wie benutze ich die Cloud Sync?",
+    "username":"Nutzername",
+    "password":"Passwort",
+    "importChoose":"Wähle Pfad...",
+    "importChooseCSV":"Wähle eine CSV Datei...",
+    "exportSourcePub":"Quell Publikation",
+    "exportTargetPub":"Ziel Publikation",
+    "exportTargetCSV":"Wähle einen CSV Export Pfad...",
+    "aboutPaperlib":"erstellt von Future Scholars, ein einfaches Akademisches Paper manamgent Tool.",
+    "version":"Version",
+    "aboutDevMode":"Schalte den Entwicklermodus an",
+    "aboutDevModeIntro":"Dies ist nur für Entwickler."
   },
   "confirmation": {
     "title": "Bestätigung",

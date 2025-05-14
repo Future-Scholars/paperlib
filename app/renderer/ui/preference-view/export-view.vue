@@ -138,14 +138,14 @@ onMounted(() => {
       <input
         class="p-2 w-full rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none my-auto"
         type="text"
-        placeholder="Source Publication"
+        :placeholder="$t('preference.exportSourcePub')"
         v-model="newReplacementFrom"
       />
       <BIconArrowRight class="my-auto w-6" />
       <input
         class="p-2 w-full rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none my-auto"
         type="text"
-        placeholder="Target Publication"
+        :placeholder="$t('preference.exportTargetPub')"
         v-model="newReplacementTo"
       />
       <div
@@ -181,7 +181,7 @@ onMounted(() => {
         @click="onExportPathPickerClick"
       >
         <span class="truncate">
-          {{ csvExportPath ? csvExportPath : "Choose a CSV export path..." }}
+          {{ csvExportPath ? csvExportPath : $t('preference.exportTargetCSV') }}
         </span>
       </div>
       <button

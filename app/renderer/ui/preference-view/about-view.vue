@@ -31,9 +31,9 @@ onMounted(async () => {
     <img src="../../assets/logo-light.png" class="w-8 mb-2 ml-1" v-else />
     <div class="text-base font-semibold mb-4">Paperlib</div>
     <div class="text-xs mb-4">
-      created by Future Scholars, a simple academic paper management tool.
+      {{ $t('preference.aboutPaperlib') }}  
     </div>
-    <div class="text-xs mb-4">Version {{ version }}</div>
+    <div class="text-xs mb-4">{{ $t('preference.version') }} {{ version }}</div>
     <div class="flex space-x-2">
       <div
         class="flex space-x-2 text-base mb-4 bg-neutral-200 dark:bg-neutral-600 w-20 justify-center p-2 rounded-md hover:bg-neutral-300 hover:dark:bg-neutral-500 cursor-pointer"
@@ -60,8 +60,8 @@ onMounted(async () => {
 
     <Toggle
       class="mb-5"
-      title="Turn on the Development Mode"
-      info="This is for developers only."
+      :title="$t('preference.aboutDevMode')"
+      :info="$t('preference.aboutDevModeIntro')"
       :enable="uiState.isDevMode"
       @event:change="(value) => (uiState.isDevMode = value)"
     />

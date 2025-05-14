@@ -51,7 +51,7 @@ const importFromZoteroCSVClicked = async () => {
         @click="onPickerClicked"
       >
         <span class="truncate">
-          {{ pickedFolderPath ? pickedFolderPath : "Choose..." }}
+          {{ pickedFolderPath ? pickedFolderPath : $t('preference.importChoose') }}
         </span>
       </div>
       <button
@@ -76,7 +76,7 @@ const importFromZoteroCSVClicked = async () => {
         @click="onCSVPickerClicked"
       >
         <span class="truncate">
-          {{ zoteroCSVPath ? zoteroCSVPath : "Choose a CSV..." }}
+          {{ zoteroCSVPath ? zoteroCSVPath : $t('preference.importChooseCSV') }}
         </span>
       </div>
       <button
