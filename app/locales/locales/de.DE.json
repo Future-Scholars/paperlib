@@ -64,7 +64,8 @@
     "commandbarSearchKeyword":"Durchsuche die Biblothek nach Schlüsselwörtern",
     "commandbarSearchFulltext":"Durchsuche die Biblothek mit Volltextsuche",
     "commandbarSearchAdvanced":"Durchsuche die Biblothek mit erweiterer Abfrage",
-    "commandbarScrape":"Scrape Metadaten für alle preprint Papers in der Bibliothek"
+    "commandbarScrape":"Scrape Metadaten für alle preprint Papers in der Bibliothek",
+    "pubTime": "Pub. Jahr"
   },
   "smartfilter": {
     "startops": "Start Ops",

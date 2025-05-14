@@ -64,7 +64,8 @@
     "commandbarSearchKeyword":"Search the library by keyword.",
     "commandbarSearchFulltext":"Search the library in fulltext mode.",
     "commandbarSearchAdvanced":"Search the library by advanced query.",
-    "commandbarScrape":"Scrape metadata for all preprint papers in the library."
+    "commandbarScrape":"Scrape metadata for all preprint papers in the library.",
+    "pubTime":"Pub. Year"
   },
   "smartfilter": {
     "startops": "Start Ops",
