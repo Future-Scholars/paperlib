@@ -4,7 +4,7 @@ import { Ref, onMounted, ref } from "vue";
 
 import { disposable } from "@/base/dispose";
 import { PaperFolder, PaperTag } from "@/models/categorizer";
-import { PaperEntity } from "@/models/paper-entity";
+import { Entity } from "@/models/entity";
 import PaperListItem from "@/renderer/ui/main-view/data-view/components/list-view/components/paper-list-item.vue";
 import TableItem from "@/renderer/ui/main-view/data-view/components/table-view/components/table-item.vue";
 import { FieldTemplate } from "@/renderer/types/data-view";
@@ -14,32 +14,34 @@ import MainField from "./components/main-field.vue";
 
 const prefState = PLMainAPI.preferenceService.useState();
 
-const item = ref(new PaperEntity({}));
-// @ts-ignore
+const item = ref(new Entity({}));
 item.value.initialize({
-  id: `${new ObjectId()}`,
   _id: `${new ObjectId()}`,
+  _partition: "",
   arxiv: "xxx.xxx",
   doi: "xxx.xxx",
   addTime: new Date(),
   title: "Deep Residual Learning for Image Recognition",
   authors: "Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun",
-  publication: "Computer Vision and Pattern Recognition (CVPR)",
-  pubTime: "2016",
-  pubType: 1,
+  booktitle: "Computer Vision and Pattern Recognition (CVPR)",
+  year: "2016",
+  type: "inproceedings",
   flag: true,
   rating: 4,
   tags: [new PaperTag({ name: "architecture" })],
   folders: [new PaperFolder({ name: "Computer-Vision" })],
   note: "ResNet, proposed a residual architecture to train very deep models.",
-  mainURL: "pdf.pdf",
-  supURLs: ["sup.pdf"],
-  codes: [""],
-  pages: "1",
+  supplementaries: {
+    "Main": {
+      "_id": `${new ObjectId()}`,
+      name: "supplementary.pdf",
+      "url": "https://example.com/supplementary.pdf",
+    }
+  },
+  pages: "1-2",
   volume: "2",
   number: "3",
   publisher: "IEEE",
-  _partition: "",
 });
 
 const fieldEnable = ref({});
@@ -71,9 +73,7 @@ const computeFieldTemplates = () => {
     title: "html",
     rating: "rating",
     flag: "flag",
-    mainURL: "file",
-    codes: "code",
-    supURLs: "file",
+    defaultSup: "file",
   };
 
   // 3. Add rest width to the first field.

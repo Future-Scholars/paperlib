@@ -11,7 +11,6 @@ import WordHighlighter from "vue-word-highlighter";
 import { computedAsync } from "@vueuse/core";
 
 import { getCategorizerString, getPubTypeString } from "@/base/string";
-import { PaperEntity } from "@/models/paper-entity";
 import { Entity } from "@/models/entity";
 import { getPublicationString } from "@/base/string";
 
@@ -21,27 +20,31 @@ const props = defineProps({
     required: true,
   },
   fieldEnables: {
-    type: Object as PropType<Partial<Record<keyof PaperEntity, boolean>>>,
+    type: Object as PropType<Partial<Record<keyof Entity | 'publication', boolean>>>,
     required: true,
-    default: {
-      pubTime: true,
-      publication: true,
-      pubType: false,
-      rating: true,
-      tags: false,
-      folders: false,
-      flag: true,
-      note: false,
-      doi: false,
-      arxiv: false,
-      pages: false,
-      volume: false,
-      number: false,
-      publisher: false,
-      mainURL: false,
-      supURLs: false,
-      codes: false,
-    },
+    default: () => ({
+      "type": false,
+      "abstract": false,
+      "defaultSup": false,
+      "doi": false,
+      "arxiv": false,
+      "issn": false,
+      "isbn": false,
+      "title": true,
+      "authors": true,
+      "year": true,
+      "month": false,
+      "publication": true,
+      "rating": false,
+      "tags": false,
+      "folders": false,
+      "flag": true,
+      "note": false,
+      "pages": false,
+      "volume": false,
+      "number": false,
+      "addTime": true
+    }),
   },
   active: {
     type: Boolean,
@@ -135,7 +138,7 @@ scp {
       class="text-[0.7rem] leading-[0.9rem] text-neutral-400 flex space-x-2"
       :class="active ? 'text-neutral-300' : ''"
     >
-      <div v-if="fieldEnables.pubTime">{{ item.year }}</div>
+      <div v-if="fieldEnables.year">{{ item.year }}</div>
       <div
         class="flex space-x-2 text-ellipsis overflow-hidden shrink"
         v-if="fieldEnables.publication"
@@ -145,7 +148,7 @@ scp {
           {{ getPublicationString(item) }}
         </div>
       </div>
-      <div class="flex space-x-2" v-if="fieldEnables.pubType">
+      <div class="flex space-x-2" v-if="fieldEnables.type">
         <div>|</div>
         <div class="">
           {{ getPubTypeString(item.type) }}
@@ -268,7 +271,7 @@ scp {
 
       <div
         class="flex space-x-2 shrink text-ellipsis overflow-hidden"
-        v-if="fieldEnables.mainURL && item.defaultSup"
+        v-if="fieldEnables.defaultSup && item.defaultSup"
       >
         <div>|</div>
         <BIconFileEarmarkPost class="my-auto text-xs" />
