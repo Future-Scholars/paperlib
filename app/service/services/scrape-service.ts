@@ -3,10 +3,9 @@ import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
 import { Process } from "@/base/process-id";
 import { ILogService, LogService } from "@/common/services/log-service";
-import { IPaperEntityCollection, PaperEntity } from "@/models/paper-entity";
 import { ProcessingKey, processing } from "@/common/utils/processing";
 import { HookService, IHookService } from "./hook-service";
-import { Entity } from "@/models/entity";
+import { IEntityCollection, Entity } from "@/models/entity";
 
 export const IScrapeService = createDecorator("scrapeService");
 
@@ -262,14 +261,14 @@ export class ScrapeService extends Eventable<{}> {
     []
   )
   async fuzzyScrape(
-    paperEntities: IPaperEntityCollection
-  ): Promise<Record<string, PaperEntity[]>> {
+    paperEntities: IEntityCollection
+  ): Promise<Record<string, Entity[]>> {
     // 0. Wait for scraper extension to be ready.
     await this._scrapeExtensionReady();
 
     // Do in chunks 10
     const jobID = Math.random().toString(36).substring(7);
-    const results: Record<string, PaperEntity[]> = {};
+    const results: Record<string, Entity[]> = {};
     for (let i = 0; i < paperEntities.length; i += 10) {
       if (paperEntities.length >= 20) {
         this._logService.progress(
@@ -314,8 +313,8 @@ export class ScrapeService extends Eventable<{}> {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to scrape entry.", true, "ScrapeService", [])
   async _fuzzyScrape(
-    paperEntities: IPaperEntityCollection
-  ): Promise<PaperEntity[][]> {
+    paperEntities: IEntityCollection
+  ): Promise<Entity[][]> {
     if (this._hookService.hasHook("beforeFuzzyScrape")) {
       [paperEntities] = await this._hookService.modifyHookPoint(
         "beforeFuzzyScrape",
@@ -324,7 +323,7 @@ export class ScrapeService extends Eventable<{}> {
       );
     }
 
-    let paperEntityDraftCandidates: PaperEntity[][] = [];
+    let paperEntityDraftCandidates: Entity[][] = [];
     if (this._hookService.hasHook("fuzzyScrapeMetadata")) {
       paperEntityDraftCandidates = await this._hookService.transformhookPoint<
         any[],
@@ -336,7 +335,7 @@ export class ScrapeService extends Eventable<{}> {
       );
       paperEntityDraftCandidates.forEach((p) => {
         return p.map((p) => {
-          return new PaperEntity(p);
+          return new Entity(p);
         });
       });
     }
@@ -350,7 +349,7 @@ export class ScrapeService extends Eventable<{}> {
 
       paperEntityDraftCandidates.forEach((p) => {
         return p.map((p) => {
-          return new PaperEntity(p);
+          return new Entity(p);
         });
       });
     }
