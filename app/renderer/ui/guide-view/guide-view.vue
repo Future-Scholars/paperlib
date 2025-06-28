@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PaperEntity } from "@/models/paper-entity";
+import { Entity } from "@/models/entity";
 import { ref } from "vue";
 
 const uiState = PLUIAPILocal.uiStateService.useState();
@@ -28,11 +28,12 @@ const selectAPaper = async () => {
   if (papers.length === 0) {
     await PLAPI.paperService.update(
       [
-        new PaperEntity({
+        new Entity({
           title: "Welcome to PaperLib!",
           authors: "Future Scholars, Geoffrey Chen",
-          publication: "Github, https://paperlib.app",
-          pubTime: "2020",
+          type: "article",
+          journal: "Github, https://paperlib.app",
+          year: "2020",
           note: "<md>\n# Welcome to PaperLib!\n\nThis is a guide to help you get started with PaperLib.\n\n",
         }),
       ],

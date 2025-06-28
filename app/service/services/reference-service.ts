@@ -8,7 +8,7 @@ import { createDecorator } from "@/base/injection/injection";
 import { formatString } from "@/base/string";
 import { ILogService, LogService } from "@/common/services/log-service";
 import { CSL } from "@/models/csl";
-import { PaperEntity } from "@/models/paper-entity";
+import { Entity } from "@/models/entity";
 
 import { HookService, IHookService } from "./hook-service";
 import { IPaperService, PaperService } from "./paper-service";
@@ -25,14 +25,20 @@ export class ReferenceService {
   }
 
   private _setupCitePlugin() {
-    const parseSingle = (paperEntityDraft: PaperEntity) => {
-      let nameArray;
+    const parseSingle = (paperEntityDraft: Entity) => {
+      const output = {
+        id: `${paperEntityDraft._id}`,
+        type: paperEntityDraft.type,
+        title: paperEntityDraft.title,
+      };
+
+      let nameArray: string[];
       if (paperEntityDraft.authors.includes(";")) {
         nameArray = paperEntityDraft.authors.split(";");
       } else {
         nameArray = paperEntityDraft.authors.split(",");
       }
-      nameArray = nameArray.map((name) => {
+      const nameObjects = nameArray.map((name) => {
         name = name.trim();
         const nameParts = name.split(" ");
         const given = nameParts.slice(0, nameParts.length - 1).join(" ");
@@ -43,12 +49,13 @@ export class ReferenceService {
           family: family,
         };
       });
+      output["author"] = nameObjects;
 
       let citeKey = "";
-      if (nameArray.length >= 1) {
-        citeKey += nameArray[0].family.toLowerCase();
+      if (nameObjects.length >= 1) {
+        citeKey += nameObjects[0].family.toLowerCase();
       }
-      citeKey += paperEntityDraft.pubTime;
+      citeKey += paperEntityDraft.year;
       const titleArray = paperEntityDraft.title.split(" ");
       for (const word of titleArray) {
         if (
@@ -67,54 +74,74 @@ export class ReferenceService {
           break;
         }
       }
-      return {
-        id: `${paperEntityDraft.id}`,
-        type: ["article", "paper-conference", "article", "book"][
-          paperEntityDraft.pubType
-        ],
-        "citation-key": citeKey,
-        title: paperEntityDraft.title,
-        author: nameArray,
-        issued: {
-          "date-parts": [[paperEntityDraft.pubTime]],
-        },
-        "container-title": paperEntityDraft.publication,
-        publisher: paperEntityDraft.publisher,
-        page: paperEntityDraft.pages,
-        volume: paperEntityDraft.volume,
-        issue: paperEntityDraft.number,
-        DOI: paperEntityDraft.doi,
+      output["citation-key"] = citeKey;
+
+      for (const key of ["doi", "issn", "isbn"]) {
+        if (paperEntityDraft[key]) {
+          output[key.toUpperCase()] = paperEntityDraft[key];
+        }
+      }
+      output["issued"] = {
+        "date-parts": [[paperEntityDraft.year]],
       };
+
+      for (const key of [
+        "month",
+        "volume",
+        "number",
+        "pages",
+        "publisher",
+        "series",
+        "edition",
+        "editor",
+        "howpublished",
+        "organization",
+        "school",
+        "institution",
+        "address",
+      ]) {
+        if (paperEntityDraft[key]) {
+          output[key] = paperEntityDraft[key];
+        }
+      }
+
+      if (paperEntityDraft.journal) {
+        output["container-title"] = paperEntityDraft.journal;
+      } else if (paperEntityDraft.booktitle) {
+        output["container-title"] = paperEntityDraft.booktitle;
+      }
+
+      return output;
     };
 
-    const parseMulti = (paperEntityDrafts: PaperEntity[]) => {
+    const parseMulti = (paperEntityDrafts: Entity[]) => {
       return paperEntityDrafts.map((paperEntityDraft) => {
         return parseSingle(paperEntityDraft);
       });
     };
 
-    const predicateSingle = (paperEntityDraft: PaperEntity) => {
-      return paperEntityDraft.codes !== undefined;
+    const predicateSingle = (paperEntityDraft: Entity) => {
+      return paperEntityDraft.addTime !== undefined;
     };
 
-    const predicateMulti = (paperEntityDrafts: PaperEntity[]) => {
+    const predicateMulti = (paperEntityDrafts: Entity[]) => {
       if (!!paperEntityDrafts?.[Symbol.iterator]) {
         return paperEntityDrafts.every((paperEntityDraft) => {
-          return paperEntityDraft.codes !== undefined;
+          return paperEntityDraft.addTime !== undefined;
         });
       } else {
         return false;
       }
     };
 
-    Cite.plugins.input.add("@paperlib/PaperEntity", {
+    Cite.plugins.input.add("@paperlib/Entity", {
       parse: parseSingle,
       parseType: {
         predicate: predicateSingle,
         dataType: "ComplexObject",
       },
     });
-    Cite.plugins.input.add("@paperlib/PaperEntity[]", {
+    Cite.plugins.input.add("@paperlib/Entity[]", {
       parse: parseMulti,
       parseType: {
         predicate: predicateMulti,
@@ -136,7 +163,7 @@ export class ReferenceService {
    * @param source - The source paper entity.
    * @returns The paper entity with publication name abbreviated.
    */
-  async replacePublication(source: PaperEntity) {
+  async replacePublication(source: Entity) {
     try {
       if (await PLMainAPI.preferenceService.get("enableExportReplacement")) {
         const pubReplacement = (await PLMainAPI.preferenceService.get(
@@ -147,8 +174,9 @@ export class ReferenceService {
           pubReplacement.map((item) => [item.from, item.to])
         );
 
-        if (pubMap.has(source.publication)) {
-          source.publication = pubMap.get(source.publication) as string;
+        const pubKey = source["journal"] ? "journal" : "booktitle";
+        if (pubMap.has(source[pubKey]!)) {
+          source[pubKey] = pubMap.get(source[pubKey]!) as string;
         }
       }
       return source;
@@ -174,15 +202,15 @@ export class ReferenceService {
     "ReferenceService",
     null
   )
-  async toCite(source: PaperEntity | PaperEntity[] | string) {
+  async toCite(source: Entity | Entity[] | string) {
     if (typeof source === "string") {
       return new Cite(source);
-    } else if (source.constructor.name === "PaperEntity") {
-      return new Cite(await this.replacePublication(source as PaperEntity));
+    } else if (source.constructor.name === "Entity") {
+      return new Cite(await this.replacePublication(source as Entity));
     } else {
       return new Cite(
         await Promise.all(
-          (source as PaperEntity[]).map(
+          (source as Entity[]).map(
             async (item) => await this.replacePublication(item)
           )
         )
@@ -201,7 +229,7 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  async exportBibItem(paperEntities: PaperEntity[]): Promise<string> {
+  async exportBibItem(paperEntities: Entity[]): Promise<string> {
     if (this._hookService.hasHook("beforeExportBibItem")) {
       [paperEntities] = await this._hookService.modifyHookPoint(
         "beforeExportBibItem",
@@ -324,7 +352,7 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  async exportBibTexKey(paperEntities: PaperEntity[]): Promise<string> {
+  async exportBibTexKey(paperEntities: Entity[]): Promise<string> {
     if (this._hookService.hasHook("beforeExportBibTexKey")) {
       [paperEntities] = await this._hookService.modifyHookPoint(
         "beforeExportBibTexKey",
@@ -368,7 +396,7 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  async exportBibTexBody(paperEntities: PaperEntity[]): Promise<string> {
+  async exportBibTexBody(paperEntities: Entity[]): Promise<string> {
     if (this._hookService.hasHook("beforeExportBibTexBody")) {
       [paperEntities] = await this._hookService.modifyHookPoint(
         "beforeExportBibTexBody",
@@ -438,7 +466,7 @@ export class ReferenceService {
       `folders.name == '${folderName}'`,
       "title",
       "asce"
-    )) as PaperEntity[];
+    )) as Entity[];
     return this.exportBibTexBody(paperEntities);
   }
 
@@ -453,7 +481,7 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  async exportPlainText(paperEntities: PaperEntity[]): Promise<string> {
+  async exportPlainText(paperEntities: Entity[]): Promise<string> {
     if (this._hookService.hasHook("beforeExportPlainText")) {
       [paperEntities] = await this._hookService.modifyHookPoint(
         "beforeExportPlainText",
@@ -534,7 +562,7 @@ export class ReferenceService {
       `folders.name == '${folderName}'`,
       "title",
       "asce"
-    )) as PaperEntity[];
+    )) as Entity[];
     return this.exportPlainText(paperEntities);
   }
 
@@ -549,7 +577,7 @@ export class ReferenceService {
     "ReferenceService",
     ""
   )
-  exportCSV(paperEntities: PaperEntity[]): string {
+  exportCSV(paperEntities: Entity[]): string {
     let csv: string = "";
 
     // Headers
@@ -560,7 +588,7 @@ export class ReferenceService {
       return true;
     };
     const headers: string[] = [];
-    for (const key in PaperEntity.schema.properties) {
+    for (const key in Entity.schema.properties) {
       if (isExportProperty(key)) {
         csv += key + ",";
         headers.push(key);
@@ -574,10 +602,8 @@ export class ReferenceService {
         let content = "";
         if (key === "tags" || key === "folders") {
           content = paper[key].map((item) => item.name).join(";");
-        } else if (key === "sups") {
-          content = paper[key].join(";");
-        } else if (key === "codes") {
-          content = paper[key].join(";");
+        } else if (key === "supplementaries") {
+          content = JSON.stringify(paper[key]);
         } else {
           content = paper[key];
         }
@@ -595,9 +621,9 @@ export class ReferenceService {
    * @param format - The export format: "BibTex" | "BibTex-Key" | "PlainText"
    */
   @errorcatching("Failed to export paper entities.", true, "ReferenceService")
-  async export(paperEntities: PaperEntity[], format: string) {
+  async export(paperEntities: Entity[], format: string) {
     let paperEntityDrafts = paperEntities.map((paperEntity) => {
-      return new PaperEntity(paperEntity);
+      return new Entity(paperEntity);
     });
 
     let copyStr = "";
@@ -616,7 +642,7 @@ export class ReferenceService {
         copyStr = await this.exportPlainText(paperEntityDrafts);
         break;
       case "CSV":
-        copyStr = await this.exportCSV(paperEntityDrafts);
+        copyStr = this.exportCSV(paperEntityDrafts);
         break;
       case "BibTex-In-Folder":
         folderName = (await PLMainAPI.preferenceService.get(

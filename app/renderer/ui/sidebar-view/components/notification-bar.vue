@@ -170,7 +170,7 @@ const onLeave = () => {
         v-show="historyMsgs.filter((msg) => msg.show).length > 0"
       >
         <div
-          class="flex flex-col text-xxs pb-1 pt-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 backdrop-blur-xl space-x-2 pointer-events-auto w-full"
+          class="flex flex-col text-xxs pb-1 pt-2 rounded-md shadow-md text-neutral-500 bg-neutral-300 dark:text-neutral-300 dark:bg-neutral-700 space-x-2 pointer-events-auto w-full"
           v-for="historyMsg of historyMsgs"
           v-show="historyMsg.show"
           @mouseleave="onLeave"
@@ -204,22 +204,6 @@ const onLeave = () => {
                       historyMsg.level === 'progress'
                     "
                   />
-
-                  <!-- <BIconBug
-                    class="my-auto text-xxs"
-                    v-if="historyMsg.level === 'error'"
-                  />
-                  <BIconExclamationTriangle
-                    class="my-auto text-xxs"
-                    v-if="historyMsg.level === 'warn'"
-                  />
-                  <BIconInfoCircle
-                    class="my-auto text-xxs"
-                    v-if="
-                      historyMsg.level === 'info' ||
-                      historyMsg.level === 'progress'
-                    "
-                  /> -->
                 </div>
 
                 <span class="my-auto px-1 truncate">{{ historyMsg.name }}</span>
@@ -253,9 +237,6 @@ const onLeave = () => {
       class="flex justify-center my-auto w-5/6 h-8 truncate text-center text-xxs text-neutral-500 peer"
       @click="onClicked"
     >
-      <!-- <span class="my-auto" v-show="processingState.general > 0">
-        {{ showingInfo }}
-      </span> -->
     </div>
     <BIconArrowBarUp
       class="text-neutral-500 w-1/12 my-auto text-xs invisible peer-hover:visible"
