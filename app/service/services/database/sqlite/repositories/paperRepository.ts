@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3';
-import { Paper, PaperSchema } from '../models';
+import { Paper, zPaper } from '../models';
 
 const DB_PATH = process.env.SQLITE_DB_PATH || 'paperlib.sqlite';
 
@@ -51,93 +51,75 @@ export class PaperRepository {
     )`);
   }
 
-  getAll(): Promise<Paper[]> {
+  private async dbAll(sql: string, params?: any[]): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      this.db.all(
-        'SELECT * FROM papers WHERE deletedAt IS NULL',
-        (err, rows) => {
-          if (err) return reject(err);
-          try {
-            resolve(rows.map(row => PaperSchema.parse(this.rowToPaper(row))));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
-    });
-  }
-
-  getById(id: string): Promise<Paper | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get(
-        'SELECT * FROM papers WHERE id = ? AND deletedAt IS NULL',
-        [id],
-        (err, row) => {
-          if (err) return reject(err);
-          if (!row) return resolve(null);
-          try {
-            resolve(PaperSchema.parse(this.rowToPaper(row)));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
-    });
-  }
-
-  create(paper: Paper): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const p = { ...paper };
-      this.db.run(
-        `INSERT INTO papers (
-          id, libraryId, type, title, abstract, journal, booktitle, year, month, volume, number, pages, publisher, series, edition, editor, howPublished, organization, school, institution, address, doi, arxiv, isbn, issn, notes, flag, read, feedId, feedItemId, createdAt, createdByDeviceId, updatedAt, deletedAt, deletedByDeviceId
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          p.id, p.libraryId, p.type, p.title, p.abstract, p.journal, p.booktitle, p.year, p.month, p.volume, p.number, p.pages, p.publisher, p.series, p.edition, p.editor, p.howPublished, p.organization, p.school, p.institution, p.address, p.doi, p.arxiv, p.isbn, p.issn, p.notes, p.flag ? 1 : 0, p.read ? 1 : 0, p.feedId, p.feedItemId, p.createdAt.toISOString(), p.createdByDeviceId, p.updatedAt.toISOString(), p.deletedAt ? p.deletedAt.toISOString() : null, p.deletedByDeviceId
-        ],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
-    });
-  }
-
-  update(id: string, paper: Partial<Paper>): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Only update fields present in paper
-      const fields = Object.keys(paper).filter(k => k !== 'id');
-      if (fields.length === 0) return resolve();
-      const setClause = fields.map(f => `${f} = ?`).join(', ');
-      const values = fields.map(f => {
-        const v = (paper as any)[f];
-        if (f === 'flag' || f === 'read') return v ? 1 : 0;
-        if (v instanceof Date) return v.toISOString();
-        return v;
+      this.db.all(sql, params || [], (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
       });
-      this.db.run(
-        `UPDATE papers SET ${setClause} WHERE id = ?`,
-        [...values, id],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
     });
   }
 
-  delete(id: string, deletedByDeviceId?: string): Promise<void> {
+  private async dbGet(sql: string, params?: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
-      const deletedAt = new Date().toISOString();
-      this.db.run(
-        `UPDATE papers SET deletedAt = ?, deletedByDeviceId = ? WHERE id = ?`,
-        [deletedAt, deletedByDeviceId || null, id],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
+      this.db.get(sql, params || [], (err, row) => {
+        if (err) return reject(err);
+        resolve(row);
+      });
     });
+  }
+
+  private async dbRun(sql: string, params?: any[]): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db.run(sql, params || [], err => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+  }
+
+  async getAll(): Promise<Paper[]> {
+    const rows = await this.dbAll('SELECT * FROM papers WHERE deletedAt IS NULL');
+    return rows.map(row => zPaper.parse(this.rowToPaper(row)));
+  }
+
+  async getById(id: string): Promise<Paper | null> {
+    const row = await this.dbGet('SELECT * FROM papers WHERE id = ? AND deletedAt IS NULL', [id]);
+    if (!row) return null;
+    return zPaper.parse(this.rowToPaper(row));
+  }
+
+  async create(paper: Paper): Promise<void> {
+    const p = { ...paper };
+    await this.dbRun(
+      `INSERT INTO papers (
+        id, libraryId, type, title, abstract, journal, booktitle, year, month, volume, number, pages, publisher, series, edition, editor, howPublished, organization, school, institution, address, doi, arxiv, isbn, issn, notes, flag, read, feedId, feedItemId, createdAt, createdByDeviceId, updatedAt, deletedAt, deletedByDeviceId
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        p.id, p.libraryId, p.type, p.title, p.abstract, p.journal, p.booktitle, p.year, p.month, p.volume, p.number, p.pages, p.publisher, p.series, p.edition, p.editor, p.howPublished, p.organization, p.school, p.institution, p.address, p.doi, p.arxiv, p.isbn, p.issn, p.notes, p.flag ? 1 : 0, p.read ? 1 : 0, p.feedId, p.feedItemId, p.createdAt.toISOString(), p.createdByDeviceId, p.updatedAt.toISOString(), p.deletedAt ? p.deletedAt.toISOString() : null, p.deletedByDeviceId
+      ]
+    );
+  }
+
+  async update(id: string, paper: Partial<Paper>): Promise<void> {
+    const fields = Object.keys(paper).filter(k => k !== 'id');
+    if (fields.length === 0) return;
+    const setClause = fields.map(f => `${f} = ?`).join(', ');
+    const values = fields.map(f => {
+      const v = (paper as any)[f];
+      if (f === 'flag' || f === 'read') return v ? 1 : 0;
+      if (v instanceof Date) return v.toISOString();
+      return v;
+    });
+    await this.dbRun(`UPDATE papers SET ${setClause} WHERE id = ?`, [...values, id]);
+  }
+
+  async delete(id: string, deletedByDeviceId?: string): Promise<void> {
+    const deletedAt = new Date().toISOString();
+    await this.dbRun(
+      `UPDATE papers SET deletedAt = ?, deletedByDeviceId = ? WHERE id = ?`,
+      [deletedAt, deletedByDeviceId || null, id]
+    );
   }
 
   private rowToPaper(row: any): Paper {
@@ -151,4 +133,3 @@ export class PaperRepository {
     };
   }
 }
-

@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3';
-import { Tag, TagSchema } from '../models';
+import { Tag, zTag } from '../models';
 
 const DB_PATH = process.env.SQLITE_DB_PATH || 'paperlib.sqlite';
 
@@ -32,110 +32,84 @@ export class TagRepository {
     )`);
   }
 
-  getAll(): Promise<Tag[]> {
+  private async dbAll(sql: string, params?: any[]): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      this.db.all(
-        'SELECT * FROM tags WHERE deletedAt IS NULL',
-        (err, rows) => {
-          if (err) return reject(err);
-          try {
-            resolve(rows.map(row => TagSchema.parse(this.rowToTag(row))));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
-    });
-  }
-
-  getById(id: string): Promise<Tag | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get(
-        'SELECT * FROM tags WHERE id = ? AND deletedAt IS NULL',
-        [id],
-        (err, row) => {
-          if (err) return reject(err);
-          if (!row) return resolve(null);
-          try {
-            resolve(TagSchema.parse(this.rowToTag(row)));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
-    });
-  }
-
-  create(tag: Tag): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const t = { ...tag };
-      this.db.run(
-        `INSERT INTO tags (
-          id, name, description, colour, createdAt, createdByDeviceId, deletedAt, deletedByDeviceId
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          t.id, t.name, t.description, t.colour, t.createdAt.toISOString(), t.createdByDeviceId, t.deletedAt ? t.deletedAt.toISOString() : null, t.deletedByDeviceId
-        ],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
-    });
-  }
-
-  update(id: string, tag: Partial<Tag>): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const fields = Object.keys(tag).filter(k => k !== 'id');
-      if (fields.length === 0) return resolve();
-      const setClause = fields.map(f => `${f} = ?`).join(', ');
-      const values = fields.map(f => {
-        const v = (tag as any)[f];
-        if (v instanceof Date) return v.toISOString();
-        return v;
+      this.db.all(sql, params || [], (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
       });
-      this.db.run(
-        `UPDATE tags SET ${setClause} WHERE id = ?`,
-        [...values, id],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
     });
   }
 
-  delete(id: string, deletedByDeviceId?: string): Promise<void> {
+  private async dbGet(sql: string, params?: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
-      const deletedAt = new Date().toISOString();
-      this.db.run(
-        `UPDATE tags SET deletedAt = ?, deletedByDeviceId = ? WHERE id = ?`,
-        [deletedAt, deletedByDeviceId || null, id],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
+      this.db.get(sql, params || [], (err, row) => {
+        if (err) return reject(err);
+        resolve(row);
+      });
     });
   }
 
-  findByPaper(paperId: string): Promise<Tag[]> {
+  private async dbRun(sql: string, params?: any[]): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.db.all(
-        `SELECT t.* FROM tags t
-         JOIN paper_tags pt ON t.id = pt.tagId
-         WHERE pt.paperId = ? AND t.deletedAt IS NULL AND pt.op = 'add'`,
-        [paperId],
-        (err, rows) => {
-          if (err) return reject(err);
-          try {
-            resolve(rows.map(row => TagSchema.parse(this.rowToTag(row))));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
+      this.db.run(sql, params || [], err => {
+        if (err) return reject(err);
+        resolve();
+      });
     });
+  }
+
+  async getAll(): Promise<Tag[]> {
+    const rows = await this.dbAll('SELECT * FROM tags WHERE deletedAt IS NULL');
+    return rows.map(row => zTag.parse(this.rowToTag(row)));
+  }
+
+  async getById(id: string): Promise<Tag | null> {
+    const row = await this.dbGet('SELECT * FROM tags WHERE id = ? AND deletedAt IS NULL', [id]);
+    if (!row) return null;
+    return zTag.parse(this.rowToTag(row));
+  }
+
+  async create(tag: Tag): Promise<void> {
+    const t = { ...tag };
+    await this.dbRun(
+      `INSERT INTO tags (
+        id, name, description, colour, createdAt, createdByDeviceId, deletedAt, deletedByDeviceId
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        t.id, t.name, t.description, t.colour, t.createdAt.toISOString(), t.createdByDeviceId, t.deletedAt ? t.deletedAt.toISOString() : null, t.deletedByDeviceId
+      ]
+    );
+  }
+
+  async update(id: string, tag: Partial<Tag>): Promise<void> {
+    const fields = Object.keys(tag).filter(k => k !== 'id');
+    if (fields.length === 0) return;
+    const setClause = fields.map(f => `${f} = ?`).join(', ');
+    const values = fields.map(f => {
+      const v = (tag as any)[f];
+      if (v instanceof Date) return v.toISOString();
+      return v;
+    });
+    await this.dbRun(`UPDATE tags SET ${setClause} WHERE id = ?`, [...values, id]);
+  }
+
+  async delete(id: string, deletedByDeviceId?: string): Promise<void> {
+    const deletedAt = new Date().toISOString();
+    await this.dbRun(
+      `UPDATE tags SET deletedAt = ?, deletedByDeviceId = ? WHERE id = ?`,
+      [deletedAt, deletedByDeviceId || null, id]
+    );
+  }
+
+  async findByPaper(paperId: string): Promise<Tag[]> {
+    const rows = await this.dbAll(
+      `SELECT t.* FROM tags t
+       JOIN paper_tags pt ON t.id = pt.tagId
+       WHERE pt.paperId = ? AND t.deletedAt IS NULL AND pt.op = 'add'`,
+      [paperId]
+    );
+    return rows.map(row => zTag.parse(this.rowToTag(row)));
   }
 
   private rowToTag(row: any): Tag {
@@ -146,4 +120,3 @@ export class TagRepository {
     };
   }
 }
-

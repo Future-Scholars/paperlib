@@ -15,7 +15,7 @@ export const FeedTypeEnum = z.enum(['rss', 'atom', 'json']);
 export type FeedType = z.infer<typeof FeedTypeEnum>;
 
 // Models
-export const PaperSchema = z.object({
+export const zPaper = z.object({
   id: z.string(),
   libraryId: z.string(),
   type: PaperTypeEnum,
@@ -52,10 +52,9 @@ export const PaperSchema = z.object({
   deletedAt: z.date().nullable().optional(),
   deletedByDeviceId: z.string().nullable().optional(),
 });
-export type Paper = z.infer<typeof PaperSchema>;
+export type Paper = z.infer<typeof zPaper>;
 
-// 其它模型定义（示例：PaperFieldVersion）
-export const PaperFieldVersionSchema = z.object({
+export const zPaperFieldVersion = z.object({
   id: z.string(),
   paperId: z.string(),
   field: z.string(),
@@ -63,10 +62,10 @@ export const PaperFieldVersionSchema = z.object({
   deviceId: z.string(),
   hash: z.string().nullable().optional(),
 });
-export type PaperFieldVersion = z.infer<typeof PaperFieldVersionSchema>;
+export type PaperFieldVersion = z.infer<typeof zPaperFieldVersion>;
 
-// 其它模型请按类似方式补充（Author, Tag, Folder, Supplement, Library, Feed等）
-export const AuthorSchema = z.object({
+// 其它模型定义（示例：PaperFieldVersion）
+export const zAuthor = z.object({
   id: z.string(),
   name: z.string(),
   affiliation: z.string().nullable().optional(),
@@ -79,18 +78,18 @@ export const AuthorSchema = z.object({
   deletedAt: z.date().nullable().optional(),
   deletedByDeviceId: z.string().nullable().optional(),
 });
-export type Author = z.infer<typeof AuthorSchema>;
+export type Author = z.infer<typeof zAuthor>;
 
-export const AuthorFieldVersionSchema = z.object({
+export const zAuthorFieldVersion = z.object({
   id: z.string(),
   authorId: z.string(),
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
 });
-export type AuthorFieldVersion = z.infer<typeof AuthorFieldVersionSchema>;
+export type AuthorFieldVersion = z.infer<typeof zAuthorFieldVersion>;
 
-export const TagSchema = z.object({
+export const zTag = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable().optional(),
@@ -100,18 +99,18 @@ export const TagSchema = z.object({
   deletedAt: z.date().nullable().optional(),
   deletedByDeviceId: z.string().nullable().optional(),
 });
-export type Tag = z.infer<typeof TagSchema>;
+export type Tag = z.infer<typeof zTag>;
 
-export const TagFieldVersionSchema = z.object({
+export const zTagFieldVersion = z.object({
   id: z.string(),
   tagId: z.string(),
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
 });
-export type TagFieldVersion = z.infer<typeof TagFieldVersionSchema>;
+export type TagFieldVersion = z.infer<typeof zTagFieldVersion>;
 
-export const FolderSchema = z.object({
+export const zFolder = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable().optional(),
@@ -123,18 +122,18 @@ export const FolderSchema = z.object({
   deletedAt: z.date().nullable().optional(),
   deletedByDeviceId: z.string().nullable().optional(),
 });
-export type Folder = z.infer<typeof FolderSchema>;
+export type Folder = z.infer<typeof zFolder>;
 
-export const FolderFieldVersionSchema = z.object({
+export const zFolderFieldVersion = z.object({
   id: z.string(),
   folderId: z.string(),
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
 });
-export type FolderFieldVersion = z.infer<typeof FolderFieldVersionSchema>;
+export type FolderFieldVersion = z.infer<typeof zFolderFieldVersion>;
 
-export const SupplementSchema = z.object({
+export const zSupplement = z.object({
   id: z.string(),
   paperId: z.string(),
   name: z.string(),
@@ -147,18 +146,18 @@ export const SupplementSchema = z.object({
   deletedAt: z.date().nullable().optional(),
   deletedByDeviceId: z.string().nullable().optional(),
 });
-export type Supplement = z.infer<typeof SupplementSchema>;
+export type Supplement = z.infer<typeof zSupplement>;
 
-export const SupplementFieldVersionSchema = z.object({
+export const zSupplementFieldVersion = z.object({
   id: z.string(),
   supplementId: z.string(),
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
 });
-export type SupplementFieldVersion = z.infer<typeof SupplementFieldVersionSchema>;
+export type SupplementFieldVersion = z.infer<typeof zSupplementFieldVersion>;
 
-export const LibrarySchema = z.object({
+export const zLibrary = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable().optional(),
@@ -169,18 +168,18 @@ export const LibrarySchema = z.object({
   deletedAt: z.date().nullable().optional(),
   deletedByDeviceId: z.string().nullable().optional(),
 });
-export type Library = z.infer<typeof LibrarySchema>;
+export type Library = z.infer<typeof zLibrary>;
 
-export const LibraryFieldVersionSchema = z.object({
+export const zLibraryFieldVersion = z.object({
   id: z.string(),
   libraryId: z.string(),
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
 });
-export type LibraryFieldVersion = z.infer<typeof LibraryFieldVersionSchema>;
+export type LibraryFieldVersion = z.infer<typeof zLibraryFieldVersion>;
 
-export const FeedSchema = z.object({
+export const zFeed = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable().optional(),
@@ -194,9 +193,9 @@ export const FeedSchema = z.object({
   deletedAt: z.date().nullable().optional(),
   deletedByDeviceId: z.string().nullable().optional(),
 });
-export type Feed = z.infer<typeof FeedSchema>;
+export type Feed = z.infer<typeof zFeed>;
 
-export const FeedFieldVersionSchema = z.object({
+export const zFeedFieldVersion = z.object({
   id: z.string(),
   feedId: z.string(),
   field: z.string(),
@@ -204,9 +203,9 @@ export const FeedFieldVersionSchema = z.object({
   deviceId: z.string(),
   hash: z.string().nullable().optional(),
 });
-export type FeedFieldVersion = z.infer<typeof FeedFieldVersionSchema>;
+export type FeedFieldVersion = z.infer<typeof zFeedFieldVersion>;
 
-export const PaperAuthorSchema = z.object({
+export const zPaperAuthor = z.object({
   id: z.string(),
   paperId: z.string(),
   authorId: z.string(),
@@ -214,9 +213,9 @@ export const PaperAuthorSchema = z.object({
   timestamp: z.date(),
   deviceId: z.string(),
 });
-export type PaperAuthor = z.infer<typeof PaperAuthorSchema>;
+export type PaperAuthor = z.infer<typeof zPaperAuthor>;
 
-export const PaperTagSchema = z.object({
+export const zPaperTag = z.object({
   id: z.string(),
   paperId: z.string(),
   tagId: z.string(),
@@ -224,9 +223,9 @@ export const PaperTagSchema = z.object({
   timestamp: z.date(),
   deviceId: z.string(),
 });
-export type PaperTag = z.infer<typeof PaperTagSchema>;
+export type PaperTag = z.infer<typeof zPaperTag>;
 
-export const PaperFolderSchema = z.object({
+export const zPaperFolder = z.object({
   id: z.string(),
   paperId: z.string(),
   folderId: z.string(),
@@ -234,9 +233,9 @@ export const PaperFolderSchema = z.object({
   timestamp: z.date(),
   deviceId: z.string(),
 });
-export type PaperFolder = z.infer<typeof PaperFolderSchema>;
+export type PaperFolder = z.infer<typeof zPaperFolder>;
 
-export const LibraryShareSchema = z.object({
+export const zLibraryShare = z.object({
   id: z.string(),
   libraryId: z.string(),
   userId: z.string(),
@@ -244,4 +243,4 @@ export const LibraryShareSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-export type LibraryShare = z.infer<typeof LibraryShareSchema>;
+export type LibraryShare = z.infer<typeof zLibraryShare>;
