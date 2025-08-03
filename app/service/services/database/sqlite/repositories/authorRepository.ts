@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3';
-import { Author, AuthorSchema } from '../models';
+import { Author, zAuthor } from '../models';
 
 const DB_PATH = process.env.SQLITE_DB_PATH || 'paperlib.sqlite';
 
@@ -35,110 +35,84 @@ export class AuthorRepository {
     )`);
   }
 
-  getAll(): Promise<Author[]> {
+  private async dbAll(sql: string, params?: any[]): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      this.db.all(
-        'SELECT * FROM authors WHERE deletedAt IS NULL',
-        (err, rows) => {
-          if (err) return reject(err);
-          try {
-            resolve(rows.map(row => AuthorSchema.parse(this.rowToAuthor(row))));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
-    });
-  }
-
-  getById(id: string): Promise<Author | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get(
-        'SELECT * FROM authors WHERE id = ? AND deletedAt IS NULL',
-        [id],
-        (err, row) => {
-          if (err) return reject(err);
-          if (!row) return resolve(null);
-          try {
-            resolve(AuthorSchema.parse(this.rowToAuthor(row)));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
-    });
-  }
-
-  create(author: Author): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const a = { ...author };
-      this.db.run(
-        `INSERT INTO authors (
-          id, name, affiliation, email, orcid, firstName, lastName, createdAt, createdByDeviceId, deletedAt, deletedByDeviceId
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          a.id, a.name, a.affiliation, a.email, a.orcid, a.firstName, a.lastName, a.createdAt.toISOString(), a.createdByDeviceId, a.deletedAt ? a.deletedAt.toISOString() : null, a.deletedByDeviceId
-        ],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
-    });
-  }
-
-  update(id: string, author: Partial<Author>): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const fields = Object.keys(author).filter(k => k !== 'id');
-      if (fields.length === 0) return resolve();
-      const setClause = fields.map(f => `${f} = ?`).join(', ');
-      const values = fields.map(f => {
-        const v = (author as any)[f];
-        if (v instanceof Date) return v.toISOString();
-        return v;
+      this.db.all(sql, params || [], (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
       });
-      this.db.run(
-        `UPDATE authors SET ${setClause} WHERE id = ?`,
-        [...values, id],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
     });
   }
 
-  delete(id: string, deletedByDeviceId?: string): Promise<void> {
+  private async dbGet(sql: string, params?: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
-      const deletedAt = new Date().toISOString();
-      this.db.run(
-        `UPDATE authors SET deletedAt = ?, deletedByDeviceId = ? WHERE id = ?`,
-        [deletedAt, deletedByDeviceId || null, id],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
+      this.db.get(sql, params || [], (err, row) => {
+        if (err) return reject(err);
+        resolve(row);
+      });
     });
   }
 
-  findByPaper(paperId: string): Promise<Author[]> {
+  private async dbRun(sql: string, params?: any[]): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.db.all(
-        `SELECT a.* FROM authors a
-         JOIN paper_authors pa ON a.id = pa.authorId
-         WHERE pa.paperId = ? AND a.deletedAt IS NULL AND pa.op = 'add'`,
-        [paperId],
-        (err, rows) => {
-          if (err) return reject(err);
-          try {
-            resolve(rows.map(row => AuthorSchema.parse(this.rowToAuthor(row))));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
+      this.db.run(sql, params || [], err => {
+        if (err) return reject(err);
+        resolve();
+      });
     });
+  }
+
+  async getAll(): Promise<Author[]> {
+    const rows = await this.dbAll('SELECT * FROM authors WHERE deletedAt IS NULL');
+    return rows.map(row => zAuthor.parse(this.rowToAuthor(row)));
+  }
+
+  async getById(id: string): Promise<Author | null> {
+    const row = await this.dbGet('SELECT * FROM authors WHERE id = ? AND deletedAt IS NULL', [id]);
+    if (!row) return null;
+    return zAuthor.parse(this.rowToAuthor(row));
+  }
+
+  async create(author: Author): Promise<void> {
+    const a = { ...author };
+    await this.dbRun(
+      `INSERT INTO authors (
+        id, name, affiliation, email, orcid, firstName, lastName, createdAt, createdByDeviceId, deletedAt, deletedByDeviceId
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        a.id, a.name, a.affiliation, a.email, a.orcid, a.firstName, a.lastName, a.createdAt.toISOString(), a.createdByDeviceId, a.deletedAt ? a.deletedAt.toISOString() : null, a.deletedByDeviceId
+      ]
+    );
+  }
+
+  async update(id: string, author: Partial<Author>): Promise<void> {
+    const fields = Object.keys(author).filter(k => k !== 'id');
+    if (fields.length === 0) return;
+    const setClause = fields.map(f => `${f} = ?`).join(', ');
+    const values = fields.map(f => {
+      const v = (author as any)[f];
+      if (v instanceof Date) return v.toISOString();
+      return v;
+    });
+    await this.dbRun(`UPDATE authors SET ${setClause} WHERE id = ?`, [...values, id]);
+  }
+
+  async delete(id: string, deletedByDeviceId?: string): Promise<void> {
+    const deletedAt = new Date().toISOString();
+    await this.dbRun(
+      `UPDATE authors SET deletedAt = ?, deletedByDeviceId = ? WHERE id = ?`,
+      [deletedAt, deletedByDeviceId || null, id]
+    );
+  }
+
+  async findByPaper(paperId: string): Promise<Author[]> {
+    const rows = await this.dbAll(
+      `SELECT a.* FROM authors a
+       JOIN paper_authors pa ON a.id = pa.authorId
+       WHERE pa.paperId = ? AND a.deletedAt IS NULL AND pa.op = 'add'`,
+      [paperId]
+    );
+    return rows.map(row => zAuthor.parse(this.rowToAuthor(row)));
   }
 
   private rowToAuthor(row: any): Author {
@@ -149,4 +123,3 @@ export class AuthorRepository {
     };
   }
 }
-

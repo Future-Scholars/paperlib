@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3';
-import { Supplement, SupplementSchema } from '../models';
+import { Supplement, zSupplement } from '../models';
 
 const DB_PATH = process.env.SQLITE_DB_PATH || 'paperlib.sqlite';
 
@@ -27,108 +27,82 @@ export class SupplementRepository {
     )`);
   }
 
-  getAll(): Promise<Supplement[]> {
+  private async dbAll(sql: string, params?: any[]): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      this.db.all(
-        'SELECT * FROM supplements WHERE deletedAt IS NULL',
-        (err, rows) => {
-          if (err) return reject(err);
-          try {
-            resolve(rows.map(row => SupplementSchema.parse(this.rowToSupplement(row))));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
-    });
-  }
-
-  getById(id: string): Promise<Supplement | null> {
-    return new Promise((resolve, reject) => {
-      this.db.get(
-        'SELECT * FROM supplements WHERE id = ? AND deletedAt IS NULL',
-        [id],
-        (err, row) => {
-          if (err) return reject(err);
-          if (!row) return resolve(null);
-          try {
-            resolve(SupplementSchema.parse(this.rowToSupplement(row)));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
-    });
-  }
-
-  create(supplement: Supplement): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const s = { ...supplement };
-      this.db.run(
-        `INSERT INTO supplements (
-          id, paperId, name, value, type, description, createdAt, createdByDeviceId, updatedAt, deletedAt, deletedByDeviceId
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          s.id, s.paperId, s.name, s.value, s.type, s.description, s.createdAt.toISOString(), s.createdByDeviceId, s.updatedAt.toISOString(), s.deletedAt ? s.deletedAt.toISOString() : null, s.deletedByDeviceId
-        ],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
-    });
-  }
-
-  update(id: string, supplement: Partial<Supplement>): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const fields = Object.keys(supplement).filter(k => k !== 'id');
-      if (fields.length === 0) return resolve();
-      const setClause = fields.map(f => `${f} = ?`).join(', ');
-      const values = fields.map(f => {
-        const v = (supplement as any)[f];
-        if (v instanceof Date) return v.toISOString();
-        return v;
+      this.db.all(sql, params || [], (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
       });
-      this.db.run(
-        `UPDATE supplements SET ${setClause} WHERE id = ?`,
-        [...values, id],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
     });
   }
 
-  delete(id: string, deletedByDeviceId?: string): Promise<void> {
+  private async dbGet(sql: string, params?: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
-      const deletedAt = new Date().toISOString();
-      this.db.run(
-        `UPDATE supplements SET deletedAt = ?, deletedByDeviceId = ? WHERE id = ?`,
-        [deletedAt, deletedByDeviceId || null, id],
-        err => {
-          if (err) return reject(err);
-          resolve();
-        }
-      );
+      this.db.get(sql, params || [], (err, row) => {
+        if (err) return reject(err);
+        resolve(row);
+      });
     });
   }
 
-  findByPaper(paperId: string): Promise<Supplement[]> {
+  private async dbRun(sql: string, params?: any[]): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.db.all(
-        `SELECT * FROM supplements WHERE paperId = ? AND deletedAt IS NULL`,
-        [paperId],
-        (err, rows) => {
-          if (err) return reject(err);
-          try {
-            resolve(rows.map(row => SupplementSchema.parse(this.rowToSupplement(row))));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
+      this.db.run(sql, params || [], err => {
+        if (err) return reject(err);
+        resolve();
+      });
     });
+  }
+
+  async getAll(): Promise<Supplement[]> {
+    const rows = await this.dbAll('SELECT * FROM supplements WHERE deletedAt IS NULL');
+    return rows.map(row => zSupplement.parse(this.rowToSupplement(row)));
+  }
+
+  async getById(id: string): Promise<Supplement | null> {
+    const row = await this.dbGet('SELECT * FROM supplements WHERE id = ? AND deletedAt IS NULL', [id]);
+    if (!row) return null;
+    return zSupplement.parse(this.rowToSupplement(row));
+  }
+
+  async create(supplement: Supplement): Promise<void> {
+    const s = { ...supplement };
+    await this.dbRun(
+      `INSERT INTO supplements (
+        id, paperId, name, value, type, description, createdAt, createdByDeviceId, updatedAt, deletedAt, deletedByDeviceId
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        s.id, s.paperId, s.name, s.value, s.type, s.description, s.createdAt.toISOString(), s.createdByDeviceId, s.updatedAt.toISOString(), s.deletedAt ? s.deletedAt.toISOString() : null, s.deletedByDeviceId
+      ]
+    );
+  }
+
+  async update(id: string, supplement: Partial<Supplement>): Promise<void> {
+    const fields = Object.keys(supplement).filter(k => k !== 'id');
+    if (fields.length === 0) return;
+    const setClause = fields.map(f => `${f} = ?`).join(', ');
+    const values = fields.map(f => {
+      const v = (supplement as any)[f];
+      if (v instanceof Date) return v.toISOString();
+      return v;
+    });
+    await this.dbRun(`UPDATE supplements SET ${setClause} WHERE id = ?`, [...values, id]);
+  }
+
+  async delete(id: string, deletedByDeviceId?: string): Promise<void> {
+    const deletedAt = new Date().toISOString();
+    await this.dbRun(
+      `UPDATE supplements SET deletedAt = ?, deletedByDeviceId = ? WHERE id = ?`,
+      [deletedAt, deletedByDeviceId || null, id]
+    );
+  }
+
+  async findByPaper(paperId: string): Promise<Supplement[]> {
+    const rows = await this.dbAll(
+      `SELECT * FROM supplements WHERE paperId = ? AND deletedAt IS NULL`,
+      [paperId]
+    );
+    return rows.map(row => zSupplement.parse(this.rowToSupplement(row)));
   }
 
   private rowToSupplement(row: any): Supplement {
@@ -140,4 +114,3 @@ export class SupplementRepository {
     };
   }
 }
-
