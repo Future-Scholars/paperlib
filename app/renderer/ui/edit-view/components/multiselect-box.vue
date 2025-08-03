@@ -191,7 +191,7 @@ onUnmounted(() => {
       </div>
       <input
         class="border-none nodraggable-item text-xxs focus:outline-none grow h-5 py-1 bg-transparent px-1"
-        placeholder="Type and press Enter to add"
+        :placeholder="$t('mainview.multiselectPlaceholder')"
         v-model="inputValue"
         @input="onInput"
         @focus="registerShortcut"

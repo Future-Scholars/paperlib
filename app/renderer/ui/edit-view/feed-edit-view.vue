@@ -53,12 +53,12 @@ onMounted(() => {
         class="m-auto flex flex-col justify-between p-2 border-[1px] dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 w-[500px] rounded-lg shadow-lg select-none space-y-2"
       >
         <InputBox
-          placeholder="Feed Name"
+          :placeholder="$t('menu.feedName')"
           :value="editingFeedDraft.name"
           @event:change="(value) => (editingFeedDraft.name = value)"
         />
         <InputBox
-          placeholder="Feed URL"
+          :placeholder="$t('menu.feedUrl')"
           :value="editingFeedDraft.url"
           @event:change="(value) => (editingFeedDraft.url = value)"
         />

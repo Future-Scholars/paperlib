@@ -105,8 +105,7 @@ onMounted(() => {
       <span
         class="underline hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
       >
-        Paperlib Official Cloud Sync Service
-        <!-- TODO: Translation -->
+        {{ $t('preference.cloudSyncService') }}
       </span>
     </div>
 
@@ -127,7 +126,7 @@ onMounted(() => {
           <span class="m-auto">{{ $t("preference.logout") }}</span>
         </button>
         <p class="my-auto px-2">
-          You are now logged in as <span class="font-semibold">{{ syncUserInfo }}</span>
+          {{ $t('preference.cloudSyncLogin') }} <span class="font-semibold">{{ syncUserInfo }}</span>
         </p>
       </div>
 
@@ -154,19 +153,19 @@ onMounted(() => {
 <!-- Legacy Realm Sync -->
 
     <div class="text-base font-semibold mb-1">
-      {{ $t("preference.cloud") }} Metadata (Deprecated)
+      {{ $t("preference.cloud") }} {{$t('preference.metadata')}} ({{ $t('preference.deprecated') }})
     </div>
     <div class="text-xxs mb-3" @click="onRealmClickGuide">
       <span
         class="underline hover:text-accentlight hover:dark:text-accentdark cursor-pointer"
       >
-        Learn How to Use
+        {{ $t('preference.cloudLearnUse') }}
       </span>
     </div>
     <input
       class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none mb-2"
       type="text"
-      placeholder="Realm APP ID of the custom MongoDB Atlas"
+      :placeholder="$t('preference.cloudSyncAppID')"
       v-model="deprecatedSyncAPPID"
     />
 
@@ -174,7 +173,7 @@ onMounted(() => {
       <input
         class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
         type="text"
-        placeholder="Username"
+        :placeholder="$t('preference.username')"
         v-model="deprecatedSyncEmail"
         :disabled="prefState.useSync!='realm'"
         :class="prefState.useSync=='realm' ? 'text-neutral-400' : ''"
@@ -182,7 +181,7 @@ onMounted(() => {
       <input
         class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
         type="password"
-        placeholder="Password"
+        :placeholder="$t('preference.password')"
         v-model="deprecatedSyncPassword"
         :disabled="prefState.useSync!='realm'"
         :class="prefState.useSync=='realm' ? 'text-neutral-400' : ''"
