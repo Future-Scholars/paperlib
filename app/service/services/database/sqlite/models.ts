@@ -61,6 +61,10 @@ export const zPaperFieldVersion = z.object({
   timestamp: z.date(),
   deviceId: z.string(),
   hash: z.string().nullable().optional(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type PaperFieldVersion = z.infer<typeof zPaperFieldVersion>;
 
@@ -86,6 +90,10 @@ export const zAuthorFieldVersion = z.object({
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type AuthorFieldVersion = z.infer<typeof zAuthorFieldVersion>;
 
@@ -107,6 +115,10 @@ export const zTagFieldVersion = z.object({
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type TagFieldVersion = z.infer<typeof zTagFieldVersion>;
 
@@ -130,6 +142,10 @@ export const zFolderFieldVersion = z.object({
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type FolderFieldVersion = z.infer<typeof zFolderFieldVersion>;
 
@@ -154,6 +170,10 @@ export const zSupplementFieldVersion = z.object({
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type SupplementFieldVersion = z.infer<typeof zSupplementFieldVersion>;
 
@@ -176,6 +196,10 @@ export const zLibraryFieldVersion = z.object({
   field: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type LibraryFieldVersion = z.infer<typeof zLibraryFieldVersion>;
 
@@ -202,6 +226,10 @@ export const zFeedFieldVersion = z.object({
   timestamp: z.date(),
   deviceId: z.string(),
   hash: z.string().nullable().optional(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type FeedFieldVersion = z.infer<typeof zFeedFieldVersion>;
 
@@ -212,6 +240,10 @@ export const zPaperAuthor = z.object({
   op: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type PaperAuthor = z.infer<typeof zPaperAuthor>;
 
@@ -222,6 +254,10 @@ export const zPaperTag = z.object({
   op: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type PaperTag = z.infer<typeof zPaperTag>;
 
@@ -232,6 +268,11 @@ export const zPaperFolder = z.object({
   op: z.string(),
   timestamp: z.date(),
   deviceId: z.string(),
+  createdAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  updatedAt: z.date(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type PaperFolder = z.infer<typeof zPaperFolder>;
 
@@ -242,5 +283,8 @@ export const zLibraryShare = z.object({
   permission: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  createdByDeviceId: z.string().nullable().optional(),
+  deletedAt: z.date().nullable().optional(),
+  deletedByDeviceId: z.string().nullable().optional(),
 });
 export type LibraryShare = z.infer<typeof zLibraryShare>;
