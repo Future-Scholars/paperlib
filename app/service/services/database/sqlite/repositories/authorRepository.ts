@@ -1,125 +1,204 @@
 import sqlite3 from 'sqlite3';
-import { Author, zAuthor } from '../models';
+import { Author } from '../models';
+import { BaseRepository } from '../repository';
 
-const DB_PATH = process.env.SQLITE_DB_PATH || 'paperlib.sqlite';
-
-export class AuthorRepository {
-  private db: sqlite3.Database;
-
-  constructor() {
-    this.db = new sqlite3.Database(DB_PATH);
-    this.initTable();
+export class AuthorRepository extends BaseRepository<Author> {
+  constructor(db: sqlite3.Database) {
+    super(db, 'authors', 'author_field_versions');
   }
 
-  private initTable() {
-    this.db.run(`CREATE TABLE IF NOT EXISTS authors (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      affiliation TEXT,
-      email TEXT,
-      orcid TEXT,
-      firstName TEXT,
-      lastName TEXT,
-      createdAt TEXT NOT NULL,
-      createdByDeviceId TEXT,
-      deletedAt TEXT,
-      deletedByDeviceId TEXT
-    )`);
-    this.db.run(`CREATE TABLE IF NOT EXISTS paper_authors (
-      id TEXT PRIMARY KEY,
-      paperId TEXT NOT NULL,
-      authorId TEXT NOT NULL,
-      op TEXT NOT NULL,
-      timestamp TEXT NOT NULL,
-      deviceId TEXT
-    )`);
+  // CRDT-friendly create with field versioning
+  async createAuthor(author: Omit<Author, 'createdAt' | 'createdByDeviceId'>, deviceId: string): Promise<void> {
+    await this.create(author as Author, deviceId);
   }
 
-  private async dbAll(sql: string, params?: any[]): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      this.db.all(sql, params || [], (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
-      });
-    });
+  // CRDT-friendly update specific fields
+  async updateAuthorField(id: string, field: keyof Author, value: any, deviceId: string): Promise<void> {
+    await this.updateField(id, field, value, deviceId);
   }
 
-  private async dbGet(sql: string, params?: any[]): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.db.get(sql, params || [], (err, row) => {
-        if (err) return reject(err);
-        resolve(row);
-      });
-    });
+  // CRDT-friendly soft delete
+  async deleteAuthor(id: string, deviceId: string): Promise<void> {
+    await this.softDelete(id, deviceId);
   }
 
-  private async dbRun(sql: string, params?: any[]): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.run(sql, params || [], err => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
+  // CRDT-friendly restore
+  async restoreAuthor(id: string, deviceId: string): Promise<void> {
+    await this.restore(id, deviceId);
   }
 
-  async getAll(): Promise<Author[]> {
-    const rows = await this.dbAll('SELECT * FROM authors WHERE deletedAt IS NULL');
-    return rows.map(row => zAuthor.parse(this.rowToAuthor(row)));
+  // Get authors by name
+  async getByName(name: string, includeDeleted: boolean = false): Promise<Author[]> {
+    const whereClause = includeDeleted 
+      ? 'WHERE name LIKE ?' 
+      : 'WHERE name LIKE ? AND deletedAt IS NULL';
+    const rows = await this.dbAll(`SELECT * FROM authors ${whereClause}`, [`%${name}%`]);
+    return rows.map(row => this.rowToEntity(row));
   }
 
-  async getById(id: string): Promise<Author | null> {
-    const row = await this.dbGet('SELECT * FROM authors WHERE id = ? AND deletedAt IS NULL', [id]);
+  // Get authors by affiliation
+  async getByAffiliation(affiliation: string, includeDeleted: boolean = false): Promise<Author[]> {
+    const whereClause = includeDeleted 
+      ? 'WHERE affiliation LIKE ?' 
+      : 'WHERE affiliation LIKE ? AND deletedAt IS NULL';
+    const rows = await this.dbAll(`SELECT * FROM authors ${whereClause}`, [`%${affiliation}%`]);
+    return rows.map(row => this.rowToEntity(row));
+  }
+
+  // Get authors by ORCID
+  async getByOrcid(orcid: string, includeDeleted: boolean = false): Promise<Author | null> {
+    const whereClause = includeDeleted 
+      ? 'WHERE orcid = ?' 
+      : 'WHERE orcid = ? AND deletedAt IS NULL';
+    const row = await this.dbGet(`SELECT * FROM authors ${whereClause}`, [orcid]);
     if (!row) return null;
-    return zAuthor.parse(this.rowToAuthor(row));
+    return this.rowToEntity(row);
   }
 
-  async create(author: Author): Promise<void> {
-    const a = { ...author };
+  // Search authors
+  async searchAuthors(query: string, includeDeleted: boolean = false): Promise<Author[]> {
+    const whereClause = includeDeleted 
+      ? 'WHERE (name LIKE ? OR affiliation LIKE ? OR email LIKE ?)' 
+      : 'WHERE (name LIKE ? OR affiliation LIKE ? OR email LIKE ?) AND deletedAt IS NULL';
+    const searchQuery = `%${query}%`;
+    const rows = await this.dbAll(`SELECT * FROM authors ${whereClause}`, [searchQuery, searchQuery, searchQuery]);
+    return rows.map(row => this.rowToEntity(row));
+  }
+
+  // Get authors with pagination
+  async getAuthorsWithPagination(
+    offset: number, 
+    limit: number, 
+    includeDeleted: boolean = false
+  ): Promise<{ authors: Author[]; total: number }> {
+    const whereClause = includeDeleted ? '' : 'WHERE deletedAt IS NULL';
+    
+    // Get total count
+    const countRow = await this.dbGet(`SELECT COUNT(*) as total FROM authors ${whereClause}`);
+    const total = countRow.total;
+    
+    // Get authors with pagination
+    const rows = await this.dbAll(
+      `SELECT * FROM authors ${whereClause} ORDER BY name ASC LIMIT ? OFFSET ?`,
+      [limit, offset]
+    );
+    
+    const authors = rows.map(row => this.rowToEntity(row));
+    
+    return { authors, total };
+  }
+
+  // Get author statistics
+  async getStatistics(): Promise<{
+    total: number;
+    withAffiliation: number;
+    withEmail: number;
+    withOrcid: number;
+    active: number;
+    deleted: number;
+  }> {
+    // Total count
+    const totalRow = await this.dbGet('SELECT COUNT(*) as total FROM authors');
+    const total = totalRow.total;
+    
+    // With affiliation
+    const affiliationRow = await this.dbGet('SELECT COUNT(*) as total FROM authors WHERE affiliation IS NOT NULL AND deletedAt IS NULL');
+    const withAffiliation = affiliationRow.total;
+    
+    // With email
+    const emailRow = await this.dbGet('SELECT COUNT(*) as total FROM authors WHERE email IS NOT NULL AND deletedAt IS NULL');
+    const withEmail = emailRow.total;
+    
+    // With ORCID
+    const orcidRow = await this.dbGet('SELECT COUNT(*) as total FROM authors WHERE orcid IS NOT NULL AND deletedAt IS NULL');
+    const withOrcid = orcidRow.total;
+    
+    // Active count
+    const activeRow = await this.dbGet('SELECT COUNT(*) as total FROM authors WHERE deletedAt IS NULL');
+    const active = activeRow.total;
+    
+    // Deleted count
+    const deletedRow = await this.dbGet('SELECT COUNT(*) as total FROM authors WHERE deletedAt IS NOT NULL');
+    const deleted = deletedRow.total;
+    
+    return {
+      total,
+      withAffiliation,
+      withEmail,
+      withOrcid,
+      active,
+      deleted
+    };
+  }
+
+  // Get authors by name pattern
+  async getByNamePattern(pattern: string, includeDeleted: boolean = false): Promise<Author[]> {
+    const whereClause = includeDeleted 
+      ? 'WHERE name LIKE ?' 
+      : 'WHERE name LIKE ? AND deletedAt IS NULL';
+    const rows = await this.dbAll(`SELECT * FROM authors ${whereClause} ORDER BY name ASC`, [pattern]);
+    return rows.map(row => this.rowToEntity(row));
+  }
+
+  // Get authors by first name
+  async getByFirstName(firstName: string, includeDeleted: boolean = false): Promise<Author[]> {
+    const whereClause = includeDeleted 
+      ? 'WHERE firstName LIKE ?' 
+      : 'WHERE firstName LIKE ? AND deletedAt IS NULL';
+    const rows = await this.dbAll(`SELECT * FROM authors ${whereClause} ORDER BY name ASC`, [`%${firstName}%`]);
+    return rows.map(row => this.rowToEntity(row));
+  }
+
+  // Get authors by last name
+  async getByLastName(lastName: string, includeDeleted: boolean = false): Promise<Author[]> {
+    const whereClause = includeDeleted 
+      ? 'WHERE lastName LIKE ?' 
+      : 'WHERE lastName LIKE ? AND deletedAt IS NULL';
+    const rows = await this.dbAll(`SELECT * FROM authors ${whereClause} ORDER BY name ASC`, [`%${lastName}%`]);
+    return rows.map(row => this.rowToEntity(row));
+  }
+
+  // Check if author name exists
+  async isNameExists(name: string, excludeId?: string, includeDeleted: boolean = false): Promise<boolean> {
+    let whereClause = 'WHERE name = ?';
+    const params: any[] = [name];
+    
+    if (excludeId) {
+      whereClause += ' AND id != ?';
+      params.push(excludeId);
+    }
+    
+    if (!includeDeleted) {
+      whereClause += ' AND deletedAt IS NULL';
+    }
+    
+    const row = await this.dbGet(`SELECT id FROM authors ${whereClause}`, params);
+    return !!row;
+  }
+
+  // Implementation of abstract methods
+  protected async insertEntity(author: Author): Promise<void> {
     await this.dbRun(
-      `INSERT INTO authors (
-        id, name, affiliation, email, orcid, firstName, lastName, createdAt, createdByDeviceId, deletedAt, deletedByDeviceId
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO authors (id, name, affiliation, email, orcid, firstName, lastName, createdAt, createdByDeviceId, deletedAt, deletedByDeviceId)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        a.id, a.name, a.affiliation, a.email, a.orcid, a.firstName, a.lastName, a.createdAt.toISOString(), a.createdByDeviceId, a.deletedAt ? a.deletedAt.toISOString() : null, a.deletedByDeviceId
+        author.id, author.name, author.affiliation, author.email, author.orcid, author.firstName, author.lastName,
+        author.createdAt.toISOString(), author.createdByDeviceId,
+        author.deletedAt ? author.deletedAt.toISOString() : null, author.deletedByDeviceId
       ]
     );
   }
 
-  async update(id: string, author: Partial<Author>): Promise<void> {
-    const fields = Object.keys(author).filter(k => k !== 'id');
-    if (fields.length === 0) return;
-    const setClause = fields.map(f => `${f} = ?`).join(', ');
-    const values = fields.map(f => {
-      const v = (author as any)[f];
-      if (v instanceof Date) return v.toISOString();
-      return v;
-    });
-    await this.dbRun(`UPDATE authors SET ${setClause} WHERE id = ?`, [...values, id]);
-  }
-
-  async delete(id: string, deletedByDeviceId?: string): Promise<void> {
-    const deletedAt = new Date().toISOString();
-    await this.dbRun(
-      `UPDATE authors SET deletedAt = ?, deletedByDeviceId = ? WHERE id = ?`,
-      [deletedAt, deletedByDeviceId || null, id]
-    );
-  }
-
-  async findByPaper(paperId: string): Promise<Author[]> {
-    const rows = await this.dbAll(
-      `SELECT a.* FROM authors a
-       JOIN paper_authors pa ON a.id = pa.authorId
-       WHERE pa.paperId = ? AND a.deletedAt IS NULL AND pa.op = 'add'`,
-      [paperId]
-    );
-    return rows.map(row => zAuthor.parse(this.rowToAuthor(row)));
-  }
-
-  private rowToAuthor(row: any): Author {
+  protected rowToEntity(row: any): Author {
     return {
       ...row,
       createdAt: new Date(row.createdAt),
       deletedAt: row.deletedAt ? new Date(row.deletedAt) : null,
     };
+  }
+
+  protected serializeValue(value: any): any {
+    if (value instanceof Date) return value.toISOString();
+    return value;
   }
 }
