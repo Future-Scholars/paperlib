@@ -97,13 +97,14 @@
     "webdav": "5.3.1"
   },
   "dependencies": {
+    "better-sqlite3": "^12.2.0",
     "electron-updater": "6.2.1",
     "katex": "0.16.2",
     "keytar": "7.9.0",
+    "kysely": "^0.28.5",
     "mupdf": "^0.2.2",
     "openid-client": "^6.1.7",
     "realm": "11.10.2",
-    "sqlite3": "^5.1.7",
     "uuid": "^11.0.5",
     "ws": "8.6.0",
     "zod": "^3.24.1"
