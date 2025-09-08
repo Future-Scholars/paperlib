@@ -11,6 +11,8 @@ import {
   ICategorizerRepository,
 } from "./categorizer-repository";
 
+import { deleteSqliteEntity, toSqliteEntity } from "@/service/services/sync/sqlite-pollyfill";
+
 export interface IPaperEntityRepositoryState {
   count: number;
   updated: number;
@@ -62,6 +64,8 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     }
   }
 
+
+
   /**
    * Load all filtered paper entities.
    * @param realm - Realm instance.
@@ -94,16 +98,21 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
 
       realm.entityListened = true;
     }
-
+    objects = objects.filtered("library == 'main'");
     if (filter) {
       try {
-        return objects.filtered(`library == 'main' AND (${filter})`).sorted(sortBy, sortOrder === "desc");
+        objects = objects.filtered(`(${filter})`).sorted(sortBy, sortOrder === "desc");
       } catch (error) {
         throw new Error(`Invalid filter: ${filter}`);
       }
-    } else {
-      return objects.filtered("library == 'main'").sorted(sortBy, sortOrder === "desc");
     }
+
+    // Write to sqlite database if not exists
+    objects.forEach(async (object) => {
+      await toSqliteEntity(object);
+    });
+    
+    return objects.sorted(sortBy, sortOrder === "desc");
   }
 
   /**
@@ -205,6 +214,9 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           );
         }
       });
+
+      // sync changes to sqlite database
+      toSqliteEntity(paperEntity);
 
       if (object) {
         if (!allowUpdate) {
@@ -361,6 +373,11 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           CategorizerType.PaperFolder,
           toBeUpdatedFolders
         );
+
+        // sync changes to sqlite database
+        toBeDeleted.forEach(async (paperEntity) => {
+          await deleteSqliteEntity(paperEntity);
+        });
 
         return toBeDeletedFiles;
       } else {
