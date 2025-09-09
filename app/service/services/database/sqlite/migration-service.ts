@@ -1,8 +1,49 @@
 import { promises as fs } from 'fs';
-import path from 'path';
-import { Kysely, Migrator, FileMigrationProvider, MigrationInfo } from 'kysely';
+import { Migrator, MigrationProvider, Migration } from 'kysely';
 import { db } from './db';
 import { ILogService, LogService } from '@/common/services/log-service';
+
+/**
+ * Custom migration provider that handles both dev and build environments
+ */
+class CustomMigrationProvider implements MigrationProvider {
+  constructor(
+    private readonly _logService: LogService
+  ) {}
+
+  async getMigrations(): Promise<Record<string, Migration>> {
+    const migrations: Record<string, Migration> = {};
+    
+    try {
+      // Try to load the migration dynamically
+      const migrationModule = await import('./migrations/v3.2.0-beta0');
+      
+      if (migrationModule.up && migrationModule.down) {
+        migrations['v3.2.0-beta0'] = {
+          up: migrationModule.up,
+          down: migrationModule.down,
+        };
+        
+        this._logService.info(
+          'Loaded migration v3.2.0-beta0 successfully',
+          '',
+          false,
+          'SQLiteMigration'
+        );
+      }
+    } catch (error) {
+      this._logService.error(
+        'Failed to load migration v3.2.0-beta0',
+        error as Error,
+        true,
+        'SQLiteMigration'
+      );
+      throw error;
+    }
+
+    return migrations;
+  }
+}
 
 export class SQLiteMigrationService {
   private migrator: Migrator;
@@ -10,18 +51,12 @@ export class SQLiteMigrationService {
   constructor(
     @ILogService private readonly _logService: LogService
   ) {
-    // Get the migrations directory
-    const migrationsPath = path.join(__dirname, 'migrations');
-
     this.migrator = new Migrator({
       db,
-      provider: new FileMigrationProvider({
-        fs,
-        path,
-        migrationFolder: migrationsPath,
-      }),
+      provider: new CustomMigrationProvider(this._logService),
     });
   }
+
 
   /**
    * Run all pending migrations
@@ -138,51 +173,38 @@ export class SQLiteMigrationService {
         'SQLiteMigration'
       );
       if (targetMigration) {
-        const migrationsToRollback: MigrationInfo[] = [];
-        await this.migrator.getMigrations().then((migrations) => {
-          let found = false;
-          migrations.forEach((migration) => {
-            migrationsToRollback.push(migration);
-            if (migration.name === targetMigration && !migration.executedAt) {
-              found = true;
-              return;
+        const migrations = await this.migrator.getMigrations();
+        const found = migrations.find(migration => migration.name === targetMigration);
+        if (!found) {
+          this._logService.error(
+            `Migration "${targetMigration}" not found`,
+            '',
+            true,
+            'SQLiteMigration'
+          );
+          throw new Error(`Migration "${targetMigration}" not found`);
+        }
+
+        const { error, results } = await this.migrator.migrateDown();
+
+        if (results) {
+          results.forEach((result) => {
+            if (result.status === 'Success') {
+              this._logService.info(
+                `Migration "${result.migrationName}" rolled back successfully`,
+                '',
+                false,
+                'SQLiteMigration'
+              );
+            } else if (result.status === 'Error') {
+              this._logService.error(
+                `Failed to rollback migration "${result.migrationName}"`,
+                error instanceof Error ? error : new Error(error as string),
+                true,
+                'SQLiteMigration'
+              );
             }
           });
-          if (!found) {
-            this._logService.error(
-              `Migration "${targetMigration}" not found`,
-              '',
-              true,
-              'SQLiteMigration'
-            );
-            throw new Error(`Migration "${targetMigration}" not found`);
-          }
-        })
-
-        if (migrationsToRollback.length > 0) {
-          for (const migration of migrationsToRollback) {
-            const { error, results } = await this.migrator.migrateDown();
-
-            if (results) {
-              results.forEach((result) => {
-                if (result.status === 'Success') {
-                  this._logService.info(
-                    `Migration "${result.migrationName}" rolled back successfully`,
-                    '',
-                    false,
-                    'SQLiteMigration'
-                  );
-                } else if (result.status === 'Error') {
-                  this._logService.error(
-                    `Failed to rollback migration "${result.migrationName}"`,
-                    error instanceof Error ? error : new Error(error as string),
-                    true,
-                    'SQLiteMigration'
-                  );
-                }
-              });
-            }
-          }
         }
       } else {
         const { error, results } = await this.migrator.migrateDown();

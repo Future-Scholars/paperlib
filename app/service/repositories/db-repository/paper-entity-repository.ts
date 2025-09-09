@@ -6,6 +6,7 @@ import { createDecorator } from "@/base/injection/injection";
 import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { IEntityCollection, IEntityObject, IEntityRealmObject, Entity } from "@/models/entity";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   CategorizerRepository,
   ICategorizerRepository,
@@ -23,7 +24,9 @@ export const IPaperEntityRepository = createDecorator("paperEntityRepository");
 export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState> {
   constructor(
     @ICategorizerRepository
-    private readonly _categorizerRepository: CategorizerRepository
+    private readonly _categorizerRepository: CategorizerRepository,
+    @ILogService
+    private readonly _logService: LogService,
   ) {
     super("paperEntityRepository", {
       count: 0,
@@ -109,7 +112,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
 
     // Write to sqlite database if not exists
     objects.forEach(async (object) => {
-      await toSqliteEntity(object);
+      await toSqliteEntity(object, this._logService);
     });
     
     return objects.sorted(sortBy, sortOrder === "desc");
@@ -216,7 +219,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
       });
 
       // sync changes to sqlite database
-      toSqliteEntity(paperEntity);
+      toSqliteEntity(paperEntity, this._logService);
 
       if (object) {
         if (!allowUpdate) {
