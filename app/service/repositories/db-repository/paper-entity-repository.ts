@@ -219,7 +219,8 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
       });
 
       // sync changes to sqlite database
-      toSqliteEntity(paperEntity, this._logService);
+      // It's not needed to sync changes to sqlite database here as the changes will be synced to sqlite database when the entity is loaded
+      // toSqliteEntity(paperEntity, this._logService);
 
       if (object) {
         if (!allowUpdate) {
