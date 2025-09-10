@@ -18,7 +18,6 @@ import { db } from "../database/sqlite/db";
 import { v4 as uuidv4 } from 'uuid';
 import { Feed } from "@/models/feed";
 import { CategorizerType, ICategorizerObject } from "@/models/categorizer";
-import { sql } from "kysely";
 
 /**
  * Creates a structured value object for field versions that includes operation type,
@@ -317,7 +316,7 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
     .selectAll()
     .executeTakeFirst();
 
-
+  // If the entity is already existed, update the entity if any field is different
   if (existedSqliteEntity) {
 
     let updated = false;
@@ -790,7 +789,7 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
 
   // Insert the sqlite entity if not existed
   let sqliteEntity: SqlitePaper = {
-    id: entity._id.toString(),
+    id: uuidv4(),
     legacyOid: ensureUndefinedToNull(entity._id?.toString()),
     libraryId: libraryId,
     type: entity.type,
@@ -1351,6 +1350,7 @@ export async function toSqliteCategorizer(
     // Try get the existed sqlite tag by legacy oid
     const existedSqliteTag = await db.selectFrom("tag").where("name", "=", categorizer.name).selectAll().executeTakeFirst();
     const tagId = existedSqliteTag?.id || uuidv4();
+    // If the tag is not existed, insert it to database
     if (!existedSqliteTag) {
       const sqliteTag: z.infer<typeof zTag> = {
         id: tagId,
@@ -1420,6 +1420,7 @@ export async function toSqliteCategorizer(
     // Try get the existed sqlite folder by legacy oid
     const existedSqliteFolder = await db.selectFrom("folder").where("name", "=", categorizer.name).selectAll().executeTakeFirst();
     const folderId = existedSqliteFolder?.id || uuidv4();
+    // If the folder is not existed, insert it to database
     if (!existedSqliteFolder) {
       const sqliteFolder: z.infer<typeof zFolder> = {
         id: folderId,
@@ -1485,7 +1486,35 @@ export async function toSqliteCategorizer(
       await db.insertInto("folderFieldVersion").values(sqliteFolderVersions).execute();
     }
     // As the update would not affact the id and parentId, we don't need to update the children
+    // TODO: handle the children update
     return existedSqliteFolder;
+  }
+
+  // If the categorizer is not a tag or folder, throw an error
+  throw new Error(`Unknown categorizer type: ${type}`);
+}
+
+export async function deleteSqliteCategorizer(categorizer: z.infer<typeof zTag> | z.infer<typeof zFolder>, type: CategorizerType) {
+  const deviceId = syncStateStore.get("deviceId");
+  if (type === CategorizerType.PaperTag) {
+    // Query and update deletedAt and deletedByDeviceId of the sqlite tag by legacy oid
+    const existedSqliteTag = await db.selectFrom("tag").where("name", "=", categorizer.name).selectAll().executeTakeFirst();
+    if (existedSqliteTag) {
+      await db.updateTable("tag").set({
+        deletedAt: new Date().toISOString(),
+        deletedByDeviceId: deviceId,
+      }).where("id", "=", existedSqliteTag.id).execute();
+    }
+  }
+  if (type === CategorizerType.PaperFolder) {
+    // Query and update deletedAt and deletedByDeviceId of the sqlite folder by legacy oid
+    const existedSqliteFolder = await db.selectFrom("folder").where("name", "=", categorizer.name).selectAll().executeTakeFirst();
+    if (existedSqliteFolder) {
+      await db.updateTable("folder").set({
+        deletedAt: new Date().toISOString(),
+        deletedByDeviceId: deviceId,
+      }).where("id", "=", existedSqliteFolder.id).execute();
+    }
   }
 
   // If the categorizer is not a tag or folder, throw an error

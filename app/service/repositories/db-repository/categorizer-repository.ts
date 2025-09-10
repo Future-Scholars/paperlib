@@ -13,6 +13,7 @@ import {
 } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { Entity } from "@/models/entity";
+import { toSqliteCategorizer } from "@/service/services/sync/sqlite-pollyfill";
 
 export interface ICategorizerRepositoryState {
   tagsUpdated: number;
@@ -142,7 +143,14 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
       } else {
         throw new Error(`Unknown categorizer type: ${type}`);
       }
+      
     }
+
+    // Sync objects to sqlite database
+    objects.forEach(async (object) => {
+      await toSqliteCategorizer(object, type);
+    });
+
     return objects;
   }
 
