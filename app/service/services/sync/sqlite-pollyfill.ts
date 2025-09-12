@@ -1299,10 +1299,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
   return sqliteEntity;
 }
 
-export async function deleteSqliteEntity(entity: Entity): Promise<void> {
+export async function deleteSqliteEntity(legacyOid: string): Promise<void> {
   const deviceId = syncStateStore.get("deviceId");
   // Query and update deletedAt and deletedByDeviceId of the sqlite entity by legacy oid
-  const existedSqliteEntity = await db.selectFrom("paper").where("legacyOid", "=", entity._id.toString()).selectAll().executeTakeFirst();
+  const existedSqliteEntity = await db.selectFrom("paper").where("legacyOid", "=", legacyOid).selectAll().executeTakeFirst();
   if (existedSqliteEntity) {
     await db.updateTable("paper").set({
       deletedAt: new Date().toISOString(),
@@ -1310,7 +1310,7 @@ export async function deleteSqliteEntity(entity: Entity): Promise<void> {
     }).where("id", "=", existedSqliteEntity.id).execute();
   }
   // Query and update deletedAt and deletedByDeviceId of the sqlite authors by paper id
-  const existedSqliteAuthors = await db.selectFrom("paperAuthor").where("paperId", "=", entity._id.toString()).selectAll().execute();
+  const existedSqliteAuthors = await db.selectFrom("paperAuthor").where("paperId", "=", legacyOid).selectAll().execute();
   if (existedSqliteAuthors) {
     await db.updateTable("paperAuthor").set({
       deletedAt: new Date().toISOString(),
@@ -1318,7 +1318,7 @@ export async function deleteSqliteEntity(entity: Entity): Promise<void> {
     }).where("id", "in", existedSqliteAuthors.map((author) => author.id)).execute();
   }
   // Query and update deletedAt and deletedByDeviceId of the sqlite tags by paper id
-  const existedSqliteTags = await db.selectFrom("paperTag").where("paperId", "=", entity._id.toString()).selectAll().execute();
+  const existedSqliteTags = await db.selectFrom("paperTag").where("paperId", "=", legacyOid).selectAll().execute();
   if (existedSqliteTags) {
     await db.updateTable("paperTag").set({
       deletedAt: new Date().toISOString(),
@@ -1326,7 +1326,7 @@ export async function deleteSqliteEntity(entity: Entity): Promise<void> {
     }).where("id", "in", existedSqliteTags.map((tag) => tag.id)).execute();
   }
   // Query and update deletedAt and deletedByDeviceId of the sqlite folders by paper id
-  const existedSqliteFolders = await db.selectFrom("paperFolder").where("paperId", "=", entity._id.toString()).selectAll().execute();
+  const existedSqliteFolders = await db.selectFrom("paperFolder").where("paperId", "=", legacyOid).selectAll().execute();
   if (existedSqliteFolders) {
     await db.updateTable("paperFolder").set({
       deletedAt: new Date().toISOString(),
