@@ -401,7 +401,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       });
     }
 
-    const toBeDeletedFiles = this._paperEntityRepository.delete(
+    const toBeDeletedFiles = await this._paperEntityRepository.delete(
       await this._databaseCore.realm(),
       ids,
       paperEntities

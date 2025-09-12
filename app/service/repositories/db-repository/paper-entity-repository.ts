@@ -219,8 +219,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
       });
 
       // sync changes to sqlite database
-      // It's not needed to sync changes to sqlite database here as the changes will be synced to sqlite database when the entity is loaded
-      // toSqliteEntity(paperEntity, this._logService);
+      toSqliteEntity(paperEntity, this._logService);
 
       if (object) {
         if (!allowUpdate) {
@@ -317,13 +316,25 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param paperEntity - Paper entity.
    * @returns - Deleted boolean flags.
    */
-  delete(realm: Realm, ids?: OID[], paperEntitys?: IEntityCollection) {
+  async delete(realm: Realm, ids?: OID[], paperEntitys?: IEntityCollection) {
+
+    if (paperEntitys) {
+      this._logService.info("Deleting paper entities", JSON.stringify(paperEntitys, null, 2), false, "Entity");
+      ids = paperEntitys.map(
+        (paperEntity: IEntityObject) => paperEntity._id
+      );
+    }
+
+    if (ids) {
+      // Wait for all SQLite delete operations to complete
+      await Promise.all(ids.map(async (id) => {
+        this._logService.info("Deleting sqlite paper entity by id", id.toString(), false, "Entity");
+        await deleteSqliteEntity(id.toString());
+      }));
+    }
+
+
     return realm.safeWrite(() => {
-      if (paperEntitys) {
-        ids = paperEntitys.map(
-          (paperEntity: IEntityObject) => paperEntity._id
-        );
-      }
       if (ids) {
         const idsQuery = ids
           .map((id) => `_id == oid(${id as string})`)
@@ -377,11 +388,6 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
           CategorizerType.PaperFolder,
           toBeUpdatedFolders
         );
-
-        // sync changes to sqlite database
-        toBeDeleted.forEach(async (paperEntity) => {
-          await deleteSqliteEntity(paperEntity);
-        });
 
         return toBeDeletedFiles;
       } else {
