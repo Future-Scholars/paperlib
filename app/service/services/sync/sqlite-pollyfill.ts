@@ -284,9 +284,21 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
   ]
   await db.insertInto("feed").values(newSqliteFeed).execute();
   await db.insertInto("feedFieldVersion").values(feedFieldVersions).execute();
+
   return newSqliteFeed;
+}
 
-
+export async function deleteSqliteFeed(legacyOid: string): Promise<void> {
+  const deviceId = syncStateStore.get("deviceId");
+  // Query and get the sqlite feed by legacy oid
+  const existedSqliteFeed = await db.selectFrom("feed").where("legacyOid", "=", legacyOid).selectAll().executeTakeFirst();
+  if (existedSqliteFeed) {
+    await db.updateTable("feed").set({
+      deletedAt: new Date().toISOString(),
+      deletedByDeviceId: deviceId,
+    }).where("id", "=", existedSqliteFeed.id).execute();
+    await db.deleteFrom("feedFieldVersion").where("feedId", "=", existedSqliteFeed.id).execute();
+  }
 }
 
 
@@ -1494,30 +1506,63 @@ export async function toSqliteCategorizer(
   throw new Error(`Unknown categorizer type: ${type}`);
 }
 
-export async function deleteSqliteCategorizer(categorizer: z.infer<typeof zTag> | z.infer<typeof zFolder>, type: CategorizerType) {
-  const deviceId = syncStateStore.get("deviceId");
-  if (type === CategorizerType.PaperTag) {
-    // Query and update deletedAt and deletedByDeviceId of the sqlite tag by legacy oid
-    const existedSqliteTag = await db.selectFrom("tag").where("name", "=", categorizer.name).selectAll().executeTakeFirst();
-    if (existedSqliteTag) {
-      await db.updateTable("tag").set({
-        deletedAt: new Date().toISOString(),
-        deletedByDeviceId: deviceId,
-      }).where("id", "=", existedSqliteTag.id).execute();
-    }
-  }
-  if (type === CategorizerType.PaperFolder) {
-    // Query and update deletedAt and deletedByDeviceId of the sqlite folder by legacy oid
-    const existedSqliteFolder = await db.selectFrom("folder").where("name", "=", categorizer.name).selectAll().executeTakeFirst();
-    if (existedSqliteFolder) {
-      await db.updateTable("folder").set({
-        deletedAt: new Date().toISOString(),
-        deletedByDeviceId: deviceId,
-      }).where("id", "=", existedSqliteFolder.id).execute();
-    }
-  }
 
-  // If the categorizer is not a tag or folder, throw an error
-  throw new Error(`Unknown categorizer type: ${type}`);
+
+export async function deleteSqliteTag(name: string): Promise<void> {
+  const deviceId = syncStateStore.get("deviceId");
+  const existedSqliteTag = await db.selectFrom("tag").where("name", "=", name).selectAll().executeTakeFirst();
+  if (existedSqliteTag) {
+    await db.updateTable("tag").set({
+      deletedAt: new Date().toISOString(),
+      deletedByDeviceId: deviceId,
+    }).where("id", "=", existedSqliteTag.id).execute();
+    // Also delete the tagFieldVersion
+    await db.deleteFrom("tagFieldVersion").where("tagId", "=", existedSqliteTag.id).execute();
+    // Also add a delete operation to the paperTag
+    const existedPaperTag = await db.selectFrom("paperTag").where("tagId", "=", existedSqliteTag.id).selectAll().executeTakeFirst();
+    if (existedPaperTag) {
+      await db.insertInto("paperTag").values({
+        id: uuidv4(),
+        createdAt: new Date().toISOString(),
+        op: "remove",
+        timestamp: Date.now(),
+        deviceId: deviceId,
+        paperId: existedPaperTag.paperId,
+        tagId: existedPaperTag.tagId,
+        createdByDeviceId: deviceId,
+        deletedAt: null,
+        deletedByDeviceId: null,
+      }).execute();
+    }
+  }
 }
 
+export async function deleteSqliteFolder(legacyOid: string): Promise<void> {
+  const deviceId = syncStateStore.get("deviceId");
+  const existedSqliteFolder = await db.selectFrom("folder").where("legacyOid", "=", legacyOid).selectAll().executeTakeFirst();
+  if (existedSqliteFolder) {
+    await db.updateTable("folder").set({
+      deletedAt: new Date().toISOString(),
+      deletedByDeviceId: deviceId,
+    }).where("id", "=", existedSqliteFolder.id).execute();
+    // Also delete the folderFieldVersion
+    await db.deleteFrom("folderFieldVersion").where("folderId", "=", existedSqliteFolder.id).execute();
+    // Also add a delete operation to the paperFolder
+    const existedPaperFolder = await db.selectFrom("paperFolder").where("folderId", "=", existedSqliteFolder.id).selectAll().executeTakeFirst();
+    if (existedPaperFolder) {
+      await db.insertInto("paperFolder").values({
+        id: uuidv4(),
+        createdAt: new Date().toISOString(),
+        op: "remove",
+        timestamp: Date.now(),
+        deviceId: deviceId,
+        paperId: existedPaperFolder.paperId,
+        folderId: existedPaperFolder.folderId,
+        createdByDeviceId: deviceId,
+        updatedAt: new Date().toISOString(),
+        deletedAt: null,
+        deletedByDeviceId: null,
+      }).execute();
+    }
+  }
+}

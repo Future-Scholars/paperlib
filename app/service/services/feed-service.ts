@@ -163,7 +163,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     const updatedFeeds: IFeedCollection = [];
 
     for (const feed of feeds) {
-      const updatedFeed = this._feedRepository.update(
+      const updatedFeed = await this._feedRepository.update(
         realm,
         feed,
         this._databaseCore.getPartition()
@@ -200,7 +200,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     const updatedFeedEntities: IFeedEntityCollection = [];
 
     for (const feedEntity of feedEntities) {
-      const updatedFeedEntity = this._feedEntityRepository.update(
+      const updatedFeedEntity = await this._feedEntityRepository.update(
         realm,
         feedEntity,
         this._databaseCore.getPartition(),
@@ -379,7 +379,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     );
     this._feedEntityRepository.delete(realm, undefined, toBeDeletedEntities);
 
-    this._feedRepository.delete(realm, undefined, feeds);
+    await this._feedRepository.delete(realm, undefined, feeds);
   }
 
   /**
