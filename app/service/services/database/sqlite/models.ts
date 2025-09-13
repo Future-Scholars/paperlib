@@ -165,6 +165,7 @@ export type TagFieldVersion = z.infer<typeof zTagFieldVersion>;
 
 export const zFolder = z.object({
   id: z.string(),
+  legacyOid: z.string().nullable(),
   name: z.string(),
   colour: z.string().nullable(),
   description: z.string().nullable(),

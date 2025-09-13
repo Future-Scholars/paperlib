@@ -66,7 +66,7 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to load categorizer.", true, "CategorizerService", [])
   async load(type: CategorizerType, sortBy: string, sortOrder: string) {
-    return this._categorizerRepository.load(
+    return await this._categorizerRepository.load(
       await this._databaseCore.realm(),
       type,
       sortBy,
@@ -121,7 +121,7 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
     ids?: OID[],
     categorizers?: ICategorizerCollection
   ) {
-    this._categorizerRepository.delete(
+    await this._categorizerRepository.delete(
       await this._databaseCore.realm(),
       type,
       ids,
