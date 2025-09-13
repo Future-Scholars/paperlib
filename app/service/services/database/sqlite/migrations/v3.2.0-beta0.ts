@@ -51,6 +51,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('folder')
     .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('legacyOid', 'text')
     .addColumn('name', 'text', (col) => col.notNull())
     .addColumn('colour', 'text')
     .addColumn('description', 'text')

@@ -1436,6 +1436,7 @@ export async function toSqliteCategorizer(
     if (!existedSqliteFolder) {
       const sqliteFolder: z.infer<typeof zFolder> = {
         id: folderId,
+        legacyOid: categorizer._id.toString(),
         name: categorizer.name,
         colour: ensureUndefinedToNull(categorizer.color),
         description: null,
@@ -1564,5 +1565,15 @@ export async function deleteSqliteFolder(legacyOid: string): Promise<void> {
         deletedByDeviceId: null,
       }).execute();
     }
+  }
+}
+
+
+export async function deleteSqliteCategorizer(legacyOid: string, type: CategorizerType): Promise<void> {
+  if (type === CategorizerType.PaperTag) {
+    await deleteSqliteTag(legacyOid);
+  }
+  if (type === CategorizerType.PaperFolder) {
+    await deleteSqliteFolder(legacyOid);
   }
 }
