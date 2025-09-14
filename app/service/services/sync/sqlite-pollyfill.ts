@@ -117,6 +117,9 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
 
   if (existedSqliteFeed) {
     let updated = false;
+    const createdAtDate = new Date();
+    const createdAtDateString = createdAtDate.toISOString();
+    const createdAtTimestamp = createdAtDate.getTime();
     // Update the sqlite feed if any field is different
     const feedFieldVersions: z.infer<typeof zFeedFieldVersion>[] = [];
     if (existedSqliteFeed.name !== feed.name) {
@@ -127,10 +130,10 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
         feedId: existedSqliteFeed.id,
         field: "name",
         value: createFieldVersionValue('update', existedSqliteFeed.name, feed.name),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -144,10 +147,10 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
         feedId: existedSqliteFeed.id,
         field: "count",
         value: createFieldVersionValue('update', existedSqliteFeed.count, feed.count),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -161,10 +164,10 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
         feedId: existedSqliteFeed.id,
         field: "color",
         value: createFieldVersionValue('update', existedSqliteFeed.color, feed.color),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -178,10 +181,10 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
         feedId: existedSqliteFeed.id,
         field: "url",
         value: createFieldVersionValue('update', existedSqliteFeed.url, feed.url),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -197,6 +200,9 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
     return existedSqliteFeed;
   }
   // Insert the feed to database
+  const createdAtDate = new Date();
+  const createdAtDateString = createdAtDate.toISOString();
+  const createdAtTimestamp = createdAtDate.getTime();
   const newSqliteFeed: z.infer<typeof zFeed> = {
     id: uuidv4(),
     legacyOid: ensureUndefinedToNull(feed._id?.toString()),
@@ -208,10 +214,10 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
     url: feed.url,
     count: ensureUndefinedToNull(feed.count),
     color: ensureUndefinedToNull(feed.color),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: createdAtDateString,
     createdByDeviceId: deviceId,
-    updatedByDeviceId: deviceId,
+    updatedAt: null,
+    updatedByDeviceId: null,
     deletedAt: null,
     deletedByDeviceId: null,
   }
@@ -221,9 +227,9 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       feedId: newSqliteFeed.id,
       field: "name",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, feed.name)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: new Date().toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -234,9 +240,9 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       feedId: newSqliteFeed.id,
       field: "type",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, "rss")),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: new Date().toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -247,9 +253,9 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       feedId: newSqliteFeed.id,
       field: "url",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, feed.url)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: new Date().toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -260,9 +266,9 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       feedId: newSqliteFeed.id,
       field: "count",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, feed.count)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: new Date().toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -273,9 +279,9 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       feedId: newSqliteFeed.id,
       field: "color",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, feed.color)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: new Date().toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -332,6 +338,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
   if (existedSqliteEntity) {
 
     let updated = false;
+    const createdAtDate = new Date();
+    const createdAtDateString = createdAtDate.toISOString();
+    const createdAtTimestamp = createdAtDate.getTime();
     // Update the sqlite entity if any field is different
     const paperFieldVersions: z.infer<typeof zPaperFieldVersion>[] = [];
     // Bibtex
@@ -344,10 +353,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "title",
         value: createFieldVersionValue('update', previousValue, entity.title),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -362,10 +371,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "journal",
         value: createFieldVersionValue('update', previousValue, entity.journal),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -380,10 +389,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "booktitle",
         value: createFieldVersionValue('update', previousValue, entity.booktitle),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -398,10 +407,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "year",
         value: createFieldVersionValue('update', previousValue, parseInt(entity.year)),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -416,10 +425,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "month",
         value: createFieldVersionValue('update', previousValue, parseInt(entity.month)),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -434,10 +443,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "volume",
         value: createFieldVersionValue('update', previousValue, entity.volume),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -452,10 +461,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "number",
         value: createFieldVersionValue('update', previousValue, entity.number),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -470,10 +479,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "pages",
         value: createFieldVersionValue('update', previousValue, entity.pages),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -488,10 +497,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "publisher",
         value: createFieldVersionValue('update', previousValue, entity.publisher),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -506,10 +515,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "series",
         value: createFieldVersionValue('update', previousValue, entity.series),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -524,10 +533,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "edition",
         value: createFieldVersionValue('update', previousValue, entity.edition),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -542,10 +551,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "editor",
         value: createFieldVersionValue('update', previousValue, entity.editor),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -560,10 +569,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "howPublished",
         value: createFieldVersionValue('update', previousValue, entity.howpublished),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -578,10 +587,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "organization",
         value: createFieldVersionValue('update', previousValue, entity.organization),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -596,10 +605,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "school",
         value: createFieldVersionValue('update', previousValue, entity.school),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -614,10 +623,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "institution",
         value: createFieldVersionValue('update', previousValue, entity.institution),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -632,10 +641,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "address",
         value: createFieldVersionValue('update', previousValue, entity.address),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -650,10 +659,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "abstract",
         value: createFieldVersionValue('update', previousValue, entity.abstract),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -668,10 +677,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "doi",
         value: createFieldVersionValue('update', previousValue, entity.doi),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -686,10 +695,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "arxiv",
         value: createFieldVersionValue('update', previousValue, entity.arxiv),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -704,10 +713,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "isbn",
         value: createFieldVersionValue('update', previousValue, entity.isbn),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -722,10 +731,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "issn",
         value: createFieldVersionValue('update', previousValue, entity.issn),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -741,10 +750,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "rating",
         value: createFieldVersionValue('update', previousValue, entity.rating),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -759,10 +768,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "notes",
         value: createFieldVersionValue('update', previousValue, entity.note),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -777,10 +786,10 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
         paperId: existedSqliteEntity.id,
         field: "flag",
         value: createFieldVersionValue('update', previousValue, entity.flag),
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -789,7 +798,7 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
 
 
     if (updated) {
-      existedSqliteEntity.updatedAt = new Date().toISOString();
+      existedSqliteEntity.updatedAt = createdAtDateString;
       existedSqliteEntity.updatedByDeviceId = deviceId;
       await db.insertInto("paperFieldVersion").values(paperFieldVersions).execute();
       await db.updateTable("paper").set(existedSqliteEntity).where("id", "=", existedSqliteEntity.id).execute();
@@ -800,6 +809,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
   }
 
   // Insert the sqlite entity if not existed
+  const createdAtDate = new Date();
+  const createdAtDateString = createdAtDate.toISOString();
+  const createdAtTimestamp = createdAtDate.getTime();
   let sqliteEntity: SqlitePaper = {
     id: uuidv4(),
     legacyOid: ensureUndefinedToNull(entity._id?.toString()),
@@ -839,10 +851,11 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
     // Categorizers and feeds will be handled later as there'll be separate sql operations
 
     // Sqlite management properties
-    createdAt: entity.addTime.toISOString(),
+    createdAt: createdAtDateString,
     createdByDeviceId: deviceId,
-    updatedAt: entity.addTime.toISOString(),
+    updatedAt: null,
     updatedByDeviceId: deviceId,
+
     deletedAt: null,
     deletedByDeviceId: null,
   }
@@ -854,9 +867,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "type",
       value: ensureUndefinedToNull(JSON.stringify(entity.type)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -867,9 +880,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "title",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.title)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -881,9 +894,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "journal",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.journal)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -894,9 +907,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "booktitle",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.booktitle)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -907,9 +920,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "year",
       value: ensureUndefinedToNull(JSON.stringify(parseInt(entity.year))),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -920,9 +933,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "month",
       value: ensureUndefinedToNull(JSON.stringify(entity.month ? parseInt(entity.month) : null)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -933,9 +946,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "volume",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.volume)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -946,9 +959,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "number",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.number)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -959,9 +972,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "pages",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.pages)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -972,9 +985,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "publisher",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.publisher)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -985,9 +998,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "series",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.series)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -998,9 +1011,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "edition",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.edition)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1011,9 +1024,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "editor",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.editor)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1024,7 +1037,7 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "howPublished",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.howpublished)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
       createdAt: entity.addTime.toISOString(),
       createdByDeviceId: deviceId,
@@ -1037,7 +1050,7 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "organization",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.organization)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
       createdAt: entity.addTime.toISOString(),
       createdByDeviceId: deviceId,
@@ -1050,9 +1063,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "school",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.school)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1063,9 +1076,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "institution",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.institution)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1076,9 +1089,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "address",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.address)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1089,9 +1102,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "abstract",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.abstract)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1102,9 +1115,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "doi",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.doi)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1115,9 +1128,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "arxiv",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.arxiv)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1128,9 +1141,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "isbn",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.isbn)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1141,9 +1154,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "issn",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.issn)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1154,9 +1167,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "rating",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.rating)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1167,9 +1180,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "notes",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.note)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1180,9 +1193,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "flag",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, entity.flag)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1193,9 +1206,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "feedId",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, null)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1206,9 +1219,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "feedItemId",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, null)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1219,9 +1232,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       paperId: sqliteEntity.id,
       field: "read",
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, null)),
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: entity.addTime.toISOString(),
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -1247,15 +1260,15 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       await db.insertInto("author").values({
         id: authorId,
         name: author,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
       }).execute();
     }
     await db.insertInto("paperAuthor").values({
       id: uuidv4(),
-      createdAt: new Date().toISOString(),
+      createdAt: createdAtDateString,
       op: "add",
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
       paperId: sqliteEntity.id,
       authorId: authorId,
@@ -1267,9 +1280,9 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
   if (existedSqliteAuthors) {
     await db.insertInto("paperAuthor").values(existedSqliteAuthors.map((author) => ({
       id: uuidv4(),
-      createdAt: new Date().toISOString(),
+      createdAt: createdAtDateString,
       op: "remove",
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
       paperId: sqliteEntity.id,
       authorId: author.authorId,
@@ -1286,22 +1299,22 @@ export async function toSqliteEntity(entity: Entity, logService?: any): Promise<
       await db.insertInto("tag").values({
         id: tagId,
         name: tag.name,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
-        updatedAt: new Date().toISOString(),
-        updatedByDeviceId: deviceId,
+        updatedAt: null,
+        updatedByDeviceId: null,
         deletedAt: null,
         deletedByDeviceId: null,
       }).execute();
     }
     await db.insertInto("paperTag").values({
       id: uuidv4(),
-      createdAt: new Date().toISOString(),
       op: "add",
-      timestamp: Date.now(),
+      timestamp: createdAtTimestamp,
       deviceId: deviceId,
       paperId: sqliteEntity.id,
       tagId: tagId,
+      createdAt: createdAtDateString,
       createdByDeviceId: deviceId,
       deletedAt: null,
       deletedByDeviceId: null,
@@ -1315,17 +1328,21 @@ export async function deleteSqliteEntity(legacyOid: string): Promise<void> {
   const deviceId = syncStateStore.get("deviceId");
   // Query and update deletedAt and deletedByDeviceId of the sqlite entity by legacy oid
   const existedSqliteEntity = await db.selectFrom("paper").where("legacyOid", "=", legacyOid).selectAll().executeTakeFirst();
+  const deletedAtDate = new Date();
+  const deletedAtDateString = deletedAtDate.toISOString();
+
   if (existedSqliteEntity) {
     await db.updateTable("paper").set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: deletedAtDateString,
       deletedByDeviceId: deviceId,
     }).where("id", "=", existedSqliteEntity.id).execute();
   }
+  // Delete the paper means that all the related entities should be deleted instead of removed from the OR-Set
   // Query and update deletedAt and deletedByDeviceId of the sqlite authors by paper id
   const existedSqliteAuthors = await db.selectFrom("paperAuthor").where("paperId", "=", legacyOid).selectAll().execute();
   if (existedSqliteAuthors) {
     await db.updateTable("paperAuthor").set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: deletedAtDateString,
       deletedByDeviceId: deviceId,
     }).where("id", "in", existedSqliteAuthors.map((author) => author.id)).execute();
   }
@@ -1333,7 +1350,7 @@ export async function deleteSqliteEntity(legacyOid: string): Promise<void> {
   const existedSqliteTags = await db.selectFrom("paperTag").where("paperId", "=", legacyOid).selectAll().execute();
   if (existedSqliteTags) {
     await db.updateTable("paperTag").set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: deletedAtDateString,
       deletedByDeviceId: deviceId,
     }).where("id", "in", existedSqliteTags.map((tag) => tag.id)).execute();
   }
@@ -1341,7 +1358,7 @@ export async function deleteSqliteEntity(legacyOid: string): Promise<void> {
   const existedSqliteFolders = await db.selectFrom("paperFolder").where("paperId", "=", legacyOid).selectAll().execute();
   if (existedSqliteFolders) {
     await db.updateTable("paperFolder").set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: deletedAtDateString,
       deletedByDeviceId: deviceId,
     }).where("id", "in", existedSqliteFolders.map((folder) => folder.id)).execute();
   }
@@ -1358,7 +1375,11 @@ export async function toSqliteCategorizer(
   type: CategorizerType
 ): Promise<z.infer<typeof zTag> | z.infer<typeof zFolder>> {
   const deviceId = syncStateStore.get("deviceId");
+
   if (type === CategorizerType.PaperTag) {
+    const createdAtDate = new Date();
+    const createdAtDateString = createdAtDate.toISOString();
+    const createdAtTimestamp = createdAtDate.getTime();
     // Try get the existed sqlite tag by legacy oid
     const existedSqliteTag = await db.selectFrom("tag").where("name", "=", categorizer.name).selectAll().executeTakeFirst();
     const tagId = existedSqliteTag?.id || uuidv4();
@@ -1369,9 +1390,9 @@ export async function toSqliteCategorizer(
         name: categorizer.name,
         description: null,
         colour: ensureUndefinedToNull(categorizer.color),
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
-        updatedAt: new Date().toISOString(),
+        updatedAt: createdAtDateString,
         updatedByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -1382,8 +1403,8 @@ export async function toSqliteCategorizer(
 
     // If the tag is already existed, update the sqlite tag if any difference
     let updated = false;
-    const updatedTimestamp = Date.now();
-    const updatedDateTime = new Date().toISOString();
+    const updatedTimestamp = createdAtTimestamp;
+    const updatedDateTime = createdAtDateString;
     const sqliteTagVersions: z.infer<typeof zTagFieldVersion>[] = [];
     if (existedSqliteTag.name !== categorizer.name) {
       existedSqliteTag.name = categorizer.name;
@@ -1434,6 +1455,9 @@ export async function toSqliteCategorizer(
     const folderId = existedSqliteFolder?.id || uuidv4();
     // If the folder is not existed, insert it to database
     if (!existedSqliteFolder) {
+      const createdAtDate = new Date();
+      const createdAtDateString = createdAtDate.toISOString();
+      const createdAtTimestamp = createdAtDate.getTime();
       const sqliteFolder: z.infer<typeof zFolder> = {
         id: folderId,
         legacyOid: categorizer._id.toString(),
@@ -1441,10 +1465,10 @@ export async function toSqliteCategorizer(
         colour: ensureUndefinedToNull(categorizer.color),
         description: null,
         parentId: null,
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         createdByDeviceId: deviceId,
         libraryId: await ensureLibraryId(),
-        updatedAt: new Date().toISOString(),
+        updatedAt: createdAtDateString,
         updatedByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -1455,13 +1479,14 @@ export async function toSqliteCategorizer(
     }
     // If the folder is already existed, update the sqlite folder if any difference
     let updated = false;
-    const updatedTimestamp = Date.now();
-    const updatedDateTime = new Date().toISOString();
+    const updatedAt = new Date();
+    const updatedAtString = updatedAt.toISOString();
+    const updatedTimestamp = updatedAt.getTime();
     const sqliteFolderVersions: z.infer<typeof zFolderFieldVersion>[] = [];
     if (existedSqliteFolder.name !== categorizer.name) {
       existedSqliteFolder.name = categorizer.name;
       updated = true;
-      existedSqliteFolder.updatedAt = updatedDateTime;
+      existedSqliteFolder.updatedAt = updatedAtString;
       existedSqliteFolder.updatedByDeviceId = deviceId;
       sqliteFolderVersions.push({
         id: uuidv4(),
@@ -1470,7 +1495,7 @@ export async function toSqliteCategorizer(
         value: createFieldVersionValue('update', existedSqliteFolder.name, categorizer.name),
         timestamp: updatedTimestamp,
         deviceId: deviceId,
-        createdAt: updatedDateTime,
+        createdAt: updatedAtString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -1479,7 +1504,7 @@ export async function toSqliteCategorizer(
     if (existedSqliteFolder.colour !== categorizer.color) {
       existedSqliteFolder.colour = categorizer.color;
       updated = true;
-      existedSqliteFolder.updatedAt = updatedDateTime;
+      existedSqliteFolder.updatedAt = updatedAtString;
       existedSqliteFolder.updatedByDeviceId = deviceId;
       sqliteFolderVersions.push({
         id: uuidv4(),
@@ -1488,7 +1513,7 @@ export async function toSqliteCategorizer(
         value: createFieldVersionValue('update', existedSqliteFolder.colour, categorizer.color),
         timestamp: updatedTimestamp,
         deviceId: deviceId,
-        createdAt: updatedDateTime,
+        createdAt: updatedAtString,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -1522,11 +1547,14 @@ export async function deleteSqliteTag(name: string): Promise<void> {
     // Also add a delete operation to the paperTag
     const existedPaperTag = await db.selectFrom("paperTag").where("tagId", "=", existedSqliteTag.id).selectAll().executeTakeFirst();
     if (existedPaperTag) {
+      const createdAtDate = new Date();
+      const createdAtDateString = createdAtDate.toISOString();
+      const createdAtTimestamp = createdAtDate.getTime();
       await db.insertInto("paperTag").values({
         id: uuidv4(),
         createdAt: new Date().toISOString(),
         op: "remove",
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         paperId: existedPaperTag.paperId,
         tagId: existedPaperTag.tagId,
@@ -1551,16 +1579,18 @@ export async function deleteSqliteFolder(legacyOid: string): Promise<void> {
     // Also add a delete operation to the paperFolder
     const existedPaperFolder = await db.selectFrom("paperFolder").where("folderId", "=", existedSqliteFolder.id).selectAll().executeTakeFirst();
     if (existedPaperFolder) {
+      const createdAtDate = new Date();
+      const createdAtDateString = createdAtDate.toISOString();
+      const createdAtTimestamp = createdAtDate.getTime();
       await db.insertInto("paperFolder").values({
         id: uuidv4(),
-        createdAt: new Date().toISOString(),
+        createdAt: createdAtDateString,
         op: "remove",
-        timestamp: Date.now(),
+        timestamp: createdAtTimestamp,
         deviceId: deviceId,
         paperId: existedPaperFolder.paperId,
         folderId: existedPaperFolder.folderId,
         createdByDeviceId: deviceId,
-        updatedAt: new Date().toISOString(),
         deletedAt: null,
         deletedByDeviceId: null,
       }).execute();

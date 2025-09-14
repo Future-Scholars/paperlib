@@ -50,8 +50,8 @@ export const zPaper = z.object({
   feedItemId: z.string().nullable(),
   createdAt: z.string().datetime(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime(),
-  updatedByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
@@ -138,8 +138,8 @@ export const zTag = z.object({
   colour: z.string().nullable(),
   createdAt: z.string().datetime(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime(),
-  updatedByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
@@ -173,8 +173,8 @@ export const zFolder = z.object({
   libraryId: z.string(),
   createdAt: z.string().datetime(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime(),
-  updatedByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
@@ -208,7 +208,8 @@ export const zSupplement = z.object({
   description: z.string().nullable(),
   createdAt: z.string().datetime(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
@@ -235,8 +236,8 @@ export const zLibrary = z.object({
   ownedBy: z.string().nullable(),
   createdAt: z.string().datetime(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime(),
-  updatedByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
@@ -273,8 +274,8 @@ export const zFeed = z.object({
   color: z.string().nullable(),
   createdAt: z.string().datetime(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime(),
-  updatedByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
@@ -339,7 +340,6 @@ export const zPaperFolder = z.object({
   deviceId: z.string(),
   createdAt: z.string().datetime(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
@@ -351,8 +351,9 @@ export const zLibraryShare = z.object({
   userId: z.string(),
   permission: z.string(),
   createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
   createdByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
