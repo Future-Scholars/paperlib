@@ -168,17 +168,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
       false,
       "PaperService"
     );
-    // ========================================================
-    // #region 0. Add sync logs
-    if (!fromSync) {
-      await PLAPILocal.syncService.addSyncLog("paper", "update", {
-        paperEntityDrafts,
-        updateCache,
-        isUpdate,
-      });
-    }
-
-    // #endregion =================================================
 
     // ========================================================
     // #region 1. Move files to the app lib folder
@@ -392,14 +381,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
       false,
       "Entity"
     );
-
-    if (!fromSync) {
-      // FIXME: write log only if using sync.
-      await PLAPILocal.syncService.addSyncLog("paper", "delete", {
-        ids,
-        paperEntities,
-      });
-    }
 
     const toBeDeletedFiles = await this._paperEntityRepository.delete(
       await this._databaseCore.realm(),

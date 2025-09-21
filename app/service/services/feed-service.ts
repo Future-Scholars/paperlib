@@ -156,9 +156,6 @@ export class FeedService extends Eventable<IFeedServiceState> {
     );
 
     const realm = await this._databaseCore.realm();
-    if (!fromSync) {
-      await PLAPI.syncService.addSyncLog("feed", "update", { feeds });
-    }
 
     const updatedFeeds: IFeedCollection = [];
 
@@ -222,9 +219,6 @@ export class FeedService extends Eventable<IFeedServiceState> {
   async create(feeds: Feed[], fromSync: boolean = false) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
-    }
-    if (!fromSync) {
-      await PLAPI.syncService.addSyncLog("feed", "create", { feeds });
     }
 
     feeds.forEach((feed) => {
@@ -338,9 +332,6 @@ export class FeedService extends Eventable<IFeedServiceState> {
       return;
     }
 
-    if (!fromSync) {
-      await PLAPI.syncService.addSyncLog("feed", "delete", { ids, feeds });
-    }
 
     if (!ids && !feeds) {
       this._logService.error(

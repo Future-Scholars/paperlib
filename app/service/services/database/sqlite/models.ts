@@ -57,40 +57,42 @@ export const zPaper = z.object({
 });
 export type Paper = z.infer<typeof zPaper>;
 
+const zPaperField = z.enum([
+  'type',
+  'title',
+  'abstract',
+  'journal',
+  'booktitle',
+  'year',
+  'month',
+  'volume',
+  'number',
+  'pages',
+  'publisher',
+  'series',
+  'edition',
+  'editor',
+  'howPublished',
+  'organization',
+  'school',
+  'institution',
+  'address',
+  'doi',
+  'arxiv',
+  'isbn',
+  'issn',
+  'notes',
+  'flag',
+  'rating',
+  'read',
+  'feedId',
+  'feedItemId',
+]);
+
 export const zPaperFieldVersion = z.object({
   id: z.string(),
   paperId: z.string(),
-  field: z.enum([
-    'type',
-    'title',
-    'abstract',
-    'journal',
-    'booktitle',
-    'year',
-    'month',
-    'volume',
-    'number',
-    'pages',
-    'publisher',
-    'series',
-    'edition',
-    'editor',
-    'howPublished',
-    'organization',
-    'school',
-    'institution',
-    'address',
-    'doi',
-    'arxiv',
-    'isbn',
-    'issn',
-    'notes',
-    'flag',
-    'rating',
-    'read',
-    'feedId',
-    'feedItemId',
-  ]),
+  field: zPaperField,
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -115,12 +117,22 @@ export const zAuthor = z.object({
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
+
 export type Author = z.infer<typeof zAuthor>;
+
+const zAuthorField = z.enum([
+  'name',
+  'affiliation',
+  'email',
+  'orcid',
+  'firstName',
+  'lastName',
+]);
 
 export const zAuthorFieldVersion = z.object({
   id: z.string(),
   authorId: z.string(),
-  field: z.string(),
+  field: zAuthorField,
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -129,6 +141,7 @@ export const zAuthorFieldVersion = z.object({
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
+
 export type AuthorFieldVersion = z.infer<typeof zAuthorFieldVersion>;
 
 export const zTag = z.object({
@@ -143,16 +156,20 @@ export const zTag = z.object({
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
+
 export type Tag = z.infer<typeof zTag>;
 
+const zTagField = z.enum([
+  'name',
+  'description',
+  'colour',
+]);
+
+export type TagField = z.infer<typeof zTagField>;
 export const zTagFieldVersion = z.object({
   id: z.string(),
   tagId: z.string(),
-  field: z.enum([
-    'name',
-    'description',
-    'colour',
-  ]),
+  field: zTagField,
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -218,7 +235,12 @@ export type Supplement = z.infer<typeof zSupplement>;
 export const zSupplementFieldVersion = z.object({
   id: z.string(),
   supplementId: z.string(),
-  field: z.string(),
+  field: z.enum([
+    'name',
+    'value',
+    'type',
+    'description',
+  ]),
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
