@@ -14,7 +14,7 @@ import {
 } from "@/service/services/database/sqlite/models";
 import { syncStateStore } from "@/service/services/sync/states";
 import z from "zod";
-import { db } from "../database/sqlite/db";
+import { db } from "@/service/services/database/sqlite/db";
 import { v4 as uuidv4 } from 'uuid';
 import { Feed } from "@/models/feed";
 import { CategorizerType, ICategorizerObject } from "@/models/categorizer";
