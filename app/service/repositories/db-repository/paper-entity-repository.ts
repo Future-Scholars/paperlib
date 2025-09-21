@@ -6,10 +6,13 @@ import { createDecorator } from "@/base/injection/injection";
 import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { IEntityCollection, IEntityObject, IEntityRealmObject, Entity } from "@/models/entity";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   CategorizerRepository,
   ICategorizerRepository,
 } from "./categorizer-repository";
+
+import { deleteSqliteEntity, toSqliteEntity } from "@/service/services/sync/sqlite-pollyfill";
 
 export interface IPaperEntityRepositoryState {
   count: number;
@@ -21,7 +24,9 @@ export const IPaperEntityRepository = createDecorator("paperEntityRepository");
 export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState> {
   constructor(
     @ICategorizerRepository
-    private readonly _categorizerRepository: CategorizerRepository
+    private readonly _categorizerRepository: CategorizerRepository,
+    @ILogService
+    private readonly _logService: LogService,
   ) {
     super("paperEntityRepository", {
       count: 0,
@@ -62,6 +67,8 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     }
   }
 
+
+
   /**
    * Load all filtered paper entities.
    * @param realm - Realm instance.
@@ -94,16 +101,21 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
 
       realm.entityListened = true;
     }
-
+    objects = objects.filtered("library == 'main'");
     if (filter) {
       try {
-        return objects.filtered(`library == 'main' AND (${filter})`).sorted(sortBy, sortOrder === "desc");
+        objects = objects.filtered(`(${filter})`).sorted(sortBy, sortOrder === "desc");
       } catch (error) {
         throw new Error(`Invalid filter: ${filter}`);
       }
-    } else {
-      return objects.filtered("library == 'main'").sorted(sortBy, sortOrder === "desc");
     }
+
+    // Write to sqlite database if not exists
+    objects.forEach(async (object) => {
+      await toSqliteEntity(object, this._logService);
+    });
+    
+    return objects.sorted(sortBy, sortOrder === "desc");
   }
 
   /**
@@ -206,6 +218,9 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         }
       });
 
+      // sync changes to sqlite database
+      toSqliteEntity(paperEntity, this._logService);
+
       if (object) {
         if (!allowUpdate) {
           return false;
@@ -301,13 +316,25 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param paperEntity - Paper entity.
    * @returns - Deleted boolean flags.
    */
-  delete(realm: Realm, ids?: OID[], paperEntitys?: IEntityCollection) {
+  async delete(realm: Realm, ids?: OID[], paperEntitys?: IEntityCollection) {
+
+    if (paperEntitys) {
+      this._logService.info("Deleting paper entities", JSON.stringify(paperEntitys, null, 2), false, "Entity");
+      ids = paperEntitys.map(
+        (paperEntity: IEntityObject) => paperEntity._id
+      );
+    }
+
+    if (ids) {
+      // Wait for all SQLite delete operations to complete
+      await Promise.all(ids.map(async (id) => {
+        this._logService.info("Deleting sqlite paper entity by id", id.toString(), false, "Entity");
+        await deleteSqliteEntity(id.toString());
+      }));
+    }
+
+
     return realm.safeWrite(() => {
-      if (paperEntitys) {
-        ids = paperEntitys.map(
-          (paperEntity: IEntityObject) => paperEntity._id
-        );
-      }
       if (ids) {
         const idsQuery = ids
           .map((id) => `_id == oid(${id as string})`)

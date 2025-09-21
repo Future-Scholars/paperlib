@@ -31,3 +31,6 @@ crypto
 
 !paperlib-api/dist
 package-lock.json
+
+*.db
+*.sqlite
