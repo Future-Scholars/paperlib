@@ -276,5 +276,169 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
       true,
       "SmartFilterService"
     );
+
+    localRealm.close();
+  }
+
+  /**
+   * Migrate the cloud database to the local database. */
+  @errorcatching(
+    "Failed to migrate the cloud smartfilters to the local database.",
+    true,
+    "DatabaseService"
+  )
+  async migrateCloudToLocal() {
+    // Get cloud config and create cloud realm first to read data
+    const cloudRealm = await this._databaseCore.realm();
+
+    const rootSmartFilters = cloudRealm
+      .objects<PaperSmartFilter>(PaperSmartFilter.schema.name)
+      .filtered("name == 'SmartFilters'");
+
+    // Recursive function to extract all nested smartfilters
+    const extractSmartFilters = (smartfilter: PaperSmartFilter): PaperSmartFilter[] => {
+      const result: PaperSmartFilter[] = [new PaperSmartFilter(smartfilter)];
+      if (smartfilter.children && smartfilter.children.length > 0) {
+        for (const child of smartfilter.children) {
+          result.push(...extractSmartFilters(child));
+        }
+      }
+      return result;
+    };
+
+    // Extract smartfilters data with proper nesting
+    const smartFiltersData: PaperSmartFilter[] = [];
+    for (const rootSmartFilter of rootSmartFilters) {
+      if (rootSmartFilter.children.length > 0) {
+        for (const smartfilter of rootSmartFilter.children) {
+          smartFiltersData.push(...extractSmartFilters(new PaperSmartFilter(smartfilter)));
+        }
+      }
+    }
+
+    // Logout to ensure we get a local realm
+    const localConfig = await this._databaseCore.getLocalConfig();
+    const localRealm = new Realm(localConfig);
+
+    localRealm.safeWrite = (callback) => {
+      if (localRealm.isInTransaction) {
+        return callback();
+      } else {
+        return localRealm.write(callback);
+      }
+    };
+
+    // Local update function that works with the provided local realm
+    const localUpdate = (
+      localRealm: Realm,
+      type: PaperSmartFilterType,
+      smartfilter: PaperSmartFilter,
+      partition: string,
+      parentSmartfilter?: PaperSmartFilter
+    ) => {
+      if (
+        !smartfilter.name ||
+        smartfilter.name?.includes("/") ||
+        smartfilter.name === "SmartFilters"
+      ) {
+        throw new Error(
+          "Invalid name, name cannot be empty, 'SmartFilters', or contain '/'"
+        );
+      }
+
+      return this._paperSmartFilterRepository.update(
+        localRealm,
+        type,
+        smartfilter,
+        partition,
+        parentSmartfilter
+      );
+    };
+
+    // Create a map to track migrated smartfilters by their ID
+    const migratedMap = new Map<string, PaperSmartFilter>();
+
+    const _migrate = (
+      type: PaperSmartFilterType,
+      smartfilter: PaperSmartFilter,
+      parent?: PaperSmartFilter
+    ) => {
+      const migrateSmartFilter = new PaperSmartFilter();
+      migrateSmartFilter._id = smartfilter._id;
+      migrateSmartFilter.name = smartfilter.name.split("/").pop() as string;
+      migrateSmartFilter.color = smartfilter.color;
+      migrateSmartFilter.filter = smartfilter.filter;
+      
+      // Create the smartfilter in local database
+      const updatedSmartFilter = localUpdate(
+        localRealm,
+        type,
+        migrateSmartFilter,
+        "", // Empty partition for local database
+        parent ? new PaperSmartFilter({ _id: parent._id, name: parent.name }) : undefined
+      );
+
+      // Store the migrated smartfilter for reference
+      migratedMap.set(smartfilter._id.toString(), updatedSmartFilter);
+
+      return updatedSmartFilter;
+    };
+
+    // Create root smartfilters if they don't exist
+    this._paperSmartFilterRepository.createRoots(localRealm, "");
+
+    // Sort smartfilters by hierarchy (parents first)
+    const sortByHierarchy = (smartfilters: PaperSmartFilter[]): PaperSmartFilter[] => {
+      const sorted: PaperSmartFilter[] = [];
+      const processed = new Set<string>();
+      
+      const addSmartFilter = (smartfilter: PaperSmartFilter) => {
+        if (processed.has(smartfilter._id.toString())) return;
+        
+        // Find parent in the original data
+        const parentPath = smartfilter.name.split("/").slice(0, -1).join("/");
+        if (parentPath) {
+          const parent = smartfilters.find(sf => sf.name === parentPath);
+          if (parent && !processed.has(parent._id.toString())) {
+            addSmartFilter(parent);
+          }
+        }
+        
+        sorted.push(smartfilter);
+        processed.add(smartfilter._id.toString());
+      };
+      
+      smartfilters.forEach(addSmartFilter);
+      return sorted;
+    };
+
+    // Migrate smartfilters from cloud to local with proper nesting
+    const sortedSmartFilters = sortByHierarchy(smartFiltersData);
+    for (const smartfilter of sortedSmartFilters) {
+      const parentPath = smartfilter.name.split("/").slice(0, -1).join("/");
+      let parentSmartfilter: PaperSmartFilter | undefined;
+      
+      if (parentPath) {
+        // Find parent in migrated smartfilters
+        const parentSF = smartFiltersData.find(sf => sf.name === parentPath);
+        if (parentSF) {
+          parentSmartfilter = migratedMap.get(parentSF._id.toString());
+        }
+      } else {
+        // Root level smartfilter
+        parentSmartfilter = new PaperSmartFilter({ name: "SmartFilters" });
+      }
+      
+      _migrate(PaperSmartFilterType.smartfilter, smartfilter, parentSmartfilter);
+    }
+
+    this._logService.info(
+      `Migrated smartfilters to local database.`,
+      "",
+      true,
+      "SmartFilterService"
+    );
+
+    localRealm.close();
   }
 }

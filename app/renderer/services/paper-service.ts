@@ -806,4 +806,67 @@ export class PaperService extends Eventable<IPaperServiceState> {
 
     localRealm.close();
   }
+
+  /**
+   * Migrate the cloud database to the local database. */
+  @errorcatching(
+    "Failed to migrate the cloud paper entities to the local database.",
+    true,
+    "DatabaseService"
+  )
+  async migrateCloudToLocal() {
+    // Get the current cloud realm (already authenticated and available)
+    const cloudRealm = await this._databaseCore.realm();
+
+    const entities = cloudRealm.objects<PaperEntity>("PaperEntity");
+
+    // Extract paper entities data
+    const entitiesData = entities.map((entity) => new PaperEntity(entity));
+
+    // Logout to ensure we get a local realm
+    const localConfig = await this._databaseCore.getLocalConfig();
+    const localRealm = new Realm(localConfig);
+
+    localRealm.safeWrite = (callback) => {
+      if (localRealm.isInTransaction) {
+        return callback();
+      } else {
+        return localRealm.write(callback);
+      }
+    };
+
+    // Update paper entities in the local realm
+    for (const entityData of entitiesData) {
+      let success: boolean;
+      try {
+        localRealm.safeWrite(() => {
+          localRealm.create(
+            "PaperEntity",
+            new PaperEntity(entityData, true),
+            Realm.UpdateMode.Modified
+          );
+        });
+        success = true;
+      } catch (error) {
+        this._logService.error(
+          "Failed to migrate paper entity to local database.",
+          error as Error,
+          true,
+          "PaperService"
+        );
+        success = false;
+      }
+    }
+
+    this._logService.info(
+      `Migrated ${entitiesData.length} paper(s) to local database.`,
+      "",
+      true,
+      "PaperService"
+    );
+
+    localRealm.close();
+  }
+
+
 }

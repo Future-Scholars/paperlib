@@ -1,4 +1,5 @@
 import { chunkRun } from "@/base/chunk";
+import Realm from "realm";
 import { DatabaseCore, IDatabaseCore } from "@/base/database/core";
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
@@ -526,5 +527,70 @@ export class FeedService extends Eventable<IFeedServiceState> {
       true,
       "FeedService"
     );
+
+    localRealm.close();
   }
+
+  /**
+   * Migrate the cloud database to the local database. */
+  @errorcatching(
+    "Failed to migrate the cloud feeds to the local database.",
+    true,
+    "DatabaseService"
+  )
+  async migrateCloudToLocal() {
+    // Get the current cloud realm (already authenticated and available)
+    const cloudRealm = await this._databaseCore.realm();
+
+    // Read data from cloud database
+    const feeds = cloudRealm.objects<Feed>("Feed");
+
+    // Create copies of the data
+    const feedsData = feeds.map((feed) => new Feed(feed));
+
+    // Logout to ensure we get a local realm
+    const localConfig = await this._databaseCore.getLocalConfig();
+    const localRealm = new Realm(localConfig);
+
+    localRealm.safeWrite = (callback) => {
+      if (localRealm.isInTransaction) {
+        return callback();
+      } else {
+        return localRealm.write(callback);
+      }
+    };
+
+    // Use repository to properly insert data into local realm
+    // First migrate feeds
+    for (const feedData of feedsData) {
+      try {
+        this._feedRepository.update(
+          localRealm,
+          feedData,
+          "" // Empty partition for local database
+        );
+      } catch (error) {
+        this._logService.error(
+          "Failed to migrate feed to local database.",
+          error as Error,
+          true,
+          "FeedService"
+        );
+      }
+    }
+
+    // Then
+    this._logService.info(
+      `Migrated ${feedsData.length} feed(s) to local database.`,
+      "",
+      true,
+      "FeedService"
+    );
+
+    localRealm.close();
+  }
+
+
+
+
 }
