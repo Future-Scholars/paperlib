@@ -49,6 +49,14 @@ const onMigrateClicked = async () => {
   await smartFilterService.migrateLocaltoCloud();
 };
 
+const onMigrateLocalClicked = async () => {
+  await categorizerService.migrateCloudToLocal();
+  await paperService.migrateCloudToLocal();
+  await categorizerService.migrateCloudCountToLocal();
+  await feedService.migrateCloudToLocal();
+  await smartFilterService.migrateCloudToLocal();
+};
+
 // =============================================================================
 // WebDAV
 const onWebdavConnectClicked = async () => {
@@ -166,6 +174,23 @@ onMounted(() => {
       <button
         class="flex h-8 w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
         @click="onMigrateClicked"
+      >
+        <span class="m-auto text-xs">{{ $t("preference.migrate") }}</span>
+      </button>
+    </div>
+
+    <div class="flex justify-between mb-5">
+      <div class="flex flex-col">
+        <div class="text-xs font-semibold">
+          Migrate cloud database to local
+        </div>
+        <div class="text-xxs text-neutral-600 dark:text-neutral-500">
+          move all data from cloud database to local database.
+        </div>
+      </div>
+      <button
+        class="flex h-8 w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 hover:dark:bg-neutral-500"
+        @click="onMigrateLocalClicked"
       >
         <span class="m-auto text-xs">{{ $t("preference.migrate") }}</span>
       </button>
