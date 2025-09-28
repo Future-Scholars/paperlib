@@ -317,7 +317,7 @@ export class SmartFilterService extends Eventable<ISmartFilterServiceState> {
     }
 
     // Logout to ensure we get a local realm
-    const localConfig = await this._databaseCore.getLocalConfig();
+    const localConfig = await this._databaseCore.getLocalConfig(false);
     const localRealm = new Realm(localConfig);
 
     localRealm.safeWrite = (callback) => {

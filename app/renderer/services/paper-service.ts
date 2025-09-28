@@ -824,7 +824,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     const entitiesData = entities.map((entity) => new PaperEntity(entity));
 
     // Logout to ensure we get a local realm
-    const localConfig = await this._databaseCore.getLocalConfig();
+    const localConfig = await this._databaseCore.getLocalConfig(false);
     const localRealm = new Realm(localConfig);
 
     localRealm.safeWrite = (callback) => {

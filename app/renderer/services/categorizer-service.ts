@@ -359,7 +359,7 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
     }
 
     // Logout to ensure we get a local realm
-    const localConfig = await this._databaseCore.getLocalConfig();
+    const localConfig = await this._databaseCore.getLocalConfig(false);
     const localRealm = new Realm(localConfig);
 
     localRealm.safeWrite = (callback) => {
@@ -514,7 +514,7 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
   )
   async migrateCloudCountToLocal() {
     // Logout to ensure we get a local realm
-    const localConfig = await this._databaseCore.getLocalConfig();
+    const localConfig = await this._databaseCore.getLocalConfig(false);
     const localRealm = new Realm(localConfig);
 
     localRealm.safeWrite = (callback) => {

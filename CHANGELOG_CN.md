@@ -1,3 +1,8 @@
+## v3.1.12 Sep 28 2025
+
+1. 迁移：云数据库到本地，暂时停止云同步功能。by @geoffreychen777
+1. 迁移：修复 Windows 迁移 Bug。by @geoffreychen777
+
 ## v3.1.11 Sep 25 2025
 
 1. 迁移：云数据库到本地，暂时停止云同步功能。by @geoffreychen777

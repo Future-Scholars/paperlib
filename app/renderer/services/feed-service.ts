@@ -549,7 +549,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     const feedsData = feeds.map((feed) => new Feed(feed));
 
     // Logout to ensure we get a local realm
-    const localConfig = await this._databaseCore.getLocalConfig();
+    const localConfig = await this._databaseCore.getLocalConfig(false);
     const localRealm = new Realm(localConfig);
 
     localRealm.safeWrite = (callback) => {
