@@ -1,4 +1,4 @@
-import { Dialect, Kysely, SqliteDialect } from "kysely";
+import { Dialect, Kysely, SqliteDialect, Transaction as KyselyTransaction } from "kysely";
 import SQLite from 'better-sqlite3'
 import { 
   Paper,
@@ -19,6 +19,7 @@ import {
   PaperFolder,
   LibraryShare,
   FeedFieldVersion,
+  PaperSupplement,
 } from "./models";
 
 interface Database {
@@ -33,6 +34,7 @@ interface Database {
   paperAuthor: PaperAuthor;
   paperTag: PaperTag;
   paperFolder: PaperFolder;
+  paperSupplement: PaperSupplement;
   authorFieldVersion: AuthorFieldVersion;
   tagFieldVersion: TagFieldVersion;
   folderFieldVersion: FolderFieldVersion;
@@ -49,3 +51,5 @@ const dialect: Dialect = new SqliteDialect({
 export const db = new Kysely<Database>({
   dialect,
 })
+
+export type Transaction = KyselyTransaction<Database>;
