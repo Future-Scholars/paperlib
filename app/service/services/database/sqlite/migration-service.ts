@@ -1,4 +1,3 @@
-import { promises as fs } from 'fs';
 import { Migrator, MigrationProvider, Migration } from 'kysely';
 import { db } from './db';
 import { ILogService, LogService } from '@/common/services/log-service';
@@ -6,7 +5,7 @@ import { ILogService, LogService } from '@/common/services/log-service';
 /**
  * Custom migration provider that handles both dev and build environments
  */
-class CustomMigrationProvider implements MigrationProvider {
+class PaperlibMigrationProvider implements MigrationProvider {
   constructor(
     private readonly _logService: LogService
   ) {}
@@ -53,7 +52,7 @@ export class SQLiteMigrationService {
   ) {
     this.migrator = new Migrator({
       db,
-      provider: new CustomMigrationProvider(this._logService),
+      provider: new PaperlibMigrationProvider(this._logService),
     });
   }
 

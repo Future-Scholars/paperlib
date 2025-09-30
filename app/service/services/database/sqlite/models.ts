@@ -16,7 +16,7 @@ export type FeedType = z.infer<typeof FeedTypeEnum>;
 
 // Models
 export const zPaper = z.object({
-  id: z.string(),
+  id: z.string().uuid(),
   legacyOid: z.string().nullable(),
   libraryId: z.string(),
   type: PaperTypeEnum,
@@ -57,7 +57,7 @@ export const zPaper = z.object({
 });
 export type Paper = z.infer<typeof zPaper>;
 
-const zPaperField = z.enum([
+export const paperFields = [
   'type',
   'title',
   'abstract',
@@ -87,12 +87,12 @@ const zPaperField = z.enum([
   'read',
   'feedId',
   'feedItemId',
-]);
+] as const;
 
 export const zPaperFieldVersion = z.object({
   id: z.string(),
   paperId: z.string(),
-  field: zPaperField,
+  field: z.enum(paperFields),
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -114,25 +114,27 @@ export const zAuthor = z.object({
   lastName: z.string().nullable(),
   createdAt: z.string().datetime(),
   createdByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 
 export type Author = z.infer<typeof zAuthor>;
 
-const zAuthorField = z.enum([
+export const authorFields = [
   'name',
   'affiliation',
   'email',
   'orcid',
   'firstName',
   'lastName',
-]);
+] as const;
 
 export const zAuthorFieldVersion = z.object({
   id: z.string(),
   authorId: z.string(),
-  field: zAuthorField,
+  field: z.enum(authorFields),
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -159,17 +161,16 @@ export const zTag = z.object({
 
 export type Tag = z.infer<typeof zTag>;
 
-const zTagField = z.enum([
+export const tagFields = [
   'name',
   'description',
   'colour',
-]);
+] as const;
 
-export type TagField = z.infer<typeof zTagField>;
 export const zTagFieldVersion = z.object({
   id: z.string(),
   tagId: z.string(),
-  field: zTagField,
+  field: z.enum(tagFields),
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -197,15 +198,17 @@ export const zFolder = z.object({
 });
 export type Folder = z.infer<typeof zFolder>;
 
+export const folderFields = [
+  'name',
+  'colour',
+  'description',
+  'parentId',
+] as const;
+
 export const zFolderFieldVersion = z.object({
   id: z.string(),
   folderId: z.string(),
-  field: z.enum([
-    'name',
-    'colour',
-    'description',
-    'parentId',
-  ]),
+  field: z.enum(folderFields),
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -232,15 +235,17 @@ export const zSupplement = z.object({
 });
 export type Supplement = z.infer<typeof zSupplement>;
 
+export const supplementFields = [
+  'name',
+  'value',
+  'type',
+  'description',
+] as const;
+
 export const zSupplementFieldVersion = z.object({
   id: z.string(),
   supplementId: z.string(),
-  field: z.enum([
-    'name',
-    'value',
-    'type',
-    'description',
-  ]),
+  field: z.enum(supplementFields),
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -265,14 +270,16 @@ export const zLibrary = z.object({
 });
 export type Library = z.infer<typeof zLibrary>;
 
+export const zLibraryField = z.enum([
+  'name',
+  'description',
+  'ownedBy',
+]);
+
 export const zLibraryFieldVersion = z.object({
   id: z.string(),
   libraryId: z.string(),
-  field: z.enum([
-    'name',
-    'description',
-    'ownedBy',
-  ]),
+  field: zLibraryField,
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -303,17 +310,19 @@ export const zFeed = z.object({
 });
 export type Feed = z.infer<typeof zFeed>;
 
+export const feedFields = [
+  'name',
+  'description',
+  'count',
+  'color',
+  'url',
+  'type',
+] as const;
+
 export const zFeedFieldVersion = z.object({
   id: z.string(),
   feedId: z.string(),
-  field: z.enum([
-    'name',
-    'description',
-    'count',
-    'color',
-    'url',
-    'type',
-  ]),
+  field: z.enum(feedFields),
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
@@ -366,6 +375,20 @@ export const zPaperFolder = z.object({
   deletedByDeviceId: z.string().nullable(),
 });
 export type PaperFolder = z.infer<typeof zPaperFolder>;
+
+export const zPaperSupplement = z.object({
+  id: z.string().uuid(),
+  paperId: z.string(),
+  supplementId: z.string(),
+  op: z.enum(['add', 'remove']),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+export type PaperSupplement = z.infer<typeof zPaperSupplement>;
 
 export const zLibraryShare = z.object({
   id: z.string(),
