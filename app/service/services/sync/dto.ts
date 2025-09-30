@@ -49,7 +49,8 @@ export const zEntityData = zPaper
 export const zRelationshipModel = z.enum([
   "paperAuthor",
   "paperTag",
-  "paperFolder"
+  "paperFolder",
+  "paperSupplement"
 ])
 
 export type RelationshipModel = z.infer<typeof zRelationshipModel>
