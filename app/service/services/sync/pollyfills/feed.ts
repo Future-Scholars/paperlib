@@ -25,7 +25,6 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
   if (existedSqliteFeed) {
     let updated = false;
     const createdAtDate = new Date();
-    const createdAtDateString = createdAtDate.toISOString();
     const createdAtTimestamp = createdAtDate.getTime();
     // Update the sqlite feed if any field is different
     const feedFieldVersions: z.infer<typeof zFeedFieldVersion>[] = [];
@@ -40,7 +39,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
         timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: createdAtDateString,
+        createdAt: createdAtTimestamp,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -57,7 +56,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
         timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: createdAtDateString,
+        createdAt: createdAtTimestamp,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -74,7 +73,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
         timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: createdAtDateString,
+        createdAt: createdAtTimestamp,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -91,14 +90,14 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
         timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
-        createdAt: createdAtDateString,
+        createdAt: createdAtTimestamp,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
       });
     }
     if (updated) {
-      existedSqliteFeed.updatedAt = new Date().toISOString();
+      existedSqliteFeed.updatedAt = new Date().getTime();
       existedSqliteFeed.updatedByDeviceId = deviceId;
       await db.insertInto("feedFieldVersion").values(feedFieldVersions).execute();
       await db.updateTable("feed").set(existedSqliteFeed).where("id", "=", existedSqliteFeed.id).execute();
@@ -121,7 +120,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
     url: feed.url,
     count: ensureUndefinedToNull(feed.count),
     color: ensureUndefinedToNull(feed.color),
-    createdAt: createdAtDateString,
+    createdAt: createdAtTimestamp,
     createdByDeviceId: deviceId,
     updatedAt: null,
     updatedByDeviceId: null,
@@ -136,7 +135,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, feed.name)),
       timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: createdAtDateString,
+      createdAt: createdAtTimestamp,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -149,7 +148,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, "rss")),
       timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: createdAtDateString,
+      createdAt: createdAtTimestamp,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -162,7 +161,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, feed.url)),
       timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: createdAtDateString,
+      createdAt: createdAtTimestamp,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -175,7 +174,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, feed.count)),
       timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: createdAtDateString,
+      createdAt: createdAtTimestamp,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -188,7 +187,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       value: ensureUndefinedToNull(createFieldVersionValue('create', null, feed.color)),
       timestamp: createdAtTimestamp,
       deviceId: deviceId,
-      createdAt: createdAtDateString,
+      createdAt: createdAtTimestamp,
       createdByDeviceId: deviceId,
       hash: null,
       deletedAt: null,
@@ -207,7 +206,7 @@ export async function deleteSqliteFeed(legacyOid: string): Promise<void> {
   const existedSqliteFeed = await db.selectFrom("feed").where("legacyOid", "=", legacyOid).selectAll().executeTakeFirst();
   if (existedSqliteFeed) {
     await db.updateTable("feed").set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: new Date().getTime(),
       deletedByDeviceId: deviceId,
     }).where("id", "=", existedSqliteFeed.id).execute();
     await db.deleteFrom("feedFieldVersion").where("feedId", "=", existedSqliteFeed.id).execute();

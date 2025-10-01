@@ -34,3 +34,4 @@ package-lock.json
 
 *.db
 *.sqlite
+.cursorrules

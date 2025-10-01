@@ -56,6 +56,11 @@ export function intToBoolean(value: number | null | undefined): boolean | null {
  * @returns The library ID. Guaranteed in database.
  */
 export async function ensureLibraryId(library?: string): Promise<string> {
+  // For now, only main library is supported, remove this check if further support is needed
+  if (library !== "main") {
+    throw new Error("Only main library is supported for now");
+  }
+
   const deviceId = syncStateStore.get("deviceId");
 
   // Try get the existed sqlite library by legacy oid
@@ -70,8 +75,8 @@ export async function ensureLibraryId(library?: string): Promise<string> {
       name: library ?? "main",
       description: null,
       ownedBy: syncStateStore.get("userId"),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
       createdByDeviceId: deviceId,
       updatedByDeviceId: deviceId,
       deletedAt: null,

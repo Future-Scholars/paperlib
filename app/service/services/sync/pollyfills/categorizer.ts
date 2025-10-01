@@ -35,9 +35,9 @@ export async function toSqliteCategorizer(
         name: categorizer.name,
         description: null,
         colour: ensureUndefinedToNull(categorizer.color),
-        createdAt: createdAtDateString,
+        createdAt: createdAtTimestamp,
         createdByDeviceId: deviceId,
-        updatedAt: createdAtDateString,
+        updatedAt: createdAtTimestamp,
         updatedByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -49,7 +49,7 @@ export async function toSqliteCategorizer(
     // If the tag is already existed, update the sqlite tag if any difference
     let updated = false;
     const updatedTimestamp = createdAtTimestamp;
-    const updatedDateTime = createdAtDateString;
+    const updatedDateTime = createdAtTimestamp;
     const sqliteTagVersions: z.infer<typeof zTagFieldVersion>[] = [];
     if (existedSqliteTag.name !== categorizer.name) {
       existedSqliteTag.name = categorizer.name;
@@ -110,10 +110,10 @@ export async function toSqliteCategorizer(
         colour: ensureUndefinedToNull(categorizer.color),
         description: null,
         parentId: null,
-        createdAt: createdAtDateString,
+        createdAt: createdAtTimestamp,
         createdByDeviceId: deviceId,
         libraryId: await ensureLibraryId(),
-        updatedAt: createdAtDateString,
+        updatedAt: createdAtTimestamp,
         updatedByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -125,13 +125,12 @@ export async function toSqliteCategorizer(
     // If the folder is already existed, update the sqlite folder if any difference
     let updated = false;
     const updatedAt = new Date();
-    const updatedAtString = updatedAt.toISOString();
     const updatedTimestamp = updatedAt.getTime();
     const sqliteFolderVersions: z.infer<typeof zFolderFieldVersion>[] = [];
     if (existedSqliteFolder.name !== categorizer.name) {
       existedSqliteFolder.name = categorizer.name;
       updated = true;
-      existedSqliteFolder.updatedAt = updatedAtString;
+      existedSqliteFolder.updatedAt = updatedTimestamp;
       existedSqliteFolder.updatedByDeviceId = deviceId;
       sqliteFolderVersions.push({
         id: uuidv4(),
@@ -140,7 +139,7 @@ export async function toSqliteCategorizer(
         value: createFieldVersionValue('update', existedSqliteFolder.name, categorizer.name),
         timestamp: updatedTimestamp,
         deviceId: deviceId,
-        createdAt: updatedAtString,
+        createdAt: updatedTimestamp,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -149,7 +148,7 @@ export async function toSqliteCategorizer(
     if (existedSqliteFolder.colour !== categorizer.color) {
       existedSqliteFolder.colour = categorizer.color;
       updated = true;
-      existedSqliteFolder.updatedAt = updatedAtString;
+      existedSqliteFolder.updatedAt = updatedTimestamp;
       existedSqliteFolder.updatedByDeviceId = deviceId;
       sqliteFolderVersions.push({
         id: uuidv4(),
@@ -158,7 +157,7 @@ export async function toSqliteCategorizer(
         value: createFieldVersionValue('update', existedSqliteFolder.colour, categorizer.color),
         timestamp: updatedTimestamp,
         deviceId: deviceId,
-        createdAt: updatedAtString,
+        createdAt: updatedTimestamp,
         createdByDeviceId: deviceId,
         deletedAt: null,
         deletedByDeviceId: null,
@@ -184,7 +183,7 @@ export async function deleteSqliteTag(name: string): Promise<void> {
   const existedSqliteTag = await db.selectFrom("tag").where("name", "=", name).selectAll().executeTakeFirst();
   if (existedSqliteTag) {
     await db.updateTable("tag").set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: new Date().getTime(),
       deletedByDeviceId: deviceId,
     }).where("id", "=", existedSqliteTag.id).execute();
     // Also delete the tagFieldVersion
@@ -197,7 +196,7 @@ export async function deleteSqliteTag(name: string): Promise<void> {
       const createdAtTimestamp = createdAtDate.getTime();
       await db.insertInto("paperTag").values({
         id: uuidv4(),
-        createdAt: new Date().toISOString(),
+        createdAt: new Date().getTime(),
         op: "remove",
         timestamp: createdAtTimestamp,
         deviceId: deviceId,
@@ -216,7 +215,7 @@ export async function deleteSqliteFolder(legacyOid: string): Promise<void> {
   const existedSqliteFolder = await db.selectFrom("folder").where("legacyOid", "=", legacyOid).selectAll().executeTakeFirst();
   if (existedSqliteFolder) {
     await db.updateTable("folder").set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: new Date().getTime(),
       deletedByDeviceId: deviceId,
     }).where("id", "=", existedSqliteFolder.id).execute();
     // Also delete the folderFieldVersion
@@ -229,7 +228,7 @@ export async function deleteSqliteFolder(legacyOid: string): Promise<void> {
       const createdAtTimestamp = createdAtDate.getTime();
       await db.insertInto("paperFolder").values({
         id: uuidv4(),
-        createdAt: createdAtDateString,
+        createdAt: createdAtTimestamp,
         op: "remove",
         timestamp: createdAtTimestamp,
         deviceId: deviceId,
