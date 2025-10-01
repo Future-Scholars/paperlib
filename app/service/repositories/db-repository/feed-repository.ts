@@ -6,7 +6,7 @@ import { Colors } from "@/models/categorizer";
 import { Feed, IFeedCollection, IFeedObject, IFeedRealmObject } from "@/models/feed";
 import { OID } from "@/models/id";
 import { ObjectId } from "bson";
-import { toSqliteFeed, deleteSqliteFeed } from "@/service/services/sync/sqlite-pollyfill";
+import { toSqliteFeed, deleteSqliteFeed } from "@/service/services/sync/pollyfills/feed";
 import { ILogService, LogService } from "@/common/services/log-service";
 export interface IFeedRepositoryState {
   updated: number;

@@ -13,7 +13,7 @@ import {
 } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { Entity } from "@/models/entity";
-import { deleteSqliteCategorizer, toSqliteCategorizer } from "@/service/services/sync/sqlite-pollyfill";
+import { deleteSqliteCategorizer, toSqliteCategorizer } from "@/service/services/sync/pollyfills/categorizer";
 
 export interface ICategorizerRepositoryState {
   tagsUpdated: number;
