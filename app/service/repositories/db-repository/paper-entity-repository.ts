@@ -12,7 +12,7 @@ import {
   ICategorizerRepository,
 } from "./categorizer-repository";
 
-import { deleteSqliteEntity, toSqliteEntity } from "@/service/services/sync/sqlite-pollyfill";
+import { deleteSqlitePaper, toSqlitePaper } from "@/service/services/sync/pollyfills/paper";
 
 export interface IPaperEntityRepositoryState {
   count: number;
@@ -112,7 +112,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
 
     // Write to sqlite database if not exists
     objects.forEach(async (object) => {
-      await toSqliteEntity(object, this._logService);
+      await toSqlitePaper(object, this._logService);
     });
     
     return objects.sorted(sortBy, sortOrder === "desc");
@@ -219,7 +219,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
       });
 
       // sync changes to sqlite database
-      toSqliteEntity(paperEntity, this._logService);
+      toSqlitePaper(paperEntity, this._logService);
 
       if (object) {
         if (!allowUpdate) {
@@ -329,7 +329,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
       // Wait for all SQLite delete operations to complete
       await Promise.all(ids.map(async (id) => {
         this._logService.info("Deleting sqlite paper entity by id", id.toString(), false, "Entity");
-        await deleteSqliteEntity(id.toString());
+        await deleteSqlitePaper(id.toString());
       }));
     }
 
