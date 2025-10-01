@@ -48,11 +48,11 @@ export const zPaper = z.object({
   read: z.number().nullable(),
   feedId: z.string().nullable(),
   feedItemId: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime().nullable(),
+  updatedAt: z.number().positive().nullable(),
   updatedByDeviceId: z.string().nullable(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type Paper = z.infer<typeof zPaper>;
@@ -97,9 +97,9 @@ export const zPaperFieldVersion = z.object({
   timestamp: z.number().positive(),
   deviceId: z.string(),
   hash: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type PaperFieldVersion = z.infer<typeof zPaperFieldVersion>;
@@ -112,11 +112,11 @@ export const zAuthor = z.object({
   orcid: z.string().nullable(),
   firstName: z.string().nullable(),
   lastName: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime().nullable(),
+  updatedAt: z.number().positive().nullable(),
   updatedByDeviceId: z.string().nullable(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 
@@ -138,9 +138,9 @@ export const zAuthorFieldVersion = z.object({
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
-  createdAt: z.string(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 
@@ -151,11 +151,11 @@ export const zTag = z.object({
   name: z.string(),
   description: z.string().nullable(),
   colour: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime().nullable(),
+  updatedAt: z.number().positive().nullable(),
   updatedByDeviceId: z.string().nullable(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 
@@ -174,9 +174,9 @@ export const zTagFieldVersion = z.object({
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type TagFieldVersion = z.infer<typeof zTagFieldVersion>;
@@ -189,11 +189,11 @@ export const zFolder = z.object({
   description: z.string().nullable(),
   parentId: z.string().nullable(),
   libraryId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime().nullable(),
+  updatedAt: z.number().positive().nullable(),
   updatedByDeviceId: z.string().nullable(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type Folder = z.infer<typeof zFolder>;
@@ -212,9 +212,9 @@ export const zFolderFieldVersion = z.object({
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type FolderFieldVersion = z.infer<typeof zFolderFieldVersion>;
@@ -226,11 +226,11 @@ export const zSupplement = z.object({
   value: z.string(),
   type: SupplementTypeEnum,
   description: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime().nullable(),
+  updatedAt: z.number().positive().nullable(),
   updatedByDeviceId: z.string().nullable(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type Supplement = z.infer<typeof zSupplement>;
@@ -249,9 +249,9 @@ export const zSupplementFieldVersion = z.object({
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type SupplementFieldVersion = z.infer<typeof zSupplementFieldVersion>;
@@ -261,11 +261,11 @@ export const zLibrary = z.object({
   name: z.string(),
   description: z.string().nullable(),
   ownedBy: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime().nullable(),
+  updatedAt: z.number().positive().nullable(),
   updatedByDeviceId: z.string().nullable(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type Library = z.infer<typeof zLibrary>;
@@ -283,9 +283,9 @@ export const zLibraryFieldVersion = z.object({
   value: z.string().nullable(),
   timestamp: z.number().positive(),
   deviceId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type LibraryFieldVersion = z.infer<typeof zLibraryFieldVersion>;
@@ -301,11 +301,11 @@ export const zFeed = z.object({
   url: z.string(),
   count: z.number().nullable(),
   color: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime().nullable(),
+  updatedAt: z.number().positive().nullable(),
   updatedByDeviceId: z.string().nullable(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type Feed = z.infer<typeof zFeed>;
@@ -327,9 +327,9 @@ export const zFeedFieldVersion = z.object({
   timestamp: z.number().positive(),
   deviceId: z.string(),
   hash: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type FeedFieldVersion = z.infer<typeof zFeedFieldVersion>;
@@ -341,9 +341,9 @@ export const zPaperAuthor = z.object({
   op: z.enum(['add', 'remove']),
   timestamp: z.number().positive(),
   deviceId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type PaperAuthor = z.infer<typeof zPaperAuthor>;
@@ -355,9 +355,9 @@ export const zPaperTag = z.object({
   op: z.enum(['add', 'remove']),
   timestamp: z.number().positive(),
   deviceId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type PaperTag = z.infer<typeof zPaperTag>;
@@ -369,9 +369,9 @@ export const zPaperFolder = z.object({
   op: z.enum(['add', 'remove']),
   timestamp: z.number().positive(),
   deviceId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type PaperFolder = z.infer<typeof zPaperFolder>;
@@ -383,9 +383,9 @@ export const zPaperSupplement = z.object({
   op: z.enum(['add', 'remove']),
   timestamp: z.number().positive(),
   deviceId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type PaperSupplement = z.infer<typeof zPaperSupplement>;
@@ -395,11 +395,11 @@ export const zLibraryShare = z.object({
   libraryId: z.string(),
   userId: z.string(),
   permission: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
-  updatedAt: z.string().datetime().nullable(),
+  updatedAt: z.number().positive().nullable(),
   updatedByDeviceId: z.string().nullable(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: z.number().positive().nullable(),
   deletedByDeviceId: z.string().nullable(),
 });
 export type LibraryShare = z.infer<typeof zLibraryShare>;

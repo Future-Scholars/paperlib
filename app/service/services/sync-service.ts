@@ -6,11 +6,9 @@
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { processing, ProcessingKey } from "@/common/utils/processing";
-import ElectronStore from "electron-store";
 import * as openidClient from "openid-client";
-import { z } from "zod";
 import { DEFAULT_SYNC_STATE, ISyncState, syncStateStore } from "./sync/states";
-import { pull } from "./sync/sync-client";
+import { attach, pull, push } from "./sync/sync-client";
 
 export interface ISyncServiceState {
   connected: boolean;
@@ -39,8 +37,6 @@ export class SyncService extends Eventable<ISyncServiceState> {
   constructor() {
     super("syncService", _DEFAULTSTATE);
   }
-
-  private syncBaseUrl = new URL("https://coral-app-uijy2.ondigitalocean.app/");
 
   private _setStoreValue<K extends keyof ISyncState>(
     key: K,
@@ -149,7 +145,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       client_id: "JzGo9xzn3zbHM4He86JeHOCOu9FVAdim",
       redirect_uri:
         "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback",
-      audience: this.syncBaseUrl.origin,
+      audience: "636fa950-8dc8-4aa5-a34c-32596b02b9c9",
     };
 
     const authorizationUrl = openidClient.buildAuthorizationUrl(
@@ -247,7 +243,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // 6) Update user preferences
     await PLMainAPI.preferenceService.set({ useSync: "official" });
-
+    await attach("main");
     // 7) Schedule a sync
     PLAPILocal.schedulerService.createTask(
       "syncService.invokeSync",
@@ -313,13 +309,13 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
   // ---------------------------
   // Initiate sync
- // 1. Get accessToken
- // 2. Pull remote `syncLogs` first
- // 3. Read local `syncLogs`
- // 4. **Merge using `last write wins` rule based on `log_id`**
- // 5. **Apply merged `syncLogs` to local**
- // 6. Push `mergedSyncLogs` to server
- // 7. Clear local `syncLogs` after confirming successful push
+  // 1. Get accessToken
+  // 2. Pull remote `syncLogs` first
+  // 3. Read local `syncLogs`
+  // 4. **Merge using `last write wins` rule based on `log_id`**
+  // 5. **Apply merged `syncLogs` to local**
+  // 6. Push `mergedSyncLogs` to server
+  // 7. Clear local `syncLogs` after confirming successful push
   // ---------------------------
   public async invokeSync() {
     // TODO: check if network is available.
@@ -331,25 +327,13 @@ export class SyncService extends Eventable<ISyncServiceState> {
     }
 
     this.fire({ syncProgress: 0.2 });
-
-    // 2) Pull incremental logs from the remote
-    // TODO: implement
-
-    // 3) Process the data returned from the remote and merge it with the local database
-
-
-
     await pull();
+    this.fire({ syncProgress: 0.5 });
+    await push();
+    syncStateStore.delete("lastSyncAt");
+    syncStateStore.set("lastSyncAt", new Date().getTime());
+    this.fire({ syncProgress: 1 });
 
-    let synced = false;
-    // 4) Push local logs to the server
-
-    // 5) Execute merge logic
-
-
-    if (synced) {
-      this._setStoreValue("lastSyncAt", new Date().toISOString());
-    }
   }
 
 
