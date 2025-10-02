@@ -35,7 +35,12 @@ export async function attach(library: "main" | "feeds") {
       "Authorization": `Bearer ${syncStateStore.get("accessToken")}`,
     },
     body: JSON.stringify(attachRequest),
-  }).then(response => response.json()).catch(error => {
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+    return response.json();
+  }).catch(error => {
     console.error("Failed to attach library", error);
     throw error;
   });
@@ -86,7 +91,12 @@ export async function pull() {
   apiUrl.searchParams.set("deviceId", deviceId);
   const response: z.infer<typeof zPullResponse> = await fetch(apiUrl, {
     method: "GET",
-  }).then(response => response.json()).catch(error => {
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+    return response.json();
+  }).catch(error => {
     console.error("Failed to pull", error);
     throw error;
   });
@@ -260,7 +270,12 @@ export async function push() {
       "Authorization": `Bearer ${syncStateStore.get("accessToken")}`,
     },
     body: JSON.stringify(request),
-  }).then(response => response.json()).catch(error => {
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+    return response.json();
+  }).catch(error => {
     console.error("Failed to push", error);
     throw error;
   });

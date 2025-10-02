@@ -9,15 +9,19 @@ import { processing, ProcessingKey } from "@/common/utils/processing";
 import * as openidClient from "openid-client";
 import { DEFAULT_SYNC_STATE, ISyncState, syncStateStore } from "./sync/states";
 import { attach, pull, push } from "./sync/sync-client";
+import { UserInfoResponse } from "openid-client";
+import { ILogService, LogService } from "@/common/services/log-service";
 
 export interface ISyncServiceState {
   connected: boolean;
   syncProgress: number; // -1: not syncing, positive: syncing [0, 1]
+  userInfo: UserInfoResponse | null;
 }
 
 const _DEFAULTSTATE: ISyncServiceState = {
   connected: false,
   syncProgress: -1,
+  userInfo: null,
 };
 
 
@@ -34,7 +38,9 @@ const _DEFAULTSTATE: ISyncServiceState = {
 export class SyncService extends Eventable<ISyncServiceState> {
   private _openidClientConfig?: openidClient.Configuration;
 
-  constructor() {
+  constructor(
+    @ILogService private readonly _logService: LogService
+  ) {
     super("syncService", _DEFAULTSTATE);
   }
 
@@ -108,6 +114,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
           false
         );
       }
+
       // Schedule a sync and create a sync task
       PLAPILocal.schedulerService.createTask(
         "syncService.invokeSync",
@@ -118,6 +125,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
         false
       );
     }
+    this._logService.info("SyncService initialized");
   }
 
   @processing(ProcessingKey.General)
@@ -141,11 +149,11 @@ export class SyncService extends Eventable<ISyncServiceState> {
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
       nonce,
-      scope: "offline_access openid profile email sync:read sync:write",
+      scope: "offline_access openid profile email sync.read",
       client_id: "JzGo9xzn3zbHM4He86JeHOCOu9FVAdim",
       redirect_uri:
         "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback",
-      audience: "636fa950-8dc8-4aa5-a34c-32596b02b9c9",
+      audience: "http://localhost:3001",
     };
 
     const authorizationUrl = openidClient.buildAuthorizationUrl(
@@ -193,6 +201,8 @@ export class SyncService extends Eventable<ISyncServiceState> {
       );
 
       this._setStoreValue("userInfo", userInfo);
+      this._setStoreValue("connected", true);
+      this.fire({ userInfo: userInfo });
     }
   }
 
@@ -325,14 +335,21 @@ export class SyncService extends Eventable<ISyncServiceState> {
     if (!accessToken) {
       throw new Error("Access token is not available for syncing.");
     }
-
-    this.fire({ syncProgress: 0.2 });
-    await pull();
-    this.fire({ syncProgress: 0.5 });
-    await push();
-    syncStateStore.delete("lastSyncAt");
-    syncStateStore.set("lastSyncAt", new Date().getTime());
-    this.fire({ syncProgress: 1 });
+    try {
+      this.fire({ syncProgress: 0.3 });
+      await pull();
+      this.fire({ syncProgress: 0.7 });
+      await push();
+      syncStateStore.delete("lastSyncAt");
+      syncStateStore.set("lastSyncAt", new Date().getTime());
+      this.fire({ syncProgress: 1 });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Unauthorized")) {
+        this.handleLogoutOfficialCallback("");
+      } else {
+        throw error;
+      }
+    }
 
   }
 
@@ -363,6 +380,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
         sub
       );
       this._setStoreValue("userInfo", userInfo);
+      this.fire({ userInfo: userInfo });
       return userInfo;
     }
     this.handleLogoutOfficialCallback("");
