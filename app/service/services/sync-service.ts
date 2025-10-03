@@ -337,13 +337,13 @@ export class SyncService extends Eventable<ISyncServiceState> {
     }
     try {
       await attach("main");
-      this.fire({ syncProgress: 0.3 });
+      // this.fire({ syncProgress: 0.3 });
       await pull();
-      this.fire({ syncProgress: 0.7 });
+      // this.fire({ syncProgress: 0.7 });
       await push();
       syncStateStore.delete("lastSyncAt");
       syncStateStore.set("lastSyncAt", new Date().getTime());
-      this.fire({ syncProgress: 1 });
+      // this.fire({ syncProgress: 1 });
     } catch (error) {
       // if (error instanceof Error && error.message.includes("Unauthorized")) {
       //   this.handleLogoutOfficialCallback("");

@@ -33,5 +33,6 @@ crypto
 package-lock.json
 
 *.db
+*.db-journal
 *.sqlite
 .cursorrules

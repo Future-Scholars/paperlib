@@ -69,7 +69,6 @@ export async function ensureLibraryId(library?: string): Promise<string> {
     .where("deletedAt", "is", null)
     .selectAll()
     .executeTakeFirst();
-  console.log("existedSqliteLibrary", existedSqliteLibrary);
   if (!existedSqliteLibrary) {
     const newSqliteLibrary: z.infer<typeof zLibrary> = {
       id: uuidv4(),

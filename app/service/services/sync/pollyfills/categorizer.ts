@@ -112,7 +112,7 @@ export async function toSqliteCategorizer(
         parentId: null,
         createdAt: createdAtTimestamp,
         createdByDeviceId: deviceId,
-        libraryId: await ensureLibraryId(),
+        libraryId: await ensureLibraryId("main"),
         updatedAt: createdAtTimestamp,
         updatedByDeviceId: deviceId,
         deletedAt: null,

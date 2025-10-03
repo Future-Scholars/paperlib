@@ -95,7 +95,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     }
 
     if (fulltextQuerySentence) {
-      const allPaperEntities = this._paperEntityRepository.load(
+      const allPaperEntities = await this._paperEntityRepository.load(
         await this._databaseCore.realm(),
         querySentence,
         sortBy,
@@ -112,7 +112,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
         querySentence = PaperFilterOptions.parseDateFilter(querySentence);
       }
 
-      return this._paperEntityRepository.load(
+      return await this._paperEntityRepository.load(
         await this._databaseCore.realm(),
         querySentence,
         sortBy,
@@ -572,7 +572,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       true,
       "PaperService"
     );
-    const preprintPaperEntities = this._paperEntityRepository.load(
+    const preprintPaperEntities = await this._paperEntityRepository.load(
       await this._databaseCore.realm(),
       '(publication contains[c] "arXiv") OR (publication contains[c] "openreview") OR publication == ""',
       "addTime",
