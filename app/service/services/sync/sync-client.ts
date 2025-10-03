@@ -12,6 +12,8 @@ async function requestAPI(url: URL, method: string, body: any): Promise<any> {
   if (!accessToken) {
     throw new Error("Access token is not available for syncing.");
   }
+  console.log("Requesting API", url, method, body);
+  console.log("Access token", accessToken);
   return await fetch(url, {
     method: method,
     headers: {
@@ -61,7 +63,9 @@ export async function attach(library: "main" | "feeds") {
       }).where("id", "=", libraryId).execute();
 
       await tx.commit();
+      console.log("Attached");
     } catch (error) {
+      console.error("Failed to attach", error);
       await tx.rollback();
       throw error;
     }
@@ -72,13 +76,16 @@ export async function attach(library: "main" | "feeds") {
 export async function pull() {
   const apiUrl = new URL(SYNC_BASE_URL);
   apiUrl.pathname = "/api/v1/sync/pull";
+  console.log("Pulling");
   const libraryId = await ensureLibraryId("main");
+  console.log("Library ID", libraryId);
   const deviceId = syncStateStore.get("deviceId");
   const since = syncStateStore.get("lastSyncAt") || new Date().toISOString();
   apiUrl.searchParams.set("since", since);
   apiUrl.searchParams.set("libraryId", libraryId);
   apiUrl.searchParams.set("deviceId", deviceId);
   const response: z.infer<typeof zPullResponse> = await requestAPI(apiUrl, "GET", undefined);
+  console.log("response", response);
   if (!response.success) {
     throw new Error(response.message || "Failed to pull");
   }
@@ -242,7 +249,9 @@ export async function push() {
     libraryId: libraryId,
     deviceId: deviceId,
   }
+  console.log("Push request", request);
   const response: z.infer<typeof zSyncPushResponse> = await requestAPI(apiUrl, "POST", request);
+  console.log("Push response", response);
   if (!response.success) {
     throw new Error(response.message || "Failed to push");
   }

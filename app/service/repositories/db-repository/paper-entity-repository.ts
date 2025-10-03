@@ -218,8 +218,6 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
         }
       });
 
-      // sync changes to sqlite database
-      toSqlitePaper(paperEntity, this._logService);
 
       if (object) {
         if (!allowUpdate) {

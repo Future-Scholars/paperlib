@@ -66,9 +66,10 @@ export async function ensureLibraryId(library?: string): Promise<string> {
   // Try get the existed sqlite library by legacy oid
   const existedSqliteLibrary: SqliteLibrary | undefined = await db.selectFrom("library")
     .where("name", "=", library ?? "main")
+    .where("deletedAt", "is", null)
     .selectAll()
     .executeTakeFirst();
-
+  console.log("existedSqliteLibrary", existedSqliteLibrary);
   if (!existedSqliteLibrary) {
     const newSqliteLibrary: z.infer<typeof zLibrary> = {
       id: uuidv4(),
