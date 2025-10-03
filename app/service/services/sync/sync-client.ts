@@ -60,25 +60,6 @@ export async function attach(library: "main" | "feeds") {
         id: response.attached.libraryId,
       }).where("id", "=", libraryId).execute();
 
-      tx.updateTable("paper").set({
-        libraryId: response.attached.libraryId,
-      }).where("libraryId", "=", libraryId).execute();
-
-      tx.updateTable("folder").set({
-        libraryId: response.attached.libraryId,
-      }).where("libraryId", "=", libraryId).execute();
-
-      tx.updateTable("libraryFieldVersion").set({
-        libraryId: response.attached.libraryId,
-      }).where("libraryId", "=", libraryId).execute();
-
-      tx.updateTable("feed").set({
-        libraryId: response.attached.libraryId,
-      }).where("libraryId", "=", libraryId).execute();
-
-      tx.updateTable("libraryShare").set({
-        libraryId: response.attached.libraryId,
-      }).where("libraryId", "=", libraryId).execute();
       await tx.commit();
     } catch (error) {
       await tx.rollback();
