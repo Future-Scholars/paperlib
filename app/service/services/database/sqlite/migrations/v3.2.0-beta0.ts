@@ -28,6 +28,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('lastName', 'text')
     .addColumn('createdAt', 'numeric', (col) => col.notNull())
     .addColumn('createdByDeviceId', 'text', (col) => col.notNull())
+    .addColumn('updatedAt', 'numeric')
+    .addColumn('updatedByDeviceId', 'text')
     .addColumn('deletedAt', 'numeric')
     .addColumn('deletedByDeviceId', 'text')
     .execute()

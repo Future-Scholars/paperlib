@@ -58,17 +58,18 @@ export async function attach(library: "main" | "feeds") {
     // Update all local library ids to the response library id
     const tx = await db.startTransaction().execute();
     try {
-      tx.updateTable("library").set({
+      await tx.updateTable("library").set({
         id: response.attached.libraryId,
       }).where("id", "=", libraryId).execute();
 
-      await tx.commit();
-      console.log("Attached");
+      await tx.commit().execute();
+      console.log("Updated library id transaction committed successfully");
     } catch (error) {
       console.error("Failed to attach", error);
       await tx.rollback();
       throw error;
     }
+    console.log("Attached");
   }
 }
 
@@ -80,7 +81,8 @@ export async function pull() {
   const libraryId = await ensureLibraryId("main");
   console.log("Library ID", libraryId);
   const deviceId = syncStateStore.get("deviceId");
-  const since = syncStateStore.get("lastSyncAt") || new Date().toISOString();
+  const sinceTimestamp = syncStateStore.get("lastSyncAt")
+  const since = sinceTimestamp ? new Date(sinceTimestamp).toISOString() : new Date().toISOString();
   apiUrl.searchParams.set("since", since);
   apiUrl.searchParams.set("libraryId", libraryId);
   apiUrl.searchParams.set("deviceId", deviceId);

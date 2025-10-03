@@ -77,7 +77,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param sortOrder - Sort order.
    * @returns - Results of paper entities.
    */
-  load(
+  async load(
     realm: Realm,
     filter: string,
     sortBy: string,
@@ -111,9 +111,9 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     }
 
     // Write to sqlite database if not exists
-    objects.forEach(async (object) => {
+    for (const object of objects) {
       await toSqlitePaper(object, this._logService);
-    });
+    }
     
     return objects.sorted(sortBy, sortOrder === "desc");
   }
