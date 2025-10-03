@@ -7,6 +7,29 @@ import CRDT from "./crdt";
 // const syncBaseUrl = new URL("https://coral-app-uijy2.ondigitalocean.app/");
 export const SYNC_BASE_URL = "http://localhost:3001/"; // TODO: For testing
 
+async function requestAPI(url: URL, method: string, body: any): Promise<any> {
+  const accessToken = syncStateStore.get("accessToken");
+  if (!accessToken) {
+    throw new Error("Access token is not available for syncing.");
+  }
+  return await fetch(url, {
+    method: method,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(body),
+  }).then(async response => {
+    if (!response.ok) {
+      console.error("Failed to request API", await response.json());
+      throw new Error(response.statusText);
+    }
+    return await response.json();
+  }).catch(error => {
+    console.error("Failed to request API", error);
+    throw error;
+  });
+}
 
 export async function attach(library: "main" | "feeds") {
   const apiUrl = new URL(SYNC_BASE_URL);
@@ -28,22 +51,7 @@ export async function attach(library: "main" | "feeds") {
       deviceId: deviceId,
     },
   };
-  const response: z.infer<typeof zAttachResponse> = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${syncStateStore.get("accessToken")}`,
-    },
-    body: JSON.stringify(attachRequest),
-  }).then(response => {
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    return response.json();
-  }).catch(error => {
-    console.error("Failed to attach library", error);
-    throw error;
-  });
+  const response: z.infer<typeof zAttachResponse> = await requestAPI(apiUrl, "POST", attachRequest);
   if (response.attached.libraryId !== libraryId) {
     // Update all local library ids to the response library id
     const tx = await db.startTransaction().execute();
@@ -89,17 +97,7 @@ export async function pull() {
   apiUrl.searchParams.set("since", since);
   apiUrl.searchParams.set("libraryId", libraryId);
   apiUrl.searchParams.set("deviceId", deviceId);
-  const response: z.infer<typeof zPullResponse> = await fetch(apiUrl, {
-    method: "GET",
-  }).then(response => {
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    return response.json();
-  }).catch(error => {
-    console.error("Failed to pull", error);
-    throw error;
-  });
+  const response: z.infer<typeof zPullResponse> = await requestAPI(apiUrl, "GET", undefined);
   if (!response.success) {
     throw new Error(response.message || "Failed to pull");
   }
@@ -263,25 +261,11 @@ export async function push() {
     libraryId: libraryId,
     deviceId: deviceId,
   }
-  const response: z.infer<typeof zSyncPushResponse> = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${syncStateStore.get("accessToken")}`,
-    },
-    body: JSON.stringify(request),
-  }).then(response => {
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    return response.json();
-  }).catch(error => {
-    console.error("Failed to push", error);
-    throw error;
-  });
+  const response: z.infer<typeof zSyncPushResponse> = await requestAPI(apiUrl, "POST", request);
   if (!response.success) {
     throw new Error(response.message || "Failed to push");
   }
+  syncStateStore.set("lastSyncAt", new Date().getTime());
 
 }
 

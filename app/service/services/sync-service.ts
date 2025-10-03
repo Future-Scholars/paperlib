@@ -336,6 +336,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       throw new Error("Access token is not available for syncing.");
     }
     try {
+      await attach("main");
       this.fire({ syncProgress: 0.3 });
       await pull();
       this.fire({ syncProgress: 0.7 });
@@ -344,11 +345,12 @@ export class SyncService extends Eventable<ISyncServiceState> {
       syncStateStore.set("lastSyncAt", new Date().getTime());
       this.fire({ syncProgress: 1 });
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Unauthorized")) {
-        this.handleLogoutOfficialCallback("");
-      } else {
-        throw error;
-      }
+      // if (error instanceof Error && error.message.includes("Unauthorized")) {
+      //   this.handleLogoutOfficialCallback("");
+      // } else {
+      //   throw error;
+      // }
+      throw error;
     }
 
   }
@@ -437,6 +439,10 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // Update user preferences
     await PLMainAPI.preferenceService.set({ useSync: "none" });
+
+    // Clear scheduled tasks
+    PLAPILocal.schedulerService.removeTask("syncService.refresh");
+    PLAPILocal.schedulerService.removeTask("syncService.invokeSync");
   }
 
   useState(): ISyncServiceState {
