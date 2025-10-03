@@ -28,8 +28,8 @@ export async function mergePaperTagORSet(
       op: relationChange.data.op,
       timestamp: relationChange.data.timestamp,
       deviceId: relationChange.data.deviceId,
-      createdAt: relationChange.data.createdAt,
-      createdByDeviceId: relationChange.data.createdByDeviceId,
+      createdAt: new Date(relationChange.data.timestamp).getTime(),
+      createdByDeviceId: relationChange.data.deviceId,
     })
     .execute()
 
@@ -67,8 +67,8 @@ export async function mergePaperAuthorORSet(
       op: relationChange.data.op,
       timestamp: relationChange.data.timestamp,
       deviceId: relationChange.data.deviceId,
-      createdAt: relationChange.data.createdAt,
-      createdByDeviceId: relationChange.data.createdByDeviceId,
+      createdAt: new Date(relationChange.data.timestamp).getTime(),
+      createdByDeviceId: relationChange.data.deviceId,
     })
     .execute()
 
@@ -106,8 +106,8 @@ export async function mergePaperFolderORSet(
       op: relationChange.data.op,
       timestamp: relationChange.data.timestamp,
       deviceId: relationChange.data.deviceId,
-      createdAt: relationChange.data.createdAt,
-      createdByDeviceId: relationChange.data.createdByDeviceId,
+      createdAt: new Date(relationChange.data.timestamp).getTime(),
+      createdByDeviceId: relationChange.data.deviceId,
     })
     .execute()
 
@@ -145,8 +145,8 @@ export async function mergePaperSupplementORSet(
       op: relationChange.data.op,
       timestamp: relationChange.data.timestamp,
       deviceId: relationChange.data.deviceId,
-      createdAt: relationChange.data.createdAt,
-      createdByDeviceId: relationChange.data.createdByDeviceId,
+      createdAt: new Date(relationChange.data.timestamp).getTime(),
+      createdByDeviceId: relationChange.data.deviceId,
     })
     .execute()
 

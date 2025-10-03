@@ -298,9 +298,12 @@ async function pushPapers(libraryId: string, since?: Date): Promise<{
         model: 'paper',
         data: {
           ...paper,
-          createdAt: paper.createdAt,
-          updatedAt: paper.updatedAt ?? null,
-          deletedAt: paper.deletedAt ?? null,
+          flag: paper.flag ? true : false,
+          read: paper.read ? true : false,
+          rating: paper.rating ?? 0,
+          createdAt: new Date(paper.createdAt).toISOString(),
+          updatedAt: paper.updatedAt ? new Date(paper.updatedAt).toISOString() : null,
+          deletedAt: paper.deletedAt ? new Date(paper.deletedAt).toISOString() : null,
         }
       });
     }
@@ -310,9 +313,12 @@ async function pushPapers(libraryId: string, since?: Date): Promise<{
         model: 'paper',
         data: {
           ...paper,
-          createdAt: paper.createdAt,
-          updatedAt: paper.updatedAt ?? null,
-          deletedAt: paper.deletedAt ?? null,
+          flag: paper.flag ? true : false,
+          read: paper.read ? true : false,
+          rating: paper.rating ?? 0,
+          createdAt: new Date(paper.createdAt).toISOString(),
+          updatedAt: paper.updatedAt ? new Date(paper.updatedAt).toISOString() : null,
+          deletedAt: paper.deletedAt ? new Date(paper.deletedAt).toISOString() : null,
         }
       });
     }
@@ -331,8 +337,8 @@ async function pushPapers(libraryId: string, since?: Date): Promise<{
           data: {
             ...fieldVersion,
             timestamp: fieldVersion.timestamp,
-            createdAt: fieldVersion.createdAt,
-            deletedAt: fieldVersion.deletedAt ?? null,
+            createdAt: new Date(fieldVersion.createdAt).toISOString(),
+            deletedAt: fieldVersion.deletedAt ? new Date(fieldVersion.deletedAt).toISOString() : null,
           }
         });
       }
@@ -453,9 +459,9 @@ async function pushAuthors(since?: Date): Promise<{
         model: 'author',
         data: {
           ...authorEntity,
-          createdAt: authorEntity.createdAt,
-          updatedAt: authorEntity.updatedAt ?? null,
-          deletedAt: authorEntity.deletedAt ?? null,
+          createdAt: new Date(authorEntity.createdAt).toISOString(),
+          updatedAt: authorEntity.updatedAt ? new Date(authorEntity.updatedAt).toISOString() : null,
+          deletedAt: authorEntity.deletedAt ? new Date(authorEntity.deletedAt).toISOString() : null,
         }
       });
     }
@@ -465,9 +471,9 @@ async function pushAuthors(since?: Date): Promise<{
         model: 'author',
         data: {
           ...authorEntity,
-          createdAt: authorEntity.createdAt,
-          updatedAt: authorEntity.updatedAt ?? null,
-          deletedAt: authorEntity.deletedAt ?? null,
+          createdAt: new Date(authorEntity.createdAt).toISOString(),
+          updatedAt: authorEntity.updatedAt ? new Date(authorEntity.updatedAt).toISOString() : null,
+          deletedAt: authorEntity.deletedAt ? new Date(authorEntity.deletedAt).toISOString() : null,
         }
       });
     }
@@ -486,8 +492,8 @@ async function pushAuthors(since?: Date): Promise<{
           data: {
             ...fieldVersion,
             timestamp: fieldVersion.timestamp,
-            createdAt: fieldVersion.createdAt,
-            deletedAt: fieldVersion.deletedAt ?? null,
+            createdAt: new Date(fieldVersion.createdAt).toISOString(),
+            deletedAt: fieldVersion.deletedAt ? new Date(fieldVersion.deletedAt).toISOString() : null,
           }
         });
       }
@@ -532,9 +538,9 @@ async function pushTags(since?: Date): Promise<{
         model: 'tag',
         data: {
           ...tag,
-          createdAt: tag.createdAt,
-          updatedAt: tag.updatedAt ?? null,
-          deletedAt: tag.deletedAt ? tag.deletedAt : null,
+          createdAt: new Date(tag.createdAt).toISOString(),
+          updatedAt: tag.updatedAt ? new Date(tag.updatedAt).toISOString() : null,
+          deletedAt: tag.deletedAt ? new Date(tag.deletedAt).toISOString() : null,
         }
       });
     }
@@ -544,9 +550,9 @@ async function pushTags(since?: Date): Promise<{
         model: 'tag',
         data: {
           ...tag,
-          createdAt: tag.createdAt,
-          updatedAt: tag.updatedAt ?? null,
-          deletedAt: tag.deletedAt ?? null,
+          createdAt: new Date(tag.createdAt).toISOString(),
+          updatedAt: tag.updatedAt ? new Date(tag.updatedAt).toISOString() : null,
+          deletedAt: tag.deletedAt ? new Date(tag.deletedAt).toISOString() : null,
         }
       });
     }
@@ -565,8 +571,8 @@ async function pushTags(since?: Date): Promise<{
           data: {
             ...fieldVersion,
             timestamp: fieldVersion.timestamp,
-            createdAt: fieldVersion.createdAt,
-            deletedAt: fieldVersion.deletedAt ?? null,
+            createdAt: new Date(fieldVersion.createdAt).toISOString(),
+            deletedAt: fieldVersion.deletedAt ? new Date(fieldVersion.deletedAt).toISOString() : null,
           }
         });
       }
@@ -615,9 +621,9 @@ async function pushFolders(libraryId: string, since?: Date): Promise<{
         model: 'folder',
         data: {
           ...folder,
-          createdAt: folder.createdAt,
-          updatedAt: folder.updatedAt ?? null,
-          deletedAt: folder.deletedAt ?? null,
+          createdAt: new Date(folder.createdAt).toISOString(),
+          updatedAt: folder.updatedAt ? new Date(folder.updatedAt).toISOString() : null,
+          deletedAt: folder.deletedAt ? new Date(folder.deletedAt).toISOString() : null,
         }
       });
     }
@@ -627,9 +633,9 @@ async function pushFolders(libraryId: string, since?: Date): Promise<{
         model: 'folder',
         data: {
           ...folder,
-          createdAt: folder.createdAt,
-          updatedAt: folder.updatedAt ?? null,
-          deletedAt: folder.deletedAt ?? null,
+          createdAt: new Date(folder.createdAt).toISOString(),
+          updatedAt: folder.updatedAt ? new Date(folder.updatedAt).toISOString() : null,
+          deletedAt: folder.deletedAt ? new Date(folder.deletedAt).toISOString() : null,
         }
       });
     }
@@ -648,8 +654,8 @@ async function pushFolders(libraryId: string, since?: Date): Promise<{
           data: {
             ...fieldVersion,
             timestamp: fieldVersion.timestamp,
-            createdAt: fieldVersion.createdAt,
-            deletedAt: fieldVersion.deletedAt ?? null,
+            createdAt: new Date(fieldVersion.createdAt).toISOString(),
+            deletedAt: fieldVersion.deletedAt ? new Date(fieldVersion.deletedAt).toISOString() : null,
           }
         });
       }
@@ -696,9 +702,9 @@ async function pushSupplements(since?: Date): Promise<
         model: 'supplement',
         data: {
           ...supplement,
-          createdAt: supplement.createdAt,
-          updatedAt: supplement.updatedAt ?? null,
-          deletedAt: supplement.deletedAt ?? null,
+          createdAt: new Date(supplement.createdAt).toISOString(),
+          updatedAt: supplement.updatedAt ? new Date(supplement.updatedAt).toISOString() : null,
+          deletedAt: supplement.deletedAt ? new Date(supplement.deletedAt).toISOString() : null,
         }
       });
     }
@@ -708,9 +714,9 @@ async function pushSupplements(since?: Date): Promise<
         model: 'supplement',
         data: {
           ...supplement,
-          createdAt: supplement.createdAt,
-          updatedAt: supplement.updatedAt ?? null,
-          deletedAt: supplement.deletedAt ?? null,
+          createdAt: new Date(supplement.createdAt).toISOString(),
+          updatedAt: supplement.updatedAt ? new Date(supplement.updatedAt).toISOString() : null,
+          deletedAt: supplement.deletedAt ? new Date(supplement.deletedAt).toISOString() : null,
         }
       });
     }
@@ -729,8 +735,8 @@ async function pushSupplements(since?: Date): Promise<
           data: {
             ...fieldVersion,
             timestamp: fieldVersion.timestamp,
-            createdAt: fieldVersion.createdAt,
-            deletedAt: fieldVersion.deletedAt ?? null,
+            createdAt: new Date(fieldVersion.createdAt).toISOString(),
+            deletedAt: fieldVersion.deletedAt ? new Date(fieldVersion.deletedAt).toISOString() : null,
           }
         });
       }
@@ -776,9 +782,10 @@ async function pushFeeds(libraryId: string, since?: Date): Promise<{
         model: 'feed',
         data: {
           ...feed,
-          createdAt: feed.createdAt,
-          updatedAt: feed.updatedAt ?? null,
-          deletedAt: feed.deletedAt ?? null,
+          count: feed.count ?? 0,
+          createdAt: new Date(feed.createdAt).toISOString(),
+          updatedAt: feed.updatedAt ? new Date(feed.updatedAt).toISOString() : null,
+          deletedAt: feed.deletedAt ? new Date(feed.deletedAt).toISOString() : null,
         }
       });
     }
@@ -788,9 +795,10 @@ async function pushFeeds(libraryId: string, since?: Date): Promise<{
         model: 'feed',
         data: {
           ...feed,
-          createdAt: feed.createdAt,
-          updatedAt: feed.updatedAt ?? null,
-          deletedAt: feed.deletedAt ?? null,
+          count: feed.count ?? 0,
+          createdAt: new Date(feed.createdAt).toISOString(),
+          updatedAt: feed.updatedAt ? new Date(feed.updatedAt).toISOString() : null,
+          deletedAt: feed.deletedAt ? new Date(feed.deletedAt).toISOString() : null,
         }
       });
     }
@@ -809,8 +817,8 @@ async function pushFeeds(libraryId: string, since?: Date): Promise<{
           data: {
             ...fieldVersion,
             timestamp: fieldVersion.timestamp,
-            createdAt: fieldVersion.createdAt,
-            deletedAt: fieldVersion.deletedAt ?? null,
+            createdAt: new Date(fieldVersion.createdAt).toISOString(),
+            deletedAt: fieldVersion.deletedAt ? new Date(fieldVersion.deletedAt).toISOString() : null,
           }
         });
       }

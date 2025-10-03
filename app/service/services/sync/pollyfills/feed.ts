@@ -62,14 +62,14 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
         deletedByDeviceId: null,
       });
     }
-    if (existedSqliteFeed.color !== feed.color) {
-      existedSqliteFeed.color = ensureUndefinedToNull(feed.color);
+    if (existedSqliteFeed.colour !== feed.color) {
+      existedSqliteFeed.colour = ensureUndefinedToNull(feed.color);
       updated = true;
       feedFieldVersions.push({
         id: uuidv4(),
         feedId: existedSqliteFeed.id,
         field: "color",
-        value: createFieldVersionValue('update', existedSqliteFeed.color, feed.color),
+        value: createFieldVersionValue('update', existedSqliteFeed.colour, feed.color),
         timestamp: createdAtTimestamp,
         deviceId: deviceId,
         hash: null,
@@ -119,7 +119,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
     type: "rss",
     url: feed.url,
     count: ensureUndefinedToNull(feed.count),
-    color: ensureUndefinedToNull(feed.color),
+    colour: ensureUndefinedToNull(feed.color),
     createdAt: createdAtTimestamp,
     createdByDeviceId: deviceId,
     updatedAt: null,

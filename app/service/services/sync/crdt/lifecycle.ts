@@ -68,16 +68,16 @@ export async function paperCreate(
       isbn: entityCreate.data.isbn,
       issn: entityCreate.data.issn,
       notes: entityCreate.data.notes,
-      flag: entityCreate.data.flag,
+      flag: entityCreate.data.flag ? 1 : 0,
       rating: entityCreate.data.rating,
-      read: entityCreate.data.read,
+      read: entityCreate.data.read ? 1 : 0,
       feedId: entityCreate.data.feedId,
       feedItemId: entityCreate.data.feedItemId,
-      createdAt: entityCreate.data.createdAt,
+      createdAt: new Date(entityCreate.data.createdAt).getTime(),
       createdByDeviceId: entityCreate.data.createdByDeviceId,
-      updatedAt: entityCreate.data.updatedAt ?? null,
+      updatedAt: entityCreate.data.updatedAt ? new Date(entityCreate.data.updatedAt).getTime() : null,
       updatedByDeviceId: entityCreate.data.updatedByDeviceId,
-      deletedAt: entityCreate.data.deletedAt ?? null,
+      deletedAt: entityCreate.data.deletedAt ? new Date(entityCreate.data.deletedAt).getTime() : null,
       deletedByDeviceId: entityCreate.data.deletedByDeviceId || null,
     })
     .execute()
@@ -95,7 +95,7 @@ export async function paperCreate(
           timestamp: new Date(entityCreate.data.createdAt).getTime(),
           deviceId: entityCreate.data.createdByDeviceId,
           hash: null,
-          createdAt: entityCreate.data.createdAt,
+          createdAt: new Date(entityCreate.data.createdAt).getTime(),
           createdByDeviceId: entityCreate.data.createdByDeviceId,
           deletedAt: null,
           deletedByDeviceId: null,
@@ -139,7 +139,7 @@ export async function paperDelete(
   await tx
     .updateTable('paper')
     .set({
-      deletedAt: entityDelete.data.deletedAt ? entityDelete.data.deletedAt : new Date().toISOString(),
+      deletedAt: entityDelete.data.deletedAt ? new Date(entityDelete.data.deletedAt).getTime() : new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('id', '=', entityDelete.data.id)
@@ -150,7 +150,7 @@ export async function paperDelete(
   await tx
     .updateTable('paperFieldVersion')
     .set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('paperId', '=', entityDelete.data.id)
@@ -193,11 +193,11 @@ export async function authorCreate(
       orcid: entityCreate.data.orcid,
       firstName: entityCreate.data.firstName,
       lastName: entityCreate.data.lastName,
-      createdAt: new Date(entityCreate.data.createdAt).toISOString(),
+      createdAt: new Date(entityCreate.data.createdAt).getTime(),
       createdByDeviceId: entityCreate.data.createdByDeviceId,
-      updatedAt: entityCreate.data.updatedAt ?? null,
+      updatedAt: entityCreate.data.updatedAt ? new Date(entityCreate.data.updatedAt).getTime() : null,
       updatedByDeviceId: entityCreate.data.updatedByDeviceId,
-      deletedAt: entityCreate.data.deletedAt ?? null,
+      deletedAt: entityCreate.data.deletedAt ? new Date(entityCreate.data.deletedAt).getTime() : null,
       deletedByDeviceId: entityCreate.data.deletedByDeviceId,
     })
     .execute()
@@ -214,7 +214,7 @@ export async function authorCreate(
           value: (entityCreate.data as any)[field] || null,
           timestamp: new Date(entityCreate.data.createdAt).getTime(),
           deviceId: entityCreate.data.createdByDeviceId,
-          createdAt: new Date(entityCreate.data.createdAt).toISOString(),
+          createdAt: new Date(entityCreate.data.createdAt).getTime(),
           createdByDeviceId: entityCreate.data.createdByDeviceId,
           deletedAt: null,
           deletedByDeviceId: null,
@@ -256,7 +256,7 @@ export async function authorDelete(
   await tx
     .updateTable('author')
     .set({
-      deletedAt: entityDelete.data.deletedAt ? new Date(entityDelete.data.deletedAt).toISOString() : new Date().toISOString(),
+      deletedAt: entityDelete.data.deletedAt ? new Date(entityDelete.data.deletedAt).getTime() : new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('id', '=', entityDelete.data.id)
@@ -266,7 +266,7 @@ export async function authorDelete(
   await tx
     .updateTable('authorFieldVersion')
     .set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('authorId', '=', entityDelete.data.id)
@@ -308,11 +308,11 @@ export async function folderCreate(
       colour: entityCreate.data.colour,
       parentId: entityCreate.data.parentId,
       libraryId: entityCreate.data.libraryId,
-      createdAt: entityCreate.data.createdAt,
+      createdAt: new Date(entityCreate.data.createdAt).getTime(),
       createdByDeviceId: entityCreate.data.createdByDeviceId,
-      updatedAt: entityCreate.data.updatedAt ?? null,
+      updatedAt: entityCreate.data.updatedAt ? new Date(entityCreate.data.updatedAt).getTime() : null,
       updatedByDeviceId: entityCreate.data.updatedByDeviceId,
-      deletedAt: entityCreate.data.deletedAt ?? null,
+      deletedAt: entityCreate.data.deletedAt ? new Date(entityCreate.data.deletedAt).getTime() : null,
       deletedByDeviceId: entityCreate.data.deletedByDeviceId,
     })
     .execute()
@@ -329,7 +329,7 @@ export async function folderCreate(
           value: (entityCreate.data as any)[field] || null,
           timestamp: new Date(entityCreate.data.createdAt).getTime(),
           deviceId: entityCreate.data.createdByDeviceId,
-          createdAt: entityCreate.data.createdAt,
+          createdAt: new Date(entityCreate.data.createdAt).getTime(),
           createdByDeviceId: entityCreate.data.createdByDeviceId,
           deletedAt: null,
           deletedByDeviceId: null,
@@ -371,7 +371,7 @@ export async function folderDelete(
   await tx
     .updateTable('folder')
     .set({
-      deletedAt: entityDelete.data.deletedAt ?? new Date().toISOString(),
+      deletedAt: entityDelete.data.deletedAt ? new Date(entityDelete.data.deletedAt).getTime() : new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('id', '=', entityDelete.data.id)
@@ -381,7 +381,7 @@ export async function folderDelete(
   await tx
     .updateTable('folderFieldVersion')
     .set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('folderId', '=', entityDelete.data.id)
@@ -422,11 +422,11 @@ export async function tagCreate(
       name: entityCreate.data.name,
       description: entityCreate.data.description,
       colour: entityCreate.data.colour,
-      createdAt: entityCreate.data.createdAt,
+      createdAt: new Date(entityCreate.data.createdAt).getTime(),
       createdByDeviceId: entityCreate.data.createdByDeviceId,
-      updatedAt: entityCreate.data.updatedAt ?? null,
+      updatedAt: entityCreate.data.updatedAt ? new Date(entityCreate.data.updatedAt).getTime() : null,
       updatedByDeviceId: entityCreate.data.updatedByDeviceId,
-      deletedAt: entityCreate.data.deletedAt ?? null,
+      deletedAt: entityCreate.data.deletedAt ? new Date(entityCreate.data.deletedAt).getTime() : null,
       deletedByDeviceId: entityCreate.data.deletedByDeviceId,
     })
     .execute()
@@ -443,7 +443,7 @@ export async function tagCreate(
           value: (entityCreate.data as any)[field] || null,
           timestamp: new Date(entityCreate.data.createdAt).getTime(),
           deviceId: entityCreate.data.createdByDeviceId,
-          createdAt: entityCreate.data.createdAt,
+          createdAt: new Date(entityCreate.data.createdAt).getTime(),
           createdByDeviceId: entityCreate.data.createdByDeviceId,
           deletedAt: null,
           deletedByDeviceId: null,
@@ -485,7 +485,7 @@ export async function tagDelete(
   await tx
     .updateTable('tag')
     .set({
-      deletedAt: entityDelete.data.deletedAt ?? new Date().toISOString(),
+      deletedAt: entityDelete.data.deletedAt ? new Date(entityDelete.data.deletedAt).getTime() : new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('id', '=', entityDelete.data.id)
@@ -495,7 +495,7 @@ export async function tagDelete(
   await tx
     .updateTable('tagFieldVersion')
     .set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('tagId', '=', entityDelete.data.id)
@@ -538,11 +538,11 @@ export async function supplementCreate(
       value: entityCreate.data.value,
       type: entityCreate.data.type,
       description: entityCreate.data.description,
-      createdAt: entityCreate.data.createdAt,
+      createdAt: new Date(entityCreate.data.createdAt).getTime(),
       createdByDeviceId: entityCreate.data.createdByDeviceId,
-      updatedAt: entityCreate.data.updatedAt ?? null,
+      updatedAt: entityCreate.data.updatedAt ? new Date(entityCreate.data.updatedAt).getTime() : null,
       updatedByDeviceId: entityCreate.data.updatedByDeviceId,
-      deletedAt: entityCreate.data.deletedAt ?? null,
+      deletedAt: entityCreate.data.deletedAt ? new Date(entityCreate.data.deletedAt).getTime() : null,
       deletedByDeviceId: entityCreate.data.deletedByDeviceId,
     })
     .execute()
@@ -559,7 +559,7 @@ export async function supplementCreate(
           value: (entityCreate.data as any)[field] || null,
           timestamp: new Date(entityCreate.data.createdAt).getTime(),
           deviceId: entityCreate.data.createdByDeviceId,
-          createdAt: entityCreate.data.createdAt,
+          createdAt: new Date(entityCreate.data.createdAt).getTime(),
           createdByDeviceId: entityCreate.data.createdByDeviceId,
           deletedAt: null,
           deletedByDeviceId: null,
@@ -600,7 +600,7 @@ export async function supplementDelete(
   await tx
     .updateTable('supplement')
     .set({
-      deletedAt: entityDelete.data.deletedAt ?? new Date().toISOString(),
+      deletedAt: entityDelete.data.deletedAt ? new Date(entityDelete.data.deletedAt).getTime() : new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('id', '=', entityDelete.data.id)
@@ -610,7 +610,7 @@ export async function supplementDelete(
   await tx
     .updateTable('supplementFieldVersion')
     .set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('supplementId', '=', entityDelete.data.id)
@@ -653,12 +653,12 @@ export async function feedCreate(
       type: entityCreate.data.type,
       url: entityCreate.data.url,
       count: entityCreate.data.count,
-      color: entityCreate.data.color,
-      createdAt: entityCreate.data.createdAt,
+      colour: entityCreate.data.colour,
+      createdAt: new Date(entityCreate.data.createdAt).getTime(),
       createdByDeviceId: entityCreate.data.createdByDeviceId,
-      updatedAt: entityCreate.data.updatedAt ?? null,
+      updatedAt: entityCreate.data.updatedAt ? new Date(entityCreate.data.updatedAt).getTime() : null,
       updatedByDeviceId: entityCreate.data.updatedByDeviceId,
-      deletedAt: entityCreate.data.deletedAt ?? null,
+      deletedAt: entityCreate.data.deletedAt ? new Date(entityCreate.data.deletedAt).getTime() : null,
       deletedByDeviceId: entityCreate.data.deletedByDeviceId,
     })
     .execute()
@@ -676,7 +676,7 @@ export async function feedCreate(
           timestamp: new Date(entityCreate.data.createdAt).getTime(),
           deviceId: entityCreate.data.createdByDeviceId,
           hash: null,
-          createdAt: entityCreate.data.createdAt,
+          createdAt: new Date(entityCreate.data.createdAt).getTime(),
           createdByDeviceId: entityCreate.data.createdByDeviceId,
           deletedAt: null,
           deletedByDeviceId: null,
@@ -717,7 +717,7 @@ export async function feedDelete(
   await tx
     .updateTable('feed')
     .set({
-      deletedAt: entityDelete.data.deletedAt ?? new Date().toISOString(),
+      deletedAt: entityDelete.data.deletedAt ? new Date(entityDelete.data.deletedAt).getTime() : new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('id', '=', entityDelete.data.id)
@@ -727,7 +727,7 @@ export async function feedDelete(
   await tx
     .updateTable('feedFieldVersion')
     .set({
-      deletedAt: new Date().toISOString(),
+      deletedAt: new Date().getTime(),
       deletedByDeviceId: entityDelete.data.deletedByDeviceId
     })
     .where('feedId', '=', entityDelete.data.id)

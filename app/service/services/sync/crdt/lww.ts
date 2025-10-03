@@ -68,7 +68,7 @@ export async function mergePaperFieldLWW(
       value: fieldChange.data.value,
       timestamp: fieldChange.data.timestamp,
       deviceId: fieldChange.data.deviceId,
-      createdAt: fieldChange.data.createdAt,
+      createdAt: new Date(fieldChange.data.createdAt).getTime(),
       createdByDeviceId: fieldChange.data.createdByDeviceId,
     })
     .where('paperId', '=', fieldChange.data.id)
@@ -146,7 +146,7 @@ export async function mergeFeedFieldLWW(
       timestamp: fieldChange.data.timestamp,
       deviceId: fieldChange.data.deviceId,
       hash: fieldChange.data.hash,
-      createdAt: fieldChange.data.createdAt,
+      createdAt: new Date(fieldChange.data.createdAt).getTime(),
       createdByDeviceId: fieldChange.data.createdByDeviceId,
     })
     .where('feedId', '=', fieldChange.data.id)
@@ -223,7 +223,7 @@ export async function mergeAuthorFieldLWW(
       value: fieldChange.data.value,
       timestamp: fieldChange.data.timestamp,
       deviceId: fieldChange.data.deviceId,
-      createdAt: fieldChange.data.createdAt,
+      createdAt: new Date(fieldChange.data.createdAt).getTime(),
       createdByDeviceId: fieldChange.data.createdByDeviceId,
     })
     .where('authorId', '=', fieldChange.data.id)
@@ -300,7 +300,7 @@ export async function mergeTagFieldLWW(
       value: fieldChange.data.value,
       timestamp: fieldChange.data.timestamp,
       deviceId: fieldChange.data.deviceId,
-      createdAt: fieldChange.data.createdAt,
+      createdAt: new Date(fieldChange.data.createdAt).getTime(),
       createdByDeviceId: fieldChange.data.createdByDeviceId,
     })
     .where('tagId', '=', fieldChange.data.id)
@@ -377,7 +377,7 @@ export async function mergeFolderFieldLWW(
       value: fieldChange.data.value,
       timestamp: fieldChange.data.timestamp,
       deviceId: fieldChange.data.deviceId,
-      createdAt: fieldChange.data.createdAt,
+      createdAt: new Date(fieldChange.data.createdAt).getTime(),
       createdByDeviceId: fieldChange.data.createdByDeviceId,
     })
     .where('folderId', '=', fieldChange.data.id)
@@ -454,7 +454,7 @@ export async function mergeSupplementFieldLWW(
       value: fieldChange.data.value,
       timestamp: fieldChange.data.timestamp,
       deviceId: fieldChange.data.deviceId,
-      createdAt: fieldChange.data.createdAt,
+      createdAt: new Date(fieldChange.data.createdAt).getTime(),
       createdByDeviceId: fieldChange.data.createdByDeviceId,
     })
     .where('supplementId', '=', fieldChange.data.id)

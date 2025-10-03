@@ -300,7 +300,7 @@ export const zFeed = z.object({
   type: FeedTypeEnum,
   url: z.string(),
   count: z.number().nullable(),
-  color: z.string().nullable(),
+  colour: z.string().nullable(),
   createdAt: z.number().positive(),
   createdByDeviceId: z.string(),
   updatedAt: z.number().positive().nullable(),
@@ -314,7 +314,7 @@ export const feedFields = [
   'name',
   'description',
   'count',
-  'color',
+  'colour',
   'url',
   'type',
 ] as const;
