@@ -147,9 +147,12 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     }
 
     // Sync objects to sqlite database
-    await Promise.all(objects.map(async (object) => {
+    // await Promise.all(objects.map(async (object) => {
+    //   await toSqliteCategorizer(object, type);
+    // }));
+    for (const object of objects) {
       await toSqliteCategorizer(object, type);
-    }));
+    }
 
     return objects;
   }

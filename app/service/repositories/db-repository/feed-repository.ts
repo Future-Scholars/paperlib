@@ -198,7 +198,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    */
   async update(realm: Realm, feed: IFeedObject, partition: string) {
     feed = this.makeSureProperties(feed);
-    await toSqliteFeed(feed);
+    // await toSqliteFeed(feed);
 
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, feed);

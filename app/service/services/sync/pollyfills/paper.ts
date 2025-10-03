@@ -942,12 +942,6 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
     },
   ];
 
-  if (logService) {
-    logService.info("SQLite Entity", JSON.stringify(sqliteEntity), false, "SQLITE");
-  } else {
-    process.stdout.write(`[SQLITE] SQLite Entity: ${JSON.stringify(sqliteEntity)}\n`);
-  }
-
   await db.insertInto("paper").values(sqliteEntity).execute();
 
   await db.insertInto("paperFieldVersion").values(paperFieldVersions).execute();
