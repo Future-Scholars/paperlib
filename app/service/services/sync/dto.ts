@@ -1,23 +1,403 @@
-import {
-  zAuthor,
-  zAuthorFieldVersion,
-  zFeed,
-  zFeedFieldVersion,
-  zFolder,
-  zFolderFieldVersion,
-  zLibrary,
-  zPaper,
-  zPaperAuthor,
-  zPaperFieldVersion,
-  zPaperFolder,
-  zPaperSupplement,
-  zPaperTag,
-  zSupplement,
-  zSupplementFieldVersion,
-  zTag,
-  zTagFieldVersion
-} from "@/service/services/database/sqlite/models"
+
 import { z } from "zod"
+
+const PaperTypeEnum = z.enum([
+  'article', 'book', 'booklet', 'inproceedings', 'incollection', 'mastersthesis', 'phdthesis', 'inbook', 'techreport', 'proceedings', 'unpublished', 'misc', 'manual', 'online',
+]);
+
+type PaperType = z.infer<typeof PaperTypeEnum>;
+
+const SupplementTypeEnum = z.enum([
+  'text', 'file', 'image', 'video', 'audio', 'url', 'pdf', 'json', 'note', 'other', 'unknown',
+]);
+
+type SupplementType = z.infer<typeof SupplementTypeEnum>;
+
+const FeedTypeEnum = z.enum(['rss', 'atom', 'json']);
+
+type FeedType = z.infer<typeof FeedTypeEnum>;
+
+const zPaper = z.object({
+  id: z.string().uuid(),
+  libraryId: z.string(),
+  type: PaperTypeEnum,
+  title: z.string(),
+  abstract: z.string().nullable(),
+  journal: z.string().nullable(),
+  booktitle: z.string().nullable(),
+  year: z.number().nullable(),
+  month: z.number().nullable(),
+  volume: z.string().nullable(),
+  number: z.string().nullable(),
+  pages: z.string().nullable(),
+  publisher: z.string().nullable(),
+  series: z.string().nullable(),
+  edition: z.string().nullable(),
+  editor: z.string().nullable(),
+  howPublished: z.string().nullable(),
+  organization: z.string().nullable(),
+  school: z.string().nullable(),
+  institution: z.string().nullable(),
+  address: z.string().nullable(),
+  doi: z.string().nullable(),
+  arxiv: z.string().nullable(),
+  isbn: z.string().nullable(),
+  issn: z.string().nullable(),
+  notes: z.string().nullable(),
+  flag: z.boolean().nullable(),
+  read: z.boolean().nullable(),
+  rating: z.number().min(0).max(5).default(0),
+  feedId: z.string().nullable(),
+  feedItemId: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type Paper = z.infer<typeof zPaper>;
+
+const paperFields = [
+  'type',
+  'title',
+  'abstract',
+  'journal',
+  'booktitle',
+  'year',
+  'month',
+  'volume',
+  'number',
+  'pages',
+  'publisher',
+  'series',
+  'edition',
+  'editor',
+  'howPublished',
+  'organization',
+  'school',
+  'institution',
+  'address',
+  'doi',
+  'arxiv',
+  'isbn',
+  'issn',
+  'notes',
+  'flag',
+  'rating',
+  'read',
+  'feedId',
+  'feedItemId',
+] as const;
+
+const zPaperFieldVersion = z.object({
+  id: z.string().uuid(),
+  paperId: z.string(),
+  field: z.enum(paperFields),
+  value: z.string().nullable(),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+  hash: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type PaperFieldVersion = z.infer<typeof zPaperFieldVersion>;
+
+const zAuthor = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  affiliation: z.string().nullable(),
+  email: z.string().nullable(),
+  orcid: z.string().nullable(),
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type Author = z.infer<typeof zAuthor>;
+
+const authorFields = [
+  'name',
+  'affiliation',
+  'email',
+  'orcid',
+  'firstName',
+  'lastName',
+] as const;
+
+const zAuthorFieldVersion = z.object({
+  id: z.string().uuid(),
+  authorId: z.string(),
+  field: z.enum(authorFields),
+  value: z.string().nullable(),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+  createdAt: z.string(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type AuthorFieldVersion = z.infer<typeof zAuthorFieldVersion>;
+
+const zTag = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  colour: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type Tag = z.infer<typeof zTag>;
+
+const tagFields = [
+  'name',
+  'description',
+  'colour',
+] as const;
+
+
+const zTagFieldVersion = z.object({
+  id: z.string().uuid(),
+  tagId: z.string(),
+  field: z.enum(tagFields),
+  value: z.string().nullable(),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type TagFieldVersion = z.infer<typeof zTagFieldVersion>;
+
+const zFolder = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  colour: z.string().nullable(),
+  description: z.string().nullable(),
+  parentId: z.string().nullable(),
+  libraryId: z.string(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type Folder = z.infer<typeof zFolder>;
+
+const folderFields = [
+  'name',
+  'colour',
+  'description',
+  'parentId',
+] as const;
+
+const zFolderFieldVersion = z.object({
+  id: z.string().uuid(),
+  folderId: z.string(),
+  field: z.enum(folderFields),
+  value: z.string().nullable(),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+type FolderFieldVersion = z.infer<typeof zFolderFieldVersion>;
+
+const zSupplement = z.object({
+  id: z.string().uuid(),
+  paperId: z.string(),
+  name: z.string(),
+  value: z.string(),
+  type: SupplementTypeEnum,
+  description: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type Supplement = z.infer<typeof zSupplement>;
+
+const supplementFields = [
+  'name',
+  'value',
+  'type',
+  'description',
+] as const;
+
+const zSupplementFieldVersion = z.object({
+  id: z.string().uuid(),
+  supplementId: z.string(),
+  field: z.enum(supplementFields),
+  value: z.string().nullable(),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+type SupplementFieldVersion = z.infer<typeof zSupplementFieldVersion>;
+
+const zLibrary = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  ownedBy: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type Library = z.infer<typeof zLibrary>;
+
+const libraryFields = [
+  'name',
+  'description',
+  'ownedBy',
+] as const;
+
+const zLibraryFieldVersion = z.object({
+  id: z.string().uuid(),
+  libraryId: z.string(),
+  field: z.enum(libraryFields),
+  value: z.string().nullable(),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+});
+
+type LibraryFieldVersion = z.infer<typeof zLibraryFieldVersion>;
+
+const zFeed = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  libraryId: z.string(),
+  type: FeedTypeEnum,
+  url: z.string(),
+  count: z.number().default(0),
+  colour: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  updatedAt: z.string().datetime().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type Feed = z.infer<typeof zFeed>;
+
+const feedFields = [
+  'name',
+  'description',
+  'count',
+  'colour',
+  'url',
+  'type',
+] as const;
+
+const zFeedFieldVersion = z.object({
+  id: z.string().uuid(),
+  feedId: z.string(),
+  field: z.enum(feedFields),
+  value: z.string().nullable(),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+  hash: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.string().datetime().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+});
+
+type FeedFieldVersion = z.infer<typeof zFeedFieldVersion>;
+
+const zPaperAuthor = z.object({
+  id: z.string().uuid(),
+  paperId: z.string(),
+  authorId: z.string(),
+  op: z.enum(['add', 'remove']),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+});
+type PaperAuthor = z.infer<typeof zPaperAuthor>;
+
+const zPaperTag = z.object({
+  id: z.string().uuid(),
+  paperId: z.string(),
+  tagId: z.string(),
+  op: z.enum(['add', 'remove']),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+});
+type PaperTag = z.infer<typeof zPaperTag>;
+
+const zPaperFolder = z.object({
+  id: z.string().uuid(),
+  paperId: z.string(),
+  folderId: z.string(),
+  op: z.enum(['add', 'remove']),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+});
+type PaperFolder = z.infer<typeof zPaperFolder>;
+
+const zPaperSupplement = z.object({
+  id: z.string().uuid(),
+  paperId: z.string(),
+  supplementId: z.string(),
+  op: z.enum(['add', 'remove']),
+  timestamp: z.number().positive(),
+  deviceId: z.string(),
+});
+type PaperSupplement = z.infer<typeof zPaperSupplement>;
+
+const cslSchema = z.object({
+  id: z.string().uuid(),
+  type: z.string(),
+  title: z.string().optional(),
+  authors: z.array(z.object({
+      family: z.string().optional(),
+      given: z.string().optional(),
+  })),
+  issued: z.object({
+      'date-parts': z.array(z.array(z.number())),
+  }).optional(),
+  "container-title": z.string().optional(),
+  publichser: z.string(),
+  page: z.string().optional(),
+  volume: z.string().optional(),
+  issue: z.string().optional(),
+  DOI: z.string().optional(),
+});
+
+
 
 export const zEntityModel = z.enum([
   "paper",
