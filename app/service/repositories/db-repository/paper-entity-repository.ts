@@ -114,7 +114,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     for (const object of objects) {
       await toSqlitePaper(object, this._logService);
     }
-    
+
     return objects.sorted(sortBy, sortOrder === "desc");
   }
 
@@ -169,55 +169,63 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param allowUpdate - Allow update flag.
    * @returns - Updated boolean flag.
    */
-  update(
+  async update(
     realm: Realm,
     paperEntity: IEntityObject,
     partition: string,
-    allowUpdate: boolean = true
+    allowUpdate: boolean = true,
+    fromSync: boolean = false
   ) {
     paperEntity = this.makeSureProperties(paperEntity);
 
-    return realm.safeWrite(() => {
-      const object = this.toRealmObject(realm, paperEntity);
+    if (!fromSync) {
+      await toSqlitePaper(paperEntity);
+    }
 
-      const tags = paperEntity.tags.map((tag) => {
-        const object = this._categorizerRepository.toRealmObject(
+    const object = this.toRealmObject(realm, paperEntity);
+
+    // As the categorizer update is async, we have to move the update outside of safeWrite. 
+    
+
+    const tags = await Promise.all(paperEntity.tags.map(async (tag) => {
+      const object = this._categorizerRepository.toRealmObject(
+        realm,
+        CategorizerType.PaperTag,
+        tag
+      );
+
+      if (object) {
+        return object;
+      } else {
+        return await this._categorizerRepository.update(
           realm,
           CategorizerType.PaperTag,
-          tag
+          tag,
+          partition
         );
+      }
+    }));
 
-        if (object) {
-          return object;
-        } else {
-          return this._categorizerRepository.update(
-            realm,
-            CategorizerType.PaperTag,
-            tag,
-            partition
-          );
-        }
-      });
-
-      const folders = paperEntity.folders.map((folder) => {
-        const object = this._categorizerRepository.toRealmObject(
+    const folders = await Promise.all(paperEntity.folders.map(async (folder) => {
+      const object = this._categorizerRepository.toRealmObject(
+        realm,
+        CategorizerType.PaperFolder,
+        folder
+      );
+      if (object) {
+        return object;
+      } else {
+        return await this._categorizerRepository.update(
           realm,
           CategorizerType.PaperFolder,
-          folder
+          folder,
+          partition
         );
+      }
+    }));
 
-        if (object) {
-          return object;
-        } else {
-          return this._categorizerRepository.update(
-            realm,
-            CategorizerType.PaperFolder,
-            folder,
-            partition
-          );
-        }
-      });
 
+    return realm.safeWrite(() => {
 
       if (object) {
         if (!allowUpdate) {

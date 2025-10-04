@@ -163,7 +163,8 @@ export class FeedService extends Eventable<IFeedServiceState> {
       const updatedFeed = await this._feedRepository.update(
         realm,
         feed,
-        this._databaseCore.getPartition()
+        this._databaseCore.getPartition(),
+        fromSync
       );
       updatedFeeds.push(updatedFeed);
     }
