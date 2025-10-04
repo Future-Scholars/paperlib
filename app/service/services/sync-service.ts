@@ -238,12 +238,10 @@ export class SyncService extends Eventable<ISyncServiceState> {
       PLAPILocal.schedulerService.createTask(
         "syncService.refresh",
         this.refreshAuth.bind(this),
-        // 600, // Try to refresh in 10 minutes, can set the strategy as needed
-        // For testing convenience, change to 10 seconds
-        10,
+        tokens.expires_in,
         undefined,
         false,
-        false
+        true
       );
     }
 
@@ -313,6 +311,18 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // Update local storage
     await this._storeTokensAndUserInfo(tokens);
+    // Schedule the next refresh
+    if (tokens.expires_in && tokens.refresh_token) {
+      PLAPILocal.schedulerService.removeTask("syncService.refresh");
+      PLAPILocal.schedulerService.createTask(
+        "syncService.refresh",
+        this.refreshAuth.bind(this),
+        tokens.expires_in,
+        undefined,
+        false,
+        true
+      );
+    }
 
     return tokens;
   }
