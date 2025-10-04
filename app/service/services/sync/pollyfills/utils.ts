@@ -8,12 +8,17 @@ import z from "zod";
  * Creates a structured value object for field versions that includes operation type,
  * previous value, and new value for complete audit trail.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function createFieldVersionValue(operation: 'create' | 'update', previousValue: any, newValue: any): string {
-  return JSON.stringify({
-    operation,
-    previousValue: previousValue ?? null,
-    newValue: newValue ?? null,
-  });
+  // return JSON.stringify({
+  //   operation,
+  //   previousValue: previousValue ?? null,
+  //   newValue: newValue ?? null,
+  // });
+
+  // At the moment we don't discriminate the operation type, so we return the new value but 
+  // guaranteed to be a json compatible string
+  return JSON.stringify(newValue);
 }
 
 /**
