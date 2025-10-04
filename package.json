@@ -23,6 +23,10 @@
     "build-win-dev": "vue-tsc --noEmit && vite build && electron-builder --config ./build_configs/electron-builder.win.dev.json5",
     "build-linux-dev": "vue-tsc --noEmit && vite build && electron-builder --config ./build_configs/electron-builder.linux.dev.json5",
     "dev-build": "vite build && electron-builder --config ./build_configs/electron-builder.mac.arm.json5",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
     "test:e2e": "vue-tsc --noEmit && vite build && vitest run",
     "test:e2e-dev": "vite build && vitest run",
     "generate:public-api-types": "vite build --config ./paperlib-api/vite.config.ts"
@@ -93,9 +97,11 @@
     "webdav": "5.3.1"
   },
   "dependencies": {
+    "better-sqlite3": "^12.4.1",
     "electron-updater": "6.2.1",
     "katex": "0.16.2",
     "keytar": "7.9.0",
+    "kysely": "^0.28.5",
     "mupdf": "^0.2.2",
     "openid-client": "^6.1.7",
     "realm": "11.10.2",

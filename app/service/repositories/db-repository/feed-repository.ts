@@ -6,7 +6,8 @@ import { Colors } from "@/models/categorizer";
 import { Feed, IFeedCollection, IFeedObject, IFeedRealmObject } from "@/models/feed";
 import { OID } from "@/models/id";
 import { ObjectId } from "bson";
-
+import { toSqliteFeed, deleteSqliteFeed } from "@/service/services/sync/pollyfills/feed";
+import { ILogService, LogService } from "@/common/services/log-service";
 export interface IFeedRepositoryState {
   updated: number;
 }
@@ -14,7 +15,10 @@ export interface IFeedRepositoryState {
 export const IFeedRepository = createDecorator("feedRepository");
 
 export class FeedRepository extends Eventable<IFeedRepositoryState> {
-  constructor() {
+  constructor(
+    @ILogService
+    private readonly _logService: LogService,
+  ) {
     super("feedRepository", {
       updated: 0,
     });
@@ -67,6 +71,9 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
       });
       realm.feedListened = true;
     }
+    objects.forEach(async (object) => {
+      await toSqliteFeed(object);
+    });
     return objects;
   }
 
@@ -92,7 +99,13 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param ids - Feed ids
    * @param feeds - Feeds
    */
-  delete(realm: Realm, ids?: OID[], feeds?: IFeedCollection) {
+  async delete(realm: Realm, ids?: OID[], feeds?: IFeedCollection) {
+    if (ids) {
+      await Promise.all(ids.map(async (id) => {
+        this._logService.info("Deleting sqlite feed by id", id.toString(), false, "Feed");
+        await deleteSqliteFeed(id.toString());
+      }));
+    }
     return realm.safeWrite(() => {
       let objects: IFeedCollection;
       if (feeds) {
@@ -106,6 +119,8 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
       }
 
       realm.delete(objects);
+
+
 
       return true;
     });
@@ -181,9 +196,11 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param partition - Partition
    * @returns Feed
    */
-  update(realm: Realm, feed: IFeedObject, partition: string) {
+  async update(realm: Realm, feed: IFeedObject, partition: string, fromSync: boolean = false) {
     feed = this.makeSureProperties(feed);
-
+    if (!fromSync) {
+      await toSqliteFeed(feed);
+    }
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, feed);
 
@@ -196,6 +213,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
         if (partition) {
           object._partition = partition;
         }
+
         return object;
       } else {
         if (partition) {

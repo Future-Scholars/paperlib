@@ -26,6 +26,7 @@ import { CacheService, ICacheService } from "./cache-service";
 import { FileService, IFileService } from "./file-service";
 import { ISchedulerService, SchedulerService } from "./scheduler-service";
 import { IScrapeService, ScrapeService } from "./scrape-service";
+import { toSqlitePaper } from "./sync/pollyfills/paper";
 
 export interface IPaperServiceState {
   count: number;
@@ -95,7 +96,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
     }
 
     if (fulltextQuerySentence) {
-      const allPaperEntities = this._paperEntityRepository.load(
+      const allPaperEntities = await this._paperEntityRepository.load(
         await this._databaseCore.realm(),
         querySentence,
         sortBy,
@@ -112,7 +113,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
         querySentence = PaperFilterOptions.parseDateFilter(querySentence);
       }
 
-      return this._paperEntityRepository.load(
+      return await this._paperEntityRepository.load(
         await this._databaseCore.realm(),
         querySentence,
         sortBy,
@@ -168,17 +169,6 @@ export class PaperService extends Eventable<IPaperServiceState> {
       false,
       "PaperService"
     );
-    // ========================================================
-    // #region 0. Add sync logs
-    if (!fromSync) {
-      await PLAPILocal.syncService.addSyncLog("paper", "update", {
-        paperEntityDrafts,
-        updateCache,
-        isUpdate,
-      });
-    }
-
-    // #endregion =================================================
 
     // ========================================================
     // #region 1. Move files to the app lib folder
@@ -214,11 +204,12 @@ export class PaperService extends Eventable<IPaperServiceState> {
     for (const paperEntity of fileMovedPaperEntityDrafts) {
       let success: boolean;
       try {
-        success = this._paperEntityRepository.update(
+        success = await this._paperEntityRepository.update(
           realm,
           paperEntity,
           this._databaseCore.getPartition(),
-          isUpdate
+          isUpdate,
+          fromSync
         );
 
         if (!success && !isUpdate) {
@@ -393,15 +384,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       "Entity"
     );
 
-    if (!fromSync) {
-      // FIXME: write log only if using sync.
-      await PLAPILocal.syncService.addSyncLog("paper", "delete", {
-        ids,
-        paperEntities,
-      });
-    }
-
-    const toBeDeletedFiles = this._paperEntityRepository.delete(
+    const toBeDeletedFiles = await this._paperEntityRepository.delete(
       await this._databaseCore.realm(),
       ids,
       paperEntities
@@ -591,7 +574,7 @@ export class PaperService extends Eventable<IPaperServiceState> {
       true,
       "PaperService"
     );
-    const preprintPaperEntities = this._paperEntityRepository.load(
+    const preprintPaperEntities = await this._paperEntityRepository.load(
       await this._databaseCore.realm(),
       '(publication contains[c] "arXiv") OR (publication contains[c] "openreview") OR publication == ""',
       "addTime",

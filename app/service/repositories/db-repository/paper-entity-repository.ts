@@ -6,10 +6,13 @@ import { createDecorator } from "@/base/injection/injection";
 import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { IEntityCollection, IEntityObject, IEntityRealmObject, Entity } from "@/models/entity";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   CategorizerRepository,
   ICategorizerRepository,
 } from "./categorizer-repository";
+
+import { deleteSqlitePaper, toSqlitePaper } from "@/service/services/sync/pollyfills/paper";
 
 export interface IPaperEntityRepositoryState {
   count: number;
@@ -21,7 +24,9 @@ export const IPaperEntityRepository = createDecorator("paperEntityRepository");
 export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState> {
   constructor(
     @ICategorizerRepository
-    private readonly _categorizerRepository: CategorizerRepository
+    private readonly _categorizerRepository: CategorizerRepository,
+    @ILogService
+    private readonly _logService: LogService,
   ) {
     super("paperEntityRepository", {
       count: 0,
@@ -62,6 +67,8 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     }
   }
 
+
+
   /**
    * Load all filtered paper entities.
    * @param realm - Realm instance.
@@ -70,7 +77,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param sortOrder - Sort order.
    * @returns - Results of paper entities.
    */
-  load(
+  async load(
     realm: Realm,
     filter: string,
     sortBy: string,
@@ -94,16 +101,21 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
 
       realm.entityListened = true;
     }
-
+    objects = objects.filtered("library == 'main'");
     if (filter) {
       try {
-        return objects.filtered(`library == 'main' AND (${filter})`).sorted(sortBy, sortOrder === "desc");
+        objects = objects.filtered(`(${filter})`).sorted(sortBy, sortOrder === "desc");
       } catch (error) {
         throw new Error(`Invalid filter: ${filter}`);
       }
-    } else {
-      return objects.filtered("library == 'main'").sorted(sortBy, sortOrder === "desc");
     }
+
+    // Write to sqlite database if not exists
+    for (const object of objects) {
+      await toSqlitePaper(object, this._logService);
+    }
+
+    return objects.sorted(sortBy, sortOrder === "desc");
   }
 
   /**
@@ -157,54 +169,63 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param allowUpdate - Allow update flag.
    * @returns - Updated boolean flag.
    */
-  update(
+  async update(
     realm: Realm,
     paperEntity: IEntityObject,
     partition: string,
-    allowUpdate: boolean = true
+    allowUpdate: boolean = true,
+    fromSync: boolean = false
   ) {
     paperEntity = this.makeSureProperties(paperEntity);
 
-    return realm.safeWrite(() => {
-      const object = this.toRealmObject(realm, paperEntity);
+    if (!fromSync) {
+      await toSqlitePaper(paperEntity);
+    }
 
-      const tags = paperEntity.tags.map((tag) => {
-        const object = this._categorizerRepository.toRealmObject(
+    const object = this.toRealmObject(realm, paperEntity);
+
+    // As the categorizer update is async, we have to move the update outside of safeWrite. 
+    
+
+    const tags = await Promise.all(paperEntity.tags.map(async (tag) => {
+      const object = this._categorizerRepository.toRealmObject(
+        realm,
+        CategorizerType.PaperTag,
+        tag
+      );
+
+      if (object) {
+        return object;
+      } else {
+        return await this._categorizerRepository.update(
           realm,
           CategorizerType.PaperTag,
-          tag
+          tag,
+          partition
         );
+      }
+    }));
 
-        if (object) {
-          return object;
-        } else {
-          return this._categorizerRepository.update(
-            realm,
-            CategorizerType.PaperTag,
-            tag,
-            partition
-          );
-        }
-      });
-
-      const folders = paperEntity.folders.map((folder) => {
-        const object = this._categorizerRepository.toRealmObject(
+    const folders = await Promise.all(paperEntity.folders.map(async (folder) => {
+      const object = this._categorizerRepository.toRealmObject(
+        realm,
+        CategorizerType.PaperFolder,
+        folder
+      );
+      if (object) {
+        return object;
+      } else {
+        return await this._categorizerRepository.update(
           realm,
           CategorizerType.PaperFolder,
-          folder
+          folder,
+          partition
         );
+      }
+    }));
 
-        if (object) {
-          return object;
-        } else {
-          return this._categorizerRepository.update(
-            realm,
-            CategorizerType.PaperFolder,
-            folder,
-            partition
-          );
-        }
-      });
+
+    return realm.safeWrite(() => {
 
       if (object) {
         if (!allowUpdate) {
@@ -301,13 +322,25 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param paperEntity - Paper entity.
    * @returns - Deleted boolean flags.
    */
-  delete(realm: Realm, ids?: OID[], paperEntitys?: IEntityCollection) {
+  async delete(realm: Realm, ids?: OID[], paperEntitys?: IEntityCollection) {
+
+    if (paperEntitys) {
+      this._logService.info("Deleting paper entities", JSON.stringify(paperEntitys, null, 2), false, "Entity");
+      ids = paperEntitys.map(
+        (paperEntity: IEntityObject) => paperEntity._id
+      );
+    }
+
+    if (ids) {
+      // Wait for all SQLite delete operations to complete
+      await Promise.all(ids.map(async (id) => {
+        this._logService.info("Deleting sqlite paper entity by id", id.toString(), false, "Entity");
+        await deleteSqlitePaper(id.toString());
+      }));
+    }
+
+
     return realm.safeWrite(() => {
-      if (paperEntitys) {
-        ids = paperEntitys.map(
-          (paperEntity: IEntityObject) => paperEntity._id
-        );
-      }
       if (ids) {
         const idsQuery = ids
           .map((id) => `_id == oid(${id as string})`)
