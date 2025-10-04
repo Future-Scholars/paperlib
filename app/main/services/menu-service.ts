@@ -1,4 +1,5 @@
 import { Menu, app, globalShortcut } from "electron";
+import os from "os";
 
 import { Eventable } from "@/base/event";
 import { createDecorator } from "@/base/injection/injection";
@@ -10,6 +11,10 @@ import { loadLocales } from "@/locales/load";
 
 import { Process } from "@/base/process-id";
 import { IUpgradeService, UpgradeService } from "./upgrade-service";
+import {
+  IWindowProcessManagementService,
+  WindowProcessManagementService,
+} from "./window-process-management-service";
 
 const isMac = process.platform === "darwin";
 
@@ -21,7 +26,7 @@ export interface IMenuServiceState {
   "Edit-rescrape": number;
   "Edit-edit": number;
   "Edit-flag": number;
-  "View-preview": number;
+  "View-preview": string;
   "View-next": number;
   "View-previous": number;
   "File-delete": number;
@@ -36,7 +41,9 @@ export class MenuService extends Eventable<IMenuServiceState> {
 
   constructor(
     @IPreferenceService private readonly _preferenceService: PreferenceService,
-    @IUpgradeService private readonly _upgradeService: UpgradeService
+    @IUpgradeService private readonly _upgradeService: UpgradeService,
+    @IWindowProcessManagementService
+    private readonly _windowProcessManagementService: WindowProcessManagementService
   ) {
     super("menuService", {
       preference: 0,
@@ -46,7 +53,7 @@ export class MenuService extends Eventable<IMenuServiceState> {
       "Edit-rescrape": 0,
       "Edit-edit": 0,
       "Edit-flag": 0,
-      "View-preview": 0,
+      "View-preview": "",
       "View-next": 0,
       "View-previous": 0,
       "File-delete": 0,
@@ -192,9 +199,45 @@ export class MenuService extends Eventable<IMenuServiceState> {
             },
           },
           { type: "separator" },
-          { role: "resetZoom" },
-          { role: "zoomIn" },
-          { role: "zoomOut" },
+          {
+            label: this._locales.t("menu.resetZoom"),
+            accelerator: "CommandOrControl+0",
+            click: () => {
+              const win = this._windowProcessManagementService.browserWindows.get(
+                Process.renderer
+              );
+              if (win && win.webContents) {
+                win.webContents.setZoomLevel(0);
+                win.webContents.send("zoom-did-change");
+              }
+            },
+          },
+          {
+            label: this._locales.t("menu.zoomIn"),
+            accelerator: "CommandOrControl+Plus",
+            click: () => {
+              const win = this._windowProcessManagementService.browserWindows.get(
+                Process.renderer
+              );
+              if (win && win.webContents) {
+                win.webContents.zoomFactor += 0.1;
+                win.webContents.send("zoom-did-change");
+              }
+            },
+          },
+          {
+            label: this._locales.t("menu.zoomOut"),
+            accelerator: "CommandOrControl+-",
+            click: () => {
+              const win = this._windowProcessManagementService.browserWindows.get(
+                Process.renderer
+              );
+              if (win && win.webContents) {
+                win.webContents.zoomFactor -= 0.1;
+                win.webContents.send("zoom-did-change");
+              }
+            },
+          },
           { type: "separator" },
           { role: "togglefullscreen" },
           { role: "toggleDevTools" },
