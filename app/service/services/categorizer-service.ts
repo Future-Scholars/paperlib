@@ -225,7 +225,8 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
   async update(
     type: CategorizerType,
     categorizer: Categorizer,
-    parentCategorizer?: Categorizer
+    parentCategorizer?: Categorizer,
+    fromSync: boolean = false
   ) {
     if (
       !categorizer.name ||
@@ -238,12 +239,13 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
       );
     }
 
-    return this._categorizerRepository.update(
+    return await this._categorizerRepository.update(
       await this._databaseCore.realm(),
       type,
       categorizer,
       this._databaseCore.getPartition(),
-      parentCategorizer
+      parentCategorizer,
+      fromSync
     );
   }
 

@@ -196,10 +196,11 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param partition - Partition
    * @returns Feed
    */
-  async update(realm: Realm, feed: IFeedObject, partition: string) {
+  async update(realm: Realm, feed: IFeedObject, partition: string, fromSync: boolean = false) {
     feed = this.makeSureProperties(feed);
-    // await toSqliteFeed(feed);
-
+    if (!fromSync) {
+      await toSqliteFeed(feed);
+    }
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, feed);
 
@@ -212,6 +213,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
         if (partition) {
           object._partition = partition;
         }
+
         return object;
       } else {
         if (partition) {

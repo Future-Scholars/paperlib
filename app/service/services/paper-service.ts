@@ -26,6 +26,7 @@ import { CacheService, ICacheService } from "./cache-service";
 import { FileService, IFileService } from "./file-service";
 import { ISchedulerService, SchedulerService } from "./scheduler-service";
 import { IScrapeService, ScrapeService } from "./scrape-service";
+import { toSqlitePaper } from "./sync/pollyfills/paper";
 
 export interface IPaperServiceState {
   count: number;
@@ -203,11 +204,12 @@ export class PaperService extends Eventable<IPaperServiceState> {
     for (const paperEntity of fileMovedPaperEntityDrafts) {
       let success: boolean;
       try {
-        success = this._paperEntityRepository.update(
+        success = await this._paperEntityRepository.update(
           realm,
           paperEntity,
           this._databaseCore.getPartition(),
-          isUpdate
+          isUpdate,
+          fromSync
         );
 
         if (!success && !isUpdate) {

@@ -305,14 +305,19 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
    * @param parent - Parent categorizer
    * @returns Categorizer
    */
-  update(
+  async update(
     realm: Realm,
     type: CategorizerType,
     categorizer: ICategorizerObject,
     partition: string,
-    parent?: ICategorizerObject
+    parent?: ICategorizerObject,
+    fromSync: boolean = false
   ) {
     categorizer = this.makeSureProperties(categorizer);
+
+    if (!fromSync) {
+      await toSqliteCategorizer(categorizer, type);
+    }
 
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, type, categorizer);
