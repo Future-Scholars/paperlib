@@ -6,7 +6,13 @@ import {
   folderFields,
   tagFields,
   supplementFields,
-  feedFields
+  feedFields,
+  Paper as SqlitePaper,
+  Author as SqliteAuthor,
+  Folder as SqliteFolder,
+  Tag as SqliteTag,
+  Supplement as SqliteSupplement,
+  Feed as SqliteFeed,
 } from '@/service/services/database/sqlite/models'
 
 /**
@@ -14,17 +20,17 @@ import {
  * @param tx The Kysely transaction client
  * @param entityCreate EntityCreate object with model "paper"
  * @param libraryId The library ID where the paper belongs
- * @returns True if the paper was created, false if it already exists
+ * @returns Created sqlite paper object
  */
 export async function paperCreate(
   tx: Transaction,
   entityCreate: EntityCreate & { model: "paper" },
   libraryId: string
-): Promise<boolean> {
+): Promise<SqlitePaper> {
   // Check if the paper exists
   const existingArray = await tx
     .selectFrom('paper')
-    .select('id')
+    .selectAll()
     .where('id', '=', entityCreate.data.id)
     .where('libraryId', '=', libraryId)
     .where('deletedAt', 'is', null)
@@ -35,7 +41,7 @@ export async function paperCreate(
   const existing = existingArray[0]
 
   if (existing) {
-    return false
+    return existing
   }
 
   // Create the paper
@@ -103,7 +109,15 @@ export async function paperCreate(
         .execute()
     }
   }
-  return true
+  const created = await tx
+    .selectFrom('paper')
+    .selectAll()
+    .where('id', '=', entityCreate.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create paper ${entityCreate.data.id}`)
+  }
+  return created
 }
 
 /**
@@ -163,16 +177,16 @@ export async function paperDelete(
  * Create a new author
  * @param tx The Kysely transaction client
  * @param entityCreate EntityCreate object with model "author"
- * @returns True if the author was created, false if it already exists
+ * @returns Created sqlite author object
  */
 export async function authorCreate(
   tx: Transaction,
   entityCreate: EntityCreate & { model: "author" },
-): Promise<boolean> {
+): Promise<SqliteAuthor> {
   // Check if the author exists
   const existingArray = await tx
     .selectFrom('author')
-    .select('id')
+    .selectAll()
     .where('id', '=', entityCreate.data.id)
     .where('deletedAt', 'is', null)
     .execute()
@@ -180,7 +194,9 @@ export async function authorCreate(
     throw new Error(`Multiple authors found for id ${entityCreate.data.id}`)
   }
   const existing = existingArray[0]
-  if (existing) return false
+  if (existing) {
+    return existing
+  }
 
   // Create the author
   await tx
@@ -222,7 +238,15 @@ export async function authorCreate(
         .execute()
     }
   }
-  return true
+  const created = await tx
+    .selectFrom('author')
+    .selectAll()
+    .where('id', '=', entityCreate.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create author ${entityCreate.data.id}`)
+  }
+  return created
 }
 
 /**
@@ -279,16 +303,16 @@ export async function authorDelete(
  * Create a new folder
  * @param tx The Kysely transaction client
  * @param entityCreate EntityCreate object with model "folder"
- * @returns True if the folder was created, false if it already exists
+ * @returns Created sqlite folder object
  */
 export async function folderCreate(
   tx: Transaction,
   entityCreate: EntityCreate & { model: "folder" },
-): Promise<boolean> {
+): Promise<SqliteFolder> {
   // Check if the folder exists
   const existingArray = await tx
     .selectFrom('folder')
-    .select('id')
+    .selectAll()
     .where('id', '=', entityCreate.data.id)
     .where('deletedAt', 'is', null)
     .execute()
@@ -296,7 +320,9 @@ export async function folderCreate(
     throw new Error(`Multiple folders found for id ${entityCreate.data.id}`)
   }
   const existing = existingArray[0]
-  if (existing) return false
+  if (existing) {
+    return existing
+  }
 
   // Create the folder
   await tx
@@ -337,7 +363,15 @@ export async function folderCreate(
         .execute()
     }
   }
-  return true
+  const created = await tx
+    .selectFrom('folder')
+    .selectAll()
+    .where('id', '=', entityCreate.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create folder ${entityCreate.data.id}`)
+  }
+  return created
 }
 
 /**
@@ -394,16 +428,16 @@ export async function folderDelete(
  * Create a new tag
  * @param tx The Kysely transaction client
  * @param entityCreate EntityCreate object with model "tag"
- * @returns True if the tag was created, false if it already exists
+ * @returns Created sqlite tag object
  */
 export async function tagCreate(
   tx: Transaction,
   entityCreate: EntityCreate & { model: "tag" },
-): Promise<boolean> {
+): Promise<SqliteTag> {
   // Check if the tag exists
   const existingArray = await tx
     .selectFrom('tag')
-    .select('id')
+    .selectAll()
     .where('id', '=', entityCreate.data.id)
     .where('deletedAt', 'is', null)
     .execute()
@@ -412,7 +446,9 @@ export async function tagCreate(
     throw new Error(`Multiple tags found for id ${entityCreate.data.id}`)
   }
   const existing = existingArray[0]
-  if (existing) return false
+  if (existing) {
+    return existing
+  }
 
   // Create the tag
   await tx
@@ -451,7 +487,15 @@ export async function tagCreate(
         .execute()
     }
   }
-  return true
+  const created = await tx
+    .selectFrom('tag')
+    .selectAll()
+    .where('id', '=', entityCreate.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create tag ${entityCreate.data.id}`)
+  }
+  return created
 }
 
 /**
@@ -508,16 +552,16 @@ export async function tagDelete(
  * Create a new supplement
  * @param tx The Kysely transaction client
  * @param entityCreate EntityCreate object with model "supplement"
- * @returns True if the supplement was created, false if it already exists
+ * @returns Created sqlite supplement object
  */
 export async function supplementCreate(
   tx: Transaction,
   entityCreate: EntityCreate & { model: "supplement" },
-): Promise<boolean> {
+): Promise<SqliteSupplement> {
   // Check if the supplement exists
   const existingArray = await tx
     .selectFrom('supplement')
-    .select('id')
+    .selectAll()
     .where('id', '=', entityCreate.data.id)
     .where('deletedAt', 'is', null)
     .execute()
@@ -526,7 +570,9 @@ export async function supplementCreate(
   }
   const existing = existingArray[0]
 
-  if (existing) return false
+  if (existing) {
+    return existing
+  }
 
   // Create the supplement
   await tx
@@ -567,7 +613,15 @@ export async function supplementCreate(
         .execute()
     }
   }
-  return true
+  const created = await tx
+    .selectFrom('supplement')
+    .selectAll()
+    .where('id', '=', entityCreate.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create supplement ${entityCreate.data.id}`)
+  }
+  return created
 }
 
 /**
@@ -623,16 +677,16 @@ export async function supplementDelete(
  * Create a new feed
  * @param tx The Kysely transaction client
  * @param entityCreate EntityCreate object with model "feed"
- * @returns True if the feed was created, false if it already exists
+ * @returns Created sqlite feed object
  */
 export async function feedCreate(
   tx: Transaction,
   entityCreate: EntityCreate & { model: "feed" },
-): Promise<boolean> {
+): Promise<SqliteFeed> {
   // Check if the feed exists
   const existingArray = await tx
     .selectFrom('feed')
-    .select('id')
+    .selectAll()
     .where('id', '=', entityCreate.data.id)
     .execute()
   if (existingArray.length > 1) {
@@ -640,7 +694,9 @@ export async function feedCreate(
   }
   const existing = existingArray[0]
 
-  if (existing) return false
+  if (existing) {
+    return existing
+  }
 
   // Create the feed
   await tx
@@ -684,7 +740,15 @@ export async function feedCreate(
         .execute()
     }
   }
-  return true
+  const created = await tx
+    .selectFrom('feed')
+    .selectAll()
+    .where('id', '=', entityCreate.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create feed ${entityCreate.data.id}`)
+  }
+  return created
 }
 
 /**

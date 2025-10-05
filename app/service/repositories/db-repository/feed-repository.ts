@@ -53,7 +53,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param sortOrder - Sort order
    * @returns Results of feed
    */
-  load(realm: Realm, sortBy: string, sortOrder: string): IFeedCollection {
+  async load(realm: Realm, sortBy: string, sortOrder: string): Promise<IFeedCollection> {
     const objects = realm
       .objects<Feed>("Feed")
       .sorted(sortBy, sortOrder == "desc");
@@ -71,9 +71,12 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
       });
       realm.feedListened = true;
     }
-    objects.forEach(async (object) => {
+    // objects.forEach(async (object) => {
+    //   await toSqliteFeed(object);
+    // });
+    for (const object of objects) {
       await toSqliteFeed(object);
-    });
+    }
     return objects;
   }
 
