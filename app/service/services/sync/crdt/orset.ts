@@ -1,16 +1,22 @@
 import type { Transaction } from '@/service/services/database/sqlite/db'
 import type { RelationChange } from '@/service/services/sync/dto'
+import type {
+  PaperTag as SqlitePaperTag,
+  PaperAuthor as SqlitePaperAuthor,
+  PaperFolder as SqlitePaperFolder,
+  PaperSupplement as SqlitePaperSupplement,
+} from '@/service/services/database/sqlite/models'
 
 /**
  * Merge Paper-Tag OR-Set
  * @param tx Kysely transaction client
  * @param relationChange RelationChange
- * @returns boolean indicating if merge was applied
+ * @returns Updated sqlite paperTag object
  */
 export async function mergePaperTagORSet(
   tx: Transaction,
   relationChange: RelationChange & { model: 'paperTag' }
-): Promise<boolean> {
+): Promise<SqlitePaperTag> {
   const existing = await tx
     .selectFrom('paperTag')
     .selectAll()
@@ -35,21 +41,29 @@ export async function mergePaperTagORSet(
 
   if (existing && existing.timestamp >= relationChange.data.timestamp) {
     // Existing operation is newer. Although the final state may change, we still need to record the operation.
-    return false
+    return existing
   }
-  return true
+  const created = await tx
+    .selectFrom('paperTag')
+    .selectAll()
+    .where('id', '=', relationChange.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create paperTag ${relationChange.data.id}`)
+  }
+  return created
 }
 
 /**
  * Merge Paper-Author OR-Set
  * @param tx Kysely transaction client
  * @param relationChange RelationChange
- * @return boolean indicating if merge was applied
+ * @return Updated sqlite paperAuthor object
  */
 export async function mergePaperAuthorORSet(
   tx: Transaction,
   relationChange: RelationChange & { model: 'paperAuthor' }
-): Promise<boolean> {
+): Promise<SqlitePaperAuthor> {
   const existing = await tx
     .selectFrom('paperAuthor')
     .selectAll()
@@ -74,21 +88,29 @@ export async function mergePaperAuthorORSet(
 
   if (existing && existing.timestamp >= relationChange.data.timestamp) {
     // Existing operation is newer. Although the final state may change, we still need to record the operation.
-    return false
+    return existing
   }
-  return true
+  const created = await tx
+    .selectFrom('paperAuthor')
+    .selectAll()
+    .where('id', '=', relationChange.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create paperAuthor ${relationChange.data.id}`)
+  }
+  return created
 }
 
 /**
  * Merge Paper-Folder OR-Set
  * @param tx Kysely transaction client
  * @param relationChange RelationChange
- * @return boolean indicating if merge was applied
+ * @return Updated sqlite paperFolder object
  */
 export async function mergePaperFolderORSet(
   tx: Transaction,
   relationChange: RelationChange & { model: 'paperFolder' }
-): Promise<boolean> {
+): Promise<SqlitePaperFolder> {
   const existing = await tx
     .selectFrom('paperFolder')
     .selectAll()
@@ -113,21 +135,29 @@ export async function mergePaperFolderORSet(
 
   if (existing && existing.timestamp >= relationChange.data.timestamp) {
     // Existing operation is newer. Although the final state may change, we still need to record the operation.
-    return false
+    return existing
   }
-  return true
+  const created = await tx
+    .selectFrom('paperFolder')
+    .selectAll()
+    .where('id', '=', relationChange.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create paperFolder ${relationChange.data.id}`)
+  }
+  return created
 }
 
 /**
  * Merge Paper-Supplement OR-Set
  * @param tx Kysely transaction client
  * @param relationChange RelationChange
- * @return boolean indicating if merge was applied
+ * @return Updated sqlite paperSupplement object
  */
 export async function mergePaperSupplementORSet(
   tx: Transaction,
   relationChange: RelationChange & { model: 'paperSupplement' }
-): Promise<boolean> {
+): Promise<SqlitePaperSupplement> {
   const existing = await tx
     .selectFrom('paperSupplement')
     .selectAll()
@@ -152,7 +182,15 @@ export async function mergePaperSupplementORSet(
 
   if (existing && existing.timestamp >= relationChange.data.timestamp) {
     // Existing operation is newer. Although the final state may change, we still need to record the operation.
-    return false
+    return existing
   }
-  return true
+  const created = await tx
+    .selectFrom('paperSupplement')
+    .selectAll()
+    .where('id', '=', relationChange.data.id)
+    .executeTakeFirst()
+  if (!created) {
+    throw new Error(`Failed to create paperSupplement ${relationChange.data.id}`)
+  }
+  return created
 }

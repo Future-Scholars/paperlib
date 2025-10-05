@@ -204,7 +204,7 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
         object.volume = feedEntity.volume;
         object.number = feedEntity.number;
         object.publisher = feedEntity.publisher;
-        object.feed = feed!;
+        object.feed = feed;
         if (!ignoreReadState) {
           object.read = feedEntity.read;
         }

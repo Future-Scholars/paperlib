@@ -99,7 +99,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
-    return this._feedRepository.load(
+    return await this._feedRepository.load(
       await this._databaseCore.realm(),
       sortBy,
       sortOrder
