@@ -1,4 +1,4 @@
-import { Feed } from "@/models/feed";
+import { Feed, IFeedDraft } from "@/models/feed";
 import { zFeed, zFeedFieldVersion, Feed as SqliteFeed } from "@/service/services/database/sqlite/models";
 import { syncStateStore } from "@/service/services/sync/states";
 import { db } from "@/service/services/database/sqlite/db";
@@ -211,4 +211,20 @@ export async function deleteSqliteFeed(legacyOid: string): Promise<void> {
     }).where("id", "=", existedSqliteFeed.id).execute();
     await db.deleteFrom("feedFieldVersion").where("feedId", "=", existedSqliteFeed.id).execute();
   }
+}
+
+/**
+ * Convert SQLite Feed to Realm Feed
+ * @param sqliteFeed - The SQLite feed to convert
+ * @returns The Realm feed draft
+ */
+export async function toRealmFeed(sqliteFeed: SqliteFeed): Promise<IFeedDraft> {
+  return {
+    _id: sqliteFeed.legacyOid || sqliteFeed.id, // Prefer legacyOid if available
+    id: sqliteFeed.legacyOid || sqliteFeed.id, // Same as _id for compatibility
+    name: sqliteFeed.name,
+    count: sqliteFeed.count || 0, // Default to 0 if null
+    color: sqliteFeed.colour || undefined, // Convert colour to color, handle null
+    url: sqliteFeed.url,
+  };
 }
