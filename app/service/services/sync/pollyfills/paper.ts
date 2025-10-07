@@ -1,11 +1,13 @@
-import { Entity } from "@/models/entity";
+import { Entity, IEntityObject } from "@/models/entity";
+import { IFeedDraft } from "@/models/feed";
 import { zPaper, zPaperFieldVersion, Paper as SqlitePaper } from "@/service/services/database/sqlite/models";
 import { syncStateStore } from "@/service/services/sync/states";
 import { db } from "@/service/services/database/sqlite/db";
 import { v4 as uuidv4 } from 'uuid';
 import z from "zod";
 import { createFieldVersionValue, ensureUndefinedToNull, ensureLibraryId, booleanToInt } from "./utils";
-import { toSqliteFeed } from "./feed";
+import { toSqliteFeed, toRealmFeed } from "./feed";
+
 
 
 /**
@@ -1016,6 +1018,102 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
   });
 
   return sqliteEntity;
+}
+
+export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEntityObject> {
+  // Get library name by library id
+  const library = await db.selectFrom("library")
+    .where("id", "=", sqlitePaper.libraryId)
+    .select("name")
+    .executeTakeFirst();
+  
+  // Get authors for this paper
+  const authors = await db.selectFrom("paperAuthor")
+    .innerJoin("author", "author.id", "paperAuthor.authorId")
+    .where("paperAuthor.paperId", "=", sqlitePaper.id)
+    .where("paperAuthor.op", "=", "add")
+    .where("paperAuthor.deletedAt", "is", null)
+    .select("author.name")
+    .execute();
+  
+  // Get tags for this paper
+  const paperTags = await db.selectFrom("paperTag")
+    .innerJoin("tag", "tag.id", "paperTag.tagId")
+    .where("paperTag.paperId", "=", sqlitePaper.id)
+    .where("paperTag.op", "=", "add")
+    .where("paperTag.deletedAt", "is", null)
+    .selectAll("tag")
+    .execute();
+  
+  // Get folders for this paper
+  const paperFolders = await db.selectFrom("paperFolder")
+    .innerJoin("folder", "folder.id", "paperFolder.folderId")
+    .where("paperFolder.paperId", "=", sqlitePaper.id)
+    .where("paperFolder.op", "=", "add")
+    .where("paperFolder.deletedAt", "is", null)
+    .selectAll("folder")
+    .execute();
+  
+  // Get feed if exists
+  let feed: IFeedDraft | undefined = undefined;
+  if (sqlitePaper.feedId) {
+    const feedData = await db.selectFrom("feed")
+      .where("id", "=", sqlitePaper.feedId)
+      .selectAll()
+      .executeTakeFirst();
+    
+    if (feedData) {
+      feed = await toRealmFeed(feedData);
+    }
+  }
+
+  // Convert SQLite paper to Realm Entity
+  const entity: IEntityObject = {
+    _id: sqlitePaper.legacyOid || sqlitePaper.id,
+    addTime: new Date(sqlitePaper.createdAt),
+    library: library?.name || "main",
+    type: sqlitePaper.type as any,
+    abstract: ensureUndefinedToNull(sqlitePaper.abstract),
+    defaultSup: undefined, // Not available in SQLite model
+    supplementaries: {}, // Will be handled separately if needed
+    
+    // Identifiers
+    doi: ensureUndefinedToNull(sqlitePaper.doi),
+    arxiv: ensureUndefinedToNull(sqlitePaper.arxiv),
+    issn: ensureUndefinedToNull(sqlitePaper.issn),
+    isbn: ensureUndefinedToNull(sqlitePaper.isbn),
+    
+    // Bibtex fields
+    title: sqlitePaper.title,
+    authors: authors.map(a => a.name).join(", "),
+    journal: ensureUndefinedToNull(sqlitePaper.journal),
+    booktitle: ensureUndefinedToNull(sqlitePaper.booktitle),
+    year: sqlitePaper.year?.toString() || "",
+    month: ensureUndefinedToNull(sqlitePaper.month?.toString()),
+    volume: ensureUndefinedToNull(sqlitePaper.volume),
+    number: ensureUndefinedToNull(sqlitePaper.number),
+    pages: ensureUndefinedToNull(sqlitePaper.pages),
+    publisher: ensureUndefinedToNull(sqlitePaper.publisher),
+    series: ensureUndefinedToNull(sqlitePaper.series),
+    edition: ensureUndefinedToNull(sqlitePaper.edition),
+    editor: ensureUndefinedToNull(sqlitePaper.editor),
+    howpublished: ensureUndefinedToNull(sqlitePaper.howPublished),
+    organization: ensureUndefinedToNull(sqlitePaper.organization),
+    school: ensureUndefinedToNull(sqlitePaper.school),
+    institution: ensureUndefinedToNull(sqlitePaper.institution),
+    address: ensureUndefinedToNull(sqlitePaper.address),
+    
+    // Paper-specific fields
+    // TODO: Tags, folders and feed
+    rating: ensureUndefinedToNull(sqlitePaper.rating),
+    flag: sqlitePaper.flag === 1,
+    note: ensureUndefinedToNull(sqlitePaper.notes),
+    
+    // Feed fields
+    read: sqlitePaper.read === 1,
+  };
+
+  return entity;
 }
 
 export async function deleteSqlitePaper(legacyOid: string): Promise<void> {

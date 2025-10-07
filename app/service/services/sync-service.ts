@@ -11,6 +11,11 @@ import { DEFAULT_SYNC_STATE, ISyncState, syncStateStore } from "./sync/states";
 import { attach, pull, push } from "./sync/sync-client";
 import { UserInfoResponse } from "openid-client";
 import { ILogService, LogService } from "@/common/services/log-service";
+import { ISchedulerService, SchedulerService } from "@/service/services/scheduler-service";
+import { IPaperEntityRepository, PaperEntityRepository } from "@/service/repositories/db-repository/paper-entity-repository";
+import { FeedRepository, IFeedRepository } from "../repositories/db-repository/feed-repository";
+import { CategorizerRepository, ICategorizerRepository } from "../repositories/db-repository/categorizer-repository";
+import { DatabaseCore, IDatabaseCore } from "./database/core";
 
 export interface ISyncServiceState {
   connected: boolean;
@@ -39,7 +44,12 @@ export class SyncService extends Eventable<ISyncServiceState> {
   private _openidClientConfig?: openidClient.Configuration;
 
   constructor(
-    @ILogService private readonly _logService: LogService
+    @IDatabaseCore private readonly _databaseCore: DatabaseCore,
+    @ISchedulerService private readonly _schedulerService: SchedulerService,
+    @ILogService private readonly _logService: LogService,
+    @IPaperEntityRepository private readonly _paperEntityRepository: PaperEntityRepository,
+    @IFeedRepository private readonly _feedRepository: FeedRepository,
+    @ICategorizerRepository private readonly _categorizerRepository: CategorizerRepository,
   ) {
     super("syncService", _DEFAULTSTATE);
   }
@@ -103,7 +113,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
       // If refresh is successful, schedule the next refresh based on the new expiration time
       if (tokens.expires_in && tokens.refresh_token) {
-        PLAPILocal.schedulerService.createTask(
+        this._schedulerService.createTask(
           "syncService.refresh",
           this.refreshAuth.bind(this),
           // tokens.expires_in - 600, // Refresh about 10 minutes before expiration
@@ -116,7 +126,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       }
 
       // Schedule a sync and create a sync task
-      PLAPILocal.schedulerService.createTask(
+      this._schedulerService.createTask(
         "syncService.invokeSync",
         this.invokeSync.bind(this),
         10, // Try to sync every 10 seconds
@@ -235,7 +245,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // 4) Schedule the next refresh
     if (tokens.expires_in && tokens.refresh_token) {
-      PLAPILocal.schedulerService.createTask(
+      this._schedulerService.createTask(
         "syncService.refresh",
         this.refreshAuth.bind(this),
         tokens.expires_in,
@@ -253,7 +263,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
     await PLMainAPI.preferenceService.set({ useSync: "official" });
     await attach("main");
     // 7) Schedule a sync
-    PLAPILocal.schedulerService.createTask(
+    this._schedulerService.createTask(
       "syncService.invokeSync",
       this.invokeSync.bind(this),
       // 10, // Try to sync after 10 seconds
@@ -313,8 +323,8 @@ export class SyncService extends Eventable<ISyncServiceState> {
     await this._storeTokensAndUserInfo(tokens);
     // Schedule the next refresh
     if (tokens.expires_in && tokens.refresh_token) {
-      PLAPILocal.schedulerService.removeTask("syncService.refresh");
-      PLAPILocal.schedulerService.createTask(
+      this._schedulerService.removeTask("syncService.refresh");
+      this._schedulerService.createTask(
         "syncService.refresh",
         this.refreshAuth.bind(this),
         tokens.expires_in,
@@ -348,7 +358,12 @@ export class SyncService extends Eventable<ISyncServiceState> {
     try {
       await attach("main");
       // this.fire({ syncProgress: 0.3 });
-      await pull();
+      await pull(
+        this._paperEntityRepository,
+        this._feedRepository,
+        this._categorizerRepository,
+        this._databaseCore,
+      );
       // this.fire({ syncProgress: 0.7 });
       await push();
       syncStateStore.delete("lastSyncAt");
@@ -451,8 +466,8 @@ export class SyncService extends Eventable<ISyncServiceState> {
     await PLMainAPI.preferenceService.set({ useSync: "none" });
 
     // Clear scheduled tasks
-    PLAPILocal.schedulerService.removeTask("syncService.refresh");
-    PLAPILocal.schedulerService.removeTask("syncService.invokeSync");
+    this._schedulerService.removeTask("syncService.refresh");
+    this._schedulerService.removeTask("syncService.invokeSync");
   }
 
   useState(): ISyncServiceState {

@@ -4,6 +4,12 @@ import { syncStateStore } from "./states";
 import { ensureLibraryId } from "./pollyfills/utils";
 import { EntityCreate, EntityDelete, FieldChange, RelationChange, zAttachRequest, zAttachResponse, zPullResponse, zPushRequest, zSyncPushResponse } from "./dto";
 import CRDT from "./crdt";
+import { PaperEntityRepository } from "@/service/repositories/db-repository/paper-entity-repository";
+import { FeedRepository } from "@/service/repositories/db-repository/feed-repository";
+import { CategorizerRepository } from "@/service/repositories/db-repository/categorizer-repository";
+import { DatabaseCore } from "../database/core";
+import { toRealmPaperEntity } from "./pollyfills/paper";
+
 // const syncBaseUrl = new URL("https://coral-app-uijy2.ondigitalocean.app/");
 export const SYNC_BASE_URL = "http://localhost:3001/"; // TODO: For testing
 
@@ -74,7 +80,12 @@ export async function attach(library: "main" | "feeds") {
 }
 
 
-export async function pull() {
+export async function pull(
+  paperEntityRepository: PaperEntityRepository,
+  feedRepository: FeedRepository,
+  categorizerRepository: CategorizerRepository,
+  databaseCore: DatabaseCore,
+) {
   const apiUrl = new URL(SYNC_BASE_URL);
   apiUrl.pathname = "/api/v1/sync/pull";
   console.log("Pulling");
@@ -99,7 +110,8 @@ export async function pull() {
     for (const entityCreate of entityCreates) {
       switch (entityCreate.model) {
         case 'paper':
-          await CRDT.lifecycle.paperCreate(tx, entityCreate, libraryId)
+          const createdPaper = await CRDT.lifecycle.paperCreate(tx, entityCreate, libraryId)
+          await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(createdPaper), libraryId)
           break
         case 'author':
           await CRDT.lifecycle.authorCreate(tx, entityCreate)

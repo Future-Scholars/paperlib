@@ -1,4 +1,4 @@
-import { ICategorizerObject, CategorizerType } from "@/models/categorizer";
+import { ICategorizerObject, CategorizerType, ICategorizerDraft } from "@/models/categorizer";
 import { zTag, zTagFieldVersion, Tag as SqliteTag } from "@/service/services/database/sqlite/models";
 import { syncStateStore } from "@/service/services/sync/states";
 import { db } from "@/service/services/database/sqlite/db";
@@ -249,5 +249,64 @@ export async function deleteSqliteCategorizer(legacyOid: string, type: Categoriz
   }
   if (type === CategorizerType.PaperFolder) {
     await deleteSqliteFolder(legacyOid);
+  }
+}
+
+/**
+ * Convert SQLite Tag to Realm Categorizer (PaperTag)
+ * @param sqliteTag - The SQLite tag to convert
+ * @returns The Realm categorizer draft
+ */
+export async function toRealmTag(sqliteTag: SqliteTag): Promise<ICategorizerDraft> {
+  // Tags don't have hierarchical structure in SQLite, so no children
+  return {
+    _id: sqliteTag.id, // Use SQLite ID as Realm ID
+    name: sqliteTag.name,
+    color: sqliteTag.colour || undefined,
+    children: undefined, // Tags are flat in SQLite
+  };
+}
+
+/**
+ * Convert SQLite Folder to Realm Categorizer (PaperFolder)
+ * @param sqliteFolder - The SQLite folder to convert
+ * @returns The Realm categorizer draft
+ */
+export async function toRealmFolder(sqliteFolder: SqliteFolder): Promise<ICategorizerDraft> {
+  // Get children folders if any (for hierarchical structure)
+  const children = await db.selectFrom("folder")
+    .where("parentId", "=", sqliteFolder.id)
+    .where("deletedAt", "is", null)
+    .selectAll()
+    .execute();
+
+  const childrenDrafts = await Promise.all(
+    children.map(child => toRealmFolder(child))
+  );
+
+  return {
+    _id: sqliteFolder.legacyOid || sqliteFolder.id, // Prefer legacyOid if available
+    name: sqliteFolder.name,
+    color: sqliteFolder.colour || undefined,
+    children: childrenDrafts.length > 0 ? childrenDrafts : undefined,
+  };
+}
+
+/**
+ * Convert SQLite Tag or Folder to Realm Categorizer based on type
+ * @param sqliteCategorizer - The SQLite tag or folder to convert
+ * @param type - The type of categorizer (PaperTag or PaperFolder)
+ * @returns The Realm categorizer draft
+ */
+export async function toRealmCategorizer(
+  sqliteCategorizer: SqliteTag | SqliteFolder,
+  type: CategorizerType
+): Promise<ICategorizerDraft> {
+  if (type === CategorizerType.PaperTag) {
+    return toRealmTag(sqliteCategorizer as SqliteTag);
+  } else if (type === CategorizerType.PaperFolder) {
+    return toRealmFolder(sqliteCategorizer as SqliteFolder);
+  } else {
+    throw new Error(`Unknown categorizer type: ${type}`);
   }
 }
