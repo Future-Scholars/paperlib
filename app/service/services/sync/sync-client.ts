@@ -10,8 +10,10 @@ import { CategorizerRepository } from "@/service/repositories/db-repository/cate
 import { DatabaseCore } from "../database/core";
 import { toRealmPaperEntity } from "./pollyfills/paper";
 import { toRealmFeed } from "./pollyfills/feed";
-import { toRealmCategorizer, toRealmTag } from "./pollyfills/categorizer";
+import { toRealmCategorizer, toRealmFolder, toRealmTag } from "./pollyfills/categorizer";
 import { CategorizerType } from "@/models/categorizer";
+import { IEntityObject } from "@/models/entity";
+import { toRealmSupplementary } from "./pollyfills/supplement";
 
 // const syncBaseUrl = new URL("https://coral-app-uijy2.ondigitalocean.app/");
 export const SYNC_BASE_URL = "http://localhost:3001/"; // TODO: For testing
@@ -108,7 +110,7 @@ export async function pull(
   }
   const { entityCreates, entityDeletes, fieldsChanges, relationChanges } = response;
   const tx = await db.startTransaction().execute();
-
+  let realmPaper: IEntityObject | null = null; // Declare here to avoid the duplicate declaration error in switch statements
   try {
     // Process entity creates
     for (const entityCreate of entityCreates) {
@@ -189,6 +191,7 @@ export async function pull(
       }
     }
 
+
     // Process field changes
     for (const fieldChange of fieldsChanges) {
       switch (fieldChange.model) {
@@ -248,7 +251,7 @@ export async function pull(
           if (!paperTagSqliteTag) {
             throw new Error(`Realm Tag not found for paperTag ${mergedPaperTag.tagId}`)
           }
-          const realmPaper = await toRealmPaperEntity(paperTagSqlitePaper)
+          realmPaper = await toRealmPaperEntity(paperTagSqlitePaper)
           const realmTag = await toRealmTag(paperTagSqliteTag)
           realmPaper.tags.push(realmTag)
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
@@ -269,13 +272,33 @@ export async function pull(
           if (!paperAuthorSqliteAuthor) {
             throw new Error(`Realm Author not found for paperAuthor ${mergedPaperAuthor.authorId}`)
           }
-          const realmPaper = await toRealmPaperEntity(paperAuthorSqlitePaper)
-          const realmAuthor = await toRealmAuthor(paperAuthorSqliteAuthor)
-          realmPaper.authors.push(realmAuthor)
+          realmPaper = await toRealmPaperEntity(paperAuthorSqlitePaper)
+          const authorNames = realmPaper.authors.split(",")
+          authorNames.push(paperAuthorSqliteAuthor.name)
+          realmPaper.authors = authorNames.join(",")
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         case 'paperFolder':
           await CRDT.orset.mergePaperFolderORSet(tx, relationChange)
+          const mergedPaperFolder = await CRDT.orset.mergePaperFolderORSet(tx, relationChange)
+          const paperFolderSqlitePaper = await tx.selectFrom('paper')
+            .selectAll()
+            .where('id', '=', mergedPaperFolder.paperId)
+            .executeTakeFirst()
+          const paperFolderSqliteFolder = await tx.selectFrom('folder')
+            .selectAll()
+            .where('id', '=', mergedPaperFolder.folderId)
+            .executeTakeFirst()
+          if (!paperFolderSqlitePaper) {
+            throw new Error(`Realm Paper not found for paperFolder ${mergedPaperFolder.paperId}`)
+          }
+          if (!paperFolderSqliteFolder) {
+            throw new Error(`Realm Folder not found for paperFolder ${mergedPaperFolder.folderId}`)
+          }
+          realmPaper = await toRealmPaperEntity(paperFolderSqlitePaper)
+          const realmFolder = await toRealmFolder(paperFolderSqliteFolder)
+          realmPaper.folders.push(realmFolder)
+          await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         case 'paperSupplement':
           const mergedPaperSupplement = await CRDT.orset.mergePaperSupplementORSet(tx, relationChange)
@@ -293,9 +316,9 @@ export async function pull(
           if (!paperSupplementSqliteSupplement) {
             throw new Error(`Realm Supplement not found for paperSupplement ${mergedPaperSupplement.supplementId}`)
           }
-          const realmPaper = await toRealmPaperEntity(paperSupplementSqlitePaper)
-          const realmSupplement = await toRealmSupplement(paperSupplementSqliteSupplement)
-          realmPaper.supplements.push(realmSupplement)
+          realmPaper = await toRealmPaperEntity(paperSupplementSqlitePaper)
+          const realmSupplement = await toRealmSupplementary(paperSupplementSqliteSupplement)
+          realmPaper.supplementaries[realmSupplement._id] = realmSupplement
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         default:
