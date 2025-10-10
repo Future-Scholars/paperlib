@@ -197,6 +197,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param realm - Realm instance
    * @param feed - Feed
    * @param partition - Partition
+   * @param fromSync - True if this update is called by sync client. 
    * @returns Feed
    */
   async update(realm: Realm, feed: IFeedObject, partition: string, fromSync: boolean = false) {

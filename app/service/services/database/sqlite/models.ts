@@ -148,6 +148,7 @@ export type AuthorFieldVersion = z.infer<typeof zAuthorFieldVersion>;
 
 export const zTag = z.object({
   id: z.string(),
+  legacyOid: z.string().nullable(),
   name: z.string(),
   description: z.string().nullable(),
   colour: z.string().nullable(),

@@ -131,11 +131,11 @@ export async function paperDelete(
   tx: Transaction,
   entityDelete: EntityDelete & { model: "paper" },
   libraryId: string
-): Promise<boolean> {
+): Promise<SqlitePaper | null> {
   // Check if the paper exists
   const existingArray = await tx
     .selectFrom('paper')
-    .select(['id', 'deletedAt'])
+    .selectAll()
     .where('id', '=', entityDelete.data.id)
     .where('libraryId', '=', libraryId)
     .where('deletedAt', 'is', null)
@@ -144,10 +144,10 @@ export async function paperDelete(
     throw new Error(`Multiple papers found for id ${entityDelete.data.id}`)
   }
   const existing = existingArray[0]
-  if (!existing) return false
+  if (!existing) return null
 
   // If the paper is already deleted, we can skip the delete operation
-  if (existing.deletedAt) return false
+  if (existing.deletedAt) return existing
 
   // Soft delete the paper
   await tx
@@ -170,7 +170,7 @@ export async function paperDelete(
     .where('paperId', '=', entityDelete.data.id)
     .execute()
 
-  return true
+  return existing
 }
 
 /**
@@ -258,11 +258,11 @@ export async function authorCreate(
 export async function authorDelete(
   tx: Transaction,
   entityDelete: EntityDelete & { model: "author" },
-): Promise<boolean> {
+): Promise<SqliteAuthor | null> {
   // Check if the author exists
   const existingArray = await tx
     .selectFrom('author')
-    .select(['id', 'deletedAt'])
+    .selectAll()
     .where('id', '=', entityDelete.data.id)
     .where('deletedAt', 'is', null)
     .execute()
@@ -271,10 +271,10 @@ export async function authorDelete(
     throw new Error(`Multiple authors found for id ${entityDelete.data.id}`)
   }
   const existing = existingArray[0]
-  if (!existing) return false
+  if (!existing) return null
 
   // If the author is already deleted, we can skip the delete operation
-  if (existing.deletedAt) return false
+  if (existing.deletedAt) return existing
 
   // Soft delete the author
   await tx
@@ -296,7 +296,7 @@ export async function authorDelete(
     .where('authorId', '=', entityDelete.data.id)
     .execute()
 
-  return true
+  return existing
 }
 
 /**
@@ -383,11 +383,11 @@ export async function folderCreate(
 export async function folderDelete(
   tx: Transaction,
   entityDelete: EntityDelete & { model: "folder" },
-): Promise<boolean> {
+): Promise<SqliteFolder | null> {
   // Check if the folder exists
   const existingArray = await tx
     .selectFrom('folder')
-    .select(['id', 'deletedAt'])
+    .selectAll()
     .where('id', '=', entityDelete.data.id)
     .where('deletedAt', 'is', null)
     .execute()
@@ -396,10 +396,10 @@ export async function folderDelete(
     throw new Error(`Multiple folders found for id ${entityDelete.data.id}`)
   }
   const existing = existingArray[0]
-  if (!existing) return false
+  if (!existing) return null
 
   // If the folder is already deleted, we can skip the delete operation
-  if (existing.deletedAt) return false
+  if (existing.deletedAt) return existing
 
   // Soft delete the folder
   await tx
@@ -421,7 +421,7 @@ export async function folderDelete(
     .where('folderId', '=', entityDelete.data.id)
     .execute()
 
-  return true
+  return existing
 }
 
 /**
@@ -507,11 +507,11 @@ export async function tagCreate(
 export async function tagDelete(
   tx: Transaction,
   entityDelete: EntityDelete & { model: "tag" },
-): Promise<boolean> {
+): Promise<SqliteTag | null> {
   // Check if the tag exists
   const existingArray = await tx
     .selectFrom('tag')
-    .select(['id', 'deletedAt'])
+    .selectAll()
     .where('id', '=', entityDelete.data.id)
     .where('deletedAt', 'is', null)
     .execute()
@@ -520,10 +520,10 @@ export async function tagDelete(
   }
   const existing = existingArray[0]
 
-  if (!existing) return false
+  if (!existing) return null
 
   // If the tag is already deleted, we can skip the delete operation
-  if (existing.deletedAt) return false
+  if (existing.deletedAt) return existing
 
   // Soft delete the tag
   await tx
@@ -545,7 +545,7 @@ export async function tagDelete(
     .where('tagId', '=', entityDelete.data.id)
     .execute()
 
-  return true
+  return existing
 }
 
 /**
@@ -633,11 +633,11 @@ export async function supplementCreate(
 export async function supplementDelete(
   tx: Transaction,
   entityDelete: EntityDelete & { model: "supplement" },
-): Promise<boolean> {
+): Promise<SqliteSupplement | null> {
   // Check if the supplement exists
   const existingArray = await tx
     .selectFrom('supplement')
-    .select(['id', 'deletedAt'])
+    .selectAll()
     .where('id', '=', entityDelete.data.id)
     .execute()
   if (existingArray.length > 1) {
@@ -645,10 +645,10 @@ export async function supplementDelete(
   }
   const existing = existingArray[0]
 
-  if (!existing) return false
+  if (!existing) return null
 
   // If the supplement is already deleted, we can skip the delete operation
-  if (existing.deletedAt) return false
+  if (existing.deletedAt) return existing
 
   // Soft delete the supplement
   await tx
@@ -670,7 +670,7 @@ export async function supplementDelete(
     .where('supplementId', '=', entityDelete.data.id)
     .execute()
 
-  return true
+  return existing
 }
 
 /**
@@ -760,11 +760,11 @@ export async function feedCreate(
 export async function feedDelete(
   tx: Transaction,
   entityDelete: EntityDelete & { model: "feed" },
-): Promise<boolean> {
+): Promise<SqliteFeed | null> {
   // Check if the feed exists
   const existingArray = await tx
     .selectFrom('feed')
-    .select(['id', 'deletedAt'])
+    .selectAll()
     .where('id', '=', entityDelete.data.id)
     .execute()
   if (existingArray.length > 1) {
@@ -772,10 +772,10 @@ export async function feedDelete(
   }
   const existing = existingArray[0]
 
-  if (!existing) return false
+  if (!existing) return null
 
   // If the feed is already deleted, we can skip the delete operation
-  if (existing.deletedAt) return false
+  if (existing.deletedAt) return existing
 
   // Soft delete the feed
   await tx
@@ -797,5 +797,5 @@ export async function feedDelete(
     .where('feedId', '=', entityDelete.data.id)
     .execute()
 
-  return true
+  return existing
 }
