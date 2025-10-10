@@ -579,7 +579,6 @@ export async function supplementCreate(
     .insertInto('supplement')
     .values({
       id: entityCreate.data.id,
-      paperId: entityCreate.data.paperId,
       name: entityCreate.data.name,
       value: entityCreate.data.value,
       type: entityCreate.data.type,
