@@ -226,7 +226,6 @@ type FolderFieldVersion = z.infer<typeof zFolderFieldVersion>;
 
 const zSupplement = z.object({
   id: z.string().uuid(),
-  paperId: z.string(),
   name: z.string(),
   value: z.string(),
   type: SupplementTypeEnum,

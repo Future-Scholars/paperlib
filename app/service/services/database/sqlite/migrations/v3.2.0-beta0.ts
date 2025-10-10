@@ -38,6 +38,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('tag')
     .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('legacyOid', 'text')
     .addColumn('name', 'text', (col) => col.notNull())
     .addColumn('description', 'text')
     .addColumn('colour', 'text')
@@ -114,7 +115,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('supplement')
     .addColumn('id', 'text', (col) => col.primaryKey())
-    .addColumn('paperId', 'text', (col) => col.references('paper.id').onDelete('cascade').notNull())
+    .addColumn('legacyOid', 'text')
     .addColumn('name', 'text', (col) => col.notNull())
     .addColumn('value', 'text', (col) => col.notNull())
     .addColumn('type', 'text', (col) => col.notNull())

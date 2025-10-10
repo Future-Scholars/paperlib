@@ -1068,7 +1068,7 @@ export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEnt
   }
 
   // Convert SQLite paper to Realm Entity
-  const entity: IEntityObject = {
+  const entity: Entity = new Entity({
     _id: sqlitePaper.legacyOid || sqlitePaper.id,
     addTime: new Date(sqlitePaper.createdAt),
     library: library?.name || "main",
@@ -1111,7 +1111,7 @@ export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEnt
     
     // Feed fields
     read: sqlitePaper.read === 1,
-  };
+  });
 
   return entity;
 }
