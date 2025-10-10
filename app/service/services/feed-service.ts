@@ -99,7 +99,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
-    return this._feedRepository.load(
+    return await this._feedRepository.load(
       await this._databaseCore.realm(),
       sortBy,
       sortOrder
@@ -156,17 +156,15 @@ export class FeedService extends Eventable<IFeedServiceState> {
     );
 
     const realm = await this._databaseCore.realm();
-    if (!fromSync) {
-      await PLAPI.syncService.addSyncLog("feed", "update", { feeds });
-    }
 
     const updatedFeeds: IFeedCollection = [];
 
     for (const feed of feeds) {
-      const updatedFeed = this._feedRepository.update(
+      const updatedFeed = await this._feedRepository.update(
         realm,
         feed,
-        this._databaseCore.getPartition()
+        this._databaseCore.getPartition(),
+        fromSync
       );
       updatedFeeds.push(updatedFeed);
     }
@@ -200,7 +198,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     const updatedFeedEntities: IFeedEntityCollection = [];
 
     for (const feedEntity of feedEntities) {
-      const updatedFeedEntity = this._feedEntityRepository.update(
+      const updatedFeedEntity = await this._feedEntityRepository.update(
         realm,
         feedEntity,
         this._databaseCore.getPartition(),
@@ -222,9 +220,6 @@ export class FeedService extends Eventable<IFeedServiceState> {
   async create(feeds: Feed[], fromSync: boolean = false) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
-    }
-    if (!fromSync) {
-      await PLAPI.syncService.addSyncLog("feed", "create", { feeds });
     }
 
     feeds.forEach((feed) => {
@@ -338,9 +333,6 @@ export class FeedService extends Eventable<IFeedServiceState> {
       return;
     }
 
-    if (!fromSync) {
-      await PLAPI.syncService.addSyncLog("feed", "delete", { ids, feeds });
-    }
 
     if (!ids && !feeds) {
       this._logService.error(
@@ -379,7 +371,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     );
     this._feedEntityRepository.delete(realm, undefined, toBeDeletedEntities);
 
-    this._feedRepository.delete(realm, undefined, feeds);
+    await this._feedRepository.delete(realm, undefined, feeds);
   }
 
   /**

@@ -13,6 +13,7 @@ import {
 } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { Entity } from "@/models/entity";
+import { deleteSqliteCategorizer, toSqliteCategorizer } from "@/service/services/sync/pollyfills/categorizer";
 
 export interface ICategorizerRepositoryState {
   tagsUpdated: number;
@@ -104,12 +105,12 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
    * @param sortOrder - Sort order
    * @returns Results of categorizer
    */
-  load(
+  async load(
     realm: Realm,
     type: CategorizerType,
     sortBy: string,
     sortOrder: string
-  ): ICategorizerCollection {
+  ): Promise<ICategorizerCollection> {
     const objects = realm
       .objects<Categorizer>(type)
       .sorted(sortBy, sortOrder == "desc");
@@ -142,7 +143,17 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
       } else {
         throw new Error(`Unknown categorizer type: ${type}`);
       }
+      
     }
+
+    // Sync objects to sqlite database
+    // await Promise.all(objects.map(async (object) => {
+    //   await toSqliteCategorizer(object, type);
+    // }));
+    for (const object of objects) {
+      await toSqliteCategorizer(object, type);
+    }
+
     return objects;
   }
 
@@ -209,39 +220,67 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
   }
 
   /**
+   * Recursively collect all categorizers that need to be deleted (including children).
+   * @param realm - Realm instance
+   * @param type - Categorizer type
+   * @param objects - Initial objects to delete
+   * @returns All objects to delete (including children)
+   */
+  private _collectAllObjectsToDelete(
+    realm: Realm,
+    type: CategorizerType,
+    objects: ICategorizerCollection
+  ): ICategorizerCollection {
+    const allObjects: ICategorizerCollection = [...objects];
+    
+    for (const object of objects) {
+      if (object.children.length > 0) {
+        const childObjects = this._collectAllObjectsToDelete(realm, type, object.children);
+        allObjects.push(...childObjects);
+      }
+    }
+    
+    return allObjects;
+  }
+
+  /**
    * Delete categorizer.
    * @param realm - Realm instance.
    * @param type - Categorizer type.
    * @param id - Id of categorizer to delete.
    * @param categorizer - Categorizer to delete.
    */
-  delete(
+  async delete(
     realm: Realm,
     type: CategorizerType,
     ids?: OID[],
     categorizers?: ICategorizerCollection
   ) {
+    // Read operations no need to be in safeWrite, therefore it's moved out of safeWrite at 2025-09-13
+    let objects: ICategorizerCollection;
+    if (categorizers) {
+      objects = categorizers
+        .map((categorizer: ICategorizerObject) =>
+          this.toRealmObject(realm, type, categorizer)
+        )
+        .filter((object) => object) as ICategorizerCollection;
+    } else if (ids) {
+      objects = this.loadByIds(realm, type, ids);
+    } else {
+      throw new Error(`Invalid arguments: ${categorizers}, ${ids}, ${type}`);
+    }
+    
+    // Collect all objects to delete (including children) before any async operations
+    const allObjectsToDelete = this._collectAllObjectsToDelete(realm, type, objects);
+    
+    // Perform all async SQLite deletions outside of safeWrite
+    await Promise.all(allObjectsToDelete.map(async (object) => {
+      await deleteSqliteCategorizer(object._id.toString(), type);
+    }));
+
+    // Perform all synchronous Realm deletions in a single transaction
     return realm.safeWrite(() => {
-      let objects: ICategorizerCollection;
-      if (categorizers) {
-        objects = categorizers
-          .map((categorizer: ICategorizerObject) =>
-            this.toRealmObject(realm, type, categorizer)
-          )
-          .filter((object) => object) as ICategorizerCollection;
-      } else if (ids) {
-        objects = this.loadByIds(realm, type, ids);
-      } else {
-        throw new Error(`Invalid arguments: ${categorizers}, ${ids}, ${type}`);
-      }
-
-      for (const object of objects) {
-        if (object.children.length > 0) {
-          this.delete(realm, type, undefined, object.children);
-        }
-      }
-
-      realm.delete(objects);
+      realm.delete(allObjectsToDelete);
       return true;
     });
   }
@@ -266,14 +305,19 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
    * @param parent - Parent categorizer
    * @returns Categorizer
    */
-  update(
+  async update(
     realm: Realm,
     type: CategorizerType,
     categorizer: ICategorizerObject,
     partition: string,
-    parent?: ICategorizerObject
+    parent?: ICategorizerObject,
+    fromSync: boolean = false
   ) {
     categorizer = this.makeSureProperties(categorizer);
+
+    if (!fromSync) {
+      await toSqliteCategorizer(categorizer, type);
+    }
 
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, type, categorizer);

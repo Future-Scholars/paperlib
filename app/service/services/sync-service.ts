@@ -6,55 +6,28 @@
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
 import { processing, ProcessingKey } from "@/common/utils/processing";
-import ElectronStore from "electron-store";
 import * as openidClient from "openid-client";
-import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
+import { DEFAULT_SYNC_STATE, ISyncState, syncStateStore } from "./sync/states";
+import { attach, pull, push } from "./sync/sync-client";
+import { UserInfoResponse } from "openid-client";
+import { ILogService, LogService } from "@/common/services/log-service";
+import { ISchedulerService, SchedulerService } from "@/service/services/scheduler-service";
+import { IPaperEntityRepository, PaperEntityRepository } from "@/service/repositories/db-repository/paper-entity-repository";
+import { FeedRepository, IFeedRepository } from "../repositories/db-repository/feed-repository";
+import { CategorizerRepository, ICategorizerRepository } from "../repositories/db-repository/categorizer-repository";
+import { DatabaseCore, IDatabaseCore } from "./database/core";
 
 export interface ISyncServiceState {
   connected: boolean;
-  pkceCodeVerifier: string;
-  nonce: string;
-  accessToken: string;
-  refreshToken: string;
-  idToken: string;
-  sub: string;
-  userInfo: string;
-  expiredAt: number;
-  syncLogs: z.infer<typeof SyncLog>[];
-  lastSyncAt: string;
+  syncProgress: number; // -1: not syncing, positive: syncing [0, 1]
+  userInfo: UserInfoResponse | null;
 }
 
-export const SyncLog = z.object({
-  log_id: z.string().uuid(),
-  operation: z.enum(["create", "update", "delete"]),
-  entity_type: z.enum([
-    "feed",
-    "paper",
-    "folder",
-    "tag",
-    "supplement",
-    "author",
-  ]),
-  value: z.any(), // JSON object of the new value
-  timestamp: z.string().datetime(), // Timestamp of the operation happened
-  created_at: z.string().datetime(), // Created time on local database
-  updated_at: z.string().datetime(), // Updated time on local database
-});
-
-const _DEFAULTSTATE = {
-    connected: false,
-    pkceCodeVerifier: "",
-    nonce: "",
-    accessToken: "",
-    refreshToken: "",
-    idToken: "",
-    sub: "",
-    userInfo: "{}",
-    expiredAt: 0,
-    syncLogs: [],
-    lastSyncAt: "",
-  }
+const _DEFAULTSTATE: ISyncServiceState = {
+  connected: false,
+  syncProgress: -1,
+  userInfo: null,
+};
 
 
 /**
@@ -69,37 +42,25 @@ const _DEFAULTSTATE = {
  */
 export class SyncService extends Eventable<ISyncServiceState> {
   private _openidClientConfig?: openidClient.Configuration;
-  private readonly _store: ElectronStore<ISyncServiceState>;
 
-  constructor() {
-    const _store = new ElectronStore<ISyncServiceState>({
-      name: "sync",
-    });
-
-    const defaultState = JSON.parse(
-      JSON.stringify(_DEFAULTSTATE)
-    ) as ISyncServiceState;
-    for (const key in _DEFAULTSTATE) {
-      if (!_store.has(key)) {
-        _store.set(key, _DEFAULTSTATE[key as keyof ISyncServiceState]);
-      } else {
-        defaultState[key] = _store.get(key);
-      }
-    }
-    super("syncService", defaultState);
-
-    this._store = _store;
+  constructor(
+    @IDatabaseCore private readonly _databaseCore: DatabaseCore,
+    @ISchedulerService private readonly _schedulerService: SchedulerService,
+    @ILogService private readonly _logService: LogService,
+    @IPaperEntityRepository private readonly _paperEntityRepository: PaperEntityRepository,
+    @IFeedRepository private readonly _feedRepository: FeedRepository,
+    @ICategorizerRepository private readonly _categorizerRepository: CategorizerRepository,
+  ) {
+    super("syncService", _DEFAULTSTATE);
   }
 
-  private syncBaseUrl = new URL("https://coral-app-uijy2.ondigitalocean.app/");
-
-  private _setStoreValue<K extends keyof ISyncServiceState>(
+  private _setStoreValue<K extends keyof ISyncState>(
     key: K,
-    value: ISyncServiceState[K]
+    value: ISyncState[K]
   ) {
     // Delete first and then set to avoid merge issues in some ElectronStore implementations
-    this._store.delete(key);
-    this._store.set(key, value);
+    syncStateStore.delete(key);
+    syncStateStore.set(key, value);
 
     // Emit event
     this.fire({
@@ -107,14 +68,14 @@ export class SyncService extends Eventable<ISyncServiceState> {
     }, false);
   }
 
-  private _getStoreValue<K extends keyof ISyncServiceState>(
+  private _getStoreValue<K extends keyof ISyncState>(
     key: K
-  ): ISyncServiceState[K] | undefined {
-    return this._store.get(key);
+  ): ISyncState[K] | undefined {
+    return syncStateStore.get(key);
   }
 
-  private _deleteStoreValue<K extends keyof ISyncServiceState>(key: K) {
-    this._setStoreValue(key, _DEFAULTSTATE[key]);
+  private _deleteStoreValue<K extends keyof ISyncState>(key: K) {
+    this._setStoreValue(key, DEFAULT_SYNC_STATE[key]);
   }
 
   /**
@@ -152,19 +113,20 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
       // If refresh is successful, schedule the next refresh based on the new expiration time
       if (tokens.expires_in && tokens.refresh_token) {
-        PLAPILocal.schedulerService.createTask(
+        this._schedulerService.createTask(
           "syncService.refresh",
           this.refreshAuth.bind(this),
-          // tokens.expires_in - 600, // Refresh about ten minutes before expiration
-          // For testing convenience, change to 10 seconds
+          // tokens.expires_in - 600, // Refresh about 10 minutes before expiration
+          // TODO: For testing convenience, change to 10 seconds
           10,
           undefined,
           false,
           false
         );
       }
+
       // Schedule a sync and create a sync task
-      PLAPILocal.schedulerService.createTask(
+      this._schedulerService.createTask(
         "syncService.invokeSync",
         this.invokeSync.bind(this),
         10, // Try to sync every 10 seconds
@@ -173,6 +135,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
         false
       );
     }
+    this._logService.info("SyncService initialized");
   }
 
   @processing(ProcessingKey.General)
@@ -196,11 +159,11 @@ export class SyncService extends Eventable<ISyncServiceState> {
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
       nonce,
-      scope: "offline_access openid profile email sync:read sync:write",
+      scope: "offline_access openid profile email sync.read",
       client_id: "JzGo9xzn3zbHM4He86JeHOCOu9FVAdim",
       redirect_uri:
         "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback",
-      audience: this.syncBaseUrl.origin,
+      audience: "http://localhost:3001",
     };
 
     const authorizationUrl = openidClient.buildAuthorizationUrl(
@@ -222,7 +185,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
     // If tokens contain expiration duration, calculate the expiration timestamp and store it
     if (tokens.expires_in) {
       const expiredAt = new Date().getTime() + tokens.expires_in * 1000;
-      this._setStoreValue("expiredAt", expiredAt);
+      this._setStoreValue("accessTokenExpiredAt", expiredAt);
     }
 
     // Write main tokens
@@ -247,7 +210,9 @@ export class SyncService extends Eventable<ISyncServiceState> {
         sub
       );
 
-      this._setStoreValue("userInfo", JSON.stringify(userInfo));
+      this._setStoreValue("userInfo", userInfo);
+      this._setStoreValue("connected", true);
+      this.fire({ userInfo: userInfo });
     }
   }
 
@@ -280,15 +245,13 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // 4) Schedule the next refresh
     if (tokens.expires_in && tokens.refresh_token) {
-      PLAPILocal.schedulerService.createTask(
+      this._schedulerService.createTask(
         "syncService.refresh",
         this.refreshAuth.bind(this),
-        // 600, // Try to refresh in 10 minutes, can set the strategy as needed
-        // For testing convenience, change to 10 seconds
-        10,
+        tokens.expires_in,
         undefined,
         false,
-        false
+        true
       );
     }
 
@@ -298,17 +261,17 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // 6) Update user preferences
     await PLMainAPI.preferenceService.set({ useSync: "official" });
-
+    await attach("main");
     // 7) Schedule a sync
-    PLAPILocal.schedulerService.createTask(
+    this._schedulerService.createTask(
       "syncService.invokeSync",
       this.invokeSync.bind(this),
       // 10, // Try to sync after 10 seconds
       // For testing convenience, change to 1 second
       10,
-      undefined,
-      false,
-      false
+      undefined, // error handler
+      true, // run immediately
+      false // not to run once
     );
   }
 
@@ -316,7 +279,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
    * Get a valid accessToken, if expired, automatically try to refresh
    */
   private async _getValidAccessToken(): Promise<string | null> {
-    const expiredAt = this._getStoreValue("expiredAt");
+    const expiredAt = this._getStoreValue("accessTokenExpiredAt");
     const now = new Date().getTime();
 
     // If it has expired, refresh it
@@ -358,19 +321,31 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // Update local storage
     await this._storeTokensAndUserInfo(tokens);
+    // Schedule the next refresh
+    if (tokens.expires_in && tokens.refresh_token) {
+      this._schedulerService.removeTask("syncService.refresh");
+      this._schedulerService.createTask(
+        "syncService.refresh",
+        this.refreshAuth.bind(this),
+        tokens.expires_in,
+        undefined,
+        false,
+        true
+      );
+    }
 
     return tokens;
   }
 
   // ---------------------------
   // Initiate sync
- // 1. Get accessToken
- // 2. Pull remote `syncLogs` first
- // 3. Read local `syncLogs`
- // 4. **Merge using `last write wins` rule based on `log_id`**
- // 5. **Apply merged `syncLogs` to local**
- // 6. Push `mergedSyncLogs` to server
- // 7. Clear local `syncLogs` after confirming successful push
+  // 1. Get accessToken
+  // 2. Pull remote `syncLogs` first
+  // 3. Read local `syncLogs`
+  // 4. **Merge using `last write wins` rule based on `log_id`**
+  // 5. **Apply merged `syncLogs` to local**
+  // 6. Push `mergedSyncLogs` to server
+  // 7. Clear local `syncLogs` after confirming successful push
   // ---------------------------
   public async invokeSync() {
     // TODO: check if network is available.
@@ -380,154 +355,31 @@ export class SyncService extends Eventable<ISyncServiceState> {
     if (!accessToken) {
       throw new Error("Access token is not available for syncing.");
     }
-
-    const syncUrl = new URL("/sync", this.syncBaseUrl);
-
-    // 2) Pull incremental logs from the remote
-
-    const lastSyncAt = this._getStoreValue("lastSyncAt");
-    if (lastSyncAt) {
-      syncUrl.searchParams.set("since", lastSyncAt);
+    try {
+      await attach("main");
+      // this.fire({ syncProgress: 0.3 });
+      await pull(
+        this._paperEntityRepository,
+        this._feedRepository,
+        this._categorizerRepository,
+        this._databaseCore,
+      );
+      // this.fire({ syncProgress: 0.7 });
+      await push();
+      syncStateStore.delete("lastSyncAt");
+      syncStateStore.set("lastSyncAt", new Date().getTime());
+      // this.fire({ syncProgress: 1 });
+    } catch (error) {
+      // if (error instanceof Error && error.message.includes("Unauthorized")) {
+      //   this.handleLogoutOfficialCallback("");
+      // } else {
+      //   throw error;
+      // }
+      throw error;
     }
 
-    // FIXME: replace fetch with a network service for proxy?
-    const getResponse: { code: number; data: z.infer<typeof SyncLog>[] } =
-      await fetch(syncUrl, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-        .then((res) => res.json())
-        .catch((error) => {
-          throw new Error("Failed to sync data (GET). " + error);
-        });
-
-    // 3) Process the data returned from the remote and merge it with the local database
-    if (getResponse.code !== 2000) {
-      throw new Error("Failed to sync data (GET): " + JSON.stringify(getResponse));
-    }
-
-    const localLogs = this._getStoreValue("syncLogs") || [];
-
-    const remoteLogs = getResponse.data || [];
-    // Filter out logs that have already been pushed locally
-    const filteredLogs = remoteLogs.filter(
-      // 1. local log_id is different from remote log_id
-      // 2. timestamp is later than lastSyncAt
-      (r) =>
-        (!localLogs.some(
-          (local) =>
-            local.log_id === r.log_id)) &&
-        (!lastSyncAt || new Date(r.timestamp) > new Date(lastSyncAt))
-    );
-
-    let synced = false;
-    // 4) Push local logs to the server
-    if (localLogs.length > 0) {
-      const postResponse = await fetch(syncUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(localLogs),
-      }).catch((error) => {
-        throw new Error("Failed to sync data (POST). " + error);
-      });
-      if (!postResponse.ok) {
-        throw new Error(
-          "Failed to sync data (POST). " + postResponse.statusText
-        );
-      }
-      const postResponseData = await postResponse.json();
-      if (postResponseData.code !== 2010) {
-        throw new Error(
-          "Failed to sync data: " + JSON.stringify(postResponseData)
-        );
-      }
-      // If push is successful, update lastSyncAt
-      this._deleteStoreValue("syncLogs");
-      synced = true;
-    }
-    console.log(filteredLogs);
-    // 5) Execute merge logic
-    for (const log of filteredLogs) {
-      if (!log.value) continue;
-
-      const logValue = typeof log.value === "string" ? JSON.parse(log.value) : log.value;
-      switch (log.entity_type) {
-        case "paper":
-          switch (log.operation) {
-            case "update":
-              await PLAPILocal.paperService.update(
-                logValue.paperEntityDrafts,
-                logValue.updateCache,
-                logValue.isUpdate,
-                true
-              );
-              break;
-            case "delete":
-              await PLAPILocal.paperService.delete(
-                logValue.ids,
-                logValue.paperEntities,
-                true
-              );
-              break;
-            case "create":
-              // If create needs to be supported, add it yourself.
-              // Currently we merged the create operation into the update operation.
-              break;
-            default:
-              throw new Error("Unsupported paper operation: " + log.operation);
-          }
-          break;
-        case "feed":
-          switch (log.operation) {
-            case "create":
-              await PLAPILocal.feedService.create(logValue.feeds, true);
-              break;
-            case "update":
-              await PLAPILocal.feedService.update(logValue.feeds, true);
-              break;
-            case "delete":
-              await PLAPILocal.feedService.delete(logValue.ids, logValue.feeds);
-              break;
-            default:
-              throw new Error("Unsupported feed operation: " + log.operation);
-          }
-          break;
-        default:
-          throw new Error("Unsupported entity type: " + log.entity_type);
-      }
-      synced = true;
-    }
-
-    if (synced) {
-      this._setStoreValue("lastSyncAt", new Date().toISOString());
-    }
   }
 
-  /**
-   * Add a local sync record, store it locally and wait for the next sync
-   */
-  public async addSyncLog(
-    entity_type: z.infer<typeof SyncLog>["entity_type"],
-    operation: z.infer<typeof SyncLog>["operation"],
-    value: z.infer<typeof SyncLog>["value"]
-  ) {
-    const logs = this._getStoreValue("syncLogs") || [];
-    const syncLogDatetime = new Date().toISOString();
-    const syncLog: z.infer<typeof SyncLog> = {
-      log_id: uuidv4(),
-      entity_type,
-      operation,
-      value,
-      timestamp: syncLogDatetime,
-      created_at: syncLogDatetime,
-      updated_at: syncLogDatetime,
-    };
-    logs.push(syncLog);
-    this._setStoreValue("syncLogs", logs);
-  }
 
   /**
    * Get user information, if accessToken is expired, it will automatically refresh
@@ -536,10 +388,10 @@ export class SyncService extends Eventable<ISyncServiceState> {
     await this._ensureOidcConfig();
 
     // If it has not expired or refreshed successfully, get the local userInfo
-    const userInfoStr = this._getStoreValue("userInfo");
-    if (userInfoStr) {
+    const userInfo = this._getStoreValue("userInfo");
+    if (userInfo) {
       try {
-        return JSON.parse(userInfoStr);
+        return userInfo;
       } catch (e) {
         // If JSON parse fails, you can choose to delete the data in the store as needed
         this._deleteStoreValue("userInfo");
@@ -554,7 +406,8 @@ export class SyncService extends Eventable<ISyncServiceState> {
         accessToken,
         sub
       );
-      this._setStoreValue("userInfo", JSON.stringify(userInfo));
+      this._setStoreValue("userInfo", userInfo);
+      this.fire({ userInfo: userInfo });
       return userInfo;
     }
     this.handleLogoutOfficialCallback("");
@@ -600,7 +453,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
     this._deleteStoreValue("idToken");
     this._deleteStoreValue("sub");
     this._deleteStoreValue("userInfo");
-    this._deleteStoreValue("expiredAt");
+    this._deleteStoreValue("accessTokenExpiredAt");
     this._deleteStoreValue("pkceCodeVerifier");
     this._deleteStoreValue("nonce");
 
@@ -611,6 +464,10 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // Update user preferences
     await PLMainAPI.preferenceService.set({ useSync: "none" });
+
+    // Clear scheduled tasks
+    this._schedulerService.removeTask("syncService.refresh");
+    this._schedulerService.removeTask("syncService.invokeSync");
   }
 
   useState(): ISyncServiceState {

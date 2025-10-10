@@ -8,7 +8,7 @@ const prefState = PLMainAPI.preferenceService.useState();
 const syncState = PLAPI.syncService.useState();
 const filebackendState = PLAPI.fileService.useState();
 
-const syncUserInfo = ref(JSON.parse(syncState.userInfo)["email"]);
+const syncUserInfo = ref(syncState.userInfo ? syncState.userInfo.email? syncState.userInfo.email : "" : "");
 
 const deprecatedSyncAPPID = ref(prefState.syncAPPID);
 const deprecatedSyncEmail = ref(prefState.syncEmail);
