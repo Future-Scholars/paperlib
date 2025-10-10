@@ -9,6 +9,9 @@ import { FeedRepository } from "@/service/repositories/db-repository/feed-reposi
 import { CategorizerRepository } from "@/service/repositories/db-repository/categorizer-repository";
 import { DatabaseCore } from "../database/core";
 import { toRealmPaperEntity } from "./pollyfills/paper";
+import { toRealmFeed } from "./pollyfills/feed";
+import { toRealmCategorizer } from "./pollyfills/categorizer";
+import { CategorizerType } from "@/models/categorizer";
 
 // const syncBaseUrl = new URL("https://coral-app-uijy2.ondigitalocean.app/");
 export const SYNC_BASE_URL = "http://localhost:3001/"; // TODO: For testing
@@ -80,6 +83,7 @@ export async function attach(library: "main" | "feeds") {
 }
 
 
+
 export async function pull(
   paperEntityRepository: PaperEntityRepository,
   feedRepository: FeedRepository,
@@ -111,22 +115,34 @@ export async function pull(
       switch (entityCreate.model) {
         case 'paper':
           const createdPaper = await CRDT.lifecycle.paperCreate(tx, entityCreate, libraryId)
-          await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(createdPaper), libraryId)
+          await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(createdPaper), await databaseCore.getPartition(), true, true)
           break
         case 'author':
-          await CRDT.lifecycle.authorCreate(tx, entityCreate)
+          await CRDT.lifecycle.authorCreate(tx, entityCreate);
+          // Since the author is a string array in realm, we don't need to update it in realm. 
+          // Author created will be handled in the field changes
           break
         case 'folder':
-          await CRDT.lifecycle.folderCreate(tx, entityCreate)
+          const createdFolder = await CRDT.lifecycle.folderCreate(tx, entityCreate)
+          if (createdFolder) {
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(createdFolder, CategorizerType.PaperFolder), await databaseCore.getPartition(), undefined, true)
+          }
           break
         case 'tag':
-          await CRDT.lifecycle.tagCreate(tx, entityCreate)
+          const createdTag = await CRDT.lifecycle.tagCreate(tx, entityCreate)
+          if (createdTag) {
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(createdTag, CategorizerType.PaperTag), await databaseCore.getPartition(), undefined, true)
+          }
           break
         case 'supplement':
           await CRDT.lifecycle.supplementCreate(tx, entityCreate)
+          // Supplement created will be handled in the relation changes
           break
         case 'feed':
-          await CRDT.lifecycle.feedCreate(tx, entityCreate)
+          const createdFeed = await CRDT.lifecycle.feedCreate(tx, entityCreate)
+          if (createdFeed) {
+            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(createdFeed), await databaseCore.getPartition(), true)
+          }
           break
         default:
           throw new Error(`Unknown model for the entityCreate ${JSON.stringify(entityCreate)}`)
@@ -137,22 +153,36 @@ export async function pull(
     for (const entityDelete of entityDeletes) {
       switch (entityDelete.model) {
         case 'paper':
-          await CRDT.lifecycle.paperDelete(tx, entityDelete, libraryId)
+          const deletedPaper = await CRDT.lifecycle.paperDelete(tx, entityDelete, libraryId)
+          if (deletedPaper) {
+            await paperEntityRepository.delete(await databaseCore.realm(), undefined, [await toRealmPaperEntity(deletedPaper)])
+          }
           break
         case 'author':
           await CRDT.lifecycle.authorDelete(tx, entityDelete)
+          // Since the author is a string array in realm, we don't need to delete it from realm
           break
         case 'folder':
-          await CRDT.lifecycle.folderDelete(tx, entityDelete)
+          const deletedFolder = await CRDT.lifecycle.folderDelete(tx, entityDelete)
+          if (deletedFolder) {
+            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperFolder, undefined, [await toRealmCategorizer(deletedFolder, CategorizerType.PaperFolder)])
+          }
           break
         case 'tag':
-          await CRDT.lifecycle.tagDelete(tx, entityDelete)
+          const deletedTag = await CRDT.lifecycle.tagDelete(tx, entityDelete)
+          if (deletedTag) {
+            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperTag, undefined, [await toRealmCategorizer(deletedTag, CategorizerType.PaperTag)])
+          }
           break
         case 'supplement':
-          await CRDT.lifecycle.supplementDelete(tx, entityDelete)
+          await CRDT.lifecycle.supplementDelete(tx, entityDelete);
+          // Supplement delete will be handled in the relation changes
           break
         case 'feed':
-          await CRDT.lifecycle.feedDelete(tx, entityDelete)
+          const deletedFeed = await CRDT.lifecycle.feedDelete(tx, entityDelete)
+          if (deletedFeed) {
+            await feedRepository.delete(await databaseCore.realm(), undefined, [await toRealmFeed(deletedFeed)])
+          }
           break
         default:
           throw new Error(`Unknown model for the entityDelete ${JSON.stringify(entityDelete)}`)
@@ -163,22 +193,36 @@ export async function pull(
     for (const fieldChange of fieldsChanges) {
       switch (fieldChange.model) {
         case 'paper':
-          await CRDT.lww.mergePaperFieldLWW(tx, fieldChange)
+          const mergedPaper = await CRDT.lww.mergePaperFieldLWW(tx, fieldChange)
+          if (mergedPaper) {
+            await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(mergedPaper), await databaseCore.getPartition(), true, true)
+          }
           break
         case 'folder':
-          await CRDT.lww.mergeFolderFieldLWW(tx, fieldChange)
+          const mergedFolder = await CRDT.lww.mergeFolderFieldLWW(tx, fieldChange)
+          if (mergedFolder) {
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(mergedFolder, CategorizerType.PaperFolder), await databaseCore.getPartition(), undefined, true)
+          }
           break
         case 'author':
           await CRDT.lww.mergeAuthorFieldLWW(tx, fieldChange)
+          // Since the author is a string array in realm, we don't need to update it in realm
           break
         case 'supplement':
           await CRDT.lww.mergeSupplementFieldLWW(tx, fieldChange)
+          // Supplement merge will be handled in the relation changes
           break
         case 'tag':
-          await CRDT.lww.mergeTagFieldLWW(tx, fieldChange)
+          const mergedTag = await CRDT.lww.mergeTagFieldLWW(tx, fieldChange)
+          if (mergedTag) {
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(mergedTag, CategorizerType.PaperTag), await databaseCore.getPartition(), undefined, true)
+          }
           break
         case 'feed':
-          await CRDT.lww.mergeFeedFieldLWW(tx, fieldChange)
+          const mergedFeed = await CRDT.lww.mergeFeedFieldLWW(tx, fieldChange)
+          if (mergedFeed) {
+            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(mergedFeed), await databaseCore.getPartition(), true)
+          }
           break
         default:
           throw new Error(`Unknown model for the fieldChange ${JSON.stringify(fieldChange)}`)

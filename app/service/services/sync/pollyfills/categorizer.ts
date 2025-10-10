@@ -1,4 +1,4 @@
-import { ICategorizerObject, CategorizerType, ICategorizerDraft } from "@/models/categorizer";
+import { ICategorizerObject, CategorizerType, ICategorizerDraft, PaperTag, PaperFolder } from "@/models/categorizer";
 import { zTag, zTagFieldVersion, Tag as SqliteTag } from "@/service/services/database/sqlite/models";
 import { syncStateStore } from "@/service/services/sync/states";
 import { db } from "@/service/services/database/sqlite/db";
@@ -32,6 +32,7 @@ export async function toSqliteCategorizer(
     if (!existedSqliteTag) {
       const sqliteTag: z.infer<typeof zTag> = {
         id: tagId,
+        legacyOid: categorizer._id.toString(),
         name: categorizer.name,
         description: null,
         colour: ensureUndefinedToNull(categorizer.color),
@@ -257,14 +258,21 @@ export async function deleteSqliteCategorizer(legacyOid: string, type: Categoriz
  * @param sqliteTag - The SQLite tag to convert
  * @returns The Realm categorizer draft
  */
-export async function toRealmTag(sqliteTag: SqliteTag): Promise<ICategorizerDraft> {
+export async function toRealmTag(sqliteTag: SqliteTag): Promise<ICategorizerObject> {
   // Tags don't have hierarchical structure in SQLite, so no children
-  return {
-    _id: sqliteTag.id, // Use SQLite ID as Realm ID
+  if (!sqliteTag.legacyOid) {
+    throw new Error("Legacy OID is required");
+  }
+  if (!sqliteTag.colour) {
+    throw new Error("Color is required");
+  }
+  const realmTag = new PaperTag({
+    _id: sqliteTag.legacyOid,
     name: sqliteTag.name,
-    color: sqliteTag.colour || undefined,
-    children: undefined, // Tags are flat in SQLite
-  };
+    color: sqliteTag.colour,
+    children: [], // Tags are flat in SQLite
+  });
+  return realmTag;
 }
 
 /**
@@ -272,7 +280,7 @@ export async function toRealmTag(sqliteTag: SqliteTag): Promise<ICategorizerDraf
  * @param sqliteFolder - The SQLite folder to convert
  * @returns The Realm categorizer draft
  */
-export async function toRealmFolder(sqliteFolder: SqliteFolder): Promise<ICategorizerDraft> {
+export async function toRealmFolder(sqliteFolder: SqliteFolder): Promise<ICategorizerObject> {
   // Get children folders if any (for hierarchical structure)
   const children = await db.selectFrom("folder")
     .where("parentId", "=", sqliteFolder.id)
@@ -283,13 +291,20 @@ export async function toRealmFolder(sqliteFolder: SqliteFolder): Promise<ICatego
   const childrenDrafts = await Promise.all(
     children.map(child => toRealmFolder(child))
   );
+  if (!sqliteFolder.legacyOid) {
+    throw new Error("Legacy OID is required");
+  }
+  if (!sqliteFolder.colour) {
+    throw new Error("Color is required");
+  }
 
-  return {
-    _id: sqliteFolder.legacyOid || sqliteFolder.id, // Prefer legacyOid if available
+  const realmFolder = new PaperFolder({
+    _id: sqliteFolder.legacyOid,
     name: sqliteFolder.name,
-    color: sqliteFolder.colour || undefined,
-    children: childrenDrafts.length > 0 ? childrenDrafts : undefined,
-  };
+    color: sqliteFolder.colour,
+    children: childrenDrafts,
+  });
+  return realmFolder;
 }
 
 /**
@@ -301,7 +316,7 @@ export async function toRealmFolder(sqliteFolder: SqliteFolder): Promise<ICatego
 export async function toRealmCategorizer(
   sqliteCategorizer: SqliteTag | SqliteFolder,
   type: CategorizerType
-): Promise<ICategorizerDraft> {
+): Promise<ICategorizerObject> {
   if (type === CategorizerType.PaperTag) {
     return toRealmTag(sqliteCategorizer as SqliteTag);
   } else if (type === CategorizerType.PaperFolder) {

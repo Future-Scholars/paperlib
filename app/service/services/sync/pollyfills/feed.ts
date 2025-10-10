@@ -1,4 +1,4 @@
-import { Feed, IFeedDraft } from "@/models/feed";
+import { Feed, IFeedObject } from "@/models/feed";
 import { zFeed, zFeedFieldVersion, Feed as SqliteFeed } from "@/service/services/database/sqlite/models";
 import { syncStateStore } from "@/service/services/sync/states";
 import { db } from "@/service/services/database/sqlite/db";
@@ -16,13 +16,15 @@ import { createFieldVersionValue, ensureUndefinedToNull, ensureLibraryId } from 
 export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infer<typeof zFeed>> {
   const deviceId = syncStateStore.get("deviceId");
 
-  // Try get the existed sqlite feed by legacy oid
+  // Try get the existed sqlite feed by legacy oid.
+  // If there's no legacy oid, it means the feed is either new or from sync and there's no existed feed in realm.
   const existedSqliteFeed: SqliteFeed | undefined = await db.selectFrom("feed")
     .where("legacyOid", "=", feed._id.toString())
     .selectAll()
     .executeTakeFirst();
 
   if (existedSqliteFeed) {
+    // There's an existed feed in realm
     let updated = false;
     const createdAtDate = new Date();
     const createdAtTimestamp = createdAtDate.getTime();
@@ -218,13 +220,14 @@ export async function deleteSqliteFeed(legacyOid: string): Promise<void> {
  * @param sqliteFeed - The SQLite feed to convert
  * @returns The Realm feed draft
  */
-export async function toRealmFeed(sqliteFeed: SqliteFeed): Promise<IFeedDraft> {
-  return {
-    _id: sqliteFeed.legacyOid || sqliteFeed.id, // Prefer legacyOid if available
-    id: sqliteFeed.legacyOid || sqliteFeed.id, // Same as _id for compatibility
+export async function toRealmFeed(sqliteFeed: SqliteFeed): Promise<IFeedObject> {
+  const feedRealmObject = new Feed({
+    _id: sqliteFeed.legacyOid || undefined,
     name: sqliteFeed.name,
-    count: sqliteFeed.count || 0, // Default to 0 if null
-    color: sqliteFeed.colour || undefined, // Convert colour to color, handle null
+    count: sqliteFeed.count || 0,
+    color: sqliteFeed.colour || undefined,
     url: sqliteFeed.url,
-  };
+  });
+
+  return feedRealmObject;
 }
