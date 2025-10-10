@@ -10,7 +10,7 @@ import { CategorizerRepository } from "@/service/repositories/db-repository/cate
 import { DatabaseCore } from "../database/core";
 import { toRealmPaperEntity } from "./pollyfills/paper";
 import { toRealmFeed } from "./pollyfills/feed";
-import { toRealmCategorizer } from "./pollyfills/categorizer";
+import { toRealmCategorizer, toRealmTag } from "./pollyfills/categorizer";
 import { CategorizerType } from "@/models/categorizer";
 
 // const syncBaseUrl = new URL("https://coral-app-uijy2.ondigitalocean.app/");
@@ -233,16 +233,70 @@ export async function pull(
     for (const relationChange of relationChanges) {
       switch (relationChange.model) {
         case 'paperTag':
-          await CRDT.orset.mergePaperTagORSet(tx, relationChange)
+          const mergedPaperTag = await CRDT.orset.mergePaperTagORSet(tx, relationChange)
+          const paperTagSqlitePaper = await tx.selectFrom('paper')
+            .selectAll()
+            .where('id', '=', mergedPaperTag.paperId)
+            .executeTakeFirst()
+          const paperTagSqliteTag = await tx.selectFrom('tag')
+            .selectAll()
+            .where('id', '=', mergedPaperTag.tagId)
+            .executeTakeFirst()
+          if (!paperTagSqlitePaper) {
+            throw new Error(`Realm Paper not found for paperTag ${mergedPaperTag.paperId}`)
+          }
+          if (!paperTagSqliteTag) {
+            throw new Error(`Realm Tag not found for paperTag ${mergedPaperTag.tagId}`)
+          }
+          const realmPaper = await toRealmPaperEntity(paperTagSqlitePaper)
+          const realmTag = await toRealmTag(paperTagSqliteTag)
+          realmPaper.tags.push(realmTag)
+          await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         case 'paperAuthor':
-          await CRDT.orset.mergePaperAuthorORSet(tx, relationChange)
+          const mergedPaperAuthor = await CRDT.orset.mergePaperAuthorORSet(tx, relationChange)
+          const paperAuthorSqlitePaper = await tx.selectFrom('paper')
+            .selectAll()
+            .where('id', '=', mergedPaperAuthor.paperId)
+            .executeTakeFirst()
+          const paperAuthorSqliteAuthor = await tx.selectFrom('author')
+            .selectAll()
+            .where('id', '=', mergedPaperAuthor.authorId)
+            .executeTakeFirst()
+          if (!paperAuthorSqlitePaper) {
+            throw new Error(`Realm Paper not found for paperAuthor ${mergedPaperAuthor.paperId}`)
+          }
+          if (!paperAuthorSqliteAuthor) {
+            throw new Error(`Realm Author not found for paperAuthor ${mergedPaperAuthor.authorId}`)
+          }
+          const realmPaper = await toRealmPaperEntity(paperAuthorSqlitePaper)
+          const realmAuthor = await toRealmAuthor(paperAuthorSqliteAuthor)
+          realmPaper.authors.push(realmAuthor)
+          await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         case 'paperFolder':
           await CRDT.orset.mergePaperFolderORSet(tx, relationChange)
           break
         case 'paperSupplement':
-          await CRDT.orset.mergePaperSupplementORSet(tx, relationChange)
+          const mergedPaperSupplement = await CRDT.orset.mergePaperSupplementORSet(tx, relationChange)
+          const paperSupplementSqlitePaper = await tx.selectFrom('paper')
+            .selectAll()
+            .where('id', '=', mergedPaperSupplement.paperId)
+            .executeTakeFirst()
+          const paperSupplementSqliteSupplement = await tx.selectFrom('supplement')
+            .selectAll()
+            .where('id', '=', mergedPaperSupplement.supplementId)
+            .executeTakeFirst()
+          if (!paperSupplementSqlitePaper) {
+            throw new Error(`Realm Paper not found for paperSupplement ${mergedPaperSupplement.paperId}`)
+          }
+          if (!paperSupplementSqliteSupplement) {
+            throw new Error(`Realm Supplement not found for paperSupplement ${mergedPaperSupplement.supplementId}`)
+          }
+          const realmPaper = await toRealmPaperEntity(paperSupplementSqlitePaper)
+          const realmSupplement = await toRealmSupplement(paperSupplementSqliteSupplement)
+          realmPaper.supplements.push(realmSupplement)
+          await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         default:
           throw new Error(`Unknown model for the relationChange ${JSON.stringify(relationChange)}`)
