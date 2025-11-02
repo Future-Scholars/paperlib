@@ -9,6 +9,7 @@ const syncState = PLAPI.syncService.useState();
 const filebackendState = PLAPI.fileService.useState();
 
 const syncUserInfo = ref(syncState.userInfo ? syncState.userInfo.email? syncState.userInfo.email : "" : "");
+const syncAPIKey = ref(syncState.accessToken);
 
 const deprecatedSyncAPPID = ref(prefState.syncAPPID);
 const deprecatedSyncEmail = ref(prefState.syncEmail);
@@ -27,11 +28,11 @@ const onUpdate = (key: string, value: unknown) => {
 // =============================================================================
 // Offical RESTful API Sync
 const onOfficialLoginClicked = async () => {
-  await PLAPI.syncService.invokeLoginOfficial();
+  await PLAPI.syncService.setAccessToken(syncAPIKey.value || "");
 };
 
 const onOfficialLogouClicked = async () => {
-  await PLAPI.syncService.logoutOfficial();
+  await PLAPI.syncService.handleLogoutOfficialCallback();
 }
 
 // =============================================================================
@@ -111,6 +112,12 @@ onMounted(() => {
     </div>
 
     <div class="flex space-x-2 justify-between mb-5">
+      <input
+        class="p-2 rounded-md text-xs bg-neutral-200 dark:bg-neutral-700 focus:outline-none grow"
+        type="text"
+        placeholder="API Key"
+        v-model="syncAPIKey"
+      />
       <div class="flex justify-between text-xs flex-none h-7">
         <button
           class="flex h-full w-[5.5rem] my-auto text-center rounded-md bg-neutral-200 dark:bg-neutral-600"
