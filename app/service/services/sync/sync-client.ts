@@ -15,7 +15,8 @@ import { CategorizerType } from "@/models/categorizer";
 import { IEntityObject } from "@/models/entity";
 import { toRealmSupplementary } from "./pollyfills/supplement";
 
-export const SYNC_BASE_URL = "https://dev.sync.paperlib.app"; // TODO: For testing
+// const syncBaseUrl = new URL("https://coral-app-uijy2.ondigitalocean.app/");
+export const SYNC_BASE_URL = "http://localhost:3001/"; // TODO: For testing
 
 async function requestAPI(url: URL, method: string, body: any): Promise<any> {
   const accessToken = syncStateStore.get("accessToken");
