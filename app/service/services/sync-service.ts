@@ -29,6 +29,11 @@ const _DEFAULTSTATE: ISyncServiceState = {
   userInfo: null,
 };
 
+const CLIENT_ID = "rObSDWEAuDzhsEZXVNDiOCXZpohYhEOK";
+const ISSUER = "https://dev.better-auth.paperlib.app";
+const REDIRECT_URI = "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback";
+const AUDIENCE = "http://localhost:3001";
+const SCOPE = "offline_access openid profile email";
 
 /**
  * Service for synchronization maintenance.
@@ -85,8 +90,8 @@ export class SyncService extends Eventable<ISyncServiceState> {
   private async _ensureOidcConfig() {
     if (!this._openidClientConfig) {
       this._openidClientConfig = await openidClient.discovery(
-        new URL("https://auth0.paperlib.app"),
-        "JzGo9xzn3zbHM4He86JeHOCOu9FVAdim"
+        new URL(ISSUER),
+        CLIENT_ID
       );
       if (!this._openidClientConfig.serverMetadata().supportsPKCE()) {
         throw new Error("PKCE is not supported by the server");
@@ -159,11 +164,10 @@ export class SyncService extends Eventable<ISyncServiceState> {
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
       nonce,
-      scope: "offline_access openid profile email sync.read",
-      client_id: "JzGo9xzn3zbHM4He86JeHOCOu9FVAdim",
-      redirect_uri:
-        "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback",
-      audience: "http://localhost:3001",
+      scope: SCOPE,
+      client_id: CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      audience: AUDIENCE,
     };
 
     const authorizationUrl = openidClient.buildAuthorizationUrl(
@@ -182,6 +186,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
     tokens: openidClient.TokenEndpointResponse &
       openidClient.TokenEndpointResponseHelpers
   ) {
+    console.log("Storing tokens and user info", JSON.stringify(tokens, null, 2));
     // If tokens contain expiration duration, calculate the expiration timestamp and store it
     if (tokens.expires_in) {
       const expiredAt = new Date().getTime() + tokens.expires_in * 1000;
@@ -234,7 +239,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
     const tokens = await openidClient.authorizationCodeGrant(
       this._openidClientConfig!,
       new URL(
-        `paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback?code=${code}`
+        `${REDIRECT_URI}?code=${code}`
       ),
       {
         pkceCodeVerifier,
@@ -433,7 +438,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       {
         id_token_hint: idToken,
         post_logout_redirect_uri:
-          "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLogoutOfficialCallback",
+          `${REDIRECT_URI}?callback=logout`,
       }
     );
 
