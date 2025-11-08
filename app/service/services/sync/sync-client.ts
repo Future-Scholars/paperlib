@@ -281,7 +281,6 @@ export async function pull(
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         case 'paperFolder':
-          await CRDT.orset.mergePaperFolderORSet(tx, relationChange)
           const mergedPaperFolder = await CRDT.orset.mergePaperFolderORSet(tx, relationChange)
           const paperFolderSqlitePaper = await tx.selectFrom('paper')
             .selectAll()

@@ -560,7 +560,7 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
 
     deletedAt: null,
     deletedByDeviceId: null,
-  }
+  };
 
   const paperFieldVersions: z.infer<typeof zPaperFieldVersion>[] = [
 

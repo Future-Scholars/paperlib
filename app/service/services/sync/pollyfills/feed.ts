@@ -195,7 +195,7 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       deletedAt: null,
       deletedByDeviceId: null,
     },
-  ]
+  ];
   await db.insertInto("feed").values(newSqliteFeed).execute();
   await db.insertInto("feedFieldVersion").values(feedFieldVersions).execute();
 

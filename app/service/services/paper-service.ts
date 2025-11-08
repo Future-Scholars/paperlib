@@ -26,7 +26,6 @@ import { CacheService, ICacheService } from "./cache-service";
 import { FileService, IFileService } from "./file-service";
 import { ISchedulerService, SchedulerService } from "./scheduler-service";
 import { IScrapeService, ScrapeService } from "./scrape-service";
-import { toSqlitePaper } from "./sync/pollyfills/paper";
 
 export interface IPaperServiceState {
   count: number;

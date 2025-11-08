@@ -122,7 +122,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('description', 'text')
     .addColumn('createdAt', 'numeric', (col) => col.notNull())
     .addColumn('createdByDeviceId', 'text', (col) => col.notNull())
-    .addColumn('updatedAt', 'numeric', (col) => col.notNull())
+    .addColumn('updatedAt', 'numeric')
+    .addColumn('updatedByDeviceId', 'text')
     .addColumn('deletedAt', 'numeric')
     .addColumn('deletedByDeviceId', 'text')
     .execute()
@@ -139,7 +140,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('type', 'text', (col) => col.notNull())
     .addColumn('url', 'text', (col) => col.notNull())
     .addColumn('count', 'integer')
-    .addColumn('color', 'text')
+    .addColumn('colour', 'text')
     .addColumn('createdAt', 'numeric', (col) => col.notNull())
     .addColumn('createdByDeviceId', 'text', (col) => col.notNull())
     .addColumn('updatedAt', 'numeric')
@@ -199,6 +200,21 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'text', (col) => col.primaryKey())
     .addColumn('paperId', 'text', (col) => col.references('paper.id').onDelete('cascade').notNull())
     .addColumn('folderId', 'text', (col) => col.references('folder.id').onDelete('cascade').notNull())
+    .addColumn('op', 'text', (col) => col.notNull())
+    .addColumn('timestamp', 'numeric', (col) => col.notNull())
+    .addColumn('deviceId', 'text', (col) => col.notNull())
+    .addColumn('createdAt', 'numeric', (col) => col.notNull())
+    .addColumn('createdByDeviceId', 'text', (col) => col.notNull())
+    .addColumn('deletedAt', 'numeric')
+    .addColumn('deletedByDeviceId', 'text')
+    .execute()
+
+  // Create paperSupplement junction table
+  await db.schema
+    .createTable('paperSupplement')
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('paperId', 'text', (col) => col.references('paper.id').onDelete('cascade').notNull())
+    .addColumn('supplementId', 'text', (col) => col.references('supplement.id').onDelete('cascade').notNull())
     .addColumn('op', 'text', (col) => col.notNull())
     .addColumn('timestamp', 'numeric', (col) => col.notNull())
     .addColumn('deviceId', 'text', (col) => col.notNull())
@@ -362,12 +378,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createIndex('folder_parent_id_index')
     .on('folder')
     .column('parentId')
-    .execute()
-
-  await db.schema
-    .createIndex('supplement_paper_id_index')
-    .on('supplement')
-    .column('paperId')
     .execute()
 
   await db.schema

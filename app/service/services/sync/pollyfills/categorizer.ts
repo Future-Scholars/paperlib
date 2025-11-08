@@ -1,4 +1,4 @@
-import { ICategorizerObject, CategorizerType, ICategorizerDraft, PaperTag, PaperFolder } from "@/models/categorizer";
+import { ICategorizerObject, CategorizerType, PaperTag, PaperFolder } from "@/models/categorizer";
 import { zTag, zTagFieldVersion, Tag as SqliteTag } from "@/service/services/database/sqlite/models";
 import { syncStateStore } from "@/service/services/sync/states";
 import { db } from "@/service/services/database/sqlite/db";
