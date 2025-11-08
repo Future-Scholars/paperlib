@@ -109,7 +109,6 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
   }
   // Insert the feed to database
   const createdAtDate = new Date();
-  const createdAtDateString = createdAtDate.toISOString();
   const createdAtTimestamp = createdAtDate.getTime();
   const newSqliteFeed: z.infer<typeof zFeed> = {
     id: uuidv4(),

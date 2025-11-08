@@ -41,7 +41,6 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
 
     let updated = false;
     const createdAtDate = new Date();
-    const createdAtDateString = createdAtDate.toISOString();
     const createdAtTimestamp = createdAtDate.getTime();
     // Update the sqlite entity if any field is different
     const paperFieldVersions: z.infer<typeof zPaperFieldVersion>[] = [];
@@ -512,7 +511,6 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
 
   // Insert the sqlite entity if not existed
   const createdAtDate = new Date();
-  const createdAtDateString = createdAtDate.toISOString();
   const createdAtTimestamp = createdAtDate.getTime();
   let sqliteEntity: SqlitePaper = {
     id: uuidv4(),
@@ -1026,7 +1024,7 @@ export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEnt
     .where("id", "=", sqlitePaper.libraryId)
     .select("name")
     .executeTakeFirst();
-  
+
   // Get authors for this paper
   const authors = await db.selectFrom("paperAuthor")
     .innerJoin("author", "author.id", "paperAuthor.authorId")
@@ -1035,7 +1033,7 @@ export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEnt
     .where("paperAuthor.deletedAt", "is", null)
     .select("author.name")
     .execute();
-  
+
   // Get tags for this paper
   const paperTags = await db.selectFrom("paperTag")
     .innerJoin("tag", "tag.id", "paperTag.tagId")
@@ -1044,7 +1042,8 @@ export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEnt
     .where("paperTag.deletedAt", "is", null)
     .selectAll("tag")
     .execute();
-  
+  // TODO: handle the tag merge
+
   // Get folders for this paper
   const paperFolders = await db.selectFrom("paperFolder")
     .innerJoin("folder", "folder.id", "paperFolder.folderId")
@@ -1053,7 +1052,7 @@ export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEnt
     .where("paperFolder.deletedAt", "is", null)
     .selectAll("folder")
     .execute();
-  
+  // TODO: handle the folder merge
   // Get feed if exists
   let feed: IFeedDraft | undefined = undefined;
   if (sqlitePaper.feedId) {
@@ -1061,9 +1060,10 @@ export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEnt
       .where("id", "=", sqlitePaper.feedId)
       .selectAll()
       .executeTakeFirst();
-    
+
     if (feedData) {
       feed = await toRealmFeed(feedData);
+      // TODO: handle the feed merge
     }
   }
 
@@ -1076,13 +1076,13 @@ export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEnt
     abstract: ensureUndefinedToNull(sqlitePaper.abstract),
     defaultSup: undefined, // Not available in SQLite model
     supplementaries: {}, // Will be handled separately if needed
-    
+
     // Identifiers
     doi: ensureUndefinedToNull(sqlitePaper.doi),
     arxiv: ensureUndefinedToNull(sqlitePaper.arxiv),
     issn: ensureUndefinedToNull(sqlitePaper.issn),
     isbn: ensureUndefinedToNull(sqlitePaper.isbn),
-    
+
     // Bibtex fields
     title: sqlitePaper.title,
     authors: authors.map(a => a.name).join(", "),
@@ -1102,13 +1102,13 @@ export async function toRealmPaperEntity(sqlitePaper: SqlitePaper): Promise<IEnt
     school: ensureUndefinedToNull(sqlitePaper.school),
     institution: ensureUndefinedToNull(sqlitePaper.institution),
     address: ensureUndefinedToNull(sqlitePaper.address),
-    
+
     // Paper-specific fields
     // TODO: Tags, folders and feed
     rating: ensureUndefinedToNull(sqlitePaper.rating),
     flag: sqlitePaper.flag === 1,
     note: ensureUndefinedToNull(sqlitePaper.notes),
-    
+
     // Feed fields
     read: sqlitePaper.read === 1,
   });

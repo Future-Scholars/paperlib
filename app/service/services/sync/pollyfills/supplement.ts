@@ -115,7 +115,7 @@ export async function toSqliteSupplement(supplementary: ISupplementaryObject): P
       deletedByDeviceId: null,
     },
   ];
-  db.transaction().execute(async (trx) => {
+  await db.transaction().execute(async (trx) => {
     await trx.insertInto("supplement").values(supplement).execute();
     await trx.insertInto("supplementFieldVersion").values(sqliteSupplementVersions).execute();
   });

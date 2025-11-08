@@ -23,7 +23,6 @@ export async function toSqliteCategorizer(
 
   if (type === CategorizerType.PaperTag) {
     const createdAtDate = new Date();
-    const createdAtDateString = createdAtDate.toISOString();
     const createdAtTimestamp = createdAtDate.getTime();
     // Try get the existed sqlite tag by legacy oid
     const existedSqliteTag = await db.selectFrom("tag").where("name", "=", categorizer.name).selectAll().executeTakeFirst();
@@ -102,7 +101,6 @@ export async function toSqliteCategorizer(
     // If the folder is not existed, insert it to database
     if (!existedSqliteFolder) {
       const createdAtDate = new Date();
-      const createdAtDateString = createdAtDate.toISOString();
       const createdAtTimestamp = createdAtDate.getTime();
       const sqliteFolder: z.infer<typeof zFolder> = {
         id: folderId,
@@ -193,7 +191,6 @@ export async function deleteSqliteTag(name: string): Promise<void> {
     const existedPaperTag = await db.selectFrom("paperTag").where("tagId", "=", existedSqliteTag.id).selectAll().executeTakeFirst();
     if (existedPaperTag) {
       const createdAtDate = new Date();
-      const createdAtDateString = createdAtDate.toISOString();
       const createdAtTimestamp = createdAtDate.getTime();
       await db.insertInto("paperTag").values({
         id: uuidv4(),
@@ -225,7 +222,6 @@ export async function deleteSqliteFolder(legacyOid: string): Promise<void> {
     const existedPaperFolder = await db.selectFrom("paperFolder").where("folderId", "=", existedSqliteFolder.id).selectAll().executeTakeFirst();
     if (existedPaperFolder) {
       const createdAtDate = new Date();
-      const createdAtDateString = createdAtDate.toISOString();
       const createdAtTimestamp = createdAtDate.getTime();
       await db.insertInto("paperFolder").values({
         id: uuidv4(),
