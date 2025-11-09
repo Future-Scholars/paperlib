@@ -432,18 +432,32 @@ export class SyncService extends Eventable<ISyncServiceState> {
       await this.handleLogoutOfficialCallback("");
       return;
     }
+    if (!this._openidClientConfig) {
+      // If the openid client configuration is not available, perform local logout
+      await this.handleLogoutOfficialCallback("");
+      return;
+    }
+    if (this._openidClientConfig.serverMetadata().end_session_endpoint) {
+      // The openid client configuration has the end session endpoint, so we can use it to logout
+      const logoutUrl = openidClient.buildEndSessionUrl(
+        this._openidClientConfig!,
+        {
+          id_token_hint: idToken,
+          post_logout_redirect_uri:
+            `${REDIRECT_URI}?callback=logout`,
+        }
+      );
 
-    const logoutUrl = openidClient.buildEndSessionUrl(
-      this._openidClientConfig!,
-      {
-        id_token_hint: idToken,
-        post_logout_redirect_uri:
-          `${REDIRECT_URI}?callback=logout`,
-      }
-    );
+      // Call the external browser to open the logout link
+      PLMainAPI.fileSystemService.openExternal(logoutUrl.href).then();
+    } else {
+      // Our current paperlib auth server does not support the end session endpoint, 
+      // we will directly open the logout page in the external browser and logout locally
+      await this.handleLogoutOfficialCallback("");
+      PLMainAPI.fileSystemService.openExternal(`${ISSUER}/logout`).then();
+      return;
+    }
 
-    // Call the external browser to open the logout link
-    PLMainAPI.fileSystemService.openExternal(logoutUrl.href).then();
   }
 
   // ---------------------------
