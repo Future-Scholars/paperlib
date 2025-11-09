@@ -554,7 +554,7 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
     createdAt: createdAtTimestamp,
     createdByDeviceId: deviceId,
     updatedAt: null,
-    updatedByDeviceId: deviceId,
+    updatedByDeviceId: null,
 
     deletedAt: null,
     deletedByDeviceId: null,
