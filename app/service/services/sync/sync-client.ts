@@ -25,8 +25,6 @@ async function requestAPI(url: URL, method: string, body: any): Promise<any> {
   if (!accessToken) {
     throw new Error("Access token is not available for syncing.");
   }
-  console.log("Requesting API", url, method, body);
-  console.log("Access token", accessToken);
   return await fetch(url, {
     method: method,
     headers: {
@@ -76,13 +74,11 @@ export async function attach(library: "main" | "feeds") {
       }).where("id", "=", libraryId).execute();
 
       await tx.commit().execute();
-      console.log("Updated library id transaction committed successfully");
     } catch (error) {
       console.error("Failed to attach", error);
       await tx.rollback();
       throw error;
     }
-    console.log("Attached");
   }
 }
 
@@ -96,9 +92,7 @@ export async function pull(
 ) {
   const apiUrl = new URL(SYNC_BASE_URL);
   apiUrl.pathname = "/api/v1/sync/pull";
-  console.log("Pulling");
   const libraryId = await ensureLibraryId("main");
-  console.log("Library ID", libraryId);
   const deviceId = syncStateStore.get("deviceId");
   const sinceTimestamp = syncStateStore.get("lastSyncAt")
   const since = sinceTimestamp ? new Date(sinceTimestamp).toISOString() : new Date().toISOString();
@@ -106,7 +100,6 @@ export async function pull(
   apiUrl.searchParams.set("libraryId", libraryId);
   apiUrl.searchParams.set("deviceId", deviceId);
   const response: z.infer<typeof zPullResponse> = await requestAPI(apiUrl, "GET", undefined);
-  console.log("response", response);
   if (!response.success) {
     throw new Error(response.message || "Failed to pull");
   }
@@ -119,7 +112,7 @@ export async function pull(
       switch (entityCreate.model) {
         case 'paper':
           const createdPaper = await CRDT.lifecycle.paperCreate(tx, entityCreate, libraryId)
-          await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(createdPaper), await databaseCore.getPartition(), true, true)
+          await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(tx, createdPaper), await databaseCore.getPartition(), true, true)
           break
         case 'author':
           await CRDT.lifecycle.authorCreate(tx, entityCreate);
@@ -129,13 +122,13 @@ export async function pull(
         case 'folder':
           const createdFolder = await CRDT.lifecycle.folderCreate(tx, entityCreate)
           if (createdFolder) {
-            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(createdFolder, CategorizerType.PaperFolder), await databaseCore.getPartition(), undefined, true)
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(tx, createdFolder, CategorizerType.PaperFolder), await databaseCore.getPartition(), undefined, true)
           }
           break
         case 'tag':
           const createdTag = await CRDT.lifecycle.tagCreate(tx, entityCreate)
           if (createdTag) {
-            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(createdTag, CategorizerType.PaperTag), await databaseCore.getPartition(), undefined, true)
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(tx, createdTag, CategorizerType.PaperTag), await databaseCore.getPartition(), undefined, true)
           }
           break
         case 'supplement':
@@ -145,7 +138,7 @@ export async function pull(
         case 'feed':
           const createdFeed = await CRDT.lifecycle.feedCreate(tx, entityCreate)
           if (createdFeed) {
-            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(createdFeed), await databaseCore.getPartition(), true)
+            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(tx, createdFeed), await databaseCore.getPartition(), true)
           }
           break
         default:
@@ -159,7 +152,7 @@ export async function pull(
         case 'paper':
           const deletedPaper = await CRDT.lifecycle.paperDelete(tx, entityDelete, libraryId)
           if (deletedPaper) {
-            await paperEntityRepository.delete(await databaseCore.realm(), undefined, [await toRealmPaperEntity(deletedPaper)])
+            await paperEntityRepository.delete(await databaseCore.realm(), undefined, [await toRealmPaperEntity(tx, deletedPaper)])
           }
           break
         case 'author':
@@ -169,13 +162,13 @@ export async function pull(
         case 'folder':
           const deletedFolder = await CRDT.lifecycle.folderDelete(tx, entityDelete)
           if (deletedFolder) {
-            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperFolder, undefined, [await toRealmCategorizer(deletedFolder, CategorizerType.PaperFolder)])
+            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperFolder, undefined, [await toRealmCategorizer(tx, deletedFolder, CategorizerType.PaperFolder)])
           }
           break
         case 'tag':
           const deletedTag = await CRDT.lifecycle.tagDelete(tx, entityDelete)
           if (deletedTag) {
-            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperTag, undefined, [await toRealmCategorizer(deletedTag, CategorizerType.PaperTag)])
+            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperTag, undefined, [await toRealmCategorizer(tx, deletedTag, CategorizerType.PaperTag)])
           }
           break
         case 'supplement':
@@ -185,7 +178,7 @@ export async function pull(
         case 'feed':
           const deletedFeed = await CRDT.lifecycle.feedDelete(tx, entityDelete)
           if (deletedFeed) {
-            await feedRepository.delete(await databaseCore.realm(), undefined, [await toRealmFeed(deletedFeed)])
+            await feedRepository.delete(await databaseCore.realm(), undefined, [await toRealmFeed(tx, deletedFeed)])
           }
           break
         default:
@@ -200,13 +193,13 @@ export async function pull(
         case 'paper':
           const mergedPaper = await CRDT.lww.mergePaperFieldLWW(tx, fieldChange)
           if (mergedPaper) {
-            await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(mergedPaper), await databaseCore.getPartition(), true, true)
+            await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(tx, mergedPaper), await databaseCore.getPartition(), true, true)
           }
           break
         case 'folder':
           const mergedFolder = await CRDT.lww.mergeFolderFieldLWW(tx, fieldChange)
           if (mergedFolder) {
-            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(mergedFolder, CategorizerType.PaperFolder), await databaseCore.getPartition(), undefined, true)
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(tx, mergedFolder, CategorizerType.PaperFolder), await databaseCore.getPartition(), undefined, true)
           }
           break
         case 'author':
@@ -220,13 +213,13 @@ export async function pull(
         case 'tag':
           const mergedTag = await CRDT.lww.mergeTagFieldLWW(tx, fieldChange)
           if (mergedTag) {
-            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(mergedTag, CategorizerType.PaperTag), await databaseCore.getPartition(), undefined, true)
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(tx, mergedTag, CategorizerType.PaperTag), await databaseCore.getPartition(), undefined, true)
           }
           break
         case 'feed':
           const mergedFeed = await CRDT.lww.mergeFeedFieldLWW(tx, fieldChange)
           if (mergedFeed) {
-            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(mergedFeed), await databaseCore.getPartition(), true)
+            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(tx, mergedFeed), await databaseCore.getPartition(), true)
           }
           break
         default:
@@ -253,8 +246,8 @@ export async function pull(
           if (!paperTagSqliteTag) {
             throw new Error(`Realm Tag not found for paperTag ${mergedPaperTag.tagId}`)
           }
-          realmPaper = await toRealmPaperEntity(paperTagSqlitePaper)
-          const realmTag = await toRealmTag(paperTagSqliteTag)
+          realmPaper = await toRealmPaperEntity(tx, paperTagSqlitePaper)
+          const realmTag = await toRealmTag(tx, paperTagSqliteTag)
           realmPaper.tags.push(realmTag)
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
@@ -274,7 +267,7 @@ export async function pull(
           if (!paperAuthorSqliteAuthor) {
             throw new Error(`Realm Author not found for paperAuthor ${mergedPaperAuthor.authorId}`)
           }
-          realmPaper = await toRealmPaperEntity(paperAuthorSqlitePaper)
+          realmPaper = await toRealmPaperEntity(tx, paperAuthorSqlitePaper)
           const authorNames = realmPaper.authors.split(",")
           authorNames.push(paperAuthorSqliteAuthor.name)
           realmPaper.authors = authorNames.join(",")
@@ -296,8 +289,8 @@ export async function pull(
           if (!paperFolderSqliteFolder) {
             throw new Error(`Realm Folder not found for paperFolder ${mergedPaperFolder.folderId}`)
           }
-          realmPaper = await toRealmPaperEntity(paperFolderSqlitePaper)
-          const realmFolder = await toRealmFolder(paperFolderSqliteFolder)
+          realmPaper = await toRealmPaperEntity(tx, paperFolderSqlitePaper)
+          const realmFolder = await toRealmFolder(tx, paperFolderSqliteFolder)
           realmPaper.folders.push(realmFolder)
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
@@ -317,8 +310,8 @@ export async function pull(
           if (!paperSupplementSqliteSupplement) {
             throw new Error(`Realm Supplement not found for paperSupplement ${mergedPaperSupplement.supplementId}`)
           }
-          realmPaper = await toRealmPaperEntity(paperSupplementSqlitePaper)
-          const realmSupplement = await toRealmSupplementary(paperSupplementSqliteSupplement)
+          realmPaper = await toRealmPaperEntity(tx, paperSupplementSqlitePaper)
+          const realmSupplement = await toRealmSupplementary(tx, paperSupplementSqliteSupplement)
           realmPaper.supplementaries[realmSupplement._id] = realmSupplement
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
@@ -385,9 +378,7 @@ export async function push() {
     libraryId: libraryId,
     deviceId: deviceId,
   }
-  console.log("Push request", request);
   const response: z.infer<typeof zSyncPushResponse> = await requestAPI(apiUrl, "POST", request);
-  console.log("Push response", response);
   if (!response.success) {
     throw new Error(response.message || "Failed to push");
   }

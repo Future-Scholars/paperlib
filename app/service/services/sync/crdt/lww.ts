@@ -306,7 +306,7 @@ export async function mergeTagFieldLWW(
   }
 
   if (
-    (fieldChange.data.value && tag[fieldChange.data.field] === JSON.parse(fieldChange.data.value)) ||
+    (fieldChange.data.value && JSON.stringify(tag[fieldChange.data.field]) === fieldChange.data.value) ||
     (!fieldChange.data.value && tag[fieldChange.data.field] === null) ||
     (fieldChange.data.value === null && tag[fieldChange.data.field] === null)
   ) {
@@ -391,7 +391,7 @@ export async function mergeFolderFieldLWW(
   }
 
   if (
-    (fieldChange.data.value && folder[fieldChange.data.field] === JSON.parse(fieldChange.data.value)) ||
+    (fieldChange.data.value && JSON.stringify(folder[fieldChange.data.field]) === fieldChange.data.value) ||
     (!fieldChange.data.value && folder[fieldChange.data.field] === null) ||
     (fieldChange.data.value === null && folder[fieldChange.data.field] === null)
   ) {

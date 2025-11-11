@@ -75,7 +75,7 @@ export async function mergePaperAuthorORSet(
   await tx
     .insertInto('paperAuthor')
     .values({
-      id: crypto.randomUUID(),
+      id: relationChange.data.id,
       paperId: relationChange.data.paperId,
       authorId: relationChange.data.authorId,
       op: relationChange.data.op,

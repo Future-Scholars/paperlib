@@ -1,11 +1,12 @@
 import { ICategorizerObject, CategorizerType, PaperTag, PaperFolder } from "@/models/categorizer";
 import { zTag, zTagFieldVersion, Tag as SqliteTag } from "@/service/services/database/sqlite/models";
 import { syncStateStore } from "@/service/services/sync/states";
-import { db } from "@/service/services/database/sqlite/db";
+import { db, Transaction } from "@/service/services/database/sqlite/db";
 import { v4 as uuidv4 } from 'uuid';
 import z from "zod";
 import { createFieldVersionValue, ensureUndefinedToNull, ensureLibraryId } from "./utils";
 import { zFolder, zFolderFieldVersion, Folder as SqliteFolder } from "@/service/services/database/sqlite/models";
+import { ObjectId } from "bson";
 
 
 
@@ -251,21 +252,18 @@ export async function deleteSqliteCategorizer(legacyOid: string, type: Categoriz
 
 /**
  * Convert SQLite Tag to Realm Categorizer (PaperTag)
+ * @param txOrDb - Transaction or db instance. This function doesn't need to query the database, but we keep the parameter for consistency
  * @param sqliteTag - The SQLite tag to convert
  * @returns The Realm categorizer draft
  */
-export async function toRealmTag(sqliteTag: SqliteTag): Promise<ICategorizerObject> {
+export async function toRealmTag(txOrDb: Transaction, sqliteTag: SqliteTag): Promise<ICategorizerObject> {
   // Tags don't have hierarchical structure in SQLite, so no children
-  if (!sqliteTag.legacyOid) {
-    throw new Error("Legacy OID is required");
-  }
-  if (!sqliteTag.colour) {
-    throw new Error("Color is required");
-  }
+  // This function doesn't need to query the database, but we keep the parameter for consistency
+
   const realmTag = new PaperTag({
-    _id: sqliteTag.legacyOid,
+    _id: sqliteTag.legacyOid || new ObjectId(),
     name: sqliteTag.name,
-    color: sqliteTag.colour,
+    color: sqliteTag.colour || "blue",
     children: [], // Tags are flat in SQLite
   });
   return realmTag;
@@ -273,31 +271,27 @@ export async function toRealmTag(sqliteTag: SqliteTag): Promise<ICategorizerObje
 
 /**
  * Convert SQLite Folder to Realm Categorizer (PaperFolder)
+ * @param txOrDb - Transaction or db instance. This function doesn't need to query the database, but we keep the parameter for consistency
  * @param sqliteFolder - The SQLite folder to convert
  * @returns The Realm categorizer draft
  */
-export async function toRealmFolder(sqliteFolder: SqliteFolder): Promise<ICategorizerObject> {
+export async function toRealmFolder(txOrDb: Transaction, sqliteFolder: SqliteFolder): Promise<ICategorizerObject> {
   // Get children folders if any (for hierarchical structure)
-  const children = await db.selectFrom("folder")
+  const children = await txOrDb.selectFrom("folder")
     .where("parentId", "=", sqliteFolder.id)
     .where("deletedAt", "is", null)
     .selectAll()
     .execute();
 
   const childrenDrafts = await Promise.all(
-    children.map(child => toRealmFolder(child))
+    children.map(async (child) => await toRealmFolder(txOrDb, child))
   );
-  if (!sqliteFolder.legacyOid) {
-    throw new Error("Legacy OID is required");
-  }
-  if (!sqliteFolder.colour) {
-    throw new Error("Color is required");
-  }
+
 
   const realmFolder = new PaperFolder({
-    _id: sqliteFolder.legacyOid,
+    _id: sqliteFolder.legacyOid || new ObjectId(),
     name: sqliteFolder.name,
-    color: sqliteFolder.colour,
+    color: sqliteFolder.colour || "blue",
     children: childrenDrafts,
   });
   return realmFolder;
@@ -305,18 +299,21 @@ export async function toRealmFolder(sqliteFolder: SqliteFolder): Promise<ICatego
 
 /**
  * Convert SQLite Tag or Folder to Realm Categorizer based on type
+ * @param txOrDb - Transaction or db instance. This function doesn't need to query the database, but we keep the parameter for consistency
  * @param sqliteCategorizer - The SQLite tag or folder to convert
  * @param type - The type of categorizer (PaperTag or PaperFolder)
  * @returns The Realm categorizer draft
  */
 export async function toRealmCategorizer(
+  txOrDb: Transaction,
   sqliteCategorizer: SqliteTag | SqliteFolder,
-  type: CategorizerType
+  type: CategorizerType,
+
 ): Promise<ICategorizerObject> {
   if (type === CategorizerType.PaperTag) {
-    return toRealmTag(sqliteCategorizer as SqliteTag);
+    return await toRealmTag(txOrDb, sqliteCategorizer as SqliteTag);
   } else if (type === CategorizerType.PaperFolder) {
-    return toRealmFolder(sqliteCategorizer as SqliteFolder);
+    return await toRealmFolder(txOrDb, sqliteCategorizer as SqliteFolder);
   } else {
     throw new Error(`Unknown categorizer type: ${type}`);
   }

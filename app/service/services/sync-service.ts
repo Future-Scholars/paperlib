@@ -186,7 +186,6 @@ export class SyncService extends Eventable<ISyncServiceState> {
     tokens: openidClient.TokenEndpointResponse &
       openidClient.TokenEndpointResponseHelpers
   ) {
-    console.log("Storing tokens and user info", JSON.stringify(tokens, null, 2));
     // If tokens contain expiration duration, calculate the expiration timestamp and store it
     if (tokens.expires_in) {
       const expiredAt = new Date().getTime() + tokens.expires_in * 1000;

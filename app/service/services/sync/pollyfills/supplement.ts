@@ -1,10 +1,16 @@
 import { Supplement as SqliteSupplement, SupplementFieldVersion } from "@/service/services/database/sqlite/models";
 import { Supplementary, ISupplementaryObject } from "@/models/supplementary";
-import { db } from "../../database/sqlite/db";
+import { db, Transaction } from "../../database/sqlite/db";
 import { v4 as uuidv4 } from 'uuid';
 import { syncStateStore } from "../states";
 
-export async function toRealmSupplementary(sqliteSupplement: SqliteSupplement): Promise<ISupplementaryObject> {
+/**
+ * Convert SQLite Supplement to Realm Supplement
+ * @param txOrDb - Transaction or db instance. This function doesn't need to query the database, but we keep the parameter for consistency
+ * @param sqliteSupplement - The SQLite supplement to convert
+ * @returns The Realm supplement draft
+ */
+export async function toRealmSupplementary(txOrDb: Transaction, sqliteSupplement: SqliteSupplement): Promise<ISupplementaryObject> {
   const supplementaryRealmObject = new Supplementary({
     _id: sqliteSupplement.legacyOid || undefined,
     name: sqliteSupplement.name,

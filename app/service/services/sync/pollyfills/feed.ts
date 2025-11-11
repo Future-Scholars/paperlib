@@ -1,7 +1,7 @@
 import { Feed, IFeedObject } from "@/models/feed";
 import { zFeed, zFeedFieldVersion, Feed as SqliteFeed } from "@/service/services/database/sqlite/models";
 import { syncStateStore } from "@/service/services/sync/states";
-import { db } from "@/service/services/database/sqlite/db";
+import { db, Transaction } from "@/service/services/database/sqlite/db";
 import { v4 as uuidv4 } from 'uuid';
 import z from "zod";
 import { createFieldVersionValue, ensureUndefinedToNull, ensureLibraryId } from "./utils";
@@ -216,10 +216,12 @@ export async function deleteSqliteFeed(legacyOid: string): Promise<void> {
 
 /**
  * Convert SQLite Feed to Realm Feed
+ * @param txOrDb - Transaction or db instance
  * @param sqliteFeed - The SQLite feed to convert
  * @returns The Realm feed draft
  */
-export async function toRealmFeed(sqliteFeed: SqliteFeed): Promise<IFeedObject> {
+export async function toRealmFeed(txOrDb: Transaction, sqliteFeed: SqliteFeed): Promise<IFeedObject> {
+  // This function doesn't need to query the database, but we keep the parameter for consistency
   const feedRealmObject = new Feed({
     _id: sqliteFeed.legacyOid || undefined,
     name: sqliteFeed.name,
