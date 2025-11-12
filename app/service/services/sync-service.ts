@@ -146,12 +146,14 @@ export class SyncService extends Eventable<ISyncServiceState> {
   @processing(ProcessingKey.General)
   @errorcatching("Login to official sync service failed", true, "SyncService")
   async invokeLoginOfficial() {
+    this._logService.info("Invoking login official");
     // 1) Ensure OIDC configuration exists
     await this._ensureOidcConfig();
-
+    this._logService.info("Ensure OIDC configuration exists completed");
     // 2) Generate PKCE parameters and store them
     const codeVerifier = openidClient.randomPKCECodeVerifier();
     const nonce = openidClient.randomNonce();
+    this._logService.info("Generate PKCE parameters and store them completed");
     this._setStoreValue("pkceCodeVerifier", codeVerifier);
     this._setStoreValue("nonce", nonce);
 
@@ -169,14 +171,16 @@ export class SyncService extends Eventable<ISyncServiceState> {
       redirect_uri: REDIRECT_URI,
       audience: AUDIENCE,
     };
-
+    this._logService.info("Construct authorization URL completed");
     const authorizationUrl = openidClient.buildAuthorizationUrl(
       this._openidClientConfig!,
       params
     );
-
+    this._logService.info("Build authorization URL completed");
     // 4) Open the URL with the system default browser to let the user complete the login
+    this._logService.info("Opening the URL with the system default browser to let the user complete the login");
     PLMainAPI.fileSystemService.openExternal(authorizationUrl.href).then();
+    this._logService.info("Opening the URL with the system default browser to let the user complete the login completed");
   }
 
   /**
@@ -223,8 +227,10 @@ export class SyncService extends Eventable<ISyncServiceState> {
   @processing(ProcessingKey.General)
   @errorcatching("Login to official sync service failed", true, "SyncService")
   async handleLoginOfficialCallback({ code }: { code: string }) {
+    this._logService.info("Handling login official callback");
     // 1) Ensure OIDC configuration exists
     await this._ensureOidcConfig();
+    this._logService.info("Ensure OIDC configuration exists completed");
 
     // 2) Get the currently stored pkceCodeVerifier, nonce
     const pkceCodeVerifier = this._getStoreValue("pkceCodeVerifier");
@@ -233,7 +239,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       this._setStoreValue("connected", false);
       throw new Error("Missing PKCE code verifier or nonce in store");
     }
-
+    this._logService.info("Get PKCE code verifier and nonce completed");
     // 3) Use the authorization code to exchange for tokens
     const tokens = await openidClient.authorizationCodeGrant(
       this._openidClientConfig!,
@@ -246,8 +252,9 @@ export class SyncService extends Eventable<ISyncServiceState> {
         idTokenExpected: true,
       }
     );
-
+    this._logService.info("Use the authorization code to exchange for tokens completed");
     // 4) Schedule the next refresh
+    this._logService.info("Schedule the next refresh");
     if (tokens.expires_in && tokens.refresh_token) {
       this._schedulerService.createTask(
         "syncService.refresh",
@@ -258,15 +265,16 @@ export class SyncService extends Eventable<ISyncServiceState> {
         true
       );
     }
-
+    this._logService.info("Schedule the next refresh completed");
     // 5) Save token and other information
     await this._storeTokensAndUserInfo(tokens);
     this._setStoreValue("connected", true);
 
     // 6) Update user preferences
     await PLMainAPI.preferenceService.set({ useSync: "official" });
-    await attach("main");
+    await attach("main", this._logService);
     // 7) Schedule a sync
+    this._logService.info("Schedule a sync");
     this._schedulerService.createTask(
       "syncService.invokeSync",
       this.invokeSync.bind(this),
@@ -277,6 +285,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       true, // run immediately
       false // not to run once
     );
+    this._logService.info("Schedule a sync completed");
   }
 
   /**
@@ -352,6 +361,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
   // 7. Clear local `syncLogs` after confirming successful push
   // ---------------------------
   public async invokeSync() {
+    this._logService.info("Invoking sync");
     // TODO: check if network is available.
 
     // 1) Get a valid accessToken
@@ -359,19 +369,29 @@ export class SyncService extends Eventable<ISyncServiceState> {
     if (!accessToken) {
       throw new Error("Access token is not available for syncing.");
     }
+    this._logService.info("Access token is available for syncing");
     try {
-      await attach("main");
+      this._logService.info("Attaching to main");
+      await attach("main", this._logService);
+      this._logService.info("Attaching to main completed");
       // this.fire({ syncProgress: 0.3 });
+      this._logService.info("Pulling from main");
       await pull(
         this._paperEntityRepository,
         this._feedRepository,
         this._categorizerRepository,
         this._databaseCore,
+        this._logService,
       );
+      this._logService.info("Pulling from main completed");
       // this.fire({ syncProgress: 0.7 });
-      await push();
+      this._logService.info("Pushing to main");
+      await push(this._logService);
+      this._logService.info("Pushing to main completed");
+      this._logService.info("Push completed");
       syncStateStore.delete("lastSyncAt");
       syncStateStore.set("lastSyncAt", new Date().getTime());
+      this._logService.info("Sync completed, lastSyncAt: " + new Date().toISOString());
       // this.fire({ syncProgress: 1 });
     } catch (error) {
       // if (error instanceof Error && error.message.includes("Unauthorized")) {
@@ -379,6 +399,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       // } else {
       //   throw error;
       // }
+      this._logService.error("Failed to invoke sync", error as Error, true, "SyncService");
       throw error;
     }
 

@@ -14,37 +14,63 @@ import { toRealmCategorizer, toRealmFolder, toRealmTag } from "./pollyfills/cate
 import { CategorizerType } from "@/models/categorizer";
 import { IEntityObject } from "@/models/entity";
 import { toRealmSupplementary } from "./pollyfills/supplement";
+import { LogService } from "@/common/services/log-service";
 
 // export const SYNC_BASE_URL = "http://localhost:3001/"; // TODO: For testing
 export const SYNC_BASE_URL = "https://dev.sync.paperlib.app/"; // TODO: For development
 // export const SYNC_BASE_URL = "https://sync.paperlib.app/"; // TODO: For production
 
 
-async function requestAPI(url: URL, method: string, body: any): Promise<any> {
+async function requestAPI(url: URL, method: string, body: any, logger?: LogService): Promise<any> {
   const accessToken = syncStateStore.get("accessToken");
   if (!accessToken) {
     throw new Error("Access token is not available for syncing.");
   }
+
+  // Log request details
+  if (logger) {
+    logger.info(`[SyncClient] HTTP ${method} Request`, `URL: ${url.toString()}`, false, "SyncClient");
+    if (body) {
+      logger.info(`[SyncClient] Request Body`, JSON.stringify(body, null, 2), false, "SyncClient");
+    }
+  }
+
   return await fetch(url, {
     method: method,
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${accessToken}`,
     },
-    body: JSON.stringify(body),
+    body: body ? JSON.stringify(body) : undefined,
   }).then(async response => {
+    // Log response status
+    if (logger) {
+      logger.info(`[SyncClient] HTTP Response Status`, `${response.status} ${response.statusText}`, false, "SyncClient");
+    }
+
     if (!response.ok) {
-      console.error("Failed to request API", await response.json());
+      const errorBody = await response.json();
+      if (logger) {
+        logger.error(`[SyncClient] HTTP Error Response Body`, JSON.stringify(errorBody, null, 2), false, "SyncClient");
+      }
       throw new Error(response.statusText);
     }
-    return await response.json();
+
+    const responseBody = await response.json();
+    // Log response body
+    if (logger) {
+      logger.info(`[SyncClient] HTTP Response Body`, JSON.stringify(responseBody, null, 2), false, "SyncClient");
+    }
+    return responseBody;
   }).catch(error => {
-    console.error("Failed to request API", error);
+    if (logger) {
+      logger.error(`[SyncClient] HTTP Request Failed`, error, false, "SyncClient");
+    }
     throw error;
   });
 }
 
-export async function attach(library: "main" | "feeds") {
+export async function attach(library: "main" | "feeds", logger?: LogService) {
   const apiUrl = new URL(SYNC_BASE_URL);
   apiUrl.pathname = "/api/v1/sync/attach";
   // For now, only main library is supported
@@ -64,7 +90,7 @@ export async function attach(library: "main" | "feeds") {
       deviceId: deviceId,
     },
   };
-  const response: z.infer<typeof zAttachResponse> = await requestAPI(apiUrl, "POST", attachRequest);
+  const response: z.infer<typeof zAttachResponse> = await requestAPI(apiUrl, "POST", attachRequest, logger);
   if (response.attached.libraryId !== libraryId) {
     // Update all local library ids to the response library id
     const tx = await db.startTransaction().execute();
@@ -74,8 +100,13 @@ export async function attach(library: "main" | "feeds") {
       }).where("id", "=", libraryId).execute();
 
       await tx.commit().execute();
+      if (logger) {
+        logger.info(`[SyncClient] Library ID updated`, `${libraryId} -> ${response.attached.libraryId}`, false, "SyncClient");
+      }
     } catch (error) {
-      console.error("Failed to attach", error);
+      if (logger) {
+        logger.error(`[SyncClient] Failed to attach`, error as Error, false, "SyncClient");
+      }
       await tx.rollback();
       throw error;
     }
@@ -89,6 +120,7 @@ export async function pull(
   feedRepository: FeedRepository,
   categorizerRepository: CategorizerRepository,
   databaseCore: DatabaseCore,
+  logger?: LogService,
 ) {
   const apiUrl = new URL(SYNC_BASE_URL);
   apiUrl.pathname = "/api/v1/sync/pull";
@@ -99,7 +131,7 @@ export async function pull(
   apiUrl.searchParams.set("since", since);
   apiUrl.searchParams.set("libraryId", libraryId);
   apiUrl.searchParams.set("deviceId", deviceId);
-  const response: z.infer<typeof zPullResponse> = await requestAPI(apiUrl, "GET", undefined);
+  const response: z.infer<typeof zPullResponse> = await requestAPI(apiUrl, "GET", undefined, logger);
   if (!response.success) {
     throw new Error(response.message || "Failed to pull");
   }
@@ -330,7 +362,7 @@ export async function pull(
 
 
 
-export async function push() {
+export async function push(logger?: LogService) {
   const apiUrl = new URL(SYNC_BASE_URL);
   apiUrl.pathname = "/api/v1/sync/push";
   const libraryId = await ensureLibraryId("main");
@@ -378,7 +410,12 @@ export async function push() {
     libraryId: libraryId,
     deviceId: deviceId,
   }
-  const response: z.infer<typeof zSyncPushResponse> = await requestAPI(apiUrl, "POST", request);
+
+  if (logger) {
+    logger.info(`[SyncClient] Push summary`, `Creates: ${entityCreates.length}, Deletes: ${entityDeletes.length}, Field Changes: ${fieldChanges.length}, Relation Changes: ${relationChanges.length}`, false, "SyncClient");
+  }
+
+  const response: z.infer<typeof zSyncPushResponse> = await requestAPI(apiUrl, "POST", request, logger);
   if (!response.success) {
     throw new Error(response.message || "Failed to push");
   }
