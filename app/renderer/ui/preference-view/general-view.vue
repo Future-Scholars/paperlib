@@ -112,9 +112,9 @@ const onChangeLanguage = (language: string) => {
       :info="$t('preference.sourcefileoprationintro')"
       :selected="prefState.sourceFileOperation"
       :options="{
-        cut: 'Cut',
-        copy: 'Copy',
-        link: 'Symlink',
+        cut: $t('preference.cut'),
+        copy: $t('preference.copy'),
+        link: $t('preference.symlink'),
       }"
       @event:change="
         (value) => {

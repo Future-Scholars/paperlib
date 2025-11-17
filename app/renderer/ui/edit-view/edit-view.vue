@@ -286,7 +286,7 @@ onMounted(() => {
             />
             <InputField
               :placeholder="
-                $t('mainview.note') + ' (start with `<md> to use markdown`)'
+                $t('mainview.note') + ' (' + $t('mainview.editUseMarkdown') + ')'
               "
               class="h-44 col-span-2"
               :value="editingPaperEntityDraft.note"
@@ -306,7 +306,7 @@ onMounted(() => {
               >
                 <InputBox
                   :id="`paper-edit-view-${key}-input`"
-                  :placeholder="key"
+                  :placeholder="$t(`mainview.${key}`)"
                   :value="editingPaperEntityDraft[key]"
                   @event:change="(value: string) => (editingPaperEntityDraft[key] = value)"
                 />
@@ -329,7 +329,7 @@ onMounted(() => {
                   <span class="m-auto text-xs">{{ $t("menu.rescrape") }}</span>
                 </div>
                 <div
-                  title="Try to fillin one of the missing title, DOI, or arXiv ID to re-scrape the metadata of the paper if Paperlib cannot process it correctly."
+                  :title="$t('mainview.editHelpButton')"
                   class="my-auto"
                 >
                   <BIconQuestionCircle
