@@ -8,6 +8,7 @@ import z from "zod";
 import { createFieldVersionValue, ensureUndefinedToNull, ensureLibraryId, booleanToInt } from "./utils";
 import { toSqliteFeed, toRealmFeed } from "./feed";
 import { ObjectId } from "bson";
+import { LogService } from "@/common/services/log-service";
 
 
 
@@ -17,14 +18,27 @@ import { ObjectId } from "bson";
  * And finally, return the sqlite object. 
  * Authors, feeds, and categorizers like tags and folders will also be handled in this method. 
  * @param entity The entity to be converted to sqlite object.
+ * @param logService Optional logger for debugging
  * @returns The sqlite object. Guaranteed in database.
  */
-export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z.infer<typeof zPaper>> {
+export async function toSqlitePaper(entity: Entity, logService?: LogService): Promise<z.infer<typeof zPaper>> {
+  logService?.info(
+    `[Polyfill] Starting Realm to SQLite conversion for paper`,
+    `legacyOid: ${entity._id.toString()}, title: ${entity.title}, library: ${entity.library}`,
+    false,
+    "Polyfill"
+  );
 
   const deviceId = syncStateStore.get("deviceId");
 
   // If the entity is from feeds, handle the feeds first
   if (entity.feed) {
+    logService?.info(
+      `[Polyfill] Processing feed for paper`,
+      `legacyOid: ${entity._id.toString()}, feed: ${entity.feed.name}`,
+      false,
+      "Polyfill"
+    );
     const sqliteFeed = await toSqliteFeed(entity.feed);
     await db.insertInto("feed").values(sqliteFeed).execute();
   }
@@ -36,6 +50,22 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
     .where("legacyOid", "=", entity._id.toString())
     .selectAll()
     .executeTakeFirst();
+
+  if (existedSqliteEntity) {
+    logService?.info(
+      `[Polyfill] Found existing SQLite paper`,
+      `legacyOid: ${entity._id.toString()}, sqliteId: ${existedSqliteEntity.id}`,
+      false,
+      "Polyfill"
+    );
+  } else {
+    logService?.info(
+      `[Polyfill] Paper not found in SQLite, will create new`,
+      `legacyOid: ${entity._id.toString()}`,
+      false,
+      "Polyfill"
+    );
+  }
 
   // If the entity is already existed, update the entity if any field is different
   if (existedSqliteEntity) {
@@ -500,11 +530,29 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
 
 
     if (updated) {
+      logService?.info(
+        `[Polyfill] Updating SQLite paper with ${paperFieldVersions.length} field changes`,
+        `legacyOid: ${entity._id.toString()}, sqliteId: ${existedSqliteEntity.id}, changedFields: ${paperFieldVersions.map(v => v.field).join(', ')}`,
+        false,
+        "Polyfill"
+      );
       existedSqliteEntity.updatedAt = createdAtTimestamp;
       existedSqliteEntity.updatedByDeviceId = deviceId;
       await db.insertInto("paperFieldVersion").values(paperFieldVersions).execute();
       await db.updateTable("paper").set(existedSqliteEntity).where("id", "=", existedSqliteEntity.id).execute();
-
+      logService?.info(
+        `[Polyfill] Successfully updated SQLite paper`,
+        `legacyOid: ${entity._id.toString()}, sqliteId: ${existedSqliteEntity.id}`,
+        false,
+        "Polyfill"
+      );
+    } else {
+      logService?.info(
+        `[Polyfill] No field changes detected, skipping update`,
+        `legacyOid: ${entity._id.toString()}, sqliteId: ${existedSqliteEntity.id}`,
+        false,
+        "Polyfill"
+      );
     }
 
     return existedSqliteEntity;
@@ -943,11 +991,31 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
     },
   ];
 
+  logService?.info(
+    `[Polyfill] Creating new SQLite paper`,
+    `legacyOid: ${entity._id.toString()}, sqliteId: ${sqliteEntity.id}, title: ${entity.title}`,
+    false,
+    "Polyfill"
+  );
+
   await db.insertInto("paper").values(sqliteEntity).execute();
+
+  logService?.info(
+    `[Polyfill] Creating ${paperFieldVersions.length} field versions for new paper`,
+    `legacyOid: ${entity._id.toString()}, sqliteId: ${sqliteEntity.id}`,
+    false,
+    "Polyfill"
+  );
 
   await db.insertInto("paperFieldVersion").values(paperFieldVersions).execute();
 
   // Add author if not existed, and add the paperAuthor connection
+  logService?.info(
+    `[Polyfill] Processing authors for paper`,
+    `legacyOid: ${entity._id.toString()}, sqliteId: ${sqliteEntity.id}, authorsCount: ${entity.authors.split(",").length}`,
+    false,
+    "Polyfill"
+  );
   entity.authors.split(",").forEach(async (author) => {
     let existedAuthorId = await db.selectFrom("author").where("name", "=", author).select("id").executeTakeFirst();
     const authorId = existedAuthorId?.id || uuidv4();
@@ -1016,6 +1084,13 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
     }).execute();
   });
 
+  logService?.info(
+    `[Polyfill] Successfully created SQLite paper with all relations`,
+    `legacyOid: ${entity._id.toString()}, sqliteId: ${sqliteEntity.id}, title: ${sqliteEntity.title}`,
+    false,
+    "Polyfill"
+  );
+
   return sqliteEntity;
 }
 
@@ -1023,9 +1098,17 @@ export async function toSqlitePaper(entity: Entity, logService?: any): Promise<z
  * Convert SQLite Paper to Realm Entity
  * @param txOrDb - Transaction or db instance. This function doesn't need to query the database, but we keep the parameter for consistency
  * @param sqlitePaper - The SQLite paper to convert
+ * @param logger - Optional logger for debugging
  * @returns The Realm entity draft
  */
-export async function toRealmPaperEntity(txOrDb: Transaction, sqlitePaper: SqlitePaper): Promise<IEntityObject> {
+export async function toRealmPaperEntity(txOrDb: Transaction, sqlitePaper: SqlitePaper, logger?: LogService): Promise<IEntityObject> {
+  logger?.info(
+    `[Polyfill] Starting SQLite to Realm conversion for paper`,
+    `sqliteId: ${sqlitePaper.id}, legacyOid: ${sqlitePaper.legacyOid}, title: ${sqlitePaper.title}`,
+    false,
+    "Polyfill"
+  );
+
   // Get library name by library id
   try {
     const library = await txOrDb.selectFrom("library")
@@ -1033,7 +1116,9 @@ export async function toRealmPaperEntity(txOrDb: Transaction, sqlitePaper: Sqlit
       .select("name")
       .executeTakeFirst();
     if (!library) {
-      throw new Error(`Library not found for paper ${sqlitePaper.id}`);
+      const error = `Library not found for paper ${sqlitePaper.id}`;
+      logger?.error(`[Polyfill] ${error}`, new Error(error), false, "Polyfill");
+      throw new Error(error);
     }
 
     // Get authors for this paper
@@ -1125,10 +1210,16 @@ export async function toRealmPaperEntity(txOrDb: Transaction, sqlitePaper: Sqlit
       read: sqlitePaper.read === 1,
     });
 
+    logger?.info(
+      `[Polyfill] Successfully converted SQLite paper to Realm entity`,
+      `sqliteId: ${sqlitePaper.id}, legacyOid: ${entity._id.toString()}, title: ${entity.title}, authorsCount: ${authors.length}, tagsCount: ${paperTags.length}, foldersCount: ${paperFolders.length}`,
+      false,
+      "Polyfill"
+    );
 
     return entity;
   } catch (error) {
-    console.error("Error converting paper to realm entity", error);
+    logger?.error(`[Polyfill] Error converting paper to realm entity`, error as Error, false, "Polyfill");
     throw error;
   }
 }

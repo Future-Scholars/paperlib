@@ -14,6 +14,7 @@ import {
 import { OID } from "@/models/id";
 import { Entity } from "@/models/entity";
 import { deleteSqliteCategorizer, toSqliteCategorizer } from "@/service/services/sync/pollyfills/categorizer";
+import { ILogService, LogService } from "@/common/services/log-service";
 
 export interface ICategorizerRepositoryState {
   tagsUpdated: number;
@@ -23,7 +24,10 @@ export interface ICategorizerRepositoryState {
 export const ICategorizerRepository = createDecorator("categorizerRepository");
 
 export class CategorizerRepository extends Eventable<ICategorizerRepositoryState> {
-  constructor() {
+  constructor(
+    @ILogService
+    private readonly _logService: LogService,
+  ) {
     super("categorizerRepository", {
       tagsUpdated: 0,
       foldersUpdated: 0,
@@ -151,7 +155,7 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     //   await toSqliteCategorizer(object, type);
     // }));
     for (const object of objects) {
-      await toSqliteCategorizer(object, type);
+      await toSqliteCategorizer(object, type, this._logService);
     }
 
     return objects;

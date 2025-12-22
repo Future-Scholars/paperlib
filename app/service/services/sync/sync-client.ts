@@ -136,41 +136,57 @@ export async function pull(
     throw new Error(response.message || "Failed to pull");
   }
   const { entityCreates, entityDeletes, fieldsChanges, relationChanges } = response;
+
+  logger?.info(
+    `[SyncClient] Starting pull operation`,
+    `since: ${since}, libraryId: ${libraryId}, deviceId: ${deviceId}, entityCreates: ${entityCreates.length}, entityDeletes: ${entityDeletes.length}, fieldsChanges: ${fieldsChanges.length}, relationChanges: ${relationChanges.length}`,
+    false,
+    "SyncClient"
+  );
+
   const tx = await db.startTransaction().execute();
   let realmPaper: IEntityObject | null = null; // Declare here to avoid the duplicate declaration error in switch statements
   try {
     // Process entity creates
+    if (entityCreates.length > 0) {
+      logger?.info(
+        `[SyncClient] Processing ${entityCreates.length} entity creates`,
+        `entityCreates count: ${entityCreates.length}`,
+        false,
+        "SyncClient"
+      );
+    }
     for (const entityCreate of entityCreates) {
       switch (entityCreate.model) {
         case 'paper':
-          const createdPaper = await CRDT.lifecycle.paperCreate(tx, entityCreate, libraryId)
-          await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(tx, createdPaper), await databaseCore.getPartition(), true, true)
+          const createdPaper = await CRDT.lifecycle.paperCreate(tx, entityCreate, libraryId, logger)
+          await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(tx, createdPaper, logger), await databaseCore.getPartition(), true, true)
           break
         case 'author':
-          await CRDT.lifecycle.authorCreate(tx, entityCreate);
+          await CRDT.lifecycle.authorCreate(tx, entityCreate, logger);
           // Since the author is a string array in realm, we don't need to update it in realm. 
           // Author created will be handled in the field changes
           break
         case 'folder':
-          const createdFolder = await CRDT.lifecycle.folderCreate(tx, entityCreate)
+          const createdFolder = await CRDT.lifecycle.folderCreate(tx, entityCreate, logger)
           if (createdFolder) {
-            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(tx, createdFolder, CategorizerType.PaperFolder), await databaseCore.getPartition(), undefined, true)
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(tx, createdFolder, CategorizerType.PaperFolder, logger), await databaseCore.getPartition(), undefined, true)
           }
           break
         case 'tag':
-          const createdTag = await CRDT.lifecycle.tagCreate(tx, entityCreate)
+          const createdTag = await CRDT.lifecycle.tagCreate(tx, entityCreate, logger)
           if (createdTag) {
-            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(tx, createdTag, CategorizerType.PaperTag), await databaseCore.getPartition(), undefined, true)
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(tx, createdTag, CategorizerType.PaperTag, logger), await databaseCore.getPartition(), undefined, true)
           }
           break
         case 'supplement':
-          await CRDT.lifecycle.supplementCreate(tx, entityCreate)
+          await CRDT.lifecycle.supplementCreate(tx, entityCreate, logger)
           // Supplement created will be handled in the relation changes
           break
         case 'feed':
-          const createdFeed = await CRDT.lifecycle.feedCreate(tx, entityCreate)
+          const createdFeed = await CRDT.lifecycle.feedCreate(tx, entityCreate, logger)
           if (createdFeed) {
-            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(tx, createdFeed), await databaseCore.getPartition(), true)
+            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(tx, createdFeed, logger), await databaseCore.getPartition(), true)
           }
           break
         default:
@@ -179,38 +195,46 @@ export async function pull(
     }
 
     // Process entity deletes
+    if (entityDeletes.length > 0) {
+      logger?.info(
+        `[SyncClient] Processing ${entityDeletes.length} entity deletes`,
+        `entityDeletes count: ${entityDeletes.length}`,
+        false,
+        "SyncClient"
+      );
+    }
     for (const entityDelete of entityDeletes) {
       switch (entityDelete.model) {
         case 'paper':
-          const deletedPaper = await CRDT.lifecycle.paperDelete(tx, entityDelete, libraryId)
+          const deletedPaper = await CRDT.lifecycle.paperDelete(tx, entityDelete, libraryId, logger)
           if (deletedPaper) {
-            await paperEntityRepository.delete(await databaseCore.realm(), undefined, [await toRealmPaperEntity(tx, deletedPaper)])
+            await paperEntityRepository.delete(await databaseCore.realm(), undefined, [await toRealmPaperEntity(tx, deletedPaper, logger)])
           }
           break
         case 'author':
-          await CRDT.lifecycle.authorDelete(tx, entityDelete)
+          await CRDT.lifecycle.authorDelete(tx, entityDelete, logger)
           // Since the author is a string array in realm, we don't need to delete it from realm
           break
         case 'folder':
-          const deletedFolder = await CRDT.lifecycle.folderDelete(tx, entityDelete)
+          const deletedFolder = await CRDT.lifecycle.folderDelete(tx, entityDelete, logger)
           if (deletedFolder) {
-            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperFolder, undefined, [await toRealmCategorizer(tx, deletedFolder, CategorizerType.PaperFolder)])
+            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperFolder, undefined, [await toRealmCategorizer(tx, deletedFolder, CategorizerType.PaperFolder, logger)])
           }
           break
         case 'tag':
-          const deletedTag = await CRDT.lifecycle.tagDelete(tx, entityDelete)
+          const deletedTag = await CRDT.lifecycle.tagDelete(tx, entityDelete, logger)
           if (deletedTag) {
-            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperTag, undefined, [await toRealmCategorizer(tx, deletedTag, CategorizerType.PaperTag)])
+            await categorizerRepository.delete(await databaseCore.realm(), CategorizerType.PaperTag, undefined, [await toRealmCategorizer(tx, deletedTag, CategorizerType.PaperTag, logger)])
           }
           break
         case 'supplement':
-          await CRDT.lifecycle.supplementDelete(tx, entityDelete);
+          await CRDT.lifecycle.supplementDelete(tx, entityDelete, logger);
           // Supplement delete will be handled in the relation changes
           break
         case 'feed':
-          const deletedFeed = await CRDT.lifecycle.feedDelete(tx, entityDelete)
+          const deletedFeed = await CRDT.lifecycle.feedDelete(tx, entityDelete, logger)
           if (deletedFeed) {
-            await feedRepository.delete(await databaseCore.realm(), undefined, [await toRealmFeed(tx, deletedFeed)])
+            await feedRepository.delete(await databaseCore.realm(), undefined, [await toRealmFeed(tx, deletedFeed, logger)])
           }
           break
         default:
@@ -220,38 +244,46 @@ export async function pull(
 
 
     // Process field changes
+    if (fieldsChanges.length > 0) {
+      logger?.info(
+        `[SyncClient] Processing ${fieldsChanges.length} field changes`,
+        `fieldsChanges count: ${fieldsChanges.length}`,
+        false,
+        "SyncClient"
+      );
+    }
     for (const fieldChange of fieldsChanges) {
       switch (fieldChange.model) {
         case 'paper':
-          const mergedPaper = await CRDT.lww.mergePaperFieldLWW(tx, fieldChange)
+          const mergedPaper = await CRDT.lww.mergePaperFieldLWW(tx, fieldChange, logger)
           if (mergedPaper) {
-            await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(tx, mergedPaper), await databaseCore.getPartition(), true, true)
+            await paperEntityRepository.update(await databaseCore.realm(), await toRealmPaperEntity(tx, mergedPaper, logger), await databaseCore.getPartition(), true, true)
           }
           break
         case 'folder':
-          const mergedFolder = await CRDT.lww.mergeFolderFieldLWW(tx, fieldChange)
+          const mergedFolder = await CRDT.lww.mergeFolderFieldLWW(tx, fieldChange, logger)
           if (mergedFolder) {
-            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(tx, mergedFolder, CategorizerType.PaperFolder), await databaseCore.getPartition(), undefined, true)
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperFolder, await toRealmCategorizer(tx, mergedFolder, CategorizerType.PaperFolder, logger), await databaseCore.getPartition(), undefined, true)
           }
           break
         case 'author':
-          await CRDT.lww.mergeAuthorFieldLWW(tx, fieldChange)
+          await CRDT.lww.mergeAuthorFieldLWW(tx, fieldChange, logger)
           // Since the author is a string array in realm, we don't need to update it in realm
           break
         case 'supplement':
-          await CRDT.lww.mergeSupplementFieldLWW(tx, fieldChange)
+          await CRDT.lww.mergeSupplementFieldLWW(tx, fieldChange, logger)
           // Supplement merge will be handled in the relation changes
           break
         case 'tag':
-          const mergedTag = await CRDT.lww.mergeTagFieldLWW(tx, fieldChange)
+          const mergedTag = await CRDT.lww.mergeTagFieldLWW(tx, fieldChange, logger)
           if (mergedTag) {
-            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(tx, mergedTag, CategorizerType.PaperTag), await databaseCore.getPartition(), undefined, true)
+            await categorizerRepository.update(await databaseCore.realm(), CategorizerType.PaperTag, await toRealmCategorizer(tx, mergedTag, CategorizerType.PaperTag, logger), await databaseCore.getPartition(), undefined, true)
           }
           break
         case 'feed':
-          const mergedFeed = await CRDT.lww.mergeFeedFieldLWW(tx, fieldChange)
+          const mergedFeed = await CRDT.lww.mergeFeedFieldLWW(tx, fieldChange, logger)
           if (mergedFeed) {
-            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(tx, mergedFeed), await databaseCore.getPartition(), true)
+            await feedRepository.update(await databaseCore.realm(), await toRealmFeed(tx, mergedFeed, logger), await databaseCore.getPartition(), true)
           }
           break
         default:
@@ -260,10 +292,18 @@ export async function pull(
     }
 
     // Process relation changes
+    if (relationChanges.length > 0) {
+      logger?.info(
+        `[SyncClient] Processing ${relationChanges.length} relation changes`,
+        `relationChanges count: ${relationChanges.length}`,
+        false,
+        "SyncClient"
+      );
+    }
     for (const relationChange of relationChanges) {
       switch (relationChange.model) {
         case 'paperTag':
-          const mergedPaperTag = await CRDT.orset.mergePaperTagORSet(tx, relationChange)
+          const mergedPaperTag = await CRDT.orset.mergePaperTagORSet(tx, relationChange, logger)
           const paperTagSqlitePaper = await tx.selectFrom('paper')
             .selectAll()
             .where('id', '=', mergedPaperTag.paperId)
@@ -278,13 +318,13 @@ export async function pull(
           if (!paperTagSqliteTag) {
             throw new Error(`Realm Tag not found for paperTag ${mergedPaperTag.tagId}`)
           }
-          realmPaper = await toRealmPaperEntity(tx, paperTagSqlitePaper)
+          realmPaper = await toRealmPaperEntity(tx, paperTagSqlitePaper, logger)
           const realmTag = await toRealmTag(tx, paperTagSqliteTag)
           realmPaper.tags.push(realmTag)
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         case 'paperAuthor':
-          const mergedPaperAuthor = await CRDT.orset.mergePaperAuthorORSet(tx, relationChange)
+          const mergedPaperAuthor = await CRDT.orset.mergePaperAuthorORSet(tx, relationChange, logger)
           const paperAuthorSqlitePaper = await tx.selectFrom('paper')
             .selectAll()
             .where('id', '=', mergedPaperAuthor.paperId)
@@ -299,14 +339,14 @@ export async function pull(
           if (!paperAuthorSqliteAuthor) {
             throw new Error(`Realm Author not found for paperAuthor ${mergedPaperAuthor.authorId}`)
           }
-          realmPaper = await toRealmPaperEntity(tx, paperAuthorSqlitePaper)
+          realmPaper = await toRealmPaperEntity(tx, paperAuthorSqlitePaper, logger)
           const authorNames = realmPaper.authors.split(",")
           authorNames.push(paperAuthorSqliteAuthor.name)
           realmPaper.authors = authorNames.join(",")
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         case 'paperFolder':
-          const mergedPaperFolder = await CRDT.orset.mergePaperFolderORSet(tx, relationChange)
+          const mergedPaperFolder = await CRDT.orset.mergePaperFolderORSet(tx, relationChange, logger)
           const paperFolderSqlitePaper = await tx.selectFrom('paper')
             .selectAll()
             .where('id', '=', mergedPaperFolder.paperId)
@@ -321,13 +361,13 @@ export async function pull(
           if (!paperFolderSqliteFolder) {
             throw new Error(`Realm Folder not found for paperFolder ${mergedPaperFolder.folderId}`)
           }
-          realmPaper = await toRealmPaperEntity(tx, paperFolderSqlitePaper)
+          realmPaper = await toRealmPaperEntity(tx, paperFolderSqlitePaper, logger)
           const realmFolder = await toRealmFolder(tx, paperFolderSqliteFolder)
           realmPaper.folders.push(realmFolder)
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
         case 'paperSupplement':
-          const mergedPaperSupplement = await CRDT.orset.mergePaperSupplementORSet(tx, relationChange)
+          const mergedPaperSupplement = await CRDT.orset.mergePaperSupplementORSet(tx, relationChange, logger)
           const paperSupplementSqlitePaper = await tx.selectFrom('paper')
             .selectAll()
             .where('id', '=', mergedPaperSupplement.paperId)
@@ -342,8 +382,8 @@ export async function pull(
           if (!paperSupplementSqliteSupplement) {
             throw new Error(`Realm Supplement not found for paperSupplement ${mergedPaperSupplement.supplementId}`)
           }
-          realmPaper = await toRealmPaperEntity(tx, paperSupplementSqlitePaper)
-          const realmSupplement = await toRealmSupplementary(tx, paperSupplementSqliteSupplement)
+          realmPaper = await toRealmPaperEntity(tx, paperSupplementSqlitePaper, logger)
+          const realmSupplement = await toRealmSupplementary(tx, paperSupplementSqliteSupplement, logger)
           realmPaper.supplementaries[realmSupplement._id] = realmSupplement
           await paperEntityRepository.update(await databaseCore.realm(), realmPaper, await databaseCore.getPartition(), undefined, true)
           break
@@ -352,7 +392,19 @@ export async function pull(
       }
     }
     await tx.commit().execute()
+    logger?.info(
+      `[SyncClient] Successfully completed pull operation`,
+      `entityCreates: ${entityCreates.length}, entityDeletes: ${entityDeletes.length}, fieldsChanges: ${fieldsChanges.length}, relationChanges: ${relationChanges.length}`,
+      false,
+      "SyncClient"
+    );
   } catch (error) {
+    logger?.error(
+      `[SyncClient] Error during pull operation, rolling back transaction`,
+      error as Error,
+      false,
+      "SyncClient"
+    );
     await tx.rollback().execute()
     throw error
   }

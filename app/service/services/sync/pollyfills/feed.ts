@@ -5,15 +5,25 @@ import { db, Transaction } from "@/service/services/database/sqlite/db";
 import { v4 as uuidv4 } from 'uuid';
 import z from "zod";
 import { createFieldVersionValue, ensureUndefinedToNull, ensureLibraryId } from "./utils";
+import { LogService } from "@/common/services/log-service";
 
 /**
  * Convert the feed to sqlite object. If the feed is not in database, insert it to database.
  * Otherwise, update the database feed according to the feed.
  * Finally, return the sqlite object.
  * @param feed The feed to be converted to sqlite object.
+ * @param library Optional library name
+ * @param logger Optional logger for debugging
  * @returns The sqlite object. Guaranteed in database.
  */
-export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infer<typeof zFeed>> {
+export async function toSqliteFeed(feed: Feed, library?: string, logger?: LogService): Promise<z.infer<typeof zFeed>> {
+  logger?.info(
+    `[Polyfill] Starting Realm to SQLite conversion for feed`,
+    `legacyOid: ${feed._id.toString()}, name: ${feed.name}`,
+    false,
+    "Polyfill"
+  );
+
   const deviceId = syncStateStore.get("deviceId");
 
   // Try get the existed sqlite feed by legacy oid.
@@ -24,6 +34,12 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
     .executeTakeFirst();
 
   if (existedSqliteFeed) {
+    logger?.info(
+      `[Polyfill] Found existing SQLite feed`,
+      `legacyOid: ${feed._id.toString()}, sqliteId: ${existedSqliteFeed.id}`,
+      false,
+      "Polyfill"
+    );
     // There's an existed feed in realm
     let updated = false;
     const createdAtDate = new Date();
@@ -99,15 +115,40 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
       });
     }
     if (updated) {
+      logger?.info(
+        `[Polyfill] Updating SQLite feed with ${feedFieldVersions.length} field changes`,
+        `legacyOid: ${feed._id.toString()}, sqliteId: ${existedSqliteFeed.id}, changedFields: ${feedFieldVersions.map(v => v.field).join(', ')}`,
+        false,
+        "Polyfill"
+      );
       existedSqliteFeed.updatedAt = new Date().getTime();
       existedSqliteFeed.updatedByDeviceId = deviceId;
       await db.insertInto("feedFieldVersion").values(feedFieldVersions).execute();
       await db.updateTable("feed").set(existedSqliteFeed).where("id", "=", existedSqliteFeed.id).execute();
+      logger?.info(
+        `[Polyfill] Successfully updated SQLite feed`,
+        `legacyOid: ${feed._id.toString()}, sqliteId: ${existedSqliteFeed.id}`,
+        false,
+        "Polyfill"
+      );
+    } else {
+      logger?.info(
+        `[Polyfill] No field changes detected, skipping update`,
+        `legacyOid: ${feed._id.toString()}, sqliteId: ${existedSqliteFeed.id}`,
+        false,
+        "Polyfill"
+      );
     }
 
     return existedSqliteFeed;
   }
   // Insert the feed to database
+  logger?.info(
+    `[Polyfill] Creating new SQLite feed`,
+    `legacyOid: ${feed._id.toString()}, name: ${feed.name}`,
+    false,
+    "Polyfill"
+  );
   const createdAtDate = new Date();
   const createdAtTimestamp = createdAtDate.getTime();
   const newSqliteFeed: z.infer<typeof zFeed> = {
@@ -198,6 +239,13 @@ export async function toSqliteFeed(feed: Feed, library?: string): Promise<z.infe
   await db.insertInto("feed").values(newSqliteFeed).execute();
   await db.insertInto("feedFieldVersion").values(feedFieldVersions).execute();
 
+  logger?.info(
+    `[Polyfill] Successfully created SQLite feed`,
+    `legacyOid: ${feed._id.toString()}, sqliteId: ${newSqliteFeed.id}, name: ${newSqliteFeed.name}`,
+    false,
+    "Polyfill"
+  );
+
   return newSqliteFeed;
 }
 
@@ -220,7 +268,13 @@ export async function deleteSqliteFeed(legacyOid: string): Promise<void> {
  * @param sqliteFeed - The SQLite feed to convert
  * @returns The Realm feed draft
  */
-export async function toRealmFeed(txOrDb: Transaction, sqliteFeed: SqliteFeed): Promise<IFeedObject> {
+export async function toRealmFeed(txOrDb: Transaction, sqliteFeed: SqliteFeed, logger?: LogService): Promise<IFeedObject> {
+  logger?.info(
+    `[Polyfill] Starting SQLite to Realm conversion for feed`,
+    `sqliteId: ${sqliteFeed.id}, legacyOid: ${sqliteFeed.legacyOid}, name: ${sqliteFeed.name}`,
+    false,
+    "Polyfill"
+  );
   // This function doesn't need to query the database, but we keep the parameter for consistency
   const feedRealmObject = new Feed({
     _id: sqliteFeed.legacyOid || undefined,

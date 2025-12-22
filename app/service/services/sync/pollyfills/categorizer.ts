@@ -7,6 +7,7 @@ import z from "zod";
 import { createFieldVersionValue, ensureUndefinedToNull, ensureLibraryId } from "./utils";
 import { zFolder, zFolderFieldVersion, Folder as SqliteFolder } from "@/service/services/database/sqlite/models";
 import { ObjectId } from "bson";
+import { LogService } from "@/common/services/log-service";
 
 
 
@@ -18,8 +19,16 @@ import { ObjectId } from "bson";
  */
 export async function toSqliteCategorizer(
   categorizer: ICategorizerObject,
-  type: CategorizerType
+  type: CategorizerType,
+  logger?: LogService
 ): Promise<z.infer<typeof zTag> | z.infer<typeof zFolder>> {
+  logger?.info(
+    `[Polyfill] Starting Realm to SQLite conversion for categorizer`,
+    `type: ${type}, legacyOid: ${categorizer._id.toString()}, name: ${categorizer.name}`,
+    false,
+    "Polyfill"
+  );
+
   const deviceId = syncStateStore.get("deviceId");
 
   if (type === CategorizerType.PaperTag) {
@@ -30,6 +39,12 @@ export async function toSqliteCategorizer(
     const tagId = existedSqliteTag?.id || uuidv4();
     // If the tag is not existed, insert it to database
     if (!existedSqliteTag) {
+      logger?.info(
+        `[Polyfill] Creating new SQLite tag`,
+        `legacyOid: ${categorizer._id.toString()}, sqliteId: ${tagId}, name: ${categorizer.name}`,
+        false,
+        "Polyfill"
+      );
       const sqliteTag: z.infer<typeof zTag> = {
         id: tagId,
         legacyOid: categorizer._id.toString(),
@@ -44,8 +59,21 @@ export async function toSqliteCategorizer(
         deletedByDeviceId: null,
       };
       await db.insertInto("tag").values(sqliteTag).execute();
+      logger?.info(
+        `[Polyfill] Successfully created SQLite tag`,
+        `legacyOid: ${categorizer._id.toString()}, sqliteId: ${tagId}`,
+        false,
+        "Polyfill"
+      );
       return sqliteTag;
     }
+
+    logger?.info(
+      `[Polyfill] Found existing SQLite tag`,
+      `legacyOid: ${categorizer._id.toString()}, sqliteId: ${tagId}, name: ${categorizer.name}`,
+      false,
+      "Polyfill"
+    );
 
     // If the tag is already existed, update the sqlite tag if any difference
     let updated = false;
@@ -89,8 +117,27 @@ export async function toSqliteCategorizer(
       });
     }
     if (updated) {
+      logger?.info(
+        `[Polyfill] Updating SQLite tag with ${sqliteTagVersions.length} field changes`,
+        `sqliteId: ${tagId}, changedFields: ${sqliteTagVersions.map(v => v.field).join(', ')}`,
+        false,
+        "Polyfill"
+      );
       await db.updateTable("tag").set(existedSqliteTag).where("id", "=", tagId).execute();
       await db.insertInto("tagFieldVersion").values(sqliteTagVersions).execute();
+      logger?.info(
+        `[Polyfill] Successfully updated SQLite tag`,
+        `sqliteId: ${tagId}`,
+        false,
+        "Polyfill"
+      );
+    } else {
+      logger?.info(
+        `[Polyfill] No field changes detected, skipping update`,
+        `sqliteId: ${tagId}`,
+        false,
+        "Polyfill"
+      );
     }
 
     return existedSqliteTag;
@@ -101,6 +148,12 @@ export async function toSqliteCategorizer(
     const folderId = existedSqliteFolder?.id || uuidv4();
     // If the folder is not existed, insert it to database
     if (!existedSqliteFolder) {
+      logger?.info(
+        `[Polyfill] Creating new SQLite folder`,
+        `legacyOid: ${categorizer._id.toString()}, sqliteId: ${folderId}, name: ${categorizer.name}`,
+        false,
+        "Polyfill"
+      );
       const createdAtDate = new Date();
       const createdAtTimestamp = createdAtDate.getTime();
       const sqliteFolder: z.infer<typeof zFolder> = {
@@ -119,9 +172,23 @@ export async function toSqliteCategorizer(
         deletedByDeviceId: null,
       };
       await db.insertInto("folder").values(sqliteFolder).execute();
+      logger?.info(
+        `[Polyfill] Successfully created SQLite folder`,
+        `legacyOid: ${categorizer._id.toString()}, sqliteId: ${folderId}`,
+        false,
+        "Polyfill"
+      );
       // TODO: handle the children
       return sqliteFolder;
     }
+
+    logger?.info(
+      `[Polyfill] Found existing SQLite folder`,
+      `legacyOid: ${categorizer._id.toString()}, sqliteId: ${folderId}, name: ${categorizer.name}`,
+      false,
+      "Polyfill"
+    );
+
     // If the folder is already existed, update the sqlite folder if any difference
     let updated = false;
     const updatedAt = new Date();
@@ -164,8 +231,27 @@ export async function toSqliteCategorizer(
       });
     }
     if (updated) {
+      logger?.info(
+        `[Polyfill] Updating SQLite folder with ${sqliteFolderVersions.length} field changes`,
+        `sqliteId: ${folderId}, changedFields: ${sqliteFolderVersions.map(v => v.field).join(', ')}`,
+        false,
+        "Polyfill"
+      );
       await db.updateTable("folder").set(existedSqliteFolder).where("id", "=", folderId).execute();
       await db.insertInto("folderFieldVersion").values(sqliteFolderVersions).execute();
+      logger?.info(
+        `[Polyfill] Successfully updated SQLite folder`,
+        `sqliteId: ${folderId}`,
+        false,
+        "Polyfill"
+      );
+    } else {
+      logger?.info(
+        `[Polyfill] No field changes detected, skipping update`,
+        `sqliteId: ${folderId}`,
+        false,
+        "Polyfill"
+      );
     }
     // As the update would not affact the id and parentId, we don't need to update the children
     // TODO: handle the children update
@@ -308,13 +394,36 @@ export async function toRealmCategorizer(
   txOrDb: Transaction,
   sqliteCategorizer: SqliteTag | SqliteFolder,
   type: CategorizerType,
-
+  logger?: LogService
 ): Promise<ICategorizerObject> {
+  logger?.info(
+    `[Polyfill] Starting SQLite to Realm conversion for categorizer`,
+    `type: ${type}, sqliteId: ${sqliteCategorizer.id}, name: ${sqliteCategorizer.name}`,
+    false,
+    "Polyfill"
+  );
+
   if (type === CategorizerType.PaperTag) {
-    return await toRealmTag(txOrDb, sqliteCategorizer as SqliteTag);
+    const result = await toRealmTag(txOrDb, sqliteCategorizer as SqliteTag);
+    logger?.info(
+      `[Polyfill] Successfully converted SQLite tag to Realm categorizer`,
+      `type: ${type}, sqliteId: ${sqliteCategorizer.id}, legacyOid: ${result._id.toString()}`,
+      false,
+      "Polyfill"
+    );
+    return result;
   } else if (type === CategorizerType.PaperFolder) {
-    return await toRealmFolder(txOrDb, sqliteCategorizer as SqliteFolder);
+    const result = await toRealmFolder(txOrDb, sqliteCategorizer as SqliteFolder);
+    logger?.info(
+      `[Polyfill] Successfully converted SQLite folder to Realm categorizer`,
+      `type: ${type}, sqliteId: ${sqliteCategorizer.id}, legacyOid: ${result._id.toString()}`,
+      false,
+      "Polyfill"
+    );
+    return result;
   } else {
-    throw new Error(`Unknown categorizer type: ${type}`);
+    const error = `Unknown categorizer type: ${type}`;
+    logger?.error(`[Polyfill] ${error}`, new Error(error), false, "Polyfill");
+    throw new Error(error);
   }
 }

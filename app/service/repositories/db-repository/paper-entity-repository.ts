@@ -179,7 +179,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     paperEntity = this.makeSureProperties(paperEntity);
 
     if (!fromSync) {
-      await toSqlitePaper(paperEntity);
+      await toSqlitePaper(paperEntity, this._logService);
     }
 
     const object = this.toRealmObject(realm, paperEntity);

@@ -75,7 +75,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
     //   await toSqliteFeed(object);
     // });
     for (const object of objects) {
-      await toSqliteFeed(object);
+      await toSqliteFeed(object, undefined, this._logService);
     }
     return objects;
   }
@@ -203,7 +203,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
   async update(realm: Realm, feed: IFeedObject, partition: string, fromSync: boolean = false) {
     feed = this.makeSureProperties(feed);
     if (!fromSync) {
-      await toSqliteFeed(feed);
+      await toSqliteFeed(feed, undefined, this._logService);
     }
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, feed);
