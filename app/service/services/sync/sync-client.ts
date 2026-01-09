@@ -91,17 +91,17 @@ export async function attach(library: "main" | "feeds", logger?: LogService) {
     },
   };
   const response: z.infer<typeof zAttachResponse> = await requestAPI(apiUrl, "POST", attachRequest, logger);
-  if (response.attached.libraryId !== libraryId) {
+  if (response.success && response.data.attached.libraryId !== libraryId) {
     // Update all local library ids to the response library id
     const tx = await db.startTransaction().execute();
     try {
       await tx.updateTable("library").set({
-        id: response.attached.libraryId,
+        id: response.data.attached.libraryId,
       }).where("id", "=", libraryId).execute();
 
       await tx.commit().execute();
       if (logger) {
-        logger.info(`[SyncClient] Library ID updated`, `${libraryId} -> ${response.attached.libraryId}`, false, "SyncClient");
+        logger.info(`[SyncClient] Library ID updated`, `${libraryId} -> ${response.data.attached.libraryId}`, false, "SyncClient");
       }
     } catch (error) {
       if (logger) {
