@@ -5,33 +5,60 @@
 
 import { errorcatching } from "@/base/error";
 import { Eventable } from "@/base/event";
+import { ILogService, LogService } from "@/common/services/log-service";
 import { processing, ProcessingKey } from "@/common/utils/processing";
+import {
+  IPaperEntityRepository,
+  PaperEntityRepository,
+} from "@/service/repositories/db-repository/paper-entity-repository";
+import {
+  ISchedulerService,
+  SchedulerService,
+} from "@/service/services/scheduler-service";
 import * as openidClient from "openid-client";
+import { UserInfoResponse } from "openid-client";
+import { z } from "zod";
+import {
+  CategorizerRepository,
+  ICategorizerRepository,
+} from "../repositories/db-repository/categorizer-repository";
+import {
+  FeedRepository,
+  IFeedRepository,
+} from "../repositories/db-repository/feed-repository";
+import { DatabaseCore, IDatabaseCore } from "./database/core";
+import { zContinuationToken } from "./sync/dto";
 import { DEFAULT_SYNC_STATE, ISyncState, syncStateStore } from "./sync/states";
 import { attach, pull, push } from "./sync/sync-client";
-import { UserInfoResponse } from "openid-client";
-import { ILogService, LogService } from "@/common/services/log-service";
-import { ISchedulerService, SchedulerService } from "@/service/services/scheduler-service";
-import { IPaperEntityRepository, PaperEntityRepository } from "@/service/repositories/db-repository/paper-entity-repository";
-import { FeedRepository, IFeedRepository } from "../repositories/db-repository/feed-repository";
-import { CategorizerRepository, ICategorizerRepository } from "../repositories/db-repository/categorizer-repository";
-import { DatabaseCore, IDatabaseCore } from "./database/core";
 
 export interface ISyncServiceState {
-  connected: boolean;
-  syncProgress: number; // -1: not syncing, positive: syncing [0, 1]
   userInfo: UserInfoResponse | null;
 }
 
 const _DEFAULTSTATE: ISyncServiceState = {
-  connected: false,
-  syncProgress: -1,
   userInfo: null,
 };
 
+const syncStateSchema = z.object({
+  databaseVersion: z.number(),
+  syncMode: z.enum(["realm", "official", "self-hosted"]),
+  syncServerUrl: z.string().url(),
+  attachedLibraryId: z.array(z.string().uuid()),
+  syncEnabled: z.boolean(),
+
+  deviceId: z.string(),
+  pullToken: zContinuationToken,
+  pushToken: zContinuationToken,
+  lasetServerTimeSeenAt: z.string().datetime(),// Server timestamp
+  lastPullOkAt: z.string().datetime(), // Pull cursor
+  lastPushOkAt: z.string().datetime(), // Push cursor
+  sync_lock: z.boolean(), // Sync lock avoid sync loop overlap
+});
+
 const CLIENT_ID = "rObSDWEAuDzhsEZXVNDiOCXZpohYhEOK";
 const ISSUER = "https://dev.better-auth.paperlib.app";
-const REDIRECT_URI = "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback";
+const REDIRECT_URI =
+  "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback";
 const AUDIENCE = "http://localhost:3001";
 const SCOPE = "offline_access openid profile email";
 
@@ -52,9 +79,11 @@ export class SyncService extends Eventable<ISyncServiceState> {
     @IDatabaseCore private readonly _databaseCore: DatabaseCore,
     @ISchedulerService private readonly _schedulerService: SchedulerService,
     @ILogService private readonly _logService: LogService,
-    @IPaperEntityRepository private readonly _paperEntityRepository: PaperEntityRepository,
+    @IPaperEntityRepository
+    private readonly _paperEntityRepository: PaperEntityRepository,
     @IFeedRepository private readonly _feedRepository: FeedRepository,
-    @ICategorizerRepository private readonly _categorizerRepository: CategorizerRepository,
+    @ICategorizerRepository
+    private readonly _categorizerRepository: CategorizerRepository
   ) {
     super("syncService", _DEFAULTSTATE);
   }
@@ -67,10 +96,6 @@ export class SyncService extends Eventable<ISyncServiceState> {
     syncStateStore.delete(key);
     syncStateStore.set(key, value);
 
-    // Emit event
-    this.fire({
-      [key]: value,
-    }, false);
   }
 
   private _getStoreValue<K extends keyof ISyncState>(
@@ -178,9 +203,13 @@ export class SyncService extends Eventable<ISyncServiceState> {
     );
     this._logService.info("Build authorization URL completed");
     // 4) Open the URL with the system default browser to let the user complete the login
-    this._logService.info("Opening the URL with the system default browser to let the user complete the login");
+    this._logService.info(
+      "Opening the URL with the system default browser to let the user complete the login"
+    );
     PLMainAPI.fileSystemService.openExternal(authorizationUrl.href).then();
-    this._logService.info("Opening the URL with the system default browser to let the user complete the login completed");
+    this._logService.info(
+      "Opening the URL with the system default browser to let the user complete the login completed"
+    );
   }
 
   /**
@@ -243,16 +272,16 @@ export class SyncService extends Eventable<ISyncServiceState> {
     // 3) Use the authorization code to exchange for tokens
     const tokens = await openidClient.authorizationCodeGrant(
       this._openidClientConfig!,
-      new URL(
-        `${REDIRECT_URI}?code=${code}`
-      ),
+      new URL(`${REDIRECT_URI}?code=${code}`),
       {
         pkceCodeVerifier,
         expectedNonce: nonce,
         idTokenExpected: true,
       }
     );
-    this._logService.info("Use the authorization code to exchange for tokens completed");
+    this._logService.info(
+      "Use the authorization code to exchange for tokens completed"
+    );
     // 4) Schedule the next refresh
     this._logService.info("Schedule the next refresh");
     if (tokens.expires_in && tokens.refresh_token) {
@@ -381,7 +410,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
         this._feedRepository,
         this._categorizerRepository,
         this._databaseCore,
-        this._logService,
+        this._logService
       );
       this._logService.info("Pulling from main completed");
       // this.fire({ syncProgress: 0.7 });
@@ -391,7 +420,9 @@ export class SyncService extends Eventable<ISyncServiceState> {
       this._logService.info("Push completed");
       syncStateStore.delete("lastSyncAt");
       syncStateStore.set("lastSyncAt", new Date().getTime());
-      this._logService.info("Sync completed, lastSyncAt: " + new Date().toISOString());
+      this._logService.info(
+        "Sync completed, lastSyncAt: " + new Date().toISOString()
+      );
       // this.fire({ syncProgress: 1 });
     } catch (error) {
       // if (error instanceof Error && error.message.includes("Unauthorized")) {
@@ -399,12 +430,15 @@ export class SyncService extends Eventable<ISyncServiceState> {
       // } else {
       //   throw error;
       // }
-      this._logService.error("Failed to invoke sync", error as Error, true, "SyncService");
+      this._logService.error(
+        "Failed to invoke sync",
+        error as Error,
+        true,
+        "SyncService"
+      );
       throw error;
     }
-
   }
-
 
   /**
    * Get user information, if accessToken is expired, it will automatically refresh
@@ -463,21 +497,19 @@ export class SyncService extends Eventable<ISyncServiceState> {
         this._openidClientConfig!,
         {
           id_token_hint: idToken,
-          post_logout_redirect_uri:
-            `${REDIRECT_URI}?callback=logout`,
+          post_logout_redirect_uri: `${REDIRECT_URI}?callback=logout`,
         }
       );
 
       // Call the external browser to open the logout link
       PLMainAPI.fileSystemService.openExternal(logoutUrl.href).then();
     } else {
-      // Our current paperlib auth server does not support the end session endpoint, 
+      // Our current paperlib auth server does not support the end session endpoint,
       // we will directly open the logout page in the external browser and logout locally
       await this.handleLogoutOfficialCallback("");
       PLMainAPI.fileSystemService.openExternal(`${ISSUER}/logout`).then();
       return;
     }
-
   }
 
   // ---------------------------

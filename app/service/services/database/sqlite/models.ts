@@ -1,71 +1,10 @@
 import { z } from "zod";
 
-// Base models
-export const fieldVersionModels = [
-  "paperFieldVersion",
-  "authorFieldVersion",
-  "tagFieldVersion",
-  "folderFieldVersion",
-  "supplementFieldVersion",
-  "libraryFieldVersion",
-  "feedFieldVersion",
-] as const;
-export const zBaseFieldVersionTable = z.object({
-  id: z.string().uuid(),
-  model: z.enum(fieldVersionModels),
-  hash: z.string().nullable(),
-  value: z.string().nullable(),
-  timestamp: z.number().positive(),
-  deviceId: z.string(),
-  createdAt: z.number().positive(),
-  createdByDeviceId: z.string(),
-  deletedAt: z.number().positive().nullable(),
-  deletedByDeviceId: z.string().nullable(),
-});
+// ----------------------
+// Enums
+// ----------------------
 
-export const entityModels = [
-  "paper",
-  "feed",
-  "folder",
-  "supplement",
-  "author",
-  "tag",
-  "library",
-] as const;
-const zBaseEntityTable = z.object({
-  id: z.string().uuid(),
-  legacyOid: z.string().nullable(),
-  createdAt: z.number().positive(),
-  createdByDeviceId: z.string(),
-  updatedAt: z.number().positive().nullable(),
-  updatedByDeviceId: z.string().nullable(),
-  deletedAt: z.number().positive().nullable(),
-  deletedByDeviceId: z.string().nullable(),
-});
-
-const zBaseLibraryEntityTable = zBaseEntityTable.extend({
-  libraryId: z.string(),
-});
-
-export const relationshipModels = [
-  "paperAuthor",
-  "paperTag",
-  "paperFolder",
-  "paperSupplement",
-] as const;
-export const zOrSetOp = z.enum(["add", "remove"]);
-export const zBaseRelationshipTable = z.object({
-  id: z.string().uuid(),
-  libraryId: z.string(),
-  op: zOrSetOp,
-  timestamp: z.number().positive(),
-  deviceId: z.string(),
-  createdAt: z.number().positive(),
-  deletedAt: z.number().positive().nullable(),
-});
-
-// Models
-export const PaperTypeEnum = z.enum([
+export const paperTypes = [
   "article",
   "book",
   "booklet",
@@ -80,7 +19,30 @@ export const PaperTypeEnum = z.enum([
   "misc",
   "manual",
   "online",
-]);
+] as const;
+
+export const supplementTypes = [
+  "text",
+  "file",
+  "image",
+  "video",
+  "audio",
+  "url",
+  "pdf",
+  "json",
+  "note",
+  "other",
+  "unknown",
+] as const;
+
+export const feedTypes = ["rss", "atom", "json"] as const;
+
+export const orSetOps = ["add", "remove"] as const;
+
+// ----------------------
+// Entity models
+// ----------------------
+
 export const paperFields = [
   "type",
   "title",
@@ -112,14 +74,24 @@ export const paperFields = [
   "feedId",
   "feedItemId",
 ] as const;
-export const paperTableConfig = {
-  type: PaperTypeEnum,
+
+export const zPaperModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  updatedAt: z.number().int().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  type: z.enum(paperTypes),
   title: z.string(),
   abstract: z.string().nullable(),
   journal: z.string().nullable(),
   booktitle: z.string().nullable(),
-  year: z.number().nullable(),
-  month: z.number().nullable(),
+  year: z.number().int().nullable(),
+  month: z.number().int().nullable(),
   volume: z.string().nullable(),
   number: z.string().nullable(),
   pages: z.string().nullable(),
@@ -137,29 +109,13 @@ export const paperTableConfig = {
   isbn: z.string().nullable(),
   issn: z.string().nullable(),
   notes: z.string().nullable(),
-  flag: z.number().nullable(),
-  rating: z.number().nullable(),
-  read: z.number().nullable(),
-  feedId: z.string().nullable(),
+  flag: z.boolean().nullable(),
+  rating: z.number().int().default(0),
+  read: z.boolean().nullable(),
+  feedId: z.string().uuid().nullable(),
   feedItemId: z.string().nullable(),
-} as const;
-export const zPaperTable = zBaseLibraryEntityTable.extend(paperTableConfig);
-export const paperFieldVersionConfig = {
-  paperId: z.string(),
-  field: z.enum(paperFields),
-};
-export const zPaperFieldVersionTable = zBaseFieldVersionTable.extend(
-  paperFieldVersionConfig
-);
-export const authorTableConfig = {
-  name: z.string(),
-  affiliation: z.string().nullable(),
-  email: z.string().nullable(),
-  orcid: z.string().nullable(),
-  firstName: z.string().nullable(),
-  lastName: z.string().nullable(),
-};
-export const zAuthorTable = zBaseEntityTable.extend(authorTableConfig);
+});
+
 export const authorFields = [
   "name",
   "affiliation",
@@ -168,77 +124,61 @@ export const authorFields = [
   "firstName",
   "lastName",
 ] as const;
-export const authorFieldVersionConfig = {
-  authorId: z.string(),
-  field: z.enum(authorFields),
-};
-export const zAuthorFieldVersionTable = zBaseFieldVersionTable.extend(
-  authorFieldVersionConfig
-);
+export const zAuthorModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  updatedAt: z.number().int().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  name: z.string(),
+  affiliation: z.string().nullable(),
+  email: z.string().nullable(),
+  orcid: z.string().nullable(),
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
+});
 
 export const tagFields = ["name", "description", "colour"] as const;
-export const tagTableConfig = {
+export const zTagModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  updatedAt: z.number().int().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
   name: z.string(),
   description: z.string().nullable(),
   colour: z.string().nullable(),
-};
-export const zTagTable = zBaseEntityTable.extend(tagTableConfig);
-
-export const tagFieldVersionConfig = {
-  tagId: z.string(),
-  field: z.enum(tagFields),
-} as const;
-export const zTagFieldVersionTable = zBaseFieldVersionTable.extend(
-  tagFieldVersionConfig
-);
-
-export const folderTableConfig = {
-  name: z.string(),
-  colour: z.string().nullable(),
-  description: z.string().nullable(),
-  parentId: z.string().nullable(),
-} as const;
-export const zFolderTable = zBaseLibraryEntityTable.extend(folderTableConfig);
+});
 
 export const folderFields = [
   "name",
-  "colour",
   "description",
+  "colour",
   "parentId",
 ] as const;
+export const zFolderModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  updatedAt: z.number().int().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
 
-export const folderFieldVersionConfig = {
-  folderId: z.string(),
-  field: z.enum(folderFields),
-} as const;
-export const zFolderFieldVersionTable = zBaseFieldVersionTable.extend(
-  folderFieldVersionConfig
-);
-
-export const SupplementTypeEnum = z.enum([
-  "text",
-  "file",
-  "image",
-  "video",
-  "audio",
-  "url",
-  "pdf",
-  "json",
-  "note",
-  "other",
-  "unknown",
-]);
-export type SupplementType = z.infer<typeof SupplementTypeEnum>;
-export const supplementTableConfig = {
-  id: z.string(),
   name: z.string(),
-  value: z.string(),
-  type: SupplementTypeEnum,
   description: z.string().nullable(),
-} as const;
-export const zSupplementTable = zBaseLibraryEntityTable.extend(
-  supplementTableConfig
-);
+  colour: z.string().nullable(),
+  parentId: z.string().uuid().nullable(),
+});
 
 export const supplementFields = [
   "name",
@@ -246,86 +186,411 @@ export const supplementFields = [
   "type",
   "description",
 ] as const;
+export const zSupplementModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  updatedAt: z.number().int().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
 
-export const supplementFieldVersionConfig = {
-  supplementId: z.string(),
-  field: z.enum(supplementFields),
-} as const;
-export const zSupplementFieldVersionTable = zBaseFieldVersionTable.extend(
-  supplementFieldVersionConfig
-);
-
-export const zLibraryTable = zBaseEntityTable.extend({
   name: z.string(),
+  value: z.string(),
+  type: z.enum(supplementTypes),
   description: z.string().nullable(),
-  ownedBy: z.string().nullable(),
 });
 
 export const libraryFields = ["name", "description", "ownedBy"] as const;
-export const libraryFieldVersionConfig = {
-  libraryId: z.string(),
-  field: z.enum(libraryFields),
-} as const;
-export const zLibraryFieldVersionTable = zBaseFieldVersionTable.extend(
-  libraryFieldVersionConfig
-);
+export const zLibraryModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  updatedAt: z.number().int().nullable(),
+  updatedByDeviceId: z.string().nullable(),
 
-export const FeedTypeEnum = z.enum(["rss", "atom", "json"]);
-export type FeedType = z.infer<typeof FeedTypeEnum>;
-export const feedTableConfig = {
   name: z.string(),
   description: z.string().nullable(),
-  ownedBy: z.string().nullable(),
-  type: FeedTypeEnum,
-  url: z.string(),
-  count: z.number().nullable(),
-  colour: z.string().nullable(),
-} as const;
-export const zFeedTable = zBaseLibraryEntityTable.extend(feedTableConfig);
+  ownedBy: z.string().uuid(),
+});
+
 export const feedFields = [
   "name",
   "description",
+  "type",
+  "url",
   "count",
   "colour",
-  "url",
-  "type",
 ] as const;
-export const feedFieldVersionConfig = {
-  feedId: z.string(),
-  field: z.enum(feedFields),
-} as const;
-export const zFeedFieldVersionTable = zBaseFieldVersionTable.extend(
-  feedFieldVersionConfig
-);
+export const zFeedModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  updatedAt: z.number().int().nullable(),
+  updatedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
 
-export const paperAuthorRelationshipConfig = {
-  paperId: z.string(),
-  authorId: z.string(),
-} as const;
-export const zPaperAuthorTable = zBaseRelationshipTable.extend(
-  paperAuthorRelationshipConfig
-);
+  name: z.string(),
+  description: z.string().nullable(),
+  type: z.enum(feedTypes),
+  url: z.string(),
+  count: z.number().int().positive().default(0),
+  colour: z.string().nullable(),
+});
 
-export const paperTagRelationshipConfig = {
-  paperId: z.string(),
-  tagId: z.string(),
-} as const;
-export const zPaperTagTable = zBaseRelationshipTable.extend(
-  paperTagRelationshipConfig
-);
+// ----------------------
+// Field-version models
+// ----------------------
 
-export const paperFolderRelationshipConfig = {
-  paperId: z.string(),
-  folderId: z.string(),
-} as const;
-export const zPaperFolderTable = zBaseRelationshipTable.extend(
-  paperFolderRelationshipConfig
-);
+export const zPaperFieldVersionModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
 
-export const paperSupplementRelationshipConfig = {
-  paperId: z.string(),
-  supplementId: z.string(),
+  value: z.string().nullable(),
+  hash: z.string().nullable(),
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  paperId: z.string().uuid(),
+  field: z.enum([...paperFields, "entity"]),
+});
+
+export const zAuthorFieldVersionModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  value: z.string().nullable(),
+  hash: z.string().nullable(),
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  authorId: z.string().uuid(),
+  field: z.enum([...authorFields, "entity"]),
+});
+
+export const zTagFieldVersionModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  value: z.string().nullable(),
+  hash: z.string().nullable(),
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  tagId: z.string().uuid(),
+  field: z.enum([...tagFields, "entity"]),
+});
+
+export const zFolderFieldVersionModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  value: z.string().nullable(),
+  hash: z.string().nullable(),
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  folderId: z.string().uuid(),
+  field: z.enum([...folderFields, "entity"]),
+});
+
+export const zSupplementFieldVersionModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  value: z.string().nullable(),
+  hash: z.string().nullable(),
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  supplementId: z.string().uuid(),
+  field: z.enum([...supplementFields, "entity"]),
+});
+
+export const zLibraryFieldVersionModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  value: z.string().nullable(),
+  hash: z.string().nullable(),
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  field: z.enum([...libraryFields, "entity"]),
+});
+
+export const zFeedFieldVersionModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  value: z.string().nullable(),
+  hash: z.string().nullable(),
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  feedId: z.string().uuid(),
+  field: z.enum([...feedFields, "entity"]),
+});
+
+export const zFieldVersionModel = z.union([
+  zPaperFieldVersionModel,
+  zAuthorFieldVersionModel,
+  zTagFieldVersionModel,
+  zFolderFieldVersionModel,
+  zSupplementFieldVersionModel,
+  zLibraryFieldVersionModel,
+  zFeedFieldVersionModel,
+]);
+
+// ----------------------
+// Relationship (OR-Set) models
+// ----------------------
+
+const zOrSetOp = z.enum([...orSetOps, "entity"]);
+
+export const zPaperAuthorModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  op: zOrSetOp,
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  paperId: z.string().uuid(),
+  authorId: z.string().uuid(),
+});
+
+export const zPaperTagModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  op: zOrSetOp,
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  paperId: z.string().uuid(),
+  tagId: z.string().uuid(),
+});
+
+export const zPaperFolderModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  op: zOrSetOp,
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  paperId: z.string().uuid(),
+  folderId: z.string().uuid(),
+});
+
+export const zPaperSupplementModel = z.object({
+  id: z.string().uuid(),
+  createdAt: z.number().int(),
+  createdByDeviceId: z.string(),
+  deletedAt: z.number().int().nullable(),
+  deletedByDeviceId: z.string().nullable(),
+  libraryId: z.string().uuid(),
+
+  op: zOrSetOp,
+  timestamp: z.number().int(),
+  deviceId: z.string(),
+  localInsertedAt: z.number().int(),
+
+  paperId: z.string().uuid(),
+  supplementId: z.string().uuid(),
+});
+
+// ----------------------
+// Change stream view
+// ----------------------
+
+export const entityModelNames = [
+  "library",
+  "paper",
+  "author",
+  "tag",
+  "folder",
+  "supplement",
+  "feed",
+] as const;
+export const relationshipModelNames = [
+  "paperAuthor",
+  "paperTag",
+  "paperFolder",
+  "paperSupplement",
+] as const;
+
+export type EntityModelName = (typeof entityModelNames)[number];
+export type RelationshipModelName = (typeof relationshipModelNames)[number];
+export type ChangeStreamModelName = EntityModelName | RelationshipModelName;
+
+export const zEntityModelName = z.enum(entityModelNames);
+export const zRelationshipModelName = z.enum(relationshipModelNames);
+export const zChangeStreamModelName = z.union([
+  zEntityModelName,
+  zRelationshipModelName,
+]);
+
+export const zChangeStreamType = z.enum(["field_version", "or_set"]);
+
+// ----------------------
+// Compatibility exports for legacy code
+// ----------------------
+
+export const zLibraryField = z.enum([...libraryFields, "entity"]);
+
+export const entityModelSchemas = Object.fromEntries(
+  entityModelNames.map((name) => [name, {}])
+) as Record<EntityModelName, {}>;
+
+export const relationshipModelSchemas = Object.fromEntries(
+  relationshipModelNames.map((name) => [name, {}])
+) as Record<RelationshipModelName, {}>;
+
+const zChangeStreamViewRaw = z.object({
+  libraryId: z.string().uuid(),
+  type: zChangeStreamType,
+  model: zChangeStreamModelName,
+  id: z.string().uuid(),
+  localInsertedAt: z.number().int(),
+});
+
+export const zChangeStreamRow = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("field_version"),
+    model: zEntityModelName,
+    libraryId: z.string().uuid(),
+    id: z.string().uuid(),
+    localInsertedAt: z.number().int(),
+  }),
+  z.object({
+    type: z.literal("or_set"),
+    model: zRelationshipModelName,
+    libraryId: z.string().uuid(),
+    id: z.string().uuid(),
+    localInsertedAt: z.number().int(),
+  }),
+]);
+
+// ----------------------
+// Row schema maps (useful for services)
+// ----------------------
+
+export const entityRowSchemas = {
+  paper: zPaperModel,
+  author: zAuthorModel,
+  tag: zTagModel,
+  folder: zFolderModel,
+  supplement: zSupplementModel,
+  library: zLibraryModel,
+  feed: zFeedModel,
 } as const;
-export const zPaperSupplementTable = zBaseRelationshipTable.extend(
-  paperSupplementRelationshipConfig
-);
+
+export const fieldVersionRowSchemas = {
+  paper: zPaperFieldVersionModel,
+  feed: zFeedFieldVersionModel,
+  folder: zFolderFieldVersionModel,
+  supplement: zSupplementFieldVersionModel,
+  author: zAuthorFieldVersionModel,
+  tag: zTagFieldVersionModel,
+  library: zLibraryFieldVersionModel,
+} as const;
+
+export const relationshipRowSchemas = {
+  paperAuthor: zPaperAuthorModel,
+  paperTag: zPaperTagModel,
+  paperFolder: zPaperFolderModel,
+  paperSupplement: zPaperSupplementModel,
+} as const;
+
+// ----------------------
+// Database interface (Kysely-friendly)
+// ----------------------
+
+const zDatabase = z.object({
+  // Entities
+  paper: zPaperModel,
+  author: zAuthorModel,
+  tag: zTagModel,
+  folder: zFolderModel,
+  supplement: zSupplementModel,
+  library: zLibraryModel,
+  feed: zFeedModel,
+  // Field versions
+  paperFieldVersion: zPaperFieldVersionModel,
+  authorFieldVersion: zAuthorFieldVersionModel,
+  tagFieldVersion: zTagFieldVersionModel,
+  folderFieldVersion: zFolderFieldVersionModel,
+  supplementFieldVersion: zSupplementFieldVersionModel,
+  libraryFieldVersion: zLibraryFieldVersionModel,
+  feedFieldVersion: zFeedFieldVersionModel,
+  // Relationships
+  paperAuthor: zPaperAuthorModel,
+  paperTag: zPaperTagModel,
+  paperFolder: zPaperFolderModel,
+  paperSupplement: zPaperSupplementModel,
+
+  // View
+  changeStream: zChangeStreamViewRaw,
+});
+
+export type DatabaseSQLite = z.infer<typeof zDatabase>;
+
+// Back-compat alias (matches `src/data/models.ts` export).
+export type Database = DatabaseSQLite;
