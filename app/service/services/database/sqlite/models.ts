@@ -262,7 +262,7 @@ export const zPaperFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   paperId: z.string().uuid(),
-  field: z.enum([...paperFields, "entity"]),
+  field: z.enum(paperFields),
 });
 
 export const zAuthorFieldVersionModel = z.object({
@@ -280,7 +280,7 @@ export const zAuthorFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   authorId: z.string().uuid(),
-  field: z.enum([...authorFields, "entity"]),
+  field: z.enum(authorFields),
 });
 
 export const zTagFieldVersionModel = z.object({
@@ -298,7 +298,7 @@ export const zTagFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   tagId: z.string().uuid(),
-  field: z.enum([...tagFields, "entity"]),
+  field: z.enum(tagFields),
 });
 
 export const zFolderFieldVersionModel = z.object({
@@ -316,7 +316,7 @@ export const zFolderFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   folderId: z.string().uuid(),
-  field: z.enum([...folderFields, "entity"]),
+  field: z.enum(folderFields),
 });
 
 export const zSupplementFieldVersionModel = z.object({
@@ -334,7 +334,7 @@ export const zSupplementFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   supplementId: z.string().uuid(),
-  field: z.enum([...supplementFields, "entity"]),
+  field: z.enum(supplementFields),
 });
 
 export const zLibraryFieldVersionModel = z.object({
@@ -351,7 +351,7 @@ export const zLibraryFieldVersionModel = z.object({
   deviceId: z.string(),
   localInsertedAt: z.number().int(),
 
-  field: z.enum([...libraryFields, "entity"]),
+  field: z.enum(libraryFields),
 });
 
 export const zFeedFieldVersionModel = z.object({
@@ -369,7 +369,7 @@ export const zFeedFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   feedId: z.string().uuid(),
-  field: z.enum([...feedFields, "entity"]),
+  field: z.enum(feedFields),
 });
 
 export const zFieldVersionModel = z.union([
@@ -386,7 +386,7 @@ export const zFieldVersionModel = z.union([
 // Relationship (OR-Set) models
 // ----------------------
 
-const zOrSetOp = z.enum([...orSetOps, "entity"]);
+const zOrSetOp = z.enum(orSetOps);
 
 export const zPaperAuthorModel = z.object({
   id: z.string().uuid(),

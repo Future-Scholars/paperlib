@@ -11,19 +11,8 @@ import {
   supplementFields,
   tagFields,
   zChangeStreamType,
-  zFieldVersionModel
 } from "@/service/services/database/sqlite/models"
 import { z } from "zod"
-
-function isOneOf<const T extends readonly string[]>(arr: T, val: string): val is T[number] {
-  return (arr as readonly string[]).includes(val)
-}
-
-function zEntityField<const T extends readonly string[]>(fields: T) {
-  return z.custom<T[number] | 'entity'>((val) =>
-      typeof val === 'string' && (val === 'entity' || isOneOf(fields, val))
-  )
-}
 
 
 // Field Version DTOs - Derived from database models, removing server-side fields and converting date types
@@ -38,41 +27,41 @@ const zBaseFieldVersionDTO = z.object({
   createdByDeviceId: z.string(),
   deletedAt: z.string().datetime().nullable(),
   deletedByDeviceId: z.string().nullable(),
-  localInsertedAt: z.number().int(),
+  // DTO should not include localInsertedAt because it is not a server-side field
 })
 
 export const zPaperFieldVersion = zBaseFieldVersionDTO.extend({
-  field: zEntityField(paperFields),
+  field: z.enum(paperFields),
   paperId: z.string().uuid(),
 })
 
 export const zAuthorFieldVersion = zBaseFieldVersionDTO.extend({
-  field: zEntityField(authorFields),
+  field: z.enum(authorFields),
   authorId: z.string().uuid(),
 })
 
 export const zTagFieldVersion = zBaseFieldVersionDTO.extend({
-  field: zEntityField(tagFields),
+  field: z.enum(tagFields),
   tagId: z.string().uuid(),
 })
 
 export const zFolderFieldVersion = zBaseFieldVersionDTO.extend({
-  field: zEntityField(folderFields),
+  field: z.enum(folderFields),
   folderId: z.string().uuid(),
 })
 
 export const zSupplementFieldVersion = zBaseFieldVersionDTO.extend({
-  field: zEntityField(supplementFields),
+  field: z.enum(supplementFields),
   supplementId: z.string().uuid(),
 })
 
 export const zLibraryFieldVersion = zBaseFieldVersionDTO.extend({
-  field: zEntityField(libraryFields),
-  libraryId: z.string().uuid(),
+  field: z.enum(libraryFields),
+  // libraryId is not included in the DTO because it is the same as the libraryId in the base DTO
 })
 
 export const zFeedFieldVersion = zBaseFieldVersionDTO.extend({
-  field: zEntityField(feedFields),
+  field: z.enum(feedFields),
   feedId: z.string().uuid(),
 })
 
@@ -80,9 +69,7 @@ export const zFeedFieldVersion = zBaseFieldVersionDTO.extend({
 const zBaseRelationshipDTO = z.object({
   id: z.string().uuid(),
   libraryId: z.string().uuid(),
-  op: z.custom<(typeof orSetOps)[number] | 'entity'>((val) =>
-      typeof val === 'string' && (val === 'entity' || isOneOf(orSetOps, val))
-  ),
+  op: z.enum(orSetOps),
   timestamp: z.string().datetime(),
   deviceId: z.string(),
   createdAt: z.string().datetime(),
@@ -150,87 +137,21 @@ const zContinuationToken = z.object({
 export type ContinuationToken = z.infer<typeof zContinuationToken>;
 
 const zChangeRecord = z.discriminatedUnion('type', [
-  // Field version changes - 为每个 entity model 创建独立的 schema
   z.object({
     type: z.literal("field_version"),
-    model: z.literal("paper"),
-    data: zPaperFieldVersion,
-  }),
-  z.object({
-    type: z.literal("field_version"),
-    model: z.literal("author"),
-    data: zAuthorFieldVersion,
-  }),
-  z.object({
-    type: z.literal("field_version"),
-    model: z.literal("tag"),
-    data: zTagFieldVersion,
-  }),
-  z.object({
-    type: z.literal("field_version"),
-    model: z.literal("folder"),
-    data: zFolderFieldVersion,
-  }),
-  z.object({
-    type: z.literal("field_version"),
-    model: z.literal("supplement"),
-    data: zSupplementFieldVersion,
-  }),
-  z.object({
-    type: z.literal("field_version"),
-    model: z.literal("library"),
-    data: zLibraryFieldVersion,
-  }),
-  z.object({
-    type: z.literal("field_version"),
-    model: z.literal("feed"),
-    data: zFeedFieldVersion,
-  }),
-  
-  // Relationship changes - 为每个 relationship model 创建独立的 schema
-  z.object({
-    type: z.literal("or_set"),
-    model: z.literal("paperAuthor"),
-    data: zPaperAuthor,
+    model: zEntityModel,
+    data: zFieldVersionDto,
   }),
   z.object({
     type: z.literal("or_set"),
-    model: z.literal("paperTag"),
-    data: zPaperTag,
-  }),
-  z.object({
-    type: z.literal("or_set"),
-    model: z.literal("paperFolder"),
-    data: zPaperFolder,
-  }),
-  z.object({
-    type: z.literal("or_set"),
-    model: z.literal("paperSupplement"),
-    data: zPaperSupplement,
+    model: zRelationshipModel,
+    data: zRelationshipDto,
   }),
 ]);
 
 
 export type ChangeRecord = z.infer<typeof zChangeRecord>
 
-// Helper functions to convert DTO format (dates as strings) to database model format (dates as numbers)
-export function toFieldVersionModel<T extends z.infer<typeof zFieldVersionDto>>(dto: T) {
-  return {
-    ...dto,
-    timestamp: new Date(dto.timestamp).getTime(),
-    createdAt: new Date(dto.createdAt).getTime(),
-    deletedAt: dto.deletedAt ? new Date(dto.deletedAt).getTime() : null,
-  };
-}
-
-export function toRelationshipModel<T extends z.infer<typeof zRelationshipDto>>(dto: T) {
-  return {
-    ...dto,
-    timestamp: new Date(dto.timestamp).getTime(),
-    createdAt: new Date(dto.createdAt).getTime(),
-    deletedAt: dto.deletedAt ? new Date(dto.deletedAt).getTime() : null,
-  };
-}
 
 // Sync error type
 const zSyncError = z.object({
@@ -257,15 +178,15 @@ export type PushRequest = z.infer<typeof zPushRequest>
 // Sync push response type
 export const zPushResponse = z.discriminatedUnion('success', [
   z.object({
-      success: z.literal(true),
-      code: z.number(),
-      message: z.string().optional(),
+    success: z.literal(true),
+    code: z.number(),
+    message: z.string().optional(),
   }),
   z.object({
-      success: z.literal(false),
-      code: z.number(),
-      message: z.string().optional(),
-      errors: z.array(zSyncError),
+    success: z.literal(false),
+    code: z.number(),
+    message: z.string().optional(),
+    errors: z.array(zSyncError),
   }),
 ])
 
@@ -283,17 +204,17 @@ export type PullRequest = z.infer<typeof zPullRequest>
 
 export const zPullResponse = z.discriminatedUnion('success', [
   z.object({
-      success: z.literal(true),
-      code: z.number(),
-      message: z.string().optional(),
-      continuationToken: zContinuationToken.nullable(),
-      data: z.array(zChangeRecord),
+    success: z.literal(true),
+    code: z.number(),
+    message: z.string().optional(),
+    continuationToken: zContinuationToken.nullable(),
+    data: z.array(zChangeRecord),
   }),
   z.object({
-      success: z.literal(false),
-      code: z.number(),
-      message: z.string().optional(),
-      errors: z.array(zSyncError),
+    success: z.literal(false),
+    code: z.number(),
+    message: z.string().optional(),
+    errors: z.array(zSyncError),
   }),
 ])
 
@@ -301,11 +222,11 @@ export type PullResponse = z.infer<typeof zPullResponse>
 
 export const zAttachRequest = z.object({
   device: z.object({
-      deviceId: z.string(),
+    deviceId: z.string(),
   }),
   library: z.object({
-      libraryId: z.string().uuid(),
-      libraryName: z.string()
+    libraryId: z.string().uuid(),
+    libraryName: z.string()
   })
 })
 
@@ -313,13 +234,13 @@ export type AttachRequest = z.infer<typeof zAttachRequest>
 
 const zAttachData = z.object({
   user: z.object({
-      name: z.string(),
-      defaultLibraryId: z.string().uuid()
+    name: z.string(),
+    defaultLibraryId: z.string().uuid()
   }),
   attached: z.object({
-      libraryId: z.string().uuid(),
-      deviceId: z.string(),
-      attachId: z.string().uuid()
+    libraryId: z.string().uuid(),
+    deviceId: z.string(),
+    attachId: z.string().uuid()
   })
 })
 
@@ -327,16 +248,16 @@ export type AttachData = z.infer<typeof zAttachData>
 
 export const zAttachResponse = z.discriminatedUnion('success', [
   z.object({
-      success: z.literal(true),
-      code: z.number(),
-      message: z.string().optional(),
-      data: zAttachData,
+    success: z.literal(true),
+    code: z.number(),
+    message: z.string().optional(),
+    data: zAttachData,
   }),
   z.object({
-      success: z.literal(false),
-      code: z.number(),
-      message: z.string().optional(),
-      errors: z.array(zSyncError),
+    success: z.literal(false),
+    code: z.number(),
+    message: z.string().optional(),
+    errors: z.array(zSyncError),
   }),
 ])
 

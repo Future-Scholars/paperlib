@@ -2,16 +2,23 @@ import { LogService } from "@/common/services/log-service";
 import { db } from "@/service/services/database/sqlite/db";
 import {
   ChangeRecord,
-  toFieldVersionModel,
-  toRelationshipModel,
   zAttachResponse,
+  zAuthorFieldVersion,
+  zFeedFieldVersion,
+  zPaperAuthor,
+  zPaperFieldVersion,
+  zPaperFolder,
+  zPaperSupplement,
+  zPaperTag,
   zPullResponse,
   zPushResponse,
+  zSupplementFieldVersion,
+  zTagFieldVersion,
   type AttachRequest,
   type ContinuationToken,
   type PushRequest,
 } from "./dto";
-import { fieldVersionRowSchemas, zChangeStreamRow } from "@/service/services/database/sqlite/models";
+import { zChangeStreamRow } from "@/service/services/database/sqlite/models";
 import { ensureLibraryId } from "./pollyfills/utils";
 import { syncStateStore } from "./states";
 
@@ -197,69 +204,116 @@ export async function pull(
     // Process field changes
     for (const fieldChange of fieldChanges) {
       switch (fieldChange.model) {
-        case "paper":
+        case "paper": {
+          const data = zPaperFieldVersion.parse(fieldChange.data);
           await tx
             .insertInto("paperFieldVersion")
             .values({
-              ...toFieldVersionModel(fieldChange.data),
-              localInsertedAt
+              id: data.id,
+              createdAt: new Date(data.createdAt).getTime(),
+              createdByDeviceId: data.createdByDeviceId,
+              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+              deletedByDeviceId: data.deletedByDeviceId,
+              libraryId: data.libraryId,
+              value: data.value,
+              hash: data.hash,
+              timestamp: new Date(data.timestamp).getTime(),
+              deviceId: data.deviceId,
+              localInsertedAt: localInsertedAt,
+              field: data.field,
+              paperId: data.paperId,
             })
             .execute();
           break;
-        case "author":
+        }
+        case "author": {
+          const data = zAuthorFieldVersion.parse(fieldChange.data);
           await tx
             .insertInto("authorFieldVersion")
             .values({
-              ...toFieldVersionModel(fieldChange.data),
-              localInsertedAt
+              id: data.id,
+              createdAt: new Date(data.createdAt).getTime(),
+              createdByDeviceId: data.createdByDeviceId,
+              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+              deletedByDeviceId: data.deletedByDeviceId,
+              libraryId: data.libraryId,
+              value: data.value,
+              hash: data.hash,
+              timestamp: new Date(data.timestamp).getTime(),
+              deviceId: data.deviceId,
+              localInsertedAt: localInsertedAt,
+              field: data.field,
+              authorId: data.authorId,
             })
             .execute();
           break;
-        case "tag":
+        }
+        case "tag": {
+          const data = zTagFieldVersion.parse(fieldChange.data);
           await tx
             .insertInto("tagFieldVersion")
             .values({
-              ...toFieldVersionModel(fieldChange.data),
-              localInsertedAt
+              id: data.id,
+              createdAt: new Date(data.createdAt).getTime(),
+              createdByDeviceId: data.createdByDeviceId,
+              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+              deletedByDeviceId: data.deletedByDeviceId,
+              libraryId: data.libraryId,
+              value: data.value,
+              hash: data.hash,
+              timestamp: new Date(data.timestamp).getTime(),
+              deviceId: data.deviceId,
+              localInsertedAt: localInsertedAt,
+              field: data.field,
+              tagId: data.tagId,
             })
             .execute();
           break;
-        case "folder":
-          await tx
-            .insertInto("folderFieldVersion")
-            .values({
-              ...toFieldVersionModel(fieldChange.data),
-              localInsertedAt
-            })
-            .execute();
-          break;
-        case "supplement":
+        }
+        case "supplement": {
+          const data = zSupplementFieldVersion.parse(fieldChange.data);
           await tx
             .insertInto("supplementFieldVersion")
             .values({
-              ...toFieldVersionModel(fieldChange.data),
-              localInsertedAt
+              id: data.id,
+              createdAt: new Date(data.createdAt).getTime(),
+              createdByDeviceId: data.createdByDeviceId,
+              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+              deletedByDeviceId: data.deletedByDeviceId,
+              libraryId: data.libraryId,
+              value: data.value,
+              hash: data.hash,
+              timestamp: new Date(data.timestamp).getTime(),
+              deviceId: data.deviceId,
+              localInsertedAt: localInsertedAt,
+              field: data.field,
+              supplementId: data.supplementId,
             })
             .execute();
           break;
-        case "library":
-          await tx
-            .insertInto("libraryFieldVersion")
-            .values({
-              ...toFieldVersionModel(fieldChange.data),
-              localInsertedAt
-            })
-            .execute();
-          break;
-        case "feed":
+        }
+        case "feed": {
+          const data = zFeedFieldVersion.parse(fieldChange.data);
           await tx
             .insertInto("feedFieldVersion")
             .values({
-              ...toFieldVersionModel(fieldChange.data),
-              localInsertedAt
+              id: data.id,
+              createdAt: new Date(data.createdAt).getTime(),
+              createdByDeviceId: data.createdByDeviceId,
+              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+              deletedByDeviceId: data.deletedByDeviceId,
+              libraryId: data.libraryId,
+              value: data.value,
+              hash: data.hash,
+              timestamp: new Date(data.timestamp).getTime(),
+              deviceId: data.deviceId,
+              localInsertedAt: localInsertedAt,
+              field: data.field,
+              feedId: data.feedId,
             })
             .execute();
           break;
+        }
         default:
           throw new Error(`Unknown model: ${JSON.stringify(fieldChange)}`);
       }
@@ -267,42 +321,90 @@ export async function pull(
     // Process relation changes
     for (const relationChange of relationChanges) {
       switch (relationChange.model) {
-        case "paperAuthor":
+        case "paperAuthor": {
+          const data = zPaperAuthor.parse(relationChange.data);
           await tx
             .insertInto("paperAuthor")
             .values({
-              ...toRelationshipModel(relationChange.data),
-              localInsertedAt: new Date().getTime(),
+              id: data.id,
+              createdAt: new Date(data.createdAt).getTime(),
+              createdByDeviceId: data.createdByDeviceId,
+              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+              deletedByDeviceId: data.deletedByDeviceId,
+              libraryId: data.libraryId,
+              op: data.op,
+              timestamp: new Date(data.timestamp).getTime(),
+              deviceId: data.deviceId,
+              localInsertedAt: localInsertedAt,
+              paperId: data.paperId,
+              authorId: data.authorId,
             })
             .execute();
           break;
-        case "paperTag":
+        }
+        case "paperTag": {
+          const data = zPaperTag.parse(relationChange.data);
           await tx
             .insertInto("paperTag")
             .values({
-              ...toRelationshipModel(relationChange.data),
-              localInsertedAt: new Date().getTime(),
+              id: data.id,
+              createdAt: new Date(data.createdAt).getTime(),
+              createdByDeviceId: data.createdByDeviceId,
+              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+              deletedByDeviceId: data.deletedByDeviceId,
+              libraryId: data.libraryId,
+              op: data.op,
+              timestamp: new Date(data.timestamp).getTime(),
+              deviceId: data.deviceId,
+              localInsertedAt: localInsertedAt,
+              paperId: data.paperId,
+              tagId: data.tagId,
             })
             .execute();
           break;
-        case "paperFolder":
+        }
+        case "paperFolder": {
+          const data = zPaperFolder.parse(relationChange.data);
           await tx
             .insertInto("paperFolder")
             .values({
-              ...toRelationshipModel(relationChange.data),
-              localInsertedAt: new Date().getTime(),
+              id: data.id,
+              createdAt: new Date(data.createdAt).getTime(),
+              createdByDeviceId: data.createdByDeviceId,
+              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+              deletedByDeviceId: data.deletedByDeviceId,
+              libraryId: data.libraryId,
+              op: data.op,
+              timestamp: new Date(data.timestamp).getTime(),
+              deviceId: data.deviceId,
+              localInsertedAt: localInsertedAt,
+              paperId: data.paperId,
+              folderId: data.folderId,
             })
             .execute();
           break;
-        case "paperSupplement":
+        }
+        case "paperSupplement": {
+          const data = zPaperSupplement.parse(relationChange.data);
           await tx
             .insertInto("paperSupplement")
             .values({
-              ...toRelationshipModel(relationChange.data),
-              localInsertedAt: new Date().getTime(),
+              id: data.id,
+              createdAt: new Date(data.createdAt).getTime(),
+              createdByDeviceId: data.createdByDeviceId,
+              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+              deletedByDeviceId: data.deletedByDeviceId,
+              libraryId: data.libraryId,
+              op: data.op,
+              timestamp: new Date(data.timestamp).getTime(),
+              deviceId: data.deviceId,
+              localInsertedAt: localInsertedAt,
+              paperId: data.paperId,
+              supplementId: data.supplementId,
             })
             .execute();
           break;
+        }
         default:
           throw new Error(`Unknown model: ${JSON.stringify(relationChange)}`);
       }
@@ -352,7 +454,7 @@ export async function push(
 }
 
 
-async function getChangeRecords(continuationToken: ContinuationToken) {
+async function getChangeRecords(continuationToken: ContinuationToken): Promise<ChangeRecord[]> {
   const libraryId = await ensureLibraryId("main");
   const sinceCommittedAt = new Date(continuationToken.since_committed_at).getTime();
   const sinceId = continuationToken.since_id;
@@ -366,30 +468,269 @@ async function getChangeRecords(continuationToken: ContinuationToken) {
     changeRecordsStm.limit(limit);
   }
   const ChangeStreamRows = await changeRecordsStm.execute();
-  const changeRecords: Promise<ChangeRecord>[] = ChangeStreamRows.map(async (row) => {
+  const changeRecords = ChangeStreamRows.map(async (row): Promise<ChangeRecord> => {
     const rowData = zChangeStreamRow.parse(row);
     if (rowData.type === "field_version") {
-      const fieldVersion = await db.selectFrom(`${rowData.model}FieldVersion`)
+      switch (rowData.model) {
+        case "paper":
+          const paperFieldVersionModel = await db.selectFrom("paperFieldVersion")
+            .selectAll()
+            .where("id", "=", rowData.id)
+            .executeTakeFirstOrThrow();
+          return {
+            type: "field_version",
+            model: "paper",
+            data: {
+              id: paperFieldVersionModel.id,
+              libraryId: paperFieldVersionModel.libraryId,
+              value: paperFieldVersionModel.value,
+              hash: paperFieldVersionModel.hash,
+              timestamp: new Date(paperFieldVersionModel.timestamp).toISOString(),
+              deviceId: paperFieldVersionModel.deviceId,
+              createdAt: new Date(paperFieldVersionModel.createdAt).toISOString(),
+              createdByDeviceId: paperFieldVersionModel.createdByDeviceId,
+              deletedAt: paperFieldVersionModel.deletedAt ? new Date(paperFieldVersionModel.deletedAt).toISOString() : null,
+              deletedByDeviceId: paperFieldVersionModel.deletedByDeviceId,
+
+              field: paperFieldVersionModel.field,
+              paperId: paperFieldVersionModel.paperId,
+            },
+          };
+        case "author":
+          const authorFieldVersionModel = await db.selectFrom("authorFieldVersion")
+            .selectAll()
+            .where("id", "=", rowData.id)
+            .executeTakeFirstOrThrow();
+          return {
+            type: "field_version",
+            model: "author",
+            data: {
+              id: authorFieldVersionModel.id,
+              libraryId: authorFieldVersionModel.libraryId,
+              value: authorFieldVersionModel.value,
+              hash: authorFieldVersionModel.hash,
+              timestamp: new Date(authorFieldVersionModel.timestamp).toISOString(),
+              deviceId: authorFieldVersionModel.deviceId,
+              createdAt: new Date(authorFieldVersionModel.createdAt).toISOString(),
+              createdByDeviceId: authorFieldVersionModel.createdByDeviceId,
+              deletedAt: authorFieldVersionModel.deletedAt ? new Date(authorFieldVersionModel.deletedAt).toISOString() : null,
+              deletedByDeviceId: authorFieldVersionModel.deletedByDeviceId,
+
+              field: authorFieldVersionModel.field,
+              authorId: authorFieldVersionModel.authorId,
+            },
+          };
+        case "tag":
+          const tagFieldVersionModel = await db.selectFrom("tagFieldVersion")
+            .selectAll()
+            .where("id", "=", rowData.id)
+            .executeTakeFirstOrThrow();
+          return {
+            type: "field_version",
+            model: "tag",
+            data: {
+              id: tagFieldVersionModel.id,
+              libraryId: tagFieldVersionModel.libraryId,
+              value: tagFieldVersionModel.value,
+              hash: tagFieldVersionModel.hash,
+              timestamp: new Date(tagFieldVersionModel.timestamp).toISOString(),
+              deviceId: tagFieldVersionModel.deviceId,
+              createdAt: new Date(tagFieldVersionModel.createdAt).toISOString(),
+              createdByDeviceId: tagFieldVersionModel.createdByDeviceId,
+              deletedAt: tagFieldVersionModel.deletedAt ? new Date(tagFieldVersionModel.deletedAt).toISOString() : null,
+              deletedByDeviceId: tagFieldVersionModel.deletedByDeviceId,
+
+              field: tagFieldVersionModel.field,
+              tagId: tagFieldVersionModel.tagId,
+            },
+          };
+        case "folder":
+          const folderFieldVersionModel = await db.selectFrom("folderFieldVersion")
+            .selectAll()
+            .where("id", "=", rowData.id)
+            .executeTakeFirstOrThrow();
+          return {
+            type: "field_version",
+            model: "folder",
+            data: {
+              id: folderFieldVersionModel.id,
+              libraryId: folderFieldVersionModel.libraryId,
+              value: folderFieldVersionModel.value,
+              hash: folderFieldVersionModel.hash,
+              timestamp: new Date(folderFieldVersionModel.timestamp).toISOString(),
+              deviceId: folderFieldVersionModel.deviceId,
+              createdAt: new Date(folderFieldVersionModel.createdAt).toISOString(),
+              createdByDeviceId: folderFieldVersionModel.createdByDeviceId,
+              deletedAt: folderFieldVersionModel.deletedAt ? new Date(folderFieldVersionModel.deletedAt).toISOString() : null,
+              deletedByDeviceId: folderFieldVersionModel.deletedByDeviceId,
+
+              field: folderFieldVersionModel.field,
+              folderId: folderFieldVersionModel.folderId,
+            }
+          };
+        case "supplement":
+          const supplementFieldVersionModel = await db.selectFrom("supplementFieldVersion")
+            .selectAll()
+            .where("id", "=", rowData.id)
+            .executeTakeFirstOrThrow();
+          return {
+            type: "field_version",
+            model: "supplement",
+            data: {
+              id: supplementFieldVersionModel.id,
+              libraryId: supplementFieldVersionModel.libraryId,
+              value: supplementFieldVersionModel.value,
+              hash: supplementFieldVersionModel.hash,
+              timestamp: new Date(supplementFieldVersionModel.timestamp).toISOString(),
+              deviceId: supplementFieldVersionModel.deviceId,
+              createdAt: new Date(supplementFieldVersionModel.createdAt).toISOString(),
+              createdByDeviceId: supplementFieldVersionModel.createdByDeviceId,
+              deletedAt: supplementFieldVersionModel.deletedAt ? new Date(supplementFieldVersionModel.deletedAt).toISOString() : null,
+              deletedByDeviceId: supplementFieldVersionModel.deletedByDeviceId,
+
+              field: supplementFieldVersionModel.field,
+              supplementId: supplementFieldVersionModel.supplementId,
+            }
+          };
+        case "library":
+          const libraryFieldVersionModel = await db.selectFrom("libraryFieldVersion")
+            .selectAll()
+            .where("id", "=", rowData.id)
+            .executeTakeFirstOrThrow();
+          return {
+            type: "field_version",
+            model: "library",
+            data: {
+              id: libraryFieldVersionModel.id,
+              libraryId: libraryFieldVersionModel.libraryId,
+              value: libraryFieldVersionModel.value,
+              hash: libraryFieldVersionModel.hash,
+              timestamp: new Date(libraryFieldVersionModel.timestamp).toISOString(),
+              deviceId: libraryFieldVersionModel.deviceId,
+              createdAt: new Date(libraryFieldVersionModel.createdAt).toISOString(),
+              createdByDeviceId: libraryFieldVersionModel.createdByDeviceId,
+              deletedAt: libraryFieldVersionModel.deletedAt ? new Date(libraryFieldVersionModel.deletedAt).toISOString() : null,
+              deletedByDeviceId: libraryFieldVersionModel.deletedByDeviceId,
+
+              field: libraryFieldVersionModel.field,
+              // libraryId is not included in the DTO because it is the same as the libraryId in the base DTO
+            }
+          };
+        case "feed":
+          const feedFieldVersionModel = await db.selectFrom("feedFieldVersion")
+            .selectAll()
+            .where("id", "=", rowData.id)
+            .executeTakeFirstOrThrow();
+          return {
+            type: "field_version",
+            model: "feed",
+            data: {
+              id: feedFieldVersionModel.id,
+              libraryId: feedFieldVersionModel.libraryId,
+              value: feedFieldVersionModel.value,
+              hash: feedFieldVersionModel.hash,
+              timestamp: new Date(feedFieldVersionModel.timestamp).toISOString(),
+              deviceId: feedFieldVersionModel.deviceId,
+              createdAt: new Date(feedFieldVersionModel.createdAt).toISOString(),
+              createdByDeviceId: feedFieldVersionModel.createdByDeviceId,
+              deletedAt: feedFieldVersionModel.deletedAt ? new Date(feedFieldVersionModel.deletedAt).toISOString() : null,
+              deletedByDeviceId: feedFieldVersionModel.deletedByDeviceId,
+
+              field: feedFieldVersionModel.field,
+              feedId: feedFieldVersionModel.feedId,
+            }
+          };
+        default:
+          throw new Error(`Unknown model: ${JSON.stringify(rowData)}`);
+      }
+    } else if (rowData.type === "or_set") {
+      const relationship = await db.selectFrom(`${rowData.model}`)
         .selectAll()
         .where("id", "=", rowData.id)
         .executeTakeFirstOrThrow();
-      return {
-        type: "field_version",
-        model: rowData.model,
-        data: {
-          ...fieldVersion,
-          localInsertedAt: rowData.localInsertedAt,
-        },
-      };
-    } else if (rowData.type === "or_set") {
-      return {
-        type: "or_set",
-        model: rowData.model,
-        data: rowData.data,
-      };
+      switch (rowData.model) {
+        case "paperAuthor":
+          return {
+            type: "or_set",
+            model: "paperAuthor",
+            data: {
+              id: relationship.id,
+              libraryId: relationship.libraryId,
+              op: relationship.op,
+              timestamp: new Date(relationship.timestamp).toISOString(),
+              deviceId: relationship.deviceId,
+              createdAt: new Date(relationship.createdAt).toISOString(),
+              createdByDeviceId: relationship.createdByDeviceId,
+              deletedAt: relationship.deletedAt ? new Date(relationship.deletedAt).toISOString() : null,
+              deletedByDeviceId: relationship.deletedByDeviceId,
+
+              paperId: relationship.paperId,
+              authorId: relationship.authorId,
+            },
+          };
+        case "paperTag":
+          return {
+            type: "or_set",
+            model: "paperTag",
+            data: {
+              id: relationship.id,
+              libraryId: relationship.libraryId,
+              op: relationship.op,
+              timestamp: new Date(relationship.timestamp).toISOString(),
+              deviceId: relationship.deviceId,
+              createdAt: new Date(relationship.createdAt).toISOString(),
+              createdByDeviceId: relationship.createdByDeviceId,
+              deletedAt: relationship.deletedAt ? new Date(relationship.deletedAt).toISOString() : null,
+              deletedByDeviceId: relationship.deletedByDeviceId,
+
+              paperId: relationship.paperId,
+              tagId: relationship.tagId,
+            },
+          };
+        case "paperFolder":
+          return {
+            type: "or_set",
+            model: "paperFolder",
+            data: {
+              id: relationship.id,
+              libraryId: relationship.libraryId,
+              op: relationship.op,
+              timestamp: new Date(relationship.timestamp).toISOString(),
+              deviceId: relationship.deviceId,
+              createdAt: new Date(relationship.createdAt).toISOString(),
+              createdByDeviceId: relationship.createdByDeviceId,
+              deletedAt: relationship.deletedAt ? new Date(relationship.deletedAt).toISOString() : null,
+              deletedByDeviceId: relationship.deletedByDeviceId,
+
+              paperId: relationship.paperId,
+              folderId: relationship.folderId,
+            },
+          };
+        case "paperSupplement":
+          return {
+            type: "or_set",
+            model: "paperSupplement",
+            data: {
+              id: relationship.id,
+              libraryId: relationship.libraryId,
+              op: relationship.op,
+              timestamp: new Date(relationship.timestamp).toISOString(),
+              deviceId: relationship.deviceId,
+              createdAt: new Date(relationship.createdAt).toISOString(),
+              createdByDeviceId: relationship.createdByDeviceId,
+              deletedAt: relationship.deletedAt ? new Date(relationship.deletedAt).toISOString() : null,
+              deletedByDeviceId: relationship.deletedByDeviceId,
+
+              paperId: relationship.paperId,
+              supplementId: relationship.supplementId,
+            },
+          };
+        default:
+          throw new Error(`Unknown model: ${JSON.stringify(rowData)}`);
+      }
     } else {
       throw new Error(`Unknown type: ${JSON.stringify(row)}`);
     }
   });
-  return changeRecords;
+  return await Promise.all(changeRecords);
 }
