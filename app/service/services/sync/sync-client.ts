@@ -1,17 +1,18 @@
 import { LogService } from "@/common/services/log-service";
-import { db } from "@/service/services/database/sqlite/db";
+import { db, type Transaction } from "@/service/services/database/sqlite/db";
 import {
   ChangeRecord,
   zAttachResponse,
+  zPullResponse,
+  zPushResponse,
   zAuthorFieldVersion,
   zFeedFieldVersion,
+  zFolderFieldVersion,
   zPaperAuthor,
   zPaperFieldVersion,
   zPaperFolder,
   zPaperSupplement,
   zPaperTag,
-  zPullResponse,
-  zPushResponse,
   zSupplementFieldVersion,
   zTagFieldVersion,
   type AttachRequest,
@@ -20,6 +21,20 @@ import {
 } from "./dto";
 import { zChangeStreamRow } from "@/service/services/database/sqlite/models";
 import { ensureLibraryId } from "./pollyfills/utils";
+import {
+  applyAuthorFieldVersions,
+  applyFeedFieldVersions,
+  applyFolderFieldVersions,
+  applyPaperFieldVersions,
+  applySupplementFieldVersions,
+  applyTagFieldVersions,
+} from "./pollyfills/entities";
+import {
+  applyPaperAuthorOrSet,
+  applyPaperFolderOrSet,
+  applyPaperSupplementOrSet,
+  applyPaperTagOrSet,
+} from "./pollyfills/relationship";
 import { syncStateStore } from "./states";
 
 // export const SYNC_BASE_URL = "http://localhost:3001/"; // TODO: For testing
@@ -112,6 +127,378 @@ async function requestAPI(
     });
 }
 
+type AffectedForProjection = {
+  affectedPaperFields: {
+    libraryId: string;
+    paperId: string;
+    field: (typeof zPaperFieldVersion.shape.field)["_type"];
+  }[];
+  affectedAuthorFields: {
+    libraryId: string;
+    authorId: string;
+    field: (typeof zAuthorFieldVersion.shape.field)["_type"];
+  }[];
+  affectedTagFields: {
+    libraryId: string;
+    tagId: string;
+    field: (typeof zTagFieldVersion.shape.field)["_type"];
+  }[];
+  affectedFolderFields: {
+    libraryId: string;
+    folderId: string;
+    field: (typeof zFolderFieldVersion.shape.field)["_type"];
+  }[];
+  affectedSupplementFields: {
+    libraryId: string;
+    supplementId: string;
+    field: (typeof zSupplementFieldVersion.shape.field)["_type"];
+  }[];
+  affectedFeedFields: {
+    libraryId: string;
+    feedId: string;
+    field: (typeof zFeedFieldVersion.shape.field)["_type"];
+  }[];
+  affectedPaperAuthorKeys: { libraryId: string; paperId: string; authorId: string }[];
+  affectedPaperTagKeys: { libraryId: string; paperId: string; tagId: string }[];
+  affectedPaperFolderKeys: {
+    libraryId: string;
+    paperId: string;
+    folderId: string;
+  }[];
+  affectedPaperSupplementKeys: {
+    libraryId: string;
+    paperId: string;
+    supplementId: string;
+  }[];
+};
+
+/**
+ * Writes change records (field_version and or_set) into the database within
+ * the given transaction. Returns the affected keys for projection (entity and
+ * OR-set). Used by pull() and by unit tests.
+ */
+
+async function writeChangeRecordsToDb(
+  tx: Transaction,
+  changeRecords: ChangeRecord[],
+  localInsertedAt: number,
+): Promise<AffectedForProjection> {
+  const fieldChanges = changeRecords.filter(
+    (record) => record.type === "field_version",
+  );
+  const relationChanges = changeRecords.filter(
+    (record) => record.type === "or_set",
+  );
+
+  const affectedPaperFields: AffectedForProjection["affectedPaperFields"] = [];
+  const affectedAuthorFields: AffectedForProjection["affectedAuthorFields"] = [];
+  const affectedTagFields: AffectedForProjection["affectedTagFields"] = [];
+  const affectedFolderFields: AffectedForProjection["affectedFolderFields"] = [];
+  const affectedSupplementFields: AffectedForProjection["affectedSupplementFields"] = [];
+  const affectedFeedFields: AffectedForProjection["affectedFeedFields"] = [];
+  const affectedPaperAuthorKeys: AffectedForProjection["affectedPaperAuthorKeys"] = [];
+  const affectedPaperTagKeys: AffectedForProjection["affectedPaperTagKeys"] = [];
+  const affectedPaperFolderKeys: AffectedForProjection["affectedPaperFolderKeys"] = [];
+  const affectedPaperSupplementKeys: AffectedForProjection["affectedPaperSupplementKeys"] = [];
+
+  for (const fieldChange of fieldChanges) {
+    switch (fieldChange.model) {
+      case "paper": {
+        const data = zPaperFieldVersion.parse(fieldChange.data);
+        await tx
+          .insertInto("paperFieldVersion")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            value: data.value,
+            hash: data.hash,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            field: data.field,
+            paperId: data.paperId,
+          })
+          .execute();
+        affectedPaperFields.push({
+          libraryId: data.libraryId,
+          paperId: data.paperId,
+          field: data.field,
+        });
+        break;
+      }
+      case "author": {
+        const data = zAuthorFieldVersion.parse(fieldChange.data);
+        await tx
+          .insertInto("authorFieldVersion")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            value: data.value,
+            hash: data.hash,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            field: data.field,
+            authorId: data.authorId,
+          })
+          .execute();
+        affectedAuthorFields.push({
+          libraryId: data.libraryId,
+          authorId: data.authorId,
+          field: data.field,
+        });
+        break;
+      }
+      case "tag": {
+        const data = zTagFieldVersion.parse(fieldChange.data);
+        await tx
+          .insertInto("tagFieldVersion")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            value: data.value,
+            hash: data.hash,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            field: data.field,
+            tagId: data.tagId,
+          })
+          .execute();
+        affectedTagFields.push({
+          libraryId: data.libraryId,
+          tagId: data.tagId,
+          field: data.field,
+        });
+        break;
+      }
+      case "folder": {
+        const data = zFolderFieldVersion.parse(fieldChange.data);
+        await tx
+          .insertInto("folderFieldVersion")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            value: data.value,
+            hash: data.hash,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            field: data.field,
+            folderId: data.folderId,
+          })
+          .execute();
+        affectedFolderFields.push({
+          libraryId: data.libraryId,
+          folderId: data.folderId,
+          field: data.field,
+        });
+        break;
+      }
+      case "supplement": {
+        const data = zSupplementFieldVersion.parse(fieldChange.data);
+        await tx
+          .insertInto("supplementFieldVersion")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            value: data.value,
+            hash: data.hash,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            field: data.field,
+            supplementId: data.supplementId,
+          })
+          .execute();
+        affectedSupplementFields.push({
+          libraryId: data.libraryId,
+          supplementId: data.supplementId,
+          field: data.field,
+        });
+        break;
+      }
+      case "feed": {
+        const data = zFeedFieldVersion.parse(fieldChange.data);
+        await tx
+          .insertInto("feedFieldVersion")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            value: data.value,
+            hash: data.hash,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            field: data.field,
+            feedId: data.feedId,
+          })
+          .execute();
+        affectedFeedFields.push({
+          libraryId: data.libraryId,
+          feedId: data.feedId,
+          field: data.field,
+        });
+        break;
+      }
+      case "library":
+        // library field version write omitted for brevity; add if needed for tests
+        break;
+      default:
+        throw new Error(`Unknown model: ${JSON.stringify(fieldChange)}`);
+    }
+  }
+
+  for (const relationChange of relationChanges) {
+    switch (relationChange.model) {
+      case "paperAuthor": {
+        const data = zPaperAuthor.parse(relationChange.data);
+        await tx
+          .insertInto("paperAuthor")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            op: data.op,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            paperId: data.paperId,
+            authorId: data.authorId,
+          })
+          .execute();
+        affectedPaperAuthorKeys.push({
+          libraryId: data.libraryId,
+          paperId: data.paperId,
+          authorId: data.authorId,
+        });
+        break;
+      }
+      case "paperTag": {
+        const data = zPaperTag.parse(relationChange.data);
+        await tx
+          .insertInto("paperTag")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            op: data.op,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            paperId: data.paperId,
+            tagId: data.tagId,
+          })
+          .execute();
+        affectedPaperTagKeys.push({
+          libraryId: data.libraryId,
+          paperId: data.paperId,
+          tagId: data.tagId,
+        });
+        break;
+      }
+      case "paperFolder": {
+        const data = zPaperFolder.parse(relationChange.data);
+        await tx
+          .insertInto("paperFolder")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            op: data.op,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            paperId: data.paperId,
+            folderId: data.folderId,
+          })
+          .execute();
+        affectedPaperFolderKeys.push({
+          libraryId: data.libraryId,
+          paperId: data.paperId,
+          folderId: data.folderId,
+        });
+        break;
+      }
+      case "paperSupplement": {
+        const data = zPaperSupplement.parse(relationChange.data);
+        await tx
+          .insertInto("paperSupplement")
+          .values({
+            id: data.id,
+            createdAt: new Date(data.createdAt).getTime(),
+            createdByDeviceId: data.createdByDeviceId,
+            deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
+            deletedByDeviceId: data.deletedByDeviceId,
+            libraryId: data.libraryId,
+            op: data.op,
+            timestamp: new Date(data.timestamp).getTime(),
+            deviceId: data.deviceId,
+            localInsertedAt,
+            paperId: data.paperId,
+            supplementId: data.supplementId,
+          })
+          .execute();
+        affectedPaperSupplementKeys.push({
+          libraryId: data.libraryId,
+          paperId: data.paperId,
+          supplementId: data.supplementId,
+        });
+        break;
+      }
+      default:
+        throw new Error(`Unknown model: ${JSON.stringify(relationChange)}`);
+    }
+  }
+
+  return {
+    affectedPaperFields,
+    affectedAuthorFields,
+    affectedTagFields,
+    affectedFolderFields,
+    affectedSupplementFields,
+    affectedFeedFields,
+    affectedPaperAuthorKeys,
+    affectedPaperTagKeys,
+    affectedPaperFolderKeys,
+    affectedPaperSupplementKeys,
+  };
+}
+
+
 export async function attach(library: "main" | "feeds", logger?: LogService) {
   const apiUrl = new URL(SYNC_BASE_URL);
   apiUrl.pathname = "/api/v1/sync/attach";
@@ -191,230 +578,32 @@ export async function pull(
   }
 
   const changeRecords = response.data;
-  const fieldChanges = changeRecords.filter(
-    (record) => record.type === "field_version"
-  );
-  const relationChanges = changeRecords.filter(
-    (record) => record.type === "or_set"
-  );
 
   const tx = await db.startTransaction().execute();
   const localInsertedAt = new Date().getTime();
   try {
-    // Process field changes
-    for (const fieldChange of fieldChanges) {
-      switch (fieldChange.model) {
-        case "paper": {
-          const data = zPaperFieldVersion.parse(fieldChange.data);
-          await tx
-            .insertInto("paperFieldVersion")
-            .values({
-              id: data.id,
-              createdAt: new Date(data.createdAt).getTime(),
-              createdByDeviceId: data.createdByDeviceId,
-              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
-              deletedByDeviceId: data.deletedByDeviceId,
-              libraryId: data.libraryId,
-              value: data.value,
-              hash: data.hash,
-              timestamp: new Date(data.timestamp).getTime(),
-              deviceId: data.deviceId,
-              localInsertedAt: localInsertedAt,
-              field: data.field,
-              paperId: data.paperId,
-            })
-            .execute();
-          break;
-        }
-        case "author": {
-          const data = zAuthorFieldVersion.parse(fieldChange.data);
-          await tx
-            .insertInto("authorFieldVersion")
-            .values({
-              id: data.id,
-              createdAt: new Date(data.createdAt).getTime(),
-              createdByDeviceId: data.createdByDeviceId,
-              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
-              deletedByDeviceId: data.deletedByDeviceId,
-              libraryId: data.libraryId,
-              value: data.value,
-              hash: data.hash,
-              timestamp: new Date(data.timestamp).getTime(),
-              deviceId: data.deviceId,
-              localInsertedAt: localInsertedAt,
-              field: data.field,
-              authorId: data.authorId,
-            })
-            .execute();
-          break;
-        }
-        case "tag": {
-          const data = zTagFieldVersion.parse(fieldChange.data);
-          await tx
-            .insertInto("tagFieldVersion")
-            .values({
-              id: data.id,
-              createdAt: new Date(data.createdAt).getTime(),
-              createdByDeviceId: data.createdByDeviceId,
-              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
-              deletedByDeviceId: data.deletedByDeviceId,
-              libraryId: data.libraryId,
-              value: data.value,
-              hash: data.hash,
-              timestamp: new Date(data.timestamp).getTime(),
-              deviceId: data.deviceId,
-              localInsertedAt: localInsertedAt,
-              field: data.field,
-              tagId: data.tagId,
-            })
-            .execute();
-          break;
-        }
-        case "supplement": {
-          const data = zSupplementFieldVersion.parse(fieldChange.data);
-          await tx
-            .insertInto("supplementFieldVersion")
-            .values({
-              id: data.id,
-              createdAt: new Date(data.createdAt).getTime(),
-              createdByDeviceId: data.createdByDeviceId,
-              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
-              deletedByDeviceId: data.deletedByDeviceId,
-              libraryId: data.libraryId,
-              value: data.value,
-              hash: data.hash,
-              timestamp: new Date(data.timestamp).getTime(),
-              deviceId: data.deviceId,
-              localInsertedAt: localInsertedAt,
-              field: data.field,
-              supplementId: data.supplementId,
-            })
-            .execute();
-          break;
-        }
-        case "feed": {
-          const data = zFeedFieldVersion.parse(fieldChange.data);
-          await tx
-            .insertInto("feedFieldVersion")
-            .values({
-              id: data.id,
-              createdAt: new Date(data.createdAt).getTime(),
-              createdByDeviceId: data.createdByDeviceId,
-              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
-              deletedByDeviceId: data.deletedByDeviceId,
-              libraryId: data.libraryId,
-              value: data.value,
-              hash: data.hash,
-              timestamp: new Date(data.timestamp).getTime(),
-              deviceId: data.deviceId,
-              localInsertedAt: localInsertedAt,
-              field: data.field,
-              feedId: data.feedId,
-            })
-            .execute();
-          break;
-        }
-        default:
-          throw new Error(`Unknown model: ${JSON.stringify(fieldChange)}`);
-      }
-    }
-    // Process relation changes
-    for (const relationChange of relationChanges) {
-      switch (relationChange.model) {
-        case "paperAuthor": {
-          const data = zPaperAuthor.parse(relationChange.data);
-          await tx
-            .insertInto("paperAuthor")
-            .values({
-              id: data.id,
-              createdAt: new Date(data.createdAt).getTime(),
-              createdByDeviceId: data.createdByDeviceId,
-              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
-              deletedByDeviceId: data.deletedByDeviceId,
-              libraryId: data.libraryId,
-              op: data.op,
-              timestamp: new Date(data.timestamp).getTime(),
-              deviceId: data.deviceId,
-              localInsertedAt: localInsertedAt,
-              paperId: data.paperId,
-              authorId: data.authorId,
-            })
-            .execute();
-          break;
-        }
-        case "paperTag": {
-          const data = zPaperTag.parse(relationChange.data);
-          await tx
-            .insertInto("paperTag")
-            .values({
-              id: data.id,
-              createdAt: new Date(data.createdAt).getTime(),
-              createdByDeviceId: data.createdByDeviceId,
-              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
-              deletedByDeviceId: data.deletedByDeviceId,
-              libraryId: data.libraryId,
-              op: data.op,
-              timestamp: new Date(data.timestamp).getTime(),
-              deviceId: data.deviceId,
-              localInsertedAt: localInsertedAt,
-              paperId: data.paperId,
-              tagId: data.tagId,
-            })
-            .execute();
-          break;
-        }
-        case "paperFolder": {
-          const data = zPaperFolder.parse(relationChange.data);
-          await tx
-            .insertInto("paperFolder")
-            .values({
-              id: data.id,
-              createdAt: new Date(data.createdAt).getTime(),
-              createdByDeviceId: data.createdByDeviceId,
-              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
-              deletedByDeviceId: data.deletedByDeviceId,
-              libraryId: data.libraryId,
-              op: data.op,
-              timestamp: new Date(data.timestamp).getTime(),
-              deviceId: data.deviceId,
-              localInsertedAt: localInsertedAt,
-              paperId: data.paperId,
-              folderId: data.folderId,
-            })
-            .execute();
-          break;
-        }
-        case "paperSupplement": {
-          const data = zPaperSupplement.parse(relationChange.data);
-          await tx
-            .insertInto("paperSupplement")
-            .values({
-              id: data.id,
-              createdAt: new Date(data.createdAt).getTime(),
-              createdByDeviceId: data.createdByDeviceId,
-              deletedAt: data.deletedAt ? new Date(data.deletedAt).getTime() : null,
-              deletedByDeviceId: data.deletedByDeviceId,
-              libraryId: data.libraryId,
-              op: data.op,
-              timestamp: new Date(data.timestamp).getTime(),
-              deviceId: data.deviceId,
-              localInsertedAt: localInsertedAt,
-              paperId: data.paperId,
-              supplementId: data.supplementId,
-            })
-            .execute();
-          break;
-        }
-        default:
-          throw new Error(`Unknown model: ${JSON.stringify(relationChange)}`);
-      }
-    }
+    const affected = await writeChangeRecordsToDb(tx, changeRecords, localInsertedAt);
+
+    await applyPaperFieldVersions(tx, affected.affectedPaperFields);
+    await applyAuthorFieldVersions(tx, affected.affectedAuthorFields);
+    await applyTagFieldVersions(tx, affected.affectedTagFields);
+    await applyFolderFieldVersions(tx, affected.affectedFolderFields);
+    await applySupplementFieldVersions(tx, affected.affectedSupplementFields);
+    await applyFeedFieldVersions(tx, affected.affectedFeedFields);
+
+    await applyPaperAuthorOrSet(tx, affected.affectedPaperAuthorKeys);
+    await applyPaperTagOrSet(tx, affected.affectedPaperTagKeys);
+    await applyPaperFolderOrSet(tx, affected.affectedPaperFolderKeys);
+    await applyPaperSupplementOrSet(tx, affected.affectedPaperSupplementKeys);
+
     await tx.commit().execute();
     // Update the continuation token
     syncStateStore.set("lastSyncAt", new Date().getTime());
+    const fieldCount = changeRecords.filter((r) => r.type === "field_version").length;
+    const relationCount = changeRecords.filter((r) => r.type === "or_set").length;
     logger?.info(
       `[SyncClient] Successfully completed pull operation`,
-      `fieldChanges: ${fieldChanges.length}, relationChanges: ${relationChanges.length}`,
+      `fieldChanges: ${fieldCount}, relationChanges: ${relationCount}`,
       false,
       "SyncClient"
     );
@@ -454,7 +643,8 @@ export async function push(
 }
 
 
-async function getChangeRecords(continuationToken: ContinuationToken): Promise<ChangeRecord[]> {
+/** Exported for unit tests: reads change stream and merges DB rows into ChangeRecord DTOs. */
+export async function getChangeRecords(continuationToken: ContinuationToken): Promise<ChangeRecord[]> {
   const libraryId = await ensureLibraryId("main");
   const sinceCommittedAt = new Date(continuationToken.since_committed_at).getTime();
   const sinceId = continuationToken.since_id;

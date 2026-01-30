@@ -128,7 +128,7 @@ export const zRelationshipModel = z.custom<RelationshipModel>((val) =>
 
 export type ChangeType = z.infer<typeof zChangeStreamType>
 
-const zContinuationToken = z.object({
+export const zContinuationToken = z.object({
   since_committed_at: z.string().datetime(),
   since_id: z.string().uuid(),
   limit: z.number().int().nonnegative().max(1000).default(1000).optional(),
