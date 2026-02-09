@@ -27,7 +27,6 @@ import {
   IFeedRepository,
 } from "../repositories/db-repository/feed-repository";
 import { DatabaseCore, IDatabaseCore } from "./database/core";
-import { zContinuationToken } from "./sync/dto";
 import { DEFAULT_SYNC_STATE, ISyncState, syncStateStore } from "./sync/states";
 import { attach, pull, push } from "./sync/sync-client";
 
@@ -39,21 +38,7 @@ const _DEFAULTSTATE: ISyncServiceState = {
   userInfo: null,
 };
 
-const syncStateSchema = z.object({
-  databaseVersion: z.number(),
-  syncMode: z.enum(["realm", "official", "self-hosted"]),
-  syncServerUrl: z.string().url(),
-  attachedLibraryId: z.array(z.string().uuid()),
-  syncEnabled: z.boolean(),
 
-  deviceId: z.string(),
-  pullToken: zContinuationToken,
-  pushToken: zContinuationToken,
-  lasetServerTimeSeenAt: z.string().datetime(),// Server timestamp
-  lastPullOkAt: z.string().datetime(), // Pull cursor
-  lastPushOkAt: z.string().datetime(), // Push cursor
-  sync_lock: z.boolean(), // Sync lock avoid sync loop overlap
-});
 
 const CLIENT_ID = "rObSDWEAuDzhsEZXVNDiOCXZpohYhEOK";
 const ISSUER = "https://dev.better-auth.paperlib.app";
@@ -405,21 +390,22 @@ export class SyncService extends Eventable<ISyncServiceState> {
       this._logService.info("Attaching to main completed");
       // this.fire({ syncProgress: 0.3 });
       this._logService.info("Pulling from main");
-      await pull(
-        this._paperEntityRepository,
-        this._feedRepository,
-        this._categorizerRepository,
-        this._databaseCore,
-        this._logService
-      );
+      const pullToken = syncStateStore.get("pullToken");
+      if (!pullToken) {
+        throw new Error("Pull token is not available for syncing.");
+      }
+      await pull(pullToken, this._logService);
       this._logService.info("Pulling from main completed");
       // this.fire({ syncProgress: 0.7 });
       this._logService.info("Pushing to main");
-      await push(this._logService);
+      const pushToken = syncStateStore.get("pushToken");
+      if (!pushToken) {
+        throw new Error("Push token is not available for syncing.");
+      }
+      await push(this._logService, pushToken);
       this._logService.info("Pushing to main completed");
       this._logService.info("Push completed");
-      syncStateStore.delete("lastSyncAt");
-      syncStateStore.set("lastSyncAt", new Date().getTime());
+
       this._logService.info(
         "Sync completed, lastSyncAt: " + new Date().toISOString()
       );
@@ -450,7 +436,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
     const userInfo = this._getStoreValue("userInfo");
     if (userInfo) {
       try {
-        return userInfo;
+        return userInfo as UserInfoResponse;
       } catch (e) {
         // If JSON parse fails, you can choose to delete the data in the store as needed
         this._deleteStoreValue("userInfo");
@@ -531,7 +517,12 @@ export class SyncService extends Eventable<ISyncServiceState> {
     // Clear syncLogs based on business needs
     // this._deleteStoreValue("syncLogs");
 
-    this._deleteStoreValue("lastSyncAt");
+    this._deleteStoreValue("pullToken");
+    this._deleteStoreValue("pushToken");
+    this._deleteStoreValue("lasetServerTimeSeenAt");
+    this._deleteStoreValue("lastPullOkAt");
+    this._deleteStoreValue("lastPushOkAt");
+    this._deleteStoreValue("sync_lock");
 
     // Update user preferences
     await PLMainAPI.preferenceService.set({ useSync: "none" });

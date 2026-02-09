@@ -278,6 +278,19 @@ function mapFeedFieldValue(
   }
 }
 
+function metaFromVersions<T extends { createdAt: number; createdByDeviceId: string; deletedAt: number | null; deletedByDeviceId: string | null }>(
+  latest: T | null,
+  versions: readonly T[],
+): { createdAt: number; createdByDeviceId: string; deletedAt: number | null; deletedByDeviceId: string | null } {
+  const row = latest ?? versions[0] ?? null;
+  return {
+    createdAt: row?.createdAt ?? 0,
+    createdByDeviceId: row?.createdByDeviceId ?? "",
+    deletedAt: row?.deletedAt ?? null,
+    deletedByDeviceId: row?.deletedByDeviceId ?? null,
+  };
+}
+
 export async function applyPaperFieldVersions(
   tx: Transaction,
   affected: readonly { libraryId: string; paperId: string; field: PaperField }[],
@@ -311,12 +324,67 @@ export async function applyPaperFieldVersions(
       continue;
     }
 
-    await tx
-      .updateTable("paper")
-      .set(updates)
+    const existing = await tx
+      .selectFrom("paper")
+      .select("id")
       .where("id", "=", paperId)
       .where("libraryId", "=", libraryId)
-      .execute();
+      .executeTakeFirst();
+
+    if (!existing) {
+      const meta = metaFromVersions(latest, versions);
+      const stub: SqlitePaper = {
+        id: paperId,
+        libraryId,
+        createdAt: meta.createdAt,
+        createdByDeviceId: meta.createdByDeviceId,
+        deletedAt: meta.deletedAt,
+        deletedByDeviceId: meta.deletedByDeviceId,
+        updatedAt: null,
+        updatedByDeviceId: null,
+        legacyOid: "",
+        type: "misc",
+        title: "",
+        abstract: null,
+        journal: null,
+        booktitle: null,
+        year: null,
+        month: null,
+        volume: null,
+        number: null,
+        pages: null,
+        publisher: null,
+        series: null,
+        edition: null,
+        editor: null,
+        howPublished: null,
+        organization: null,
+        school: null,
+        institution: null,
+        address: null,
+        doi: null,
+        arxiv: null,
+        isbn: null,
+        issn: null,
+        notes: null,
+        flag: null,
+        rating: 0,
+        read: null,
+        feedId: null,
+        feedItemId: null,
+      };
+      await tx
+        .insertInto("paper")
+        .values({ ...stub, ...updates })
+        .execute();
+    } else {
+      await tx
+        .updateTable("paper")
+        .set(updates)
+        .where("id", "=", paperId)
+        .where("libraryId", "=", libraryId)
+        .execute();
+    }
   }
 }
 
@@ -353,12 +421,44 @@ export async function applyAuthorFieldVersions(
       continue;
     }
 
-    await tx
-      .updateTable("author")
-      .set(updates)
+    const existing = await tx
+      .selectFrom("author")
+      .select("id")
       .where("id", "=", authorId)
       .where("libraryId", "=", libraryId)
-      .execute();
+      .executeTakeFirst();
+
+    if (!existing) {
+      const meta = metaFromVersions(latest, versions);
+      const stub: SqliteAuthor = {
+        id: authorId,
+        libraryId,
+        createdAt: meta.createdAt,
+        createdByDeviceId: meta.createdByDeviceId,
+        deletedAt: meta.deletedAt,
+        deletedByDeviceId: meta.deletedByDeviceId,
+        updatedAt: null,
+        updatedByDeviceId: null,
+        legacyOid: "",
+        name: "",
+        affiliation: null,
+        email: null,
+        orcid: null,
+        firstName: null,
+        lastName: null,
+      };
+      await tx
+        .insertInto("author")
+        .values({ ...stub, ...updates })
+        .execute();
+    } else {
+      await tx
+        .updateTable("author")
+        .set(updates)
+        .where("id", "=", authorId)
+        .where("libraryId", "=", libraryId)
+        .execute();
+    }
   }
 }
 
@@ -395,12 +495,41 @@ export async function applyTagFieldVersions(
       continue;
     }
 
-    await tx
-      .updateTable("tag")
-      .set(updates)
+    const existing = await tx
+      .selectFrom("tag")
+      .select("id")
       .where("id", "=", tagId)
       .where("libraryId", "=", libraryId)
-      .execute();
+      .executeTakeFirst();
+
+    if (!existing) {
+      const meta = metaFromVersions(latest, versions);
+      const stub: SqliteTag = {
+        id: tagId,
+        libraryId,
+        createdAt: meta.createdAt,
+        createdByDeviceId: meta.createdByDeviceId,
+        deletedAt: meta.deletedAt,
+        deletedByDeviceId: meta.deletedByDeviceId,
+        updatedAt: null,
+        updatedByDeviceId: null,
+        legacyOid: "",
+        name: "",
+        description: null,
+        colour: null,
+      };
+      await tx
+        .insertInto("tag")
+        .values({ ...stub, ...updates })
+        .execute();
+    } else {
+      await tx
+        .updateTable("tag")
+        .set(updates)
+        .where("id", "=", tagId)
+        .where("libraryId", "=", libraryId)
+        .execute();
+    }
   }
 }
 
@@ -441,12 +570,42 @@ export async function applyFolderFieldVersions(
       continue;
     }
 
-    await tx
-      .updateTable("folder")
-      .set(updates)
+    const existing = await tx
+      .selectFrom("folder")
+      .select("id")
       .where("id", "=", folderId)
       .where("libraryId", "=", libraryId)
-      .execute();
+      .executeTakeFirst();
+
+    if (!existing) {
+      const meta = metaFromVersions(latest, versions);
+      const stub: SqliteFolder = {
+        id: folderId,
+        libraryId,
+        createdAt: meta.createdAt,
+        createdByDeviceId: meta.createdByDeviceId,
+        deletedAt: meta.deletedAt,
+        deletedByDeviceId: meta.deletedByDeviceId,
+        updatedAt: null,
+        updatedByDeviceId: null,
+        legacyOid: "",
+        name: "",
+        description: null,
+        colour: null,
+        parentId: null,
+      };
+      await tx
+        .insertInto("folder")
+        .values({ ...stub, ...updates })
+        .execute();
+    } else {
+      await tx
+        .updateTable("folder")
+        .set(updates)
+        .where("id", "=", folderId)
+        .where("libraryId", "=", libraryId)
+        .execute();
+    }
   }
 }
 
@@ -487,12 +646,42 @@ export async function applySupplementFieldVersions(
       continue;
     }
 
-    await tx
-      .updateTable("supplement")
-      .set(updates)
+    const existing = await tx
+      .selectFrom("supplement")
+      .select("id")
       .where("id", "=", supplementId)
       .where("libraryId", "=", libraryId)
-      .execute();
+      .executeTakeFirst();
+
+    if (!existing) {
+      const meta = metaFromVersions(latest, versions);
+      const stub: SqliteSupplement = {
+        id: supplementId,
+        libraryId,
+        createdAt: meta.createdAt,
+        createdByDeviceId: meta.createdByDeviceId,
+        deletedAt: meta.deletedAt,
+        deletedByDeviceId: meta.deletedByDeviceId,
+        updatedAt: null,
+        updatedByDeviceId: null,
+        legacyOid: "",
+        name: "",
+        value: "",
+        type: "unknown",
+        description: null,
+      };
+      await tx
+        .insertInto("supplement")
+        .values({ ...stub, ...updates })
+        .execute();
+    } else {
+      await tx
+        .updateTable("supplement")
+        .set(updates)
+        .where("id", "=", supplementId)
+        .where("libraryId", "=", libraryId)
+        .execute();
+    }
   }
 }
 
@@ -529,12 +718,44 @@ export async function applyFeedFieldVersions(
       continue;
     }
 
-    await tx
-      .updateTable("feed")
-      .set(updates)
+    const existing = await tx
+      .selectFrom("feed")
+      .select("id")
       .where("id", "=", feedId)
       .where("libraryId", "=", libraryId)
-      .execute();
+      .executeTakeFirst();
+
+    if (!existing) {
+      const meta = metaFromVersions(latest, versions);
+      const stub: SqliteFeed = {
+        id: feedId,
+        libraryId,
+        createdAt: meta.createdAt,
+        createdByDeviceId: meta.createdByDeviceId,
+        deletedAt: meta.deletedAt,
+        deletedByDeviceId: meta.deletedByDeviceId,
+        updatedAt: null,
+        updatedByDeviceId: null,
+        legacyOid: "",
+        name: "",
+        description: null,
+        type: "rss",
+        url: "",
+        count: 0,
+        colour: null,
+      };
+      await tx
+        .insertInto("feed")
+        .values({ ...stub, ...updates })
+        .execute();
+    } else {
+      await tx
+        .updateTable("feed")
+        .set(updates)
+        .where("id", "=", feedId)
+        .where("libraryId", "=", libraryId)
+        .execute();
+    }
   }
 }
 

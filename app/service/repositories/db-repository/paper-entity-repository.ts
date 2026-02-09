@@ -11,8 +11,8 @@ import {
   CategorizerRepository,
   ICategorizerRepository,
 } from "./categorizer-repository";
+import { db } from "@/service/services/database/sqlite/db";
 
-import { deleteSqlitePaper, toSqlitePaper } from "@/service/services/sync/pollyfills/paper";
 
 export interface IPaperEntityRepositoryState {
   count: number;
@@ -110,10 +110,6 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
       }
     }
 
-    // Write to sqlite database if not exists
-    for (const object of objects) {
-      await toSqlitePaper(object, this._logService);
-    }
 
     return objects.sorted(sortBy, sortOrder === "desc");
   }
@@ -177,10 +173,6 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     fromSync: boolean = false
   ) {
     paperEntity = this.makeSureProperties(paperEntity);
-
-    if (!fromSync) {
-      await toSqlitePaper(paperEntity, this._logService);
-    }
 
     const object = this.toRealmObject(realm, paperEntity);
 
@@ -329,14 +321,6 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
       ids = paperEntitys.map(
         (paperEntity: IEntityObject) => paperEntity._id
       );
-    }
-
-    if (ids) {
-      // Wait for all SQLite delete operations to complete
-      await Promise.all(ids.map(async (id) => {
-        this._logService.info("Deleting sqlite paper entity by id", id.toString(), false, "Entity");
-        await deleteSqlitePaper(id.toString());
-      }));
     }
 
 

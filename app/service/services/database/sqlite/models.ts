@@ -84,6 +84,7 @@ export const zPaperModel = z.object({
   updatedAt: z.number().int().nullable(),
   updatedByDeviceId: z.string().nullable(),
   libraryId: z.string().uuid(),
+  legacyOid: z.string(),
 
   type: z.enum(paperTypes),
   title: z.string(),
@@ -133,6 +134,7 @@ export const zAuthorModel = z.object({
   updatedAt: z.number().int().nullable(),
   updatedByDeviceId: z.string().nullable(),
   libraryId: z.string().uuid(),
+  legacyOid: z.string(),
 
   name: z.string(),
   affiliation: z.string().nullable(),
@@ -152,6 +154,7 @@ export const zTagModel = z.object({
   updatedAt: z.number().int().nullable(),
   updatedByDeviceId: z.string().nullable(),
   libraryId: z.string().uuid(),
+  legacyOid: z.string(),
 
   name: z.string(),
   description: z.string().nullable(),
@@ -173,6 +176,7 @@ export const zFolderModel = z.object({
   updatedAt: z.number().int().nullable(),
   updatedByDeviceId: z.string().nullable(),
   libraryId: z.string().uuid(),
+  legacyOid: z.string(),
 
   name: z.string(),
   description: z.string().nullable(),
@@ -195,6 +199,7 @@ export const zSupplementModel = z.object({
   updatedAt: z.number().int().nullable(),
   updatedByDeviceId: z.string().nullable(),
   libraryId: z.string().uuid(),
+  legacyOid: z.string(),
 
   name: z.string(),
   value: z.string(),
@@ -211,6 +216,7 @@ export const zLibraryModel = z.object({
   deletedByDeviceId: z.string().nullable(),
   updatedAt: z.number().int().nullable(),
   updatedByDeviceId: z.string().nullable(),
+  legacyOid: z.string(),
 
   name: z.string(),
   description: z.string().nullable(),
@@ -234,6 +240,7 @@ export const zFeedModel = z.object({
   updatedAt: z.number().int().nullable(),
   updatedByDeviceId: z.string().nullable(),
   libraryId: z.string().uuid(),
+  legacyOid: z.string(),
 
   name: z.string(),
   description: z.string().nullable(),
