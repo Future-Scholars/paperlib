@@ -269,7 +269,7 @@ export const zPaperFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   paperId: z.string().uuid(),
-  field: z.enum(paperFields),
+  field: z.enum([...paperFields, "entity"]),
 });
 
 export const zAuthorFieldVersionModel = z.object({
@@ -287,7 +287,7 @@ export const zAuthorFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   authorId: z.string().uuid(),
-  field: z.enum(authorFields),
+  field: z.enum([...authorFields, "entity"]),
 });
 
 export const zTagFieldVersionModel = z.object({
@@ -305,7 +305,7 @@ export const zTagFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   tagId: z.string().uuid(),
-  field: z.enum(tagFields),
+  field: z.enum([...tagFields, "entity"]),
 });
 
 export const zFolderFieldVersionModel = z.object({
@@ -323,7 +323,7 @@ export const zFolderFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   folderId: z.string().uuid(),
-  field: z.enum(folderFields),
+  field: z.enum([...folderFields, "entity"]),
 });
 
 export const zSupplementFieldVersionModel = z.object({
@@ -341,7 +341,7 @@ export const zSupplementFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   supplementId: z.string().uuid(),
-  field: z.enum(supplementFields),
+  field: z.enum([...supplementFields, "entity"]),
 });
 
 export const zLibraryFieldVersionModel = z.object({
@@ -358,7 +358,7 @@ export const zLibraryFieldVersionModel = z.object({
   deviceId: z.string(),
   localInsertedAt: z.number().int(),
 
-  field: z.enum(libraryFields),
+  field: z.enum([...libraryFields, "entity"]),
 });
 
 export const zFeedFieldVersionModel = z.object({
@@ -376,7 +376,7 @@ export const zFeedFieldVersionModel = z.object({
   localInsertedAt: z.number().int(),
 
   feedId: z.string().uuid(),
-  field: z.enum(feedFields),
+  field: z.enum([...feedFields, "entity"]),
 });
 
 export const zFieldVersionModel = z.union([
@@ -567,6 +567,16 @@ export const relationshipRowSchemas = {
 } as const;
 
 // ----------------------
+// Projection cursor state
+// ----------------------
+
+export const zLocalProjectionStateModel = z.object({
+  name: z.string(),
+  libraryId: z.string(),
+  lastLocalInsertedAt: z.number().int(),
+});
+
+// ----------------------
 // Database interface (Kysely-friendly)
 // ----------------------
 
@@ -592,6 +602,9 @@ const zDatabase = z.object({
   paperTag: zPaperTagModel,
   paperFolder: zPaperFolderModel,
   paperSupplement: zPaperSupplementModel,
+
+  // Projection cursor (RealmProjectionEngine)
+  local_projection_state: zLocalProjectionStateModel,
 
   // View
   changeStream: zChangeStreamViewRaw,

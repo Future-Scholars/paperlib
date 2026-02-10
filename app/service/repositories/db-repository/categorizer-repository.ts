@@ -13,7 +13,6 @@ import {
 } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { Entity } from "@/models/entity";
-import { deleteSqliteCategorizer, toSqliteCategorizer } from "@/service/services/sync/pollyfills/categorizer";
 import { ILogService, LogService } from "@/common/services/log-service";
 
 export interface ICategorizerRepositoryState {
@@ -150,14 +149,7 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
       
     }
 
-    // Sync objects to sqlite database
-    // await Promise.all(objects.map(async (object) => {
-    //   await toSqliteCategorizer(object, type);
-    // }));
-    for (const object of objects) {
-      await toSqliteCategorizer(object, type, this._logService);
-    }
-
+    // Realm is updated via projection (SQLite SoT); no sync-to-SQLite on load
     return objects;
   }
 
@@ -225,67 +217,40 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
 
   /**
    * Recursively collect all categorizers that need to be deleted (including children).
-   * @param realm - Realm instance
-   * @param type - Categorizer type
-   * @param objects - Initial objects to delete
-   * @returns All objects to delete (including children)
+   * Used by CategorizerService before calling SQLite delete + ensureCaughtUp + removeFromRealm.
    */
-  private _collectAllObjectsToDelete(
+  collectAllToDelete(
     realm: Realm,
     type: CategorizerType,
     objects: ICategorizerCollection
   ): ICategorizerCollection {
     const allObjects: ICategorizerCollection = [...objects];
-    
     for (const object of objects) {
       if (object.children.length > 0) {
-        const childObjects = this._collectAllObjectsToDelete(realm, type, object.children);
+        const childObjects = this.collectAllToDelete(realm, type, object.children);
         allObjects.push(...childObjects);
       }
     }
-    
     return allObjects;
   }
 
   /**
-   * Delete categorizer.
-   * @param realm - Realm instance.
-   * @param type - Categorizer type.
-   * @param id - Id of categorizer to delete.
-   * @param categorizer - Categorizer to delete.
+   * Remove categorizer objects from Realm by ids (after SQLite delete + ensureCaughtUp).
+   * Realm is not the source of truth; this only keeps Realm in sync with SQLite.
    */
-  async delete(
+  removeFromRealm(
     realm: Realm,
     type: CategorizerType,
-    ids?: OID[],
-    categorizers?: ICategorizerCollection
-  ) {
-    // Read operations no need to be in safeWrite, therefore it's moved out of safeWrite at 2025-09-13
-    let objects: ICategorizerCollection;
-    if (categorizers) {
-      objects = categorizers
-        .map((categorizer: ICategorizerObject) =>
-          this.toRealmObject(realm, type, categorizer)
-        )
-        .filter((object) => object) as ICategorizerCollection;
-    } else if (ids) {
-      objects = this.loadByIds(realm, type, ids);
-    } else {
-      throw new Error(`Invalid arguments: ${categorizers}, ${ids}, ${type}`);
-    }
-    
-    // Collect all objects to delete (including children) before any async operations
-    const allObjectsToDelete = this._collectAllObjectsToDelete(realm, type, objects);
-    
-    // Perform all async SQLite deletions outside of safeWrite
-    await Promise.all(allObjectsToDelete.map(async (object) => {
-      await deleteSqliteCategorizer(object._id.toString(), type);
-    }));
-
-    // Perform all synchronous Realm deletions in a single transaction
-    return realm.safeWrite(() => {
-      realm.delete(allObjectsToDelete);
-      return true;
+    ids: string[]
+  ): void {
+    realm.safeWrite(() => {
+      for (const id of ids) {
+        const obj = realm.objectForPrimaryKey<Categorizer>(
+          type,
+          new Realm.BSON.ObjectId(id)
+        );
+        if (obj) realm.delete(obj);
+      }
     });
   }
 
@@ -298,158 +263,6 @@ export class CategorizerRepository extends Eventable<ICategorizerRepositoryState
     categorizer.color = categorizer.color || Colors.blue;
 
     return categorizer;
-  }
-
-  /**
-   * Update/Insert categorizer.
-   * @param realm - Realm instance
-   * @param type - Categorizer type
-   * @param categorizer - Categorizer
-   * @param partition - Partition
-   * @param parent - Parent categorizer
-   * @returns Categorizer
-   */
-  async update(
-    realm: Realm,
-    type: CategorizerType,
-    categorizer: ICategorizerObject,
-    partition: string,
-    parent?: ICategorizerObject,
-    fromSync: boolean = false
-  ) {
-    categorizer = this.makeSureProperties(categorizer);
-
-    if (!fromSync) {
-      await toSqliteCategorizer(categorizer, type);
-    }
-
-    return realm.safeWrite(() => {
-      const object = this.toRealmObject(realm, type, categorizer);
-
-      if (object) {
-        // Update
-        const preSelfName = object.name.split("/").pop();
-
-        object.name = [...object.name.split("/").slice(0, -1), categorizer.name]
-          .filter((x) => x)
-          .join("/");
-
-        object.color = categorizer.color;
-        if (partition) {
-          object._partition = partition;
-        }
-
-        if (parent) {
-          const preParents = object.linkingObjects<ICategorizerRealmObject>(
-            type,
-            "children"
-          );
-          const preParent = preParents.length > 0 ? preParents[0] : undefined;
-          const curParent = this.toRealmObject(realm, type, parent);
-
-          this._checkCircularReference(realm, type, object, parent);
-
-          if (
-            preParent &&
-            curParent &&
-            preParent._id.toString() !== curParent?._id.toString()
-          ) {
-            preParent.children.splice(preParent.children.indexOf(object), 1);
-
-            curParent.children.push(object);
-
-            // Update name
-            object.name = [
-              `${
-                curParent.name === "Tags" || curParent.name === "Folders"
-                  ? ""
-                  : curParent.name
-              }`,
-              `${categorizer.name}`,
-            ]
-              .filter((x) => x)
-              .join("/");
-          }
-        }
-
-        if (preSelfName !== categorizer.name) {
-          // Update children name
-          this._updateChildrenName(realm, type, object);
-        }
-
-        return object;
-      } else {
-        // Insert
-        let parentObject: ICategorizerRealmObject | null;
-        if (!parent) {
-          parentObject = realm
-            .objects<Categorizer>(type)
-            .filtered(
-              `name == '${
-                type === CategorizerType.PaperTag ? "Tags" : "Folders"
-              }'`
-            )[0] as ICategorizerRealmObject;
-        } else {
-          parentObject = this.toRealmObject(realm, type, parent);
-        }
-
-        if (partition) {
-          categorizer._partition = partition;
-        }
-        const newObject = realm.create<Categorizer>(type, categorizer);
-        if (parentObject) {
-          // concat parent name
-          if (
-            parentObject.name &&
-            parentObject.name !== "Tags" &&
-            parentObject.name !== "Folders"
-          ) {
-            newObject.name = `${parentObject.name}/${newObject.name}`;
-          }
-
-          parentObject.children.push(newObject);
-        } else {
-          throw new Error(
-            `Parent object not found: ${parent}, ${type}, ${categorizer}`
-          );
-        }
-
-        return newObject;
-      }
-    });
-  }
-
-  /**
-   * Recursively update children name.
-   */
-  private _updateChildrenName(
-    realm: Realm,
-    type: CategorizerType,
-    categorizer: ICategorizerObject
-  ) {
-    const children = categorizer.children;
-    for (const child of children) {
-      child.name = `${categorizer.name}/${child.name.split("/").pop()}`;
-      this._updateChildrenName(realm, type, child);
-    }
-  }
-
-  /**
-   * Check circular reference.
-   */
-  private _checkCircularReference(
-    realm: Realm,
-    type: CategorizerType,
-    categorizer: ICategorizerObject,
-    parent: ICategorizerObject
-  ) {
-    const children = categorizer.children;
-    for (const child of children) {
-      if (child._id.toString() === parent._id.toString()) {
-        throw new Error("Circular reference");
-      }
-      this._checkCircularReference(realm, type, child, parent);
-    }
   }
 
   updateCount(

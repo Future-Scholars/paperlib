@@ -6,7 +6,6 @@ import { Colors } from "@/models/categorizer";
 import { Feed, IFeedCollection, IFeedObject, IFeedRealmObject } from "@/models/feed";
 import { OID } from "@/models/id";
 import { ObjectId } from "bson";
-import { toSqliteFeed, deleteSqliteFeed } from "@/service/services/sync/pollyfills/feed";
 import { ILogService, LogService } from "@/common/services/log-service";
 export interface IFeedRepositoryState {
   updated: number;
@@ -71,12 +70,6 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
       });
       realm.feedListened = true;
     }
-    // objects.forEach(async (object) => {
-    //   await toSqliteFeed(object);
-    // });
-    for (const object of objects) {
-      await toSqliteFeed(object, undefined, this._logService);
-    }
     return objects;
   }
 
@@ -103,12 +96,6 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param feeds - Feeds
    */
   async delete(realm: Realm, ids?: OID[], feeds?: IFeedCollection) {
-    if (ids) {
-      await Promise.all(ids.map(async (id) => {
-        this._logService.info("Deleting sqlite feed by id", id.toString(), false, "Feed");
-        await deleteSqliteFeed(id.toString());
-      }));
-    }
     return realm.safeWrite(() => {
       let objects: IFeedCollection;
       if (feeds) {
@@ -200,11 +187,8 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param fromSync - True if this update is called by sync client. 
    * @returns Feed
    */
-  async update(realm: Realm, feed: IFeedObject, partition: string, fromSync: boolean = false) {
+  async update(realm: Realm, feed: IFeedObject, partition: string, _fromSync: boolean = false) {
     feed = this.makeSureProperties(feed);
-    if (!fromSync) {
-      await toSqliteFeed(feed, undefined, this._logService);
-    }
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, feed);
 

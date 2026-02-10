@@ -22,6 +22,14 @@ import {
   IPaperEntityRepository,
   PaperEntityRepository,
 } from "../repositories/db-repository/paper-entity-repository";
+import {
+  IRealmProjectionEngine,
+  RealmProjectionEngine,
+} from "@/service/services/sync/projection/realm-projection-engine";
+import {
+  upsertPaper,
+  deletePaper,
+} from "@/service/services/database/sqlite/paper-command";
 import { CacheService, ICacheService } from "./cache-service";
 import { FileService, IFileService } from "./file-service";
 import { ISchedulerService, SchedulerService } from "./scheduler-service";
@@ -42,6 +50,8 @@ export class PaperService extends Eventable<IPaperServiceState> {
     @IDatabaseCore private readonly _databaseCore: DatabaseCore,
     @IPaperEntityRepository
     private readonly _paperEntityRepository: PaperEntityRepository,
+    @IRealmProjectionEngine
+    private readonly _realmProjectionEngine: RealmProjectionEngine,
     @IScrapeService private readonly _scrapeService: ScrapeService,
     @ICacheService private readonly _cacheService: CacheService,
     @ISchedulerService private readonly _schedulerService: SchedulerService,
@@ -196,40 +206,38 @@ export class PaperService extends Eventable<IPaperServiceState> {
     // #endregion ========================================================
 
     // ========================================================
-    // #region 2. Update database
-    const realm = await this._databaseCore.realm();
+    // #region 2. Update database (SQLite SoT, then Realm projection)
     const updatedPaperEntityDrafts: (Entity | null)[] = [];
 
-    for (const paperEntity of fileMovedPaperEntityDrafts) {
-      let success: boolean;
-      try {
-        success = await this._paperEntityRepository.update(
-          realm,
-          paperEntity,
-          this._databaseCore.getPartition(),
-          isUpdate,
-          fromSync
-        );
-
-        if (!success && !isUpdate) {
-          this._logService.warn(
-            "Failed to add the paper.",
-            `May be duplicated: ${paperEntity.title}`,
+    if (fromSync) {
+      // Sync already wrote to SQLite in pull; projection runs after pull. Just treat as success.
+      for (const paperEntity of fileMovedPaperEntityDrafts) {
+        updatedPaperEntityDrafts.push(paperEntity);
+      }
+    } else {
+      for (const paperEntity of fileMovedPaperEntityDrafts) {
+        try {
+          await upsertPaper(paperEntity);
+          updatedPaperEntityDrafts.push(paperEntity);
+        } catch (error) {
+          this._logService.error(
+            "Failed to update paper entity (SQLite command).",
+            error as Error,
             true,
             "PaperService"
           );
+          if (!isUpdate) {
+            this._logService.warn(
+              "Failed to add the paper.",
+              `May be duplicated: ${paperEntity.title}`,
+              true,
+              "PaperService"
+            );
+          }
+          updatedPaperEntityDrafts.push(null);
         }
-      } catch (error) {
-        success = false;
-        this._logService.error(
-          "Failed to update paper entity.",
-          error as Error,
-          true,
-          "PaperService"
-        );
       }
-
-      updatedPaperEntityDrafts.push(success ? paperEntity : null);
+      await this._realmProjectionEngine.ensureCaughtUp({ maxBatch: 5000 });
     }
 
     // handle files of failed updated paper entities
@@ -383,11 +391,28 @@ export class PaperService extends Eventable<IPaperServiceState> {
       "Entity"
     );
 
-    const toBeDeletedFiles = await this._paperEntityRepository.delete(
-      await this._databaseCore.realm(),
-      ids,
-      paperEntities
-    );
+    let entitiesToDelete: Entity[] = paperEntities ?? [];
+    if (entitiesToDelete.length === 0 && ids?.length) {
+      const realm = await this._databaseCore.realm();
+      const loaded = this._paperEntityRepository.loadByIds(realm, ids);
+      entitiesToDelete = Array.from(loaded);
+    }
+
+    const toBeDeletedFiles = entitiesToDelete
+      .map((entity) =>
+        Object.values(entity.supplementaries ?? {})
+          .map((sup) => sup?.url)
+          .filter((url): url is string => typeof url === "string" && url?.startsWith("file://"))
+      )
+      .flat();
+
+    const idsToDelete =
+      ids ?? entitiesToDelete.map((e) => e._id).filter(Boolean) as OID[];
+    for (const id of idsToDelete) {
+      const paperId =
+        typeof id === "string" ? id : (id as { toString: () => string }).toString();
+      await deletePaper(paperId);
+    }
 
     await Promise.all(
       toBeDeletedFiles.map((url) => {
@@ -399,8 +424,10 @@ export class PaperService extends Eventable<IPaperServiceState> {
       })
     );
 
-    const cacheIds = ids || paperEntities?.map((entity) => entity._id);
-    if (cacheIds) await this._cacheService.delete(cacheIds);
+    await this._realmProjectionEngine.ensureCaughtUp({ maxBatch: 5000 });
+
+    const cacheIds = ids ?? paperEntities?.map((entity) => entity._id);
+    if (cacheIds?.length) await this._cacheService.delete(cacheIds);
   }
 
   /**

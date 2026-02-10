@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "dev": "electron-vite dev -w",
+    "rebuild-better-sqlite3": "electron-rebuild -f -w better-sqlite3",
     "typecheck:app": "tsc --noEmit -p ./app/tsconfig.json --composite false",
     "typecheck:main": "tsc --noEmit -p ./app/main/tsconfig.json --composite false",
     "typecheck:service": "tsc --noEmit -p ./app/service/tsconfig.json --composite false",
@@ -57,6 +58,7 @@
     "electron-log": "4.4.8",
     "electron-store": "8.1.0",
     "electron-vite": "^2.3.0",
+    "@electron/rebuild": "^4.0.0",
     "eventemitter3": "^5.0.1",
     "fast-xml-parser": "4.0.6",
     "graph-data-structure": "3.5.0",

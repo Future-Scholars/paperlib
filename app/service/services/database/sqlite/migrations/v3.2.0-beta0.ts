@@ -132,6 +132,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("updatedAt", "integer")
     .addColumn("updatedByDeviceId", "text")
     .addColumn("libraryId", "text", (col) => col.notNull())
+    .addColumn("legacyOid", "text")
     .addColumn("name", "text", (col) => col.notNull())
     .addColumn("description", "text")
     .addColumn("type", "text", (col) => col.notNull())
@@ -340,6 +341,15 @@ CREATE VIEW IF NOT EXISTS changeStream AS
   UNION ALL SELECT libraryId, 'or_set', 'paperSupplement', id, localInsertedAt FROM paperSupplement
 `;
   await sql.raw(changeStreamViewSql).execute(db);
+
+  // --- Projection cursor state table ---
+  await db.schema
+  .createTable("local_projection_state")
+  .addColumn("name", "text", (col) => col.notNull())
+  .addColumn("libraryId", "text", (col) => col.notNull())
+  .addColumn("lastLocalInsertedAt", "integer", (col) => col.notNull())
+  .addPrimaryKeyConstraint("local_projection_state_pk", ["name", "libraryId"])
+  .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
@@ -365,4 +375,7 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable("author").ifExists().execute();
   await db.schema.dropTable("paper").ifExists().execute();
   await db.schema.dropTable("library").ifExists().execute();
+
+  await db.schema.dropTable("local_projection_state").ifExists().execute();
+
 }

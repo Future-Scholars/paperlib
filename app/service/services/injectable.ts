@@ -23,11 +23,13 @@ import { PaperEntityRepository } from "../repositories/db-repository/paper-entit
 import { PaperSmartFilterRepository } from "../repositories/db-repository/smartfilter-repository";
 import { RSSRepository } from "../repositories/rss-repository/rss-repository";
 import { SyncService } from "@/service/services/sync-service";
+import { RealmProjectionEngine } from "@/service/services/sync/projection/realm-projection-engine";
 
 export type IInjectable =
   | PreferenceService
   | LogService
   | DatabaseCore
+  | RealmProjectionEngine
   | FileService
   | HookService
   | DatabaseService

@@ -107,6 +107,7 @@ export interface PLMainAPILocalShape {
 }
 
 export interface PLAPILocalShape {
+  realmProjectionEngine: RealmProjectionEngine;
   serviceRPCService: UtilityProcessRPCService;
   logService: LogService;
   hookService: HookService;

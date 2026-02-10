@@ -607,6 +607,11 @@ export async function pull(
       false,
       "SyncClient"
     );
+    // Project pulled data to Realm so UI sees it without waiting for next realm() call
+    const engine = PLAPILocal.realmProjectionEngine;
+    if (engine) {
+      await engine.ensureCaughtUp({ libraryId, maxBatch: 10000 });
+    }
   } catch (error) {
     logger?.error(
       `[SyncClient] Error during pull operation, rolling back transaction`,

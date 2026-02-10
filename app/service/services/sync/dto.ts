@@ -31,37 +31,37 @@ const zBaseFieldVersionDTO = z.object({
 })
 
 export const zPaperFieldVersion = zBaseFieldVersionDTO.extend({
-  field: z.enum(paperFields),
+  field: z.enum([...paperFields, "entity"]),
   paperId: z.string().uuid(),
 })
 
 export const zAuthorFieldVersion = zBaseFieldVersionDTO.extend({
-  field: z.enum(authorFields),
+  field: z.enum([...authorFields, "entity"]),
   authorId: z.string().uuid(),
 })
 
 export const zTagFieldVersion = zBaseFieldVersionDTO.extend({
-  field: z.enum(tagFields),
+  field: z.enum([...tagFields, "entity"]),
   tagId: z.string().uuid(),
 })
 
 export const zFolderFieldVersion = zBaseFieldVersionDTO.extend({
-  field: z.enum(folderFields),
+  field: z.enum([...folderFields, "entity"]),
   folderId: z.string().uuid(),
 })
 
 export const zSupplementFieldVersion = zBaseFieldVersionDTO.extend({
-  field: z.enum(supplementFields),
+  field: z.enum([...supplementFields, "entity"]),
   supplementId: z.string().uuid(),
 })
 
 export const zLibraryFieldVersion = zBaseFieldVersionDTO.extend({
-  field: z.enum(libraryFields),
+  field: z.enum([...libraryFields, "entity"]),
   // libraryId is not included in the DTO because it is the same as the libraryId in the base DTO
 })
 
 export const zFeedFieldVersion = zBaseFieldVersionDTO.extend({
-  field: z.enum(feedFields),
+  field: z.enum([...feedFields, "entity"]),
   feedId: z.string().uuid(),
 })
 

@@ -52,7 +52,12 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
     if (!this._realm && !this._eventState.dbInitializing) {
       await this.initRealm(true);
     }
-    return this._realm as Realm;
+    const r = this._realm as Realm;
+    const engine = PLAPILocal.realmProjectionEngine;
+    if (engine && r) {
+      await engine.ensureCaughtUp({ realm: r, maxBatch: 5000 });
+    }
+    return r;
   }
 
   /**
