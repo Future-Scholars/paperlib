@@ -40,11 +40,10 @@ const _DEFAULTSTATE: ISyncServiceState = {
 
 
 
-const CLIENT_ID = "rObSDWEAuDzhsEZXVNDiOCXZpohYhEOK";
-const ISSUER = "https://dev.better-auth.paperlib.app";
-const REDIRECT_URI =
-  "paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback";
-const AUDIENCE = "http://localhost:3001";
+const CLIENT_ID = "HISYtAAVyJkUNInEnnEhuROvejLlmNvG";
+const ISSUER = "https://dev.auth.paperlib.app/api/auth";
+const REDIRECT_URI ="paperlib://v3.desktop.paperlib.app/PLAPI/syncService/handleLoginOfficialCallback";
+const AUDIENCE = "https://dev.sync.paperlib.app";
 const SCOPE = "offline_access openid profile email";
 
 /**
@@ -383,6 +382,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
     if (!accessToken) {
       throw new Error("Access token is not available for syncing.");
     }
+    
     this._logService.info("Access token is available for syncing");
     try {
       this._logService.info("Attaching to main");

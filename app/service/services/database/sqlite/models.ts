@@ -216,7 +216,6 @@ export const zLibraryModel = z.object({
   deletedByDeviceId: z.string().nullable(),
   updatedAt: z.number().int().nullable(),
   updatedByDeviceId: z.string().nullable(),
-  legacyOid: z.string(),
 
   name: z.string(),
   description: z.string().nullable(),

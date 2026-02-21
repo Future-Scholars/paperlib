@@ -1,9 +1,8 @@
 import { syncStateStore } from "@/service/services/sync/states";
 import { db } from "@/service/services/database/sqlite/db";
 import { v4 as uuidv4 } from 'uuid';
-import { zLibrary, Library as SqliteLibrary } from "@/service/services/database/sqlite/models";
-import z from "zod";
-
+import { z } from "zod";
+import { zLibraryModel } from "@/service/services/database/sqlite/models";
 /**
  * Creates a structured value object for field versions that includes operation type,
  * previous value, and new value for complete audit trail.
@@ -69,17 +68,25 @@ export async function ensureLibraryId(library?: string): Promise<string> {
   const deviceId = syncStateStore.get("deviceId");
 
   // Try get the existed sqlite library by legacy oid
-  const existedSqliteLibrary: SqliteLibrary | undefined = await db.selectFrom("library")
+  const existedSqliteLibrary: z.infer<typeof zLibraryModel> | undefined = await db.selectFrom("library")
     .where("name", "=", library ?? "main")
     .where("deletedAt", "is", null)
     .selectAll()
     .executeTakeFirst();
   if (!existedSqliteLibrary) {
-    const newSqliteLibrary: z.infer<typeof zLibrary> = {
+    const userInfo = syncStateStore.get("userInfo");
+    if (!userInfo) {
+      throw new Error("User info not found");
+    }
+    const sub = userInfo.sub;
+    if (!sub) {
+      throw new Error("User sub not found");
+    }
+    const newSqliteLibrary: z.infer<typeof zLibraryModel> = {
       id: uuidv4(),
       name: library ?? "main",
       description: null,
-      ownedBy: syncStateStore.get("userId"),
+      ownedBy: sub,
       createdAt: new Date().getTime(),
       updatedAt: new Date().getTime(),
       createdByDeviceId: deviceId,
