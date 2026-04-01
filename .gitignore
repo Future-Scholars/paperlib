@@ -36,3 +36,6 @@ package-lock.json
 *.db-journal
 *.sqlite
 .cursorrules
+
+CLAUDE.md
+.claude

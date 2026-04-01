@@ -32,13 +32,14 @@ export interface RealmProjectionEngineOptions {
 
 export interface ProjectRangeResult {
   applied: number;
-  lastLocalInsertedAt?: number;
+  lastRowid?: number;
 }
 
 export const IRealmProjectionEngine = createDecorator("realmProjectionEngine");
 
 /**
- * RealmProjectionEngine: reads changeStream, hydrates to projection batch, applies to Realm, advances cursor.
+ * RealmProjectionEngine: reads change_records, hydrates to a projection batch,
+ * applies to Realm, advances the rowid cursor.
  * Single entry point for "ensure Realm is up to date with SQLite".
  */
 export class RealmProjectionEngine {
@@ -48,8 +49,9 @@ export class RealmProjectionEngine {
   ) {}
 
   /**
-   * Ensures projection has caught up to the latest changeStream position for the library.
-   * Runs under a process-wide mutex. Pass realm when called from DatabaseCore.realm() to avoid recursion.
+   * Ensures projection has caught up to the latest change_records for the library.
+   * Runs under a process-wide mutex. Pass realm when called from DatabaseCore.realm()
+   * to avoid recursion.
    */
   async ensureCaughtUp(opts?: RealmProjectionEngineOptions): Promise<void> {
     return withMutex(async () => {
@@ -64,13 +66,13 @@ export class RealmProjectionEngine {
         const limit = Math.min(500, maxBatch - totalApplied);
         const result = await this._projectRangeInternal(realm, {
           libraryId,
-          afterLocalInsertedAt: after,
+          afterRowid: after,
           limit,
         });
 
         totalApplied += result.applied;
-        if (result.lastLocalInsertedAt != null) {
-          after = result.lastLocalInsertedAt;
+        if (result.lastRowid != null) {
+          after = result.lastRowid;
           await cursorStore.saveCursor(libraryId, after);
         }
         if (result.applied === 0) break;
@@ -79,11 +81,11 @@ export class RealmProjectionEngine {
   }
 
   /**
-   * Projects a range of changeStream rows to Realm. Advances cursor only when called by ensureCaughtUp.
+   * Projects a range of change_records to Realm without advancing the cursor.
    */
   async projectRange(range: {
     libraryId: string;
-    afterLocalInsertedAt?: number;
+    afterRowid?: number;
     limit: number;
   }): Promise<ProjectRangeResult> {
     return withMutex(async () => {
@@ -96,15 +98,15 @@ export class RealmProjectionEngine {
     realm: Realm,
     range: {
       libraryId: string;
-      afterLocalInsertedAt?: number;
+      afterRowid?: number;
       limit: number;
     }
   ): Promise<ProjectRangeResult> {
-    const { libraryId, afterLocalInsertedAt = 0, limit } = range;
+    const { libraryId, afterRowid = 0, limit } = range;
 
     const rows = await getChanges({
       libraryId,
-      afterLocalInsertedAt,
+      afterRowid,
       limit,
     });
 
@@ -112,24 +114,25 @@ export class RealmProjectionEngine {
       return { applied: 0 };
     }
 
-    const batch = await hydrateChangeStreamBatch(libraryId, rows);
+    const batch = hydrateChangeStreamBatch(libraryId, rows);
     await applyProjectionBatchToRealm(realm, batch);
 
     const applied =
       batch.feedIds.size +
       batch.paperIds.size +
       batch.tagIds.size +
-      batch.folderIds.size;
+      batch.collectionIds.size;
+
     return {
       applied,
-      lastLocalInsertedAt: batch.lastLocalInsertedAt,
+      lastRowid: batch.lastRowid,
     };
   }
 
   private async _getDefaultLibraryId(): Promise<string> {
     try {
-      const { ensureLibraryId } = await import("@/service/services/sync/pollyfills/utils");
-      return await ensureLibraryId("main");
+      const { ensureLibraryId } = await import("@/service/services/sync/sync-client");
+      return await ensureLibraryId();
     } catch {
       return "main";
     }

@@ -1,27 +1,35 @@
 /**
- * Output of ChangeHydrator: which entities need to be (re)projected to Realm after processing a batch of changeStream rows.
- * Applier will upsert these in order: feeds first, then tags, folders, then papers (so paper.tags/folders can link).
- * FeedEntity is derived from papers with feedId set (no separate batch set).
+ * Output of the change hydrator: which entities need to be (re)projected to
+ * Realm after processing a batch of change_records rows.
+ *
+ * Feeds, tags, and collections are upserted before papers so that foreign-key
+ * objects exist when papers reference them.
+ * FeedEntity rows are derived from papers that have a non-null feed_id
+ * (no separate batch set is needed).
+ *
+ * NOTE: "folder" → "collection" in the new paperlib-core schema.
  */
 export interface ProjectionBatch {
   libraryId: string;
   feedIds: Set<string>;
   paperIds: Set<string>;
   tagIds: Set<string>;
-  folderIds: Set<string>;
-  lastLocalInsertedAt: number;
+  /** Collections (formerly "folders" in the old schema). */
+  collectionIds: Set<string>;
+  /** Monotonically increasing SQLite rowid of the last change_record processed. */
+  lastRowid: number;
 }
 
 export function createEmptyProjectionBatch(
   libraryId: string,
-  lastLocalInsertedAt: number
+  lastRowid: number
 ): ProjectionBatch {
   return {
     libraryId,
     feedIds: new Set(),
     paperIds: new Set(),
     tagIds: new Set(),
-    folderIds: new Set(),
-    lastLocalInsertedAt,
+    collectionIds: new Set(),
+    lastRowid,
   };
 }

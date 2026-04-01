@@ -1,7 +1,5 @@
 import ElectronStore from "electron-store";
 import { v4 as uuidv4 } from "uuid";
-import { UserInfoResponse } from "openid-client";
-import { zContinuationToken } from "./dto";
 import { z } from "zod";
 
 const syncStateSchema = z.object({
@@ -18,7 +16,6 @@ const syncStateSchema = z.object({
   refreshToken: z.string().optional().nullable(),
   idToken: z.string().optional().nullable(),
   sub: z.string().optional().nullable(),
-  // infer zod type from UserInfoResponse
   userInfo: z.object({
     sub: z.string(),
     name: z.string().optional(),
@@ -31,21 +28,25 @@ const syncStateSchema = z.object({
   accessTokenExpiredAt: z.number().optional().nullable(),
   connected: z.boolean(),
 
-  // sync
+  // sync identity
   deviceId: z.string(),
-  pullToken: zContinuationToken.optional().nullable(),
-  pushToken: zContinuationToken.optional().nullable(),
-  lasetServerTimeSeenAt: z.string().datetime().optional().nullable(),// Server timestamp
-  lastPullOkAt: z.string().datetime().optional().nullable(), // Pull cursor
-  lastPushOkAt: z.string().datetime().optional().nullable(), // Push cursor
-  sync_lock: z.boolean(), // Sync lock avoid sync loop overlap
+  /** UUID of the local "main" library row in the paperlib-core DB. */
+  libraryId: z.string().optional().nullable(),
+
+  // cursor-based sync tracking (replaces legacy ContinuationToken)
+  /** Last cursor_id received from the server pull endpoint. 0 = never pulled. */
+  pullCursor: z.number().int().nonnegative().default(0),
+
+  lastPullOkAt: z.string().datetime().optional().nullable(),
+  lastPushOkAt: z.string().datetime().optional().nullable(),
+  sync_lock: z.boolean(),
 });
 
 export type ISyncState = z.infer<typeof syncStateSchema>;
 
-export const DEFAULT_SYNC_STATE = {
+export const DEFAULT_SYNC_STATE: ISyncState = {
   databaseVersion: 0,
-  syncMode: "realm" as z.infer<typeof syncStateSchema>["syncMode"],
+  syncMode: "realm",
   syncServerUrl: null,
   attachedLibraryId: [],
   syncEnabled: false,
@@ -59,11 +60,11 @@ export const DEFAULT_SYNC_STATE = {
   userInfo: null,
   accessTokenExpiredAt: null,
   connected: false,
-  // sync
+  // sync identity
   deviceId: uuidv4(),
-  pullToken: null,
-  pushToken: null,
-  lasetServerTimeSeenAt: null,
+  libraryId: null,
+  // cursors
+  pullCursor: 0,
   lastPullOkAt: null,
   lastPushOkAt: null,
   sync_lock: false,

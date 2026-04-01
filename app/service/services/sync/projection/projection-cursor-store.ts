@@ -1,51 +1,33 @@
-import { db } from "@/service/services/database/sqlite/db";
+/**
+ * projection-cursor-store.ts
+ *
+ * Persists the projection cursor (last SQLite rowid of change_records that has
+ * been projected to Realm) using electron-store so it survives app restarts.
+ * The cursor is keyed by libraryId.
+ */
 
-const DEFAULT_PROJECTION_NAME = "realm_main";
+import ElectronStore from "electron-store";
 
-export interface ProjectionCursor {
-  name: string;
-  libraryId: string;
-  lastLocalInsertedAt: number;
+interface ProjectionCursorState {
+  cursors: Record<string, number>;
+}
+
+const store = new ElectronStore<ProjectionCursorState>({
+  name: "projection-cursor",
+  defaults: { cursors: {} },
+});
+
+/**
+ * Returns the last projected rowid for the library, or 0 if never run.
+ */
+export async function loadCursor(libraryId: string): Promise<number> {
+  return store.get("cursors")[libraryId] ?? 0;
 }
 
 /**
- * Loads the projection cursor for a given (name, libraryId).
- * Returns lastLocalInsertedAt or 0 if no row exists.
+ * Saves the last projected rowid for the library.
  */
-export async function loadCursor(
-  libraryId: string,
-  name: string = DEFAULT_PROJECTION_NAME
-): Promise<number> {
-  const row = await db
-    .selectFrom("local_projection_state")
-    .select("lastLocalInsertedAt")
-    .where("name", "=", name)
-    .where("libraryId", "=", libraryId)
-    .executeTakeFirst();
-
-  return row?.lastLocalInsertedAt ?? 0;
-}
-
-/**
- * Saves the projection cursor for (name, libraryId).
- * Upserts so that the row is created or updated.
- */
-export async function saveCursor(
-  libraryId: string,
-  lastLocalInsertedAt: number,
-  name: string = DEFAULT_PROJECTION_NAME
-): Promise<void> {
-  await db
-    .insertInto("local_projection_state")
-    .values({
-      name,
-      libraryId,
-      lastLocalInsertedAt,
-    })
-    .onConflict((oc) =>
-      oc.columns(["name", "libraryId"]).doUpdateSet({
-        lastLocalInsertedAt,
-      })
-    )
-    .execute();
+export async function saveCursor(libraryId: string, rowid: number): Promise<void> {
+  const cursors = { ...store.get("cursors"), [libraryId]: rowid };
+  store.set("cursors", cursors);
 }
