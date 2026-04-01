@@ -28,7 +28,7 @@ import {
 } from "../repositories/db-repository/feed-repository";
 import { DatabaseCore, IDatabaseCore } from "./database/core";
 import { DEFAULT_SYNC_STATE, ISyncState, syncStateStore } from "./sync/states";
-import { attach, pull, push } from "./sync/sync-client";
+import { pull, push } from "./sync/sync-client";
 
 export interface ISyncServiceState {
   userInfo: UserInfoResponse | null;
@@ -285,7 +285,6 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // 6) Update user preferences
     await PLMainAPI.preferenceService.set({ useSync: "official" });
-    await attach("main", this._logService);
     // 7) Schedule a sync
     this._logService.info("Schedule a sync");
     this._schedulerService.createTask(
@@ -386,7 +385,6 @@ export class SyncService extends Eventable<ISyncServiceState> {
     this._logService.info("Access token is available for syncing");
     try {
       this._logService.info("Attaching to main");
-      await attach("main", this._logService);
       this._logService.info("Attaching to main completed");
       // this.fire({ syncProgress: 0.3 });
       this._logService.info("Pulling from main");
@@ -394,7 +392,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       if (!pullToken) {
         throw new Error("Pull token is not available for syncing.");
       }
-      await pull(pullToken, this._logService);
+      await pull(this._logService);
       this._logService.info("Pulling from main completed");
       // this.fire({ syncProgress: 0.7 });
       this._logService.info("Pushing to main");
@@ -402,7 +400,7 @@ export class SyncService extends Eventable<ISyncServiceState> {
       if (!pushToken) {
         throw new Error("Push token is not available for syncing.");
       }
-      await push(this._logService, pushToken);
+      await push(this._logService);
       this._logService.info("Pushing to main completed");
       this._logService.info("Push completed");
 
@@ -516,10 +514,6 @@ export class SyncService extends Eventable<ISyncServiceState> {
 
     // Clear syncLogs based on business needs
     // this._deleteStoreValue("syncLogs");
-
-    this._deleteStoreValue("pullToken");
-    this._deleteStoreValue("pushToken");
-    this._deleteStoreValue("lasetServerTimeSeenAt");
     this._deleteStoreValue("lastPullOkAt");
     this._deleteStoreValue("lastPushOkAt");
     this._deleteStoreValue("sync_lock");
