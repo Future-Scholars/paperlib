@@ -14,6 +14,14 @@ import {
 import { OID } from "@/models/id";
 import { ProcessingKey, processing } from "@/common/utils/processing";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
+import {
+  upsertCategorizer,
+  deleteCategorizer as deleteCategorizerCommand,
+} from "@/service/services/database/sqlite/categorizer-command";
+import {
+  IRealmProjectionEngine,
+  RealmProjectionEngine,
+} from "@/service/services/sync/projection/realm-projection-engine";
 
 import {
   CategorizerRepository,
@@ -32,6 +40,8 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
     @IDatabaseCore private readonly _databaseCore: DatabaseCore,
     @ICategorizerRepository
     private readonly _categorizerRepository: CategorizerRepository,
+    @IRealmProjectionEngine
+    private readonly _realmProjectionEngine: RealmProjectionEngine,
     @ILogService private readonly _logService: LogService
   ) {
     super("categorizerService", {
@@ -66,7 +76,7 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
   @processing(ProcessingKey.General)
   @errorcatching("Failed to load categorizer.", true, "CategorizerService", [])
   async load(type: CategorizerType, sortBy: string, sortOrder: string) {
-    return this._categorizerRepository.load(
+    return await this._categorizerRepository.load(
       await this._databaseCore.realm(),
       type,
       sortBy,
@@ -121,12 +131,31 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
     ids?: OID[],
     categorizers?: ICategorizerCollection
   ) {
-    this._categorizerRepository.delete(
-      await this._databaseCore.realm(),
+    const realm = await this._databaseCore.realm();
+    let objects: ICategorizerCollection;
+    if (categorizers?.length) {
+      objects = categorizers
+        .map((c) => this._categorizerRepository.toRealmObject(realm, type, c))
+        .filter(Boolean) as ICategorizerCollection;
+    } else if (ids?.length) {
+      objects = this._categorizerRepository.loadByIds(realm, type, ids);
+    } else {
+      return;
+    }
+    const allToDelete = this._categorizerRepository.collectAllToDelete(
+      realm,
       type,
-      ids,
-      categorizers
+      objects
     );
+    const idsToDelete = allToDelete.map((o) =>
+      typeof o._id === "string" ? o._id : (o._id as { toString: () => string }).toString()
+    );
+
+    for (const id of idsToDelete) {
+      await deleteCategorizerCommand(type, id);
+    }
+    await this._realmProjectionEngine.ensureCaughtUp({ maxBatch: 5000 });
+    this._categorizerRepository.removeFromRealm(realm, type, idsToDelete);
   }
 
   /**
@@ -152,8 +181,7 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
     );
     const parent = parents.length > 0 ? parents[0] : undefined;
 
-    this._categorizerRepository.update(
-      await this._databaseCore.realm(),
+    await this.update(
       type,
       new Categorizer(
         {
@@ -163,7 +191,6 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
         },
         false
       ),
-      this._databaseCore.getPartition(),
       parent
     );
   }
@@ -225,7 +252,8 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
   async update(
     type: CategorizerType,
     categorizer: Categorizer,
-    parentCategorizer?: Categorizer
+    parentCategorizer?: Categorizer,
+    fromSync: boolean = false
   ) {
     if (
       !categorizer.name ||
@@ -238,13 +266,28 @@ export class CategorizerService extends Eventable<ICategorizerServiceState> {
       );
     }
 
-    return this._categorizerRepository.update(
-      await this._databaseCore.realm(),
-      type,
-      categorizer,
-      this._databaseCore.getPartition(),
-      parentCategorizer
-    );
+    categorizer = this._categorizerRepository.makeSureProperties(categorizer);
+
+    // Folder parent-child: set parentId for SQLite so categorizer-command can persist the tree
+    if (type === CategorizerType.PaperFolder) {
+      const parentId =
+        parentCategorizer != null
+          ? typeof parentCategorizer._id === "string"
+            ? parentCategorizer._id
+            : (parentCategorizer._id as { toString: () => string }).toString()
+          : null;
+      (categorizer as { parentId?: string | null }).parentId = parentId;
+    }
+
+    if (!fromSync) {
+      await upsertCategorizer(type, categorizer);
+      await this._realmProjectionEngine.ensureCaughtUp({ maxBatch: 5000 });
+    } else {
+      await this._realmProjectionEngine.ensureCaughtUp({ maxBatch: 5000 });
+    }
+
+    const realm = await this._databaseCore.realm();
+    return this._categorizerRepository.toRealmObject(realm, type, categorizer);
   }
 
   /**

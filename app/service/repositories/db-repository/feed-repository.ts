@@ -6,7 +6,7 @@ import { Colors } from "@/models/categorizer";
 import { Feed, IFeedCollection, IFeedObject, IFeedRealmObject } from "@/models/feed";
 import { OID } from "@/models/id";
 import { ObjectId } from "bson";
-
+import { ILogService, LogService } from "@/common/services/log-service";
 export interface IFeedRepositoryState {
   updated: number;
 }
@@ -14,7 +14,10 @@ export interface IFeedRepositoryState {
 export const IFeedRepository = createDecorator("feedRepository");
 
 export class FeedRepository extends Eventable<IFeedRepositoryState> {
-  constructor() {
+  constructor(
+    @ILogService
+    private readonly _logService: LogService,
+  ) {
     super("feedRepository", {
       updated: 0,
     });
@@ -49,7 +52,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param sortOrder - Sort order
    * @returns Results of feed
    */
-  load(realm: Realm, sortBy: string, sortOrder: string): IFeedCollection {
+  async load(realm: Realm, sortBy: string, sortOrder: string): Promise<IFeedCollection> {
     const objects = realm
       .objects<Feed>("Feed")
       .sorted(sortBy, sortOrder == "desc");
@@ -92,7 +95,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param ids - Feed ids
    * @param feeds - Feeds
    */
-  delete(realm: Realm, ids?: OID[], feeds?: IFeedCollection) {
+  async delete(realm: Realm, ids?: OID[], feeds?: IFeedCollection) {
     return realm.safeWrite(() => {
       let objects: IFeedCollection;
       if (feeds) {
@@ -106,6 +109,8 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
       }
 
       realm.delete(objects);
+
+
 
       return true;
     });
@@ -179,11 +184,11 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
    * @param realm - Realm instance
    * @param feed - Feed
    * @param partition - Partition
+   * @param fromSync - True if this update is called by sync client. 
    * @returns Feed
    */
-  update(realm: Realm, feed: IFeedObject, partition: string) {
+  async update(realm: Realm, feed: IFeedObject, partition: string, _fromSync: boolean = false) {
     feed = this.makeSureProperties(feed);
-
     return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, feed);
 
@@ -196,6 +201,7 @@ export class FeedRepository extends Eventable<IFeedRepositoryState> {
         if (partition) {
           object._partition = partition;
         }
+
         return object;
       } else {
         if (partition) {

@@ -27,6 +27,7 @@ import { SchedulerService } from "./services/scheduler-service";
 import { ScrapeService } from "./services/scrape-service";
 import { SmartFilterService } from "./services/smartfilter-service";
 import { SyncService } from "@/service/services/sync-service";
+import { RealmProjectionEngine } from "@/service/services/sync/projection/realm-projection-engine";
 
 async function initialize() {
   const logService = new LogService("service.log");
@@ -68,6 +69,7 @@ async function initialize() {
     hookService: HookService,
     fileService: FileService,
     databaseCore: DatabaseCore,
+    realmProjectionEngine: RealmProjectionEngine,
     databaseService: DatabaseService,
     renderService: RenderService,
     categorizerRepository: CategorizerRepository,

@@ -6,11 +6,11 @@ import { createDecorator } from "@/base/injection/injection";
 import { CategorizerType, ICategorizerCollection } from "@/models/categorizer";
 import { OID } from "@/models/id";
 import { IEntityCollection, IEntityObject, IEntityRealmObject, Entity } from "@/models/entity";
+import { ILogService, LogService } from "@/common/services/log-service";
 import {
   CategorizerRepository,
   ICategorizerRepository,
 } from "./categorizer-repository";
-
 export interface IPaperEntityRepositoryState {
   count: number;
   updated: number;
@@ -21,7 +21,9 @@ export const IPaperEntityRepository = createDecorator("paperEntityRepository");
 export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState> {
   constructor(
     @ICategorizerRepository
-    private readonly _categorizerRepository: CategorizerRepository
+    private readonly _categorizerRepository: CategorizerRepository,
+    @ILogService
+    private readonly _logService: LogService,
   ) {
     super("paperEntityRepository", {
       count: 0,
@@ -62,6 +64,8 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
     }
   }
 
+
+
   /**
    * Load all filtered paper entities.
    * @param realm - Realm instance.
@@ -70,7 +74,7 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
    * @param sortOrder - Sort order.
    * @returns - Results of paper entities.
    */
-  load(
+  async load(
     realm: Realm,
     filter: string,
     sortBy: string,
@@ -94,16 +98,17 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
 
       realm.entityListened = true;
     }
-
+    objects = objects.filtered("library == 'main'");
     if (filter) {
       try {
-        return objects.filtered(`library == 'main' AND (${filter})`).sorted(sortBy, sortOrder === "desc");
+        objects = objects.filtered(`(${filter})`).sorted(sortBy, sortOrder === "desc");
       } catch (error) {
         throw new Error(`Invalid filter: ${filter}`);
       }
-    } else {
-      return objects.filtered("library == 'main'").sorted(sortBy, sortOrder === "desc");
     }
+
+
+    return objects.sorted(sortBy, sortOrder === "desc");
   }
 
   /**
@@ -150,164 +155,23 @@ export class PaperEntityRepository extends Eventable<IPaperEntityRepositoryState
   }
 
   /**
-   * Update paper entity.
-   * @param realm - Realm instance.
-   * @param paperEntity - Paper entity.
-   * @param partition - Partition.
-   * @param allowUpdate - Allow update flag.
-   * @returns - Updated boolean flag.
-   */
-  update(
-    realm: Realm,
-    paperEntity: IEntityObject,
-    partition: string,
-    allowUpdate: boolean = true
-  ) {
-    paperEntity = this.makeSureProperties(paperEntity);
-
-    return realm.safeWrite(() => {
-      const object = this.toRealmObject(realm, paperEntity);
-
-      const tags = paperEntity.tags.map((tag) => {
-        const object = this._categorizerRepository.toRealmObject(
-          realm,
-          CategorizerType.PaperTag,
-          tag
-        );
-
-        if (object) {
-          return object;
-        } else {
-          return this._categorizerRepository.update(
-            realm,
-            CategorizerType.PaperTag,
-            tag,
-            partition
-          );
-        }
-      });
-
-      const folders = paperEntity.folders.map((folder) => {
-        const object = this._categorizerRepository.toRealmObject(
-          realm,
-          CategorizerType.PaperFolder,
-          folder
-        );
-
-        if (object) {
-          return object;
-        } else {
-          return this._categorizerRepository.update(
-            realm,
-            CategorizerType.PaperFolder,
-            folder,
-            partition
-          );
-        }
-      });
-
-      if (object) {
-        if (!allowUpdate) {
-          return false;
-        }
-        // Update
-        const shouldBeUpdatedTags = [...tags, ...object.tags];
-        const shouldBeUpdatedFolders = [...folders, ...object.folders];
-
-        object.library = paperEntity.library;
-        object.type = paperEntity.type;
-        object.abstract = paperEntity.abstract;
-        object.defaultSup = paperEntity.defaultSup;
-        object.supplementaries = paperEntity.supplementaries;
-        object.doi = paperEntity.doi;
-        object.arxiv = paperEntity.arxiv;
-        object.issn = paperEntity.issn;
-        object.isbn = paperEntity.isbn;
-
-        object.title = paperEntity.title;
-        object.authors = paperEntity.authors;
-        object.journal = paperEntity.journal;
-        object.booktitle = paperEntity.booktitle;
-        object.year = paperEntity.year;
-        object.month = paperEntity.month;
-        object.volume = paperEntity.volume;
-        object.number = paperEntity.number;
-        object.pages = paperEntity.pages;
-        object.publisher = paperEntity.publisher;
-        object.series = paperEntity.series;
-        object.edition = paperEntity.edition;
-        object.editor = paperEntity.editor;
-        object.howpublished = paperEntity.howpublished;
-        object.organization = paperEntity.organization;
-        object.school = paperEntity.school;
-        object.institution = paperEntity.institution;
-
-        object.rating = paperEntity.rating;
-        object.tags = tags;
-        object.folders = folders;
-        object.flag = paperEntity.flag;
-        object.note = paperEntity.note;
-
-        if (partition) {
-          object._partition = partition;
-        }
-
-        this._categorizerRepository.updateCount(
-          realm,
-          CategorizerType.PaperTag,
-          shouldBeUpdatedTags
-        );
-        this._categorizerRepository.updateCount(
-          realm,
-          CategorizerType.PaperFolder,
-          shouldBeUpdatedFolders
-        );
-      } else {
-        // Insert
-        const shouldBeUpdatedTags = [...tags];
-        const shouldBeUpdatedFolders = [...folders];
-
-        paperEntity.tags = [];
-        paperEntity.folders = [];
-        if (partition) {
-          paperEntity._partition = partition;
-        }
-        const object = realm.create<Entity>("Entity", paperEntity);
-        if (object) {
-          object.tags = tags;
-          object.folders = folders;
-        }
-
-        this._categorizerRepository.updateCount(
-          realm,
-          CategorizerType.PaperTag,
-          shouldBeUpdatedTags
-        );
-        this._categorizerRepository.updateCount(
-          realm,
-          CategorizerType.PaperFolder,
-          shouldBeUpdatedFolders
-        );
-      }
-
-      return true;
-    });
-  }
-
-  /**
    * Delete paper entity.
    * @param realm - Realm instance.
    * @param ids - OR Paper ids.
    * @param paperEntity - Paper entity.
    * @returns - Deleted boolean flags.
    */
-  delete(realm: Realm, ids?: OID[], paperEntitys?: IEntityCollection) {
+  async delete(realm: Realm, ids?: OID[], paperEntitys?: IEntityCollection) {
+
+    if (paperEntitys) {
+      this._logService.info("Deleting paper entities", JSON.stringify(paperEntitys, null, 2), false, "Entity");
+      ids = paperEntitys.map(
+        (paperEntity: IEntityObject) => paperEntity._id
+      );
+    }
+
+
     return realm.safeWrite(() => {
-      if (paperEntitys) {
-        ids = paperEntitys.map(
-          (paperEntity: IEntityObject) => paperEntity._id
-        );
-      }
       if (ids) {
         const idsQuery = ids
           .map((id) => `_id == oid(${id as string})`)

@@ -15,6 +15,21 @@ import {
 import { OID } from "@/models/id";
 import { PaperEntity } from "@/models/paper-entity";
 import { DatabaseCore, IDatabaseCore } from "@/service/services/database/core";
+import {
+  deleteFeed,
+  getFeedIdByLegacyOid,
+  upsertFeed,
+} from "@/service/services/database/sqlite/feed-command";
+import {
+  deleteOutdatedFeedEntityPapers,
+  getPaperIdsByFeedId,
+  deletePaper,
+  upsertPaper,
+} from "@/service/services/database/sqlite/paper-command";
+import {
+  IRealmProjectionEngine,
+  RealmProjectionEngine,
+} from "@/service/services/sync/projection/realm-projection-engine";
 
 import {
   FeedEntityRepository,
@@ -46,6 +61,8 @@ export class FeedService extends Eventable<IFeedServiceState> {
     @IFeedEntityRepository
     private readonly _feedEntityRepository: FeedEntityRepository,
     @IFeedRepository private readonly _feedRepository: FeedRepository,
+    @IRealmProjectionEngine
+    private readonly _realmProjectionEngine: RealmProjectionEngine,
     @IRSSRepository private readonly _rssRepository: RSSRepository,
     @IScrapeService private readonly _scrapeService: ScrapeService,
     @IPaperService private readonly _paperService: PaperService,
@@ -99,7 +116,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return [];
     }
-    return this._feedRepository.load(
+    return await this._feedRepository.load(
       await this._databaseCore.realm(),
       sortBy,
       sortOrder
@@ -155,23 +172,30 @@ export class FeedService extends Eventable<IFeedServiceState> {
       "FeedService"
     );
 
-    const realm = await this._databaseCore.realm();
-    if (!fromSync) {
-      await PLAPI.syncService.addSyncLog("feed", "update", { feeds });
+    if (fromSync) {
+      const realm = await this._databaseCore.realm();
+      const updatedFeeds: IFeedCollection = [];
+      for (const feed of feeds) {
+        const updatedFeed = await this._feedRepository.update(
+          realm,
+          feed,
+          this._databaseCore.getPartition(),
+          true
+        );
+        updatedFeeds.push(updatedFeed);
+      }
+      return updatedFeeds;
     }
 
-    const updatedFeeds: IFeedCollection = [];
-
-    for (const feed of feeds) {
-      const updatedFeed = this._feedRepository.update(
-        realm,
-        feed,
-        this._databaseCore.getPartition()
+    const feedArray = Array.isArray(feeds) ? feeds : [...feeds];
+    for (const feed of feedArray) {
+      const normalized = this._feedRepository.makeSureProperties(
+        feed as IFeedObject
       );
-      updatedFeeds.push(updatedFeed);
+      await upsertFeed(normalized);
     }
-
-    return updatedFeeds;
+    await this._realmProjectionEngine.ensureCaughtUp({ maxBatch: 5000 });
+    return feedArray;
   }
 
   /**
@@ -184,7 +208,7 @@ export class FeedService extends Eventable<IFeedServiceState> {
   @errorcatching("Failed to update feed entities.", true, "FeedService", [])
   async updateEntities(
     feedEntities: IFeedEntityCollection,
-    ignoreReadState = false
+    _ignoreReadState = false
   ) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
@@ -196,20 +220,44 @@ export class FeedService extends Eventable<IFeedServiceState> {
       "FeedEntityService"
     );
 
-    const realm = await this._databaseCore.realm();
-    const updatedFeedEntities: IFeedEntityCollection = [];
-
-    for (const feedEntity of feedEntities) {
-      const updatedFeedEntity = this._feedEntityRepository.update(
-        realm,
-        feedEntity,
-        this._databaseCore.getPartition(),
-        ignoreReadState
+    const arr = Array.isArray(feedEntities) ? feedEntities : [...feedEntities];
+    for (const feedEntity of arr) {
+      const normalized = this._feedEntityRepository.makeSureProperties(
+        feedEntity as IFeedEntityObject
       );
-      updatedFeedEntities.push(updatedFeedEntity);
+      let feedId = await getFeedIdByLegacyOid(
+        (normalized.feed._id as { toString: () => string }).toString()
+      );
+      if (feedId == null && normalized.feed) {
+        await upsertFeed(normalized.feed as IFeedObject);
+        feedId = await getFeedIdByLegacyOid(
+          (normalized.feed._id as { toString: () => string }).toString()
+        );
+      }
+      if (feedId == null) continue;
+      const paperDraft = {
+        _id: normalized._id,
+        addTime: normalized.addTime ?? new Date(),
+        library: "main",
+        type: "article" as const,
+        title: normalized.title ?? "",
+        authors: normalized.authors ?? "",
+        abstract: normalized.abstract,
+        journal: normalized.publication,
+        year: normalized.pubTime ?? "",
+        volume: normalized.volume,
+        number: normalized.number,
+        pages: normalized.pages,
+        publisher: normalized.publisher,
+        doi: normalized.doi,
+        arxiv: normalized.arxiv,
+        read: normalized.read ? 1 : 0,
+        feedId,
+        feedItemId: (normalized._id as { toString: () => string }).toString(),
+      };
+      await upsertPaper(paperDraft as any);
     }
-
-    return updatedFeedEntities;
+    await this._realmProjectionEngine.ensureCaughtUp({ maxBatch: 5000 });
   }
 
   /**
@@ -222,9 +270,6 @@ export class FeedService extends Eventable<IFeedServiceState> {
   async create(feeds: Feed[], fromSync: boolean = false) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
-    }
-    if (!fromSync) {
-      await PLAPI.syncService.addSyncLog("feed", "create", { feeds });
     }
 
     feeds.forEach((feed) => {
@@ -317,12 +362,19 @@ export class FeedService extends Eventable<IFeedServiceState> {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
     }
-    this._feedRepository.colorize(
-      await this._databaseCore.realm(),
-      color,
-      id,
-      feed
-    );
+    const realm = await this._databaseCore.realm();
+    let feeds: IFeedObject[];
+    if (feed) {
+      feeds = [feed];
+    } else if (id) {
+      feeds = [...this._feedRepository.loadByIds(realm, [id])];
+    } else {
+      throw new Error("Either id or feed must be provided.");
+    }
+    for (const f of feeds) {
+      (f as IFeedObject).color = color;
+    }
+    await this.update(feeds);
   }
 
   /**
@@ -336,10 +388,6 @@ export class FeedService extends Eventable<IFeedServiceState> {
   async delete(ids?: OID[], feeds?: IFeedCollection, fromSync = false) {
     if (this._databaseCore.getState("dbInitializing")) {
       return;
-    }
-
-    if (!fromSync) {
-      await PLAPI.syncService.addSyncLog("feed", "delete", { ids, feeds });
     }
 
     if (!ids && !feeds) {
@@ -367,19 +415,21 @@ export class FeedService extends Eventable<IFeedServiceState> {
       feeds = feeds!;
     }
 
-    const filter = new FeedEntityFilterOptions({
-      feedIds: feeds!.map((feed: IFeedObject) => feed._id),
-    });
-    const toBeDeletedEntities = this._feedEntityRepository.load(
-      realm,
-      filter.toString(),
-      filter.placeholders,
-      "addTime",
-      "asce"
-    );
-    this._feedEntityRepository.delete(realm, undefined, toBeDeletedEntities);
-
-    this._feedRepository.delete(realm, undefined, feeds);
+    const feedArray = Array.isArray(feeds) ? feeds : [...feeds];
+    for (const feed of feedArray) {
+      const legacyOid =
+        typeof feed._id === "string"
+          ? feed._id
+          : (feed._id as { toString: () => string }).toString();
+      const result = await deleteFeed(legacyOid);
+      if (result) {
+        const paperIds = await getPaperIdsByFeedId(result.feedId);
+        for (const paperId of paperIds) {
+          await deletePaper(paperId);
+        }
+      }
+    }
+    await this._realmProjectionEngine.ensureCaughtUp({ maxBatch: 5000 });
   }
 
   /**
@@ -422,7 +472,8 @@ export class FeedService extends Eventable<IFeedServiceState> {
     }
     const feeds = (await this.load("name", "desc")) as Feed[];
     await this.refresh(undefined, feeds);
-    this._feedEntityRepository.deleteOutdate(await this._databaseCore.realm());
+    await deleteOutdatedFeedEntityPapers();
+    await this._realmProjectionEngine.ensureCaughtUp({ maxBatch: 5000 });
   }
 
   /**

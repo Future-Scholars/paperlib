@@ -167,7 +167,7 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
    * @param partition - Partition.
    * @returns FeedEntity
    */
-  update(
+  async update(
     realm: Realm,
     feedEntity: FeedEntity,
     partition: string,
@@ -175,18 +175,17 @@ export class FeedEntityRepository extends Eventable<IFeedEntityRepositoryState> 
   ) {
     feedEntity = this.makeSureProperties(feedEntity);
 
-    return realm.safeWrite(() => {
-      let feed = this._feedRepository.toRealmObject(realm, feedEntity.feed);
-      if (!feed) {
-        feed = this._feedRepository.update(
-          realm,
-          feedEntity.feed,
-          partition
-        ) as IFeedRealmObject;
-      } else {
-        feed = feed!;
-      }
+    // Handle feed update outside of safeWrite to avoid async pollution
+    let feed: IFeedRealmObject | undefined = this._feedRepository.toRealmObject(realm, feedEntity.feed);
+    if (!feed) {
+      feed = await this._feedRepository.update(
+        realm,
+        feedEntity.feed,
+        partition
+      ) as IFeedRealmObject;
+    }
 
+    return realm.safeWrite(() => {
       const object = this.toRealmObject(realm, feedEntity);
 
       if (object) {

@@ -26,7 +26,6 @@ function handleDeeplink(urlStr: string) {
         const args = Object.fromEntries(
           new URLSearchParams(decodeURIComponent(search.slice(1)))
         );
-        console.log(apiGroup, serviceName, methodName, args);
         globalThis[apiGroup][serviceName][methodName](args);
       } else {
         throw new Error("Invalid URL");
