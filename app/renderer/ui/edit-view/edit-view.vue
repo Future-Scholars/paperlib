@@ -286,7 +286,7 @@ onMounted(() => {
             />
             <InputField
               :placeholder="
-                $t('mainview.note') + ' (start with `<md> to use markdown`)'
+                $t('mainview.note') + ' (start with <md> to use Markdown)'
               "
               class="h-44 col-span-2"
               :value="editingPaperEntityDraft.note"
