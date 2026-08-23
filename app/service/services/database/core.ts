@@ -134,6 +134,7 @@ export class DatabaseCore extends Eventable<IDatabaseCoreState> {
           true,
           "Database"
         );
+        throw err;
       }
     }
 
