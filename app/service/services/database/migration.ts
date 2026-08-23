@@ -174,7 +174,7 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
 
     // Migrate SmartFilters
     const oldSmartFilters = oldRealm.objects<PaperSmartFilter>(
-      "PaperPaperSmartFilter"
+      PaperSmartFilter.schema.name
     );
     const newSmartFilters = newRealm.objects<PaperSmartFilter>(
       PaperSmartFilter.schema.name
@@ -195,26 +195,25 @@ export function migrate(oldRealm: Realm, newRealm: Realm) {
         }
       );
 
-      for (const smartFilter of oldSmartFilters) {
+      for (const smartFilter of newSmartFilters) {
         if (smartFilter.name === "SmartFilters") {
           continue;
         }
 
-        const newSmartFilter = new PaperSmartFilter();
-        newSmartFilter._id = smartFilter._id;
-        newSmartFilter.children = [];
-        newSmartFilter.color = smartFilter.color || "blue";
-        newSmartFilter.name = smartFilter.name.replaceAll("/", "-");
-        newSmartFilter.filter = smartFilter.filter || "true";
-        smartFilterRoot.children.push(
-          newRealm.create<PaperSmartFilter>(
-            PaperSmartFilter.schema.name,
-            newSmartFilter
-          )
+        const oldSmartFilter = oldSmartFilters.find(
+          (t) => `${t._id}` === `${smartFilter._id}`
         );
+        if (!oldSmartFilter) {
+          continue;
+        }
+
+        smartFilter.children = [];
+        smartFilter.color = oldSmartFilter.color || "blue";
+        smartFilter.name = smartFilter.name.replaceAll("/", "-");
+        smartFilter.filter = oldSmartFilter.filter || "true";
+        smartFilterRoot.children.push(smartFilter);
       }
     }
-    newRealm.deleteModel("PaperPaperSmartFilter");
   }
 }
 
